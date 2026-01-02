@@ -13,6 +13,7 @@ import { checkAllVersions, upgradeAll } from '../utils/upgrade-manager'
 import { detectAllConfigs, displayConfigScan } from '../utils/config-consolidator'
 import { getTranslation } from '../i18n'
 import { getAllToolsStatus, installTool, type ToolStatus } from '../utils/code-tools'
+import { displayCurrentStatus, runConfigWizard } from '../utils/api-router'
 
 /**
  * Menu section
@@ -316,8 +317,11 @@ async function smartConfig(lang: SupportedLang, suggestions: any): Promise<void>
 }
 
 async function configureApi(lang: SupportedLang): Promise<void> {
-  console.log(STATUS.inProgress('Configuring API...'))
-  // TODO: Implement API configuration
+  // Show current status first
+  displayCurrentStatus(lang)
+
+  // Run the configuration wizard
+  await runConfigWizard(lang)
 }
 
 async function configureMcp(lang: SupportedLang): Promise<void> {

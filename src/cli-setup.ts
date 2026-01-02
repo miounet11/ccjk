@@ -11,6 +11,7 @@ import { showMainMenu } from './commands/menu'
 import { uninstall } from './commands/uninstall'
 import { update } from './commands/update'
 import { toolsCommand } from './commands/tools'
+import { apiCommand } from './commands/api'
 import { changeLanguage, i18n, initI18n } from './i18n'
 import { selectScriptLanguage } from './utils/prompts'
 import { readZcfConfigAsync } from './utils/zcf-config'
@@ -403,6 +404,17 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .option('--json', 'Output in JSON format')
     .action(async (action, target, options) => {
       await toolsCommand(action || 'list', target, options)
+    })
+
+  // CCJK API command - Unified API configuration
+  cli
+    .command('api [action] [...args]', 'Configure API providers (Simple, Official, CCR modes)')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .option('--provider, -p <provider>', 'Provider ID for quick setup')
+    .option('--key, -k <key>', 'API key for quick setup')
+    .option('--test, -t', 'Test API connection after setup')
+    .action(async (action, args, options) => {
+      await apiCommand(action || 'wizard', args || [], options)
     })
 
   // Custom help

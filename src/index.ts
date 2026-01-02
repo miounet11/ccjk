@@ -34,3 +34,6 @@ export * from './utils/onboarding'
 
 // Multi-Tool Support (Claude Code, Codex, Aider, Continue, Cline, Cursor)
 export * from './utils/code-tools'
+
+// API Router (Simple Mode, Official API, CCR Advanced)
+export * from './utils/api-router'

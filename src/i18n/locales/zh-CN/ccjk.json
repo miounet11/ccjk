@@ -222,5 +222,55 @@
       "syncApiKeys": "同步 API 密钥到所有工具",
       "syncSkills": "同步技能到所有工具"
     }
+  },
+  "apiRouter": {
+    "title": "API 配置",
+    "subtitle": "为 Claude Code 配置 API 提供商",
+    "currentConfig": "当前 API 配置",
+    "noApiConfigured": "未配置 API",
+    "modes": {
+      "official": "官方 Anthropic",
+      "simple": "简单模式 (API 中转)",
+      "ccr": "CCR 高级路由"
+    },
+    "wizard": {
+      "title": "API 配置向导",
+      "selectMode": "选择配置模式",
+      "quickSetup": "快速配置 (推荐) - 选择预设提供商",
+      "officialApi": "官方 Anthropic API - 直接连接",
+      "customConfig": "自定义配置 - 手动输入 API 地址和密钥",
+      "ccrAdvanced": "CCR 高级路由 - 完整 Claude Code Router 配置"
+    },
+    "providers": {
+      "title": "可用 API 提供商",
+      "recommended": "推荐",
+      "chinese": "国内服务",
+      "free": "免费额度",
+      "local": "本地",
+      "viewAll": "查看所有提供商..."
+    },
+    "setup": {
+      "success": "API 配置成功!",
+      "failed": "API 配置失败",
+      "provider": "提供商",
+      "defaultModel": "默认模型",
+      "enterApiKey": "输入 API 密钥",
+      "enterBaseUrl": "输入 API Base URL",
+      "apiKeyRequired": "API 密钥不能为空",
+      "urlRequired": "URL 不能为空",
+      "urlMustStartHttp": "URL 必须以 http:// 或 https:// 开头"
+    },
+    "test": {
+      "testing": "测试 API 连接...",
+      "success": "API 连接成功",
+      "failed": "API 连接失败"
+    },
+    "categories": {
+      "official": "官方",
+      "openai-compatible": "OpenAI 兼容",
+      "chinese": "国内服务",
+      "free": "免费额度",
+      "local": "本地"
+    }
   }
 }

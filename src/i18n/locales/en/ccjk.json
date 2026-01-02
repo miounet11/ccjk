@@ -222,5 +222,55 @@
       "syncApiKeys": "Sync API keys across tools",
       "syncSkills": "Sync skills to all tools"
     }
+  },
+  "apiRouter": {
+    "title": "API Configuration",
+    "subtitle": "Configure API providers for Claude Code",
+    "currentConfig": "Current API Configuration",
+    "noApiConfigured": "No API configured",
+    "modes": {
+      "official": "Official Anthropic",
+      "simple": "Simple Mode (API Proxy)",
+      "ccr": "CCR Advanced Router"
+    },
+    "wizard": {
+      "title": "API Configuration Wizard",
+      "selectMode": "Select configuration mode",
+      "quickSetup": "Quick Setup (Recommended) - Choose preset provider",
+      "officialApi": "Official Anthropic API - Direct connection",
+      "customConfig": "Custom Configuration - Manual API URL and key",
+      "ccrAdvanced": "CCR Advanced Router - Full Claude Code Router setup"
+    },
+    "providers": {
+      "title": "Available API Providers",
+      "recommended": "Recommended",
+      "chinese": "Chinese Providers",
+      "free": "Free Tier",
+      "local": "Local",
+      "viewAll": "View all providers..."
+    },
+    "setup": {
+      "success": "API configured successfully!",
+      "failed": "API configuration failed",
+      "provider": "Provider",
+      "defaultModel": "Default model",
+      "enterApiKey": "Enter API key",
+      "enterBaseUrl": "Enter API Base URL",
+      "apiKeyRequired": "API key is required",
+      "urlRequired": "URL is required",
+      "urlMustStartHttp": "URL must start with http:// or https://"
+    },
+    "test": {
+      "testing": "Testing API connection...",
+      "success": "API connection successful",
+      "failed": "API connection failed"
+    },
+    "categories": {
+      "official": "Official",
+      "openai-compatible": "OpenAI Compatible",
+      "chinese": "Chinese Providers",
+      "free": "Free Tier",
+      "local": "Local"
+    }
   }
 }
