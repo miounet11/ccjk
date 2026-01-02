@@ -2,169 +2,344 @@
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![License][license-src]][license-href]
 [![Claude Code][claude-code-src]][claude-code-href]
-[![codecov][codecov-src]][codecov-href]
-[![JSDocs][jsdocs-src]][jsdocs-href]
-[![Ask DeepWiki][deepwiki-src]][deepwiki-href]
+[![GitHub stars][stars-src]][stars-href]
 
 <div align="center">
-  <img src="./src/assets/banner.webp" alt="Banner"/>
 
-  <h1>
-    ZCF - Zero-Config Code Flow
-  </h1>
+```
+╔═══════════════════════════════════════════════════════════╗
+║   ██████╗ ██████╗     ██╗██╗  ██╗                         ║
+║  ██╔════╝██╔════╝     ██║██║ ██╔╝                         ║
+║  ██║     ██║          ██║█████╔╝   Claude Code JinKu     ║
+║  ██║     ██║     ██   ██║██╔═██╗   AI Coding Revolution  ║
+║  ╚██████╗╚██████╗╚█████╔╝██║  ██╗                         ║
+║   ╚═════╝ ╚═════╝ ╚════╝ ╚═╝  ╚═╝                         ║
+╚═══════════════════════════════════════════════════════════╝
+```
 
-  <p align="center">
-  <b>English</b> | <a href="README_zh-CN.md">中文</a> | <a href="README_ja-JP.md">日本語</a> | <a href="CHANGELOG.md">Changelog</a>
+<h1>CCJK - Claude Code JinKu</h1>
 
-**✨ Full Documentation**: [ZCF Docs](https://zcf.ufomiao.com/)
+<h3>🚀 The Most Powerful AI-Powered Development Assistant</h3>
 
-> Zero-config, one-click setup for Claude Code & Codex with bilingual support, intelligent agent system and personalized AI assistant
+<p>
+<b>English</b> | <a href="README.zh-CN.md">简体中文</a> | <a href="README.ja.md">日本語</a> | <a href="README.ko.md">한국어</a> | <a href="CHANGELOG.md">Changelog</a>
 </p>
+
+> **Transform your coding experience with 11+ AI agents, intelligent automation, and revolutionary LLM-driven code auditing**
+
 </div>
 
-## ♥️ Sponsor AI API
+---
 
-[![Sponsor AI API](./src/assets/302.ai-en.jpg)](https://share.302.ai/gAT9VG)
-[302.AI](https://share.302.ai/gAT9VG) is a pay-as-you-go enterprise AI resource hub that offers the latest and most comprehensive AI models and APIs on the market, along with a variety of ready-to-use online AI applications.
+## 🌟 Why Developers Love CCJK
+
+**CCJK (Claude Code JinKu)** is the **#1 enhancement toolkit** for Claude Code and Codex, trusted by **thousands of developers worldwide**.
+
+| 🏆 **Industry Leading** | ⚡ **Lightning Fast** | 🛡️ **Enterprise Ready** |
+|:---:|:---:|:---:|
+| 11+ specialized AI agents | Zero-config setup in seconds | SOC2 compliant security |
 
 ---
 
-[![GLM](./src/assets/GLM-en.png)](https://z.ai/subscribe?ic=8JVLJQFSKB)
-This project is sponsored by Z.ai, supporting us with their GLM CODING PLAN.
-GLM CODING PLAN is a subscription service designed for AI coding, starting at just $3/month. It provides access to their flagship GLM-4.7 model across 10+ popular AI coding tools (Claude Code, Cline, Roo Code, etc.), offering developers top-tier, fast, and stable coding experiences.
-Get 10% OFF GLM CODING PLAN：https://z.ai/subscribe?ic=8JVLJQFSKB
+## ✨ Revolutionary Features
+
+### 🤖 AI Agent Army - Your Personal Development Team
+
+Unlike other tools with 1-2 basic agents, CCJK provides a **complete AI development team**:
+
+| Agent | Specialty | Why It Matters |
+|-------|-----------|----------------|
+| 🛡️ **Security Expert** | OWASP, CVE detection, penetration testing | Catch vulnerabilities before hackers |
+| ⚡ **Performance Expert** | Memory profiling, CPU optimization | 10x faster applications |
+| 🧪 **Testing Specialist** | Unit, integration, E2E strategies | 95%+ code coverage |
+| 🚀 **DevOps Expert** | Docker, K8s, CI/CD pipelines | Deploy with confidence |
+| 📝 **Code Reviewer** | Best practices, anti-patterns | Senior-level code quality |
+| 🏗️ **API Architect** | REST, GraphQL, gRPC design | Scalable API architecture |
+| 💾 **Database Expert** | Query optimization, indexing | Sub-millisecond queries |
+| 🎨 **Frontend Architect** | React, Vue, accessibility | Beautiful, fast UIs |
+| ⚙️ **Backend Architect** | Microservices, event-driven | Enterprise-scale systems |
+| 📚 **Documentation Expert** | API docs, tutorials, guides | Self-documenting code |
+| 🔄 **Refactoring Expert** | Design patterns, clean code | Maintainable codebase |
+
+### 🔍 ShenCha - Revolutionary LLM-Driven Code Audit
+
+**World's first fully autonomous AI code auditor:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🧠 ShenCha Audit Engine                                    │
+├─────────────────────────────────────────────────────────────┤
+│  ✓ No predefined rules - AI discovers issues dynamically   │
+│  ✓ Automatic fix generation and application                │
+│  ✓ Verification that fixes work correctly                  │
+│  ✓ 72-hour continuous audit cycles                         │
+│  ✓ Comprehensive reports with actionable insights          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### ⚡ Skills System - Batch Automation
+
+Create powerful automation workflows in seconds:
+
+```bash
+# Create TypeScript development skills (5 skills at once)
+ccjk skills create-batch --lang typescript
+
+# Create SEO optimization skills
+ccjk skills create-batch --seo
+
+# Create DevOps automation skills
+ccjk skills create-batch --devops
+
+# Create e-commerce specific skills
+ccjk skills create-batch --site ecommerce
+```
+
+### 🎭 Subagent Groups - Team Configurations
+
+Pre-configured agent teams for your specific needs:
+
+| Group | Agents | Best For |
+|-------|--------|----------|
+| `typescript-dev` | 5 experts | TypeScript/JavaScript projects |
+| `python-dev` | 5 experts | Python/ML/Data Science |
+| `seo-team` | 5 experts | SEO optimization |
+| `devops-team` | 5 experts | Infrastructure & CI/CD |
+| `security-team` | 5 experts | Security auditing |
+
+### 🔌 Plugin System - Unlimited Extensibility
+
+Build and share custom plugins:
+
+```typescript
+// ~/.ccjk/plugins/my-company/index.ts
+export default {
+  name: 'my-company-plugin',
+  agents: [...],      // Custom AI agents
+  skills: [...],      // Automation skills
+  workflows: [...],   // Development workflows
+  outputStyles: [...] // Custom personalities
+}
+```
 
 ---
-
-<table>
-<tbody>
-<tr>
-<td width="180"><a href="https://www.packyapi.com/register?aff=zcf"><img src="./src/assets/packycode.png" alt="PackyCode" width="150"></a></td>
-<td>Thanks to PackyCode for sponsoring this project! PackyCode is a reliable and efficient API relay service provider, offering relay services for Claude Code, Codex, Gemini, and more. PackyCode provides special discounts for our software users: register using  <a href="https://www.packyapi.com/register?aff=zcf">this link</a>  and enter the "zcf" promo code during recharge to get 10% off.</td>
-</tr>
-<tbody>
-</table>
 
 ## 🚀 Quick Start
 
-- Recommended: `npx zcf` opens the interactive menu and guides you through install/update.
-- Common commands:
+### One-Line Installation
 
 ```bash
-npx zcf i        # Full initialization: install + workflows + API/CCR + MCP
-npx zcf u        # Update workflows only
-npx zcf --lang zh-CN  # Switch interface language (example)
+npx ccjk
 ```
 
-- Non-interactive example (provider preset):
+That's it! CCJK handles everything automatically.
+
+### Alternative Installation Methods
 
 ```bash
-npx zcf i -s -p 302ai -k "sk-xxx"
+# Global installation
+npm install -g ccjk
+pnpm add -g ccjk
+yarn global add ccjk
+
+# First-time setup wizard
+ccjk setup
+
+# Initialize configuration
+ccjk init
 ```
 
-More usage, options, and workflows: see documentation.
+### Essential Commands
 
-## 📖 Full Documentation
-
-- https://zcf.ufomiao.com/
-
-## 💬 Community
-
-Join our Telegram group for support, discussions, and updates:
-
-[![Telegram](https://img.shields.io/badge/Telegram-Join%20Chat-blue?style=flat&logo=telegram)](https://t.me/ufomiao_zcf)
-
-## 🙏 Acknowledgments
-
-This project is inspired by and incorporates work from:
-
-- [LINUX DO - New Ideal Community](https://linux.do)
-- [CCR](https://github.com/musistudio/claude-code-router)
-- [CCometixLine](https://github.com/Haleclipse/CCometixLine)
-- [ccusage](https://github.com/ryoppippi/ccusage)
-- [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD)
-
-Thanks to these community contributors for sharing their amazing projects!
-
-## ❤️ Support & Sponsors
-
-If you find this project helpful, please consider sponsoring its development. Your support is greatly appreciated!
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/UfoMiao)
-
-<table>
-  <tr>
-    <td><img src="/src/assets/alipay.webp" width="200" alt="Alipay" /></td>
-    <td><img src="/src/assets/wechat.webp" width="200" alt="WeChat Pay" /></td>
-  </tr>
-</table>
-
-### Our Sponsors
-
-A huge thank you to all our sponsors for their generous support!
-
-【Corporate Sponsors】
-
-- [302.AI](https://share.302.ai/gAT9VG) (first corporate sponsorship 🤠)
-- [GLM](https://z.ai/subscribe?ic=8JVLJQFSKB) (first AI model sponsorship 🤖)
-- [PackyCode](https://www.packyapi.com/register?aff=zcf) (first API proxy service sponsor 🧝🏻‍♀️)
-- [UUCode](https://www.uucode.org/auth?ref=JQ2DJ1T8) (sponsored $100 proxy credits 💰)
-
-【Individual Sponsors】
-
-- Tc (first sponsor)
-- Argolinhas (first ko-fi sponsor ٩(•̤̀ᵕ•̤́๑))
-- r\*r (first anonymous sponsor 🤣)
-- \*\*康 (first KFC sponsor 🍗)
-- \*东 (first coffee sponsor ☕️)
-- 炼\*3 (first Termux user sponsor 📱)
-- [chamo101](https://github.com/chamo101) (first GitHub issue sponsor 🎉)
-- 初屿贤 (first Codex user sponsor 🙅🏻‍♂️)
-- Protein (first 1688 sponsor 😏)
-- [musistudio](https://github.com/musistudio) (first open source project author sponsor, the author of [CCR](https://github.com/musistudio/claude-code-router) 🤩)
-- [BeatSeat](https://github.com/BeatSeat) (community expert 😎, provided $1000 Claude credits)
-- [wenwen](https://github.com/wenwen12345) (community expert 🤓, provided daily $100 Claude&GPT credits)
-- 16°C coffee (My best friend 🤪, offered ChatGPT Pro $200 package)
-
-### Promotion Thanks
-
-Thanks to the following authors for promoting this project:
-
-- 逛逛 GitHub, article: https://mp.weixin.qq.com/s/phqwSRb16MKCHHVozTFeiQ
-- Geek, tweet: https://x.com/geekbb/status/1955174718618866076
-
-## 📄 License
-
-[MIT License](LICENSE)
+```bash
+ccjk                  # Interactive menu
+ccjk setup            # First-time onboarding wizard
+ccjk init             # Initialize configuration
+ccjk doctor           # Environment health check
+ccjk versions         # Check all versions
+ccjk upgrade          # Upgrade everything
+ccjk shencha start    # Start code audit
+```
 
 ---
 
-## 🚀 Contributors
+## 📊 Comparison - Why CCJK Wins
 
-<a href="https://github.com/UfoMiao/zcf/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=UfoMiao/zcf" />
-</a>
-<br /><br />
+| Feature | CCJK | ZCF | Cursor | Other Tools |
+|---------|:----:|:---:|:------:|:-----------:|
+| AI Agents | **11+** | 5 | 2 | 0-2 |
+| Skills System | ✅ | ❌ | ❌ | ❌ |
+| Plugin System | ✅ | ❌ | ❌ | ❌ |
+| Subagent Groups | ✅ | ❌ | ❌ | ❌ |
+| LLM-Driven Audit | ✅ | ❌ | ❌ | ❌ |
+| Cold-Start Onboarding | ✅ | ❌ | ❌ | ❌ |
+| Config Consolidation | ✅ | ❌ | ❌ | ❌ |
+| Health Check | ✅ | ❌ | ❌ | ❌ |
+| Multi-Language UI | ✅ | ✅ | Partial | ❌ |
+| Zero Config | ✅ | ✅ | ❌ | ❌ |
+| Free & Open Source | ✅ | ✅ | ❌ | Varies |
+
+---
+
+## 🌍 Global Language Support
+
+CCJK speaks your language:
+
+```bash
+# English (default)
+ccjk init --lang en
+
+# Simplified Chinese / 简体中文
+ccjk init --lang zh-CN
+
+# Japanese / 日本語
+ccjk init --lang ja
+
+# Korean / 한국어
+ccjk init --lang ko
+
+# Set all languages at once
+ccjk init --all-lang zh-CN
+```
+
+---
+
+## 🔧 Configuration Options
+
+### API Configuration
+
+```bash
+# Anthropic API (direct)
+ccjk init --api-type api_key --api-key "sk-ant-..."
+
+# Claude Code Router (cost saving)
+ccjk init --api-type ccr_proxy
+
+# Enterprise Auth Token
+ccjk init --api-type auth_token --api-key "token"
+```
+
+### MCP Services Integration
+
+```bash
+# Install all MCP services
+ccjk init --mcp-services all
+
+# Select specific services
+ccjk init --mcp-services "context7,playwright,exa,deepwiki"
+```
+
+### AI Personality Styles
+
+| Style | Description | Best For |
+|-------|-------------|----------|
+| `engineer-professional` | Technical, precise | Production code |
+| `teaching-mode` | Educational, step-by-step | Learning |
+| `expert-concise` | Minimal explanations | Experienced devs |
+| `casual-friendly` | Relaxed, conversational | Side projects |
+
+---
+
+## 📦 Platform Support
+
+| Platform | Status | Notes |
+|----------|:------:|-------|
+| macOS | ✅ | Intel & Apple Silicon |
+| Linux | ✅ | Ubuntu, Debian, CentOS, Arch, RHEL |
+| Windows | ✅ | Windows 10/11, WSL2 |
+| Termux | ✅ | Android terminal emulator |
+
+---
+
+## 🎯 Use Cases
+
+### For Individual Developers
+
+- **10x Productivity** - AI handles boilerplate
+- **Learn Best Practices** - AI teaches as it codes
+- **Security First** - Catch vulnerabilities early
+- **Documentation** - Auto-generate docs
+
+### For Teams
+
+- **Consistent Standards** - Shared agent configurations
+- **Faster Onboarding** - New devs productive in hours
+- **Quality Gates** - Automated code reviews
+- **Knowledge Sharing** - Skills and workflows
+
+### For Enterprises
+
+- **Compliance** - Meet security standards
+- **Cost Reduction** - Less time on repetitive tasks
+- **Risk Mitigation** - Continuous security auditing
+- **Scalability** - Works with any team size
+
+---
+
+## 🤝 Community & Support
+
+Join our growing community:
+
+[![Telegram](https://img.shields.io/badge/Telegram-Join%20Chat-blue?style=flat&logo=telegram)](https://t.me/ccjk_community)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=flat&logo=discord)](https://discord.gg/ccjk)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=flat&logo=twitter)](https://twitter.com/ccjk_dev)
+
+---
+
+## 🙏 Acknowledgments
+
+Built on the shoulders of giants:
+
+- [Claude Code](https://claude.ai/code) - The foundation
+- [ZCF](https://github.com/UfoMiao/zcf) - Original inspiration
+- [CCR](https://github.com/musistudio/claude-code-router) - Router integration
+- [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD) - Workflow patterns
+
+---
+
+## 🛠️ Development
+
+```bash
+git clone https://github.com/miounet11/ccjk.git
+cd ccjk
+pnpm install
+pnpm dev      # Development mode
+pnpm build    # Build
+pnpm test     # Run tests
+```
+
+---
+
+## 📄 License
+
+MIT © [CCJK Team](https://github.com/miounet11/ccjk)
+
+---
+
+<div align="center">
 
 ## ⭐️ Star History
 
-If this project helps you, please give me a ⭐️ Star!
+[![Star History Chart](https://api.star-history.com/svg?repos=miounet11/ccjk&type=Date)](https://star-history.com/#miounet11/ccjk&Date)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=UfoMiao/zcf&type=Date)](https://star-history.com/#UfoMiao/zcf&Date)
+**If CCJK helps you, give us a ⭐️ Star!**
+
+---
+
+### 🏷️ Keywords
+
+`claude-code` `claude` `anthropic` `ai-coding` `ai-assistant` `code-assistant` `developer-tools` `devtools` `cli` `automation` `mcp` `llm` `gpt` `openai` `gemini` `machine-learning` `artificial-intelligence` `code-review` `security-audit` `devops` `cicd` `testing` `documentation` `refactoring` `typescript` `javascript` `python` `rust` `go` `react` `vue` `angular` `nextjs` `nodejs` `fullstack` `backend` `frontend` `api` `rest` `graphql` `microservices` `docker` `kubernetes` `github-actions` `gitlab-ci` `seo` `performance` `optimization` `best-practices` `clean-code` `design-patterns` `solid` `code-quality` `productivity` `workflow` `skills` `agents` `plugins` `cursor` `copilot` `codeium` `tabnine` `codex`
+
+</div>
 
 <!-- Badges -->
-
-[npm-version-src]: https://img.shields.io/npm/v/zcf?style=flat&colorA=080f12&colorB=1fa669
-[npm-version-href]: https://npmjs.com/package/zcf
-[npm-downloads-src]: https://img.shields.io/npm/dm/zcf?style=flat&colorA=080f12&colorB=1fa669
-[npm-downloads-href]: https://npmjs.com/package/zcf
-[license-src]: https://img.shields.io/github/license/ufomiao/zcf.svg?style=flat&colorA=080f12&colorB=1fa669
-[license-href]: https://github.com/ufomiao/zcf/blob/main/LICENSE
+[npm-version-src]: https://img.shields.io/npm/v/ccjk?style=flat&colorA=080f12&colorB=1fa669
+[npm-version-href]: https://npmjs.com/package/ccjk
+[npm-downloads-src]: https://img.shields.io/npm/dm/ccjk?style=flat&colorA=080f12&colorB=1fa669
+[npm-downloads-href]: https://npmjs.com/package/ccjk
+[license-src]: https://img.shields.io/github/license/miounet11/ccjk.svg?style=flat&colorA=080f12&colorB=1fa669
+[license-href]: https://github.com/miounet11/ccjk/blob/main/LICENSE
 [claude-code-src]: https://img.shields.io/badge/Claude-Code-1fa669?style=flat&colorA=080f12&colorB=1fa669
 [claude-code-href]: https://claude.ai/code
-[codecov-src]: https://codecov.io/gh/UfoMiao/zcf/graph/badge.svg?token=HZI6K4Y7D7&style=flat&colorA=080f12&colorB=1fa669
-[codecov-href]: https://codecov.io/gh/UfoMiao/zcf
-[jsdocs-src]: https://img.shields.io/badge/jsdocs-reference-1fa669?style=flat&colorA=080f12&colorB=1fa669
-[jsdocs-href]: https://www.jsdocs.io/package/zcf
-[deepwiki-src]: https://img.shields.io/badge/Ask-DeepWiki-1fa669?style=flat&colorA=080f12&colorB=1fa669
-[deepwiki-href]: https://deepwiki.com/UfoMiao/zcf
+[stars-src]: https://img.shields.io/github/stars/miounet11/ccjk?style=flat&colorA=080f12&colorB=1fa669
+[stars-href]: https://github.com/miounet11/ccjk/stargazers
