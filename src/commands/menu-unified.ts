@@ -4,6 +4,7 @@ import inquirer from 'inquirer'
 import ansis from 'ansis'
 import ora from 'ora'
 import type { SupportedLang } from '../constants'
+import { CODE_TOOL_INFO, CODE_TOOL_TYPES, type CodeToolType } from '../constants'
 import { COLORS, boxify, STATUS, renderProgressBar } from '../utils/banner'
 import { detectProject, generateSuggestions, getProjectSummary } from '../utils/auto-config/detector'
 import { runDoctor } from '../utils/health-check'
@@ -11,6 +12,7 @@ import { displayPermissions } from '../utils/permission-manager'
 import { checkAllVersions, upgradeAll } from '../utils/upgrade-manager'
 import { detectAllConfigs, displayConfigScan } from '../utils/config-consolidator'
 import { getTranslation } from '../i18n'
+import { getAllToolsStatus, installTool, type ToolStatus } from '../utils/code-tools'
 
 /**
  * Menu section
@@ -106,6 +108,12 @@ export async function showMainMenu(lang: SupportedLang = 'en'): Promise<void> {
       title: 'Tools',
       icon: '🛠️',
       items: [
+        {
+          key: 'T',
+          label: 'AI Tools',
+          description: 'Manage AI coding assistants',
+          action: async () => await manageAiTools(lang),
+        },
         {
           key: 'R',
           label: 'CCR Router',
@@ -344,4 +352,190 @@ async function manageSkills(lang: SupportedLang): Promise<void> {
 async function scanConfigs(lang: SupportedLang): Promise<void> {
   const configs = detectAllConfigs()
   displayConfigScan(configs)
+}
+
+/**
+ * Manage AI coding tools (Claude Code, Codex, Aider, Continue, Cline, Cursor)
+ */
+async function manageAiTools(lang: SupportedLang): Promise<void> {
+  const spinner = ora('Scanning installed AI tools...').start()
+  const toolsStatus = await getAllToolsStatus()
+  spinner.stop()
+
+  // Display tools status
+  console.log('')
+  console.log(COLORS.primary('  ╔═══════════════════════════════════════════╗'))
+  console.log(COLORS.primary('  ║') + COLORS.accent('            AI Coding Tools                 ') + COLORS.primary('║'))
+  console.log(COLORS.primary('  ╚═══════════════════════════════════════════╝'))
+  console.log('')
+
+  // Show installed tools
+  console.log(COLORS.secondary('  📦 Installed Tools:'))
+  const installedTools = toolsStatus.filter(t => t.installed)
+  const notInstalledTools = toolsStatus.filter(t => !t.installed)
+
+  if (installedTools.length === 0) {
+    console.log(ansis.gray('     No AI tools installed yet'))
+  } else {
+    for (const tool of installedTools) {
+      const info = CODE_TOOL_INFO[tool.tool]
+      const version = tool.version ? ansis.cyan(` v${tool.version}`) : ''
+      const config = tool.configExists ? ansis.green(' ✓') : ansis.yellow(' ⚠')
+      console.log(`     ${ansis.green('✓')} ${info.name}${version}${config}`)
+    }
+  }
+
+  console.log('')
+  console.log(COLORS.secondary('  📋 Available to Install:'))
+  if (notInstalledTools.length === 0) {
+    console.log(ansis.gray('     All tools are installed!'))
+  } else {
+    for (const tool of notInstalledTools) {
+      const info = CODE_TOOL_INFO[tool.tool]
+      console.log(`     ${ansis.gray('○')} ${info.name} - ${ansis.gray(info.description)}`)
+    }
+  }
+
+  console.log('')
+
+  // Tool management actions
+  const choices = [
+    { name: '📊 Show all tools status', value: 'status' },
+    { name: '📥 Install a tool', value: 'install' },
+    { name: '⚙️  Configure a tool', value: 'configure' },
+    { name: '🔄 Sync API keys across tools', value: 'sync' },
+    { name: '🔙 Back to main menu', value: 'back' },
+  ]
+
+  const { action } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'action',
+      message: 'Select action:',
+      choices,
+    },
+  ])
+
+  switch (action) {
+    case 'status':
+      await showToolsStatusDetailed(toolsStatus)
+      break
+    case 'install':
+      await installToolPrompt(notInstalledTools, lang)
+      break
+    case 'configure':
+      await configureToolPrompt(installedTools, lang)
+      break
+    case 'sync':
+      await syncApiKeysPrompt(installedTools, lang)
+      break
+    case 'back':
+    default:
+      return
+  }
+}
+
+/**
+ * Show detailed tools status
+ */
+async function showToolsStatusDetailed(toolsStatus: ToolStatus[]): Promise<void> {
+  console.log('')
+  console.log(boxify(`
+AI Coding Tools Status
+
+${toolsStatus.map((t) => {
+  const info = CODE_TOOL_INFO[t.tool]
+  const status = t.installed ? '✓ Installed' : '✗ Not installed'
+  const version = t.version || 'N/A'
+  const config = t.configExists ? '✓ Configured' : '⚠ Not configured'
+  return `${info.name}
+  Status: ${status}
+  Version: ${version}
+  Config: ${config}
+  Category: ${info.category}`
+}).join('\n\n')}
+`, 'rounded', 'Tools Status'))
+}
+
+/**
+ * Install tool prompt
+ */
+async function installToolPrompt(notInstalledTools: ToolStatus[], lang: SupportedLang): Promise<void> {
+  if (notInstalledTools.length === 0) {
+    console.log(STATUS.success('All tools are already installed!'))
+    return
+  }
+
+  const choices = notInstalledTools.map((t) => {
+    const info = CODE_TOOL_INFO[t.tool]
+    return {
+      name: `${info.name} - ${info.description}`,
+      value: t.tool,
+    }
+  })
+
+  const { tool } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'tool',
+      message: 'Select tool to install:',
+      choices,
+    },
+  ])
+
+  const spinner = ora(`Installing ${CODE_TOOL_INFO[tool].name}...`).start()
+  const result = await installTool(tool)
+
+  if (result.success) {
+    spinner.succeed(result.message)
+  } else {
+    spinner.fail(result.message)
+  }
+}
+
+/**
+ * Configure tool prompt
+ */
+async function configureToolPrompt(installedTools: ToolStatus[], lang: SupportedLang): Promise<void> {
+  if (installedTools.length === 0) {
+    console.log(STATUS.warning('No tools installed. Install a tool first.'))
+    return
+  }
+
+  const choices = installedTools.map((t) => {
+    const info = CODE_TOOL_INFO[t.tool]
+    return {
+      name: `${info.name} ${t.configExists ? '(configured)' : '(not configured)'}`,
+      value: t.tool,
+    }
+  })
+
+  const { tool } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'tool',
+      message: 'Select tool to configure:',
+      choices,
+    },
+  ])
+
+  const info = CODE_TOOL_INFO[tool]
+  console.log(STATUS.info(`Opening ${info.name} configuration...`))
+  console.log(ansis.gray(`Config format: ${info.configFormat}`))
+  // TODO: Implement tool-specific configuration
+  console.log(STATUS.info('Configuration interface coming soon!'))
+}
+
+/**
+ * Sync API keys prompt
+ */
+async function syncApiKeysPrompt(installedTools: ToolStatus[], lang: SupportedLang): Promise<void> {
+  if (installedTools.length < 2) {
+    console.log(STATUS.warning('Need at least 2 installed tools to sync API keys.'))
+    return
+  }
+
+  console.log(STATUS.info('Syncing API keys across installed tools...'))
+  // TODO: Implement API key synchronization
+  console.log(STATUS.info('API key sync coming soon!'))
 }

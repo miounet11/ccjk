@@ -31,3 +31,6 @@ export * from './utils/upgrade-manager'
 export * from './utils/config-consolidator'
 export * from './utils/permission-manager'
 export * from './utils/onboarding'
+
+// Multi-Tool Support (Claude Code, Codex, Aider, Continue, Cline, Cursor)
+export * from './utils/code-tools'

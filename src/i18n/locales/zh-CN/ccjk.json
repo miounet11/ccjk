@@ -170,5 +170,57 @@
     "update": "更新",
     "select": "选择",
     "returnToMenu": "返回菜单？"
+  },
+  "tools": {
+    "title": "AI 编程工具",
+    "subtitle": "管理多个 AI 编程助手",
+    "scan": "扫描已安装工具",
+    "install": "安装工具",
+    "configure": "配置工具",
+    "switch": "切换活动工具",
+    "sync": "同步配置",
+    "status": {
+      "installed": "已安装",
+      "notInstalled": "未安装",
+      "configured": "已配置",
+      "notConfigured": "未配置"
+    },
+    "categories": {
+      "cli": "命令行工具",
+      "extension": "IDE 扩展",
+      "editor": "AI 编辑器"
+    },
+    "list": {
+      "claudeCode": {
+        "name": "Claude Code",
+        "description": "Anthropic 官方 Claude AI CLI"
+      },
+      "codex": {
+        "name": "Codex",
+        "description": "OpenAI Codex CLI 工具"
+      },
+      "aider": {
+        "name": "Aider",
+        "description": "终端 AI 结对编程"
+      },
+      "continue": {
+        "name": "Continue",
+        "description": "开源 AI 代码助手"
+      },
+      "cline": {
+        "name": "Cline",
+        "description": "VS Code 自主编程代理"
+      },
+      "cursor": {
+        "name": "Cursor CLI",
+        "description": "AI 优先的代码编辑器 CLI"
+      }
+    },
+    "actions": {
+      "installAll": "安装所有推荐工具",
+      "configureAll": "配置所有已安装工具",
+      "syncApiKeys": "同步 API 密钥到所有工具",
+      "syncSkills": "同步技能到所有工具"
+    }
   }
 }

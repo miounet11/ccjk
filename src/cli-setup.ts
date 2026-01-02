@@ -10,6 +10,7 @@ import { init } from './commands/init'
 import { showMainMenu } from './commands/menu'
 import { uninstall } from './commands/uninstall'
 import { update } from './commands/update'
+import { toolsCommand } from './commands/tools'
 import { changeLanguage, i18n, initI18n } from './i18n'
 import { selectScriptLanguage } from './utils/prompts'
 import { readZcfConfigAsync } from './utils/zcf-config'
@@ -393,6 +394,15 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .alias('perm')
     .action(async () => {
       displayPermissions()
+    })
+
+  // CCJK Tools command - Manage AI coding tools
+  cli
+    .command('tools [action] [target]', 'Manage AI coding tools (Claude Code, Codex, Aider, Continue, Cline, Cursor)')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .option('--json', 'Output in JSON format')
+    .action(async (action, target, options) => {
+      await toolsCommand(action || 'list', target, options)
     })
 
   // Custom help

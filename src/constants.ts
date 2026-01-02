@@ -16,6 +16,23 @@ export const CODEX_AUTH_FILE = join(CODEX_DIR, 'auth.json')
 export const CODEX_AGENTS_FILE = join(CODEX_DIR, 'AGENTS.md')
 export const CODEX_PROMPTS_DIR = join(CODEX_DIR, 'prompts')
 
+// Aider configuration paths
+export const AIDER_DIR = join(homedir(), '.aider')
+export const AIDER_CONFIG_FILE = join(AIDER_DIR, '.aider.conf.yml')
+export const AIDER_ENV_FILE = join(AIDER_DIR, '.env')
+
+// Continue configuration paths
+export const CONTINUE_DIR = join(homedir(), '.continue')
+export const CONTINUE_CONFIG_FILE = join(CONTINUE_DIR, 'config.json')
+
+// Cline configuration paths (VS Code extension stores in workspace)
+export const CLINE_DIR = join(homedir(), '.cline')
+export const CLINE_CONFIG_FILE = join(CLINE_DIR, 'config.json')
+
+// Cursor CLI configuration paths
+export const CURSOR_DIR = join(homedir(), '.cursor')
+export const CURSOR_CONFIG_FILE = join(CURSOR_DIR, 'config.json')
+
 // CCJK configuration paths
 export const CCJK_CONFIG_DIR = join(homedir(), '.ccjk')
 export const CCJK_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'config.toml')
@@ -38,19 +55,86 @@ export const ZCF_CONFIG_DIR = CCJK_CONFIG_DIR
 /** @deprecated Use CCJK_CONFIG_FILE instead */
 export const ZCF_CONFIG_FILE = CCJK_CONFIG_FILE
 
-export const CODE_TOOL_TYPES = ['claude-code', 'codex'] as const
+export const CODE_TOOL_TYPES = ['claude-code', 'codex', 'aider', 'continue', 'cline', 'cursor'] as const
 export type CodeToolType = (typeof CODE_TOOL_TYPES)[number]
 export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'claude-code'
 
 export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
   'claude-code': 'for Claude Code',
   'codex': 'for Codex',
+  'aider': 'for Aider',
+  'continue': 'for Continue',
+  'cline': 'for Cline',
+  'cursor': 'for Cursor CLI',
 }
 
 // Short aliases for code tool types
 export const CODE_TOOL_ALIASES: Record<string, CodeToolType> = {
   cc: 'claude-code',
   cx: 'codex',
+  ad: 'aider',
+  ct: 'continue',
+  cl: 'cline',
+  cu: 'cursor',
+}
+
+// Tool metadata for display and management
+export const CODE_TOOL_INFO: Record<CodeToolType, {
+  name: string
+  description: string
+  website: string
+  installCmd: string
+  configFormat: 'json' | 'toml' | 'yaml'
+  category: 'cli' | 'extension' | 'editor'
+}> = {
+  'claude-code': {
+    name: 'Claude Code',
+    description: 'Anthropic official CLI for Claude',
+    website: 'https://claude.ai/code',
+    installCmd: 'npm install -g @anthropic-ai/claude-code',
+    configFormat: 'json',
+    category: 'cli',
+  },
+  'codex': {
+    name: 'Codex',
+    description: 'OpenAI Codex CLI',
+    website: 'https://openai.com/codex',
+    installCmd: 'npm install -g @openai/codex',
+    configFormat: 'toml',
+    category: 'cli',
+  },
+  'aider': {
+    name: 'Aider',
+    description: 'AI pair programming in terminal',
+    website: 'https://aider.chat',
+    installCmd: 'pip install aider-chat',
+    configFormat: 'yaml',
+    category: 'cli',
+  },
+  'continue': {
+    name: 'Continue',
+    description: 'Open-source AI code assistant',
+    website: 'https://continue.dev',
+    installCmd: 'pip install continuedev',
+    configFormat: 'json',
+    category: 'extension',
+  },
+  'cline': {
+    name: 'Cline',
+    description: 'Autonomous coding agent for VS Code',
+    website: 'https://cline.bot',
+    installCmd: 'code --install-extension saoudrizwan.claude-dev',
+    configFormat: 'json',
+    category: 'extension',
+  },
+  'cursor': {
+    name: 'Cursor CLI',
+    description: 'AI-first code editor CLI',
+    website: 'https://cursor.com/cli',
+    installCmd: 'curl https://cursor.com/install -fsSL | bash',
+    configFormat: 'json',
+    category: 'editor',
+  },
 }
 
 export function isCodeToolType(value: any): value is CodeToolType {

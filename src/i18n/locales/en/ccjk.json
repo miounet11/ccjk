@@ -170,5 +170,57 @@
     "update": "Update",
     "select": "Select",
     "returnToMenu": "Return to menu?"
+  },
+  "tools": {
+    "title": "AI Coding Tools",
+    "subtitle": "Manage multiple AI coding assistants",
+    "scan": "Scan installed tools",
+    "install": "Install tool",
+    "configure": "Configure tool",
+    "switch": "Switch active tool",
+    "sync": "Sync configurations",
+    "status": {
+      "installed": "Installed",
+      "notInstalled": "Not installed",
+      "configured": "Configured",
+      "notConfigured": "Not configured"
+    },
+    "categories": {
+      "cli": "CLI Tools",
+      "extension": "IDE Extensions",
+      "editor": "AI Editors"
+    },
+    "list": {
+      "claudeCode": {
+        "name": "Claude Code",
+        "description": "Anthropic official CLI for Claude AI"
+      },
+      "codex": {
+        "name": "Codex",
+        "description": "OpenAI Codex CLI tool"
+      },
+      "aider": {
+        "name": "Aider",
+        "description": "AI pair programming in terminal"
+      },
+      "continue": {
+        "name": "Continue",
+        "description": "Open-source AI code assistant"
+      },
+      "cline": {
+        "name": "Cline",
+        "description": "Autonomous coding agent for VS Code"
+      },
+      "cursor": {
+        "name": "Cursor CLI",
+        "description": "AI-first code editor CLI"
+      }
+    },
+    "actions": {
+      "installAll": "Install all recommended",
+      "configureAll": "Configure all installed",
+      "syncApiKeys": "Sync API keys across tools",
+      "syncSkills": "Sync skills to all tools"
+    }
   }
 }
