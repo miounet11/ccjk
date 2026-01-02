@@ -8,12 +8,12 @@
     "name": "CCJK Team"
   },
   "license": "MIT",
-  "homepage": "https://github.com/ccjk/ccjk",
+  "homepage": "https://github.com/miounet11/ccjk",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ccjk/ccjk.git"
+    "url": "git+https://github.com/miounet11/ccjk.git"
   },
-  "bugs": "https://github.com/ccjk/ccjk/issues",
+  "bugs": "https://github.com/miounet11/ccjk/issues",
   "keywords": [
     "claude",
     "claude-code",
