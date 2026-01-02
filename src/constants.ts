@@ -16,13 +16,27 @@ export const CODEX_AUTH_FILE = join(CODEX_DIR, 'auth.json')
 export const CODEX_AGENTS_FILE = join(CODEX_DIR, 'AGENTS.md')
 export const CODEX_PROMPTS_DIR = join(CODEX_DIR, 'prompts')
 
-// ZCF configuration paths
-export const ZCF_CONFIG_DIR = join(homedir(), '.ufomiao', 'zcf')
-export const ZCF_CONFIG_FILE = join(ZCF_CONFIG_DIR, 'config.toml')
+// CCJK configuration paths
+export const CCJK_CONFIG_DIR = join(homedir(), '.ccjk')
+export const CCJK_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'config.toml')
+export const CCJK_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'plugins')
+export const CCJK_SKILLS_DIR = join(CCJK_CONFIG_DIR, 'skills')
+export const CCJK_GROUPS_DIR = join(CCJK_CONFIG_DIR, 'groups')
+
+// Legacy ZCF paths for migration support
+export const LEGACY_ZCF_CONFIG_DIR = join(homedir(), '.ufomiao', 'zcf')
+export const LEGACY_ZCF_CONFIG_FILE = join(LEGACY_ZCF_CONFIG_DIR, 'config.toml')
 export const LEGACY_ZCF_CONFIG_FILES = [
   join(CLAUDE_DIR, '.zcf-config.json'),
   join(homedir(), '.zcf.json'),
+  LEGACY_ZCF_CONFIG_FILE,
 ]
+
+// Aliases for backward compatibility (deprecated, use CCJK_* instead)
+/** @deprecated Use CCJK_CONFIG_DIR instead */
+export const ZCF_CONFIG_DIR = CCJK_CONFIG_DIR
+/** @deprecated Use CCJK_CONFIG_FILE instead */
+export const ZCF_CONFIG_FILE = CCJK_CONFIG_FILE
 
 export const CODE_TOOL_TYPES = ['claude-code', 'codex'] as const
 export type CodeToolType = (typeof CODE_TOOL_TYPES)[number]

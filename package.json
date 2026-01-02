@@ -1,42 +1,43 @@
 {
-  "name": "zcf",
+  "name": "ccjk",
   "type": "module",
-  "version": "3.5.0",
+  "version": "1.0.0",
   "packageManager": "pnpm@10.17.1",
-  "description": "Zero-Config Code Flow - One-click configuration tool for Code Cli",
+  "description": "Claude Code JinKu - Advanced AI-powered development assistant with skills, agents, and LLM-driven audit",
   "author": {
-    "name": "Miao Da",
-    "email": "ufo025174@gmail.com",
-    "url": "https://github.com/WitMiao"
+    "name": "CCJK Team"
   },
   "license": "MIT",
-  "homepage": "https://github.com/UfoMiao/zcf",
+  "homepage": "https://github.com/ccjk/ccjk",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/UfoMiao/zcf.git"
+    "url": "git+https://github.com/ccjk/ccjk.git"
   },
-  "bugs": "https://github.com/UfoMiao/zcf/issues",
+  "bugs": "https://github.com/ccjk/ccjk/issues",
   "keywords": [
     "claude",
     "claude-code",
     "codex",
-    "config",
+    "ccjk",
+    "ai-assistant",
     "cli",
-    "setup",
-    "zero-config",
-    "zcf",
+    "skills",
+    "agents",
+    "shencha",
+    "audit",
     "anthropic",
     "openai",
-    "ChatGPT",
     "ai",
     "automation",
-    "mcp"
+    "mcp",
+    "plugin-system"
   ],
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.mts",
   "bin": {
-    "zcf": "bin/zcf.mjs"
+    "ccjk": "bin/ccjk.mjs",
+    "zcf": "bin/ccjk.mjs"
   },
   "files": [
     "bin",
@@ -46,7 +47,7 @@
   "scripts": {
     "dev": "tsx ./src/cli.ts",
     "build": "unbuild",
-    "start": "node bin/zcf.mjs",
+    "start": "node bin/ccjk.mjs",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build",
     "lint": "eslint",

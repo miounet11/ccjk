@@ -13,6 +13,11 @@ import { update } from './commands/update'
 import { changeLanguage, i18n, initI18n } from './i18n'
 import { selectScriptLanguage } from './utils/prompts'
 import { readZcfConfigAsync } from './utils/zcf-config'
+import { runOnboarding, quickSync } from './utils/onboarding'
+import { runDoctor } from './utils/health-check'
+import { checkAllVersions, upgradeAll } from './utils/upgrade-manager'
+import { detectAllConfigs, displayConfigScan } from './utils/config-consolidator'
+import { displayPermissions } from './utils/permission-manager'
 
 export interface CliOptions {
   lang?: 'zh-CN' | 'en'
@@ -334,6 +339,61 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .action(await withLanguageResolution(async (options) => {
       await checkUpdates(options)
     }))
+
+  // CCJK Setup command - First-time onboarding
+  cli
+    .command('setup', 'First-time setup - scan project and build knowledge base')
+    .alias('s')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .action(await withLanguageResolution(async () => {
+      await runOnboarding()
+    }))
+
+  // CCJK Sync command - Quick knowledge sync
+  cli
+    .command('sync', 'Quick sync - update knowledge base from current project')
+    .action(async () => {
+      await quickSync()
+    })
+
+  // CCJK Doctor command - Health check
+  cli
+    .command('doctor', 'Run environment health check')
+    .option('--fix', 'Attempt to fix issues automatically')
+    .action(async (options) => {
+      await runDoctor(options.fix)
+    })
+
+  // CCJK Versions command - Check versions
+  cli
+    .command('versions', 'Check Claude Code, CCJK, and plugin versions')
+    .alias('ver')
+    .action(async () => {
+      await checkAllVersions()
+    })
+
+  // CCJK Upgrade command - Upgrade all
+  cli
+    .command('upgrade', 'Upgrade Claude Code and CCJK to latest versions')
+    .action(async () => {
+      await upgradeAll()
+    })
+
+  // CCJK Config scan command
+  cli
+    .command('config-scan', 'Scan and display all Claude Code config files')
+    .action(async () => {
+      const configs = detectAllConfigs()
+      displayConfigScan(configs)
+    })
+
+  // CCJK Permissions command
+  cli
+    .command('permissions', 'Display current Claude Code permissions')
+    .alias('perm')
+    .action(async () => {
+      displayPermissions()
+    })
 
   // Custom help
   cli.help(sections => customizeHelp(sections))
