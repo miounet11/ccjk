@@ -15,6 +15,7 @@ const NAMESPACES = [
   'common',
   'api',
   'ccr',
+  'ccjk', // CCJK-specific translations
   'cli',
   'cometix',
   'configuration',
