@@ -347,6 +347,41 @@ export interface AuditCycleStatus {
 }
 
 /**
+ * Audit cycle
+ */
+export interface AuditCycle {
+  /** Cycle ID */
+  id: string
+  /** Start time */
+  startedAt: Date
+  /** Completion time */
+  completedAt?: Date
+  /** Current status */
+  status: 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'
+  /** Current phase */
+  currentPhase?: string
+  /** Pause reason if paused */
+  pauseReason?: string
+  /** Error message if failed */
+  error?: string
+  /** Project context */
+  context: ProjectContext
+  /** Scan results */
+  scanResults: ScanResult[]
+  /** Evaluated issues */
+  evaluatedIssues: EvaluatedIssue[]
+  /** Fix results */
+  fixResults: Array<{
+    issue: EvaluatedIssue
+    plan: FixPlan
+    fix: GeneratedFix
+    result: FixResult
+  }>
+  /** Generated report */
+  report: AuditReport | null
+}
+
+/**
  * Audit report
  */
 export interface AuditReport {

@@ -73,7 +73,13 @@ fi
 
 # Check for git
 if ! command -v git &> /dev/null; then
-    echo -e "${YELLOW}! Git not found (optional but recommended)${NC}"
+    echo -e "${RED}✗ Git is not installed (required for GitHub installation)${NC}"
+    echo ""
+    echo -e "${YELLOW}Please install Git first:${NC}"
+    echo -e "  macOS: brew install git"
+    echo -e "  Linux: sudo apt-get install git"
+    echo -e "  Windows: https://git-scm.com/download/win"
+    exit 1
 else
     GIT_VERSION=$(git --version | cut -d' ' -f3)
     echo -e "${GREEN}✓ Git${NC} $GIT_VERSION"
@@ -81,17 +87,39 @@ fi
 
 echo ""
 
-# Install CCJK globally
-echo -e "${BLUE}Installing CCJK...${NC}"
+# Install CCJK from GitHub
+echo -e "${BLUE}Installing CCJK from GitHub...${NC}"
 echo ""
 
-# Check if already installed
-if command -v ccjk &> /dev/null; then
-    echo -e "${YELLOW}CCJK is already installed. Upgrading...${NC}"
-    npm update -g ccjk
-else
-    npm install -g ccjk
+# Create temp directory
+TEMP_DIR=$(mktemp -d)
+cd "$TEMP_DIR"
+
+# Clone repository
+echo -e "${CYAN}Cloning repository...${NC}"
+git clone --depth 1 https://github.com/miounet11/ccjk.git
+cd ccjk
+
+# Check for pnpm
+if ! command -v pnpm &> /dev/null; then
+    echo -e "${YELLOW}Installing pnpm...${NC}"
+    npm install -g pnpm
 fi
+
+# Install dependencies and build
+echo -e "${CYAN}Installing dependencies...${NC}"
+pnpm install
+
+echo -e "${CYAN}Building...${NC}"
+pnpm build
+
+# Install globally
+echo -e "${CYAN}Installing globally...${NC}"
+npm install -g .
+
+# Cleanup
+cd /
+rm -rf "$TEMP_DIR"
 
 echo ""
 
@@ -102,7 +130,9 @@ if command -v ccjk &> /dev/null; then
 else
     echo -e "${RED}✗ Installation failed${NC}"
     echo ""
-    echo -e "${YELLOW}Try running: npx ccjk${NC}"
+    echo -e "${YELLOW}Try cloning manually:${NC}"
+    echo -e "  git clone https://github.com/miounet11/ccjk.git"
+    echo -e "  cd ccjk && pnpm install && pnpm build && npm install -g ."
     exit 1
 fi
 
@@ -116,8 +146,8 @@ echo ""
 echo -e "  ${CYAN}1.${NC} Run the setup wizard:"
 echo -e "     ${GREEN}ccjk${NC}"
 echo ""
-echo -e "  ${CYAN}2.${NC} Or run with npx (no global install):"
-echo -e "     ${GREEN}npx ccjk${NC}"
+echo -e "  ${CYAN}2.${NC} Or start Interview-Driven Development:"
+echo -e "     ${GREEN}ccjk interview${NC}"
 echo ""
 echo -e "${BLUE}Popular Commands:${NC}"
 echo ""

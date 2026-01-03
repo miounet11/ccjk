@@ -26,7 +26,7 @@
 > 💡 **One command to supercharge your AI coding experience**
 >
 > ```bash
-> npx ccjk
+> curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
 > ```
 
 <br/>
@@ -72,19 +72,17 @@ curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | ba
 ### Alternative Installation Methods
 
 ```bash
-# Option A: Run directly with npx (no install needed)
-npx ccjk
+# Option A: Clone and install manually
+git clone https://github.com/miounet11/ccjk.git
+cd ccjk && pnpm install && pnpm build && npm install -g .
 
-# Option B: Install globally with npm
-npm install -g ccjk
-
-# Option C: Install globally with pnpm
-pnpm add -g ccjk
+# Option B: Install from GitHub directly
+npm install -g git+https://github.com/miounet11/ccjk.git
 ```
 
 ### Step 2: Configure Your API
 
-When you run `npx ccjk`, you'll see a friendly menu:
+When you run `ccjk`, you'll see a friendly menu:
 
 ```
 ╔═══════════════════════════════════════════════════════════╗
