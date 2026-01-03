@@ -123,10 +123,22 @@ rm -rf "$TEMP_DIR"
 
 echo ""
 
+# Get npm global bin directory and add to PATH for verification
+NPM_GLOBAL_BIN=$(npm prefix -g)/bin
+export PATH="$NPM_GLOBAL_BIN:$PATH"
+
 # Verify installation
-if command -v ccjk &> /dev/null; then
-    CCJK_VERSION=$(ccjk --version 2>/dev/null || echo "installed")
+if [ -f "$NPM_GLOBAL_BIN/ccjk" ] || command -v ccjk &> /dev/null; then
+    CCJK_VERSION=$("$NPM_GLOBAL_BIN/ccjk" --version 2>/dev/null || ccjk --version 2>/dev/null || echo "installed")
     echo -e "${GREEN}✓ CCJK installed successfully!${NC} v$CCJK_VERSION"
+
+    # Check if npm bin is in PATH
+    if ! echo "$PATH" | grep -q "$NPM_GLOBAL_BIN"; then
+        echo ""
+        echo -e "${YELLOW}Note: Add npm global bin to your PATH:${NC}"
+        echo -e "  export PATH=\"$NPM_GLOBAL_BIN:\$PATH\""
+        echo -e "  Add this line to your ~/.zshrc or ~/.bashrc"
+    fi
 else
     echo -e "${RED}✗ Installation failed${NC}"
     echo ""
