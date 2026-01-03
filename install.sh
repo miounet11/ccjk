@@ -113,14 +113,14 @@ pnpm install
 echo -e "${CYAN}Building...${NC}"
 pnpm build
 
-# Install globally using npm pack (creates a proper copy, not symlinks)
+# Install globally using pnpm pack (handles catalog: dependencies properly)
 echo -e "${CYAN}Installing globally...${NC}"
 
 # Remove any existing broken installation first
 npm uninstall -g ccjk 2>/dev/null || true
 
-# Create tarball and install from it
-PACK_FILE=$(npm pack 2>/dev/null | tail -1)
+# Create tarball using pnpm (handles catalog: deps) and install from it
+PACK_FILE=$(pnpm pack 2>/dev/null | tail -1)
 npm install -g "./$PACK_FILE"
 
 # Cleanup
