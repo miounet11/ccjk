@@ -113,9 +113,10 @@ pnpm install
 echo -e "${CYAN}Building...${NC}"
 pnpm build
 
-# Install globally
+# Install globally using npm pack (creates a proper copy, not symlinks)
 echo -e "${CYAN}Installing globally...${NC}"
-npm install -g .
+PACK_FILE=$(npm pack 2>/dev/null | tail -1)
+npm install -g "./$PACK_FILE"
 
 # Cleanup
 cd /
