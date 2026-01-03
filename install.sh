@@ -196,11 +196,22 @@ echo -e "Report issues: ${BLUE}https://github.com/miounet11/ccjk/issues${NC}"
 echo ""
 
 # Ask to run setup
-echo -e "${YELLOW}Would you like to run the setup wizard now? [Y/n]${NC}"
-read -r response
-response=${response:-Y}
+# Note: When run via curl | bash, stdin is consumed, so we skip interactive prompt
+if [ -t 0 ]; then
+    # Running interactively
+    echo -e "${YELLOW}Would you like to run the setup wizard now? [Y/n]${NC}"
+    read -r response
+    response=${response:-Y}
 
-if [[ "$response" =~ ^[Yy]$ ]]; then
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        echo ""
+        ccjk
+    fi
+else
+    # Running via pipe (curl | bash)
+    echo -e "${GREEN}Installation complete!${NC}"
     echo ""
-    ccjk
+    echo -e "${YELLOW}To start using CCJK, run:${NC}"
+    echo -e "  ${GREEN}ccjk${NC}"
+    echo ""
 fi
