@@ -119,13 +119,19 @@ echo -e "${CYAN}Installing globally...${NC}"
 # Remove any existing broken installation first
 npm uninstall -g ccjk 2>/dev/null || true
 
-# Create tarball using pnpm (handles catalog: deps) and install from it
-PACK_FILE=$(pnpm pack 2>/dev/null | tail -1)
-npm install -g "./$PACK_FILE"
+# Create tarball using pnpm (handles catalog: deps)
+pnpm pack --pack-destination /tmp >/dev/null 2>&1
+PACK_FILE="/tmp/ccjk-1.0.0.tgz"
 
-# Cleanup
-cd /
+# Cleanup the source directory BEFORE installing
+cd /tmp
 rm -rf "$TEMP_DIR"
+
+# Install from tarball (after source is deleted to avoid npm reading original package.json)
+npm install -g "$PACK_FILE"
+
+# Remove tarball
+rm -f "$PACK_FILE"
 
 echo ""
 
