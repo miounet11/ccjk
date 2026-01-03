@@ -12,6 +12,7 @@
   "workflowDescription.commonTools": "Provides project initialization and architecture analysis tools, including hierarchical directory initialization commands and intelligent architecture analysis agents",
   "workflowDescription.featPlanUx": "Feature planning and user experience design workflow with planning and UX design agents",
   "workflowDescription.gitWorkflow": "Git version control related commands collection",
+  "workflowDescription.interviewWorkflow": "Interview-Driven Development - Surface hidden assumptions before coding by asking 40+ deep questions",
   "workflowDescription.sixStepsWorkflow": "Professional development assistant structured six-step workflow",
   "workflowInstallError": "workflow installation had errors",
   "workflowInstallSuccess": "workflow installed successfully",
@@ -19,5 +20,6 @@
   "workflowOption.commonTools": "Common Tools (Hierarchical Directory Initialization + General-purpose agents)",
   "workflowOption.featPlanUx": "Feature Planning and UX Design (feat + planner + ui-ux-designer)",
   "workflowOption.gitWorkflow": "Git Commands (commit + rollback + cleanBranches + worktree)",
+  "workflowOption.interviewWorkflow": "Interview-Driven Development (Based on Anthropic Thariq's Workflow)",
   "workflowOption.sixStepsWorkflow": "Six Steps Workflow (workflow)"
 }

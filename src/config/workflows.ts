@@ -9,7 +9,7 @@ export interface WorkflowConfigBase {
   commands: string[]
   agents: Array<{ id: string, filename: string, required: boolean }>
   autoInstallAgents: boolean
-  category: 'common' | 'plan' | 'sixStep' | 'bmad' | 'git'
+  category: 'common' | 'plan' | 'sixStep' | 'bmad' | 'git' | 'interview'
   outputDir: string
 }
 
@@ -70,6 +70,16 @@ export const WORKFLOW_CONFIG_BASE: WorkflowConfigBase[] = [
     category: 'bmad',
     outputDir: 'bmad',
   },
+  {
+    id: 'interviewWorkflow',
+    defaultSelected: true,
+    order: 6,
+    commands: ['interview.md'],
+    agents: [],
+    autoInstallAgents: false,
+    category: 'interview',
+    outputDir: 'interview',
+  },
 ]
 
 export function getWorkflowConfigs(): WorkflowConfig[] {
@@ -101,6 +111,11 @@ export function getWorkflowConfigs(): WorkflowConfig[] {
       id: 'bmadWorkflow',
       name: i18n.t('workflow:workflowOption.bmadWorkflow'),
       description: i18n.t('workflow:workflowDescription.bmadWorkflow'),
+    },
+    {
+      id: 'interviewWorkflow',
+      name: i18n.t('workflow:workflowOption.interviewWorkflow'),
+      description: i18n.t('workflow:workflowDescription.interviewWorkflow'),
     },
   ]
 

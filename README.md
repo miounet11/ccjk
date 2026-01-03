@@ -1,187 +1,340 @@
+<!--
+  SEO Meta: CCJK - Claude Code JinKu | Best AI Coding Assistant | 11+ AI Agents | Free & Open Source
+  Description: CCJK is the most powerful enhancement toolkit for Claude Code. Features 11+ AI agents,
+  LLM-driven code auditing, skills automation, and plugin system. Zero-config setup in seconds.
+-->
+
+<div align="center">
+
+<!-- Logo & Badges - Optimized for GitHub Social Preview -->
+<img src="https://raw.githubusercontent.com/miounet11/ccjk/main/docs/assets/ccjk-logo.png" alt="CCJK Logo" width="200" />
+
+# CCJK - Claude Code JinKu
+
+### 🏆 The #1 AI Coding Assistant Enhancement Toolkit
+
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![License][license-src]][license-href]
-[![Claude Code][claude-code-src]][claude-code-href]
 [![GitHub stars][stars-src]][stars-href]
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/miounet11/ccjk/pulls)
 
-<div align="center">
+**[English](README.md)** | **[简体中文](README.zh-CN.md)** | **[日本語](README.ja.md)** | **[한국어](README.ko.md)**
+
+<br/>
+
+> 💡 **One command to supercharge your AI coding experience**
+>
+> ```bash
+> npx ccjk
+> ```
+
+<br/>
+
+[📖 Documentation](#-quick-start-guide) · [🚀 Features](#-core-features) · [💬 Community](#-community--support) · [🤝 Contributing](#-contributing)
+
+</div>
+
+---
+
+## 🎯 What is CCJK?
+
+**CCJK (Claude Code JinKu)** transforms Claude Code from a simple AI assistant into a **complete AI development team**. With 11+ specialized AI agents, intelligent automation, and the world's first LLM-driven code auditor, CCJK helps you write better code faster.
+
+<table>
+<tr>
+<td width="33%" align="center">
+<h3>🤖 11+ AI Agents</h3>
+<p>Security, Performance, Testing, DevOps, Code Review, and more</p>
+</td>
+<td width="33%" align="center">
+<h3>⚡ Zero Config</h3>
+<p>One command setup. Works out of the box.</p>
+</td>
+<td width="33%" align="center">
+<h3>🆓 100% Free</h3>
+<p>Open source. No hidden costs. MIT licensed.</p>
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start Guide
+
+### One-Click Installation (Recommended)
+
+```bash
+# Install with a single command
+curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+```
+
+### Alternative Installation Methods
+
+```bash
+# Option A: Run directly with npx (no install needed)
+npx ccjk
+
+# Option B: Install globally with npm
+npm install -g ccjk
+
+# Option C: Install globally with pnpm
+pnpm add -g ccjk
+```
+
+### Step 2: Configure Your API
+
+When you run `npx ccjk`, you'll see a friendly menu:
 
 ```
 ╔═══════════════════════════════════════════════════════════╗
 ║   ██████╗ ██████╗     ██╗██╗  ██╗                         ║
 ║  ██╔════╝██╔════╝     ██║██║ ██╔╝                         ║
 ║  ██║     ██║          ██║█████╔╝   Claude Code JinKu     ║
-║  ██║     ██║     ██   ██║██╔═██╗   AI Coding Revolution  ║
+║  ██║     ██║     ██   ██║██╔═██╗   v1.0.0                ║
 ║  ╚██████╗╚██████╗╚█████╔╝██║  ██╗                         ║
 ║   ╚═════╝ ╚═════╝ ╚════╝ ╚═╝  ╚═╝                         ║
 ╚═══════════════════════════════════════════════════════════╝
+
+? Select an option:
+❯ 🚀 Quick Setup (Recommended)
+  ⚙️  API Configuration
+  🛠️  Advanced Settings
+  📖 Help
 ```
 
-<h1>CCJK - Claude Code JinKu</h1>
+Just select **"Quick Setup"** and follow the prompts!
 
-<h3>🚀 The Most Powerful AI-Powered Development Assistant</h3>
+### Step 3: Start Coding!
 
-<p>
-<b>English</b> | <a href="README.zh-CN.md">简体中文</a> | <a href="README.ja.md">日本語</a> | <a href="README.ko.md">한국어</a> | <a href="CHANGELOG.md">Changelog</a>
-</p>
+```bash
+# Run Claude Code with CCJK enhancements
+claude
+```
 
-> **Transform your coding experience with 11+ AI agents, intelligent automation, and revolutionary LLM-driven code auditing**
-
-</div>
-
----
-
-## 🌟 Why Developers Love CCJK
-
-**CCJK (Claude Code JinKu)** is the **#1 enhancement toolkit** for Claude Code and Codex, trusted by **thousands of developers worldwide**.
-
-| 🏆 **Industry Leading** | ⚡ **Lightning Fast** | 🛡️ **Enterprise Ready** |
-|:---:|:---:|:---:|
-| 11+ specialized AI agents | Zero-config setup in seconds | SOC2 compliant security |
+That's it! You now have access to 11+ AI agents, skills automation, and more.
 
 ---
 
-## ✨ Revolutionary Features
+## ✨ Core Features
 
-### 🤖 AI Agent Army - Your Personal Development Team
+### 🤖 AI Agent Army
 
-Unlike other tools with 1-2 basic agents, CCJK provides a **complete AI development team**:
+Your personal AI development team, available 24/7:
 
-| Agent | Specialty | Why It Matters |
-|-------|-----------|----------------|
-| 🛡️ **Security Expert** | OWASP, CVE detection, penetration testing | Catch vulnerabilities before hackers |
-| ⚡ **Performance Expert** | Memory profiling, CPU optimization | 10x faster applications |
-| 🧪 **Testing Specialist** | Unit, integration, E2E strategies | 95%+ code coverage |
-| 🚀 **DevOps Expert** | Docker, K8s, CI/CD pipelines | Deploy with confidence |
-| 📝 **Code Reviewer** | Best practices, anti-patterns | Senior-level code quality |
-| 🏗️ **API Architect** | REST, GraphQL, gRPC design | Scalable API architecture |
-| 💾 **Database Expert** | Query optimization, indexing | Sub-millisecond queries |
-| 🎨 **Frontend Architect** | React, Vue, accessibility | Beautiful, fast UIs |
-| ⚙️ **Backend Architect** | Microservices, event-driven | Enterprise-scale systems |
-| 📚 **Documentation Expert** | API docs, tutorials, guides | Self-documenting code |
-| 🔄 **Refactoring Expert** | Design patterns, clean code | Maintainable codebase |
+| Agent | What It Does | Example Use Case |
+|-------|--------------|------------------|
+| 🛡️ **Security Expert** | Finds vulnerabilities, OWASP checks | "Review this auth code for security issues" |
+| ⚡ **Performance Expert** | Optimizes speed, reduces memory | "Why is my app slow?" |
+| 🧪 **Testing Specialist** | Writes tests, coverage analysis | "Add unit tests for this function" |
+| 🚀 **DevOps Expert** | CI/CD, Docker, Kubernetes | "Create a GitHub Actions workflow" |
+| 📝 **Code Reviewer** | Best practices, code quality | "Review this PR" |
+| 🏗️ **API Architect** | REST, GraphQL, API design | "Design an API for user management" |
+| 💾 **Database Expert** | Query optimization, indexing | "Optimize this SQL query" |
+| 🎨 **Frontend Architect** | React, Vue, accessibility | "Refactor this component" |
+| ⚙️ **Backend Architect** | Microservices, event-driven | "Design a scalable backend" |
+| 📚 **Documentation Expert** | API docs, READMEs, guides | "Document this codebase" |
+| 🔄 **Refactoring Expert** | Clean code, design patterns | "Refactor using SOLID principles" |
 
-### 🔍 ShenCha - Revolutionary LLM-Driven Code Audit
+### 🔍 ShenCha - AI Code Auditor
 
-**World's first fully autonomous AI code auditor:**
+The world's first **fully autonomous** AI code auditor:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  🧠 ShenCha Audit Engine                                    │
 ├─────────────────────────────────────────────────────────────┤
-│  ✓ No predefined rules - AI discovers issues dynamically   │
-│  ✓ Automatic fix generation and application                │
-│  ✓ Verification that fixes work correctly                  │
-│  ✓ 72-hour continuous audit cycles                         │
-│  ✓ Comprehensive reports with actionable insights          │
+│                                                             │
+│  1️⃣  SCAN    → AI discovers issues (no predefined rules)   │
+│  2️⃣  ANALYZE → Understands context and impact              │
+│  3️⃣  FIX     → Generates and applies fixes automatically   │
+│  4️⃣  VERIFY  → Confirms fixes work correctly               │
+│                                                             │
+│  ✅ Runs continuously in 72-hour cycles                     │
+│  ✅ Generates comprehensive reports                         │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### ⚡ Skills System - Batch Automation
+### 🎤 Interview-Driven Development (NEW!)
 
-Create powerful automation workflows in seconds:
+> **"Interview first. Spec second. Code last."** - Based on Thariq (@trq212) from Anthropic's viral workflow (1.2M views)
 
-```bash
-# Create TypeScript development skills (5 skills at once)
-ccjk skills create-batch --lang typescript
+Stop coding the wrong thing! The Interview system surfaces **hidden assumptions** before any code is written:
 
-# Create SEO optimization skills
-ccjk skills create-batch --seo
-
-# Create DevOps automation skills
-ccjk skills create-batch --devops
-
-# Create e-commerce specific skills
-ccjk skills create-batch --site ecommerce
+```
+╔════════════════ Interview Progress ════════════════╗
+║                                                     ║
+║ ← ☑ Industry │ ☐ Customer │ ☐ Features │ ☐ Submit →║
+║                                                     ║
+║ Question 12 of ~40                                  ║
+║                                                     ║
+║ What's your target customer segment?                ║
+║                                                     ║
+║ ❯ 1. ⚡ Quick Start (Recommended)                  ║
+║   2. 🔬 Deep Dive                                  ║
+║   3. ⚙️  Custom Setup                              ║
+║   4. 💨 Express Mode                               ║
+║                                                     ║
+╚═════════════════════════════════════════════════════╝
 ```
 
-### 🎭 Subagent Groups - Team Configurations
+```bash
+# In Claude Code, just type:
+/ccjk:interview                    # Smart mode selector
+/ccjk:interview --quick            # 10 essential questions
+/ccjk:interview --deep             # 40+ comprehensive questions
 
-Pre-configured agent teams for your specific needs:
+# Or use the CLI:
+ccjk interview                     # Interactive interview
+ccjk quick                         # Express mode
+ccjk deep                          # Deep dive mode
+```
 
-| Group | Agents | Best For |
-|-------|--------|----------|
-| `typescript-dev` | 5 experts | TypeScript/JavaScript projects |
-| `python-dev` | 5 experts | Python/ML/Data Science |
-| `seo-team` | 5 experts | SEO optimization |
-| `devops-team` | 5 experts | Infrastructure & CI/CD |
-| `security-team` | 5 experts | Security auditing |
+**Features:**
+- 🧠 **Smart Project Detection** - Auto-detects webapp/api/saas/ecommerce
+- 📊 **Progress Tracking** - Visual breadcrumbs and progress bar
+- ⏸️ **Pause & Resume** - Save progress and continue later
+- 📝 **Spec Generation** - Outputs comprehensive SPEC.md file
 
-### 🔌 Plugin System - Unlimited Extensibility
+### ⚡ Skills System
 
-Build and share custom plugins:
+Create powerful automation with simple commands:
+
+```bash
+# For TypeScript developers
+ccjk skills create-batch --lang typescript
+# Creates: ts-debug, ts-refactor, ts-test, ts-type-check, ts-migrate
+
+# For Python developers
+ccjk skills create-batch --lang python
+# Creates: py-debug, py-refactor, py-test, py-lint, py-type
+
+# For SEO optimization
+ccjk skills create-batch --seo
+# Creates: meta-optimize, sitemap-generate, schema-markup, core-web-vitals
+
+# For DevOps
+ccjk skills create-batch --devops
+# Creates: docker-setup, ci-pipeline, deploy-script, monitoring
+```
+
+### 🌐 13+ API Providers Built-in
+
+Connect to any AI provider with one click:
+
+| Provider | Type | Free Tier |
+|----------|------|:---------:|
+| **Anthropic** | Official | - |
+| **OpenRouter** | Multi-model | ✅ |
+| **DeepSeek** | Cost-effective | ✅ |
+| **Groq** | Fast inference | ✅ |
+| **Gemini** | Google AI | ✅ |
+| **Ollama** | Local/Private | ✅ |
+| 302.AI, Qwen, SiliconFlow, Kimi, GLM... | Chinese Providers | Varies |
+
+```bash
+# Quick API setup
+ccjk api setup deepseek sk-your-api-key
+
+# Or use the interactive wizard
+ccjk api wizard
+```
+
+### 🔌 Plugin System
+
+Extend CCJK with custom plugins:
 
 ```typescript
-// ~/.ccjk/plugins/my-company/index.ts
+// ~/.ccjk/plugins/my-plugin/index.ts
 export default {
-  name: 'my-company-plugin',
-  agents: [...],      // Custom AI agents
-  skills: [...],      // Automation skills
-  workflows: [...],   // Development workflows
-  outputStyles: [...] // Custom personalities
+  name: 'my-awesome-plugin',
+  version: '1.0.0',
+
+  // Add custom agents
+  agents: [
+    { name: 'my-agent', model: 'sonnet', template: '...' }
+  ],
+
+  // Add custom skills
+  skills: [
+    { id: 'my-skill', trigger: '/my-skill', template: '...' }
+  ],
+
+  // Add custom workflows
+  workflows: [...]
 }
 ```
 
 ---
 
-## 🚀 Quick Start
+## 📖 Complete Command Reference
 
-### One-Line Installation
+### Essential Commands (Use These First!)
 
-```bash
-npx ccjk
-```
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `npx ccjk` | Interactive setup menu | First time setup |
+| `ccjk setup` | Guided onboarding wizard | New to CCJK |
+| `ccjk doctor` | Check your environment | Something not working? |
+| `ccjk upgrade` | Update everything | Stay up to date |
 
-That's it! CCJK handles everything automatically.
+### Configuration Commands
 
-### Alternative Installation Methods
+| Command | Description |
+|---------|-------------|
+| `ccjk init` | Full initialization with all options |
+| `ccjk api wizard` | Configure API providers |
+| `ccjk api list` | Show available providers |
+| `ccjk api status` | Check current API config |
+| `ccjk api test` | Test API connection |
 
-```bash
-# Global installation
-npm install -g ccjk
-pnpm add -g ccjk
-yarn global add ccjk
+### Tool Management
 
-# First-time setup wizard
-ccjk setup
+| Command | Description |
+|---------|-------------|
+| `ccjk tools list` | Show all AI coding tools |
+| `ccjk tools install <tool>` | Install a specific tool |
+| `ccjk tools status` | Check installation status |
 
-# Initialize configuration
-ccjk init
-```
+### Skills & Automation
 
-### Essential Commands
+| Command | Description |
+|---------|-------------|
+| `ccjk skills list` | List all skills |
+| `ccjk skills create-batch --lang <lang>` | Create language-specific skills |
+| `ccjk skills enable <skill>` | Enable a skill |
+| `ccjk skills disable <skill>` | Disable a skill |
 
-```bash
-ccjk                  # Interactive menu
-ccjk setup            # First-time onboarding wizard
-ccjk init             # Initialize configuration
-ccjk doctor           # Environment health check
-ccjk versions         # Check all versions
-ccjk upgrade          # Upgrade everything
-ccjk shencha start    # Start code audit
-```
+### Interview-Driven Development
+
+| Command | Description |
+|---------|-------------|
+| `ccjk interview` or `ccjk iv` | Start interactive interview |
+| `ccjk quick` | Express mode (~10 questions) |
+| `ccjk deep` | Deep dive (~40+ questions) |
+| `ccjk interview --resume` | Resume paused session |
+| `ccjk interview --list` | List saved sessions |
+
+**In Claude Code:**
+| Slash Command | Description |
+|--------------|-------------|
+| `/ccjk:interview` | Start interview in Claude Code |
+| `/ccjk:interview --quick` | Quick interview mode |
+| `/ccjk:interview --deep` | Deep interview mode |
+
+### Advanced Commands
+
+| Command | Description |
+|---------|-------------|
+| `ccjk config-scan` | Find all Claude Code configs |
+| `ccjk permissions` | Manage Claude Code permissions |
+| `ccjk versions` | Check all component versions |
+| `ccjk uninstall` | Clean uninstallation |
 
 ---
 
-## 📊 Comparison - Why CCJK Wins
-
-| Feature | CCJK | ZCF | Cursor | Other Tools |
-|---------|:----:|:---:|:------:|:-----------:|
-| AI Agents | **11+** | 5 | 2 | 0-2 |
-| Skills System | ✅ | ❌ | ❌ | ❌ |
-| Plugin System | ✅ | ❌ | ❌ | ❌ |
-| Subagent Groups | ✅ | ❌ | ❌ | ❌ |
-| LLM-Driven Audit | ✅ | ❌ | ❌ | ❌ |
-| Cold-Start Onboarding | ✅ | ❌ | ❌ | ❌ |
-| Config Consolidation | ✅ | ❌ | ❌ | ❌ |
-| Health Check | ✅ | ❌ | ❌ | ❌ |
-| Multi-Language UI | ✅ | ✅ | Partial | ❌ |
-| Zero Config | ✅ | ✅ | ❌ | ❌ |
-| Free & Open Source | ✅ | ✅ | ❌ | Varies |
-
----
-
-## 🌍 Global Language Support
+## 🌍 Multi-Language Support
 
 CCJK speaks your language:
 
@@ -189,124 +342,149 @@ CCJK speaks your language:
 # English (default)
 ccjk init --lang en
 
-# Simplified Chinese / 简体中文
+# 简体中文 (Simplified Chinese)
 ccjk init --lang zh-CN
 
-# Japanese / 日本語
+# 日本語 (Japanese)
 ccjk init --lang ja
 
-# Korean / 한국어
+# 한국어 (Korean)
 ccjk init --lang ko
 
-# Set all languages at once
+# Set ALL languages at once (UI + Config + AI Output)
 ccjk init --all-lang zh-CN
 ```
 
 ---
 
-## 🔧 Configuration Options
+## 📊 Why Choose CCJK?
 
-### API Configuration
-
-```bash
-# Anthropic API (direct)
-ccjk init --api-type api_key --api-key "sk-ant-..."
-
-# Claude Code Router (cost saving)
-ccjk init --api-type ccr_proxy
-
-# Enterprise Auth Token
-ccjk init --api-type auth_token --api-key "token"
-```
-
-### MCP Services Integration
-
-```bash
-# Install all MCP services
-ccjk init --mcp-services all
-
-# Select specific services
-ccjk init --mcp-services "context7,playwright,exa,deepwiki"
-```
-
-### AI Personality Styles
-
-| Style | Description | Best For |
-|-------|-------------|----------|
-| `engineer-professional` | Technical, precise | Production code |
-| `teaching-mode` | Educational, step-by-step | Learning |
-| `expert-concise` | Minimal explanations | Experienced devs |
-| `casual-friendly` | Relaxed, conversational | Side projects |
+| Feature | CCJK | Cursor | Copilot | Other Tools |
+|---------|:----:|:------:|:-------:|:-----------:|
+| AI Agents | **11+** | 2 | 1 | 0-2 |
+| Skills Automation | ✅ | ❌ | ❌ | ❌ |
+| Plugin System | ✅ | ❌ | ❌ | ❌ |
+| LLM Code Audit | ✅ | ❌ | ❌ | ❌ |
+| Multi-Provider | **13+** | 1 | 1 | 1-3 |
+| Zero Config | ✅ | ❌ | ❌ | ❌ |
+| Open Source | ✅ | ❌ | ❌ | Varies |
+| Free | ✅ | ❌ | ❌ | Varies |
 
 ---
 
-## 📦 Platform Support
+## 💻 Platform Support
 
 | Platform | Status | Notes |
 |----------|:------:|-------|
-| macOS | ✅ | Intel & Apple Silicon |
-| Linux | ✅ | Ubuntu, Debian, CentOS, Arch, RHEL |
-| Windows | ✅ | Windows 10/11, WSL2 |
-| Termux | ✅ | Android terminal emulator |
+| **macOS** | ✅ Full Support | Intel & Apple Silicon |
+| **Linux** | ✅ Full Support | All major distros |
+| **Windows** | ✅ Full Support | Windows 10/11, WSL2 |
+| **Termux** | ✅ Full Support | Android terminal |
 
 ---
 
-## 🎯 Use Cases
+## ❓ Frequently Asked Questions
 
-### For Individual Developers
+<details>
+<summary><b>Do I need an API key?</b></summary>
 
-- **10x Productivity** - AI handles boilerplate
-- **Learn Best Practices** - AI teaches as it codes
-- **Security First** - Catch vulnerabilities early
-- **Documentation** - Auto-generate docs
+You need an API key from one of our 13+ supported providers. Some providers offer free tiers:
+- **Groq** - Free tier available
+- **Gemini** - Free tier available
+- **DeepSeek** - Very affordable
+- **Ollama** - Run locally, completely free
 
-### For Teams
+</details>
 
-- **Consistent Standards** - Shared agent configurations
-- **Faster Onboarding** - New devs productive in hours
-- **Quality Gates** - Automated code reviews
-- **Knowledge Sharing** - Skills and workflows
+<details>
+<summary><b>Is CCJK free?</b></summary>
 
-### For Enterprises
+Yes! CCJK is 100% free and open source (MIT license). You only pay for API usage to your chosen provider.
 
-- **Compliance** - Meet security standards
-- **Cost Reduction** - Less time on repetitive tasks
-- **Risk Mitigation** - Continuous security auditing
-- **Scalability** - Works with any team size
+</details>
+
+<details>
+<summary><b>Does it work with Claude Code?</b></summary>
+
+Yes! CCJK is designed specifically to enhance Claude Code. It also supports Codex, Aider, Continue, Cline, and Cursor.
+
+</details>
+
+<details>
+<summary><b>Can I use it in my company?</b></summary>
+
+Absolutely! The MIT license allows commercial use. Many teams use CCJK for:
+- Standardizing AI coding practices
+- Faster developer onboarding
+- Automated code reviews
+- Security compliance
+
+</details>
+
+<details>
+<summary><b>Something isn't working. What do I do?</b></summary>
+
+Run the health check:
+```bash
+ccjk doctor
+```
+This will diagnose common issues and suggest fixes.
+
+</details>
 
 ---
 
-## 🤝 Community & Support
+## 💬 Community & Support
 
-Join our growing community:
+<div align="center">
 
-[![Telegram](https://img.shields.io/badge/Telegram-Join%20Chat-blue?style=flat&logo=telegram)](https://t.me/ccjk_community)
-[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=flat&logo=discord)](https://discord.gg/ccjk)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=flat&logo=twitter)](https://twitter.com/ccjk_dev)
+[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-333?style=for-the-badge&logo=github)](https://github.com/miounet11/ccjk/discussions)
+[![Telegram](https://img.shields.io/badge/Telegram-Join%20Chat-26A5E4?style=for-the-badge&logo=telegram)](https://t.me/ccjk_community)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/ccjk)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=twitter)](https://twitter.com/ccjk_dev)
+
+</div>
+
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/miounet11/ccjk/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/miounet11/ccjk/discussions)
+- 📖 **Documentation**: [docs.ccjk.dev](https://docs.ccjk.dev)
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+```bash
+# Clone the repo
+git clone https://github.com/miounet11/ccjk.git
+cd ccjk
+
+# Install dependencies
+pnpm install
+
+# Run in development mode
+pnpm dev
+
+# Run tests
+pnpm test
+
+# Build
+pnpm build
+```
+
+See our [Contributing Guide](CONTRIBUTING.md) for more details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-Built on the shoulders of giants:
+CCJK is built on the shoulders of giants:
 
-- [Claude Code](https://claude.ai/code) - The foundation
+- [Claude Code](https://claude.ai/code) - The powerful AI coding foundation
 - [ZCF](https://github.com/UfoMiao/zcf) - Original inspiration
-- [CCR](https://github.com/musistudio/claude-code-router) - Router integration
+- [Claude Code Router](https://github.com/musistudio/claude-code-router) - API routing
 - [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD) - Workflow patterns
-
----
-
-## 🛠️ Development
-
-```bash
-git clone https://github.com/miounet11/ccjk.git
-cd ccjk
-pnpm install
-pnpm dev      # Development mode
-pnpm build    # Build
-pnpm test     # Run tests
-```
 
 ---
 
@@ -318,28 +496,30 @@ MIT © [CCJK Team](https://github.com/miounet11/ccjk)
 
 <div align="center">
 
-## ⭐️ Star History
+## ⭐ Star Us on GitHub
+
+If CCJK helps you code better, please give us a star! It helps others discover the project.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=miounet11/ccjk&type=Date)](https://star-history.com/#miounet11/ccjk&Date)
 
-**If CCJK helps you, give us a ⭐️ Star!**
+<br/>
 
----
+**Made with ❤️ by developers, for developers**
 
-### 🏷️ Keywords
+<br/>
 
-`claude-code` `claude` `anthropic` `ai-coding` `ai-assistant` `code-assistant` `developer-tools` `devtools` `cli` `automation` `mcp` `llm` `gpt` `openai` `gemini` `machine-learning` `artificial-intelligence` `code-review` `security-audit` `devops` `cicd` `testing` `documentation` `refactoring` `typescript` `javascript` `python` `rust` `go` `react` `vue` `angular` `nextjs` `nodejs` `fullstack` `backend` `frontend` `api` `rest` `graphql` `microservices` `docker` `kubernetes` `github-actions` `gitlab-ci` `seo` `performance` `optimization` `best-practices` `clean-code` `design-patterns` `solid` `code-quality` `productivity` `workflow` `skills` `agents` `plugins` `cursor` `copilot` `codeium` `tabnine` `codex`
+### 🔍 Search Keywords
+
+`claude-code` `ai-coding-assistant` `code-review-ai` `ai-developer-tools` `claude-ai` `anthropic` `llm-coding` `ai-agents` `code-automation` `devops-ai` `security-audit` `performance-optimization` `typescript` `python` `javascript` `react` `vue` `nodejs` `docker` `kubernetes` `github-actions` `ci-cd` `code-quality` `best-practices` `clean-code` `copilot-alternative` `cursor-alternative` `free-ai-coding` `open-source-ai`
 
 </div>
 
-<!-- Badges -->
-[npm-version-src]: https://img.shields.io/npm/v/ccjk?style=flat&colorA=080f12&colorB=1fa669
+<!-- Badge Links -->
+[npm-version-src]: https://img.shields.io/npm/v/ccjk?style=flat&colorA=18181B&colorB=28CF8D
 [npm-version-href]: https://npmjs.com/package/ccjk
-[npm-downloads-src]: https://img.shields.io/npm/dm/ccjk?style=flat&colorA=080f12&colorB=1fa669
+[npm-downloads-src]: https://img.shields.io/npm/dm/ccjk?style=flat&colorA=18181B&colorB=28CF8D
 [npm-downloads-href]: https://npmjs.com/package/ccjk
-[license-src]: https://img.shields.io/github/license/miounet11/ccjk.svg?style=flat&colorA=080f12&colorB=1fa669
+[license-src]: https://img.shields.io/github/license/miounet11/ccjk?style=flat&colorA=18181B&colorB=28CF8D
 [license-href]: https://github.com/miounet11/ccjk/blob/main/LICENSE
-[claude-code-src]: https://img.shields.io/badge/Claude-Code-1fa669?style=flat&colorA=080f12&colorB=1fa669
-[claude-code-href]: https://claude.ai/code
-[stars-src]: https://img.shields.io/github/stars/miounet11/ccjk?style=flat&colorA=080f12&colorB=1fa669
+[stars-src]: https://img.shields.io/github/stars/miounet11/ccjk?style=flat&colorA=18181B&colorB=28CF8D
 [stars-href]: https://github.com/miounet11/ccjk/stargazers

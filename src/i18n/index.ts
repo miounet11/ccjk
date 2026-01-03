@@ -21,6 +21,7 @@ const NAMESPACES = [
   'configuration',
   'errors',
   'installation',
+  'interview', // Interview-Driven Development
   'language',
   'mcp',
   'menu',

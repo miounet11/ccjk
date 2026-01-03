@@ -7,6 +7,7 @@ import { executeCcusage } from './commands/ccu'
 import { checkUpdates } from './commands/check-updates'
 import { configSwitchCommand } from './commands/config-switch'
 import { init } from './commands/init'
+import { interview, quickInterview, deepInterview, resumeInterview, listInterviewSessions } from './commands/interview'
 import { showMainMenu } from './commands/menu'
 import { uninstall } from './commands/uninstall'
 import { update } from './commands/update'
@@ -128,12 +129,16 @@ export function customizeHelp(sections: any[]): any[] {
       `  ${ansis.cyan('zcf update')} | ${ansis.cyan('u')}   ${i18n.t('cli:help.commandDescriptions.updateWorkflowFiles')}`,
       `  ${ansis.cyan('zcf ccr')}          ${i18n.t('cli:help.commandDescriptions.configureCcrProxy')}`,
       `  ${ansis.cyan('zcf ccu')} [args]   ${i18n.t('cli:help.commandDescriptions.claudeCodeUsageAnalysis')}`,
+      `  ${ansis.cyan('zcf interview')} | ${ansis.cyan('iv')} ${i18n.t('cli:help.commandDescriptions.interviewDrivenDev')}`,
+      `  ${ansis.cyan('zcf quick')}        Express interview (~10 questions)`,
+      `  ${ansis.cyan('zcf deep')}         Deep dive interview (~40+ questions)`,
       `  ${ansis.cyan('zcf uninstall')}     ${i18n.t('cli:help.commandDescriptions.uninstallConfigurations')}`,
       `  ${ansis.cyan('zcf check-updates')} ${i18n.t('cli:help.commandDescriptions.checkUpdateVersions')}`,
       '',
       ansis.gray(`  ${i18n.t('cli:help.shortcuts')}`),
       `  ${ansis.cyan('zcf i')}            ${i18n.t('cli:help.shortcutDescriptions.quickInit')}`,
       `  ${ansis.cyan('zcf u')}            ${i18n.t('cli:help.shortcutDescriptions.quickUpdate')}`,
+      `  ${ansis.cyan('zcf iv')}           ${i18n.t('cli:help.shortcutDescriptions.quickInterview')}`,
       `  ${ansis.cyan('zcf check')}        ${i18n.t('cli:help.shortcutDescriptions.quickCheckUpdates')}`,
     ].join('\n'),
   })
@@ -416,6 +421,44 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .action(async (action, args, options) => {
       await apiCommand(action || 'wizard', args || [], options)
     })
+
+  // CCJK Interview command - Interview-Driven Development
+  cli
+    .command('interview [specFile]', 'Interview-Driven Development - Surface hidden assumptions before coding')
+    .alias('iv')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .option('--template, -t <template>', 'Interview template (webapp, api, saas, ecommerce, quick)')
+    .option('--depth, -d <depth>', 'Interview depth (quick, standard, deep)')
+    .option('--resume, -r', 'Resume a paused interview session')
+    .option('--list', 'List all interview sessions')
+    .option('--context, -c <context>', 'Additional context to provide to the interview')
+    .action(await withLanguageResolution(async (specFile, options) => {
+      if (options.list) {
+        await listInterviewSessions()
+      } else if (options.resume) {
+        await resumeInterview()
+      } else if (options.depth === 'quick') {
+        await quickInterview(specFile, options)
+      } else if (options.depth === 'deep') {
+        await deepInterview(specFile, options)
+      } else {
+        await interview({ specFile, ...options })
+      }
+    }))
+
+  // Shortcut: ccjk quick - Express mode interview
+  cli
+    .command('quick [specFile]', 'Express interview (~10 questions)')
+    .action(await withLanguageResolution(async (specFile) => {
+      await quickInterview(specFile, {})
+    }))
+
+  // Shortcut: ccjk deep - Deep dive interview
+  cli
+    .command('deep [specFile]', 'Deep dive interview (~40+ questions)')
+    .action(await withLanguageResolution(async (specFile) => {
+      await deepInterview(specFile, {})
+    }))
 
   // Custom help
   cli.help(sections => customizeHelp(sections))
