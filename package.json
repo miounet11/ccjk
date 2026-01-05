@@ -84,6 +84,9 @@
     "dist",
     "templates"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsx ./src/cli.ts",
     "build": "unbuild",

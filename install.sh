@@ -52,13 +52,38 @@ echo -e "${BLUE}Checking dependencies...${NC}"
 if ! command -v node &> /dev/null; then
     echo -e "${RED}✗ Node.js is not installed${NC}"
     echo ""
-    echo -e "${YELLOW}Please install Node.js first:${NC}"
+    echo -e "${YELLOW}Please install Node.js 20 or higher:${NC}"
     echo -e "  macOS: brew install node"
     echo -e "  Linux: curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs"
     echo -e "  Windows: https://nodejs.org/en/download/"
     exit 1
 else
     NODE_VERSION=$(node -v)
+    # Extract major version number (remove 'v' prefix and get first number)
+    NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v//' | cut -d. -f1)
+
+    if [ "$NODE_MAJOR" -lt 20 ]; then
+        echo -e "${RED}✗ Node.js $NODE_VERSION is too old${NC}"
+        echo ""
+        echo -e "${YELLOW}CCJK requires Node.js 20 or higher.${NC}"
+        echo -e "${YELLOW}Please upgrade Node.js:${NC}"
+        echo ""
+        echo -e "  ${CYAN}Using nvm (recommended):${NC}"
+        echo -e "    nvm install 20"
+        echo -e "    nvm use 20"
+        echo ""
+        echo -e "  ${CYAN}Using n:${NC}"
+        echo -e "    n 20"
+        echo ""
+        echo -e "  ${CYAN}Linux (apt):${NC}"
+        echo -e "    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
+        echo -e "    sudo apt-get install -y nodejs"
+        echo ""
+        echo -e "  ${CYAN}macOS:${NC}"
+        echo -e "    brew upgrade node"
+        exit 1
+    fi
+
     echo -e "${GREEN}✓ Node.js${NC} $NODE_VERSION"
 fi
 
