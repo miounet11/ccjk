@@ -1,5 +1,5 @@
 ---
-description: 管理 Git worktree，在项目平级的 ../.zcf/项目名/ 目录下创建，支持智能默认、IDE 集成和内容迁移
+description: 管理 Git worktree，在项目平级的 ../.ccjk/项目名/ 目录下创建，支持智能默认、IDE 集成和内容迁移
 allowed-tools: Read(**), Exec(git worktree add, git worktree list, git worktree remove, git worktree prune, git branch, git checkout, git rev-parse, git stash, git cp, detect-ide, open-ide, which, command, basename, dirname)
 argument-hint: <add|list|remove|prune|migrate> [path] [-b <branch>] [-o|--open] [--track] [--guess-remote] [--detach] [--checkout] [--lock] [--migrate-from <source-path>] [--migrate-stash]
 # examples:
@@ -12,7 +12,7 @@ argument-hint: <add|list|remove|prune|migrate> [path] [-b <branch>] [-o|--open] 
 
 # Claude Command: Git Worktree
 
-管理 Git worktree，支持智能默认、IDE 集成和内容迁移，使用结构化的 `../.zcf/项目名/` 路径。
+管理 Git worktree，支持智能默认、IDE 集成和内容迁移，使用结构化的 `../.ccjk/项目名/` 路径。
 
 直接执行命令并提供简洁结果。
 
@@ -38,7 +38,7 @@ argument-hint: <add|list|remove|prune|migrate> [path] [-b <branch>] [-o|--open] 
 
 | 选项               | 说明                                         |
 | ------------------ | -------------------------------------------- |
-| `add [<path>]`     | 在 `../.zcf/项目名/<path>` 添加新的 worktree |
+| `add [<path>]`     | 在 `../.ccjk/项目名/<path>` 添加新的 worktree |
 | `migrate <target>` | 迁移内容到指定 worktree                      |
 | `list`             | 列出所有 worktree 及其状态                   |
 | `remove <path>`    | 删除指定路径的 worktree                      |
@@ -63,7 +63,7 @@ argument-hint: <add|list|remove|prune|migrate> [path] [-b <branch>] [-o|--open] 
 
 2. **智能路径管理**
    - 使用 worktree 检测自动从主仓库路径计算项目名
-   - 在结构化的 `../.zcf/项目名/<path>` 目录创建 worktree
+   - 在结构化的 `../.ccjk/项目名/<path>` 目录创建 worktree
    - 正确处理主仓库和 worktree 执行上下文
 
 ```bash
@@ -84,13 +84,13 @@ get_main_repo_path() {
 
 MAIN_REPO_PATH=$(get_main_repo_path)
 PROJECT_NAME=$(basename "$MAIN_REPO_PATH")
-WORKTREE_BASE="$MAIN_REPO_PATH/../.zcf/$PROJECT_NAME"
+WORKTREE_BASE="$MAIN_REPO_PATH/../.ccjk/$PROJECT_NAME"
 
 # 始终使用绝对路径防止嵌套问题
 ABSOLUTE_WORKTREE_PATH="$WORKTREE_BASE/<path>"
 ```
 
-**关键修复**: 在现有 worktree 内创建新 worktree 时，始终使用绝对路径以防止出现类似 `../.zcf/project/.zcf/project/path` 的路径嵌套问题。
+**关键修复**: 在现有 worktree 内创建新 worktree 时，始终使用绝对路径以防止出现类似 `../.ccjk/project/.ccjk/project/path` 的路径嵌套问题。
 
 3. **Worktree 操作**
    - **add**: 使用智能分支/路径默认创建新 worktree
@@ -216,12 +216,12 @@ copy_environment_files() {
 **示例输出**:
 
 ```
-✅ Worktree created at ../.zcf/项目名/feature-ui
+✅ Worktree created at ../.ccjk/项目名/feature-ui
 ✅ 已复制 .env
 ✅ 已复制 .env.local
 📋 已从 .gitignore 复制 2 个环境文件
-🖥️ 是否在 IDE 中打开 ../.zcf/项目名/feature-ui？[y/n]: y
-🚀 正在用 VS Code 打开 ../.zcf/项目名/feature-ui...
+🖥️ 是否在 IDE 中打开 ../.ccjk/项目名/feature-ui？[y/n]: y
+🚀 正在用 VS Code 打开 ../.ccjk/项目名/feature-ui...
 ```
 
 ---
@@ -233,7 +233,7 @@ parent-directory/
 ├── your-project/            # 主项目
 │   ├── .git/
 │   └── src/
-└── .zcf/                    # worktree 管理
+└── .ccjk/                    # worktree 管理
     └── your-project/        # 项目 worktree
         ├── feature-ui/      # 功能分支
         ├── hotfix/          # 修复分支

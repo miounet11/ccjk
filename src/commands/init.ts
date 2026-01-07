@@ -387,7 +387,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     // Display banner based on selected code tool
     if (!options.skipBanner) {
-      displayBannerWithInfo(CODE_TOOL_BANNERS[codeToolType] || 'ZCF')
+      displayBannerWithInfo(CODE_TOOL_BANNERS[codeToolType] || 'CCJK')
     }
 
     // Show Termux environment info if detected

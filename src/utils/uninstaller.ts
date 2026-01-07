@@ -30,7 +30,7 @@ export interface UninstallResult {
 }
 
 /**
- * ZCF Uninstaller - Handles removal of ZCF configurations and tools
+ * CCJK Uninstaller - Handles removal of CCJK configurations and tools
  */
 export class ZcfUninstaller {
   private _lang: SupportedLang // Reserved for future i18n support

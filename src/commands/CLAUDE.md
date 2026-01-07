@@ -6,7 +6,7 @@
 
 ## Module Responsibilities
 
-CLI command implementation module containing all major command functions for ZCF, providing both interactive and non-interactive operation interfaces for Claude Code environment setup and management.
+CLI command implementation module containing all major command functions for CCJK, providing both interactive and non-interactive operation interfaces for Claude Code environment setup and management.
 
 ## Entry Points and Startup
 
@@ -18,7 +18,7 @@ CLI command implementation module containing all major command functions for ZCF
   - `ccu.ts` - CCusage tool integration and execution (1KB, 40+ lines)
   - `check-updates.ts` - Tool version checking and update management (1.3KB, 50+ lines)
   - `config-switch.ts` - Configuration switching for multi-provider support (14KB, 400+ lines)
-  - `uninstall.ts` - ZCF uninstallation with selective removal (10KB, 300+ lines)
+  - `uninstall.ts` - CCJK uninstallation with selective removal (10KB, 300+ lines)
 
 ## External Interfaces
 

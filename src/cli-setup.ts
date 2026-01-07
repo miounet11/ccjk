@@ -2,25 +2,25 @@ import type { CAC } from 'cac'
 import type { CodeToolType, SupportedLang } from './constants'
 import ansis from 'ansis'
 import { version } from '../package.json'
+import { apiCommand } from './commands/api'
 import { ccr } from './commands/ccr'
 import { executeCcusage } from './commands/ccu'
 import { checkUpdates } from './commands/check-updates'
 import { configSwitchCommand } from './commands/config-switch'
 import { init } from './commands/init'
-import { interview, quickInterview, deepInterview, resumeInterview, listInterviewSessions } from './commands/interview'
+import { deepInterview, interview, listInterviewSessions, quickInterview, resumeInterview } from './commands/interview'
 import { showMainMenu } from './commands/menu'
+import { toolsCommand } from './commands/tools'
 import { uninstall } from './commands/uninstall'
 import { update } from './commands/update'
-import { toolsCommand } from './commands/tools'
-import { apiCommand } from './commands/api'
 import { changeLanguage, i18n, initI18n } from './i18n'
-import { selectScriptLanguage } from './utils/prompts'
-import { readZcfConfigAsync } from './utils/zcf-config'
-import { runOnboarding, quickSync } from './utils/onboarding'
-import { runDoctor } from './utils/health-check'
-import { checkAllVersions, upgradeAll } from './utils/upgrade-manager'
 import { detectAllConfigs, displayConfigScan } from './utils/config-consolidator'
+import { runDoctor } from './utils/health-check'
+import { quickSync, runOnboarding } from './utils/onboarding'
 import { displayPermissions } from './utils/permission-manager'
+import { selectScriptLanguage } from './utils/prompts'
+import { checkAllVersions, upgradeAll } from './utils/upgrade-manager'
+import { readZcfConfigAsync } from './utils/zcf-config'
 
 export interface CliOptions {
   lang?: 'zh-CN' | 'en'
@@ -115,31 +115,31 @@ export function customizeHelp(sections: any[]): any[] {
   // Add custom header
   sections.unshift({
     title: '',
-    body: ansis.cyan.bold(`ZCF - Zero-Config Code Flow v${version}`),
+    body: ansis.cyan.bold(`CCJK - Claude Code JinKu v${version}`),
   })
 
   // Add commands section with aliases
   sections.push({
     title: ansis.yellow(i18n.t('cli:help.commands')),
     body: [
-      `  ${ansis.cyan('zcf')}              ${i18n.t('cli:help.commandDescriptions.showInteractiveMenuDefault')}`,
-      `  ${ansis.cyan('zcf init')} | ${ansis.cyan(
+      `  ${ansis.cyan('ccjk')}              ${i18n.t('cli:help.commandDescriptions.showInteractiveMenuDefault')}`,
+      `  ${ansis.cyan('ccjk init')} | ${ansis.cyan(
         'i',
       )}     ${i18n.t('cli:help.commandDescriptions.initClaudeCodeConfig')}`,
-      `  ${ansis.cyan('zcf update')} | ${ansis.cyan('u')}   ${i18n.t('cli:help.commandDescriptions.updateWorkflowFiles')}`,
-      `  ${ansis.cyan('zcf ccr')}          ${i18n.t('cli:help.commandDescriptions.configureCcrProxy')}`,
-      `  ${ansis.cyan('zcf ccu')} [args]   ${i18n.t('cli:help.commandDescriptions.claudeCodeUsageAnalysis')}`,
-      `  ${ansis.cyan('zcf interview')} | ${ansis.cyan('iv')} ${i18n.t('cli:help.commandDescriptions.interviewDrivenDev')}`,
-      `  ${ansis.cyan('zcf quick')}        Express interview (~10 questions)`,
-      `  ${ansis.cyan('zcf deep')}         Deep dive interview (~40+ questions)`,
-      `  ${ansis.cyan('zcf uninstall')}     ${i18n.t('cli:help.commandDescriptions.uninstallConfigurations')}`,
-      `  ${ansis.cyan('zcf check-updates')} ${i18n.t('cli:help.commandDescriptions.checkUpdateVersions')}`,
+      `  ${ansis.cyan('ccjk update')} | ${ansis.cyan('u')}   ${i18n.t('cli:help.commandDescriptions.updateWorkflowFiles')}`,
+      `  ${ansis.cyan('ccjk ccr')}          ${i18n.t('cli:help.commandDescriptions.configureCcrProxy')}`,
+      `  ${ansis.cyan('ccjk ccu')} [args]   ${i18n.t('cli:help.commandDescriptions.claudeCodeUsageAnalysis')}`,
+      `  ${ansis.cyan('ccjk interview')} | ${ansis.cyan('iv')} ${i18n.t('cli:help.commandDescriptions.interviewDrivenDev')}`,
+      `  ${ansis.cyan('ccjk quick')}        Express interview (~10 questions)`,
+      `  ${ansis.cyan('ccjk deep')}         Deep dive interview (~40+ questions)`,
+      `  ${ansis.cyan('ccjk uninstall')}     ${i18n.t('cli:help.commandDescriptions.uninstallConfigurations')}`,
+      `  ${ansis.cyan('ccjk check-updates')} ${i18n.t('cli:help.commandDescriptions.checkUpdateVersions')}`,
       '',
       ansis.gray(`  ${i18n.t('cli:help.shortcuts')}`),
-      `  ${ansis.cyan('zcf i')}            ${i18n.t('cli:help.shortcutDescriptions.quickInit')}`,
-      `  ${ansis.cyan('zcf u')}            ${i18n.t('cli:help.shortcutDescriptions.quickUpdate')}`,
-      `  ${ansis.cyan('zcf iv')}           ${i18n.t('cli:help.shortcutDescriptions.quickInterview')}`,
-      `  ${ansis.cyan('zcf check')}        ${i18n.t('cli:help.shortcutDescriptions.quickCheckUpdates')}`,
+      `  ${ansis.cyan('ccjk i')}            ${i18n.t('cli:help.shortcutDescriptions.quickInit')}`,
+      `  ${ansis.cyan('ccjk u')}            ${i18n.t('cli:help.shortcutDescriptions.quickUpdate')}`,
+      `  ${ansis.cyan('ccjk iv')}           ${i18n.t('cli:help.shortcutDescriptions.quickInterview')}`,
+      `  ${ansis.cyan('ccjk check')}        ${i18n.t('cli:help.shortcutDescriptions.quickCheckUpdates')}`,
     ].join('\n'),
   })
 
@@ -179,41 +179,41 @@ export function customizeHelp(sections: any[]): any[] {
     title: ansis.yellow(i18n.t('cli:help.examples')),
     body: [
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.showInteractiveMenu')}`),
-      `  ${ansis.cyan('npx zcf')}`,
+      `  ${ansis.cyan('npx ccjk')}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.runFullInitialization')}`),
-      `  ${ansis.cyan('npx zcf init')}`,
-      `  ${ansis.cyan('npx zcf i')}`,
+      `  ${ansis.cyan('npx ccjk init')}`,
+      `  ${ansis.cyan('npx ccjk i')}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.updateWorkflowFilesOnly')}`),
-      `  ${ansis.cyan('npx zcf u')}`,
+      `  ${ansis.cyan('npx ccjk u')}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.configureClaudeCodeRouter')}`),
-      `  ${ansis.cyan('npx zcf ccr')}`,
+      `  ${ansis.cyan('npx ccjk ccr')}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.runClaudeCodeUsageAnalysis')}`),
-      `  ${ansis.cyan('npx zcf ccu')}               ${ansis.gray(`# ${i18n.t('cli:help.defaults.dailyUsage')}`)}`,
-      `  ${ansis.cyan('npx zcf ccu monthly --json')}`,
+      `  ${ansis.cyan('npx ccjk ccu')}               ${ansis.gray(`# ${i18n.t('cli:help.defaults.dailyUsage')}`)}`,
+      `  ${ansis.cyan('npx ccjk ccu monthly --json')}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.uninstallConfigurations')}`),
-      `  ${ansis.cyan('npx zcf uninstall')}         ${ansis.gray(`# ${i18n.t('cli:help.defaults.interactiveUninstall')}`)}`,
+      `  ${ansis.cyan('npx ccjk uninstall')}         ${ansis.gray(`# ${i18n.t('cli:help.defaults.interactiveUninstall')}`)}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.checkAndUpdateTools')}`),
-      `  ${ansis.cyan('npx zcf check-updates')}     ${ansis.gray(`# ${i18n.t('cli:help.defaults.updateTools')}`)}`,
-      `  ${ansis.cyan('npx zcf check')}`,
+      `  ${ansis.cyan('npx ccjk check-updates')}     ${ansis.gray(`# ${i18n.t('cli:help.defaults.updateTools')}`)}`,
+      `  ${ansis.cyan('npx ccjk check')}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.checkClaudeCode')}`),
-      `  ${ansis.cyan('npx zcf check --code-type claude-code')}`,
-      `  ${ansis.cyan('npx zcf check -T cc')}`,
+      `  ${ansis.cyan('npx ccjk check --code-type claude-code')}`,
+      `  ${ansis.cyan('npx ccjk check -T cc')}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.checkCodex')}`),
-      `  ${ansis.cyan('npx zcf check --code-type codex')}`,
-      `  ${ansis.cyan('npx zcf check -T cx')}`,
+      `  ${ansis.cyan('npx ccjk check --code-type codex')}`,
+      `  ${ansis.cyan('npx ccjk check -T cx')}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.nonInteractiveModeCicd')}`),
-      `  ${ansis.cyan('npx zcf i --skip-prompt --api-type api_key --api-key "sk-ant-..."')}`,
-      `  ${ansis.cyan('npx zcf i --skip-prompt --all-lang zh-CN --api-type api_key --api-key "key"')}`,
-      `  ${ansis.cyan('npx zcf i --skip-prompt --api-type ccr_proxy')}`,
+      `  ${ansis.cyan('npx ccjk i --skip-prompt --api-type api_key --api-key "sk-ant-..."')}`,
+      `  ${ansis.cyan('npx ccjk i --skip-prompt --all-lang zh-CN --api-type api_key --api-key "key"')}`,
+      `  ${ansis.cyan('npx ccjk i --skip-prompt --api-type ccr_proxy')}`,
       '',
     ].join('\n'),
   })
@@ -237,7 +237,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // Default command - show menu
   cli
     .command('', 'Show interactive menu (default)')
-    .option('--lang, -l <lang>', 'ZCF display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
     .option('--force, -f', 'Force overwrite existing configuration')
@@ -250,7 +250,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('init', 'Initialize Claude Code configuration')
     .alias('i')
-    .option('--lang, -l <lang>', 'ZCF display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
     .option('--ai-output-lang, -a <lang>', 'AI output language')
     .option('--force, -f', 'Force overwrite existing configuration')
@@ -281,7 +281,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('update', 'Update Claude Code prompts only')
     .alias('u')
-    .option('--lang, -l <lang>', 'ZCF display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
     .action(await withLanguageResolution(async (options) => {
@@ -291,7 +291,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // CCR command - Configure Claude Code Router
   cli
     .command('ccr', 'Configure Claude Code Router for model proxy')
-    .option('--lang, -l <lang>', 'ZCF display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .action(await withLanguageResolution(async () => {
       await ccr()
@@ -300,7 +300,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // CCU command - Claude Code usage analysis
   cli
     .command('ccu [...args]', 'Run Claude Code usage analysis tool')
-    .option('--lang, -l <lang>', 'ZCF display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .allowUnknownOptions()
     .action(await withLanguageResolution(async (args) => {
@@ -312,7 +312,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .command('config-switch [target]', 'Switch Codex provider or Claude Code configuration, or list available configurations')
     .alias('cs')
     .option('--code-type, -T <type>', 'Code tool type (claude-code, codex, cc, cx)')
-    .option('--lang <lang>', 'ZCF display language (zh-CN, en)')
+    .option('--lang <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--list, -l', 'List available configurations')
     .action(await withLanguageResolution(async (target, options) => {
@@ -323,10 +323,10 @@ export async function setupCommands(cli: CAC): Promise<void> {
       })
     }))
 
-  // Uninstall command - Remove ZCF configurations and tools
+  // Uninstall command - Remove CCJK configurations and tools
   cli
-    .command('uninstall', 'Remove ZCF configurations and tools')
-    .option('--lang, -l <lang>', 'ZCF display language (zh-CN, en)')
+    .command('uninstall', 'Remove CCJK configurations and tools')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
     .option('--mode, -m <mode>', 'Uninstall mode (complete/custom/interactive), default: interactive')
@@ -339,7 +339,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('check-updates', 'Check and update Claude Code and CCR to latest versions')
     .alias('check')
-    .option('--lang, -l <lang>', 'ZCF display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
     .option('--skip-prompt, -s', 'Skip all interactive prompts (non-interactive mode)')
@@ -435,13 +435,17 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .action(await withLanguageResolution(async (specFile, options) => {
       if (options.list) {
         await listInterviewSessions()
-      } else if (options.resume) {
+      }
+      else if (options.resume) {
         await resumeInterview()
-      } else if (options.depth === 'quick') {
+      }
+      else if (options.depth === 'quick') {
         await quickInterview(specFile, options)
-      } else if (options.depth === 'deep') {
+      }
+      else if (options.depth === 'deep') {
         await deepInterview(specFile, options)
-      } else {
+      }
+      else {
         await interview({ specFile, ...options })
       }
     }))

@@ -6,7 +6,7 @@
 
 ## Module Responsibilities
 
-Core utility module providing configuration management, platform compatibility, MCP service integration, Claude Code installation, workflow management, and cross-platform tool support for the ZCF project. This module contains 52 TypeScript files organized into specialized subdirectories for CCR, Cometix, Code Tools, and general utilities.
+Core utility module providing configuration management, platform compatibility, MCP service integration, Claude Code installation, workflow management, and cross-platform tool support for the CCJK project. This module contains 52 TypeScript files organized into specialized subdirectories for CCR, Cometix, Code Tools, and general utilities.
 
 ## Entry Points and Startup
 
@@ -20,7 +20,7 @@ Core utility module providing configuration management, platform compatibility, 
   - `features.ts` - Feature management and installation orchestration (28KB)
   - `uninstaller.ts` - Advanced uninstallation with conflict resolution (18KB)
   - `trash.ts` - Cross-platform trash/recycle bin integration (1KB)
-  - `zcf-config.ts` - ZCF-specific configuration management (13KB)
+  - `zcf-config.ts` - CCJK-specific configuration management (13KB)
 
 - **Subdirectories**:
   - `ccr/` - Claude Code Router proxy management (7 files)
