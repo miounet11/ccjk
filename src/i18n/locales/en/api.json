@@ -49,5 +49,15 @@
   "selectApiProvider": "Select API Provider",
   "customProvider": "Custom Configuration",
   "providerSelected": "Provider selected: {{name}}",
-  "enterProviderApiKey": "Enter API Key for {{provider}}"
+  "enterProviderApiKey": "Enter API Key for {{provider}}",
+  "providersTitle": "Available API Providers",
+  "categoryOfficial": "Official",
+  "categoryOpenaiCompatible": "OpenAI Compatible",
+  "categoryChinese": "Chinese Providers",
+  "categoryFree": "Free Tier",
+  "categoryLocal": "Local",
+  "configSuccess": "API configured successfully! Provider: {provider}",
+  "configFailed": "API configuration failed: {error}",
+  "setupUsage": "Usage: ccjk api setup <provider> <api-key>",
+  "setupExample": "Example: ccjk api setup deepseek sk-xxx"
 }

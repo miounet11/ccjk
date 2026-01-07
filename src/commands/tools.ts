@@ -7,6 +7,7 @@ import type { ToolStatus } from '../utils/code-tools'
 import ansis from 'ansis'
 import ora from 'ora'
 import { CODE_TOOL_INFO, CODE_TOOL_TYPES } from '../constants'
+import { format, i18n } from '../i18n'
 import { boxify, COLORS, STATUS } from '../utils/banner'
 import {
   getAllToolsStatus,
@@ -27,7 +28,7 @@ export interface ToolsCommandOptions {
  * List all tools and their status
  */
 export async function listTools(options: ToolsCommandOptions = {}): Promise<void> {
-  const spinner = ora('Scanning installed AI tools...').start()
+  const spinner = ora(i18n.t('tools:scanning')).start()
   const toolsStatus = await getAllToolsStatus()
   spinner.stop()
 
@@ -38,7 +39,7 @@ export async function listTools(options: ToolsCommandOptions = {}): Promise<void
 
   console.log('')
   console.log(COLORS.primary('╔═══════════════════════════════════════════════════════════════╗'))
-  console.log(COLORS.primary('║') + COLORS.accent('                    AI Coding Tools Status                    ') + COLORS.primary('║'))
+  console.log(COLORS.primary('║') + COLORS.accent(`                    ${i18n.t('tools:title')}                    `.slice(0, 60)) + COLORS.primary('║'))
   console.log(COLORS.primary('╚═══════════════════════════════════════════════════════════════╝'))
   console.log('')
 
@@ -54,7 +55,7 @@ export async function listTools(options: ToolsCommandOptions = {}): Promise<void
       const statusIcon = tool.installed ? ansis.green('✓') : ansis.gray('○')
       const version = tool.version ? ansis.cyan(` v${tool.version}`) : ''
       const configStatus = tool.installed
-        ? (tool.configExists ? ansis.green(' [configured]') : ansis.yellow(' [not configured]'))
+        ? (tool.configExists ? ansis.green(` [${i18n.t('tools:configured')}]`) : ansis.yellow(` [${i18n.t('tools:notConfigured')}]`))
         : ''
       console.log(`    ${statusIcon} ${info.name}${version}${configStatus}`)
       console.log(ansis.gray(`       ${info.description}`))
@@ -63,16 +64,16 @@ export async function listTools(options: ToolsCommandOptions = {}): Promise<void
   }
 
   if (cliTools.length > 0)
-    renderToolList(cliTools, '🖥️  CLI Tools')
+    renderToolList(cliTools, `🖥️  ${i18n.t('tools:cliTools')}`)
   if (extensionTools.length > 0)
-    renderToolList(extensionTools, '🔌 IDE Extensions')
+    renderToolList(extensionTools, `🔌 ${i18n.t('tools:ideExtensions')}`)
   if (editorTools.length > 0)
-    renderToolList(editorTools, '✏️  AI Editors')
+    renderToolList(editorTools, `✏️  ${i18n.t('tools:aiEditors')}`)
 
   // Summary
   const installed = toolsStatus.filter(t => t.installed).length
   const configured = toolsStatus.filter(t => t.configExists).length
-  console.log(ansis.gray(`  Summary: ${installed}/${toolsStatus.length} installed, ${configured}/${installed} configured`))
+  console.log(ansis.gray(`  ${format(i18n.t('tools:summary'), { installed: String(installed), total: String(toolsStatus.length), configured: String(configured), installedCount: String(installed) })}`))
   console.log('')
 }
 
@@ -85,8 +86,8 @@ export async function installToolCommand(
 ): Promise<void> {
   // Validate tool ID
   if (!CODE_TOOL_TYPES.includes(toolId as CodeToolType)) {
-    console.log(STATUS.error(`Unknown tool: ${toolId}`))
-    console.log(ansis.gray(`Available tools: ${CODE_TOOL_TYPES.join(', ')}`))
+    console.log(STATUS.error(format(i18n.t('tools:unknownTool'), { tool: toolId })))
+    console.log(ansis.gray(format(i18n.t('tools:availableTools'), { tools: CODE_TOOL_TYPES.join(', ') })))
     return
   }
 
@@ -96,11 +97,11 @@ export async function installToolCommand(
   // Check if already installed
   const status = await getToolStatus(tool)
   if (status.installed) {
-    console.log(STATUS.info(`${info.name} is already installed (${status.version || 'version unknown'})`))
+    console.log(STATUS.info(format(i18n.t('tools:alreadyInstalled'), { name: info.name, version: status.version || 'unknown' })))
     return
   }
 
-  const spinner = ora(`Installing ${info.name}...`).start()
+  const spinner = ora(format(i18n.t('tools:installing'), { name: info.name })).start()
   const result = await installTool(tool)
 
   if (result.success) {
@@ -119,8 +120,8 @@ export async function showToolStatus(
   options: ToolsCommandOptions = {},
 ): Promise<void> {
   if (!CODE_TOOL_TYPES.includes(toolId as CodeToolType)) {
-    console.log(STATUS.error(`Unknown tool: ${toolId}`))
-    console.log(ansis.gray(`Available tools: ${CODE_TOOL_TYPES.join(', ')}`))
+    console.log(STATUS.error(format(i18n.t('tools:unknownTool'), { tool: toolId })))
+    console.log(ansis.gray(format(i18n.t('tools:availableTools'), { tools: CODE_TOOL_TYPES.join(', ') })))
     return
   }
 
@@ -137,14 +138,14 @@ export async function showToolStatus(
   console.log(boxify(`
 ${info.name}
 
-Status: ${status.installed ? '✓ Installed' : '✗ Not installed'}
-Version: ${status.version || 'N/A'}
-Config: ${status.configExists ? '✓ Configured' : '⚠ Not configured'}
-Config Path: ${status.configPath}
-Category: ${info.category}
-Website: ${info.website}
+${i18n.t('tools:status')}: ${status.installed ? `✓ ${i18n.t('tools:installed')}` : `✗ ${i18n.t('tools:notInstalled')}`}
+${i18n.t('tools:version')}: ${status.version || 'N/A'}
+${i18n.t('tools:config')}: ${status.configExists ? `✓ ${i18n.t('tools:configured')}` : `⚠ ${i18n.t('tools:notConfigured')}`}
+${i18n.t('tools:configPath')}: ${status.configPath}
+${i18n.t('tools:category')}: ${info.category}
+${i18n.t('tools:website')}: ${info.website}
 
-Install Command:
+${i18n.t('tools:installCommand')}:
   ${info.installCmd}
 `, 'rounded', info.name))
 }
@@ -169,7 +170,7 @@ export async function showRecommendedTools(_options: ToolsCommandOptions = {}): 
   ]
 
   console.log('')
-  console.log(COLORS.secondary('  🌟 Recommended AI Coding Tools:'))
+  console.log(COLORS.secondary(`  🌟 ${i18n.t('tools:recommended')}`))
   console.log('')
 
   for (const rec of recommended) {
@@ -180,7 +181,7 @@ export async function showRecommendedTools(_options: ToolsCommandOptions = {}): 
     console.log(`  ${statusIcon} ${ansis.bold(info.name)}`)
     console.log(ansis.gray(`     ${rec.reason}`))
     if (!status.installed) {
-      console.log(ansis.cyan(`     Install: ${info.installCmd}`))
+      console.log(ansis.cyan(`     ${format(i18n.t('tools:installCmd'), { cmd: info.installCmd })}`))
     }
     console.log('')
   }
@@ -203,9 +204,9 @@ export async function toolsCommand(
     case 'install':
     case 'i':
       if (!target) {
-        console.log(STATUS.error('Please specify a tool to install'))
-        console.log(ansis.gray(`Usage: ccjk tools install <tool>`))
-        console.log(ansis.gray(`Available tools: ${CODE_TOOL_TYPES.join(', ')}`))
+        console.log(STATUS.error(i18n.t('tools:specifyTool')))
+        console.log(ansis.gray(format(i18n.t('tools:usage'), { action: 'install' })))
+        console.log(ansis.gray(format(i18n.t('tools:availableTools'), { tools: CODE_TOOL_TYPES.join(', ') })))
         return
       }
       await installToolCommand(target, options)
@@ -227,8 +228,8 @@ export async function toolsCommand(
       break
 
     default:
-      console.log(STATUS.error(`Unknown action: ${action}`))
-      console.log(ansis.gray('Available actions: list, install, status, recommend'))
+      console.log(STATUS.error(format(i18n.t('tools:unknownAction'), { action })))
+      console.log(ansis.gray(i18n.t('tools:availableActions')))
   }
 }
 

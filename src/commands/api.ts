@@ -4,6 +4,7 @@ import type { SupportedLang } from '../constants'
  * Unified API configuration for Claude Code
  */
 import ansis from 'ansis'
+import { format, i18n } from '../i18n'
 import {
   displayCurrentStatus,
   getAllPresets,
@@ -32,19 +33,17 @@ export function listProviders(lang: SupportedLang = 'en'): void {
 
   console.log('')
   console.log(COLORS.primary('╔═══════════════════════════════════════════════════════════════╗'))
-  console.log(COLORS.primary('║') + COLORS.accent(lang === 'zh-CN'
-    ? '                    可用 API 提供商                          '
-    : '                  Available API Providers                    ') + COLORS.primary('║'))
+  console.log(COLORS.primary('║') + COLORS.accent(`                    ${i18n.t('api:providersTitle')}                    `.slice(0, 60)) + COLORS.primary('║'))
   console.log(COLORS.primary('╚═══════════════════════════════════════════════════════════════╝'))
   console.log('')
 
   // Group by category
   const categories = {
-    'official': lang === 'zh-CN' ? '官方' : 'Official',
-    'openai-compatible': lang === 'zh-CN' ? 'OpenAI 兼容' : 'OpenAI Compatible',
-    'chinese': lang === 'zh-CN' ? '国内服务' : 'Chinese Providers',
-    'free': lang === 'zh-CN' ? '免费' : 'Free Tier',
-    'local': lang === 'zh-CN' ? '本地' : 'Local',
+    'official': i18n.t('api:categoryOfficial'),
+    'openai-compatible': i18n.t('api:categoryOpenaiCompatible'),
+    'chinese': i18n.t('api:categoryChinese'),
+    'free': i18n.t('api:categoryFree'),
+    'local': i18n.t('api:categoryLocal'),
   }
 
   for (const [category, label] of Object.entries(categories)) {
@@ -70,19 +69,15 @@ export function listProviders(lang: SupportedLang = 'en'): void {
 export function setupApi(
   providerId: string,
   apiKey: string,
-  lang: SupportedLang = 'en',
+  _lang: SupportedLang = 'en',
 ): void {
   const result = quickSetup(providerId, apiKey)
 
   if (result.success) {
-    console.log(STATUS.success(lang === 'zh-CN'
-      ? `API 配置成功! 提供商: ${result.provider}`
-      : `API configured successfully! Provider: ${result.provider}`))
+    console.log(STATUS.success(format(i18n.t('api:configSuccess'), { provider: result.provider || providerId })))
   }
   else {
-    console.log(STATUS.error(lang === 'zh-CN'
-      ? `API 配置失败: ${result.error}`
-      : `API configuration failed: ${result.error}`))
+    console.log(STATUS.error(format(i18n.t('api:configFailed'), { error: result.error || 'Unknown error' })))
   }
 }
 
@@ -133,12 +128,8 @@ export async function apiCommand(
         setupApi(args[0], args[1], lang)
       }
       else {
-        console.log(STATUS.error(lang === 'zh-CN'
-          ? '用法: ccjk api setup <provider> <api-key>'
-          : 'Usage: ccjk api setup <provider> <api-key>'))
-        console.log(ansis.gray(lang === 'zh-CN'
-          ? '  例如: ccjk api setup deepseek sk-xxx'
-          : '  Example: ccjk api setup deepseek sk-xxx'))
+        console.log(STATUS.error(i18n.t('api:setupUsage')))
+        console.log(ansis.gray(`  ${i18n.t('api:setupExample')}`))
       }
       break
 
