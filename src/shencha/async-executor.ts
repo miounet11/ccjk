@@ -7,7 +7,8 @@ import type {
   ProjectContext,
   ScanResult,
 } from './types'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { readFile as readFileAsync, writeFile as writeFileAsync } from 'node:fs/promises'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR } from '../constants'
 import { LLMDecisionEngine } from './llm-decision'
@@ -161,7 +162,7 @@ Return JSON:
     this.runCycleAsync(this.currentCycle).catch((error) => {
       if (this.currentCycle) {
         this.currentCycle.status = 'failed'
-        this.currentCycle.error = error.message
+        this.currentCycle.error = error instanceof Error ? error.message : String(error)
       }
     })
 
@@ -172,8 +173,12 @@ Return JSON:
    * Run full audit cycle asynchronously
    */
   private async runCycleAsync(cycle: AuditCycle): Promise<void> {
-    const readFile = async (path: string) => readFileSync(path, 'utf-8')
-    const writeFile = async (path: string, content: string) => writeFileSync(path, content)
+    const readFile = async (path: string) => {
+      if (!existsSync(path))
+        throw new Error(`File not found: ${path}`)
+      return readFileAsync(path, 'utf-8')
+    }
+    const writeFile = async (path: string, content: string) => writeFileAsync(path, content)
 
     try {
       // Phase 1: Scan
@@ -427,11 +432,20 @@ Return JSON:
    * Extract JSON from response
    */
   private extractJson(response: string): any {
-    const match = response.match(/\{[\s\S]*\}/)
-    if (match) {
-      return JSON.parse(match[0])
+    if (!response || typeof response !== 'string') {
+      return {}
     }
-    return JSON.parse(response)
+    try {
+      const match = response.match(/\{[\s\S]*\}/)
+      if (match) {
+        return JSON.parse(match[0])
+      }
+      return JSON.parse(response)
+    }
+    catch {
+      console.warn('Failed to parse LLM response as JSON')
+      return {}
+    }
   }
 
   /**

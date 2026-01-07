@@ -125,8 +125,8 @@ Analyze and identify all issues. For each issue provide:
 
 Return as JSON array of issues. Be thorough but avoid false positives.`
 
-    await this.llmClient.complete(prompt)
-    const issues = this.parseIssues('[]', target.path)
+    const response = await this.llmClient.complete(prompt)
+    const issues = this.parseIssues(response, target.path)
 
     return {
       target,
@@ -264,12 +264,21 @@ Return as JSON array of issues. Be thorough but avoid false positives.`
    * Extract JSON from LLM response
    */
   private extractJson(response: string): any {
-    // Try to find JSON in the response
-    const jsonMatch = response.match(/\[[\s\S]*\]|\{[\s\S]*\}/)
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0])
+    if (!response || typeof response !== 'string') {
+      return []
     }
-    return JSON.parse(response)
+    try {
+      // Try to find JSON in the response
+      const jsonMatch = response.match(/\[[\s\S]*\]|\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0])
+      }
+      return JSON.parse(response)
+    }
+    catch {
+      console.warn('Failed to parse LLM response as JSON')
+      return []
+    }
   }
 
   /**

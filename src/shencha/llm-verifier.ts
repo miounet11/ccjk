@@ -399,10 +399,19 @@ Return empty array if no new issues found.`
    * Extract JSON from LLM response
    */
   private extractJson(response: string): any {
-    const jsonMatch = response.match(/\[[\s\S]*\]|\{[\s\S]*\}/)
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0])
+    if (!response || typeof response !== 'string') {
+      return {}
     }
-    return JSON.parse(response)
+    try {
+      const jsonMatch = response.match(/\[[\s\S]*\]|\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0])
+      }
+      return JSON.parse(response)
+    }
+    catch {
+      console.warn('Failed to parse LLM response as JSON')
+      return {}
+    }
   }
 }

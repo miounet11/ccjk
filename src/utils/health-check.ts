@@ -347,7 +347,7 @@ async function checkDiskSpace(): Promise<CheckResult> {
  */
 function calculateScore(checks: CheckResult[]): number {
   let score = 100
-  let weight = 0
+  let _weight = 0
 
   const weights: Record<string, number> = {
     'Claude Code': 25,
@@ -362,7 +362,7 @@ function calculateScore(checks: CheckResult[]): number {
 
   for (const check of checks) {
     const checkWeight = weights[check.name] || 5
-    weight += checkWeight
+    _weight += checkWeight
 
     if (check.status === 'fail') {
       score -= checkWeight
@@ -498,7 +498,7 @@ export async function runDoctor(fix = false): Promise<void> {
           await exec(parts[0], parts.slice(1), { throwOnError: true })
           spinner.succeed(`Fixed ${check.name}`)
         }
-        catch (error) {
+        catch (_error) {
           spinner.fail(`Failed to fix ${check.name}`)
         }
       }
