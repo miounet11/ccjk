@@ -1,5 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>()
+  return {
+    ...actual,
+    existsSync: vi.fn(() => true),
+    mkdirSync: vi.fn(),
+    copyFileSync: vi.fn(),
+    readFileSync: vi.fn(() => '{}'),
+    writeFileSync: vi.fn(),
+  }
+})
+
+vi.mock('../../../../src/i18n', () => ({
+  ensureI18nInitialized: vi.fn(),
+  i18n: {
+    t: vi.fn((key: string) => `mocked_${key}`),
+  },
+}))
+
 describe('codex workflow and system prompt backup integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()

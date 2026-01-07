@@ -26,6 +26,8 @@ const NAMESPACES = [
   'mcp',
   'menu',
   'multi-config',
+  'shencha',
+  'team',
   'tools',
   'uninstall',
   'updater',

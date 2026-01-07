@@ -6,10 +6,15 @@ import { apiCommand } from './commands/api'
 import { ccr } from './commands/ccr'
 import { executeCcusage } from './commands/ccu'
 import { checkUpdates } from './commands/check-updates'
+import { commit } from './commands/commit'
 import { configSwitchCommand } from './commands/config-switch'
 import { init } from './commands/init'
 import { deepInterview, interview, listInterviewSessions, quickInterview, resumeInterview } from './commands/interview'
+import { mcpMarket } from './commands/mcp-market'
 import { showMainMenu } from './commands/menu'
+import { exportSession, listSessions, restoreSession, saveSession } from './commands/session'
+import { shenchaFix, shenchaReport, shenchaScan } from './commands/shencha'
+import { teamInit, teamShare, teamSync } from './commands/team'
 import { toolsCommand } from './commands/tools'
 import { uninstall } from './commands/uninstall'
 import { update } from './commands/update'
@@ -127,11 +132,13 @@ export function customizeHelp(sections: any[]): any[] {
         'i',
       )}     ${i18n.t('cli:help.commandDescriptions.initClaudeCodeConfig')}`,
       `  ${ansis.cyan('zcf update')} | ${ansis.cyan('u')}   ${i18n.t('cli:help.commandDescriptions.updateWorkflowFiles')}`,
+      `  ${ansis.cyan('zcf commit')}       Smart git commit with auto-generated messages`,
       `  ${ansis.cyan('zcf ccr')}          ${i18n.t('cli:help.commandDescriptions.configureCcrProxy')}`,
       `  ${ansis.cyan('zcf ccu')} [args]   ${i18n.t('cli:help.commandDescriptions.claudeCodeUsageAnalysis')}`,
       `  ${ansis.cyan('zcf interview')} | ${ansis.cyan('iv')} ${i18n.t('cli:help.commandDescriptions.interviewDrivenDev')}`,
       `  ${ansis.cyan('zcf quick')}        Express interview (~10 questions)`,
       `  ${ansis.cyan('zcf deep')}         Deep dive interview (~40+ questions)`,
+      `  ${ansis.cyan('zcf mcp')} <action> MCP Server marketplace (search, trending, install)`,
       `  ${ansis.cyan('zcf uninstall')}     ${i18n.t('cli:help.commandDescriptions.uninstallConfigurations')}`,
       `  ${ansis.cyan('zcf check-updates')} ${i18n.t('cli:help.commandDescriptions.checkUpdateVersions')}`,
       '',
@@ -209,6 +216,16 @@ export function customizeHelp(sections: any[]): any[] {
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.checkCodex')}`),
       `  ${ansis.cyan('npx zcf check --code-type codex')}`,
       `  ${ansis.cyan('npx zcf check -T cx')}`,
+      '',
+      ansis.gray(`  # Smart git commit with auto-generated messages`),
+      `  ${ansis.cyan('npx zcf commit')}            ${ansis.gray(`# Interactive mode`)}`,
+      `  ${ansis.cyan('npx zcf commit --auto')}     ${ansis.gray(`# Auto-generate message`)}`,
+      `  ${ansis.cyan('npx zcf commit --dry-run')}  ${ansis.gray(`# Preview only`)}`,
+      '',
+      ansis.gray(`  # MCP Server marketplace`),
+      `  ${ansis.cyan('npx zcf mcp search filesystem')}  ${ansis.gray(`# Search servers`)}`,
+      `  ${ansis.cyan('npx zcf mcp trending')}           ${ansis.gray(`# Show trending`)}`,
+      `  ${ansis.cyan('npx zcf mcp install GitHub')}     ${ansis.gray(`# Install server`)}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.nonInteractiveModeCicd')}`),
       `  ${ansis.cyan('npx zcf i --skip-prompt --api-type api_key --api-key "sk-ant-..."')}`,
@@ -463,6 +480,83 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .action(await withLanguageResolution(async (specFile) => {
       await deepInterview(specFile, {})
     }))
+
+  // ShenCha command - LLM-driven code audit
+  cli
+    .command('shencha <action>', 'LLM-driven code audit (scan, report, fix)')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .option('--output, -o <path>', 'Output file path')
+    .action(await withLanguageResolution(async (action, options) => {
+      if (action === 'scan') {
+        await shenchaScan(options)
+      }
+      else if (action === 'report') {
+        await shenchaReport(options)
+      }
+      else if (action === 'fix') {
+        await shenchaFix(options)
+      }
+      else {
+        console.error(`Unknown action: ${action}. Use: scan, report, or fix`)
+      }
+    }))
+
+  // Git auto-commit command
+  cli
+    .command('commit', 'Smart git commit with auto-generated messages')
+    .option('--auto, -a', 'Auto-generate commit message without prompt')
+    .option('--dry-run, -d', 'Preview commit without executing')
+    .option('--message, -m <message>', 'Custom commit message')
+    .action(async (options) => {
+      await commit(options)
+    })
+
+  // Team collaboration commands
+  cli
+    .command('team <action>', 'Team collaboration (init, share, sync)')
+    .action(async (action) => {
+      if (action === 'init') {
+        await teamInit()
+      }
+      else if (action === 'share') {
+        await teamShare()
+      }
+      else if (action === 'sync') {
+        await teamSync()
+      }
+      else {
+        console.error(`Unknown action: ${action}. Use: init, share, or sync`)
+      }
+    })
+
+  // MCP Market command
+  cli
+    .command('mcp <action> [...args]', 'MCP Server marketplace (search, trending, install)')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .action(await withLanguageResolution(async (action, args, options) => {
+      await mcpMarket(action, args, options)
+    }))
+
+  // Session management command
+  cli
+    .command('session <action> [id]', 'Manage sessions (save, list, restore, export)')
+    .action(async (action, id) => {
+      if (action === 'save') {
+        await saveSession()
+      }
+      else if (action === 'list') {
+        await listSessions()
+      }
+      else if (action === 'restore') {
+        await restoreSession(id)
+      }
+      else if (action === 'export') {
+        await exportSession(id)
+      }
+      else {
+        console.error(`Unknown action: ${action}. Use: save, list, restore, or export`)
+      }
+    })
 
   // Custom help
   cli.help(sections => customizeHelp(sections))

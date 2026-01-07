@@ -20,5 +20,19 @@
   "services.serena.description": "Semantic code retrieval and editing akin to an IDE; extracts symbol-level entities and leverages relations to greatly improve token efficiency with coding agents",
   "apiKeyApprovalFailed": "Failed to manage API key approval status",
   "apiKeyPrompt": "Enter API Key",
-  "primaryApiKeySetFailed": "Failed to set primaryApiKey"
+  "primaryApiKeySetFailed": "Failed to set primaryApiKey",
+  "market": {
+    "noResults": "No servers found for: {{keyword}}",
+    "searchResults": "Found {{count}} server(s) for: {{keyword}}",
+    "trending": "🔥 Trending MCP Servers",
+    "installing": "Installing {{name}}...",
+    "confirmInstall": "Add to Claude Code config?",
+    "cancelled": "Installation cancelled",
+    "installSuccess": "✓ {{name}} installed successfully",
+    "manualConfig": "Note: Manual configuration may be required",
+    "serverNotFound": "Server not found: {{name}}",
+    "searchKeywordRequired": "Search keyword required",
+    "installNameRequired": "Server name required",
+    "unknownAction": "Unknown action: {{action}}"
+  }
 }

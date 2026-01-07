@@ -20,5 +20,19 @@
   "services.serena.description": "提供类似 IDE 的语义代码检索与编辑，支持符号级实体提取与关系结构利用；与现有编码代理配合可显著提升标记效率",
   "apiKeyApprovalFailed": "API密钥批准状态管理失败",
   "apiKeyPrompt": "请输入 API Key",
-  "primaryApiKeySetFailed": "设置 primaryApiKey 失败"
+  "primaryApiKeySetFailed": "设置 primaryApiKey 失败",
+  "market": {
+    "noResults": "未找到相关服务器：{{keyword}}",
+    "searchResults": "找到 {{count}} 个服务器：{{keyword}}",
+    "trending": "🔥 热门 MCP 服务器",
+    "installing": "正在安装 {{name}}...",
+    "confirmInstall": "添加到 Claude Code 配置？",
+    "cancelled": "已取消安装",
+    "installSuccess": "✓ {{name}} 安装成功",
+    "manualConfig": "注意：可能需要手动配置",
+    "serverNotFound": "未找到服务器：{{name}}",
+    "searchKeywordRequired": "需要搜索关键词",
+    "installNameRequired": "需要服务器名称",
+    "unknownAction": "未知操作：{{action}}"
+  }
 }

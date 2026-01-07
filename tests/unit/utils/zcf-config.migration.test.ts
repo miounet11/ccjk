@@ -22,7 +22,7 @@ vi.mock('../../../src/utils/json-config', () => ({
 
 describe('zcf-config migration', () => {
   const home = homedir()
-  const newDir = join(home, '.ufomiao', 'zcf')
+  const newDir = join(home, '.ccjk')
   const newPath = join(newDir, 'config.toml')
   const claudeLegacy = join(home, '.claude', '.zcf-config.json')
   const legacyJson = join(home, '.zcf.json')
@@ -100,6 +100,7 @@ describe('zcf-config migration', () => {
     const result = migrateZcfConfigIfNeeded()
 
     expect(renameSync).not.toHaveBeenCalled()
+    expect(copyFileSync).not.toHaveBeenCalled()
     expect(rmSync).toHaveBeenCalledWith(claudeLegacy, { force: true })
     expect(result).toEqual({ migrated: false, target: newPath, removed: [claudeLegacy] })
   })

@@ -1,22 +1,33 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>()
+  return {
+    ...actual,
+    existsSync: vi.fn(() => true),
+    mkdirSync: vi.fn(),
+    copyFileSync: vi.fn(),
+    readFileSync: vi.fn(() => '{}'),
+    writeFileSync: vi.fn(),
+  }
+})
+
+vi.mock('../../../../src/i18n', () => ({
+  ensureI18nInitialized: vi.fn(),
+  i18n: {
+    t: vi.fn((key: string, options?: any) => {
+      if (key === 'codex:backupSuccess') {
+        return options ? `✔ Backup created at ${options.path}` : '✔ Backup created at {{path}}'
+      }
+      return `mocked_${key}`
+    }),
+  },
+}))
+
 describe('codex backup mechanism - simplified', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.resetModules()
-
-    // Mock i18n system
-    vi.mock('../../../../src/i18n', () => ({
-      ensureI18nInitialized: vi.fn(),
-      i18n: {
-        t: vi.fn((key: string, options?: any) => {
-          if (key === 'codex:backupSuccess') {
-            return options ? `✔ Backup created at ${options.path}` : '✔ Backup created at {{path}}'
-          }
-          return `mocked_${key}`
-        }),
-      },
-    }))
   })
 
   describe('with mocked file system', () => {

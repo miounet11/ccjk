@@ -10,7 +10,7 @@ export { init } from './commands/init'
 export * from './constants'
 export * from './plugins'
 // Shencha exports (exclude ProjectContext to avoid conflict)
-export {
+export type {
   AuditCycle,
   AuditCycleStatus,
   AuditReport,
@@ -29,7 +29,7 @@ export {
   ScanTarget,
   ShenChaConfig,
   VerifyResult,
-} from './shencha'
+} from './shencha/types'
 // CCJK New Features
 export * from './skills'
 export * from './subagent-groups'
