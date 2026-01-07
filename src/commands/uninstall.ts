@@ -19,7 +19,7 @@ export interface UninstallOptions {
 }
 
 /**
- * Main uninstall command - Remove ZCF configurations and tools
+ * Main uninstall command - Remove CCJK configurations and tools
  * Supports both interactive and non-interactive modes
  */
 export async function uninstall(options: UninstallOptions = {}): Promise<void> {

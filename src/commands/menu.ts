@@ -103,7 +103,7 @@ function printZcfSection(options: {
   updateOption: string
   updateDescription: string
 }): void {
-  console.log('  ------------ ZCF ------------')
+  console.log('  ------------ CCJK ------------')
   console.log(
     `  ${ansis.cyan('0.')} ${i18n.t('menu:menuOptions.changeLanguage')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
   )
@@ -380,7 +380,7 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
     let exitMenu = false
     while (!exitMenu) {
       const codeTool = getCurrentCodeTool()
-      displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'ZCF')
+      displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
       const result = codeTool === 'codex'
         ? await showCodexMenu()

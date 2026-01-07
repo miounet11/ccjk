@@ -1,5 +1,5 @@
 ---
-description: Manage Git worktrees in project-level ../.zcf/project-name/ directory with smart defaults, IDE integration and content migration
+description: Manage Git worktrees in project-level ../.ccjk/project-name/ directory with smart defaults, IDE integration and content migration
 allowed-tools: Read(**), Exec(git worktree add, git worktree list, git worktree remove, git worktree prune, git branch, git checkout, git rev-parse, git stash, git cp, detect-ide, open-ide, which, command, basename, dirname)
 argument-hint: <add|list|remove|prune|migrate> [path] [-b <branch>] [-o|--open] [--track] [--guess-remote] [--detach] [--checkout] [--lock] [--migrate-from <source-path>] [--migrate-stash]
 # examples:
@@ -12,7 +12,7 @@ argument-hint: <add|list|remove|prune|migrate> [path] [-b <branch>] [-o|--open] 
 
 # Claude Command: Git Worktree
 
-Manage Git worktrees with smart defaults, IDE integration and content migration in structured `../.zcf/project-name/` paths.
+Manage Git worktrees with smart defaults, IDE integration and content migration in structured `../.ccjk/project-name/` paths.
 
 Execute commands directly and provide concise results.
 

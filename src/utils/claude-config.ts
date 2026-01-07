@@ -242,8 +242,8 @@ export function setPrimaryApiKey(): void {
       config = {}
     }
 
-    // Set primaryApiKey to "zcf" for third-party API identification
-    config.primaryApiKey = 'zcf'
+    // Set primaryApiKey to "ccjk" for third-party API identification
+    config.primaryApiKey = 'ccjk'
 
     // Write updated config to ~/.claude/config.json
     writeJsonConfig(CLAUDE_VSC_CONFIG_FILE, config)
