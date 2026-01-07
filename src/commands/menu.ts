@@ -31,6 +31,10 @@ type MenuResult = 'exit' | 'switch' | undefined
 const CODE_TOOL_LABELS: Record<CodeToolType, string> = {
   'claude-code': 'Claude Code',
   'codex': 'Codex',
+  'aider': 'Aider',
+  'continue': 'Continue',
+  'cline': 'Cline',
+  'cursor': 'Cursor',
 }
 
 function getCurrentCodeTool(): CodeToolType {

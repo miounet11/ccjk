@@ -1,3 +1,4 @@
+import type { CodeToolType } from '../../constants'
 import { existsSync } from 'node:fs'
 import { exec } from 'tinyexec'
 import {
@@ -8,13 +9,13 @@ import {
   CLINE_DIR,
   CODE_TOOL_INFO,
   CODE_TOOL_TYPES,
+
   CODEX_CONFIG_FILE,
   CODEX_DIR,
   CONTINUE_CONFIG_FILE,
   CONTINUE_DIR,
   CURSOR_CONFIG_FILE,
   CURSOR_DIR,
-  type CodeToolType,
 } from '../../constants'
 
 /**

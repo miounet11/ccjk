@@ -1,27 +1,24 @@
+import type { SupportedLang } from '../constants'
+import type {
+  InterviewDepth,
+  InterviewSession,
+  QuestionDisplay,
+} from '../interview/types'
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import type { SupportedLang } from '../constants'
 import { i18n } from '../i18n'
 import {
   createInterviewEngine,
   createSpecGenerator,
   getCategoryById,
   getTemplateById,
-  INTERVIEW_CATEGORIES,
   INTERVIEW_TEMPLATES,
 } from '../interview'
-import type {
-  InterviewCategoryId,
-  InterviewDepth,
-  InterviewSession,
-  QuestionDisplay,
-} from '../interview/types'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
-import { addNumbersToChoices } from '../utils/prompt-helpers'
 
 /**
  * Interview command options
@@ -53,7 +50,8 @@ function displayInterviewBanner(compact: boolean = false): void {
   if (compact) {
     console.log(ansis.cyan.bold('  🎤 Interview-Driven Development'))
     console.log(ansis.gray('  "Interview first. Spec second. Code last."'))
-  } else {
+  }
+  else {
     console.log(ansis.cyan('╔═══════════════════════════════════════════════════════════════╗'))
     console.log(ansis.cyan('║') + ansis.bold.white('       🎤 Interview-Driven Development (IDD)                  ') + ansis.cyan('║'))
     console.log(ansis.cyan('║') + ansis.gray('  "Interview first. Spec second. Code last."                  ') + ansis.cyan('║'))
@@ -72,23 +70,27 @@ async function detectProjectType(): Promise<string> {
 
   // Check for common project indicators
   const indicators = {
-    'saas': ['prisma', 'drizzle', 'stripe', 'auth', 'subscription'].some(
-      dir => existsSync(join(cwd, dir)) || existsSync(join(cwd, 'src', dir))
+    saas: ['prisma', 'drizzle', 'stripe', 'auth', 'subscription'].some(
+      dir => existsSync(join(cwd, dir)) || existsSync(join(cwd, 'src', dir)),
     ),
-    'ecommerce': ['cart', 'checkout', 'products', 'shop'].some(
-      dir => existsSync(join(cwd, dir)) || existsSync(join(cwd, 'src', dir))
+    ecommerce: ['cart', 'checkout', 'products', 'shop'].some(
+      dir => existsSync(join(cwd, dir)) || existsSync(join(cwd, 'src', dir)),
     ),
-    'api': existsSync(join(cwd, 'routes')) || existsSync(join(cwd, 'api')) ||
-           existsSync(join(cwd, 'src/routes')) || existsSync(join(cwd, 'src/api')),
-    'webapp': existsSync(join(cwd, 'pages')) || existsSync(join(cwd, 'app')) ||
-              existsSync(join(cwd, 'src/pages')) || existsSync(join(cwd, 'src/app')) ||
-              existsSync(join(cwd, 'components')),
+    api: existsSync(join(cwd, 'routes')) || existsSync(join(cwd, 'api'))
+      || existsSync(join(cwd, 'src/routes')) || existsSync(join(cwd, 'src/api')),
+    webapp: existsSync(join(cwd, 'pages')) || existsSync(join(cwd, 'app'))
+      || existsSync(join(cwd, 'src/pages')) || existsSync(join(cwd, 'src/app'))
+      || existsSync(join(cwd, 'components')),
   }
 
-  if (indicators.saas) return 'saas'
-  if (indicators.ecommerce) return 'ecommerce'
-  if (indicators.api) return 'api'
-  if (indicators.webapp) return 'webapp'
+  if (indicators.saas)
+    return 'saas'
+  if (indicators.ecommerce)
+    return 'ecommerce'
+  if (indicators.api)
+    return 'api'
+  if (indicators.webapp)
+    return 'webapp'
 
   return 'webapp' // default
 }
@@ -265,7 +267,7 @@ async function selectTemplate(lang: SupportedLang): Promise<string | null> {
  * Quick start - one-step interview configuration
  * Detects project type and offers smart defaults
  */
-async function quickStartConfig(lang: SupportedLang): Promise<{
+async function quickStartConfig(_lang: SupportedLang): Promise<{
   template: string
   depth: InterviewDepth
   specFile: string
@@ -459,7 +461,8 @@ export async function interview(options: InterviewOptions = {}): Promise<void> {
         templateId = quickConfig.template
         depth = quickConfig.depth
         specFile = quickConfig.specFile
-      } else {
+      }
+      else {
         // User wants custom setup - go through full flow
         const selectedTemplate = await selectTemplate(lang)
         if (!selectedTemplate) {
@@ -509,7 +512,8 @@ export async function interview(options: InterviewOptions = {}): Promise<void> {
         }
         specFile = selectedSpecFile
       }
-    } else {
+    }
+    else {
       // Use provided options
       templateId = options.template || 'webapp'
       depth = options.depth || 'standard'

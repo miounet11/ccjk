@@ -2,25 +2,25 @@ import type { CAC } from 'cac'
 import type { CodeToolType, SupportedLang } from './constants'
 import ansis from 'ansis'
 import { version } from '../package.json'
+import { apiCommand } from './commands/api'
 import { ccr } from './commands/ccr'
 import { executeCcusage } from './commands/ccu'
 import { checkUpdates } from './commands/check-updates'
 import { configSwitchCommand } from './commands/config-switch'
 import { init } from './commands/init'
-import { interview, quickInterview, deepInterview, resumeInterview, listInterviewSessions } from './commands/interview'
+import { deepInterview, interview, listInterviewSessions, quickInterview, resumeInterview } from './commands/interview'
 import { showMainMenu } from './commands/menu'
+import { toolsCommand } from './commands/tools'
 import { uninstall } from './commands/uninstall'
 import { update } from './commands/update'
-import { toolsCommand } from './commands/tools'
-import { apiCommand } from './commands/api'
 import { changeLanguage, i18n, initI18n } from './i18n'
-import { selectScriptLanguage } from './utils/prompts'
-import { readZcfConfigAsync } from './utils/zcf-config'
-import { runOnboarding, quickSync } from './utils/onboarding'
-import { runDoctor } from './utils/health-check'
-import { checkAllVersions, upgradeAll } from './utils/upgrade-manager'
 import { detectAllConfigs, displayConfigScan } from './utils/config-consolidator'
+import { runDoctor } from './utils/health-check'
+import { quickSync, runOnboarding } from './utils/onboarding'
 import { displayPermissions } from './utils/permission-manager'
+import { selectScriptLanguage } from './utils/prompts'
+import { checkAllVersions, upgradeAll } from './utils/upgrade-manager'
+import { readZcfConfigAsync } from './utils/zcf-config'
 
 export interface CliOptions {
   lang?: 'zh-CN' | 'en'
@@ -435,13 +435,17 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .action(await withLanguageResolution(async (specFile, options) => {
       if (options.list) {
         await listInterviewSessions()
-      } else if (options.resume) {
+      }
+      else if (options.resume) {
         await resumeInterview()
-      } else if (options.depth === 'quick') {
+      }
+      else if (options.depth === 'quick') {
         await quickInterview(specFile, options)
-      } else if (options.depth === 'deep') {
+      }
+      else if (options.depth === 'deep') {
         await deepInterview(specFile, options)
-      } else {
+      }
+      else {
         await interview({ specFile, ...options })
       }
     }))

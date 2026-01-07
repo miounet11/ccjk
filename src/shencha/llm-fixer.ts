@@ -1,10 +1,31 @@
+import type { LLMClient } from './llm-scanner'
 import type {
   EvaluatedIssue,
+  FileChange,
   FixPlan,
   FixResult,
   GeneratedFix,
 } from './types'
-import type { LLMClient } from './llm-scanner'
+
+/**
+ * Get location info from issue
+ */
+function getLocationInfo(issue: EvaluatedIssue): { file: string, startLine: number, endLine: number, snippet: string } {
+  if (typeof issue.location === 'object' && issue.location) {
+    return {
+      file: issue.location.file || issue.file,
+      startLine: issue.location.startLine || issue.line || 1,
+      endLine: issue.location.endLine || issue.line || 1,
+      snippet: issue.location.snippet || issue.snippet || '',
+    }
+  }
+  return {
+    file: issue.file,
+    startLine: issue.line || 1,
+    endLine: issue.line || 1,
+    snippet: issue.snippet || '',
+  }
+}
 
 /**
  * LLM Fixer - Generates and applies fixes autonomously
@@ -20,25 +41,26 @@ export class LLMFixer {
    * LLM generates fix code (no templates)
    */
   async generateFix(issue: EvaluatedIssue, plan: FixPlan, currentCode: string): Promise<GeneratedFix> {
+    const stepsStr = (plan.steps || []).map(s => typeof s === 'string' ? s : s.action).join(', ')
     const prompt = `Generate a fix for this issue:
 
 Issue: ${issue.title}
-Type: ${issue.type}
-Severity: ${issue.adjustedSeverity}
-File: ${issue.location.file}
+Type: ${issue.type || issue.category}
+Severity: ${issue.adjustedSeverity || issue.severity}
+File: ${issue.file}
 
 Fix Plan:
 - Approach: ${plan.approach}
-- Steps: ${plan.steps.map(s => s.action).join(', ')}
+- Steps: ${stepsStr}
 
 Current code:
 \`\`\`
 ${currentCode}
 \`\`\`
 
-Problem area (lines ${issue.location.startLine}-${issue.location.endLine}):
+Problem area (lines ${issue.line || 0}):
 \`\`\`
-${issue.location.snippet}
+${issue.snippet || ''}
 \`\`\`
 
 Generate the fixed code:
@@ -76,31 +98,41 @@ Return JSON:
     readFile: (path: string) => Promise<string>,
   ): Promise<FixResult> {
     const startTime = Date.now()
+    const filePath = fix.filePath || ''
+    const fixedCode = fix.fixedCode || ''
 
     try {
       // Read current content for backup
-      const originalContent = await readFile(fix.filePath)
+      const originalContent = await readFile(filePath)
 
       // Apply the fix
-      await writeFile(fix.filePath, fix.fixedCode)
+      await writeFile(filePath, fixedCode)
 
       return {
+        fix,
         fixId: fix.id,
         success: true,
         appliedAt: new Date(),
         duration: Date.now() - startTime,
         originalContent,
-        newContent: fix.fixedCode,
+        newContent: fixedCode,
+        appliedChanges: fix.changes,
+        failedChanges: [],
+        backupPaths: [],
         changesApplied: fix.changes.length,
       }
     }
     catch (error) {
       return {
+        fix,
         fixId: fix.id,
         success: false,
         appliedAt: new Date(),
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : 'Unknown error',
+        appliedChanges: [],
+        failedChanges: [],
+        backupPaths: [],
         changesApplied: 0,
       }
     }
@@ -136,15 +168,18 @@ Return JSON:
     currentCode: string,
     filePath: string,
   ): Promise<GeneratedFix> {
-    const issueDescriptions = issues.map((issue, idx) => `
+    const issueDescriptions = issues.map((issue, idx) => {
+      const loc = getLocationInfo(issue)
+      return `
 Issue ${idx + 1}: ${issue.title}
-Lines: ${issue.location.startLine}-${issue.location.endLine}
+Lines: ${loc.startLine}-${loc.endLine}
 Plan: ${plans[idx]?.approach || 'No plan'}
 Snippet:
 \`\`\`
-${issue.location.snippet}
+${loc.snippet}
 \`\`\`
-`).join('\n')
+`
+    }).join('\n')
 
     const prompt = `Generate fixes for multiple issues in the same file:
 
@@ -188,16 +223,17 @@ Return JSON:
    * Suggest alternative fixes
    */
   async suggestAlternatives(issue: EvaluatedIssue, currentCode: string): Promise<GeneratedFix[]> {
+    const loc = getLocationInfo(issue)
     const prompt = `Suggest alternative fixes for this issue:
 
 Issue: ${issue.title}
 Type: ${issue.type}
 Description: ${issue.description}
-File: ${issue.location.file}
+File: ${loc.file}
 
 Problem code:
 \`\`\`
-${issue.location.snippet}
+${loc.snippet}
 \`\`\`
 
 Full context:
@@ -231,36 +267,39 @@ Return JSON array:
   private parseGeneratedFix(issue: EvaluatedIssue, plan: FixPlan, response: string): GeneratedFix {
     try {
       const json = this.extractJson(response)
+      const changes: FileChange[] = (json.changes || []).map((c: any) => ({
+        path: issue.file,
+        type: 'modify' as const,
+        startLine: c.startLine,
+        endLine: c.endLine,
+        before: c.oldCode,
+        after: c.newCode,
+        explanation: c.explanation,
+      }))
       return {
         id: `fix-${issue.id}-${Date.now()}`,
-        issueId: issue.id,
-        planId: plan.issueId,
-        filePath: issue.location.file,
+        plan,
+        filePath: issue.file,
         fixedCode: json.fixedCode || '',
-        changes: (json.changes || []).map((c: any) => ({
-          startLine: c.startLine,
-          endLine: c.endLine,
-          oldCode: c.oldCode,
-          newCode: c.newCode,
-          explanation: c.explanation,
-        })),
+        changes,
         imports: json.imports || [],
         warnings: json.warnings || [],
         generatedAt: new Date(),
+        commitMessage: `fix: ${issue.title}`,
         approach: plan.approach,
       }
     }
     catch {
       return {
         id: `fix-${issue.id}-${Date.now()}`,
-        issueId: issue.id,
-        planId: plan.issueId,
-        filePath: issue.location.file,
+        plan,
+        filePath: issue.file,
         fixedCode: '',
         changes: [],
         imports: [],
         warnings: ['Failed to parse LLM response'],
         generatedAt: new Date(),
+        commitMessage: `fix: ${issue.title}`,
         approach: plan.approach,
       }
     }
@@ -275,39 +314,49 @@ Return JSON array:
     filePath: string,
     response: string,
   ): GeneratedFix {
+    const defaultPlan: FixPlan = {
+      issueId: issues.map(i => i.id).join(','),
+      approach: 'batch',
+      filesToModify: [filePath],
+      expectedChanges: '',
+      rollbackStrategy: '',
+      testsToRun: [],
+    }
     try {
       const json = this.extractJson(response)
+      const changes: FileChange[] = (json.changes || []).map((c: any) => ({
+        path: filePath,
+        type: 'modify' as const,
+        startLine: c.startLine,
+        endLine: c.endLine,
+        before: c.oldCode,
+        after: c.newCode,
+        explanation: c.explanation,
+      }))
       return {
         id: `batch-fix-${Date.now()}`,
-        issueId: issues.map(i => i.id).join(','),
-        planId: plans.map(p => p.issueId).join(','),
+        plan: plans[0] || defaultPlan,
         filePath,
         fixedCode: json.fixedCode || '',
-        changes: (json.changes || []).map((c: any) => ({
-          startLine: c.startLine,
-          endLine: c.endLine,
-          oldCode: c.oldCode,
-          newCode: c.newCode,
-          explanation: c.explanation,
-          issueIndex: c.issueIndex,
-        })),
+        changes,
         imports: json.imports || [],
         warnings: json.warnings || [],
         generatedAt: new Date(),
+        commitMessage: `fix: batch fix for ${issues.length} issues`,
         approach: 'batch',
       }
     }
     catch {
       return {
         id: `batch-fix-${Date.now()}`,
-        issueId: issues.map(i => i.id).join(','),
-        planId: plans.map(p => p.issueId).join(','),
+        plan: plans[0] || defaultPlan,
         filePath,
         fixedCode: '',
         changes: [],
         imports: [],
         warnings: ['Failed to parse batch fix'],
         generatedAt: new Date(),
+        commitMessage: `fix: batch fix for ${issues.length} issues`,
         approach: 'batch',
       }
     }
@@ -317,6 +366,15 @@ Return JSON array:
    * Parse alternatives from LLM response
    */
   private parseAlternatives(issue: EvaluatedIssue, response: string): GeneratedFix[] {
+    const loc = getLocationInfo(issue)
+    const defaultPlan: FixPlan = {
+      issueId: issue.id,
+      approach: 'alternative',
+      filesToModify: [loc.file],
+      expectedChanges: '',
+      rollbackStrategy: '',
+      testsToRun: [],
+    }
     try {
       const json = this.extractJson(response)
       if (!Array.isArray(json))
@@ -324,14 +382,14 @@ Return JSON array:
 
       return json.map((alt: any, idx: number) => ({
         id: `alt-${issue.id}-${idx}-${Date.now()}`,
-        issueId: issue.id,
-        planId: '',
-        filePath: issue.location.file,
+        plan: defaultPlan,
+        filePath: loc.file,
         fixedCode: alt.fixedCode || '',
         changes: [],
         imports: [],
         warnings: alt.cons || [],
         generatedAt: new Date(),
+        commitMessage: `fix: ${issue.title} (${alt.approach || 'alternative'})`,
         approach: alt.approach || 'alternative',
         description: alt.description,
         pros: alt.pros,

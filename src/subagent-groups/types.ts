@@ -54,34 +54,34 @@ export interface SubagentGroup {
 /**
  * Predefined language-specific groups
  */
-export type LanguageGroupId =
-  | 'typescript-dev'
-  | 'python-dev'
-  | 'rust-dev'
-  | 'go-dev'
-  | 'java-dev'
-  | 'ruby-dev'
+export type LanguageGroupId
+  = | 'typescript-dev'
+    | 'python-dev'
+    | 'rust-dev'
+    | 'go-dev'
+    | 'java-dev'
+    | 'ruby-dev'
 
 /**
  * Predefined site-type groups
  */
-export type SiteTypeGroupId =
-  | 'ecommerce'
-  | 'saas'
-  | 'blog-cms'
-  | 'api-service'
-  | 'dashboard'
-  | 'mobile-app'
+export type SiteTypeGroupId
+  = | 'ecommerce'
+    | 'saas'
+    | 'blog-cms'
+    | 'api-service'
+    | 'dashboard'
+    | 'mobile-app'
 
 /**
  * Predefined specialty groups
  */
-export type SpecialtyGroupId =
-  | 'seo-team'
-  | 'security-team'
-  | 'performance-team'
-  | 'testing-team'
-  | 'devops-team'
+export type SpecialtyGroupId
+  = | 'seo-team'
+    | 'security-team'
+    | 'performance-team'
+    | 'testing-team'
+    | 'devops-team'
 
 /**
  * All predefined group IDs

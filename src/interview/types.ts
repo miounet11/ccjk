@@ -11,17 +11,17 @@ export type InterviewDepth = 'quick' | 'standard' | 'deep'
 /**
  * Interview category identifiers
  */
-export type InterviewCategoryId =
-  | 'project-foundation'
-  | 'target-audience'
-  | 'technical-implementation'
-  | 'features-scope'
-  | 'ui-ux'
-  | 'concerns'
-  | 'tradeoffs'
-  | 'business-logic'
-  | 'security-compliance'
-  | 'custom'
+export type InterviewCategoryId
+  = | 'project-foundation'
+    | 'target-audience'
+    | 'technical-implementation'
+    | 'features-scope'
+    | 'ui-ux'
+    | 'concerns'
+    | 'tradeoffs'
+    | 'business-logic'
+    | 'security-compliance'
+    | 'custom'
 
 /**
  * Interview session status
@@ -393,7 +393,7 @@ export interface InterviewStats {
   /** Most used depth */
   mostUsedDepth: InterviewDepth
   /** Most common project types */
-  commonProjectTypes: Array<{ type: string; count: number }>
+  commonProjectTypes: Array<{ type: string, count: number }>
   /** Category completion rates */
   categoryCompletionRates: Record<InterviewCategoryId, number>
 }

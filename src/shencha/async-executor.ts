@@ -1,22 +1,19 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
-import { join } from 'pathe'
+import type { LLMClient } from './llm-scanner'
 import type {
   AuditCycle,
   AuditReport,
-  EvaluatedIssue,
   ExecutionPlan,
-  FixPlan,
-  FixResult,
-  GeneratedFix,
   Issue,
   ProjectContext,
   ScanResult,
 } from './types'
-import { LLMScanner, type LLMClient } from './llm-scanner'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'pathe'
+import { CCJK_CONFIG_DIR } from '../constants'
 import { LLMDecisionEngine } from './llm-decision'
 import { LLMFixer } from './llm-fixer'
+import { LLMScanner } from './llm-scanner'
 import { LLMVerifier } from './llm-verifier'
-import { CCJK_CONFIG_DIR } from '../constants'
 
 /**
  * Async job status
@@ -72,7 +69,7 @@ export class AsyncShenChaExecutor {
   private fixer: LLMFixer
   private verifier: LLMVerifier
   private config: ExecutionConfig
-  private jobs: Map<string, AsyncJob> = new Map()
+  private _jobs: Map<string, AsyncJob> = new Map()
   private isRunning: boolean = false
   private currentCycle: AuditCycle | null = null
 
@@ -91,6 +88,13 @@ export class AsyncShenChaExecutor {
   }
 
   /**
+   * Get jobs map
+   */
+  get jobs(): Map<string, AsyncJob> {
+    return this._jobs
+  }
+
+  /**
    * LLM decides execution order
    */
   async planExecution(scanResults: ScanResult[]): Promise<ExecutionPlan> {
@@ -106,7 +110,7 @@ By Severity:
 - Low: ${allIssues.filter(i => i.severity === 'low').length}
 
 Issues Summary:
-${allIssues.slice(0, 20).map(i => `- [${i.severity}] ${i.title} (${i.location.file})`).join('\n')}
+${allIssues.slice(0, 20).map(i => `- [${i.severity}] ${i.title} (${i.file})`).join('\n')}
 ${allIssues.length > 20 ? `... and ${allIssues.length - 20} more` : ''}
 
 Create an execution plan considering:
@@ -154,7 +158,7 @@ Return JSON:
     this.isRunning = true
 
     // Run the cycle asynchronously
-    this.runCycleAsync(this.currentCycle).catch(error => {
+    this.runCycleAsync(this.currentCycle).catch((error) => {
       if (this.currentCycle) {
         this.currentCycle.status = 'failed'
         this.currentCycle.error = error.message
@@ -183,7 +187,7 @@ Return JSON:
 
       // Check for critical issues
       const criticalIssues = cycle.evaluatedIssues.filter(
-        i => i.adjustedSeverity === 'critical'
+        i => i.adjustedSeverity === 'critical',
       )
       if (criticalIssues.length > 0 && this.config.stopOnCritical) {
         cycle.status = 'paused'
@@ -200,7 +204,7 @@ Return JSON:
 
           if (fixDecision.canAutoFix && !fixDecision.requiresReview) {
             const plan = await this.decision.planFix(issue)
-            const currentCode = await readFile(issue.location.file)
+            const currentCode = await readFile(issue.file)
             const fix = await this.fixer.generateFix(issue, plan, currentCode)
             const result = await this.fixer.applyFix(fix, writeFile, readFile)
 
@@ -209,7 +213,7 @@ Return JSON:
               const verification = await this.verifier.runFullVerification(fix, result, readFile)
               if (!verification.overallSuccess) {
                 // Rollback
-                await this.fixer.rollbackFix(result, writeFile, issue.location.file)
+                await this.fixer.rollbackFix(result, writeFile, issue.file)
                 result.success = false
                 result.error = 'Verification failed'
               }
@@ -227,7 +231,7 @@ Return JSON:
       // Save report
       const reportPath = join(
         this.config.reportDir,
-        `report-${cycle.id}.json`
+        `report-${cycle.id}.json`,
       )
       writeFileSync(reportPath, JSON.stringify(cycle.report, null, 2))
 
@@ -278,27 +282,38 @@ Return JSON:
     const healthScore = this.calculateHealthScore(cycle)
 
     return {
+      id: `report-${cycle.id}`,
       cycleId: cycle.id,
+      cycleNumber: 1,
       generatedAt: new Date(),
+      duration: cycle.completedAt
+        ? cycle.completedAt.getTime() - cycle.startedAt.getTime()
+        : 0,
       summary: {
         totalIssues,
         fixedIssues,
+        pendingIssues: totalIssues - fixedIssues,
         failedFixes,
         pendingReview: totalIssues - fixedIssues - failedFixes,
         bySeverity,
         byType,
         healthScore,
+        scores: {
+          security: 100 - (bySeverity.critical * 20 + bySeverity.high * 10),
+          performance: 100 - byType.performance * 5,
+          quality: 100 - byType.quality * 3,
+        },
       },
+      issuesByCategory: {},
       issues: cycle.evaluatedIssues,
+      fixesApplied: cycle.fixResults.map(r => r.result),
       fixes: cycle.fixResults.map(r => ({
         issueId: r.issue.id,
         success: r.result.success,
         error: r.result.error,
       })),
       recommendations: this.generateRecommendations(cycle),
-      duration: cycle.completedAt
-        ? cycle.completedAt.getTime() - cycle.startedAt.getTime()
-        : 0,
+      nextSteps: [],
     }
   }
 
@@ -362,25 +377,48 @@ Return JSON:
   private parseExecutionPlan(response: string, issues: Issue[]): ExecutionPlan {
     try {
       const json = this.extractJson(response)
+      const phases = (json.phases || []).map((p: any) => ({
+        name: p.name || 'Phase',
+        description: p.description || '',
+        targets: p.targets || [],
+        issueIds: p.issueIds || [],
+        parallel: p.parallel ?? false,
+        estimatedMinutes: p.estimatedMinutes || 0,
+      }))
       return {
-        phases: json.phases || [],
+        id: `plan-${Date.now()}`,
+        createdAt: new Date(),
+        targets: [],
+        order: issues.map(i => i.id),
+        parallelGroups: [],
+        estimatedDuration: json.totalEstimatedMinutes || 0,
         totalEstimatedMinutes: json.totalEstimatedMinutes || 0,
+        priorityQueue: issues.map((i, idx) => ({ targetId: i.id, priority: issues.length - idx })),
+        phases,
         recommendations: json.recommendations || [],
-        issues,
+        issues: issues.map(i => i.id),
       }
     }
     catch {
       return {
+        id: `plan-${Date.now()}`,
+        createdAt: new Date(),
+        targets: [],
+        order: issues.map(i => i.id),
+        parallelGroups: [],
+        estimatedDuration: issues.length * 5,
+        totalEstimatedMinutes: issues.length * 5,
+        priorityQueue: issues.map((i, idx) => ({ targetId: i.id, priority: issues.length - idx })),
         phases: [{
           name: 'Default',
           description: 'Process all issues',
+          targets: [],
           issueIds: issues.map(i => i.id),
           parallel: false,
           estimatedMinutes: issues.length * 5,
         }],
-        totalEstimatedMinutes: issues.length * 5,
         recommendations: [],
-        issues,
+        issues: issues.map(i => i.id),
       }
     }
   }

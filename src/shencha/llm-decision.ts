@@ -1,10 +1,10 @@
+import type { LLMClient } from './llm-scanner'
 import type {
   EvaluatedIssue,
   FixDecision,
   FixPlan,
   Issue,
 } from './types'
-import type { LLMClient } from './llm-scanner'
 
 /**
  * LLM Decision Engine - Makes autonomous decisions about issues
@@ -23,15 +23,15 @@ export class LLMDecisionEngine {
     const prompt = `Evaluate this code issue:
 
 Issue: ${issue.title}
-Type: ${issue.type}
+Type: ${issue.type || issue.category}
 Severity: ${issue.severity}
 Description: ${issue.description}
-Location: ${issue.location.file}:${issue.location.startLine}
+Location: ${issue.file}:${issue.line || 0}
 Code:
 \`\`\`
-${issue.location.snippet}
+${issue.snippet || ''}
 \`\`\`
-Suggestion: ${issue.suggestion}
+Suggestion: ${issue.suggestion || issue.suggestedFix || ''}
 
 Evaluate:
 1. Is this a real issue or false positive? (confidence 0-1)
@@ -63,17 +63,17 @@ Return JSON:
     const prompt = `Should we auto-fix this issue?
 
 Issue: ${issue.title}
-Severity: ${issue.adjustedSeverity}
+Severity: ${issue.adjustedSeverity || issue.severity}
 Priority: ${issue.priority}
 Effort: ${issue.effort}
-Risks: ${issue.risks.join(', ')}
+Risks: ${(issue.risks || []).join(', ')}
 
 Code:
 \`\`\`
-${issue.location.snippet}
+${issue.snippet || ''}
 \`\`\`
 
-Suggested fix: ${issue.suggestion}
+Suggested fix: ${issue.suggestion || issue.suggestedFix || ''}
 
 Consider:
 1. Can this be fixed automatically without breaking functionality?
@@ -103,17 +103,17 @@ Return JSON:
     const prompt = `Create a fix plan for this issue:
 
 Issue: ${issue.title}
-Type: ${issue.type}
-Severity: ${issue.adjustedSeverity}
-File: ${issue.location.file}
-Lines: ${issue.location.startLine}-${issue.location.endLine}
+Type: ${issue.type || issue.category}
+Severity: ${issue.adjustedSeverity || issue.severity}
+File: ${issue.file}
+Lines: ${issue.line || 0}
 
 Current code:
 \`\`\`
-${issue.location.snippet}
+${issue.snippet || ''}
 \`\`\`
 
-Suggested approach: ${issue.suggestion}
+Suggested approach: ${issue.suggestion || issue.suggestedFix || ''}
 
 Create a detailed fix plan:
 1. What exact changes are needed?
@@ -182,6 +182,8 @@ Return JSON:
         risks: json.risks || [],
         relatedPatterns: json.relatedPatterns || [],
         reasoning: json.reasoning || '',
+        evaluation: json.reasoning || '',
+        action: json.action || 'fix-later',
       }
     }
     catch {
@@ -194,6 +196,8 @@ Return JSON:
         risks: [],
         relatedPatterns: [],
         reasoning: '',
+        evaluation: '',
+        action: 'fix-later',
       }
     }
   }
@@ -205,20 +209,30 @@ Return JSON:
     try {
       const json = this.extractJson(response)
       return {
+        shouldFix: json.canAutoFix ?? false,
         canAutoFix: json.canAutoFix ?? false,
         requiresReview: json.requiresReview ?? true,
         riskLevel: json.riskLevel || 'medium',
+        reason: json.reasoning || '',
         reasoning: json.reasoning || '',
+        risk: json.riskLevel || 'medium',
+        prerequisites: json.prerequisites || [],
+        verificationSteps: json.verificationSteps || [],
         conditions: json.conditions || [],
         alternatives: json.alternatives || [],
       }
     }
     catch {
       return {
+        shouldFix: false,
         canAutoFix: false,
         requiresReview: true,
         riskLevel: 'high',
+        reason: 'Could not parse decision',
         reasoning: 'Could not parse decision',
+        risk: 'high',
+        prerequisites: [],
+        verificationSteps: [],
         conditions: [],
         alternatives: [],
       }
@@ -234,9 +248,13 @@ Return JSON:
       return {
         issueId: issue.id,
         approach: json.approach || '',
+        filesToModify: json.filesToModify || [issue.file],
+        expectedChanges: json.expectedChanges || '',
+        rollbackStrategy: json.rollbackPlan || '',
+        rollbackPlan: json.rollbackPlan || '',
+        testsToRun: json.testsToRun || [],
         steps: json.steps || [],
         validations: json.validations || [],
-        rollbackPlan: json.rollbackPlan || '',
         sideEffects: json.sideEffects || [],
         testStrategy: json.testStrategy || '',
         estimatedDuration: this.estimateDuration(issue.effort),
@@ -246,9 +264,13 @@ Return JSON:
       return {
         issueId: issue.id,
         approach: issue.suggestion || '',
+        filesToModify: [issue.file],
+        expectedChanges: '',
+        rollbackStrategy: '',
+        rollbackPlan: '',
+        testsToRun: [],
         steps: [],
         validations: [],
-        rollbackPlan: '',
         sideEffects: [],
         testStrategy: '',
         estimatedDuration: 0,

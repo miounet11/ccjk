@@ -1,15 +1,12 @@
-import { existsSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'pathe'
-import { exec } from 'tinyexec'
 import ansis from 'ansis'
 import ora from 'ora'
+import { exec } from 'tinyexec'
 import { version } from '../../package.json'
-import { CLAUDE_DIR, SETTINGS_FILE, CCJK_CONFIG_DIR } from '../constants'
-import { STATUS, boxify, renderProgressBar } from './banner'
-import { checkClaudeCodeVersion, checkCcjkVersion } from './upgrade-manager'
+import { renderProgressBar, STATUS } from './banner'
 import { detectAllConfigs } from './config-consolidator'
-import { readPermissions, getCurrentTemplateId } from './permission-manager'
+import { getCurrentTemplateId } from './permission-manager'
+import { checkCcjkVersion, checkClaudeCodeVersion } from './upgrade-manager'
 
 /**
  * Check result
@@ -115,7 +112,7 @@ async function checkNodeVersion(): Promise<CheckResult> {
   try {
     const result = await exec('node', ['--version'], { throwOnError: false })
     const nodeVersion = result.stdout.trim().replace('v', '')
-    const major = parseInt(nodeVersion.split('.')[0])
+    const major = Number.parseInt(nodeVersion.split('.')[0])
 
     if (major < 18) {
       return {
@@ -313,7 +310,7 @@ async function checkDiskSpace(): Promise<CheckResult> {
     if (lines.length >= 2) {
       const parts = lines[1].split(/\s+/)
       const available = parts[3]
-      const usePercent = parseInt(parts[4])
+      const usePercent = Number.parseInt(parts[4])
 
       if (usePercent > 90) {
         return {

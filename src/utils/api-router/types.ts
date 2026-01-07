@@ -105,14 +105,14 @@ export interface ProviderPreset {
 /**
  * Provider Features
  */
-export type ProviderFeature =
-  | 'chat'
-  | 'vision'
-  | 'tools'
-  | 'streaming'
-  | 'thinking'
-  | 'web-search'
-  | 'code'
+export type ProviderFeature
+  = | 'chat'
+    | 'vision'
+    | 'tools'
+    | 'streaming'
+    | 'thinking'
+    | 'web-search'
+    | 'code'
 
 /**
  * API Configuration Result

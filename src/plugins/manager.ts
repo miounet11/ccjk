@@ -1,6 +1,3 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { join } from 'pathe'
-import { CCJK_PLUGINS_DIR } from '../constants'
 import type {
   CcjkPlugin,
   LoadedPlugin,
@@ -11,6 +8,9 @@ import type {
   PluginLogger,
   PluginStorage,
 } from './types'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'pathe'
+import { CCJK_PLUGINS_DIR } from '../constants'
 
 // In-memory plugin registry
 const loadedPlugins = new Map<string, LoadedPlugin>()

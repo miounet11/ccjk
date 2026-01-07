@@ -1,9 +1,9 @@
+import type { SupportedLang } from '../constants'
 /**
  * CCJK API Command
  * Unified API configuration for Claude Code
  */
 import ansis from 'ansis'
-import type { SupportedLang } from '../constants'
 import {
   displayCurrentStatus,
   getAllPresets,
@@ -40,16 +40,17 @@ export function listProviders(lang: SupportedLang = 'en'): void {
 
   // Group by category
   const categories = {
-    official: lang === 'zh-CN' ? '官方' : 'Official',
+    'official': lang === 'zh-CN' ? '官方' : 'Official',
     'openai-compatible': lang === 'zh-CN' ? 'OpenAI 兼容' : 'OpenAI Compatible',
-    chinese: lang === 'zh-CN' ? '国内服务' : 'Chinese Providers',
-    free: lang === 'zh-CN' ? '免费' : 'Free Tier',
-    local: lang === 'zh-CN' ? '本地' : 'Local',
+    'chinese': lang === 'zh-CN' ? '国内服务' : 'Chinese Providers',
+    'free': lang === 'zh-CN' ? '免费' : 'Free Tier',
+    'local': lang === 'zh-CN' ? '本地' : 'Local',
   }
 
   for (const [category, label] of Object.entries(categories)) {
     const categoryPresets = presets.filter(p => p.category === category)
-    if (categoryPresets.length === 0) continue
+    if (categoryPresets.length === 0)
+      continue
 
     console.log(COLORS.secondary(`  ${label}:`))
     for (const preset of categoryPresets) {
@@ -77,7 +78,8 @@ export function setupApi(
     console.log(STATUS.success(lang === 'zh-CN'
       ? `API 配置成功! 提供商: ${result.provider}`
       : `API configured successfully! Provider: ${result.provider}`))
-  } else {
+  }
+  else {
     console.log(STATUS.error(lang === 'zh-CN'
       ? `API 配置失败: ${result.error}`
       : `API configuration failed: ${result.error}`))
@@ -126,9 +128,11 @@ export async function apiCommand(
     case 'set':
       if (options.provider && options.key) {
         setupApi(options.provider, options.key, lang)
-      } else if (args.length >= 2) {
+      }
+      else if (args.length >= 2) {
         setupApi(args[0], args[1], lang)
-      } else {
+      }
+      else {
         console.log(STATUS.error(lang === 'zh-CN'
           ? '用法: ccjk api setup <provider> <api-key>'
           : 'Usage: ccjk api setup <provider> <api-key>'))

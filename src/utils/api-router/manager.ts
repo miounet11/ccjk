@@ -1,31 +1,24 @@
+import type {
+  ApiConfigResult,
+} from './types'
 /**
  * CCJK API Router - Unified Manager
  * Provides a unified interface for all API routing modes
  */
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import type {
-  ApiConfig,
-  ApiConfigResult,
-  ApiRoutingMode,
-  ProviderPreset,
-} from './types'
 import {
   getAllPresets,
   getChinesePresets,
   getPresetById,
-  getPresetsByCategory,
   getRecommendedPresets,
 } from './presets'
 import {
-  clearApiConfig,
   configureOfficialMode,
   configureSimpleMode,
   configureWithPreset,
   detectCurrentMode,
   getCurrentConfig,
-  quickSetup,
-  validateApiKey,
 } from './simple-mode'
 
 // Re-export for convenience
@@ -91,7 +84,7 @@ export function displayCurrentStatus(lang: 'en' | 'zh-CN' = 'en'): void {
 
   // API Key (masked)
   if (config?.ANTHROPIC_API_KEY) {
-    const masked = config.ANTHROPIC_API_KEY.substring(0, 10) + '...'
+    const masked = `${config.ANTHROPIC_API_KEY.substring(0, 10)}...`
     console.log(`  ${ansis.bold('API Key:')} ${ansis.gray(masked)}`)
   }
 
@@ -232,7 +225,8 @@ async function runQuickSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
       message: lang === 'zh-CN' ? '输入 API 密钥:' : 'Enter API key:',
       mask: '*',
       validate: (value) => {
-        if (!value) return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
+        if (!value)
+          return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
         return true
       },
     })
@@ -272,7 +266,8 @@ async function runOfficialSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> 
     message: lang === 'zh-CN' ? '输入 Anthropic API 密钥:' : 'Enter Anthropic API key:',
     mask: '*',
     validate: (value) => {
-      if (!value) return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
+      if (!value)
+        return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
       if (!value.startsWith('sk-ant-')) {
         return lang === 'zh-CN'
           ? 'Anthropic API 密钥应以 sk-ant- 开头'
@@ -308,7 +303,8 @@ async function runCustomSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
     name: 'baseUrl',
     message: lang === 'zh-CN' ? '输入 API Base URL:' : 'Enter API Base URL:',
     validate: (value) => {
-      if (!value) return lang === 'zh-CN' ? 'URL 不能为空' : 'URL is required'
+      if (!value)
+        return lang === 'zh-CN' ? 'URL 不能为空' : 'URL is required'
       if (!value.startsWith('http')) {
         return lang === 'zh-CN' ? 'URL 必须以 http:// 或 https:// 开头' : 'URL must start with http:// or https://'
       }
@@ -322,7 +318,8 @@ async function runCustomSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
     message: lang === 'zh-CN' ? '输入 API 密钥:' : 'Enter API key:',
     mask: '*',
     validate: (value) => {
-      if (!value) return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
+      if (!value)
+        return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
       return true
     },
   })
@@ -369,7 +366,8 @@ async function runCcrSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
         ? (lang === 'zh-CN' ? 'CCR 配置成功' : 'CCR configured successfully')
         : (lang === 'zh-CN' ? 'CCR 配置失败' : 'CCR configuration failed'),
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       success: false,
       mode: 'ccr',
@@ -408,11 +406,13 @@ export async function testApiConnection(lang: 'en' | 'zh-CN' = 'en'): Promise<bo
       // 401 means API is reachable but key might be wrong
       console.log(ansis.green(lang === 'zh-CN' ? '✔ API 连接成功' : '✔ API connection successful'))
       return true
-    } else {
+    }
+    else {
       console.log(ansis.yellow(`⚠ API returned status: ${response.status}`))
       return false
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.log(ansis.red(lang === 'zh-CN' ? '✖ API 连接失败' : '✖ API connection failed'))
     console.log(ansis.gray(`  ${error instanceof Error ? error.message : String(error)}`))
     return false

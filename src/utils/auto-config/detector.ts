@@ -22,15 +22,15 @@ export interface ProjectInfo {
 /**
  * Project type classification
  */
-export type ProjectType =
-  | 'frontend'
-  | 'backend'
-  | 'fullstack'
-  | 'library'
-  | 'cli'
-  | 'mobile'
-  | 'desktop'
-  | 'unknown'
+export type ProjectType
+  = | 'frontend'
+    | 'backend'
+    | 'fullstack'
+    | 'library'
+    | 'cli'
+    | 'mobile'
+    | 'desktop'
+    | 'unknown'
 
 /**
  * Package managers
@@ -40,89 +40,89 @@ export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun' | 'unknown'
 /**
  * Frameworks
  */
-export type Framework =
-  | 'react'
-  | 'vue'
-  | 'angular'
-  | 'svelte'
-  | 'nextjs'
-  | 'nuxt'
-  | 'remix'
-  | 'astro'
-  | 'express'
-  | 'fastify'
-  | 'nestjs'
-  | 'koa'
-  | 'hono'
-  | 'django'
-  | 'flask'
-  | 'fastapi'
-  | 'rails'
-  | 'laravel'
-  | 'spring'
-  | 'electron'
-  | 'tauri'
-  | 'react-native'
-  | 'flutter'
-  | 'unknown'
+export type Framework
+  = | 'react'
+    | 'vue'
+    | 'angular'
+    | 'svelte'
+    | 'nextjs'
+    | 'nuxt'
+    | 'remix'
+    | 'astro'
+    | 'express'
+    | 'fastify'
+    | 'nestjs'
+    | 'koa'
+    | 'hono'
+    | 'django'
+    | 'flask'
+    | 'fastapi'
+    | 'rails'
+    | 'laravel'
+    | 'spring'
+    | 'electron'
+    | 'tauri'
+    | 'react-native'
+    | 'flutter'
+    | 'unknown'
 
 /**
  * Build tools
  */
-export type BuildTool =
-  | 'vite'
-  | 'webpack'
-  | 'rollup'
-  | 'esbuild'
-  | 'swc'
-  | 'turbopack'
-  | 'parcel'
-  | 'tsup'
-  | 'unbuild'
-  | 'unknown'
+export type BuildTool
+  = | 'vite'
+    | 'webpack'
+    | 'rollup'
+    | 'esbuild'
+    | 'swc'
+    | 'turbopack'
+    | 'parcel'
+    | 'tsup'
+    | 'unbuild'
+    | 'unknown'
 
 /**
  * Test frameworks
  */
-export type TestFramework =
-  | 'jest'
-  | 'vitest'
-  | 'mocha'
-  | 'cypress'
-  | 'playwright'
-  | 'pytest'
-  | 'rspec'
-  | 'junit'
-  | 'unknown'
+export type TestFramework
+  = | 'jest'
+    | 'vitest'
+    | 'mocha'
+    | 'cypress'
+    | 'playwright'
+    | 'pytest'
+    | 'rspec'
+    | 'junit'
+    | 'unknown'
 
 /**
  * CI/CD systems
  */
-export type CICDSystem =
-  | 'github-actions'
-  | 'gitlab-ci'
-  | 'jenkins'
-  | 'circleci'
-  | 'travis'
-  | 'azure-pipelines'
-  | 'unknown'
+export type CICDSystem
+  = | 'github-actions'
+    | 'gitlab-ci'
+    | 'jenkins'
+    | 'circleci'
+    | 'travis'
+    | 'azure-pipelines'
+    | 'unknown'
 
 /**
  * Languages
  */
-export type Language =
-  | 'typescript'
-  | 'javascript'
-  | 'python'
-  | 'ruby'
-  | 'go'
-  | 'rust'
-  | 'java'
-  | 'kotlin'
-  | 'php'
-  | 'csharp'
-  | 'swift'
-  | 'dart'
+export type Language
+  = | 'typescript'
+    | 'javascript'
+    | 'python'
+    | 'ruby'
+    | 'go'
+    | 'rust'
+    | 'java'
+    | 'kotlin'
+    | 'php'
+    | 'csharp'
+    | 'swift'
+    | 'dart'
 
 /**
  * Configuration suggestions

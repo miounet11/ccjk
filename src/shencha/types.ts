@@ -3,13 +3,36 @@
  */
 
 /**
+ * Issue severity type
+ */
+export type IssueSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info'
+
+/**
+ * Issue type
+ */
+export type IssueType = 'security' | 'performance' | 'quality' | 'style' | 'accessibility' | 'logic' | 'bug'
+
+/**
+ * Issue category
+ */
+export type IssueCategory = 'security' | 'performance' | 'quality' | 'style' | 'accessibility' | 'logic'
+
+/**
  * Project context for LLM analysis
  */
 export interface ProjectContext {
   /** Project root path */
   rootPath: string
+  /** Project name */
+  projectName?: string
+  /** Root directory */
+  rootDir?: string
   /** Detected language/framework */
   framework?: string
+  /** Detected frameworks */
+  frameworks?: string[]
+  /** Detected languages */
+  languages?: string[]
   /** Package manager */
   packageManager?: 'npm' | 'yarn' | 'pnpm' | 'bun'
   /** Source directories */
@@ -18,6 +41,8 @@ export interface ProjectContext {
   testDirs: string[]
   /** Configuration files */
   configFiles: string[]
+  /** File structure */
+  fileStructure?: string[]
   /** Git information */
   git?: {
     branch: string
@@ -58,6 +83,8 @@ export interface ScanStrategy {
   contextFiles: string[]
   /** LLM model to use */
   model: 'opus' | 'sonnet' | 'haiku'
+  /** Focus areas */
+  focusAreas?: string[]
 }
 
 /**
@@ -70,6 +97,8 @@ export interface ScanResult {
   strategy: ScanStrategy
   /** Timestamp */
   timestamp: Date
+  /** Scanned at timestamp */
+  scannedAt?: Date
   /** Duration in milliseconds */
   duration: number
   /** Issues found */
@@ -94,6 +123,8 @@ export interface Issue {
   severity: 'critical' | 'high' | 'medium' | 'low' | 'info'
   /** Issue category */
   category: 'security' | 'performance' | 'quality' | 'style' | 'accessibility' | 'logic'
+  /** Issue type */
+  type?: string
   /** File path */
   file: string
   /** Line number (if applicable) */
@@ -102,8 +133,18 @@ export interface Issue {
   column?: number
   /** Code snippet */
   snippet?: string
+  /** Location info */
+  location?: {
+    file?: string
+    startLine?: number
+    endLine?: number
+    column?: number
+    snippet?: string
+  } | string
   /** Suggested fix */
   suggestedFix?: string
+  /** Suggestion text */
+  suggestion?: string
   /** Whether auto-fix is safe */
   autoFixable: boolean
   /** Related issues */
@@ -118,8 +159,18 @@ export interface Issue {
 export interface EvaluatedIssue extends Issue {
   /** LLM evaluation reasoning */
   evaluation: string
+  /** Reasoning explanation */
+  reasoning?: string
   /** Actual priority (may differ from severity) */
   priority: number
+  /** Adjusted severity after evaluation */
+  adjustedSeverity?: 'critical' | 'high' | 'medium' | 'low' | 'info'
+  /** Whether this is a real issue */
+  isRealIssue?: boolean
+  /** Risks associated */
+  risks?: string[]
+  /** Related patterns */
+  relatedPatterns?: string[]
   /** Recommended action */
   action: 'fix-now' | 'fix-later' | 'monitor' | 'ignore'
   /** Effort estimate */
@@ -132,14 +183,26 @@ export interface EvaluatedIssue extends Issue {
 export interface FixDecision {
   /** Whether to auto-fix */
   shouldFix: boolean
+  /** Whether can auto-fix */
+  canAutoFix?: boolean
+  /** Whether requires review */
+  requiresReview?: boolean
+  /** Risk level */
+  riskLevel?: 'none' | 'low' | 'medium' | 'high'
   /** Reasoning */
   reason: string
+  /** Reasoning (alias) */
+  reasoning?: string
   /** Risk assessment */
   risk: 'none' | 'low' | 'medium' | 'high'
   /** Prerequisites before fixing */
   prerequisites: string[]
   /** Post-fix verification steps */
   verificationSteps: string[]
+  /** Conditions for safe auto-fix */
+  conditions?: string[]
+  /** Alternative approaches */
+  alternatives?: string[]
 }
 
 /**
@@ -156,14 +219,32 @@ export interface FixPlan {
   expectedChanges: string
   /** Rollback strategy */
   rollbackStrategy: string
+  /** Rollback plan */
+  rollbackPlan?: string
   /** Tests to run after fix */
   testsToRun: string[]
+  /** Steps to execute */
+  steps?: Array<string | { action: string, description?: string, order?: number, target?: string, changes?: string }>
+  /** Validations to run */
+  validations?: string[]
+  /** Side effects */
+  sideEffects?: string[]
+  /** Test strategy */
+  testStrategy?: string
+  /** Estimated duration in minutes */
+  estimatedDuration?: number
 }
 
 /**
  * Generated fix from LLM
  */
 export interface GeneratedFix {
+  /** Fix ID */
+  id?: string
+  /** Issue ID */
+  issueId?: string
+  /** Plan ID */
+  planId?: string
   /** Plan used */
   plan: FixPlan
   /** File changes */
@@ -172,6 +253,20 @@ export interface GeneratedFix {
   commitMessage: string
   /** Timestamp */
   generatedAt: Date
+  /** File path */
+  filePath?: string
+  /** Fixed code */
+  fixedCode?: string
+  /** Imports needed */
+  imports?: string[]
+  /** Warnings */
+  warnings?: string[]
+  /** Approach used */
+  approach?: string
+  /** Description */
+  description?: string
+  /** Pros */
+  pros?: string[]
 }
 
 /**
@@ -180,6 +275,8 @@ export interface GeneratedFix {
 export interface FileChange {
   /** File path */
   path: string
+  /** File reference */
+  file?: string
   /** Change type */
   type: 'modify' | 'create' | 'delete' | 'rename'
   /** Original content (for modify/delete) */
@@ -190,6 +287,16 @@ export interface FileChange {
   newPath?: string
   /** Diff (unified format) */
   diff?: string
+  /** Start line */
+  startLine?: number
+  /** End line */
+  endLine?: number
+  /** Explanation */
+  explanation?: string
+  /** Before content */
+  before?: string
+  /** After content */
+  after?: string
 }
 
 /**
@@ -198,8 +305,16 @@ export interface FileChange {
 export interface FixResult {
   /** Fix that was applied */
   fix: GeneratedFix
+  /** Fix ID */
+  fixId?: string
   /** Success status */
   success: boolean
+  /** Error message if failed */
+  error?: string
+  /** Original content before fix */
+  originalContent?: string
+  /** New content after fix */
+  newContent?: string
   /** Applied changes */
   appliedChanges: FileChange[]
   /** Failed changes */
@@ -208,26 +323,54 @@ export interface FixResult {
   backupPaths: string[]
   /** Timestamp */
   appliedAt: Date
+  /** Duration in ms */
+  duration?: number
+  /** Changes applied count */
+  changesApplied?: number
 }
 
 /**
  * Verification result from LLM
  */
 export interface VerifyResult {
+  /** Fix ID that was verified */
+  fixId?: string
   /** Fix that was verified */
-  fix: GeneratedFix
+  fix?: GeneratedFix
   /** Overall success */
-  success: boolean
+  success?: boolean
+  /** Is the fix correct */
+  isCorrect?: boolean
+  /** Issue resolved */
+  issueResolved?: boolean
+  /** Syntax valid */
+  syntaxValid?: boolean
+  /** Functionality preserved */
+  functionalityPreserved?: boolean
+  /** Logic errors found */
+  logicErrors?: string[]
+  /** Edge cases handled */
+  edgeCasesHandled?: boolean
+  /** Style consistent */
+  styleConsistent?: boolean
   /** Code correctness verified */
-  codeCorrect: boolean
+  codeCorrect?: boolean
   /** No regressions detected */
-  noRegressions: boolean
+  noRegressions?: boolean
   /** No new issues introduced */
-  noNewIssues: boolean
+  noNewIssues?: boolean
+  /** Confidence score (0-1) */
+  confidence?: number
+  /** Reasoning */
+  reasoning?: string
   /** Verification notes */
-  notes: string
+  notes?: string
+  /** Suggestions */
+  suggestions?: string[]
   /** Recommendations */
-  recommendations: string[]
+  recommendations?: string[]
+  /** Verified timestamp */
+  verifiedAt?: Date
 }
 
 /**
@@ -242,6 +385,14 @@ export interface Regression {
   affectedFiles: string[]
   /** Severity */
   severity: 'critical' | 'high' | 'medium' | 'low'
+  /** File path */
+  file?: string
+  /** Location */
+  location?: string
+  /** Impact description */
+  impact?: string
+  /** Suggestion for fix */
+  suggestion?: string
 }
 
 /**
@@ -268,8 +419,16 @@ export interface ExecutionPlan {
   parallelGroups: string[][]
   /** Estimated duration */
   estimatedDuration: number
+  /** Total estimated minutes */
+  totalEstimatedMinutes?: number
   /** Priority queue */
   priorityQueue: Array<{ targetId: string, priority: number }>
+  /** Execution phases */
+  phases?: Array<{ name: string, description?: string, targets: string[], issueIds?: string[], parallel?: boolean, estimatedMinutes?: number }>
+  /** Recommendations */
+  recommendations?: string[]
+  /** Issues to process */
+  issues?: string[]
 }
 
 /**
@@ -387,6 +546,8 @@ export interface AuditCycle {
 export interface AuditReport {
   /** Report ID */
   id: string
+  /** Cycle ID */
+  cycleId?: string
   /** Cycle number */
   cycleNumber: number
   /** Generation timestamp */
@@ -398,6 +559,12 @@ export interface AuditReport {
     totalIssues: number
     fixedIssues: number
     pendingIssues: number
+    pendingReview?: number
+    failedFixes?: number
+    bySeverity?: Record<string, number>
+    byCategory?: Record<string, number>
+    byType?: Record<string, number>
+    healthScore?: number
     scores: {
       security: number
       performance: number
@@ -406,8 +573,12 @@ export interface AuditReport {
   }
   /** Issues by category */
   issuesByCategory: Record<string, Issue[]>
+  /** Issues list */
+  issues?: EvaluatedIssue[]
   /** Fixes applied */
   fixesApplied: FixResult[]
+  /** Fixes summary */
+  fixes?: Array<{ issueId: string, success: boolean, error?: string }>
   /** Recommendations */
   recommendations: string[]
   /** Next steps */

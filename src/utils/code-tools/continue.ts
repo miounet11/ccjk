@@ -243,7 +243,7 @@ export function configureContinueApi(provider: string, apiKey: string, apiBase?:
 /**
  * Add MCP server to Continue
  */
-export function addContinueMcpServer(name: string, server: ContinueMcpServer): void {
+export function addContinueMcpServer(_name: string, server: ContinueMcpServer): void {
   const config = readContinueConfig()
 
   if (!config.experimental) {

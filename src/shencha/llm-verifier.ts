@@ -1,3 +1,4 @@
+import type { LLMClient } from './llm-scanner'
 import type {
   FileChange,
   FixResult,
@@ -6,7 +7,6 @@ import type {
   Regression,
   VerifyResult,
 } from './types'
-import type { LLMClient } from './llm-scanner'
 
 /**
  * LLM Verifier - Verifies fixes and checks for regressions
@@ -26,10 +26,17 @@ export class LLMVerifier {
     originalCode: string,
     newCode: string,
   ): Promise<VerifyResult> {
+    const changesDesc = fix.changes.map((c) => {
+      const startLine = c.startLine || 0
+      const endLine = c.endLine || startLine
+      const explanation = c.explanation || ''
+      return `- Lines ${startLine}-${endLine}: ${explanation}`
+    }).join('\n')
+
     const prompt = `Verify that this fix is correct:
 
-Original Issue: ${fix.issueId}
-Fix Approach: ${fix.approach}
+Original Issue: ${fix.issueId || fix.id}
+Fix Approach: ${fix.approach || fix.plan?.approach || ''}
 File: ${fix.filePath}
 
 Original Code:
@@ -43,7 +50,7 @@ ${newCode}
 \`\`\`
 
 Changes Made:
-${fix.changes.map(c => `- Lines ${c.startLine}-${c.endLine}: ${c.explanation}`).join('\n')}
+${changesDesc}
 
 Verify:
 1. Does the fix address the original issue?
@@ -75,17 +82,22 @@ Return JSON:
    * LLM checks for regressions
    */
   async checkForRegressions(changes: FileChange[]): Promise<Regression[]> {
-    const changesDescription = changes.map(c => `
-File: ${c.file}
+    const changesDescription = changes.map((c) => {
+      const file = c.file || c.path
+      const before = c.before || c.originalContent || ''
+      const after = c.after || c.newContent || ''
+      return `
+File: ${file}
 Before:
 \`\`\`
-${c.before.slice(0, 2000)}
+${before.slice(0, 2000)}
 \`\`\`
 After:
 \`\`\`
-${c.after.slice(0, 2000)}
+${after.slice(0, 2000)}
 \`\`\`
-`).join('\n---\n')
+`
+    }).join('\n---\n')
 
     const prompt = `Check these code changes for potential regressions:
 
@@ -126,13 +138,17 @@ Return empty array if no regressions found.`
    * LLM validates no new issues introduced
    */
   async validateNoNewIssues(changes: FileChange[]): Promise<NewIssue[]> {
-    const changesDescription = changes.map(c => `
-File: ${c.file}
+    const changesDescription = changes.map((c) => {
+      const file = c.file || c.path
+      const after = c.after || c.newContent || ''
+      return `
+File: ${file}
 New Code:
 \`\`\`
-${c.after.slice(0, 3000)}
+${after.slice(0, 3000)}
 \`\`\`
-`).join('\n---\n')
+`
+    }).join('\n---\n')
 
     const prompt = `Scan the new code for any issues that might have been introduced:
 
@@ -184,7 +200,7 @@ Return empty array if no new issues found.`
     overallSuccess: boolean
   }> {
     // Get current file content
-    const currentContent = await readFile(fix.filePath)
+    const currentContent = await readFile(fix.filePath || '')
 
     // Verify correctness
     const verifyResult = await this.verifyCodeCorrectness(
@@ -195,9 +211,13 @@ Return empty array if no new issues found.`
 
     // Check for regressions
     const changes: FileChange[] = [{
-      file: fix.filePath,
+      path: fix.filePath || '',
+      file: fix.filePath || '',
+      type: 'modify',
       before: result.originalContent || '',
       after: currentContent,
+      originalContent: result.originalContent || '',
+      newContent: currentContent,
     }]
     const regressions = await this.checkForRegressions(changes)
 
@@ -205,11 +225,11 @@ Return empty array if no new issues found.`
     const newIssues = await this.validateNoNewIssues(changes)
 
     // Determine overall success
-    const overallSuccess =
-      verifyResult.isCorrect
-      && verifyResult.issueResolved
-      && regressions.filter(r => r.severity === 'critical' || r.severity === 'high').length === 0
-      && newIssues.filter(i => i.severity === 'critical' || i.severity === 'high').length === 0
+    const overallSuccess
+      = (verifyResult.isCorrect ?? false)
+        && (verifyResult.issueResolved ?? false)
+        && regressions.filter(r => r.severity === 'critical' || r.severity === 'high').length === 0
+        && newIssues.filter(i => i.severity === 'critical' || i.severity === 'high').length === 0
 
     return {
       verifyResult,
@@ -240,12 +260,12 @@ Return empty array if no new issues found.`
     lines.push(`- Issue Resolved: ${verification.verifyResult.issueResolved ? '✅' : '❌'}`)
     lines.push(`- Syntax Valid: ${verification.verifyResult.syntaxValid ? '✅' : '❌'}`)
     lines.push(`- Functionality Preserved: ${verification.verifyResult.functionalityPreserved ? '✅' : '❌'}`)
-    lines.push(`- Confidence: ${(verification.verifyResult.confidence * 100).toFixed(0)}%`)
+    lines.push(`- Confidence: ${((verification.verifyResult.confidence ?? 0) * 100).toFixed(0)}%`)
     lines.push('')
 
-    if (verification.verifyResult.logicErrors.length > 0) {
+    if ((verification.verifyResult.logicErrors ?? []).length > 0) {
       lines.push('### Logic Errors')
-      verification.verifyResult.logicErrors.forEach(e => lines.push(`- ${e}`))
+      ;(verification.verifyResult.logicErrors ?? []).forEach(e => lines.push(`- ${e}`))
       lines.push('')
     }
 
@@ -273,9 +293,9 @@ Return empty array if no new issues found.`
     }
 
     // Suggestions
-    if (verification.verifyResult.suggestions.length > 0) {
+    if ((verification.verifyResult.suggestions ?? []).length > 0) {
       lines.push('## Suggestions')
-      verification.verifyResult.suggestions.forEach(s => lines.push(`- ${s}`))
+      ;(verification.verifyResult.suggestions ?? []).forEach(s => lines.push(`- ${s}`))
     }
 
     return lines.join('\n')
@@ -330,11 +350,12 @@ Return empty array if no new issues found.`
         return []
 
       return json.map((r: any) => ({
-        file: r.file || '',
         type: r.type || 'functional',
-        severity: r.severity || 'medium',
         description: r.description || '',
-        location: r.location || { startLine: 0, endLine: 0 },
+        affectedFiles: r.affectedFiles || (r.file ? [r.file] : []),
+        severity: r.severity || 'medium',
+        file: r.file || '',
+        location: r.location || '',
         impact: r.impact || '',
         suggestion: r.suggestion || '',
       }))
@@ -354,14 +375,19 @@ Return empty array if no new issues found.`
         return []
 
       return json.map((i: any) => ({
-        file: i.file || '',
-        type: i.type || 'quality',
-        severity: i.severity || 'medium',
+        id: i.id || `issue-${Date.now()}`,
         title: i.title || '',
         description: i.description || '',
-        location: i.location || {},
-        wasIntroducedByFix: i.wasIntroducedByFix ?? true,
-        suggestion: i.suggestion || '',
+        severity: i.severity || 'medium',
+        category: i.category || 'quality',
+        file: i.file || '',
+        line: i.line,
+        column: i.column,
+        snippet: i.snippet,
+        suggestedFix: i.suggestedFix || i.suggestion,
+        autoFixable: i.autoFixable ?? false,
+        confidence: i.confidence ?? 0.5,
+        introducedByFix: i.introducedByFix || i.wasIntroducedByFix || '',
       }))
     }
     catch {

@@ -1,15 +1,14 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'pathe'
-import { CCJK_GROUPS_DIR, type SupportedLang } from '../constants'
 import type {
   AgentDefinition,
-  GroupCategory,
   GroupExport,
   GroupInstallResult,
   GroupRegistry,
   GroupSearchOptions,
   SubagentGroup,
 } from './types'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'pathe'
+import { CCJK_GROUPS_DIR } from '../constants'
 
 // In-memory registry
 let registry: GroupRegistry | null = null
@@ -291,8 +290,8 @@ const PREDEFINED_GROUPS: SubagentGroup[] = [
   // TypeScript Development Group
   {
     id: 'typescript-dev',
-    name: { en: 'TypeScript Development', 'zh-CN': 'TypeScript 开发' },
-    description: { en: 'Specialized agents for TypeScript development', 'zh-CN': 'TypeScript 开发专用代理' },
+    name: { 'en': 'TypeScript Development', 'zh-CN': 'TypeScript 开发' },
+    description: { 'en': 'Specialized agents for TypeScript development', 'zh-CN': 'TypeScript 开发专用代理' },
     category: 'language',
     version: '1.0.0',
     icon: '🔷',
@@ -399,8 +398,8 @@ Create comprehensive, type-safe tests for TypeScript codebases.
   // Python Development Group
   {
     id: 'python-dev',
-    name: { en: 'Python Development', 'zh-CN': 'Python 开发' },
-    description: { en: 'Specialized agents for Python development', 'zh-CN': 'Python 开发专用代理' },
+    name: { 'en': 'Python Development', 'zh-CN': 'Python 开发' },
+    description: { 'en': 'Specialized agents for Python development', 'zh-CN': 'Python 开发专用代理' },
     category: 'language',
     version: '1.0.0',
     icon: '🐍',
@@ -439,8 +438,8 @@ Design clean, Pythonic architectures with proper package structure and design pa
   // SEO Team Group
   {
     id: 'seo-team',
-    name: { en: 'SEO Team', 'zh-CN': 'SEO 团队' },
-    description: { en: 'Complete SEO optimization team', 'zh-CN': '完整的 SEO 优化团队' },
+    name: { 'en': 'SEO Team', 'zh-CN': 'SEO 团队' },
+    description: { 'en': 'Complete SEO optimization team', 'zh-CN': '完整的 SEO 优化团队' },
     category: 'seo',
     version: '1.0.0',
     icon: '🔍',
@@ -531,8 +530,8 @@ Implement proper Schema.org structured data for enhanced search results.
   // DevOps Team Group
   {
     id: 'devops-team',
-    name: { en: 'DevOps Team', 'zh-CN': 'DevOps 团队' },
-    description: { en: 'Complete DevOps and infrastructure team', 'zh-CN': '完整的 DevOps 和基础设施团队' },
+    name: { 'en': 'DevOps Team', 'zh-CN': 'DevOps 团队' },
+    description: { 'en': 'Complete DevOps and infrastructure team', 'zh-CN': '完整的 DevOps 和基础设施团队' },
     category: 'devops',
     version: '1.0.0',
     icon: '🚀',
@@ -597,8 +596,8 @@ Design and implement robust CI/CD pipelines for automated testing and deployment
   // Security Team Group
   {
     id: 'security-team',
-    name: { en: 'Security Team', 'zh-CN': '安全团队' },
-    description: { en: 'Security audit and vulnerability assessment team', 'zh-CN': '安全审计和漏洞评估团队' },
+    name: { 'en': 'Security Team', 'zh-CN': '安全团队' },
+    description: { 'en': 'Security audit and vulnerability assessment team', 'zh-CN': '安全审计和漏洞评估团队' },
     category: 'devops',
     version: '1.0.0',
     icon: '🔒',

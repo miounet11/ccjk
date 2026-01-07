@@ -1,10 +1,10 @@
-import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join, dirname } from 'pathe'
 import ansis from 'ansis'
 import dayjs from 'dayjs'
-import { CLAUDE_DIR, SETTINGS_FILE, ClAUDE_CONFIG_FILE, CLAUDE_VSC_CONFIG_FILE, CCJK_CONFIG_DIR } from '../constants'
-import { STATUS, boxify } from './banner'
+import { join } from 'pathe'
+import { CCJK_CONFIG_DIR, ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE, SETTINGS_FILE } from '../constants'
+import { STATUS } from './banner'
 
 /**
  * Config file location
@@ -218,7 +218,7 @@ function backupConfig(path: string): string | null {
     mkdirSync(backupDir, { recursive: true })
   }
 
-  const filename = path.replace(/[\/\\]/g, '_')
+  const filename = path.replace(/[/\\]/g, '_')
   const backupPath = join(backupDir, filename)
 
   copyFileSync(path, backupPath)

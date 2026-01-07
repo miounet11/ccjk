@@ -1,15 +1,6 @@
-import { randomUUID } from 'node:crypto'
 import type { SupportedLang } from '../constants'
-import {
-  INTERVIEW_CATEGORIES,
-  calculateQuestionCount,
-  getCategoryById,
-  getQuestionsByCategory,
-  getTemplateById,
-} from './question-categories'
 import type {
   CategoryProgress,
-  GeneratedSpec,
   InterviewAnswer,
   InterviewCategoryId,
   InterviewDepth,
@@ -17,9 +8,15 @@ import type {
   InterviewQuestion,
   InterviewResult,
   InterviewSession,
-  InterviewStatus,
   QuestionDisplay,
 } from './types'
+import { randomUUID } from 'node:crypto'
+import {
+  calculateQuestionCount,
+  getCategoryById,
+  getQuestionsByCategory,
+  INTERVIEW_CATEGORIES,
+} from './question-categories'
 
 /**
  * Default interview options
@@ -205,7 +202,6 @@ export class InterviewEngine {
     session: InterviewSession,
     question: InterviewQuestion,
   ): QuestionDisplay {
-    const category = getCategoryById(question.category)
     const estimatedTotal = this.getEstimatedTotal(session)
 
     return {

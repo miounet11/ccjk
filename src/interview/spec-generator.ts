@@ -1,6 +1,4 @@
-import { writeFile } from 'node:fs/promises'
 import type { SupportedLang } from '../constants'
-import { getCategoryById, getQuestionsByCategory } from './question-categories'
 import type {
   GeneratedSpec,
   InterviewAnswer,
@@ -10,6 +8,8 @@ import type {
   SpecEdgeCase,
   SpecOpenQuestion,
 } from './types'
+import { writeFile } from 'node:fs/promises'
+import { getCategoryById, getQuestionsByCategory } from './question-categories'
 
 /**
  * Spec Generator - Converts interview answers into comprehensive specifications

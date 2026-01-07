@@ -1,7 +1,3 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { join } from 'pathe'
-import { CCJK_SKILLS_DIR } from '../constants'
-import { i18n } from '../i18n'
 import type {
   BatchSkillOptions,
   BatchSkillTemplate,
@@ -12,6 +8,9 @@ import type {
   SkillRegistry,
   SkillSearchOptions,
 } from './types'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'pathe'
+import { CCJK_SKILLS_DIR } from '../constants'
 
 // In-memory registry
 let registry: SkillRegistry | null = null
@@ -212,40 +211,40 @@ const BATCH_TEMPLATES: Record<string, BatchSkillTemplate> = {
     skills: [
       {
         id: 'ts-debug',
-        name: { en: 'TypeScript Debug', 'zh-CN': 'TypeScript 调试' },
-        description: { en: 'Debug TypeScript code', 'zh-CN': '调试 TypeScript 代码' },
+        name: { 'en': 'TypeScript Debug', 'zh-CN': 'TypeScript 调试' },
+        description: { 'en': 'Debug TypeScript code', 'zh-CN': '调试 TypeScript 代码' },
         triggers: ['/ts-debug', '/tsd'],
         templateFile: 'ts-debug.md',
         tags: ['typescript', 'debug'],
       },
       {
         id: 'ts-refactor',
-        name: { en: 'TypeScript Refactor', 'zh-CN': 'TypeScript 重构' },
-        description: { en: 'Refactor TypeScript code', 'zh-CN': '重构 TypeScript 代码' },
+        name: { 'en': 'TypeScript Refactor', 'zh-CN': 'TypeScript 重构' },
+        description: { 'en': 'Refactor TypeScript code', 'zh-CN': '重构 TypeScript 代码' },
         triggers: ['/ts-refactor', '/tsr'],
         templateFile: 'ts-refactor.md',
         tags: ['typescript', 'refactor'],
       },
       {
         id: 'ts-test',
-        name: { en: 'TypeScript Test', 'zh-CN': 'TypeScript 测试' },
-        description: { en: 'Generate TypeScript tests', 'zh-CN': '生成 TypeScript 测试' },
+        name: { 'en': 'TypeScript Test', 'zh-CN': 'TypeScript 测试' },
+        description: { 'en': 'Generate TypeScript tests', 'zh-CN': '生成 TypeScript 测试' },
         triggers: ['/ts-test', '/tst'],
         templateFile: 'ts-test.md',
         tags: ['typescript', 'testing'],
       },
       {
         id: 'ts-type-check',
-        name: { en: 'TypeScript Type Check', 'zh-CN': 'TypeScript 类型检查' },
-        description: { en: 'Fix TypeScript type errors', 'zh-CN': '修复 TypeScript 类型错误' },
+        name: { 'en': 'TypeScript Type Check', 'zh-CN': 'TypeScript 类型检查' },
+        description: { 'en': 'Fix TypeScript type errors', 'zh-CN': '修复 TypeScript 类型错误' },
         triggers: ['/ts-type', '/tstc'],
         templateFile: 'ts-type-check.md',
         tags: ['typescript', 'types'],
       },
       {
         id: 'ts-migrate',
-        name: { en: 'TypeScript Migration', 'zh-CN': 'TypeScript 迁移' },
-        description: { en: 'Migrate JS to TypeScript', 'zh-CN': '从 JS 迁移到 TypeScript' },
+        name: { 'en': 'TypeScript Migration', 'zh-CN': 'TypeScript 迁移' },
+        description: { 'en': 'Migrate JS to TypeScript', 'zh-CN': '从 JS 迁移到 TypeScript' },
         triggers: ['/ts-migrate', '/tsm'],
         templateFile: 'ts-migrate.md',
         tags: ['typescript', 'migration'],
@@ -257,24 +256,24 @@ const BATCH_TEMPLATES: Record<string, BatchSkillTemplate> = {
     skills: [
       {
         id: 'py-debug',
-        name: { en: 'Python Debug', 'zh-CN': 'Python 调试' },
-        description: { en: 'Debug Python code', 'zh-CN': '调试 Python 代码' },
+        name: { 'en': 'Python Debug', 'zh-CN': 'Python 调试' },
+        description: { 'en': 'Debug Python code', 'zh-CN': '调试 Python 代码' },
         triggers: ['/py-debug', '/pyd'],
         templateFile: 'py-debug.md',
         tags: ['python', 'debug'],
       },
       {
         id: 'py-refactor',
-        name: { en: 'Python Refactor', 'zh-CN': 'Python 重构' },
-        description: { en: 'Refactor Python code', 'zh-CN': '重构 Python 代码' },
+        name: { 'en': 'Python Refactor', 'zh-CN': 'Python 重构' },
+        description: { 'en': 'Refactor Python code', 'zh-CN': '重构 Python 代码' },
         triggers: ['/py-refactor', '/pyr'],
         templateFile: 'py-refactor.md',
         tags: ['python', 'refactor'],
       },
       {
         id: 'py-test',
-        name: { en: 'Python Test', 'zh-CN': 'Python 测试' },
-        description: { en: 'Generate Python tests', 'zh-CN': '生成 Python 测试' },
+        name: { 'en': 'Python Test', 'zh-CN': 'Python 测试' },
+        description: { 'en': 'Generate Python tests', 'zh-CN': '生成 Python 测试' },
         triggers: ['/py-test', '/pyt'],
         templateFile: 'py-test.md',
         tags: ['python', 'testing'],
@@ -286,32 +285,32 @@ const BATCH_TEMPLATES: Record<string, BatchSkillTemplate> = {
     skills: [
       {
         id: 'seo-meta',
-        name: { en: 'SEO Meta Optimization', 'zh-CN': 'SEO 元数据优化' },
-        description: { en: 'Optimize meta tags for SEO', 'zh-CN': '优化 SEO 元标签' },
+        name: { 'en': 'SEO Meta Optimization', 'zh-CN': 'SEO 元数据优化' },
+        description: { 'en': 'Optimize meta tags for SEO', 'zh-CN': '优化 SEO 元标签' },
         triggers: ['/seo-meta', '/meta'],
         templateFile: 'seo-meta.md',
         tags: ['seo', 'meta'],
       },
       {
         id: 'seo-sitemap',
-        name: { en: 'Sitemap Generator', 'zh-CN': '站点地图生成' },
-        description: { en: 'Generate XML sitemap', 'zh-CN': '生成 XML 站点地图' },
+        name: { 'en': 'Sitemap Generator', 'zh-CN': '站点地图生成' },
+        description: { 'en': 'Generate XML sitemap', 'zh-CN': '生成 XML 站点地图' },
         triggers: ['/sitemap', '/seo-sitemap'],
         templateFile: 'seo-sitemap.md',
         tags: ['seo', 'sitemap'],
       },
       {
         id: 'seo-schema',
-        name: { en: 'Schema Markup', 'zh-CN': '结构化数据标记' },
-        description: { en: 'Add structured data markup', 'zh-CN': '添加结构化数据标记' },
+        name: { 'en': 'Schema Markup', 'zh-CN': '结构化数据标记' },
+        description: { 'en': 'Add structured data markup', 'zh-CN': '添加结构化数据标记' },
         triggers: ['/schema', '/seo-schema'],
         templateFile: 'seo-schema.md',
         tags: ['seo', 'schema'],
       },
       {
         id: 'seo-cwv',
-        name: { en: 'Core Web Vitals', 'zh-CN': '核心网页指标' },
-        description: { en: 'Optimize Core Web Vitals', 'zh-CN': '优化核心网页指标' },
+        name: { 'en': 'Core Web Vitals', 'zh-CN': '核心网页指标' },
+        description: { 'en': 'Optimize Core Web Vitals', 'zh-CN': '优化核心网页指标' },
         triggers: ['/cwv', '/seo-cwv'],
         templateFile: 'seo-cwv.md',
         tags: ['seo', 'performance'],
@@ -323,32 +322,32 @@ const BATCH_TEMPLATES: Record<string, BatchSkillTemplate> = {
     skills: [
       {
         id: 'devops-docker',
-        name: { en: 'Docker Setup', 'zh-CN': 'Docker 配置' },
-        description: { en: 'Set up Docker configuration', 'zh-CN': '配置 Docker' },
+        name: { 'en': 'Docker Setup', 'zh-CN': 'Docker 配置' },
+        description: { 'en': 'Set up Docker configuration', 'zh-CN': '配置 Docker' },
         triggers: ['/docker', '/devops-docker'],
         templateFile: 'devops-docker.md',
         tags: ['devops', 'docker'],
       },
       {
         id: 'devops-ci',
-        name: { en: 'CI Pipeline', 'zh-CN': 'CI 流水线' },
-        description: { en: 'Set up CI pipeline', 'zh-CN': '配置 CI 流水线' },
+        name: { 'en': 'CI Pipeline', 'zh-CN': 'CI 流水线' },
+        description: { 'en': 'Set up CI pipeline', 'zh-CN': '配置 CI 流水线' },
         triggers: ['/ci', '/devops-ci'],
         templateFile: 'devops-ci.md',
         tags: ['devops', 'ci'],
       },
       {
         id: 'devops-deploy',
-        name: { en: 'Deploy Script', 'zh-CN': '部署脚本' },
-        description: { en: 'Create deployment script', 'zh-CN': '创建部署脚本' },
+        name: { 'en': 'Deploy Script', 'zh-CN': '部署脚本' },
+        description: { 'en': 'Create deployment script', 'zh-CN': '创建部署脚本' },
         triggers: ['/deploy', '/devops-deploy'],
         templateFile: 'devops-deploy.md',
         tags: ['devops', 'deploy'],
       },
       {
         id: 'devops-monitor',
-        name: { en: 'Monitoring Setup', 'zh-CN': '监控配置' },
-        description: { en: 'Set up monitoring', 'zh-CN': '配置监控' },
+        name: { 'en': 'Monitoring Setup', 'zh-CN': '监控配置' },
+        description: { 'en': 'Set up monitoring', 'zh-CN': '配置监控' },
         triggers: ['/monitor', '/devops-monitor'],
         templateFile: 'devops-monitor.md',
         tags: ['devops', 'monitoring'],

@@ -1,19 +1,19 @@
+import type { CodeToolType, SupportedLang } from '../constants'
+import type { ToolStatus } from '../utils/code-tools'
 /**
  * CCJK Tools Command
  * Manage multiple AI coding tools (Claude Code, Codex, Aider, Continue, Cline, Cursor)
  */
 import ansis from 'ansis'
 import ora from 'ora'
-import type { CodeToolType, SupportedLang } from '../constants'
 import { CODE_TOOL_INFO, CODE_TOOL_TYPES } from '../constants'
-import { COLORS, boxify, STATUS } from '../utils/banner'
+import { boxify, COLORS, STATUS } from '../utils/banner'
 import {
   getAllToolsStatus,
   getToolStatus,
   installTool,
-  type ToolStatus,
+
 } from '../utils/code-tools'
-import { getTranslation } from '../i18n'
 
 /**
  * Tools command options
@@ -62,9 +62,12 @@ export async function listTools(options: ToolsCommandOptions = {}): Promise<void
     console.log('')
   }
 
-  if (cliTools.length > 0) renderToolList(cliTools, '🖥️  CLI Tools')
-  if (extensionTools.length > 0) renderToolList(extensionTools, '🔌 IDE Extensions')
-  if (editorTools.length > 0) renderToolList(editorTools, '✏️  AI Editors')
+  if (cliTools.length > 0)
+    renderToolList(cliTools, '🖥️  CLI Tools')
+  if (extensionTools.length > 0)
+    renderToolList(extensionTools, '🔌 IDE Extensions')
+  if (editorTools.length > 0)
+    renderToolList(editorTools, '✏️  AI Editors')
 
   // Summary
   const installed = toolsStatus.filter(t => t.installed).length
@@ -78,7 +81,7 @@ export async function listTools(options: ToolsCommandOptions = {}): Promise<void
  */
 export async function installToolCommand(
   toolId: string,
-  options: ToolsCommandOptions = {},
+  _options: ToolsCommandOptions = {},
 ): Promise<void> {
   // Validate tool ID
   if (!CODE_TOOL_TYPES.includes(toolId as CodeToolType)) {
@@ -102,7 +105,8 @@ export async function installToolCommand(
 
   if (result.success) {
     spinner.succeed(result.message)
-  } else {
+  }
+  else {
     spinner.fail(result.message)
   }
 }
@@ -148,7 +152,7 @@ Install Command:
 /**
  * Show recommended tools for the current project
  */
-export async function showRecommendedTools(options: ToolsCommandOptions = {}): Promise<void> {
+export async function showRecommendedTools(_options: ToolsCommandOptions = {}): Promise<void> {
   const recommended = [
     {
       tool: 'claude-code' as CodeToolType,
@@ -211,7 +215,8 @@ export async function toolsCommand(
     case 's':
       if (!target) {
         await listTools(options)
-      } else {
+      }
+      else {
         await showToolStatus(target, options)
       }
       break

@@ -1,13 +1,12 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync } from 'node:fs'
-import { join, basename } from 'pathe'
-import { homedir } from 'node:os'
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import ansis from 'ansis'
 import dayjs from 'dayjs'
 import inquirer from 'inquirer'
-import ansis from 'ansis'
 import ora from 'ora'
-import { CCJK_CONFIG_DIR, CLAUDE_DIR } from '../constants'
-import { COLORS, STATUS, boxify } from './banner'
+import { basename, join } from 'pathe'
+import { CCJK_CONFIG_DIR } from '../constants'
 import { detectProject, generateSuggestions, getProjectSummary } from './auto-config/detector'
+import { boxify, COLORS, STATUS } from './banner'
 
 /**
  * Knowledge base entry
@@ -516,7 +515,7 @@ export async function quickSync(projectDir: string = process.cwd()): Promise<voi
   const spinner = ora('Syncing project knowledge...').start()
 
   const kb = loadKnowledgeBase()
-  const project = detectProject(projectDir)
+  detectProject(projectDir)
 
   // Scan and update
   const claudeMd = scanClaudeMd(projectDir)

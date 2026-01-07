@@ -1,3 +1,4 @@
+import type { ApiConfigResult, ClaudeEnvSettings, ProviderPreset, SimpleApiConfig } from './types'
 /**
  * CCJK API Router - Simple Mode
  * Most common mode: Just API key + base URL configuration
@@ -6,7 +7,6 @@
 import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
-import type { ApiConfigResult, ClaudeEnvSettings, ProviderPreset, SimpleApiConfig } from './types'
 
 // Claude Code settings file path
 const CLAUDE_DIR = join(homedir(), '.claude')
@@ -22,7 +22,8 @@ function readSettings(): Record<string, any> {
   try {
     const { readFileSync } = require('node:fs')
     return JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
-  } catch {
+  }
+  catch {
     return {}
   }
 }
@@ -67,7 +68,8 @@ export function configureSimpleMode(config: SimpleApiConfig): ApiConfigResult {
       provider: config.provider,
       message: `API configured successfully for ${config.provider}`,
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       success: false,
       mode: 'simple',
@@ -105,7 +107,8 @@ export function configureOfficialMode(apiKey: string): ApiConfigResult {
       provider: 'anthropic',
       message: 'Official Anthropic API configured successfully',
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       success: false,
       mode: 'official',
@@ -147,7 +150,8 @@ export function getCurrentConfig(): ClaudeEnvSettings | null {
       ANTHROPIC_API_KEY: settings.env.ANTHROPIC_API_KEY,
       ANTHROPIC_AUTH_TOKEN: settings.env.ANTHROPIC_AUTH_TOKEN,
     }
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -163,14 +167,14 @@ export function detectCurrentMode(): { mode: 'official' | 'simple' | 'ccr' | 'no
   }
 
   // Check if using CCR proxy (localhost with CCR port)
-  if (config.ANTHROPIC_BASE_URL?.includes('127.0.0.1:3456') ||
-      config.ANTHROPIC_BASE_URL?.includes('localhost:3456')) {
+  if (config.ANTHROPIC_BASE_URL?.includes('127.0.0.1:3456')
+    || config.ANTHROPIC_BASE_URL?.includes('localhost:3456')) {
     return { mode: 'ccr', provider: 'ccr' }
   }
 
   // Check if using official Anthropic (no base URL or api.anthropic.com)
-  if (!config.ANTHROPIC_BASE_URL ||
-      config.ANTHROPIC_BASE_URL.includes('api.anthropic.com')) {
+  if (!config.ANTHROPIC_BASE_URL
+    || config.ANTHROPIC_BASE_URL.includes('api.anthropic.com')) {
     if (config.ANTHROPIC_AUTH_TOKEN) {
       return { mode: 'official', provider: 'anthropic-oauth' }
     }
@@ -185,18 +189,30 @@ export function detectCurrentMode(): { mode: 'official' | 'simple' | 'ccr' | 'no
   const baseUrl = config.ANTHROPIC_BASE_URL.toLowerCase()
   let provider = 'custom'
 
-  if (baseUrl.includes('302.ai')) provider = '302ai'
-  else if (baseUrl.includes('openrouter.ai')) provider = 'openrouter'
-  else if (baseUrl.includes('deepseek.com')) provider = 'deepseek'
-  else if (baseUrl.includes('dashscope.aliyuncs.com')) provider = 'qwen'
-  else if (baseUrl.includes('siliconflow.cn')) provider = 'siliconflow'
-  else if (baseUrl.includes('modelscope.cn')) provider = 'modelscope'
-  else if (baseUrl.includes('volces.com')) provider = 'volcengine'
-  else if (baseUrl.includes('moonshot.cn')) provider = 'kimi'
-  else if (baseUrl.includes('bigmodel.cn')) provider = 'glm'
-  else if (baseUrl.includes('generativelanguage.googleapis.com')) provider = 'gemini'
-  else if (baseUrl.includes('groq.com')) provider = 'groq'
-  else if (baseUrl.includes('localhost:11434')) provider = 'ollama'
+  if (baseUrl.includes('302.ai'))
+    provider = '302ai'
+  else if (baseUrl.includes('openrouter.ai'))
+    provider = 'openrouter'
+  else if (baseUrl.includes('deepseek.com'))
+    provider = 'deepseek'
+  else if (baseUrl.includes('dashscope.aliyuncs.com'))
+    provider = 'qwen'
+  else if (baseUrl.includes('siliconflow.cn'))
+    provider = 'siliconflow'
+  else if (baseUrl.includes('modelscope.cn'))
+    provider = 'modelscope'
+  else if (baseUrl.includes('volces.com'))
+    provider = 'volcengine'
+  else if (baseUrl.includes('moonshot.cn'))
+    provider = 'kimi'
+  else if (baseUrl.includes('bigmodel.cn'))
+    provider = 'glm'
+  else if (baseUrl.includes('generativelanguage.googleapis.com'))
+    provider = 'gemini'
+  else if (baseUrl.includes('groq.com'))
+    provider = 'groq'
+  else if (baseUrl.includes('localhost:11434'))
+    provider = 'ollama'
 
   return { mode: 'simple', provider }
 }
@@ -221,7 +237,8 @@ export function clearApiConfig(): ApiConfigResult {
       mode: 'simple',
       message: 'API configuration cleared',
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       success: false,
       mode: 'simple',

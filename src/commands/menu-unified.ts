@@ -1,19 +1,17 @@
-import { existsSync, readdirSync } from 'node:fs'
-import { join } from 'pathe'
-import inquirer from 'inquirer'
-import ansis from 'ansis'
-import ora from 'ora'
 import type { SupportedLang } from '../constants'
-import { CODE_TOOL_INFO, CODE_TOOL_TYPES, type CodeToolType } from '../constants'
-import { COLORS, boxify, STATUS, renderProgressBar } from '../utils/banner'
-import { detectProject, generateSuggestions, getProjectSummary } from '../utils/auto-config/detector'
+import type { ToolStatus } from '../utils/code-tools'
+import ansis from 'ansis'
+import inquirer from 'inquirer'
+import ora from 'ora'
+import { CODE_TOOL_INFO } from '../constants'
+import { displayCurrentStatus, runConfigWizard } from '../utils/api-router'
+import { detectProject, generateSuggestions } from '../utils/auto-config/detector'
+import { boxify, COLORS, STATUS } from '../utils/banner'
+import { getAllToolsStatus, installTool } from '../utils/code-tools'
+import { detectAllConfigs, displayConfigScan } from '../utils/config-consolidator'
 import { runDoctor } from '../utils/health-check'
 import { displayPermissions } from '../utils/permission-manager'
 import { checkAllVersions, upgradeAll } from '../utils/upgrade-manager'
-import { detectAllConfigs, displayConfigScan } from '../utils/config-consolidator'
-import { getTranslation } from '../i18n'
-import { getAllToolsStatus, installTool, type ToolStatus } from '../utils/code-tools'
-import { displayCurrentStatus, runConfigWizard } from '../utils/api-router'
 
 /**
  * Menu section
@@ -40,8 +38,6 @@ interface MenuItem {
  * Unified CCJK Menu
  */
 export async function showMainMenu(lang: SupportedLang = 'en'): Promise<void> {
-  const t = getTranslation(lang)
-
   // Detect project context
   const spinner = ora('Detecting project...').start()
   const project = detectProject()
@@ -296,19 +292,19 @@ GitHub: https://github.com/ccjk/ccjk
 
 // ============= Action Implementations =============
 
-async function runFullSetup(lang: SupportedLang): Promise<void> {
+async function runFullSetup(_lang: SupportedLang): Promise<void> {
   console.log(STATUS.inProgress('Running full setup...'))
   // TODO: Implement full setup wizard
   console.log(STATUS.success('Setup completed!'))
 }
 
-async function updateWorkflows(lang: SupportedLang): Promise<void> {
+async function updateWorkflows(_lang: SupportedLang): Promise<void> {
   console.log(STATUS.inProgress('Updating workflows...'))
   // TODO: Implement workflow update
   console.log(STATUS.success('Workflows updated!'))
 }
 
-async function smartConfig(lang: SupportedLang, suggestions: any): Promise<void> {
+async function smartConfig(_lang: SupportedLang, suggestions: any): Promise<void> {
   console.log(STATUS.info('Smart configuration based on project detection:'))
   console.log(ansis.gray(`  Suggested workflows: ${suggestions.workflows.join(', ')}`))
   console.log(ansis.gray(`  Suggested agents: ${suggestions.agents.join(', ') || 'none'}`))
@@ -324,36 +320,36 @@ async function configureApi(lang: SupportedLang): Promise<void> {
   await runConfigWizard(lang)
 }
 
-async function configureMcp(lang: SupportedLang): Promise<void> {
+async function configureMcp(_lang: SupportedLang): Promise<void> {
   console.log(STATUS.inProgress('Configuring MCP services...'))
   // TODO: Implement MCP configuration
 }
 
-async function configurePersonality(lang: SupportedLang): Promise<void> {
+async function configurePersonality(_lang: SupportedLang): Promise<void> {
   console.log(STATUS.inProgress('Configuring AI personality...'))
   // TODO: Implement personality configuration
 }
 
-async function managePermissions(lang: SupportedLang): Promise<void> {
+async function managePermissions(_lang: SupportedLang): Promise<void> {
   displayPermissions()
 }
 
-async function configureCcr(lang: SupportedLang): Promise<void> {
+async function configureCcr(_lang: SupportedLang): Promise<void> {
   console.log(STATUS.inProgress('Configuring CCR Router...'))
   // TODO: Implement CCR configuration
 }
 
-async function manageGroups(lang: SupportedLang): Promise<void> {
+async function manageGroups(_lang: SupportedLang): Promise<void> {
   console.log(STATUS.inProgress('Managing agent groups...'))
   // TODO: Implement group management
 }
 
-async function manageSkills(lang: SupportedLang): Promise<void> {
+async function manageSkills(_lang: SupportedLang): Promise<void> {
   console.log(STATUS.inProgress('Managing skills...'))
   // TODO: Implement skills management
 }
 
-async function scanConfigs(lang: SupportedLang): Promise<void> {
+async function scanConfigs(_lang: SupportedLang): Promise<void> {
   const configs = detectAllConfigs()
   displayConfigScan(configs)
 }
@@ -380,7 +376,8 @@ async function manageAiTools(lang: SupportedLang): Promise<void> {
 
   if (installedTools.length === 0) {
     console.log(ansis.gray('     No AI tools installed yet'))
-  } else {
+  }
+  else {
     for (const tool of installedTools) {
       const info = CODE_TOOL_INFO[tool.tool]
       const version = tool.version ? ansis.cyan(` v${tool.version}`) : ''
@@ -393,7 +390,8 @@ async function manageAiTools(lang: SupportedLang): Promise<void> {
   console.log(COLORS.secondary('  📋 Available to Install:'))
   if (notInstalledTools.length === 0) {
     console.log(ansis.gray('     All tools are installed!'))
-  } else {
+  }
+  else {
     for (const tool of notInstalledTools) {
       const info = CODE_TOOL_INFO[tool.tool]
       console.log(`     ${ansis.gray('○')} ${info.name} - ${ansis.gray(info.description)}`)
@@ -435,7 +433,6 @@ async function manageAiTools(lang: SupportedLang): Promise<void> {
       break
     case 'back':
     default:
-      return
   }
 }
 
@@ -464,7 +461,7 @@ ${toolsStatus.map((t) => {
 /**
  * Install tool prompt
  */
-async function installToolPrompt(notInstalledTools: ToolStatus[], lang: SupportedLang): Promise<void> {
+async function installToolPrompt(notInstalledTools: ToolStatus[], _lang: SupportedLang): Promise<void> {
   if (notInstalledTools.length === 0) {
     console.log(STATUS.success('All tools are already installed!'))
     return
@@ -487,12 +484,14 @@ async function installToolPrompt(notInstalledTools: ToolStatus[], lang: Supporte
     },
   ])
 
-  const spinner = ora(`Installing ${CODE_TOOL_INFO[tool].name}...`).start()
+  const toolKey = tool as keyof typeof CODE_TOOL_INFO
+  const spinner = ora(`Installing ${CODE_TOOL_INFO[toolKey].name}...`).start()
   const result = await installTool(tool)
 
   if (result.success) {
     spinner.succeed(result.message)
-  } else {
+  }
+  else {
     spinner.fail(result.message)
   }
 }
@@ -500,7 +499,7 @@ async function installToolPrompt(notInstalledTools: ToolStatus[], lang: Supporte
 /**
  * Configure tool prompt
  */
-async function configureToolPrompt(installedTools: ToolStatus[], lang: SupportedLang): Promise<void> {
+async function configureToolPrompt(installedTools: ToolStatus[], _lang: SupportedLang): Promise<void> {
   if (installedTools.length === 0) {
     console.log(STATUS.warning('No tools installed. Install a tool first.'))
     return
@@ -523,7 +522,8 @@ async function configureToolPrompt(installedTools: ToolStatus[], lang: Supported
     },
   ])
 
-  const info = CODE_TOOL_INFO[tool]
+  const toolKey = tool as keyof typeof CODE_TOOL_INFO
+  const info = CODE_TOOL_INFO[toolKey]
   console.log(STATUS.info(`Opening ${info.name} configuration...`))
   console.log(ansis.gray(`Config format: ${info.configFormat}`))
   // TODO: Implement tool-specific configuration
@@ -533,7 +533,7 @@ async function configureToolPrompt(installedTools: ToolStatus[], lang: Supported
 /**
  * Sync API keys prompt
  */
-async function syncApiKeysPrompt(installedTools: ToolStatus[], lang: SupportedLang): Promise<void> {
+async function syncApiKeysPrompt(installedTools: ToolStatus[], _lang: SupportedLang): Promise<void> {
   if (installedTools.length < 2) {
     console.log(STATUS.warning('Need at least 2 installed tools to sync API keys.'))
     return

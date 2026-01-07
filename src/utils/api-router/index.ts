@@ -41,21 +41,12 @@
  * ```
  */
 
-// Types
-export type {
-  ApiConfig,
-  ApiConfigResult,
-  ApiRoutingMode,
-  CcrApiConfig,
-  CcrProvider,
-  CcrRouterConfig,
-  CcrTransformer,
-  ClaudeEnvSettings,
-  OfficialApiConfig,
-  ProviderFeature,
-  ProviderPreset,
-  SimpleApiConfig,
-} from './types'
+// Manager
+export {
+  displayCurrentStatus,
+  runConfigWizard,
+  testApiConnection,
+} from './manager'
 
 // Presets
 export {
@@ -80,9 +71,18 @@ export {
   validateApiKey,
 } from './simple-mode'
 
-// Manager
-export {
-  displayCurrentStatus,
-  runConfigWizard,
-  testApiConnection,
-} from './manager'
+// Types
+export type {
+  ApiConfig,
+  ApiConfigResult,
+  ApiRoutingMode,
+  CcrApiConfig,
+  CcrProvider,
+  CcrRouterConfig,
+  CcrTransformer,
+  ClaudeEnvSettings,
+  OfficialApiConfig,
+  ProviderFeature,
+  ProviderPreset,
+  SimpleApiConfig,
+} from './types'

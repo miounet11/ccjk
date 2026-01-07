@@ -1,6 +1,6 @@
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { COLORS, boxify, sectionDivider, STATUS } from '../banner'
+import { COLORS, sectionDivider, STATUS } from '../banner'
 
 /**
  * Menu item definition

@@ -21,7 +21,7 @@ export interface WorkflowConfig {
   commands: string[]
   agents: WorkflowAgent[]
   autoInstallAgents: boolean
-  category: 'common' | 'plan' | 'sixStep' | 'bmad' | 'git'
+  category: 'common' | 'plan' | 'sixStep' | 'bmad' | 'git' | 'interview'
   outputDir: string
 }
 

@@ -1,7 +1,7 @@
-import { exec } from 'tinyexec'
-import ora from 'ora'
 import ansis from 'ansis'
+import ora from 'ora'
 import semver from 'semver'
+import { exec } from 'tinyexec'
 import { version as currentVersion } from '../../package.json'
 import { STATUS } from './banner'
 
@@ -212,7 +212,7 @@ export async function upgradeCcjk(): Promise<UpgradeResult> {
 /**
  * Upgrade a specific plugin
  */
-export async function upgradePlugin(pluginId: string): Promise<UpgradeResult> {
+export async function upgradePlugin(_pluginId: string): Promise<UpgradeResult> {
   // TODO: Implement plugin upgrade
   return {
     success: false,

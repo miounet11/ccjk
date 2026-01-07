@@ -1,22 +1,22 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
-import { join } from 'pathe'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import ansis from 'ansis'
-import { CLAUDE_DIR, SETTINGS_FILE, CCJK_CONFIG_DIR } from '../constants'
-import { STATUS, boxify } from './banner'
+import { join } from 'pathe'
+import { CCJK_CONFIG_DIR, SETTINGS_FILE } from '../constants'
+import { STATUS } from './banner'
 
 /**
  * Permission types
  */
-export type PermissionType =
-  | 'file-read'
-  | 'file-write'
-  | 'file-delete'
-  | 'git-operations'
-  | 'npm-commands'
-  | 'node-execution'
-  | 'system-commands'
-  | 'network-access'
-  | 'mcp-server'
+export type PermissionType
+  = | 'file-read'
+    | 'file-write'
+    | 'file-delete'
+    | 'git-operations'
+    | 'npm-commands'
+    | 'node-execution'
+    | 'system-commands'
+    | 'network-access'
+    | 'mcp-server'
 
 /**
  * Permission set
