@@ -19,28 +19,23 @@ export interface OutputStyle {
 }
 
 const OUTPUT_STYLES: OutputStyle[] = [
-  // Custom styles (have template files)
+  // Custom styles (have template files) - Efficiency-focused styles
   {
-    id: 'engineer-professional',
+    id: 'speed-coder',
     isCustom: true,
-    filePath: 'engineer-professional.md',
+    filePath: 'speed-coder.md',
   },
   {
-    id: 'nekomata-engineer',
+    id: 'senior-architect',
     isCustom: true,
-    filePath: 'nekomata-engineer.md',
+    filePath: 'senior-architect.md',
   },
   {
-    id: 'laowang-engineer',
+    id: 'pair-programmer',
     isCustom: true,
-    filePath: 'laowang-engineer.md',
+    filePath: 'pair-programmer.md',
   },
-  {
-    id: 'ojousama-engineer',
-    isCustom: true,
-    filePath: 'ojousama-engineer.md',
-  },
-  // Built-in styles (no template files)
+  // Built-in styles (no template files) - Claude Code native styles
   {
     id: 'default',
     isCustom: false,
@@ -125,9 +120,19 @@ export async function configureOutputStyle(
       description: i18n.t('configuration:outputStyles.default.description'),
     },
     {
-      id: 'engineer-professional',
-      name: i18n.t('configuration:outputStyles.engineer-professional.name'),
-      description: i18n.t('configuration:outputStyles.engineer-professional.description'),
+      id: 'speed-coder',
+      name: i18n.t('configuration:outputStyles.speed-coder.name'),
+      description: i18n.t('configuration:outputStyles.speed-coder.description'),
+    },
+    {
+      id: 'senior-architect',
+      name: i18n.t('configuration:outputStyles.senior-architect.name'),
+      description: i18n.t('configuration:outputStyles.senior-architect.description'),
+    },
+    {
+      id: 'pair-programmer',
+      name: i18n.t('configuration:outputStyles.pair-programmer.name'),
+      description: i18n.t('configuration:outputStyles.pair-programmer.description'),
     },
     {
       id: 'explanatory',
@@ -135,24 +140,9 @@ export async function configureOutputStyle(
       description: i18n.t('configuration:outputStyles.explanatory.description'),
     },
     {
-      id: 'laowang-engineer',
-      name: i18n.t('configuration:outputStyles.laowang-engineer.name'),
-      description: i18n.t('configuration:outputStyles.laowang-engineer.description'),
-    },
-    {
       id: 'learning',
       name: i18n.t('configuration:outputStyles.learning.name'),
       description: i18n.t('configuration:outputStyles.learning.description'),
-    },
-    {
-      id: 'nekomata-engineer',
-      name: i18n.t('configuration:outputStyles.nekomata-engineer.name'),
-      description: i18n.t('configuration:outputStyles.nekomata-engineer.description'),
-    },
-    {
-      id: 'ojousama-engineer',
-      name: i18n.t('configuration:outputStyles.ojousama-engineer.name'),
-      description: i18n.t('configuration:outputStyles.ojousama-engineer.description'),
     },
   ]
 
@@ -236,7 +226,7 @@ export async function configureOutputStyle(
             }
           }),
       ]),
-      default: selectedStyles.includes('engineer-professional') ? 'engineer-professional' : selectedStyles[0],
+      default: selectedStyles.includes('senior-architect') ? 'senior-architect' : selectedStyles[0],
     })
 
     if (!promptedDefault) {

@@ -4,15 +4,15 @@ import { getAvailableOutputStyles } from '../../src/utils/output-style'
 describe('output-style basic functionality', () => {
   it('should return correct number of output styles', () => {
     const styles = getAvailableOutputStyles()
-    expect(styles).toHaveLength(7)
+    expect(styles).toHaveLength(6)
   })
 
-  it('should have 4 custom styles and 3 built-in styles', () => {
+  it('should have 3 custom styles and 3 built-in styles', () => {
     const styles = getAvailableOutputStyles()
     const customStyles = styles.filter(s => s.isCustom)
     const builtinStyles = styles.filter(s => !s.isCustom)
 
-    expect(customStyles).toHaveLength(4)
+    expect(customStyles).toHaveLength(3)
     expect(builtinStyles).toHaveLength(3)
   })
 
@@ -21,10 +21,9 @@ describe('output-style basic functionality', () => {
     const customStyleIds = styles.filter(s => s.isCustom).map(s => s.id)
 
     expect(customStyleIds).toEqual([
-      'engineer-professional',
-      'nekomata-engineer',
-      'laowang-engineer',
-      'ojousama-engineer',
+      'speed-coder',
+      'senior-architect',
+      'pair-programmer',
     ])
   })
 

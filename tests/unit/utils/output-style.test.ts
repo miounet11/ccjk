@@ -80,12 +80,11 @@ describe('output-style', () => {
     it('should return all available output styles', () => {
       const styles = getAvailableOutputStyles()
 
-      expect(styles).toHaveLength(7)
+      expect(styles).toHaveLength(6)
       expect(styles.map(s => s.id)).toEqual([
-        'engineer-professional',
-        'nekomata-engineer',
-        'laowang-engineer',
-        'ojousama-engineer',
+        'speed-coder',
+        'senior-architect',
+        'pair-programmer',
         'default',
         'explanatory',
         'learning',
@@ -96,7 +95,7 @@ describe('output-style', () => {
       const styles = getAvailableOutputStyles()
       const customStyles = styles.filter(s => s.isCustom)
 
-      expect(customStyles).toHaveLength(4)
+      expect(customStyles).toHaveLength(3)
       customStyles.forEach((style) => {
         expect(style.filePath).toBeDefined()
         expect(style.filePath).toContain('.md')
@@ -116,7 +115,7 @@ describe('output-style', () => {
 
   describe('copyOutputStyles', () => {
     it('should copy selected styles to claude directory', async () => {
-      const selectedStyles = ['engineer-professional', 'nekomata-engineer']
+      const selectedStyles = ['speed-coder', 'senior-architect']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -132,7 +131,7 @@ describe('output-style', () => {
     })
 
     it('should use shared common/output-styles path for templates', async () => {
-      const selectedStyles = ['engineer-professional']
+      const selectedStyles = ['speed-coder']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -152,7 +151,7 @@ describe('output-style', () => {
     })
 
     it('should use shared common/output-styles path for English locale', async () => {
-      const selectedStyles = ['engineer-professional']
+      const selectedStyles = ['speed-coder']
       const lang: SupportedLang = 'en'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -172,7 +171,7 @@ describe('output-style', () => {
     })
 
     it('should skip non-existent template files', async () => {
-      const selectedStyles = ['engineer-professional']
+      const selectedStyles = ['speed-coder']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -185,7 +184,7 @@ describe('output-style', () => {
     })
 
     it('should only copy custom styles (built-in styles have no files)', async () => {
-      const selectedStyles = ['engineer-professional', 'default', 'explanatory']
+      const selectedStyles = ['speed-coder', 'default', 'explanatory']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -194,7 +193,7 @@ describe('output-style', () => {
 
       await copyOutputStyles(selectedStyles, lang)
 
-      // Only engineer-professional should be copied (custom style)
+      // Only speed-coder should be copied (custom style)
       expect(mockFsOperations.copyFile).toHaveBeenCalledTimes(1)
     })
   })
@@ -205,12 +204,12 @@ describe('output-style', () => {
       mockJsonConfig.readJsonConfig.mockImplementation(() => existingSettings)
       mockJsonConfig.writeJsonConfig.mockImplementation(() => {})
 
-      setGlobalDefaultOutputStyle('engineer-professional')
+      setGlobalDefaultOutputStyle('senior-architect')
 
       expect(mockJsonConfig.writeJsonConfig).toHaveBeenCalledWith(
         expect.stringContaining('settings.json'),
         expect.objectContaining({
-          outputStyle: 'engineer-professional',
+          outputStyle: 'senior-architect',
         }),
       )
     })
@@ -223,14 +222,14 @@ describe('output-style', () => {
       mockJsonConfig.readJsonConfig.mockImplementation(() => existingSettings)
       mockJsonConfig.writeJsonConfig.mockImplementation(() => {})
 
-      setGlobalDefaultOutputStyle('nekomata-engineer')
+      setGlobalDefaultOutputStyle('speed-coder')
 
       expect(mockJsonConfig.writeJsonConfig).toHaveBeenCalledWith(
         expect.stringContaining('settings.json'),
         expect.objectContaining({
           env: { ANTHROPIC_API_KEY: 'test-key' },
           model: 'opus',
-          outputStyle: 'nekomata-engineer',
+          outputStyle: 'speed-coder',
         }),
       )
     })
@@ -304,8 +303,8 @@ describe('output-style', () => {
       })
 
       mockInquirer.default.prompt = vi.fn()
-        .mockResolvedValueOnce({ selectedStyles: ['engineer-professional', 'nekomata-engineer'] })
-        .mockResolvedValueOnce({ defaultStyle: 'engineer-professional' })
+        .mockResolvedValueOnce({ selectedStyles: ['speed-coder', 'senior-architect'] })
+        .mockResolvedValueOnce({ defaultStyle: 'senior-architect' })
       Object.assign(mockInquirer.default, {
         prompt: mockInquirer.default.prompt,
         prompts: {},
@@ -336,8 +335,8 @@ describe('output-style', () => {
       mockZcfConfig.updateZcfConfig.mockImplementation(() => {})
 
       await configureOutputStyle(
-        ['engineer-professional', 'default'], // preselectedStyles
-        'engineer-professional', // preselectedDefault
+        ['speed-coder', 'default'], // preselectedStyles
+        'senior-architect', // preselectedDefault
       )
 
       expect(mockInquirer.default.prompt).not.toHaveBeenCalled()
@@ -354,8 +353,8 @@ describe('output-style', () => {
       })
       mockFsOperations.removeFile.mockImplementation(() => {})
       mockInquirer.default.prompt = vi.fn()
-        .mockResolvedValueOnce({ selectedStyles: ['engineer-professional'] })
-        .mockResolvedValueOnce({ defaultStyle: 'engineer-professional' })
+        .mockResolvedValueOnce({ selectedStyles: ['speed-coder'] })
+        .mockResolvedValueOnce({ defaultStyle: 'speed-coder' })
       Object.assign(mockInquirer.default, {
         prompt: mockInquirer.default.prompt,
         prompts: {},
@@ -389,8 +388,8 @@ describe('output-style', () => {
       })
       mockFsOperations.removeFile.mockImplementation(() => {})
       mockInquirer.default.prompt = vi.fn()
-        .mockResolvedValueOnce({ selectedStyles: ['engineer-professional'] })
-        .mockResolvedValueOnce({ defaultStyle: 'engineer-professional' })
+        .mockResolvedValueOnce({ selectedStyles: ['speed-coder'] })
+        .mockResolvedValueOnce({ defaultStyle: 'speed-coder' })
       Object.assign(mockInquirer.default, {
         prompt: mockInquirer.default.prompt,
         prompts: {},
