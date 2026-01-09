@@ -23,13 +23,15 @@
 
 <br/>
 
-## 🎉 v1.3.1 Released! (January 2025)
+## 🎉 v1.3.4 Released! (January 2025)
 
-> **Complete Rebranding: ZCF → CCJK**
-> - 🔄 All references updated from ZCF to CCJK
-> - 🚀 New brand: **CCJK - Claude Code Jailbreak Kit**
-> - ⬆️ Existing users: Run `ccjk upgrade` to update!
-> - 🔧 Fixed install script version detection
+> **🆕 Workflow System Upgrade**
+> - 🌟 **Interview-Driven Development (IDD)** - Now the recommended workflow!
+> - 📋 Streamlined workflow menu with 5 clear options
+> - 🔧 New essential workflow templates
+> - 🌐 Updated i18n support (EN/ZH-CN)
+>
+> **Previous: Complete Rebranding ZCF → CCJK**
 
 <br/>
 
@@ -116,7 +118,7 @@ When you run `ccjk`, you'll see a friendly menu:
 ║   ██████╗ ██████╗     ██╗██╗  ██╗                         ║
 ║  ██╔════╝██╔════╝     ██║██║ ██╔╝                         ║
 ║  ██║     ██║          ██║█████╔╝   Claude Code JinKu     ║
-║  ██║     ██║     ██   ██║██╔═██╗   v1.3.1                ║
+║  ██║     ██║     ██   ██║██╔═██╗   v1.3.4                ║
 ║  ╚██████╗╚██████╗╚█████╔╝██║  ██╗                         ║
 ║   ╚═════╝ ╚═════╝ ╚════╝ ╚═╝  ╚═╝                         ║
 ╚═══════════════════════════════════════════════════════════╝
