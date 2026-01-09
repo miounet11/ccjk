@@ -359,6 +359,35 @@ pnpm version
 pnpm release
 ```
 
+### ⚠️ Important: pnpm catalog: Protocol Issue
+
+**Problem**: When using pnpm's `catalog:` protocol in `package.json` dependencies (e.g., `"dayjs": "catalog:runtime"`), the `catalog:` references are NOT automatically resolved during `npm publish`. This causes npm installation to fail with error:
+
+```
+npm error Unsupported URL Type "catalog:": catalog:runtime
+```
+
+**Root Cause**: The `catalog:` protocol is a pnpm workspace feature defined in `pnpm-workspace.yaml`. While pnpm resolves these during local installation, the raw `catalog:` strings get published to npm registry, which npm cannot understand.
+
+**Solution**: Before publishing to npm, you must replace all `catalog:` references with actual version numbers:
+
+```bash
+# Option 1: Use the publish-fix script
+node publish-fix.mjs  # Creates package.json.publish with resolved versions
+cp package.json package.json.backup
+cp package.json.publish package.json
+npm publish
+cp package.json.backup package.json
+
+# Option 2: Manual replacement
+# Replace "catalog:xxx" with actual versions from pnpm-workspace.yaml catalogs
+```
+
+**Prevention**:
+- Always verify published package with `npm view ccjk@<version> dependencies --json` after publishing
+- Consider using `publishConfig` in package.json or a prepublish script to auto-resolve catalog references
+- Test installation with `npm install ccjk@<version>` (not pnpm) after publishing
+
 ---
 
 **Important Reminders**:
