@@ -657,9 +657,9 @@ system_prompt_style = "engineer-professional"`
         expect(result.general.currentTool).toBe(DEFAULT_CODE_TOOL_TYPE)
         expect(result.claudeCode.enabled).toBe(true)
         expect(result.codex.enabled).toBe(false)
-        expect(result.claudeCode.outputStyles).toEqual(['engineer-professional'])
-        expect(result.claudeCode.defaultOutputStyle).toBe('engineer-professional')
-        expect(result.codex.systemPromptStyle).toBe('engineer-professional')
+        expect(result.claudeCode.outputStyles).toEqual(['speed-coder', 'senior-architect', 'pair-programmer'])
+        expect(result.claudeCode.defaultOutputStyle).toBe('senior-architect')
+        expect(result.codex.systemPromptStyle).toBe('senior-architect')
       })
 
       it('should create config with custom language preference', () => {
@@ -717,7 +717,7 @@ system_prompt_style = "engineer-professional"`
         expect(result.general.currentTool).toBe('codex')
         expect(result.claudeCode.enabled).toBe(false)
         expect(result.codex.enabled).toBe(true)
-        expect(result.codex.systemPromptStyle).toBe('engineer-professional')
+        expect(result.codex.systemPromptStyle).toBe('senior-architect')
       })
 
       it('should handle corrupted JSON config gracefully', () => {

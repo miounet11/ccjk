@@ -592,7 +592,7 @@ describe('prompts utilities', () => {
       expect(inquirer.prompt).not.toHaveBeenCalled()
     })
 
-    it('should default to engineer-professional in skip-prompt mode when no config exists', async () => {
+    it('should default to senior-architect in skip-prompt mode when no config exists', async () => {
       const result = await resolveSystemPromptStyle(
         availablePrompts,
         undefined, // No command line option
@@ -600,7 +600,7 @@ describe('prompts utilities', () => {
         true, // skipPrompt = true
       )
 
-      expect(result).toBe('engineer-professional')
+      expect(result).toBe('senior-architect')
       expect(inquirer.prompt).not.toHaveBeenCalled()
     })
 
@@ -623,7 +623,7 @@ describe('prompts utilities', () => {
     })
 
     it('should ignore invalid command line option', async () => {
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'senior-architect' })
 
       const result = await resolveSystemPromptStyle(
         availablePrompts,
@@ -631,7 +631,7 @@ describe('prompts utilities', () => {
         null,
       )
 
-      expect(result).toBe('engineer-professional')
+      expect(result).toBe('senior-architect')
       expect(inquirer.prompt).toHaveBeenCalled()
     })
 

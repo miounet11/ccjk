@@ -457,7 +457,7 @@ describe('init command - API provider preset', () => {
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer', 'laowang-engineer'])
+      expect(options.outputStyles).toEqual(['speed-coder', 'senior-architect', 'pair-programmer'])
     })
 
     it('should parse outputStyles comma-separated string', async () => {
@@ -465,12 +465,12 @@ describe('init command - API provider preset', () => {
 
       const options: any = {
         skipPrompt: true,
-        outputStyles: 'engineer-professional,nekomata-engineer',
+        outputStyles: 'senior-architect,speed-coder',
         apiType: 'skip' as const,
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer'])
+      expect(options.outputStyles).toEqual(['senior-architect', 'speed-coder'])
     })
 
     it('should default outputStyles to all styles', async () => {
@@ -482,7 +482,7 @@ describe('init command - API provider preset', () => {
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer', 'laowang-engineer'])
+      expect(options.outputStyles).toEqual(['speed-coder', 'senior-architect', 'pair-programmer'])
     })
 
     it('should validate invalid output style', async () => {
@@ -504,15 +504,15 @@ describe('init command - API provider preset', () => {
 
       const options: any = {
         skipPrompt: true,
-        defaultOutputStyle: 'nekomata-engineer',
+        defaultOutputStyle: 'speed-coder',
         apiType: 'skip' as const,
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.defaultOutputStyle).toBe('nekomata-engineer')
+      expect(options.defaultOutputStyle).toBe('speed-coder')
     })
 
-    it('should default to engineer-professional', async () => {
+    it('should default to senior-architect', async () => {
       const { validateSkipPromptOptions } = await import('../../../src/commands/init')
 
       const options: any = {
@@ -521,7 +521,7 @@ describe('init command - API provider preset', () => {
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.defaultOutputStyle).toBe('engineer-professional')
+      expect(options.defaultOutputStyle).toBe('senior-architect')
     })
 
     it('should validate invalid default output style', async () => {

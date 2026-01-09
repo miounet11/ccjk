@@ -290,7 +290,7 @@ describe('init command validation', () => {
       const options: InitOptions = {
         skipPrompt: true,
         apiType: 'skip',
-        outputStyles: ['engineer-professional'],
+        outputStyles: ['senior-architect'],
       }
 
       // Should not throw

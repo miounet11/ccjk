@@ -24,16 +24,16 @@ describe('translation Files - Workflow', () => {
       expect(enWorkflowData).toHaveProperty('workflowOption.gitWorkflow')
       expect(zhWorkflowData).toHaveProperty('workflowOption.gitWorkflow')
 
-      expect(enWorkflowData['workflowOption.gitWorkflow']).toBe('Git Workflow (commit + rollback + cleanBranches + worktree)')
-      expect(zhWorkflowData['workflowOption.gitWorkflow']).toBe('Git 工作流 (commit + rollback + cleanBranches + worktree)')
+      expect(enWorkflowData['workflowOption.gitWorkflow']).toBe('📦 Git Smart Workflow')
+      expect(zhWorkflowData['workflowOption.gitWorkflow']).toBe('📦 Git 智能工作流')
     })
 
     it('should include workflowOption.sixStepsWorkflow translation', () => {
       expect(enWorkflowData).toHaveProperty('workflowOption.sixStepsWorkflow')
       expect(zhWorkflowData).toHaveProperty('workflowOption.sixStepsWorkflow')
 
-      expect(enWorkflowData['workflowOption.sixStepsWorkflow']).toBe('Six-Step Workflow (Structured Development Process)')
-      expect(zhWorkflowData['workflowOption.sixStepsWorkflow']).toBe('六步工作流 (结构化开发流程)')
+      expect(enWorkflowData['workflowOption.sixStepsWorkflow']).toBe('📝 Six-Step Structured Dev')
+      expect(zhWorkflowData['workflowOption.sixStepsWorkflow']).toBe('📝 六步结构化开发')
     })
   })
 
@@ -58,16 +58,16 @@ describe('translation Files - Workflow', () => {
       expect(enWorkflowData).toHaveProperty('workflowDescription.gitWorkflow')
       expect(zhWorkflowData).toHaveProperty('workflowDescription.gitWorkflow')
 
-      expect(enWorkflowData['workflowDescription.gitWorkflow']).toBe('Git version control commands collection supporting conventional commits, rollback, branch cleanup and worktree management')
-      expect(zhWorkflowData['workflowDescription.gitWorkflow']).toBe('Git 版本控制命令集合，支持规范化提交、回滚、分支清理和工作树管理')
+      expect(enWorkflowData['workflowDescription.gitWorkflow']).toBe('Smart commit + Safe rollback + Branch cleanup + Worktree management')
+      expect(zhWorkflowData['workflowDescription.gitWorkflow']).toBe('智能提交 + 安全回滚 + 分支清理 + 工作树管理')
     })
 
     it('should include workflowDescription.sixStepsWorkflow translation', () => {
       expect(enWorkflowData).toHaveProperty('workflowDescription.sixStepsWorkflow')
       expect(zhWorkflowData).toHaveProperty('workflowDescription.sixStepsWorkflow')
 
-      expect(enWorkflowData['workflowDescription.sixStepsWorkflow']).toBe('Professional development assistant structured six-step workflow, suitable for projects requiring strict process control')
-      expect(zhWorkflowData['workflowDescription.sixStepsWorkflow']).toBe('专业开发助手的结构化六步工作流程，适合需要严格流程控制的项目')
+      expect(enWorkflowData['workflowDescription.sixStepsWorkflow']).toBe('Research→Ideate→Plan→Execute→Optimize→Review complete dev cycle')
+      expect(zhWorkflowData['workflowDescription.sixStepsWorkflow']).toBe('研究→构思→计划→执行→优化→评审 完整开发闭环')
     })
   })
 

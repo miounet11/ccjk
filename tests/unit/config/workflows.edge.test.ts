@@ -1,4 +1,4 @@
-import type { WorkflowConfig } from '../../../src/types/workflow'
+import type { WorkflowConfig, WorkflowMetadata } from '../../../src/types/workflow'
 import { existsSync } from 'node:fs'
 import { copyFile, mkdir, rm } from 'node:fs/promises'
 import inquirer from 'inquirer'
@@ -13,6 +13,31 @@ import { selectAndInstallWorkflows } from '../../../src/utils/workflow-installer
 vi.mock('node:fs')
 vi.mock('node:fs/promises')
 vi.mock('inquirer')
+
+// Helper to create test workflow config with required fields
+function createTestWorkflowConfig(overrides: Partial<WorkflowConfig> = {}): WorkflowConfig {
+  const defaultMetadata: WorkflowMetadata = {
+    version: '1.0.0',
+    addedDate: '2025-01',
+    tags: [],
+    difficulty: 'beginner',
+  }
+  return {
+    id: 'testWorkflow',
+    name: 'Test Workflow',
+    description: 'Test workflow for testing',
+    category: 'git',
+    displayCategory: 'versionControl',
+    defaultSelected: false,
+    autoInstallAgents: false,
+    commands: [],
+    agents: [],
+    order: 99,
+    outputDir: 'test',
+    metadata: defaultMetadata,
+    ...overrides,
+  }
+}
 
 describe('workflows edge cases and error handling', () => {
   beforeEach(() => {
@@ -187,18 +212,11 @@ describe('workflows edge cases and error handling', () => {
     })
 
     it('should handle workflow with empty commands array', () => {
-      const emptyCommandsConfig: WorkflowConfig = {
+      const emptyCommandsConfig = createTestWorkflowConfig({
         id: 'emptyWorkflow',
         name: 'Empty Workflow',
         description: 'Empty workflow for testing',
-        category: 'git',
-        defaultSelected: false,
-        autoInstallAgents: false,
-        commands: [],
-        agents: [],
-        order: 99,
-        outputDir: 'empty',
-      }
+      })
 
       // System should handle empty commands gracefully
       expect(emptyCommandsConfig.commands).toEqual([])
@@ -226,18 +244,15 @@ describe('workflows edge cases and error handling', () => {
 
   describe('installation result validation', () => {
     it('should validate installation result structure', async () => {
-      const gitWorkflowConfig: WorkflowConfig = {
+      const gitWorkflowConfig = createTestWorkflowConfig({
         id: 'gitWorkflow',
         name: 'Git Workflow',
         description: 'Workflow for Git operations',
-        category: 'git',
         defaultSelected: true,
-        autoInstallAgents: false,
         commands: ['git-commit.md'],
-        agents: [],
         order: 4,
         outputDir: 'git',
-      }
+      })
 
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile).mockResolvedValue(undefined)

@@ -1,105 +1,250 @@
 ---
-description: Add New Feature
+description: 'Feature Development Command - Intelligent Planning, Design, and Implementation Workflow'
+argument-hint: <feature description> [--plan] [--design] [--execute] [--quick]
+# examples:
+#   - /feat user login feature                  # Full flow: Plan → Design → Implement
+#   - /feat add dark mode --plan                # Generate planning doc only
+#   - /feat shopping cart --design              # Skip planning, go to design
+#   - /feat fix form validation --quick         # Quick mode, simplified flow
+#   - /feat --execute                           # Continue executing existing plan
 ---
+
+# Feature Development Command
+
+> **Core Philosophy**: Plan First, Design-Driven, Quality Priority
+
+## Usage
+
+```bash
+/feat <feature description> [options]
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--plan` | Generate planning document only, don't execute |
+| `--design` | Skip planning, go directly to UI design |
+| `--execute` | Continue executing existing plan |
+| `--quick` | Quick mode, simplified workflow |
+
+---
+
+## Feature Description
 
 $ARGUMENTS
 
-## Core Workflow
+---
 
-### 1. Input Analysis and Type Determination
+## Intelligent Workflow
 
-When receiving user input, first perform type determination and clearly inform the user:
+### Phase 0: Input Analysis
 
-**Determination Criteria:**
+For each input, first perform **type identification** and clearly communicate:
 
-- **Requirement Planning Type**: User proposes new feature requirements, project ideas, or needs to formulate plans
+```
+📋 Operation Type: [Requirement Planning | Discussion Iteration | Execution Implementation]
+```
 
-- **Discussion Iteration Type**: User requests to continue discussion, modify, or refine existing planning
+**Identification Criteria**:
 
-- **Execution Implementation Type**: User confirms planning is complete and requests to start specific implementation work
+| Type | Trigger Condition | Example Input |
+|------|-------------------|---------------|
+| 🆕 Requirement Planning | New feature request, project idea | "Add user auth", "Implement cart" |
+| 🔄 Discussion Iteration | Modify, refine existing plan | "Adjust the approach", "Continue discussion" |
+| ⚡ Execution Implementation | Confirm to start implementation | "Start executing", "Implement as planned" |
 
-### 2. Classification Processing Mechanism
+---
 
-#### A. Requirement Planning Processing
+### Phase 1: Requirement Planning 🆕
 
-**Trigger Condition**: Identified as functional requirement input
+**Trigger**: Identified as new feature requirement
 
-**Execution Actions**:
+**Execution Flow**:
 
-- Enable Planner Agent
+1. **Enable Planner Agent** for deep analysis
+2. **Generate planning document** stored in `.ccjk/plan/current/`
+3. **Document naming**: `feature-name.md`
 
-- Generate detailed markdown planning document
+**Planning Document Structure**:
 
-- Store document in `./.claude/plan` directory, named in plan/xxx.md format
+```markdown
+# Feature Plan: [Feature Name]
 
-- Include: objective definition, feature breakdown, implementation steps, acceptance criteria
+## 📋 Overview
+- Feature objective
+- Expected value
+- Impact scope
 
-#### B. Discussion Iteration Processing
+## 🎯 Feature Breakdown
+- [ ] Sub-feature 1
+- [ ] Sub-feature 2
+- [ ] Sub-feature 3
 
-**Trigger Condition**: User requests to continue discussion or modify planning
+## 📐 Technical Approach
+- Architecture design
+- Data model
+- API design
 
-**Execution Actions**:
+## ✅ Acceptance Criteria
+- Functional acceptance points
+- Performance metrics
+- Test coverage
 
-- Retrieve and analyze previously generated planning files
+## ⏱️ Implementation Plan
+- Phase breakdown
+- Time estimation
+- Dependencies
+```
 
-- Identify user feedback and confirmation content
+---
 
-- Enable Planner Agent
+### Phase 2: Discussion Iteration 🔄
 
-- Generate detailed markdown planning document
+**Trigger**: User requests to modify or refine plan
 
-- Create a new document, for example, if the last one was plan/xxx.md, then this time it's plan/xxx-1.md, if the last one was plan/xxx-1.md, then this time it's plan/xxx-2.md, and so on
+**Execution Flow**:
 
-- Reorganize pending implementation task priorities
+1. **Retrieve previous plan** from `.ccjk/plan/current/`
+2. **Analyze user feedback** identify modification points
+3. **Enable Planner Agent** for re-planning
+4. **Version management**:
+   - Original file: `feature-name.md`
+   - Iteration versions: `feature-name-v2.md`, `feature-name-v3.md`
 
-#### C. Execution Implementation Processing
+**Iteration Record**:
 
-**Trigger Condition**: User confirms planning is complete and requests to start execution
+```markdown
+## 📝 Iteration History
 
-**Execution Actions**:
+### v2 - [timestamp]
+- Modification 1
+- Modification 2
 
-- Start task execution in the order of planning documents
+### v1 - [timestamp]
+- Initial version
+```
 
-- Perform task type identification before each subtask begins
+---
 
-- **Frontend Task Special Processing**:
+### Phase 3: Execution Implementation ⚡
 
-- Check if available UI design exists
+**Trigger**: User confirms plan is complete
 
-- If no design solution exists, must use UI-UX-Designer Agent
+**Execution Flow**:
 
-- Complete UI design before proceeding with development implementation
+```
+┌─────────────────────────────────────────────────────────┐
+│  📋 Read Planning Document                              │
+│       ↓                                                 │
+│  🔍 Identify Subtask Types                              │
+│       ↓                                                 │
+│  ┌─────────────┬─────────────┬─────────────┐           │
+│  │ Frontend    │ Backend     │ Other       │           │
+│  │ Tasks       │ Tasks       │ Tasks       │           │
+│  │     ↓       │     ↓       │     ↓       │           │
+│  │ UI Design   │ Direct      │ Direct      │           │
+│  │ Check       │ Implement   │ Implement   │           │
+│  │     ↓       │             │             │           │
+│  │ No Design?  │             │             │           │
+│  │     ↓       │             │             │           │
+│  │ UI-UX Agent │             │             │           │
+│  └─────────────┴─────────────┴─────────────┘           │
+│       ↓                                                 │
+│  ✅ Complete and Update Status                          │
+└─────────────────────────────────────────────────────────┘
+```
 
-### 3. Key Execution Principles
+**Frontend Task Special Handling**:
 
-#### Mandatory Response Requirements
+1. **Check UI Design** - Does design exist?
+2. **No Design** - Must invoke `UI-UX-Designer Agent`
+3. **After Design** - Proceed with development
 
-- **Must first state in every interaction**: "I determine this operation type as: [specific type]"
+---
 
-- Type determination must be accurate and clearly communicated to users
+## Quick Commands
 
-#### Task Execution Standards
+During feature development, use these shortcuts:
 
-- Strictly execute according to documented planning
+| Command | Description |
+|---------|-------------|
+| `!plan` | View current planning document |
+| `!status` | View task completion status |
+| `!next` | Execute next subtask |
+| `!pause` | Pause execution, save progress |
+| `!design` | Invoke UI-UX-Designer |
+| `!test` | Generate tests for current feature |
 
-- Must clarify task nature and dependencies before subtask startup
+---
 
-- Frontend tasks must ensure UI design completeness
+## State Management
 
-#### State Management Mechanism
+### Task Status Tracking
 
-- Maintain task completion status tracking
+```markdown
+## 📊 Execution Status
 
-- Timely update planning document status
+| Subtask | Status | Progress |
+|---------|--------|----------|
+| Data model design | ✅ Complete | 100% |
+| API development | 🔄 In Progress | 60% |
+| Frontend implementation | ⏳ Pending | 0% |
+| Unit test writing | ⏳ Pending | 0% |
+```
 
-- Ensure user visibility of progress
+### Progress Visualization
 
-## Quality Assurance Points
+```
+Overall Progress: [████████░░░░░░░░] 50%
 
-1. **Type Determination Accuracy**: Type identification at the beginning of each interaction must be accurate
+✅ Completed: 2/4 subtasks
+🔄 In Progress: 1/4 subtasks
+⏳ Pending: 1/4 subtasks
+```
 
-2. **Document Consistency**: Planning documents and actual execution remain synchronized
+---
 
-3. **Dependency Management**: Pay special attention to UI design dependencies of frontend tasks
+## Quality Assurance
 
-4. **Transparent User Communication**: All judgments and actions must be clearly communicated to users
+### Mandatory Checkpoints
+
+1. **Planning Phase** - Must include acceptance criteria
+2. **Design Phase** - Frontend tasks must have UI design
+3. **Implementation Phase** - Update status after each subtask
+4. **Completion Phase** - Verify against acceptance criteria
+
+### Code Quality Requirements
+
+- Follow existing project code style
+- Add necessary type definitions
+- Write unit tests (coverage > 80%)
+- Update relevant documentation
+
+---
+
+## Output Format
+
+### Response Structure
+
+```
+📋 Operation Type: [Type]
+📍 Current Phase: [Phase]
+📊 Overall Progress: [Progress Bar]
+
+---
+
+[Specific Content]
+
+---
+
+💡 Next Step: [Suggested Action]
+```
+
+---
+
+## Start Execution
+
+**Feature Request**: $ARGUMENTS
+
+Analyzing input type and initiating appropriate workflow...

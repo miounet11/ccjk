@@ -1,4 +1,4 @@
-import type { WorkflowConfig, WorkflowType } from '../../../src/types/workflow'
+import type { WorkflowConfig, WorkflowMetadata, WorkflowType } from '../../../src/types/workflow'
 import { existsSync } from 'node:fs'
 import { copyFile, mkdir, rm } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
@@ -41,6 +41,30 @@ vi.mock('../../../src/i18n', async (importOriginal) => {
   }
 })
 
+// Helper to create test workflow config with required fields
+function createTestWorkflowConfig(overrides: Partial<WorkflowConfig> & { id: string }): WorkflowConfig {
+  const defaultMetadata: WorkflowMetadata = {
+    version: '1.0.0',
+    addedDate: '2025-01',
+    tags: [],
+    difficulty: 'beginner',
+  }
+  return {
+    name: 'Test Workflow',
+    description: 'Test workflow for testing',
+    category: 'git',
+    displayCategory: 'versionControl',
+    defaultSelected: false,
+    autoInstallAgents: false,
+    commands: [],
+    agents: [],
+    order: 99,
+    outputDir: 'test',
+    metadata: defaultMetadata,
+    ...overrides,
+  }
+}
+
 describe('workflow-installer utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -70,12 +94,12 @@ describe('workflow-installer utilities', () => {
   })
 
   describe('selectAndInstallWorkflows', () => {
-    const mockWorkflows = [
-      {
+    const mockWorkflows: WorkflowConfig[] = [
+      createTestWorkflowConfig({
         id: 'essentialTools' as WorkflowType,
-        nameKey: 'workflowOption.essentialTools',
-        descriptionKey: 'workflowDescription.essentialTools',
+        name: 'Essential Tools',
         category: 'essential',
+        displayCategory: 'development',
         defaultSelected: true,
         order: 2,
         autoInstallAgents: true,
@@ -87,32 +111,33 @@ describe('workflow-installer utilities', () => {
           { id: 'ui-ux-designer', filename: 'ui-ux-designer.md', required: true },
         ],
         outputDir: 'essential',
-      },
-      {
+      }),
+      createTestWorkflowConfig({
         id: 'interviewWorkflow' as WorkflowType,
-        nameKey: 'workflowOption.interviewWorkflow',
-        descriptionKey: 'workflowDescription.interviewWorkflow',
+        name: 'Interview Workflow',
         category: 'interview',
+        displayCategory: 'planning',
         defaultSelected: true,
         order: 1,
         autoInstallAgents: false,
         commands: ['interview.md'],
         agents: [],
         outputDir: 'interview',
-      },
-      {
+      }),
+      createTestWorkflowConfig({
         id: 'gitWorkflow',
         name: 'Git Workflow',
         description: 'Workflow for Git operations',
         category: 'git',
+        displayCategory: 'versionControl',
         defaultSelected: true,
         autoInstallAgents: false,
         commands: ['git-commit.md', 'git-rollback.md', 'git-cleanBranches.md', 'git-worktree.md'],
         agents: [],
         order: 3,
         outputDir: 'git',
-      },
-    ] as WorkflowConfig[]
+      }),
+    ]
 
     beforeEach(() => {
       vi.mocked(workflowConfig.getOrderedWorkflows).mockReturnValue(mockWorkflows)
@@ -135,7 +160,7 @@ describe('workflow-installer utilities', () => {
         expect.objectContaining({
           type: 'checkbox',
           name: 'selectedWorkflows',
-          message: expect.stringContaining('Select workflow type to install'),
+          pageSize: 15,
           choices: expect.arrayContaining([
             expect.objectContaining({
               value: 'essentialTools',
@@ -328,17 +353,18 @@ describe('workflow-installer utilities', () => {
     })
 
     it('should use shared common template path for sixStep workflow', async () => {
-      const sixStepWorkflow = {
+      const sixStepWorkflow = createTestWorkflowConfig({
         id: 'sixStepsWorkflow',
         name: 'Six Steps Workflow',
         category: 'sixStep',
+        displayCategory: 'planning',
         defaultSelected: true,
         autoInstallAgents: false,
         commands: ['workflow.md'],
         agents: [],
         order: 2,
         outputDir: 'sixStep',
-      } as WorkflowConfig
+      })
 
       vi.mocked(workflowConfig.getOrderedWorkflows).mockReturnValue([sixStepWorkflow])
       vi.mocked(workflowConfig.getWorkflowConfig).mockReturnValue(sixStepWorkflow)
@@ -368,29 +394,31 @@ describe('workflow-installer utilities', () => {
       // Test that both git and sixStep workflows use common templates
       // by verifying the path patterns in the actual file operations
 
-      const gitWorkflow = {
+      const gitWorkflow = createTestWorkflowConfig({
         id: 'gitWorkflow',
         name: 'Git Workflow',
         category: 'git',
+        displayCategory: 'versionControl',
         defaultSelected: true,
         autoInstallAgents: false,
         commands: ['git-commit.md'],
         agents: [],
         order: 4,
         outputDir: 'git',
-      } as WorkflowConfig
+      })
 
-      const sixStepWorkflow = {
+      const sixStepWorkflow = createTestWorkflowConfig({
         id: 'sixStepsWorkflow',
         name: 'Six Steps Workflow',
         category: 'sixStep',
+        displayCategory: 'planning',
         defaultSelected: true,
         autoInstallAgents: false,
         commands: ['workflow.md'],
         agents: [],
         order: 2,
         outputDir: 'sixStep',
-      } as WorkflowConfig
+      })
 
       vi.mocked(workflowConfig.getOrderedWorkflows).mockReturnValue([gitWorkflow, sixStepWorkflow])
       vi.mocked(workflowConfig.getWorkflowConfig).mockImplementation((id) => {
@@ -429,10 +457,11 @@ describe('workflow-installer utilities', () => {
   })
 
   describe('installWorkflowWithDependencies', () => {
-    const mockWorkflowConfig: WorkflowConfig = {
+    const mockWorkflowConfig = createTestWorkflowConfig({
       id: 'interviewWorkflow' as WorkflowType,
       name: 'Interview Workflow',
       category: 'interview',
+      displayCategory: 'planning',
       defaultSelected: false,
       order: 1,
       autoInstallAgents: true,
@@ -442,7 +471,7 @@ describe('workflow-installer utilities', () => {
         { id: 'architect', filename: 'architect.md', required: false },
       ],
       outputDir: '.claude',
-    }
+    })
 
     it('should install workflow commands successfully', async () => {
       vi.mocked(existsSync).mockReturnValue(true)
@@ -542,10 +571,11 @@ describe('workflow-installer utilities', () => {
     })
 
     it('should handle required agent installation failure', async () => {
-      const configWithRequiredAgent: WorkflowConfig = {
+      const configWithRequiredAgent = createTestWorkflowConfig({
         ...mockWorkflowConfig,
+        id: mockWorkflowConfig.id,
         agents: [{ id: 'critical', filename: 'critical.md', required: true }],
-      }
+      })
 
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile)
@@ -570,10 +600,11 @@ describe('workflow-installer utilities', () => {
     })
 
     it('should handle optional agent installation failure gracefully', async () => {
-      const configWithOptionalAgent: WorkflowConfig = {
+      const configWithOptionalAgent = createTestWorkflowConfig({
         ...mockWorkflowConfig,
+        id: mockWorkflowConfig.id,
         agents: [{ id: 'optional', filename: 'optional.md', required: false }],
-      }
+      })
 
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile)
@@ -621,18 +652,19 @@ describe('workflow-installer utilities', () => {
     })
 
     it('should install gitWorkflow commands correctly', async () => {
-      const gitWorkflowConfig: WorkflowConfig = {
+      const gitWorkflowConfig = createTestWorkflowConfig({
         id: 'gitWorkflow',
         name: 'Git Workflow',
         description: 'Workflow for Git operations',
         category: 'git',
+        displayCategory: 'versionControl',
         defaultSelected: true,
         autoInstallAgents: false,
         commands: ['git-commit.md', 'git-rollback.md', 'git-cleanBranches.md', 'git-worktree.md'],
         agents: [],
         order: 4,
         outputDir: 'git',
-      }
+      })
 
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile).mockResolvedValue(undefined)
@@ -661,18 +693,19 @@ describe('workflow-installer utilities', () => {
     })
 
     it('should handle gitWorkflow installation failure', async () => {
-      const gitWorkflowConfig: WorkflowConfig = {
+      const gitWorkflowConfig = createTestWorkflowConfig({
         id: 'gitWorkflow',
         name: 'Git Workflow',
         description: 'Workflow for Git operations',
         category: 'git',
+        displayCategory: 'versionControl',
         defaultSelected: true,
         autoInstallAgents: false,
         commands: ['git-commit.md', 'git-rollback.md', 'git-cleanBranches.md', 'git-worktree.md'],
         agents: [],
         order: 4,
         outputDir: 'git',
-      }
+      })
 
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile)
@@ -697,10 +730,11 @@ describe('workflow-installer utilities', () => {
     })
 
     it('should not install agents when autoInstallAgents is false', async () => {
-      const configNoAutoAgents: WorkflowConfig = {
+      const configNoAutoAgents = createTestWorkflowConfig({
         ...mockWorkflowConfig,
+        id: mockWorkflowConfig.id,
         autoInstallAgents: false,
-      }
+      })
 
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile).mockResolvedValue(undefined)

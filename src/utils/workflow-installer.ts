@@ -1,12 +1,12 @@
 import type { SupportedLang } from '../constants'
-import type { WorkflowConfig, WorkflowInstallResult, WorkflowType } from '../types/workflow'
+import type { WorkflowConfig, WorkflowInstallResult, WorkflowTag, WorkflowType } from '../types/workflow'
 import { existsSync } from 'node:fs'
 import { copyFile, mkdir, rm } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
-import { getOrderedWorkflows, getWorkflowConfig } from '../config/workflows'
+import { getOrderedWorkflows, getTagLabel, getWorkflowConfig } from '../config/workflows'
 import { CLAUDE_DIR } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 
@@ -21,6 +21,41 @@ const DEFAULT_CODE_TOOL_TEMPLATE = 'claude-code'
 // Categories that use shared templates from common directory
 const COMMON_TEMPLATE_CATEGORIES = ['git', 'sixStep']
 
+// Format tags for display with colors
+function formatTags(tags: WorkflowTag[]): string {
+  const tagColors: Record<WorkflowTag, (text: string) => string> = {
+    recommended: text => ansis.bgGreen.black(` ${text} `),
+    popular: text => ansis.bgYellow.black(` ${text} `),
+    new: text => ansis.bgCyan.black(` ${text} `),
+    essential: text => ansis.bgBlue.white(` ${text} `),
+    professional: text => ansis.bgMagenta.white(` ${text} `),
+  }
+
+  return tags
+    .map(tag => tagColors[tag](getTagLabel(tag)))
+    .join(' ')
+}
+
+// Build rich choice display for workflow selection
+function buildWorkflowChoice(workflow: WorkflowConfig): { name: string, value: string, checked: boolean } {
+  const tags = formatTags(workflow.metadata.tags)
+  const stats = workflow.stats ? ansis.dim(workflow.stats) : ''
+  const description = workflow.description ? ansis.gray(workflow.description) : ''
+
+  // Build multi-line display
+  const nameLine = `${workflow.name} ${tags}`
+  const detailLine = stats ? `     ${stats}` : ''
+  const descLine = description ? `     ${description}` : ''
+
+  const displayName = [nameLine, detailLine, descLine].filter(Boolean).join('\n')
+
+  return {
+    name: displayName,
+    value: workflow.id,
+    checked: workflow.defaultSelected,
+  }
+}
+
 export async function selectAndInstallWorkflows(
   configLang: SupportedLang,
   preselectedWorkflows?: string[],
@@ -28,14 +63,8 @@ export async function selectAndInstallWorkflows(
   ensureI18nInitialized()
   const workflows = getOrderedWorkflows()
 
-  // Build choices from configuration
-  const choices = workflows.map((workflow) => {
-    return {
-      name: workflow.name,
-      value: workflow.id,
-      checked: workflow.defaultSelected,
-    }
-  })
+  // Build rich choices from configuration
+  const choices = workflows.map(workflow => buildWorkflowChoice(workflow))
 
   // Multi-select workflow types or use preselected
   let selectedWorkflows: WorkflowType[]
@@ -44,11 +73,19 @@ export async function selectAndInstallWorkflows(
     selectedWorkflows = preselectedWorkflows as WorkflowType[]
   }
   else {
+    // Print header
+    console.log('')
+    console.log(ansis.bold.cyan('━'.repeat(60)))
+    console.log(ansis.bold.white(`  🚀 ${i18n.t('workflow:selectWorkflowType')}`))
+    console.log(ansis.bold.cyan('━'.repeat(60)))
+    console.log('')
+
     const response = await inquirer.prompt<{ selectedWorkflows: WorkflowType[] }>({
       type: 'checkbox',
       name: 'selectedWorkflows',
-      message: `${i18n.t('workflow:selectWorkflowType')}${i18n.t('common:multiSelectHint')}`,
+      message: i18n.t('common:multiSelectHint'),
       choices,
+      pageSize: 15,
     })
     selectedWorkflows = response.selectedWorkflows
   }

@@ -89,12 +89,12 @@ describe('validateSkipPromptOptions', () => {
   })
 
   it('should parse outputStyles string lists and defaults', () => {
-    options.outputStyles = 'engineer-professional,default'
+    options.outputStyles = 'senior-architect,default'
 
     validateSkipPromptOptions(options)
 
-    expect(options.outputStyles).toEqual(['engineer-professional', 'default'])
-    expect(options.defaultOutputStyle).toBe('engineer-professional')
+    expect(options.outputStyles).toEqual(['senior-architect', 'default'])
+    expect(options.defaultOutputStyle).toBe('senior-architect')
   })
 
   it('should expand outputStyles \"all\" shortcut', () => {
@@ -102,7 +102,7 @@ describe('validateSkipPromptOptions', () => {
 
     validateSkipPromptOptions(options)
 
-    expect(options.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer', 'laowang-engineer'])
+    expect(options.outputStyles).toEqual(['speed-coder', 'senior-architect', 'pair-programmer'])
   })
 
   it('should convert outputStyles "skip" to boolean false', () => {
