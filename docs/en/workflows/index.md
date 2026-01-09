@@ -4,11 +4,11 @@ title: Workflow Overview
 
 # Workflow Overview
 
-ZCF helps teams standardize development processes through MCP + workflow templates. This chapter introduces the positioning and usage of each workflow.
+CCJK helps teams standardize development processes through MCP + workflow templates. This chapter introduces the positioning and usage of each workflow.
 
 | Workflow | Use Case | Key Features |
 | --- | --- | --- |
-| [ZCF Six-Stage Workflow](ccjk-workflow.md) | General development tasks | Six-stage closed loop, automatic quality checks, interactive confirmation |
+| [CCJK Six-Stage Workflow](ccjk-workflow.md) | General development tasks | Six-stage closed loop, automatic quality checks, interactive confirmation |
 | [Feature Development Workflow](feat.md) | New feature design and implementation | Planning + UI/UX agent collaboration |
 | [BMad Agile Process](bmad.md) | Large project agile iterations | Multi-stage ceremony management |
 | [Spec Workflow Integration](spec.md) | Requirements documentation and specification generation | Spec MCP integration |

@@ -4,7 +4,7 @@ title: CCJK Six-Stage Workflow
 
 # CCJK Six-Stage Workflow
 
-The six-stage workflow is ZCF's core development process, covering the complete software development lifecycle: **Research → Ideate → Plan → Execute → Optimize → Review**.
+The six-stage workflow is CCJK's core development process, covering the complete software development lifecycle: **Research → Ideate → Plan → Execute → Optimize → Review**.
 
 ## Features
 
@@ -324,6 +324,6 @@ For very complex tasks:
 - [Git Smart Commands](git-commands.md) - Git operation automation
 - [Workflow System](../features/workflows.md) - Detailed workflow information
 
-> 💡 **Tip**: The six-stage workflow is ZCF's core functionality, suitable for most development tasks. It's recommended to start with small tasks to familiarize yourself with the process, then gradually apply to more complex projects. Proper use of stage confirmation mechanism can provide better development experience.
+> 💡 **Tip**: The six-stage workflow is CCJK's core functionality, suitable for most development tasks. It's recommended to start with small tasks to familiarize yourself with the process, then gradually apply to more complex projects. Proper use of stage confirmation mechanism can provide better development experience.
 
 

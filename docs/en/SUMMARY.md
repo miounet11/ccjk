@@ -37,7 +37,7 @@
 
 ## Workflow Details
 * [Workflow Overview](workflows/index.md)
-* [ZCF Six-Stage Workflow](workflows/ccjk-workflow.md)
+* [CCJK Six-Stage Workflow](workflows/ccjk-workflow.md)
 * [Feature Development Workflow](workflows/feat.md)
 * [BMad Agile Process](workflows/bmad.md)
 * [Spec Workflow Integration](workflows/spec.md)

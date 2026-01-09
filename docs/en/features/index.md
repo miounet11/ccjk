@@ -4,7 +4,7 @@ title: Features Overview
 
 # Features Overview
 
-ZCF integrates environment configuration, workflow import, and toolchain into one CLI. Core capabilities can be divided into the following dimensions:
+CCJK integrates environment configuration, workflow import, and toolchain into one CLI. Core capabilities can be divided into the following dimensions:
 
 - **Environment Initialization**: Complete initialization process for Claude Code and Codex, covering API, output styles, memory, templates, MCP, workflows, and status bar.
 - **Configuration Management**: Supports incremental management, backup strategies, multiple API configurations, template language and AI output language separation.

@@ -4,7 +4,7 @@ title: Troubleshooting
 
 # Troubleshooting
 
-This document compiles common problems and solutions encountered when using ZCF, helping you quickly locate and resolve issues.
+This document compiles common problems and solutions encountered when using CCJK, helping you quickly locate and resolve issues.
 
 ## Common Problem Categories
 
@@ -444,7 +444,7 @@ codex --version
 # 1. Check Codex configuration file
 cat ~/.codex/config.toml
 
-# 2. Ensure managed = true (ZCF-managed configuration)
+# 2. Ensure managed = true (CCJK-managed configuration)
 # If managed = false, CCJK will not modify configuration
 
 # 3. Check API configuration

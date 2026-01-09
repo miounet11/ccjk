@@ -22,7 +22,7 @@ CCJK provides a complete automated configuration experience for Codex, with core
 
 ### Auto Detection and Installation
 
-ZCF automatically detects whether `@openai/codex` CLI is installed on the system:
+CCJK automatically detects whether `@openai/codex` CLI is installed on the system:
 
 ```bash
 # Initialize Codex (auto-detect and install)
@@ -36,7 +36,7 @@ npm install -g @openai/codex
 
 ### Upgrade Codex
 
-ZCF supports one-click Codex CLI upgrade:
+CCJK supports one-click Codex CLI upgrade:
 
 ```bash
 # Upgrade through update check
@@ -52,7 +52,7 @@ npx ccjk → Select + (Check Updates) → Select Codex
 
 ### Directory Structure
 
-ZCF creates the following directory structure for Codex:
+CCJK creates the following directory structure for Codex:
 
 ```
 ~/.codex/
@@ -81,11 +81,11 @@ CCJK provides a complete backup mechanism:
 
 ### Management Mode Identifier
 
-ZCF adds `managed = true` identifier in configuration files to ensure:
+CCJK adds `managed = true` identifier in configuration files to ensure:
 
-- Automatically determine if configuration is managed by ZCF
+- Automatically determine if configuration is managed by CCJK
 - Avoid overwriting handwritten configurations
-- Intelligently merge ZCF-managed configurations and user custom configurations
+- Intelligently merge CCJK-managed configurations and user custom configurations
 
 ## API Providers and Models
 
@@ -266,7 +266,7 @@ After switching, menu options will dynamically adjust based on current tool:
 
 ### Tool Migration
 
-ZCF allows seamless switching between Claude Code and Codex while preserving your preference settings and workflow configurations:
+CCJK allows seamless switching between Claude Code and Codex while preserving your preference settings and workflow configurations:
 
 - **Shared Configuration**: Both tools share the same MCP services and workflow templates
 - **Independent Configuration**: API configuration and system prompts are managed independently

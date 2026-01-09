@@ -4,7 +4,7 @@ title: Commands Overview
 
 # Commands Overview
 
-ZCF CLI is implemented based on `cac`, and all commands can be called via `npx ccjk <command>`. Common commands are as follows:
+CCJK CLI is implemented based on `cac`, and all commands can be called via `npx ccjk <command>`. Common commands are as follows:
 
 | Command | Description |
 | --- | --- |

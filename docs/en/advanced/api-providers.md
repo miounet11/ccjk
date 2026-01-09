@@ -8,7 +8,7 @@ CCJK provides an API provider preset system that can greatly simplify API config
 
 ## Supported Providers
 
-ZCF currently supports the following API provider presets:
+CCJK currently supports the following API provider presets:
 
 | Preset ID | Provider Name | Description | Claude Code Support | Codex Support | Authentication Method |
 |---------|-----------|------|----------------|-----------|---------|
@@ -310,8 +310,8 @@ npx ccjk config-switch minimax-provider
 
 ```bash
 # Use environment variables
-export ZCF_API_KEY="sk-xxx"
-npx ccjk init -s -p 302ai -k "$ZCF_API_KEY"
+export CCJK_API_KEY="sk-xxx"
+npx ccjk init -s -p 302ai -k "$CCJK_API_KEY"
 
 # Or read from file (ensure file permissions are correct)
 npx ccjk init -s -p 302ai -k "$(cat ~/.ccjk/api-key)"

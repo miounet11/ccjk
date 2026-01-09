@@ -38,7 +38,7 @@ In interactive mode, CCJK will guide you:
 
 ### Complete Uninstall
 
-Completely remove all ZCF-related configurations and tools:
+Completely remove all CCJK-related configurations and tools:
 
 ```bash
 # Interactive complete uninstall
@@ -72,7 +72,7 @@ npx ccjk uninstall --mode custom --items '["ccr","backups"]'
 
 ### Complete Uninstall Mode
 
-Remove all ZCF-related configurations and tools:
+Remove all CCJK-related configurations and tools:
 
 **Will Delete**:
 - ✅ Claude Code configuration (`~/.claude/`)

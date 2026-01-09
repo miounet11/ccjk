@@ -4,7 +4,7 @@ title: Main Menu
 
 # Main Menu
 
-Running `npx ccjk` enters the interactive menu system. The menu is ZCF's core interactive interface, providing visual operation options without needing to remember complex command parameters.
+Running `npx ccjk` enters the interactive menu system. The menu is CCJK's core interactive interface, providing visual operation options without needing to remember complex command parameters.
 
 ## Menu Features
 
@@ -324,6 +324,6 @@ npx ccjk init -T claude-code  # Switch to Claude Code
 - [ccjk update](update.md) - Detailed update command
 - [Quick Start](../getting-started/installation.md) - Installation and usage guide
 
-> 💡 **Tip**: The menu is ZCF's most user-friendly way to use, especially suitable for users unfamiliar with command line. It's recommended to complete configuration through the menu on first use, and after familiarizing yourself, you can combine direct commands to improve efficiency.
+> 💡 **Tip**: The menu is CCJK's most user-friendly way to use, especially suitable for users unfamiliar with command line. It's recommended to complete configuration through the menu on first use, and after familiarizing yourself, you can combine direct commands to improve efficiency.
 
 

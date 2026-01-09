@@ -267,7 +267,7 @@ CCR supports flexible route rule configuration, which can be set through Web UI 
 
 ## Provider Presets
 
-ZCF supports multiple CCR provider presets to simplify configuration:
+CCJK supports multiple CCR provider presets to simplify configuration:
 
 ```bash
 npx ccjk ccr

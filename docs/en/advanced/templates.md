@@ -8,7 +8,7 @@ CCJK provides a complete template system, including workflow templates, output s
 
 ## Template System Overview
 
-ZCF's template system is divided into the following levels:
+CCJK's template system is divided into the following levels:
 
 1. **Workflow Templates**: Structured development workflows
 2. **Output Style Templates**: AI assistant personality and output styles
@@ -281,7 +281,7 @@ npx ccjk update -g zh-CN
 
 ## Template Language Support
 
-ZCF supports templates in two languages:
+CCJK supports templates in two languages:
 
 ### Chinese Templates (`zh-CN`)
 

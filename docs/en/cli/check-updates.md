@@ -194,7 +194,7 @@ Common failure reasons:
 
 ### Tool Version Compatibility
 
-ZCF will check version compatibility between tools to ensure:
+CCJK will check version compatibility between tools to ensure:
 
 - CCR matches Claude Code version
 - CCometixLine is compatible with Claude Code

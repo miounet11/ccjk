@@ -4,7 +4,7 @@ title: Usage Tips
 
 # Usage Tips
 
-This document compiles practical tips and best practices for daily use of ZCF, helping you use CCJK more efficiently in various scenarios.
+This document compiles practical tips and best practices for daily use of CCJK, helping you use CCJK more efficiently in various scenarios.
 
 ## Core Tips
 
@@ -134,9 +134,9 @@ git pull origin main
 # deploy-ccjk.sh - Automated CCJK configuration deployment
 
 # Read configuration from environment variables
-API_KEY=${ZCF_API_KEY}
-PROVIDER=${ZCF_PROVIDER:-302ai}
-LANG=${ZCF_LANG:-zh-CN}
+API_KEY=${CCJK_API_KEY}
+PROVIDER=${CCJK_PROVIDER:-302ai}
+LANG=${CCJK_LANG:-zh-CN}
 
 # Non-interactive initialization
 npx ccjk init -s \
@@ -147,7 +147,7 @@ npx ccjk init -s \
   --workflows all \
   --output-styles all
 
-echo "ZCF configuration deployment completed"
+echo "CCJK configuration deployment completed"
 ```
 
 #### New Employee Onboarding Script
@@ -214,7 +214,7 @@ COST=$(echo "$USAGE" | jq '.cost.total')
 
 # Send alert (if exceeds threshold)
 if [ "$TOKENS" -gt 1000000 ]; then
-  echo "Warning: Token usage exceeds 1 million!" | mail -s "ZCF Usage Alert" admin@example.com
+  echo "Warning: Token usage exceeds 1 million!" | mail -s "CCJK Usage Alert" admin@example.com
 fi
 ```
 

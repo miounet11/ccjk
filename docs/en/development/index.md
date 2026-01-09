@@ -76,7 +76,7 @@ Detailed contribution process documentation, including:
 
 ### Architecture Documentation
 
-Deep understanding of ZCF's architecture design:
+Deep understanding of CCJK's architecture design:
 
 - 🏗️ **Technology Stack**: Technologies and dependencies used
 - 📁 **Project Structure**: Detailed directory organization
@@ -108,7 +108,7 @@ Complete test writing and running guide:
 
 ### TDD (Test-Driven Development)
 
-ZCF strictly follows TDD methodology:
+CCJK strictly follows TDD methodology:
 
 1. **Red**: Write failing test first
 2. **Green**: Write minimal code to make test pass

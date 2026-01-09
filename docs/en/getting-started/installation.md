@@ -4,7 +4,7 @@ title: Installation Guide
 
 # Installation Guide
 
-This guide will help you quickly get started with ZCF, covering the complete process from environment check to verification. Whether you're using it for the first time or want to quickly deploy on a new device, you can complete the setup by following this guide.
+This guide will help you quickly get started with CCJK, covering the complete process from environment check to verification. Whether you're using it for the first time or want to quickly deploy on a new device, you can complete the setup by following this guide.
 
 > 💡 **Tip**: CCJK requires no installation, just run `npx ccjk` directly. This guide mainly covers environment configuration and usage flow.
 
@@ -49,7 +49,7 @@ CCJK provides two usage methods: **Interactive Use** (suitable for beginners) an
 
 CCJK provides a friendly interactive menu that allows you to complete all configurations through a graphical interface.
 
-#### Start ZCF
+#### Start CCJK
 
 ```bash
 npx ccjk
@@ -58,9 +58,9 @@ npx ccjk
 On first run, CCJK will display a welcome screen and ask you which interface language you want to use:
 
 ```
-ZCF - Zero-Config Code Flow
+CCJK - Claude Code JinKu
 
-? Select CCJK display language / 选择ZCF显示语言:
+? Select CCJK display language / 选择CCJK显示语言:
   ❯ 简体中文
     English
 ```
@@ -193,7 +193,7 @@ Suitable for CI/CD and automation scenarios, use `--skip-prompt` (or `-s`) with 
 
 #### Using API Provider Presets (Simplest)
 
-ZCF supports API provider presets, which can simplify configuration from 5+ parameters to just 2:
+CCJK supports API provider presets, which can simplify configuration from 5+ parameters to just 2:
 
 ```bash
 # Use 302.AI provider (recommended)
@@ -229,7 +229,7 @@ npx ccjk i -s -p 302ai -k "sk-xxx" \
 
 #### Multiple API Configuration
 
-ZCF supports configuring multiple APIs for easy switching in different scenarios:
+CCJK supports configuring multiple APIs for easy switching in different scenarios:
 
 ```bash
 # Configure multiple APIs using JSON string
@@ -302,7 +302,7 @@ npx ccjk → Select S (Switch Tool) → Select 1 (Complete Initialization)
 
 ## Cross-Platform Support
 
-ZCF fully supports cross-platform operation, including Windows, macOS, Linux, WSL, and Termux.
+CCJK fully supports cross-platform operation, including Windows, macOS, Linux, WSL, and Termux.
 
 ### Windows Platform
 
@@ -489,7 +489,7 @@ npx ccjk cs provider-name      # Switch to specified configuration
 ### Q: Where are configuration files saved?
 
 **A**: 
-- **ZCF Configuration**: `~/.ufomiao/ccjk/config.toml`
+- **CCJK Configuration**: `~/.ufomiao/ccjk/config.toml`
 - **Claude Code Configuration**: `~/.claude/settings.json` and `~/.claude/CLAUDE.md`
 - **Codex Configuration**: `~/.codex/config.toml` and `~/.codex/AGENTS.md`
 - **Backup Location**: `~/.claude/backup/` and `~/.codex/backup/`
@@ -498,7 +498,7 @@ npx ccjk cs provider-name      # Switch to specified configuration
 
 After completing the quick start, we recommend:
 
-1. 🎯 Explore [Features](../features/) to understand ZCF's complete capabilities
+1. 🎯 Explore [Features](../features/) to understand CCJK's complete capabilities
 2. 📚 Deep dive into [Workflow Details](../workflows/) to master various workflows
 3. ⚙️ Refer to [Configuration Management](../advanced/configuration.md) for personalized settings
 4. 🔧 Check [CLI Commands](../cli/) to master all available commands

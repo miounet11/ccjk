@@ -8,7 +8,7 @@ This chapter introduces how to initialize your environment with CCJK in minutes,
 
 ## Quick Navigation
 
-If you're new to ZCF, we recommend following these steps:
+If you're new to CCJK, we recommend following these steps:
 
 1. **View [Installation Guide](installation.md)** - Learn about system requirements, usage methods, interactive and non-interactive initialization flows, and complete configuration steps
 2. **Familiarize with core features** - Check [Features](../features/) to understand Claude Code, Codex, MCP services, CCR proxy, and other core capabilities

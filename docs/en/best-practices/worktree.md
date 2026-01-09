@@ -4,7 +4,7 @@ title: Worktree Parallel Development
 
 # Worktree Parallel Development
 
-Git Worktree is a powerful Git feature that allows you to create multiple work areas (copies) in the same repository, each work area can switch to different branches without interference, sharing the same Git history. ZCF's `/git-worktree` smart command makes Worktree management simple and intuitive.
+Git Worktree is a powerful Git feature that allows you to create multiple work areas (copies) in the same repository, each work area can switch to different branches without interference, sharing the same Git history. CCJK's `/git-worktree` smart command makes Worktree management simple and intuitive.
 
 ## What is Worktree
 
@@ -26,7 +26,7 @@ Worktree can conveniently create a work area (copy) of a project and switch to d
 
 ## Basic Commands
 
-ZCF's `/git-worktree` command provides complete Worktree management functionality:
+CCJK's `/git-worktree` command provides complete Worktree management functionality:
 
 ### Create Worktree
 
@@ -86,7 +86,7 @@ ZCF's `/git-worktree` command provides complete Worktree management functionalit
 
 ### Natural Language Execution
 
-ZCF's `/git-worktree` command supports natural language, no need to remember command details:
+CCJK's `/git-worktree` command supports natural language, no need to remember command details:
 
 ✅ **Recommended to use natural language**:
 ```
@@ -102,7 +102,7 @@ git worktree add ../.ccjk/project-name/feat/test -b feat/test
 
 ### Work Area Location
 
-ZCF's Worktree is created by default in the project-level `../.ccjk/project-name/` directory to avoid confusion:
+CCJK's Worktree is created by default in the project-level `../.ccjk/project-name/` directory to avoid confusion:
 
 ```
 Project Directory/
@@ -307,7 +307,7 @@ Features:
 ## Related Documentation
 
 - [Git Smart Commands](../workflows/git-commands.md) - Other Git operation commands
-- [ZCF Six-Stage Workflow](../workflows/ccjk-workflow.md) - Use with workflows
+- [CCJK Six-Stage Workflow](../workflows/ccjk-workflow.md) - Use with workflows
 - [Config Switch](../cli/config-switch.md) - Use different configurations in different Worktrees
 
 

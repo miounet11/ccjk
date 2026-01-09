@@ -23,7 +23,7 @@ CCometixLine is a high-performance Rust-based statusline tool that provides real
 
 ### Automatic Installation
 
-ZCF automatically installs CCometixLine during initialization:
+CCJK automatically installs CCometixLine during initialization:
 
 ```bash
 # Complete initialization (includes CCometixLine installation by default)
@@ -171,7 +171,7 @@ ccline --version
 
 ### Automatic Updates
 
-ZCF automatically checks CCometixLine version during initialization or updates:
+CCJK automatically checks CCometixLine version during initialization or updates:
 
 ```bash
 # Use check-updates command to check and update

@@ -8,7 +8,7 @@ CCJK provides a complete zero-configuration experience for Claude Code. Through 
 
 ## Core Features
 
-ZCF's configuration for Claude Code includes the following core capabilities:
+CCJK's configuration for Claude Code includes the following core capabilities:
 
 | Feature Module | Description | Configuration File Location |
 |---------|------|------------|
@@ -78,7 +78,7 @@ When existing configuration is detected, CCJK provides multiple handling strateg
 
 ### API Configuration Modes
 
-ZCF supports three API configuration modes:
+CCJK supports three API configuration modes:
 
 #### 1. Official Login
 
@@ -126,7 +126,7 @@ npx ccjk ccr
 
 ### Model Configuration
 
-ZCF supports configuring multiple models:
+CCJK supports configuring multiple models:
 
 ```bash
 # Configure primary and fast models
@@ -140,7 +140,7 @@ npx ccjk i -s -p 302ai -k "sk-xxx" \
 
 ### Multiple API Configuration
 
-ZCF supports configuring multiple APIs for easy switching in different scenarios:
+CCJK supports configuring multiple APIs for easy switching in different scenarios:
 
 ```bash
 npx ccjk i -s --api-configs '[
@@ -183,7 +183,7 @@ npx ccjk i -s --workflows skip
 
 ## Output Style System
 
-ZCF supports multiple AI output styles to personalize your AI assistant experience.
+CCJK supports multiple AI output styles to personalize your AI assistant experience.
 
 ### Available Output Styles
 
@@ -217,7 +217,7 @@ In Claude Code, you can switch project-level output styles via commands:
 
 ## MCP Service Integration
 
-ZCF has built-in common MCP service configurations, supporting one-click installation and management.
+CCJK has built-in common MCP service configurations, supporting one-click installation and management.
 
 ### Default MCP Service List
 
@@ -278,7 +278,7 @@ npx ccjk → Select L
 
 ### Environment Variables and Permissions
 
-ZCF can import recommended environment variables and permission configurations:
+CCJK can import recommended environment variables and permission configurations:
 
 ```bash
 npx ccjk

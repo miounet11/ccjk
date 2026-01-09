@@ -4,7 +4,7 @@ title: MCP Service Integration
 
 # MCP Service Integration
 
-ZCF has built-in common MCP (Model Context Protocol) service configurations, supporting one-click installation and management of multiple MCP services to extend AI assistant capabilities.
+CCJK has built-in common MCP (Model Context Protocol) service configurations, supporting one-click installation and management of multiple MCP services to extend AI assistant capabilities.
 
 ## What is MCP
 
@@ -18,7 +18,7 @@ MCP (Model Context Protocol) is an open protocol that allows AI assistants to ac
 
 ## Default Service List
 
-ZCF has built-in the following MCP service configurations:
+CCJK has built-in the following MCP service configurations:
 
 | Service ID | Type | Description | Requires API Key | Official Documentation |
 |---------|------|------|-----------------|---------|
@@ -221,7 +221,7 @@ args = ["-y", "@modelcontextprotocol/server-open-websearch"]
 
 ### Windows Special Handling
 
-ZCF automatically corrects Windows path formats to ensure MCP services run normally on Windows:
+CCJK automatically corrects Windows path formats to ensure MCP services run normally on Windows:
 
 - Automatic Windows environment detection
 - Correct path separators and escape characters
@@ -231,7 +231,7 @@ ZCF automatically corrects Windows path formats to ensure MCP services run norma
 
 ### WSL and Termux
 
-ZCF fully supports WSL and Termux environments, and MCP services can work normally in these environments as well.
+CCJK fully supports WSL and Termux environments, and MCP services can work normally in these environments as well.
 
 ## Service Management
 

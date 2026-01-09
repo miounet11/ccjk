@@ -1,5 +1,5 @@
 ---
-title: CCJK - Zero-Config Code Flow
+title: CCJK - Claude Code JinKu
 ---
 
 <p style="margin: 0; line-height: 1.5;">
@@ -16,7 +16,7 @@ title: CCJK - Zero-Config Code Flow
   <img src="https://raw.githubusercontent.com/UfoMiao/ccjk/main/src/assets/banner.webp" alt="Banner"/>
 
   <h1>
-    CCJK - Zero-Config Code Flow
+    CCJK - Claude Code JinKu
   </h1>
 
  
@@ -51,7 +51,7 @@ Get 10% OFF GLM CODING PLAN：https://z.ai/subscribe?ic=8JVLJQFSKB
 
 CCJK (Claude Code JinKu) is a CLI tool designed for professional developers, aiming to complete end-to-end environment initialization for Claude Code and Codex within minutes. Through `npx ccjk`, you can complete configuration directory creation, API/proxy integration, MCP service integration, workflow import, output style and memory configuration, and common tool installation in one go.
 
-### Why Choose ZCF
+### Why Choose CCJK
 
 - **Zero-configuration experience**: Automatically detects operating system, language preferences, and installation status, triggers incremental configuration when necessary, avoiding duplicate work.
 - **Multi-tool unified**: Simultaneously supports Claude Code and Codex, with both environments sharing one CLI, allowing you to switch target platforms anytime.
@@ -60,7 +60,7 @@ CCJK (Claude Code JinKu) is a CLI tool designed for professional developers, aim
 - **Visual status and operations**: Includes CCR (Claude Code Router) configuration assistant and CCometixLine status bar installation and upgrade capabilities.
 - **Extensible configuration system**: Supports multiple API configurations in parallel, output style switching, environment permission import, template and language separation management.
 
-## What You Get with ZCF
+## What You Get with CCJK
 
 1. **Secure privacy and permission configuration**: Environment variables, permission templates, and backup strategies are automatically implemented, ensuring a minimal yet secure runtime environment.
 2. **API and proxy management**: Supports official login, API Key, and CCR proxy three modes, with built-in presets for 302.AI, GLM, MiniMax, Kimi, etc.

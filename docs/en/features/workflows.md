@@ -4,7 +4,7 @@ title: Workflow System
 
 # Workflow System
 
-ZCF pre-configures multiple workflows through `WORKFLOW_CONFIG_BASE` and automatically imports them during initialization or updates:
+CCJK pre-configures multiple workflows through `WORKFLOW_CONFIG_BASE` and automatically imports them during initialization or updates:
 
 ## Pre-configured Workflows Overview
 
@@ -31,7 +31,7 @@ ZCF pre-configures multiple workflows through `WORKFLOW_CONFIG_BASE` and automat
 
 ## Command Format
 
-ZCF workflows use different command prefixes in different tools:
+CCJK workflows use different command prefixes in different tools:
 
 | Tool | Command Prefix | Examples |
 |------|---------|------|

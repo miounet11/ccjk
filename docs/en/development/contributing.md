@@ -244,7 +244,7 @@ const config = await readConfig(); // Avoid unnecessary await
 
 ## Commit Standards
 
-ZCF follows [Conventional Commits](https://www.conventionalcommits.org/) standards.
+CCJK follows [Conventional Commits](https://www.conventionalcommits.org/) standards.
 
 ### Commit Format
 

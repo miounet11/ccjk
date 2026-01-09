@@ -269,7 +269,7 @@ npx ccjk
 ## Related Resources
 
 - **Official Documentation**: [BMad Method - GitHub](https://github.com/bmad-code-org/BMAD-METHOD)
-- **ZCF Workflows**: [Workflow System](../features/workflows.md)
+- **CCJK Workflows**: [Workflow System](../features/workflows.md)
 - **Project Initialization**: [init-project command](../workflows/git-commands.md#init-project)
 - **MCP Services**: [MCP Service Integration](../features/mcp.md)
 

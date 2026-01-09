@@ -4,7 +4,7 @@ title: Testing Guide
 
 # Testing Guide
 
-ZCF adopts **Test-Driven Development (TDD)** methodology, requiring all new features to write tests first, ensuring code quality and maintainability. This document details testing strategies, writing standards, and best practices.
+CCJK adopts **Test-Driven Development (TDD)** methodology, requiring all new features to write tests first, ensuring code quality and maintainability. This document details testing strategies, writing standards, and best practices.
 
 ## 📋 Table of Contents
 

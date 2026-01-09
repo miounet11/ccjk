@@ -4,7 +4,7 @@ title: ccjk init
 
 # ccjk init
 
-`ccjk init` (abbreviation `ccjk i`) is ZCF's core command for complete initialization of Claude Code or Codex environment. It automatically installs necessary tools, configures API, sets up MCP services, imports workflows and output styles, etc.
+`ccjk init` (abbreviation `ccjk i`) is CCJK's core command for complete initialization of Claude Code or Codex environment. It automatically installs necessary tools, configures API, sets up MCP services, imports workflows and output styles, etc.
 
 ## Feature Overview
 
@@ -105,7 +105,7 @@ npx ccjk i -T cx
 
 #### API Provider Presets (Recommended)
 
-ZCF supports API provider presets, which can greatly simplify configuration:
+CCJK supports API provider presets, which can greatly simplify configuration:
 
 | Parameter | Abbreviation | Description | Supported Providers |
 |------|------|------|------------|

@@ -8,7 +8,7 @@ CCJK provides a comprehensive configuration management system, supporting increm
 
 ## Directory Structure Overview
 
-ZCF's configurations are distributed across the following directories:
+CCJK's configurations are distributed across the following directories:
 
 ### Main Configuration Directories
 
@@ -105,7 +105,7 @@ npx ccjk init -s --config-action docs-only
 
 ### Four-Model Architecture
 
-ZCF uses a four-model architecture to provide granular control over AI model selection:
+CCJK uses a four-model architecture to provide granular control over AI model selection:
 
 | Model Type | Environment Variable | Default Value | Purpose |
 |-----------|---------------------|---------------|---------|
@@ -365,7 +365,7 @@ In team environments:
 
 ### Migrate from Old Version
 
-If upgrading from old version of ZCF:
+If upgrading from old version of CCJK:
 
 ```bash
 # CCJK will automatically detect and migrate configuration

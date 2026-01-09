@@ -10,9 +10,9 @@ CCJK provides comprehensive configuration management and backup mechanisms, supp
 
 ### Configuration Hierarchy
 
-ZCF's configuration system is divided into the following levels:
+CCJK's configuration system is divided into the following levels:
 
-1. **Global Configuration** (`~/.ufomiao/ccjk/config.toml`) - ZCF's own configuration
+1. **Global Configuration** (`~/.ufomiao/ccjk/config.toml`) - CCJK's own configuration
 2. **Claude Code Configuration** (`~/.claude/settings.json`) - Claude Code runtime configuration
 3. **Codex Configuration** (`~/.codex/config.toml`) - Codex runtime configuration
 4. **CCR Configuration** (`~/.claude-code-router/config.json`) - Claude Code Router proxy configuration
@@ -30,7 +30,7 @@ CCJK provides powerful CLI tools to create, manage, and switch these configurati
 
 ## Backup System
 
-ZCF automatically creates backups before each configuration modification to ensure configuration security and recoverability.
+CCJK automatically creates backups before each configuration modification to ensure configuration security and recoverability.
 
 ### Backup Locations
 
@@ -45,11 +45,11 @@ Different types of configurations are backed up to different locations:
 | **Codex Prompts** | `~/.codex/backup/` | `prompts.{timestamp}.tar.gz` |
 | **CCR** | `~/.claude-code-router/` | `config.json.{timestamp}.bak` |
 | **CCometixLine** | `~/.cometix/backup/` | `config.{timestamp}.bak` |
-| **ZCF Global Configuration** | `~/.ufomiao/ccjk/backup/` | `config.toml.{timestamp}.bak` |
+| **CCJK Global Configuration** | `~/.ufomiao/ccjk/backup/` | `config.toml.{timestamp}.bak` |
 
 ### Automatic Backup Triggers
 
-ZCF automatically creates backups during the following operations:
+CCJK automatically creates backups during the following operations:
 
 1. **Initialize Configuration**: First-time configuration or re-initialization
 2. **Update Configuration**: Update workflows or templates via `ccjk update`

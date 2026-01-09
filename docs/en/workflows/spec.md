@@ -19,7 +19,7 @@ Spec Workflow MCP is a service based on Model Context Protocol (MCP), specifical
 
 ## Installation and Configuration
 
-### Install via ZCF
+### Install via CCJK
 
 Spec Workflow, as part of MCP services, can be selected for installation during CCJK initialization:
 
