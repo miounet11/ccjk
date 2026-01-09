@@ -4,8 +4,6 @@
 # One-Click Installation Script
 # https://github.com/miounet11/ccjk
 
-set -e
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -26,10 +24,105 @@ echo -e "${CYAN}║${NC}   ${GREEN}╚═════╝ ╚═════╝ �
 echo -e "${CYAN}╚═══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
+# ============================================================
+# Helper Functions
+# ============================================================
+
+cleanup() {
+    if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
+        rm -rf "$TEMP_DIR" 2>/dev/null || true
+    fi
+}
+
+trap cleanup EXIT
+
+get_npm_global_bin() {
+    npm prefix -g 2>/dev/null | tr -d '\n'
+    echo "/bin"
+}
+
+get_shell_rc() {
+    if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/bin/zsh" ] || [ "$SHELL" = "/usr/bin/zsh" ]; then
+        echo "$HOME/.zshrc"
+    elif [ -f "$HOME/.bashrc" ]; then
+        echo "$HOME/.bashrc"
+    elif [ -f "$HOME/.bash_profile" ]; then
+        echo "$HOME/.bash_profile"
+    elif [ -f "$HOME/.profile" ]; then
+        echo "$HOME/.profile"
+    else
+        echo "$HOME/.bashrc"
+    fi
+}
+
+configure_path() {
+    local npm_bin="$1"
+    local shell_rc=$(get_shell_rc)
+
+    # Check if already configured
+    if grep -q "$npm_bin" "$shell_rc" 2>/dev/null; then
+        echo -e "${GREEN}✓ PATH already configured in $shell_rc${NC}"
+        return 0
+    fi
+
+    # Add to shell rc
+    echo "" >> "$shell_rc"
+    echo "# Added by CCJK installer" >> "$shell_rc"
+    echo "export PATH=\"$npm_bin:\$PATH\"" >> "$shell_rc"
+    echo -e "${GREEN}✓ Added PATH to $shell_rc${NC}"
+}
+
+# ============================================================
+# Check if already installed and working
+# ============================================================
+
+NPM_GLOBAL_BIN=$(get_npm_global_bin)
+
+# First, check if ccjk is already installed and accessible
+check_existing_installation() {
+    # Check in PATH
+    if command -v ccjk &> /dev/null; then
+        EXISTING_VERSION=$(ccjk --version 2>/dev/null || echo "unknown")
+        echo -e "${GREEN}✓ CCJK is already installed and working!${NC}"
+        echo -e "${CYAN}Version:${NC} $EXISTING_VERSION"
+        echo ""
+        echo -e "${YELLOW}To reinstall, run:${NC}"
+        echo -e "  ${GREEN}npm uninstall -g ccjk && curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash${NC}"
+        echo ""
+        echo -e "${YELLOW}To use CCJK now:${NC}"
+        echo -e "  ${GREEN}ccjk${NC}"
+        return 0
+    fi
+
+    # Check if binary exists but not in PATH
+    if [ -f "$NPM_GLOBAL_BIN/ccjk" ]; then
+        echo -e "${GREEN}✓ CCJK is installed at $NPM_GLOBAL_BIN/ccjk${NC}"
+        echo -e "${YELLOW}But it's not in your PATH. Configuring...${NC}"
+        echo ""
+        configure_path "$NPM_GLOBAL_BIN"
+        echo ""
+        echo -e "${CYAN}To use CCJK now, run:${NC}"
+        echo -e "  ${GREEN}source $(get_shell_rc) && ccjk${NC}"
+        echo ""
+        echo -e "${CYAN}Or run directly:${NC}"
+        echo -e "  ${GREEN}$NPM_GLOBAL_BIN/ccjk${NC}"
+        return 0
+    fi
+
+    return 1
+}
+
+if check_existing_installation; then
+    exit 0
+fi
+
+# ============================================================
+# System Checks
+# ============================================================
+
 # Check if running as root
 if [ "$EUID" -eq 0 ]; then
     echo -e "${YELLOW}Warning: Running as root is not recommended.${NC}"
-    echo -e "${YELLOW}Consider running without sudo.${NC}"
     echo ""
 fi
 
@@ -57,251 +150,231 @@ if ! command -v node &> /dev/null; then
     echo -e "  Linux: curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs"
     echo -e "  Windows: https://nodejs.org/en/download/"
     exit 1
-else
-    NODE_VERSION=$(node -v)
-    # Extract major version number (remove 'v' prefix and get first number)
-    NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v//' | cut -d. -f1)
-
-    if [ "$NODE_MAJOR" -lt 20 ]; then
-        echo -e "${RED}✗ Node.js $NODE_VERSION is too old${NC}"
-        echo ""
-        echo -e "${YELLOW}CCJK requires Node.js 20 or higher.${NC}"
-        echo -e "${YELLOW}Please upgrade Node.js:${NC}"
-        echo ""
-        echo -e "  ${CYAN}Using nvm (recommended):${NC}"
-        echo -e "    nvm install 20"
-        echo -e "    nvm use 20"
-        echo ""
-        echo -e "  ${CYAN}Using n:${NC}"
-        echo -e "    n 20"
-        echo ""
-        echo -e "  ${CYAN}Linux (apt):${NC}"
-        echo -e "    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
-        echo -e "    sudo apt-get install -y nodejs"
-        echo ""
-        echo -e "  ${CYAN}macOS:${NC}"
-        echo -e "    brew upgrade node"
-        exit 1
-    fi
-
-    echo -e "${GREEN}✓ Node.js${NC} $NODE_VERSION"
 fi
+
+NODE_VERSION=$(node -v)
+NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v//' | cut -d. -f1)
+
+if [ "$NODE_MAJOR" -lt 20 ]; then
+    echo -e "${RED}✗ Node.js $NODE_VERSION is too old. Need v20+${NC}"
+    echo ""
+    echo -e "${YELLOW}Upgrade with: nvm install 20 && nvm use 20${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Node.js${NC} $NODE_VERSION"
 
 # Check for npm
 if ! command -v npm &> /dev/null; then
     echo -e "${RED}✗ npm is not installed${NC}"
     exit 1
-else
-    NPM_VERSION=$(npm -v)
-    echo -e "${GREEN}✓ npm${NC} v$NPM_VERSION"
 fi
+echo -e "${GREEN}✓ npm${NC} v$(npm -v)"
 
 # Check for git
 if ! command -v git &> /dev/null; then
-    echo -e "${RED}✗ Git is not installed (required for GitHub installation)${NC}"
-    echo ""
-    echo -e "${YELLOW}Please install Git first:${NC}"
-    echo -e "  macOS: brew install git"
-    echo -e "  Linux: sudo apt-get install git"
-    echo -e "  Windows: https://git-scm.com/download/win"
+    echo -e "${RED}✗ Git is not installed${NC}"
+    echo -e "${YELLOW}Install: sudo apt-get install git${NC}"
     exit 1
-else
-    GIT_VERSION=$(git --version | cut -d' ' -f3)
-    echo -e "${GREEN}✓ Git${NC} $GIT_VERSION"
 fi
+echo -e "${GREEN}✓ Git${NC} $(git --version | cut -d' ' -f3)"
 
 echo ""
 
-# Install CCJK from GitHub
-echo -e "${BLUE}Installing CCJK from GitHub...${NC}"
+# ============================================================
+# Clone Repository (with retry and mirror support)
+# ============================================================
+
+echo -e "${BLUE}Installing CCJK...${NC}"
 echo ""
 
-# Create temp directory
 TEMP_DIR=$(mktemp -d)
 cd "$TEMP_DIR"
 
-# Clone repository
-echo -e "${CYAN}Cloning repository...${NC}"
-git clone --depth 1 https://github.com/miounet11/ccjk.git
-cd ccjk
+# Git mirrors to try
+GITHUB_URL="https://github.com/miounet11/ccjk.git"
+GITEE_URL="https://gitee.com/miounet11/ccjk.git"
+GHPROXY_URL="https://ghproxy.com/https://github.com/miounet11/ccjk.git"
 
-# Check for pnpm
-if ! command -v pnpm &> /dev/null; then
-    echo -e "${YELLOW}Installing pnpm...${NC}"
-    npm install -g pnpm
+clone_repo() {
+    local url="$1"
+    local name="$2"
+    local timeout="${3:-60}"
+
+    echo -e "${CYAN}Trying $name...${NC}"
+
+    # Set git timeout
+    git config --global http.lowSpeedLimit 1000
+    git config --global http.lowSpeedTime 30
+
+    if timeout "$timeout" git clone --depth 1 "$url" ccjk 2>/dev/null; then
+        echo -e "${GREEN}✓ Cloned from $name${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}✗ $name failed${NC}"
+        rm -rf ccjk 2>/dev/null || true
+        return 1
+    fi
+}
+
+CLONE_SUCCESS=false
+
+# Try GitHub first
+if clone_repo "$GITHUB_URL" "GitHub" 60; then
+    CLONE_SUCCESS=true
 fi
 
-# Install dependencies and build
-echo -e "${CYAN}Installing dependencies...${NC}"
-pnpm install
+# Try ghproxy mirror
+if [ "$CLONE_SUCCESS" = false ]; then
+    if clone_repo "$GHPROXY_URL" "GitHub Mirror (ghproxy)" 60; then
+        CLONE_SUCCESS=true
+    fi
+fi
 
-echo -e "${CYAN}Building...${NC}"
-pnpm build
+# Try Gitee mirror (if exists)
+if [ "$CLONE_SUCCESS" = false ]; then
+    if clone_repo "$GITEE_URL" "Gitee Mirror" 60; then
+        CLONE_SUCCESS=true
+    fi
+fi
 
-# Get npm global bin directory BEFORE installing
-NPM_GLOBAL_BIN=$(npm prefix -g)/bin
-echo -e "${CYAN}npm global bin:${NC} $NPM_GLOBAL_BIN"
+# Final fallback: try npm registry directly
+if [ "$CLONE_SUCCESS" = false ]; then
+    echo -e "${YELLOW}Git clone failed. Trying npm install directly...${NC}"
 
-# Install globally using npm install -g . (simpler and more reliable)
-echo -e "${CYAN}Installing globally...${NC}"
+    # Try to install from npm (if published)
+    if npm install -g ccjk 2>/dev/null; then
+        echo -e "${GREEN}✓ Installed from npm registry${NC}"
+        CLONE_SUCCESS=true
+        NPM_DIRECT=true
+    fi
+fi
 
-# Remove any existing broken installation first
-npm uninstall -g ccjk 2>/dev/null || true
+if [ "$CLONE_SUCCESS" = false ]; then
+    echo ""
+    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${RED}Installation failed: Could not download CCJK${NC}"
+    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "${YELLOW}This is usually a network issue. Try:${NC}"
+    echo ""
+    echo -e "  1. ${CYAN}Check your internet connection${NC}"
+    echo -e "  2. ${CYAN}Use a VPN or proxy${NC}"
+    echo -e "  3. ${CYAN}Try again later${NC}"
+    echo ""
+    echo -e "${YELLOW}Manual installation:${NC}"
+    echo -e "  ${GREEN}git clone https://github.com/miounet11/ccjk.git${NC}"
+    echo -e "  ${GREEN}cd ccjk && npm install && npm run build && npm install -g .${NC}"
+    exit 1
+fi
 
-# Install directly from the built directory
-npm install -g .
+# ============================================================
+# Build and Install (skip if installed via npm directly)
+# ============================================================
 
-# Check if installation created the binary
-CCJK_BIN="$NPM_GLOBAL_BIN/ccjk"
+if [ "$NPM_DIRECT" != "true" ]; then
+    cd ccjk
+
+    # Install pnpm if needed
+    if ! command -v pnpm &> /dev/null; then
+        echo -e "${CYAN}Installing pnpm...${NC}"
+        npm install -g pnpm 2>/dev/null || true
+    fi
+
+    # Install dependencies
+    echo -e "${CYAN}Installing dependencies...${NC}"
+    if command -v pnpm &> /dev/null; then
+        pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+    else
+        npm install
+    fi
+
+    # Build
+    echo -e "${CYAN}Building...${NC}"
+    if command -v pnpm &> /dev/null; then
+        pnpm build
+    else
+        npm run build
+    fi
+
+    # Install globally
+    echo -e "${CYAN}Installing globally...${NC}"
+    npm uninstall -g ccjk 2>/dev/null || true
+    npm install -g .
+fi
+
+# ============================================================
+# Verify Installation
+# ============================================================
 
 echo ""
+NPM_GLOBAL_BIN=$(get_npm_global_bin)
+CCJK_BIN="$NPM_GLOBAL_BIN/ccjk"
 
-# Verify installation by checking if file exists
 if [ -f "$CCJK_BIN" ]; then
-    echo -e "${GREEN}✓ CCJK binary installed at:${NC} $CCJK_BIN"
+    echo -e "${GREEN}✓ CCJK installed at:${NC} $CCJK_BIN"
 
-    # Try to get version
+    # Get version
     export PATH="$NPM_GLOBAL_BIN:$PATH"
     CCJK_VERSION=$("$CCJK_BIN" --version 2>/dev/null || echo "installed")
-    echo -e "${GREEN}✓ CCJK installed successfully!${NC} v$CCJK_VERSION"
-
-    # Check if npm bin is in PATH
-    if ! echo "$PATH" | grep -q "$NPM_GLOBAL_BIN"; then
-        echo ""
-        echo -e "${YELLOW}⚠️  IMPORTANT: npm global bin is NOT in your PATH${NC}"
-        echo ""
-        echo -e "${CYAN}Add this to your shell config (~/.bashrc or ~/.zshrc):${NC}"
-        echo ""
-        echo -e "  ${GREEN}export PATH=\"$NPM_GLOBAL_BIN:\$PATH\"${NC}"
-        echo ""
-        echo -e "${CYAN}Then reload your shell:${NC}"
-        echo -e "  ${GREEN}source ~/.bashrc${NC}  # or source ~/.zshrc"
-        echo ""
-        echo -e "${CYAN}Or run ccjk directly:${NC}"
-        echo -e "  ${GREEN}$CCJK_BIN${NC}"
-    fi
+    echo -e "${GREEN}✓ Version:${NC} $CCJK_VERSION"
 else
-    # Check alternative locations
-    echo -e "${YELLOW}Checking alternative locations...${NC}"
-
-    # Try to find where npm installed it
+    # Check npm root
     NPM_ROOT=$(npm root -g)
     if [ -f "$NPM_ROOT/ccjk/bin/ccjk.mjs" ]; then
         echo -e "${GREEN}✓ Package installed at:${NC} $NPM_ROOT/ccjk"
-        echo -e "${YELLOW}Binary symlink may have failed. Creating manually...${NC}"
-
-        # Try to create symlink manually
-        ln -sf "$NPM_ROOT/ccjk/bin/ccjk.mjs" "$NPM_GLOBAL_BIN/ccjk" 2>/dev/null || {
-            echo -e "${YELLOW}Could not create symlink. Run ccjk with:${NC}"
-            echo -e "  ${GREEN}node $NPM_ROOT/ccjk/bin/ccjk.mjs${NC}"
-        }
-    else
-        echo -e "${RED}✗ Installation failed${NC}"
-        echo ""
-        echo -e "${YELLOW}Try cloning manually:${NC}"
-        echo -e "  git clone https://github.com/miounet11/ccjk.git"
-        echo -e "  cd ccjk && pnpm install && pnpm build && npm install -g ."
-        exit 1
+        ln -sf "$NPM_ROOT/ccjk/bin/ccjk.mjs" "$NPM_GLOBAL_BIN/ccjk" 2>/dev/null || true
     fi
 fi
 
-# Cleanup the source directory
-cd /tmp
-rm -rf "$TEMP_DIR"
+# ============================================================
+# Configure PATH
+# ============================================================
 
 echo ""
-echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
-echo ""
-echo -e "${GREEN}Installation complete!${NC}"
-echo ""
-echo -e "${BLUE}Quick Start:${NC}"
-echo ""
-echo -e "  ${CYAN}1.${NC} Run the setup wizard:"
-echo -e "     ${GREEN}ccjk${NC}"
-echo ""
-echo -e "  ${CYAN}2.${NC} Or start Interview-Driven Development:"
-echo -e "     ${GREEN}ccjk interview${NC}"
-echo ""
-echo -e "${BLUE}Popular Commands:${NC}"
-echo ""
-echo -e "  ${GREEN}ccjk${NC}              - Interactive menu"
-echo -e "  ${GREEN}ccjk init${NC}         - Full initialization"
-echo -e "  ${GREEN}ccjk interview${NC}    - Interview-Driven Development"
-echo -e "  ${GREEN}ccjk quick${NC}        - Quick interview (~10 questions)"
-echo -e "  ${GREEN}ccjk deep${NC}         - Deep interview (~40+ questions)"
-echo -e "  ${GREEN}ccjk doctor${NC}       - Health check"
-echo ""
-echo -e "${BLUE}In Claude Code, type:${NC}"
-echo ""
-echo -e "  ${GREEN}/ccjk:${NC}            - See all CCJK commands"
-echo -e "  ${GREEN}/ccjk:interview${NC}   - Start Interview-Driven Development"
-echo -e "  ${GREEN}/ccjk:git-commit${NC}  - Smart Git commits"
-echo -e "  ${GREEN}/ccjk:workflow${NC}    - 6-step development workflow"
-echo ""
-echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
-echo ""
-echo -e "Documentation: ${BLUE}https://github.com/miounet11/ccjk${NC}"
-echo -e "Report issues: ${BLUE}https://github.com/miounet11/ccjk/issues${NC}"
-echo ""
-
-# Ask to run setup
-# Note: When run via curl | bash, stdin is consumed, so we skip interactive prompt
-if [ -t 0 ]; then
-    # Running interactively
-    echo -e "${YELLOW}Would you like to run the setup wizard now? [Y/n]${NC}"
-    read -r response
-    response=${response:-Y}
-
-    if [[ "$response" =~ ^[Yy]$ ]]; then
-        echo ""
-        ccjk
-    fi
-else
-    # Running via pipe (curl | bash)
-    echo -e "${GREEN}Installation complete!${NC}"
+if ! command -v ccjk &> /dev/null; then
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}⚠️  Configuring PATH...${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 
-    # Always show PATH instructions when running via pipe
-    NPM_BIN_CHECK=$(npm prefix -g)/bin
-    if ! command -v ccjk &> /dev/null; then
-        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${YELLOW}⚠️  Auto-configuring PATH...${NC}"
-        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo ""
+    configure_path "$NPM_GLOBAL_BIN"
+    SHELL_RC=$(get_shell_rc)
 
-        # Auto-add to PATH
-        SHELL_RC=""
-        if [ -f "$HOME/.zshrc" ]; then
-            SHELL_RC="$HOME/.zshrc"
-        elif [ -f "$HOME/.bashrc" ]; then
-            SHELL_RC="$HOME/.bashrc"
-        elif [ -f "$HOME/.profile" ]; then
-            SHELL_RC="$HOME/.profile"
-        fi
-
-        if [ -n "$SHELL_RC" ]; then
-            # Check if already in rc file
-            if ! grep -q "$NPM_BIN_CHECK" "$SHELL_RC" 2>/dev/null; then
-                echo "" >> "$SHELL_RC"
-                echo "# Added by CCJK installer" >> "$SHELL_RC"
-                echo "export PATH=\"$NPM_BIN_CHECK:\$PATH\"" >> "$SHELL_RC"
-                echo -e "${GREEN}✓ Added PATH to $SHELL_RC${NC}"
-            else
-                echo -e "${GREEN}✓ PATH already configured in $SHELL_RC${NC}"
-            fi
-        fi
-
-        echo ""
-        echo -e "${CYAN}To use ccjk NOW, run one of these:${NC}"
-        echo ""
-        echo -e "  ${GREEN}source $SHELL_RC && ccjk${NC}"
-        echo ""
-        echo -e "${CYAN}Or run directly:${NC}"
-        echo -e "  ${GREEN}$NPM_BIN_CHECK/ccjk${NC}"
-        echo ""
-    else
-        echo -e "${YELLOW}To start using CCJK, run:${NC}"
-        echo -e "  ${GREEN}ccjk${NC}"
-        echo ""
-    fi
+    echo ""
+    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}  ✓ CCJK Installation Complete!${NC}"
+    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "${CYAN}To start using CCJK, run ONE of these:${NC}"
+    echo ""
+    echo -e "  ${GREEN}source $SHELL_RC && ccjk${NC}"
+    echo ""
+    echo -e "  ${CYAN}Or run directly:${NC}"
+    echo -e "  ${GREEN}$NPM_GLOBAL_BIN/ccjk${NC}"
+    echo ""
+else
+    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}  ✓ CCJK Installation Complete!${NC}"
+    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "${CYAN}To start using CCJK:${NC}"
+    echo -e "  ${GREEN}ccjk${NC}"
+    echo ""
 fi
+
+# ============================================================
+# Quick Start Guide
+# ============================================================
+
+echo -e "${BLUE}Quick Start:${NC}"
+echo ""
+echo -e "  ${GREEN}ccjk${NC}              - Interactive menu"
+echo -e "  ${GREEN}ccjk interview${NC}    - Interview-Driven Development"
+echo -e "  ${GREEN}ccjk doctor${NC}       - Health check"
+echo ""
+echo -e "${BLUE}In Claude Code:${NC}"
+echo -e "  ${GREEN}/ccjk:${NC}            - See all commands"
+echo ""
+echo -e "${CYAN}Documentation:${NC} https://github.com/miounet11/ccjk"
+echo ""
