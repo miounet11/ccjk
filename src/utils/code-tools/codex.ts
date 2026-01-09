@@ -1168,24 +1168,19 @@ export async function runCodexSystemPromptSelection(skipPrompt = false): Promise
   // Available system prompt styles (same as Claude Code output styles)
   const availablePrompts = [
     {
-      id: 'engineer-professional',
-      name: i18n.t('configuration:outputStyles.engineer-professional.name'),
-      description: i18n.t('configuration:outputStyles.engineer-professional.description'),
+      id: 'speed-coder',
+      name: i18n.t('configuration:outputStyles.speed-coder.name'),
+      description: i18n.t('configuration:outputStyles.speed-coder.description'),
     },
     {
-      id: 'laowang-engineer',
-      name: i18n.t('configuration:outputStyles.laowang-engineer.name'),
-      description: i18n.t('configuration:outputStyles.laowang-engineer.description'),
+      id: 'senior-architect',
+      name: i18n.t('configuration:outputStyles.senior-architect.name'),
+      description: i18n.t('configuration:outputStyles.senior-architect.description'),
     },
     {
-      id: 'nekomata-engineer',
-      name: i18n.t('configuration:outputStyles.nekomata-engineer.name'),
-      description: i18n.t('configuration:outputStyles.nekomata-engineer.description'),
-    },
-    {
-      id: 'ojousama-engineer',
-      name: i18n.t('configuration:outputStyles.ojousama-engineer.name'),
-      description: i18n.t('configuration:outputStyles.ojousama-engineer.description'),
+      id: 'pair-programmer',
+      name: i18n.t('configuration:outputStyles.pair-programmer.name'),
+      description: i18n.t('configuration:outputStyles.pair-programmer.description'),
     },
   ].filter(style => exists(join(systemPromptSrc, `${style.id}.md`)))
 

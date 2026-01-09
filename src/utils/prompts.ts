@@ -320,8 +320,8 @@ export async function resolveSystemPromptStyle(
 
   // Priority 3: No saved config
   if (skipPrompt) {
-    // Non-interactive mode: default to engineer-professional
-    return 'engineer-professional'
+    // Non-interactive mode: default to senior-architect
+    return 'senior-architect'
   }
 
   // Interactive mode: ask user to select
@@ -333,7 +333,7 @@ export async function resolveSystemPromptStyle(
       name: `${style.name} - ${ansis.gray(style.description)}`,
       value: style.id,
     }))),
-    default: 'engineer-professional', // Default to engineer-professional
+    default: 'senior-architect', // Default to senior-architect
   }])
 
   if (!systemPrompt) {

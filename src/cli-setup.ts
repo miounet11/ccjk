@@ -46,7 +46,7 @@ export interface CliOptions {
   mcpServices?: string // default: all non-key services, "skip" to skip all
   workflows?: string // default: all workflows, "skip" to skip all
   outputStyles?: string // default: all custom styles
-  defaultOutputStyle?: string // default: engineer-professional
+  defaultOutputStyle?: string // default: senior-architect
   allLang?: string // New: unified language parameter
   installCometixLine?: string | boolean // New: CCometixLine installation control, default: true
 }
@@ -175,7 +175,7 @@ export function customizeHelp(sections: any[]): any[] {
       `  ${ansis.green('--mcp-services, -m')} <list>  ${i18n.t('cli:help.optionDescriptions.mcpServices')} (${i18n.t('cli:help.defaults.prefix')} all non-key services)`,
       `  ${ansis.green('--workflows, -w')} <list>    ${i18n.t('cli:help.optionDescriptions.workflows')} (${i18n.t('cli:help.defaults.prefix')} all workflows)`,
       `  ${ansis.green('--output-styles, -o')} <styles> ${i18n.t('cli:help.optionDescriptions.outputStyles')} (${i18n.t('cli:help.defaults.prefix')} all custom styles)`,
-      `  ${ansis.green('--default-output-style, -d')} <style> ${i18n.t('cli:help.optionDescriptions.defaultOutputStyle')} (${i18n.t('cli:help.defaults.prefix')} engineer-professional)`,
+      `  ${ansis.green('--default-output-style, -d')} <style> ${i18n.t('cli:help.optionDescriptions.defaultOutputStyle')} (${i18n.t('cli:help.defaults.prefix')} senior-architect)`,
       `  ${ansis.green('--code-type, -T')} <type>   ${i18n.t('cli:help.optionDescriptions.codeToolType')} (claude-code, codex, cc=claude-code, cx=codex)`,
       `  ${ansis.green('--install-cometix-line, -x')} <value> ${i18n.t('cli:help.optionDescriptions.installStatuslineTool')} (${i18n.t('cli:help.defaults.prefix')} true)`,
     ].join('\n'),
@@ -283,8 +283,8 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .option('--provider, -p <provider>', 'API provider preset (302ai, glm, minimax, kimi, custom)')
     .option('--mcp-services, -m <services>', `Comma-separated MCP services to install (context7,mcp-deepwiki,Playwright,exa), "skip" to skip all, "all" for all non-key services, ${i18n.t('cli:help.defaults.prefix')} all`)
     .option('--workflows, -w <workflows>', `Comma-separated workflows to install (sixStepsWorkflow,featPlanUx,gitWorkflow,bmadWorkflow), "skip" to skip all, "all" for all workflows, ${i18n.t('cli:help.defaults.prefix')} all`)
-    .option('--output-styles, -o <styles>', `Comma-separated output styles (engineer-professional,nekomata-engineer,laowang-engineer,default,explanatory,learning), "skip" to skip all, "all" for all custom styles, ${i18n.t('cli:help.defaults.prefix')} all`)
-    .option('--default-output-style, -d <style>', `Default output style, ${i18n.t('cli:help.defaults.prefix')} engineer-professional`)
+    .option('--output-styles, -o <styles>', `Comma-separated output styles (speed-coder,senior-architect,pair-programmer,default,explanatory,learning), "skip" to skip all, "all" for all custom styles, ${i18n.t('cli:help.defaults.prefix')} all`)
+    .option('--default-output-style, -d <style>', `Default output style, ${i18n.t('cli:help.defaults.prefix')} senior-architect`)
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
     .option('--install-cometix-line, -x <value>', `Install CCometixLine statusline tool (true/false), ${i18n.t('cli:help.defaults.prefix')} true`)

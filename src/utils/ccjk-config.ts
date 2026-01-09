@@ -101,15 +101,15 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
     },
     claudeCode: {
       enabled: true,
-      outputStyles: ['engineer-professional'],
-      defaultOutputStyle: 'engineer-professional',
+      outputStyles: ['speed-coder', 'senior-architect', 'pair-programmer'],
+      defaultOutputStyle: 'senior-architect',
       installType: claudeCodeInstallType,
       currentProfile: '',
       profiles: {},
     },
     codex: {
       enabled: false,
-      systemPromptStyle: 'engineer-professional',
+      systemPromptStyle: 'senior-architect',
     },
   }
 }
