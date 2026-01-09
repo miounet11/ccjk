@@ -258,10 +258,12 @@ echo ""
 TEMP_DIR=$(mktemp -d)
 cd "$TEMP_DIR"
 
-# Git mirrors to try
+# Git mirrors to try (multiple China-friendly options)
 GITHUB_URL="https://github.com/miounet11/ccjk.git"
 GITEE_URL="https://gitee.com/miounet11/ccjk.git"
 GHPROXY_URL="https://ghproxy.com/https://github.com/miounet11/ccjk.git"
+GITCLONE_URL="https://gitclone.com/github.com/miounet11/ccjk.git"
+KKGITHUB_URL="https://kkgithub.com/miounet11/ccjk.git"
 
 # NPM registries
 NPM_REGISTRY_DEFAULT="https://registry.npmjs.org"
@@ -352,27 +354,41 @@ if [ "$NETWORK_REGION" = "china" ]; then
     echo -e "${BLUE}Using China-optimized installation order...${NC}"
     echo ""
 
-    # 1. Try npmmirror (fastest for China)
+    # 1. Try npmmirror first (fastest and most reliable for China)
     if npm_install_direct "$NPM_REGISTRY_CHINA" "npmmirror (China)"; then
         CLONE_SUCCESS=true
         NPM_DIRECT=true
     fi
 
-    # 2. Try ghproxy mirror
+    # 2. Try gitclone.com mirror
     if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$GHPROXY_URL" "GitHub Mirror (ghproxy)" 60; then
+        if clone_repo "$GITCLONE_URL" "GitClone Mirror" 45; then
             CLONE_SUCCESS=true
         fi
     fi
 
-    # 3. Try Gitee
+    # 3. Try kkgithub mirror
     if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$GITEE_URL" "Gitee Mirror" 60; then
+        if clone_repo "$KKGITHUB_URL" "KKGitHub Mirror" 45; then
             CLONE_SUCCESS=true
         fi
     fi
 
-    # 4. Last resort: try GitHub directly
+    # 4. Try ghproxy mirror
+    if [ "$CLONE_SUCCESS" = false ]; then
+        if clone_repo "$GHPROXY_URL" "GitHub Mirror (ghproxy)" 45; then
+            CLONE_SUCCESS=true
+        fi
+    fi
+
+    # 5. Try Gitee
+    if [ "$CLONE_SUCCESS" = false ]; then
+        if clone_repo "$GITEE_URL" "Gitee Mirror" 45; then
+            CLONE_SUCCESS=true
+        fi
+    fi
+
+    # 6. Last resort: try GitHub directly
     if [ "$CLONE_SUCCESS" = false ]; then
         if clone_repo "$GITHUB_URL" "GitHub (direct)" 30; then
             CLONE_SUCCESS=true
@@ -412,6 +428,15 @@ else
             CLONE_SUCCESS=true
             NPM_DIRECT=true
         fi
+    fi
+fi
+
+# Ultimate fallback: if still failed, try npm as last resort
+if [ "$CLONE_SUCCESS" = false ]; then
+    echo -e "${YELLOW}All git sources failed. Final attempt with npm...${NC}"
+    if npm_install_direct "$NPM_REGISTRY_CHINA" "npmmirror (final attempt)"; then
+        CLONE_SUCCESS=true
+        NPM_DIRECT=true
     fi
 fi
 
