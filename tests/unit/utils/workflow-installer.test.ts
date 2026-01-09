@@ -24,11 +24,10 @@ vi.mock('../../../src/config/workflows', () => ({
   getWorkflowConfig: vi.fn(),
   getWorkflowConfigs: vi.fn(),
   WORKFLOW_CONFIG_BASE: [
-    { id: 'commonTools', defaultSelected: true, order: 1 },
-    { id: 'sixStepsWorkflow', defaultSelected: true, order: 2 },
-    { id: 'featPlanUx', defaultSelected: true, order: 3 },
-    { id: 'gitWorkflow', defaultSelected: true, order: 4 },
-    { id: 'bmadWorkflow', defaultSelected: true, order: 5 },
+    { id: 'interviewWorkflow', defaultSelected: true, order: 1 },
+    { id: 'essentialTools', defaultSelected: true, order: 2 },
+    { id: 'gitWorkflow', defaultSelected: true, order: 3 },
+    { id: 'sixStepsWorkflow', defaultSelected: false, order: 4 },
   ],
 }))
 
@@ -73,31 +72,33 @@ describe('workflow-installer utilities', () => {
   describe('selectAndInstallWorkflows', () => {
     const mockWorkflows = [
       {
-        id: 'commonTools' as WorkflowType,
-        nameKey: 'workflowOption.commonTools',
-        descriptionKey: 'workflowDescription.commonTools',
-        category: 'common',
+        id: 'essentialTools' as WorkflowType,
+        nameKey: 'workflowOption.essentialTools',
+        descriptionKey: 'workflowDescription.essentialTools',
+        category: 'essential',
+        defaultSelected: true,
+        order: 2,
+        autoInstallAgents: true,
+        commands: ['init-project.md', 'feat.md'],
+        agents: [
+          { id: 'init-architect', filename: 'init-architect.md', required: true },
+          { id: 'get-current-datetime', filename: 'get-current-datetime.md', required: true },
+          { id: 'planner', filename: 'planner.md', required: true },
+          { id: 'ui-ux-designer', filename: 'ui-ux-designer.md', required: true },
+        ],
+        outputDir: 'essential',
+      },
+      {
+        id: 'interviewWorkflow' as WorkflowType,
+        nameKey: 'workflowOption.interviewWorkflow',
+        descriptionKey: 'workflowDescription.interviewWorkflow',
+        category: 'interview',
         defaultSelected: true,
         order: 1,
         autoInstallAgents: false,
-        commands: ['init-project.md'],
+        commands: ['interview.md'],
         agents: [],
-        outputDir: 'common',
-      },
-      {
-        id: 'bmadWorkflow' as WorkflowType,
-        nameKey: 'workflowOption.bmadWorkflow',
-        descriptionKey: 'workflowDescription.bmadWorkflow',
-        category: 'bmad',
-        defaultSelected: false,
-        order: 2,
-        autoInstallAgents: true,
-        commands: ['bmad-init.md'],
-        agents: [
-          { id: 'analyst', filename: 'analyst.md', required: true },
-          { id: 'architect', filename: 'architect.md', required: true },
-        ],
-        outputDir: 'bmad',
+        outputDir: 'interview',
       },
       {
         id: 'gitWorkflow',
@@ -108,7 +109,7 @@ describe('workflow-installer utilities', () => {
         autoInstallAgents: false,
         commands: ['git-commit.md', 'git-rollback.md', 'git-cleanBranches.md', 'git-worktree.md'],
         agents: [],
-        order: 4,
+        order: 3,
         outputDir: 'git',
       },
     ] as WorkflowConfig[]
@@ -122,7 +123,7 @@ describe('workflow-installer utilities', () => {
 
     it('should display workflow choices and handle selection', async () => {
       vi.mocked(inquirer.prompt).mockResolvedValue({
-        selectedWorkflows: ['commonTools'],
+        selectedWorkflows: ['essentialTools'],
       })
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile).mockResolvedValue(undefined)
@@ -137,7 +138,7 @@ describe('workflow-installer utilities', () => {
           message: expect.stringContaining('Select workflow type to install'),
           choices: expect.arrayContaining([
             expect.objectContaining({
-              value: 'commonTools',
+              value: 'essentialTools',
               checked: true,
             }),
           ]),
@@ -160,7 +161,7 @@ describe('workflow-installer utilities', () => {
 
     it('should clean up old files before installation', async () => {
       vi.mocked(inquirer.prompt).mockResolvedValue({
-        selectedWorkflows: ['commonTools'],
+        selectedWorkflows: ['essentialTools'],
       })
       vi.mocked(existsSync)
         .mockReturnValueOnce(true) // Old command file exists
@@ -184,7 +185,7 @@ describe('workflow-installer utilities', () => {
 
     it('should install multiple workflows with dependencies', async () => {
       vi.mocked(inquirer.prompt).mockResolvedValue({
-        selectedWorkflows: ['commonTools', 'bmadWorkflow'],
+        selectedWorkflows: ['essentialTools', 'interviewWorkflow'],
       })
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile).mockResolvedValue(undefined)
@@ -192,14 +193,14 @@ describe('workflow-installer utilities', () => {
 
       await selectAndInstallWorkflows('zh-CN')
 
-      expect(workflowConfig.getWorkflowConfig).toHaveBeenCalledWith('commonTools')
-      expect(workflowConfig.getWorkflowConfig).toHaveBeenCalledWith('bmadWorkflow')
+      expect(workflowConfig.getWorkflowConfig).toHaveBeenCalledWith('essentialTools')
+      expect(workflowConfig.getWorkflowConfig).toHaveBeenCalledWith('interviewWorkflow')
       expect(copyFile).toHaveBeenCalled()
     })
 
     it('should handle cleanup errors gracefully', async () => {
       vi.mocked(inquirer.prompt).mockResolvedValue({
-        selectedWorkflows: ['commonTools'],
+        selectedWorkflows: ['essentialTools'],
       })
       vi.mocked(existsSync)
         .mockReturnValueOnce(true) // Old file exists
@@ -312,7 +313,7 @@ describe('workflow-installer utilities', () => {
 
     it('should install multiple workflows including gitWorkflow', async () => {
       vi.mocked(inquirer.prompt).mockResolvedValue({
-        selectedWorkflows: ['commonTools', 'gitWorkflow'],
+        selectedWorkflows: ['essentialTools', 'gitWorkflow'],
       })
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile).mockResolvedValue(undefined)
@@ -320,10 +321,10 @@ describe('workflow-installer utilities', () => {
 
       await selectAndInstallWorkflows('zh-CN')
 
-      expect(workflowConfig.getWorkflowConfig).toHaveBeenCalledWith('commonTools')
+      expect(workflowConfig.getWorkflowConfig).toHaveBeenCalledWith('essentialTools')
       expect(workflowConfig.getWorkflowConfig).toHaveBeenCalledWith('gitWorkflow')
-      // Should copy files for both workflows (1 + 4 = 5)
-      expect(copyFile).toHaveBeenCalledTimes(5)
+      // essentialTools: 2 commands + 4 agents, gitWorkflow: 4 commands = 10 total
+      expect(copyFile).toHaveBeenCalledTimes(10)
     })
 
     it('should use shared common template path for sixStep workflow', async () => {
@@ -429,13 +430,13 @@ describe('workflow-installer utilities', () => {
 
   describe('installWorkflowWithDependencies', () => {
     const mockWorkflowConfig: WorkflowConfig = {
-      id: 'bmadWorkflow' as WorkflowType,
-      name: 'BMAD Workflow',
-      category: 'bmad',
+      id: 'interviewWorkflow' as WorkflowType,
+      name: 'Interview Workflow',
+      category: 'interview',
       defaultSelected: false,
       order: 1,
       autoInstallAgents: true,
-      commands: ['bmad-init.md', 'bmad.md'],
+      commands: ['interview-init.md', 'interview.md'],
       agents: [
         { id: 'analyst', filename: 'analyst.md', required: true },
         { id: 'architect', filename: 'architect.md', required: false },
@@ -459,8 +460,8 @@ describe('workflow-installer utilities', () => {
         )
 
         expect(result.success).toBe(true)
-        expect(result.installedCommands).toContain('bmad-init.md')
-        expect(result.installedCommands).toContain('bmad.md')
+        expect(result.installedCommands).toContain('interview-init.md')
+        expect(result.installedCommands).toContain('interview.md')
         expect(mkdir).toHaveBeenCalledWith(
           join(CLAUDE_DIR, 'commands', 'ccjk'),
           { recursive: true },
@@ -473,9 +474,9 @@ describe('workflow-installer utilities', () => {
             'claude-code',
             'zh-CN',
             'workflow',
-            'bmad',
+            'interview',
             'commands',
-            'bmad-init.md',
+            'interview-init.md',
           ),
           expect.any(String),
         )
@@ -500,7 +501,7 @@ describe('workflow-installer utilities', () => {
         expect(result.installedAgents).toContain('analyst.md')
         expect(result.installedAgents).toContain('architect.md')
         expect(mkdir).toHaveBeenCalledWith(
-          join(CLAUDE_DIR, 'agents', 'ccjk', 'bmad'),
+          join(CLAUDE_DIR, 'agents', 'ccjk', 'interview'),
           { recursive: true },
         )
 
@@ -511,7 +512,7 @@ describe('workflow-installer utilities', () => {
             'claude-code',
             'en',
             'workflow',
-            'bmad',
+            'interview',
             'agents',
             'analyst.md',
           ),
@@ -597,7 +598,7 @@ describe('workflow-installer utilities', () => {
       }
     })
 
-    it('should show BMad initialization prompt for bmadWorkflow', async () => {
+    it('should install interviewWorkflow successfully', async () => {
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(copyFile).mockResolvedValue(undefined)
       vi.mocked(mkdir).mockResolvedValue(undefined)
@@ -607,14 +608,15 @@ describe('workflow-installer utilities', () => {
       const installWorkflowWithDependencies = (module as any).installWorkflowWithDependencies
 
       if (installWorkflowWithDependencies) {
-        await installWorkflowWithDependencies(
+        const result = await installWorkflowWithDependencies(
           mockWorkflowConfig,
           'zh-CN',
         )
 
-        expect(console.log).toHaveBeenCalledWith(
-          expect.stringContaining('请在项目中运行 /bmad-init 命令'),
-        )
+        // Interview workflow should complete successfully
+        expect(result.success).toBe(true)
+        expect(result.installedCommands).toContain('interview-init.md')
+        expect(result.installedCommands).toContain('interview.md')
       }
     })
 

@@ -248,8 +248,8 @@ describe('cli-setup', () => {
       })
 
       it('should recognize -w as shortcut for --workflows', () => {
-        const parsed = cli.parse(['node', 'test', 'init', '-w', 'bmadWorkflow'], { run: false })
-        expect(parsed.options.workflows).toBe('bmadWorkflow')
+        const parsed = cli.parse(['node', 'test', 'init', '-w', 'gitWorkflow'], { run: false })
+        expect(parsed.options.workflows).toBe('gitWorkflow')
       })
 
       it('should recognize -o as shortcut for --output-styles', () => {

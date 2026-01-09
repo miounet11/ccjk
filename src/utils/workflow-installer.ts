@@ -86,11 +86,10 @@ async function installWorkflowWithDependencies(
 
   // Create static workflow option keys for i18n-ally compatibility
   const WORKFLOW_OPTION_KEYS = {
-    commonTools: i18n.t('workflow:workflowOption.commonTools'),
+    essentialTools: i18n.t('workflow:workflowOption.essentialTools'),
     sixStepsWorkflow: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
-    featPlanUx: i18n.t('workflow:workflowOption.featPlanUx'),
     gitWorkflow: i18n.t('workflow:workflowOption.gitWorkflow'),
-    bmadWorkflow: i18n.t('workflow:workflowOption.bmadWorkflow'),
+    interviewWorkflow: i18n.t('workflow:workflowOption.interviewWorkflow'),
   } as const
 
   const workflowName = WORKFLOW_OPTION_KEYS[config.id as keyof typeof WORKFLOW_OPTION_KEYS] || config.id
@@ -184,11 +183,6 @@ async function installWorkflowWithDependencies(
 
   if (result.success) {
     console.log(ansis.green(`✔ ${workflowName} ${i18n.t('workflow:workflowInstallSuccess')}`))
-
-    // Show special prompt for BMAD workflow
-    if (config.id === 'bmadWorkflow') {
-      console.log(ansis.cyan(`\n${i18n.t('workflow:bmadInitPrompt')}`))
-    }
   }
   else {
     console.log(ansis.red(`✗ ${workflowName} ${i18n.t('workflow:workflowInstallError')}`))

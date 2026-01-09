@@ -181,7 +181,7 @@ describe('workflows edge cases and error handling', () => {
     })
 
     it('should validate workflow category matches known categories', () => {
-      const validCategories = ['plan', 'sixStep', 'bmad', 'git']
+      const validCategories = ['essential', 'sixStep', 'git', 'interview']
       const gitWorkflow = getWorkflowConfigs().find(w => w.id === 'gitWorkflow')
       expect(validCategories).toContain(gitWorkflow?.category)
     })

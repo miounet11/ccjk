@@ -1,4 +1,4 @@
-export type WorkflowType = 'commonTools' | 'sixStepsWorkflow' | 'featPlanUx' | 'bmadWorkflow' | 'gitWorkflow'
+export type WorkflowType = 'interviewWorkflow' | 'essentialTools' | 'gitWorkflow' | 'sixStepsWorkflow'
 
 export type AgentType
   = | 'init-architect'
@@ -21,7 +21,7 @@ export interface WorkflowConfig {
   commands: string[]
   agents: WorkflowAgent[]
   autoInstallAgents: boolean
-  category: 'common' | 'plan' | 'sixStep' | 'bmad' | 'git' | 'interview'
+  category: 'essential' | 'sixStep' | 'git' | 'interview'
   outputDir: string
 }
 

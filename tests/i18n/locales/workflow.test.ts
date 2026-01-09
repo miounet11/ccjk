@@ -4,54 +4,70 @@ import zhWorkflowData from '../../../src/i18n/locales/zh-CN/workflow.json'
 
 describe('translation Files - Workflow', () => {
   describe('workflow Options (actually used keys)', () => {
-    it('should include workflowOption.commonTools translation', () => {
-      expect(enWorkflowData).toHaveProperty('workflowOption.commonTools')
-      expect(zhWorkflowData).toHaveProperty('workflowOption.commonTools')
+    it('should include workflowOption.interviewWorkflow translation', () => {
+      expect(enWorkflowData).toHaveProperty('workflowOption.interviewWorkflow')
+      expect(zhWorkflowData).toHaveProperty('workflowOption.interviewWorkflow')
 
-      expect(enWorkflowData['workflowOption.commonTools']).toBe('Common Tools (Hierarchical Directory Initialization + General-purpose agents)')
-      expect(zhWorkflowData['workflowOption.commonTools']).toBe('通用工具 (层级目录初始化 + 通用agents)')
+      expect(enWorkflowData['workflowOption.interviewWorkflow']).toBeTruthy()
+      expect(zhWorkflowData['workflowOption.interviewWorkflow']).toBeTruthy()
     })
 
-    it('should include workflowOption.sixStepsWorkflow translation', () => {
-      expect(enWorkflowData).toHaveProperty('workflowOption.sixStepsWorkflow')
-      expect(zhWorkflowData).toHaveProperty('workflowOption.sixStepsWorkflow')
+    it('should include workflowOption.essentialTools translation', () => {
+      expect(enWorkflowData).toHaveProperty('workflowOption.essentialTools')
+      expect(zhWorkflowData).toHaveProperty('workflowOption.essentialTools')
 
-      expect(enWorkflowData['workflowOption.sixStepsWorkflow']).toBe('Six Steps Workflow (workflow)')
-      expect(zhWorkflowData['workflowOption.sixStepsWorkflow']).toBe('六步工作流 (workflow)')
+      expect(enWorkflowData['workflowOption.essentialTools']).toBeTruthy()
+      expect(zhWorkflowData['workflowOption.essentialTools']).toBeTruthy()
     })
 
     it('should include workflowOption.gitWorkflow translation', () => {
       expect(enWorkflowData).toHaveProperty('workflowOption.gitWorkflow')
       expect(zhWorkflowData).toHaveProperty('workflowOption.gitWorkflow')
 
-      expect(enWorkflowData['workflowOption.gitWorkflow']).toBe('Git Commands (commit + rollback + cleanBranches + worktree)')
-      expect(zhWorkflowData['workflowOption.gitWorkflow']).toBe('Git 指令 (commit + rollback + cleanBranches + worktree)')
+      expect(enWorkflowData['workflowOption.gitWorkflow']).toBe('Git Workflow (commit + rollback + cleanBranches + worktree)')
+      expect(zhWorkflowData['workflowOption.gitWorkflow']).toBe('Git 工作流 (commit + rollback + cleanBranches + worktree)')
+    })
+
+    it('should include workflowOption.sixStepsWorkflow translation', () => {
+      expect(enWorkflowData).toHaveProperty('workflowOption.sixStepsWorkflow')
+      expect(zhWorkflowData).toHaveProperty('workflowOption.sixStepsWorkflow')
+
+      expect(enWorkflowData['workflowOption.sixStepsWorkflow']).toBe('Six-Step Workflow (Structured Development Process)')
+      expect(zhWorkflowData['workflowOption.sixStepsWorkflow']).toBe('六步工作流 (结构化开发流程)')
     })
   })
 
   describe('workflow Descriptions (actually used keys)', () => {
-    it('should include workflowDescription.commonTools translation', () => {
-      expect(enWorkflowData).toHaveProperty('workflowDescription.commonTools')
-      expect(zhWorkflowData).toHaveProperty('workflowDescription.commonTools')
+    it('should include workflowDescription.interviewWorkflow translation', () => {
+      expect(enWorkflowData).toHaveProperty('workflowDescription.interviewWorkflow')
+      expect(zhWorkflowData).toHaveProperty('workflowDescription.interviewWorkflow')
 
-      expect(enWorkflowData['workflowDescription.commonTools']).toBe('Provides project initialization and architecture analysis tools, including hierarchical directory initialization commands and intelligent architecture analysis agents')
-      expect(zhWorkflowData['workflowDescription.commonTools']).toBe('提供项目初始化和架构分析工具，包含层级目录初始化命令和智能架构分析代理')
+      expect(enWorkflowData['workflowDescription.interviewWorkflow']).toBeTruthy()
+      expect(zhWorkflowData['workflowDescription.interviewWorkflow']).toBeTruthy()
     })
 
-    it('should include workflowDescription.sixStepsWorkflow translation', () => {
-      expect(enWorkflowData).toHaveProperty('workflowDescription.sixStepsWorkflow')
-      expect(zhWorkflowData).toHaveProperty('workflowDescription.sixStepsWorkflow')
+    it('should include workflowDescription.essentialTools translation', () => {
+      expect(enWorkflowData).toHaveProperty('workflowDescription.essentialTools')
+      expect(zhWorkflowData).toHaveProperty('workflowDescription.essentialTools')
 
-      expect(enWorkflowData['workflowDescription.sixStepsWorkflow']).toBe('Professional development assistant structured six-step workflow')
-      expect(zhWorkflowData['workflowDescription.sixStepsWorkflow']).toBe('专业开发助手的结构化六步工作流程')
+      expect(enWorkflowData['workflowDescription.essentialTools']).toBeTruthy()
+      expect(zhWorkflowData['workflowDescription.essentialTools']).toBeTruthy()
     })
 
     it('should include workflowDescription.gitWorkflow translation', () => {
       expect(enWorkflowData).toHaveProperty('workflowDescription.gitWorkflow')
       expect(zhWorkflowData).toHaveProperty('workflowDescription.gitWorkflow')
 
-      expect(enWorkflowData['workflowDescription.gitWorkflow']).toBe('Git version control related commands collection')
-      expect(zhWorkflowData['workflowDescription.gitWorkflow']).toBe('Git 版本控制相关命令集合')
+      expect(enWorkflowData['workflowDescription.gitWorkflow']).toBe('Git version control commands collection supporting conventional commits, rollback, branch cleanup and worktree management')
+      expect(zhWorkflowData['workflowDescription.gitWorkflow']).toBe('Git 版本控制命令集合，支持规范化提交、回滚、分支清理和工作树管理')
+    })
+
+    it('should include workflowDescription.sixStepsWorkflow translation', () => {
+      expect(enWorkflowData).toHaveProperty('workflowDescription.sixStepsWorkflow')
+      expect(zhWorkflowData).toHaveProperty('workflowDescription.sixStepsWorkflow')
+
+      expect(enWorkflowData['workflowDescription.sixStepsWorkflow']).toBe('Professional development assistant structured six-step workflow, suitable for projects requiring strict process control')
+      expect(zhWorkflowData['workflowDescription.sixStepsWorkflow']).toBe('专业开发助手的结构化六步工作流程，适合需要严格流程控制的项目')
     })
   })
 

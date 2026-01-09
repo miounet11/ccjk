@@ -515,7 +515,7 @@ describe('init command', () => {
           skipPrompt: true,
           apiMode: 'skip',
           customApiConfig: undefined,
-          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow', 'interviewWorkflow'],
+          workflows: ['interviewWorkflow', 'essentialTools', 'gitWorkflow', 'sixStepsWorkflow'],
         })
       })
 
@@ -547,7 +547,7 @@ describe('init command', () => {
           skipPrompt: true,
           apiMode: 'skip',
           customApiConfig: undefined,
-          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow', 'interviewWorkflow'],
+          workflows: ['interviewWorkflow', 'essentialTools', 'gitWorkflow', 'sixStepsWorkflow'],
         })
         // Should not call resolveTemplateLanguage for codex when skipPrompt is true
         expect(testMocks.resolveTemplateLanguage).not.toHaveBeenCalled()
@@ -620,7 +620,7 @@ describe('init command', () => {
           skipPrompt: true,
           apiMode: 'skip',
           customApiConfig: undefined,
-          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow', 'interviewWorkflow'],
+          workflows: ['interviewWorkflow', 'essentialTools', 'gitWorkflow', 'sixStepsWorkflow'],
         })
 
         expect(runCodexFullInitSpy).toHaveBeenCalled()

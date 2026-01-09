@@ -9,51 +9,40 @@ export interface WorkflowConfigBase {
   commands: string[]
   agents: Array<{ id: string, filename: string, required: boolean }>
   autoInstallAgents: boolean
-  category: 'common' | 'plan' | 'sixStep' | 'bmad' | 'git' | 'interview'
+  category: 'essential' | 'sixStep' | 'git' | 'interview'
   outputDir: string
 }
 
 export const WORKFLOW_CONFIG_BASE: WorkflowConfigBase[] = [
   {
-    id: 'commonTools',
+    id: 'interviewWorkflow',
     defaultSelected: true,
     order: 1,
-    commands: ['init-project.md'],
+    commands: ['interview.md'],
+    agents: [],
+    autoInstallAgents: false,
+    category: 'interview',
+    outputDir: 'interview',
+  },
+  {
+    id: 'essentialTools',
+    defaultSelected: true,
+    order: 2,
+    commands: ['init-project.md', 'feat.md'],
     agents: [
       { id: 'init-architect', filename: 'init-architect.md', required: true },
       { id: 'get-current-datetime', filename: 'get-current-datetime.md', required: true },
-    ],
-    autoInstallAgents: true,
-    category: 'common',
-    outputDir: 'common',
-  },
-  {
-    id: 'sixStepsWorkflow',
-    defaultSelected: true,
-    order: 2,
-    commands: ['workflow.md'],
-    agents: [],
-    autoInstallAgents: false,
-    category: 'sixStep',
-    outputDir: 'workflow',
-  },
-  {
-    id: 'featPlanUx',
-    defaultSelected: true,
-    order: 3,
-    commands: ['feat.md'],
-    agents: [
       { id: 'planner', filename: 'planner.md', required: true },
       { id: 'ui-ux-designer', filename: 'ui-ux-designer.md', required: true },
     ],
     autoInstallAgents: true,
-    category: 'plan',
-    outputDir: 'feat',
+    category: 'essential',
+    outputDir: 'essential',
   },
   {
     id: 'gitWorkflow',
     defaultSelected: true,
-    order: 4,
+    order: 3,
     commands: ['git-commit.md', 'git-rollback.md', 'git-cleanBranches.md', 'git-worktree.md'],
     agents: [],
     autoInstallAgents: false,
@@ -61,24 +50,14 @@ export const WORKFLOW_CONFIG_BASE: WorkflowConfigBase[] = [
     outputDir: 'git',
   },
   {
-    id: 'bmadWorkflow',
-    defaultSelected: true,
-    order: 5,
-    commands: ['bmad-init.md'],
+    id: 'sixStepsWorkflow',
+    defaultSelected: false,
+    order: 4,
+    commands: ['workflow.md'],
     agents: [],
     autoInstallAgents: false,
-    category: 'bmad',
-    outputDir: 'bmad',
-  },
-  {
-    id: 'interviewWorkflow',
-    defaultSelected: true,
-    order: 6,
-    commands: ['interview.md'],
-    agents: [],
-    autoInstallAgents: false,
-    category: 'interview',
-    outputDir: 'interview',
+    category: 'sixStep',
+    outputDir: 'workflow',
   },
 ]
 
@@ -88,19 +67,14 @@ export function getWorkflowConfigs(): WorkflowConfig[] {
   // Create static workflow option list for i18n-ally compatibility
   const workflowTranslations = [
     {
-      id: 'commonTools',
-      name: i18n.t('workflow:workflowOption.commonTools'),
-      description: i18n.t('workflow:workflowDescription.commonTools'),
+      id: 'interviewWorkflow',
+      name: i18n.t('workflow:workflowOption.interviewWorkflow'),
+      description: i18n.t('workflow:workflowDescription.interviewWorkflow'),
     },
     {
-      id: 'sixStepsWorkflow',
-      name: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
-      description: i18n.t('workflow:workflowDescription.sixStepsWorkflow'),
-    },
-    {
-      id: 'featPlanUx',
-      name: i18n.t('workflow:workflowOption.featPlanUx'),
-      description: i18n.t('workflow:workflowDescription.featPlanUx'),
+      id: 'essentialTools',
+      name: i18n.t('workflow:workflowOption.essentialTools'),
+      description: i18n.t('workflow:workflowDescription.essentialTools'),
     },
     {
       id: 'gitWorkflow',
@@ -108,14 +82,9 @@ export function getWorkflowConfigs(): WorkflowConfig[] {
       description: i18n.t('workflow:workflowDescription.gitWorkflow'),
     },
     {
-      id: 'bmadWorkflow',
-      name: i18n.t('workflow:workflowOption.bmadWorkflow'),
-      description: i18n.t('workflow:workflowDescription.bmadWorkflow'),
-    },
-    {
-      id: 'interviewWorkflow',
-      name: i18n.t('workflow:workflowOption.interviewWorkflow'),
-      description: i18n.t('workflow:workflowDescription.interviewWorkflow'),
+      id: 'sixStepsWorkflow',
+      name: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
+      description: i18n.t('workflow:workflowDescription.sixStepsWorkflow'),
     },
   ]
 
