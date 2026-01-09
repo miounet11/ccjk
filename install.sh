@@ -263,6 +263,51 @@ GITHUB_URL="https://github.com/miounet11/ccjk.git"
 GITEE_URL="https://gitee.com/miounet11/ccjk.git"
 GHPROXY_URL="https://ghproxy.com/https://github.com/miounet11/ccjk.git"
 
+# NPM registries
+NPM_REGISTRY_DEFAULT="https://registry.npmjs.org"
+NPM_REGISTRY_CHINA="https://registry.npmmirror.com"
+
+# ============================================================
+# Network Detection - Auto-detect best source for user
+# ============================================================
+
+detect_network_region() {
+    echo -e "${CYAN}Detecting network environment...${NC}"
+
+    # Test connectivity to different endpoints (timeout 3s each)
+    local github_ok=false
+    local china_ok=false
+
+    # Test GitHub (international)
+    if curl -s --connect-timeout 3 --max-time 5 "https://github.com" > /dev/null 2>&1; then
+        github_ok=true
+    fi
+
+    # Test npmmirror (China)
+    if curl -s --connect-timeout 3 --max-time 5 "https://registry.npmmirror.com" > /dev/null 2>&1; then
+        china_ok=true
+    fi
+
+    # Determine region based on response times
+    if [ "$github_ok" = true ]; then
+        # GitHub accessible - likely international or good VPN
+        echo -e "${GREEN}✓ GitHub accessible - using international sources${NC}"
+        NETWORK_REGION="international"
+    elif [ "$china_ok" = true ]; then
+        # Only China mirror works - likely in China without VPN
+        echo -e "${GREEN}✓ China network detected - using mirror sources${NC}"
+        NETWORK_REGION="china"
+    else
+        # Both failed - try anyway with fallbacks
+        echo -e "${YELLOW}⚠ Network detection inconclusive - will try all sources${NC}"
+        NETWORK_REGION="unknown"
+    fi
+    echo ""
+}
+
+# Run network detection
+detect_network_region
+
 clone_repo() {
     local url="$1"
     local name="$2"
@@ -284,36 +329,89 @@ clone_repo() {
     fi
 }
 
+npm_install_direct() {
+    local registry="$1"
+    local name="$2"
+
+    echo -e "${CYAN}Trying npm install from $name...${NC}"
+    if npm install -g ccjk --registry "$registry" 2>/dev/null; then
+        echo -e "${GREEN}✓ Installed from $name${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}✗ $name failed${NC}"
+        return 1
+    fi
+}
+
 CLONE_SUCCESS=false
+NPM_DIRECT=false
 
-# Try GitHub first
-if clone_repo "$GITHUB_URL" "GitHub" 60; then
-    CLONE_SUCCESS=true
-fi
+# Smart source selection based on detected region
+if [ "$NETWORK_REGION" = "china" ]; then
+    # China: Try China sources first
+    echo -e "${BLUE}Using China-optimized installation order...${NC}"
+    echo ""
 
-# Try ghproxy mirror
-if [ "$CLONE_SUCCESS" = false ]; then
-    if clone_repo "$GHPROXY_URL" "GitHub Mirror (ghproxy)" 60; then
-        CLONE_SUCCESS=true
-    fi
-fi
-
-# Try Gitee mirror (if exists)
-if [ "$CLONE_SUCCESS" = false ]; then
-    if clone_repo "$GITEE_URL" "Gitee Mirror" 60; then
-        CLONE_SUCCESS=true
-    fi
-fi
-
-# Final fallback: try npm registry directly
-if [ "$CLONE_SUCCESS" = false ]; then
-    echo -e "${YELLOW}Git clone failed. Trying npm install directly...${NC}"
-
-    # Try to install from npm (if published)
-    if npm install -g ccjk 2>/dev/null; then
-        echo -e "${GREEN}✓ Installed from npm registry${NC}"
+    # 1. Try npmmirror (fastest for China)
+    if npm_install_direct "$NPM_REGISTRY_CHINA" "npmmirror (China)"; then
         CLONE_SUCCESS=true
         NPM_DIRECT=true
+    fi
+
+    # 2. Try ghproxy mirror
+    if [ "$CLONE_SUCCESS" = false ]; then
+        if clone_repo "$GHPROXY_URL" "GitHub Mirror (ghproxy)" 60; then
+            CLONE_SUCCESS=true
+        fi
+    fi
+
+    # 3. Try Gitee
+    if [ "$CLONE_SUCCESS" = false ]; then
+        if clone_repo "$GITEE_URL" "Gitee Mirror" 60; then
+            CLONE_SUCCESS=true
+        fi
+    fi
+
+    # 4. Last resort: try GitHub directly
+    if [ "$CLONE_SUCCESS" = false ]; then
+        if clone_repo "$GITHUB_URL" "GitHub (direct)" 30; then
+            CLONE_SUCCESS=true
+        fi
+    fi
+else
+    # International or unknown: Try GitHub first
+    echo -e "${BLUE}Using standard installation order...${NC}"
+    echo ""
+
+    # 1. Try GitHub first
+    if clone_repo "$GITHUB_URL" "GitHub" 60; then
+        CLONE_SUCCESS=true
+    fi
+
+    # 2. Try ghproxy mirror
+    if [ "$CLONE_SUCCESS" = false ]; then
+        if clone_repo "$GHPROXY_URL" "GitHub Mirror (ghproxy)" 60; then
+            CLONE_SUCCESS=true
+        fi
+    fi
+
+    # 3. Try Gitee mirror
+    if [ "$CLONE_SUCCESS" = false ]; then
+        if clone_repo "$GITEE_URL" "Gitee Mirror" 60; then
+            CLONE_SUCCESS=true
+        fi
+    fi
+
+    # 4. Final fallback: try npm registry directly
+    if [ "$CLONE_SUCCESS" = false ]; then
+        echo -e "${YELLOW}Git clone failed. Trying npm install directly...${NC}"
+        if npm_install_direct "$NPM_REGISTRY_DEFAULT" "npm registry"; then
+            CLONE_SUCCESS=true
+            NPM_DIRECT=true
+        elif npm_install_direct "$NPM_REGISTRY_CHINA" "npmmirror (China)"; then
+            CLONE_SUCCESS=true
+            NPM_DIRECT=true
+        fi
     fi
 fi
 
@@ -329,9 +427,15 @@ if [ "$CLONE_SUCCESS" = false ]; then
     echo -e "  2. ${CYAN}Use a VPN or proxy${NC}"
     echo -e "  3. ${CYAN}Try again later${NC}"
     echo ""
-    echo -e "${YELLOW}Manual installation:${NC}"
-    echo -e "  ${GREEN}git clone https://github.com/miounet11/ccjk.git${NC}"
-    echo -e "  ${GREEN}cd ccjk && npm install && npm run build && npm install -g .${NC}"
+    echo -e "${YELLOW}Manual installation / 手动安装:${NC}"
+    echo ""
+    echo -e "  ${GREEN}# International users:${NC}"
+    echo -e "  ${CYAN}git clone https://github.com/miounet11/ccjk.git${NC}"
+    echo -e "  ${CYAN}cd ccjk && npm install && npm run build && npm install -g .${NC}"
+    echo ""
+    echo -e "  ${GREEN}# 中国用户 (China users):${NC}"
+    echo -e "  ${CYAN}npm install -g ccjk --registry https://registry.npmmirror.com${NC}"
+    echo ""
     exit 1
 fi
 
