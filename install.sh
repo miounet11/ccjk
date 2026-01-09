@@ -102,7 +102,8 @@ check_npm_bin_locations() {
     )
 
     for loc in "${locations[@]}"; do
-        if [ -f "$loc" ]; then
+        # Use -e to detect symlinks too (npm creates symlinks)
+        if [ -e "$loc" ] || [ -L "$loc" ]; then
             echo "$loc"
             return 0
         fi
@@ -111,7 +112,7 @@ check_npm_bin_locations() {
     # Try npm prefix
     if command -v npm &> /dev/null; then
         local npm_bin="$(npm prefix -g 2>/dev/null)/bin/ccjk"
-        if [ -f "$npm_bin" ]; then
+        if [ -e "$npm_bin" ] || [ -L "$npm_bin" ]; then
             echo "$npm_bin"
             return 0
         fi
