@@ -265,14 +265,36 @@ else
     NPM_BIN_CHECK=$(npm prefix -g)/bin
     if ! command -v ccjk &> /dev/null; then
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${YELLOW}⚠️  IMPORTANT: You need to add npm to your PATH!${NC}"
+        echo -e "${YELLOW}⚠️  Auto-configuring PATH...${NC}"
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo ""
-        echo -e "${CYAN}Run these commands:${NC}"
+
+        # Auto-add to PATH
+        SHELL_RC=""
+        if [ -f "$HOME/.zshrc" ]; then
+            SHELL_RC="$HOME/.zshrc"
+        elif [ -f "$HOME/.bashrc" ]; then
+            SHELL_RC="$HOME/.bashrc"
+        elif [ -f "$HOME/.profile" ]; then
+            SHELL_RC="$HOME/.profile"
+        fi
+
+        if [ -n "$SHELL_RC" ]; then
+            # Check if already in rc file
+            if ! grep -q "$NPM_BIN_CHECK" "$SHELL_RC" 2>/dev/null; then
+                echo "" >> "$SHELL_RC"
+                echo "# Added by CCJK installer" >> "$SHELL_RC"
+                echo "export PATH=\"$NPM_BIN_CHECK:\$PATH\"" >> "$SHELL_RC"
+                echo -e "${GREEN}✓ Added PATH to $SHELL_RC${NC}"
+            else
+                echo -e "${GREEN}✓ PATH already configured in $SHELL_RC${NC}"
+            fi
+        fi
+
         echo ""
-        echo -e "  ${GREEN}echo 'export PATH=\"$NPM_BIN_CHECK:\$PATH\"' >> ~/.bashrc${NC}"
-        echo -e "  ${GREEN}source ~/.bashrc${NC}"
-        echo -e "  ${GREEN}ccjk${NC}"
+        echo -e "${CYAN}To use ccjk NOW, run one of these:${NC}"
+        echo ""
+        echo -e "  ${GREEN}source $SHELL_RC && ccjk${NC}"
         echo ""
         echo -e "${CYAN}Or run directly:${NC}"
         echo -e "  ${GREEN}$NPM_BIN_CHECK/ccjk${NC}"
