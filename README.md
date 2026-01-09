@@ -23,15 +23,16 @@
 
 <br/>
 
-## 🎉 v1.3.4 Released! (January 2025)
+## 🎉 v3.5.0 Released! (January 2025)
 
-> **🆕 Workflow System Upgrade**
-> - 🌟 **Interview-Driven Development (IDD)** - Now the recommended workflow!
-> - 📋 Streamlined workflow menu with 5 clear options
-> - 🔧 New essential workflow templates
-> - 🌐 Updated i18n support (EN/ZH-CN)
+> **🚀 Major Architecture Upgrade - Unified Template System**
+> - 🏗️ **Consolidated Templates** - Shared `templates/common/` for better code reuse
+> - 🔄 **Dual Code Tool Support** - Claude Code + Codex unified configuration
+> - ✨ **Enhanced sixStep Workflow** - User approval, timestamps, improved clarity
+> - 🛡️ **CCR Proxy Fix** - Removes ANTHROPIC_AUTH_TOKEN conflicts automatically
+> - 🌐 **4 Languages** - English, 中文, 日本語, 한국어
 >
-> **Previous: Complete Rebranding ZCF → CCJK**
+> **⭐ Star us on GitHub to support the project!**
 
 <br/>
 
