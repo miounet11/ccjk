@@ -138,6 +138,10 @@ pnpm install
 echo -e "${CYAN}Building...${NC}"
 pnpm build
 
+# Get npm global bin directory BEFORE installing
+NPM_GLOBAL_BIN=$(npm prefix -g)/bin
+echo -e "${CYAN}npm global bin:${NC} $NPM_GLOBAL_BIN"
+
 # Install globally using npm install -g . (simpler and more reliable)
 echo -e "${CYAN}Installing globally...${NC}"
 
@@ -147,36 +151,63 @@ npm uninstall -g ccjk 2>/dev/null || true
 # Install directly from the built directory
 npm install -g .
 
-# Cleanup the source directory
-cd /tmp
-rm -rf "$TEMP_DIR"
+# Check if installation created the binary
+CCJK_BIN="$NPM_GLOBAL_BIN/ccjk"
 
 echo ""
 
-# Get npm global bin directory and add to PATH for verification
-NPM_GLOBAL_BIN=$(npm prefix -g)/bin
-export PATH="$NPM_GLOBAL_BIN:$PATH"
+# Verify installation by checking if file exists
+if [ -f "$CCJK_BIN" ]; then
+    echo -e "${GREEN}✓ CCJK binary installed at:${NC} $CCJK_BIN"
 
-# Verify installation
-if [ -f "$NPM_GLOBAL_BIN/ccjk" ] || command -v ccjk &> /dev/null; then
-    CCJK_VERSION=$("$NPM_GLOBAL_BIN/ccjk" --version 2>/dev/null || ccjk --version 2>/dev/null || echo "installed")
+    # Try to get version
+    export PATH="$NPM_GLOBAL_BIN:$PATH"
+    CCJK_VERSION=$("$CCJK_BIN" --version 2>/dev/null || echo "installed")
     echo -e "${GREEN}✓ CCJK installed successfully!${NC} v$CCJK_VERSION"
 
     # Check if npm bin is in PATH
     if ! echo "$PATH" | grep -q "$NPM_GLOBAL_BIN"; then
         echo ""
-        echo -e "${YELLOW}Note: Add npm global bin to your PATH:${NC}"
-        echo -e "  export PATH=\"$NPM_GLOBAL_BIN:\$PATH\""
-        echo -e "  Add this line to your ~/.zshrc or ~/.bashrc"
+        echo -e "${YELLOW}⚠️  IMPORTANT: npm global bin is NOT in your PATH${NC}"
+        echo ""
+        echo -e "${CYAN}Add this to your shell config (~/.bashrc or ~/.zshrc):${NC}"
+        echo ""
+        echo -e "  ${GREEN}export PATH=\"$NPM_GLOBAL_BIN:\$PATH\"${NC}"
+        echo ""
+        echo -e "${CYAN}Then reload your shell:${NC}"
+        echo -e "  ${GREEN}source ~/.bashrc${NC}  # or source ~/.zshrc"
+        echo ""
+        echo -e "${CYAN}Or run ccjk directly:${NC}"
+        echo -e "  ${GREEN}$CCJK_BIN${NC}"
     fi
 else
-    echo -e "${RED}✗ Installation failed${NC}"
-    echo ""
-    echo -e "${YELLOW}Try cloning manually:${NC}"
-    echo -e "  git clone https://github.com/miounet11/ccjk.git"
-    echo -e "  cd ccjk && pnpm install && pnpm build && npm install -g ."
-    exit 1
+    # Check alternative locations
+    echo -e "${YELLOW}Checking alternative locations...${NC}"
+
+    # Try to find where npm installed it
+    NPM_ROOT=$(npm root -g)
+    if [ -f "$NPM_ROOT/ccjk/bin/ccjk.mjs" ]; then
+        echo -e "${GREEN}✓ Package installed at:${NC} $NPM_ROOT/ccjk"
+        echo -e "${YELLOW}Binary symlink may have failed. Creating manually...${NC}"
+
+        # Try to create symlink manually
+        ln -sf "$NPM_ROOT/ccjk/bin/ccjk.mjs" "$NPM_GLOBAL_BIN/ccjk" 2>/dev/null || {
+            echo -e "${YELLOW}Could not create symlink. Run ccjk with:${NC}"
+            echo -e "  ${GREEN}node $NPM_ROOT/ccjk/bin/ccjk.mjs${NC}"
+        }
+    else
+        echo -e "${RED}✗ Installation failed${NC}"
+        echo ""
+        echo -e "${YELLOW}Try cloning manually:${NC}"
+        echo -e "  git clone https://github.com/miounet11/ccjk.git"
+        echo -e "  cd ccjk && pnpm install && pnpm build && npm install -g ."
+        exit 1
+    fi
 fi
+
+# Cleanup the source directory
+cd /tmp
+rm -rf "$TEMP_DIR"
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"

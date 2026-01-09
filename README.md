@@ -23,6 +23,16 @@
 
 <br/>
 
+## 🎉 v1.3.1 Released! (January 2025)
+
+> **Complete Rebranding: ZCF → CCJK**
+> - 🔄 All references updated from ZCF to CCJK
+> - 🚀 New brand: **CCJK - Claude Code Jailbreak Kit**
+> - ⬆️ Existing users: Run `ccjk upgrade` to update!
+> - 🔧 Fixed install script version detection
+
+<br/>
+
 > 💡 **One command to supercharge your AI coding experience**
 >
 > ```bash
@@ -89,7 +99,7 @@ When you run `ccjk`, you'll see a friendly menu:
 ║   ██████╗ ██████╗     ██╗██╗  ██╗                         ║
 ║  ██╔════╝██╔════╝     ██║██║ ██╔╝                         ║
 ║  ██║     ██║          ██║█████╔╝   Claude Code JinKu     ║
-║  ██║     ██║     ██   ██║██╔═██╗   v1.0.0                ║
+║  ██║     ██║     ██   ██║██╔═██╗   v1.3.1                ║
 ║  ╚██████╗╚██████╗╚█████╔╝██║  ██╗                         ║
 ║   ╚═════╝ ╚═════╝ ╚════╝ ╚═╝  ╚═╝                         ║
 ╚═══════════════════════════════════════════════════════════╝
