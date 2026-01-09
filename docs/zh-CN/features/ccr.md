@@ -4,7 +4,7 @@ title: Claude Code Router (CCR)
 
 # Claude Code Router (CCR)
 
-[CCR](https://github.com/musistudio/claude-code-router/blob/main/README_zh.md)（Claude Code Router）是一个强大的代理路由器，可以实现多个 AI 模型的智能路由和成本优化。ZCF 内置完整的 CCR 管理能力，帮助您快速搭建高可用的 Claude Code 代理系统。
+[CCR](https://github.com/musistudio/claude-code-router/blob/main/README_zh.md)（Claude Code Router）是一个强大的代理路由器，可以实现多个 AI 模型的智能路由和成本优化。CCJK 内置完整的 CCR 管理能力，帮助您快速搭建高可用的 Claude Code 代理系统。
 
 ## 什么是 CCR
 

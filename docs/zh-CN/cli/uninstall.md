@@ -4,14 +4,14 @@ title: 卸载与清理
 
 # 卸载与清理
 
-`zcf uninstall` 提供安全的卸载流程，支持选择性卸载、完整卸载和冲突解决。适合需要重置环境、迁移设备或清理配置的场景。
+`ccjk uninstall` 提供安全的卸载流程，支持选择性卸载、完整卸载和冲突解决。适合需要重置环境、迁移设备或清理配置的场景。
 
 ## 功能概述
 
-`zcf uninstall` 命令支持：
+`ccjk uninstall` 命令支持：
 
 1. 🗑️ **选择性卸载**：选择性地删除特定组件
-2. 🔄 **完整卸载**：完全移除所有 ZCF 配置和工具
+2. 🔄 **完整卸载**：完全移除所有 CCJK 配置和工具
 3. 💾 **备份保留**：支持保留备份以便恢复
 4. 🔍 **冲突检测**：检测并解决文件冲突
 5. 🗂️ **回收站支持**：使用系统回收站安全删除（支持 macOS、Windows、Linux）
@@ -22,14 +22,14 @@ title: 卸载与清理
 
 ```bash
 # 打开交互式卸载菜单
-npx zcf uninstall
+npx ccjk uninstall
 
 # 或通过主菜单
-npx zcf
+npx ccjk
 # 然后选择相应的卸载选项
 ```
 
-交互式模式下，ZCF 会引导你：
+交互式模式下，CCJK 会引导你：
 
 1. 选择卸载模式（完整卸载或自定义卸载）
 2. 选择要卸载的组件（如果选择自定义）
@@ -38,18 +38,18 @@ npx zcf
 
 ### 完整卸载
 
-完全移除所有 ZCF 相关的配置和工具：
+完全移除所有 CCJK 相关的配置和工具：
 
 ```bash
 # 交互式完整卸载
-npx zcf uninstall
+npx ccjk uninstall
 # 然后选择 "完整卸载"
 
 # 非交互式完整卸载
-npx zcf uninstall --mode complete
+npx ccjk uninstall --mode complete
 
 # 指定语言
-npx zcf uninstall --mode complete --lang zh-CN
+npx ccjk uninstall --mode complete --lang zh-CN
 ```
 
 ### 自定义卸载
@@ -58,28 +58,28 @@ npx zcf uninstall --mode complete --lang zh-CN
 
 ```bash
 # 交互式自定义卸载
-npx zcf uninstall
+npx ccjk uninstall
 # 然后选择 "自定义卸载"，再选择要卸载的组件
 
 # 非交互式自定义卸载（逗号分隔）
-npx zcf uninstall --mode custom --items "ccr,backups,cometix"
+npx ccjk uninstall --mode custom --items "ccr,backups,cometix"
 
 # 使用数组格式（在代码中）
-npx zcf uninstall --mode custom --items '["ccr","backups"]'
+npx ccjk uninstall --mode custom --items '["ccr","backups"]'
 ```
 
 ## 卸载模式
 
 ### 完整卸载模式
 
-移除所有 ZCF 相关的配置和工具：
+移除所有 CCJK 相关的配置和工具：
 
 **会删除的内容**：
 - ✅ Claude Code 配置（`~/.claude/`）
 - ✅ Codex 配置（`~/.codex/`）
 - ✅ CCR 配置（`~/.claude-code-router/`）
 - ✅ CCometixLine 配置（`~/.cometix/`）
-- ✅ ZCF 全局配置（`~/.ufomiao/zcf/`）
+- ✅ CCJK 全局配置（`~/.ufomiao/ccjk/`）
 - ✅ 所有备份文件
 
 **不会删除的内容**：
@@ -98,17 +98,17 @@ npx zcf uninstall --mode custom --items '["ccr","backups"]'
 | `ccr` | Claude Code Router 配置 | `~/.claude-code-router/` |
 | `cometix` | CCometixLine 配置 | `~/.cometix/` |
 | `backups` | 所有备份文件 | `~/.claude/backup/`, `~/.codex/backup/` 等 |
-| `zcf-config` | ZCF 全局配置 | `~/.ufomiao/zcf/` |
+| `ccjk-config` | CCJK 全局配置 | `~/.ufomiao/ccjk/` |
 
 ```bash
 # 仅卸载 CCR
-npx zcf uninstall --mode custom --items ccr
+npx ccjk uninstall --mode custom --items ccr
 
 # 卸载多个组件
-npx zcf uninstall --mode custom --items "ccr,cometix,backups"
+npx ccjk uninstall --mode custom --items "ccr,cometix,backups"
 
 # 卸载所有备份（清理空间）
-npx zcf uninstall --mode custom --items backups
+npx ccjk uninstall --mode custom --items backups
 ```
 
 ## 常用参数
@@ -125,15 +125,15 @@ npx zcf uninstall --mode custom --items backups
 
 ```bash
 # 完整卸载并重新初始化
-npx zcf uninstall --mode complete
-npx zcf init
+npx ccjk uninstall --mode complete
+npx ccjk init
 ```
 
 ### 场景 2：清理备份文件
 
 ```bash
 # 仅清理备份以释放空间
-npx zcf uninstall --mode custom --items backups
+npx ccjk uninstall --mode custom --items backups
 ```
 
 ### 场景 3：迁移到新设备
@@ -145,27 +145,27 @@ cp -r ~/.claude ~/claude-backup
 cp -r ~/.codex ~/codex-backup
 
 # 2. 在新设备上初始化
-npx zcf init
+npx ccjk init
 
 # 3. 在旧设备上清理
-npx zcf uninstall --mode complete
+npx ccjk uninstall --mode complete
 ```
 
 ### 场景 4：仅移除特定工具
 
 ```bash
 # 仅卸载 CCR（保留其他配置）
-npx zcf uninstall --mode custom --items ccr
+npx ccjk uninstall --mode custom --items ccr
 
 # 仅卸载 CCometixLine
-npx zcf uninstall --mode custom --items cometix
+npx ccjk uninstall --mode custom --items cometix
 ```
 
 ## 备份机制
 
 ### 卸载前备份
 
-在执行卸载前，ZCF 会：
+在执行卸载前，CCJK 会：
 
 1. **创建卸载备份**：将配置备份到临时目录
 2. **记录备份位置**：显示备份位置以便恢复
@@ -229,8 +229,8 @@ tar -czf claude-backup.tar.gz ~/.claude/
 # 备份 Codex 配置
 tar -czf codex-backup.tar.gz ~/.codex/
 
-# 备份 ZCF 配置
-tar -czf zcf-backup.tar.gz ~/.ufomiao/zcf/
+# 备份 CCJK 配置
+tar -czf ccjk-backup.tar.gz ~/.ufomiao/ccjk/
 ```
 
 ### 2. 选择性卸载
@@ -239,10 +239,10 @@ tar -czf zcf-backup.tar.gz ~/.ufomiao/zcf/
 
 ```bash
 # 清理备份文件（释放空间）
-npx zcf uninstall --mode custom --items backups
+npx ccjk uninstall --mode custom --items backups
 
 # 清理特定工具的配置
-npx zcf uninstall --mode custom --items ccr
+npx ccjk uninstall --mode custom --items ccr
 ```
 
 ### 3. 团队环境
@@ -259,8 +259,8 @@ npx zcf uninstall --mode custom --items ccr
 
 ```bash
 # 快速重置测试环境
-npx zcf uninstall --mode complete
-npx zcf init -s -p 302ai -k "test-key" -g zh-CN
+npx ccjk uninstall --mode complete
+npx ccjk init -s -p 302ai -k "test-key" -g zh-CN
 ```
 
 ## 故障排除
@@ -293,7 +293,7 @@ lsof ~/.claude/  # macOS/Linux
 # 手动清理（谨慎使用）
 rm -rf ~/.claude/
 rm -rf ~/.codex/
-rm -rf ~/.ufomiao/zcf/
+rm -rf ~/.ufomiao/ccjk/
 ```
 
 ### 恢复备份失败
@@ -306,7 +306,7 @@ rm -rf ~/.ufomiao/zcf/
 
 ## 与其他操作的区别
 
-| 操作 | `zcf uninstall` | `zcf init --config-action new` |
+| 操作 | `ccjk uninstall` | `ccjk init --config-action new` |
 |------|----------------|-------------------------------|
 | **目的** | 完全移除配置 | 重新创建配置 |
 | **删除内容** | 删除所有配置和工具 | 仅重置配置，保留工具 |
@@ -314,13 +314,13 @@ rm -rf ~/.ufomiao/zcf/
 | **恢复** | 手动恢复备份 | 自动保留旧配置 |
 
 > 💡 **建议**：
-> - 需要完全清理环境时，使用 `zcf uninstall`
-> - 需要重置配置但保留工具时，使用 `zcf init --config-action new`
+> - 需要完全清理环境时，使用 `ccjk uninstall`
+> - 需要重置配置但保留工具时，使用 `ccjk init --config-action new`
 
 ## 相关资源
 
-- [zcf init](init.md) - 重新初始化环境
+- [ccjk init](init.md) - 重新初始化环境
 - [配置管理](../features/multi-config.md) - 备份和恢复机制
 - [故障排除](../advanced/troubleshooting.md) - 常见问题解决
 
-> ⚠️ **警告**：卸载操作不可逆，请在执行前确保已备份重要配置。如果只是需要重置部分配置，建议使用 `zcf init` 的 `--config-action` 选项而非完全卸载。
+> ⚠️ **警告**：卸载操作不可逆，请在执行前确保已备份重要配置。如果只是需要重置部分配置，建议使用 `ccjk init` 的 `--config-action` 选项而非完全卸载。

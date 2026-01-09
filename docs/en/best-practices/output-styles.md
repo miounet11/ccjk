@@ -23,13 +23,13 @@ Specify styles to install via `--output-styles` parameter during initialization:
 
 ```bash
 # Install all output styles
-npx zcf init -o all
+npx ccjk init -o all
 
 # Install specific styles
-npx zcf init -o engineer-professional,nekomata-engineer
+npx ccjk init -o engineer-professional,nekomata-engineer
 
 # Skip output style installation
-npx zcf init -o skip
+npx ccjk init -o skip
 ```
 
 ### Switch Output Style
@@ -37,7 +37,7 @@ npx zcf init -o skip
 #### Switch in Main Menu
 
 ```bash
-npx zcf
+npx ccjk
 # Select 6 (Configure AI Memory & Output Style)
 # Then select output style management
 ```
@@ -76,7 +76,7 @@ vim ~/.claude/prompts/output-style/my-custom-style.md
   <p>Tsundere <a href="https://github.com/Haleclipse">Halley-chan</a> Ojou-sama (￣▽￣)ゞ</p>
 </div>
 
-ZCF provides the following pre-configured output styles:
+CCJK provides the following pre-configured output styles:
 
 | Style ID | Name | Features | Use Case |
 |---------|------|------|---------|
@@ -234,7 +234,7 @@ You are a professional full-stack engineer, focusing on:
 3. **Use Custom Style**:
 ```bash
 # Set default style
-npx zcf
+npx ccjk
 # Select 6, then select my-style
 
 # Or use in project
@@ -330,7 +330,7 @@ This style defines our team's development standards and quality standards.
 ### Claude Code Version Requirements
 
 - ⚠️ **Version Requirement**: Claude Code version must be > 1.0.81 to support output styles
-- ✅ **Check Version**: Use `npx zcf check-updates` to check and update
+- ✅ **Check Version**: Use `npx ccjk check-updates` to check and update
 - 📝 **Migration Note**: Global memory rules from old versions have been migrated to `engineer-professional` style
 
 ### Style File Locations

@@ -72,7 +72,7 @@ describe('i18next Setup', () => {
     it('should support interpolation', () => {
       // Test with goodbye message which contains Chinese text
       const result = i18n.t('common:goodbye')
-      expect(result).toContain('感谢使用 ZCF')
+      expect(result).toContain('感谢使用 CCJK')
     })
 
     it('should switch languages correctly', async () => {

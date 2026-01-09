@@ -275,7 +275,7 @@ describe('codexUninstaller', () => {
 
   describe('removeApiConfig', () => {
     it('should successfully remove API configuration from TOML file', async () => {
-      const tomlContent = `# Managed by ZCF
+      const tomlContent = `# Managed by CCJK
 model_provider = "custom-provider"
 
 [model_providers.custom-provider]

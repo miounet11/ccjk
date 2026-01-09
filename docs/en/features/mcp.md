@@ -141,10 +141,10 @@ Serena provides IDE-like semantic code search and editing capabilities:
 
 ### Interactive Installation
 
-Select MCP services to install through ZCF menu:
+Select MCP services to install through CCJK menu:
 
 ```bash
-npx zcf
+npx ccjk
 # Select 4. Configure MCP
 ```
 
@@ -157,13 +157,13 @@ In the interactive interface, you can:
 
 ```bash
 # Install all MCP services (recommended)
-npx zcf i -s --mcp-services all
+npx ccjk i -s --mcp-services all
 
 # Selective installation
-npx zcf i -s --mcp-services context7,open-websearch,spec-workflow
+npx ccjk i -s --mcp-services context7,open-websearch,spec-workflow
 
 # Skip MCP service installation
-npx zcf i -s --mcp-services skip
+npx ccjk i -s --mcp-services skip
 ```
 
 ### Environment Variable Configuration
@@ -178,7 +178,7 @@ export EXA_API_KEY="your-exa-api-key"
 echo 'export EXA_API_KEY="your-exa-api-key"' >> ~/.bashrc
 ```
 
-> 💡 **Tip**: Environment variables can be imported through ZCF menu option `7` to import recommended environment variable configurations.
+> 💡 **Tip**: Environment variables can be imported through CCJK menu option `7` to import recommended environment variable configurations.
 
 ## Configuration File Locations
 
@@ -227,7 +227,7 @@ ZCF automatically corrects Windows path formats to ensure MCP services run norma
 - Correct path separators and escape characters
 - Use `cmd /c npx` format to ensure command execution
 
-> 💡 **Tip**: If you encounter MCP connection issues on Windows, running `npx zcf` will automatically fix the configuration format.
+> 💡 **Tip**: If you encounter MCP connection issues on Windows, running `npx ccjk` will automatically fix the configuration format.
 
 ### WSL and Termux
 
@@ -240,26 +240,26 @@ ZCF fully supports WSL and Termux environments, and MCP services can work normal
 If you need to reconfigure MCP services:
 
 ```bash
-npx zcf
+npx ccjk
 # Select 4. Configure MCP
 ```
 
 ### Add New Services
 
-If you manually added new MCP services, ZCF will intelligently merge configurations:
+If you manually added new MCP services, CCJK will intelligently merge configurations:
 
 ```bash
 # Execute incremental update
-npx zcf i
+npx ccjk i
 # Select "Merge Configuration" strategy
 ```
 
 ### Remove Services
 
-Manually remove services from configuration files, or reconfigure through ZCF menu:
+Manually remove services from configuration files, or reconfigure through CCJK menu:
 
 ```bash
-npx zcf
+npx ccjk
 # Select 4. Configure MCP
 # Uncheck services you don't need
 ```
@@ -299,7 +299,7 @@ Query the documentation for TypeScript official repository
 
 **Solution**:
 1. Check if service is correctly installed: `npm list -g | grep <service-name>`
-2. Reconfigure service: `npx zcf` → `4`
+2. Reconfigure service: `npx ccjk` → `4`
 3. Check if configuration file format is correct
 
 ### API Key Error
@@ -317,15 +317,15 @@ Query the documentation for TypeScript official repository
 
 **Solution**:
 ```bash
-npx zcf
+npx ccjk
 # Select 4. Configure MCP
-# ZCF will automatically fix Windows path format
+# CCJK will automatically fix Windows path format
 ```
 
 ## Best Practices
 
 1. **Install on Demand**: Only install MCP services you actually need to reduce resource consumption
-2. **Regular Updates**: Update MCP service configurations through `npx zcf update`
+2. **Regular Updates**: Update MCP service configurations through `npx ccjk update`
 3. **Environment Variable Management**: Use `.env` files or system environment variables to manage API Keys
 4. **Test Verification**: Test each service's functionality after installation to ensure normal operation
 

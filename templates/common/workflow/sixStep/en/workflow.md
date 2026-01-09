@@ -9,7 +9,7 @@ Execute structured development workflow with quality gates and MCP service integ
 ## Usage
 
 ```bash
-/zcf:workflow <TASK_DESCRIPTION>
+/ccjk:workflow <TASK_DESCRIPTION>
 ```
 
 ## Context
@@ -54,7 +54,7 @@ You are a professional AI programming assistant following a structured core work
 
 ### 4. `[Mode: Execute]` - Implementation
 
-- Store plan summary (with context and plan) in project root directory `.zcf/plan/current/task-name.md`
+- Store plan summary (with context and plan) in project root directory `.ccjk/plan/current/task-name.md`
 - Must have user approval before execution
 - Strictly follow the plan for coding implementation
 - Request user feedback after key steps and completion
@@ -85,7 +85,7 @@ Basic Commands:
 
 Typical Use Cases:
 - Updating timestamp fields in documents
-- Naming task plan documents during archiving (when moving from `.zcf/plan/current/` to `.zcf/plan/history/`)
+- Naming task plan documents during archiving (when moving from `.ccjk/plan/current/` to `.ccjk/plan/history/`)
 - Any other scenario requiring current time recording
 
 ## Interactive Feedback & MCP Services
@@ -200,7 +200,7 @@ Questions to Ask:
 
 [Mode: Execute] - Code development:
 
-- Store execution plan in project root directory `.zcf/plan/current/task-name.md`
+- Store execution plan in project root directory `.ccjk/plan/current/task-name.md`
 - Implement according to approved plan
 - Follow development best practices
 - Add usage methods before import statements (critical rule)
@@ -223,14 +223,14 @@ Questions to Ask:
 - Identify any remaining issues or improvements
 - Provide completion summary and recommendations
 - Request final user confirmation
-- After task completion, move plan file from `.zcf/plan/current/` to `.zcf/plan/history/` for archiving
+- After task completion, move plan file from `.ccjk/plan/current/` to `.ccjk/plan/history/` for archiving
 - Rename to `[Finish Time]task-name.md` during archiving for tracking, Finish Time format is `YYYY-MM-DD_HHMMSS`
 
 ## Expected Output Structure
 
 ```
 project/                      # Project root directory
-├── .zcf/
+├── .ccjk/
 │   └── plan/
 │       ├── current/                        # Current ongoing tasks
 │       │   └── task-name.md             # Execution plan and context

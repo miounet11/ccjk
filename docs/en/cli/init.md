@@ -1,14 +1,14 @@
 ---
-title: zcf init
+title: ccjk init
 ---
 
-# zcf init
+# ccjk init
 
-`zcf init` (abbreviation `zcf i`) is ZCF's core command for complete initialization of Claude Code or Codex environment. It automatically installs necessary tools, configures API, sets up MCP services, imports workflows and output styles, etc.
+`ccjk init` (abbreviation `ccjk i`) is ZCF's core command for complete initialization of Claude Code or Codex environment. It automatically installs necessary tools, configures API, sets up MCP services, imports workflows and output styles, etc.
 
 ## Feature Overview
 
-The `zcf init` command performs the following operations:
+The `ccjk init` command performs the following operations:
 
 1. 📦 **Install Code Tools**: Automatically detect and install Claude Code or Codex CLI
 2. 🔑 **Configure API**: Set API keys, authentication methods, models, etc.
@@ -25,17 +25,17 @@ The `zcf init` command performs the following operations:
 
 ```bash
 # Open interactive initialization wizard
-npx zcf init
+npx ccjk init
 
 # Or use abbreviation
-npx zcf i
+npx ccjk i
 
 # Or through main menu
-npx zcf
+npx ccjk
 # Then select 1 (Complete Initialization)
 ```
 
-In interactive mode, ZCF will guide you step by step:
+In interactive mode, CCJK will guide you step by step:
 
 1. Select code tool type (Claude Code or Codex)
 2. Select configuration handling method (if configuration exists)
@@ -51,10 +51,10 @@ Suitable for automation scripts, CI/CD, or batch deployment:
 
 ```bash
 # Use API provider preset (simplest)
-npx zcf i -s -p 302ai -k "sk-xxx"
+npx ccjk i -s -p 302ai -k "sk-xxx"
 
 # Complete parameter example
-npx zcf i -s \
+npx ccjk i -s \
   --provider 302ai \
   --api-key "sk-xxx" \
   --code-type claude-code \
@@ -72,7 +72,7 @@ npx zcf i -s \
 | Parameter | Abbreviation | Description | Optional Values | Default |
 |------|------|------|--------|--------|
 | `--all-lang, -g` | `-g` | Set all language parameters uniformly | `zh-CN`, `en`, custom string | User preference or `en` |
-| `--lang, -l` | `-l` | ZCF interface display language | `zh-CN`, `en` | User preference or `en` |
+| `--lang, -l` | `-l` | CCJK interface display language | `zh-CN`, `en` | User preference or `en` |
 | `--config-lang, -c` | `-c` | Template file language | `zh-CN`, `en` | `en` |
 | `--ai-output-lang, -a` | `-a` | AI assistant output language | `zh-CN`, `en`, custom string | `en` |
 
@@ -92,13 +92,13 @@ npx zcf i -s \
 
 ```bash
 # Initialize Claude Code (default)
-npx zcf i
+npx ccjk i
 
 # Initialize Codex
-npx zcf i -T codex
+npx ccjk i -T codex
 
 # Use abbreviation
-npx zcf i -T cx
+npx ccjk i -T cx
 ```
 
 ### API Configuration Parameters
@@ -113,19 +113,19 @@ ZCF supports API provider presets, which can greatly simplify configuration:
 
 ```bash
 # Use 302.AI provider
-npx zcf i -s -p 302ai -k "sk-xxx"
+npx ccjk i -s -p 302ai -k "sk-xxx"
 
 # Use GLM provider
-npx zcf i -s -p glm -k "sk-xxx"
+npx ccjk i -s -p glm -k "sk-xxx"
 
 # Use MiniMax provider
-npx zcf i -s -p minimax -k "sk-xxx"
+npx ccjk i -s -p minimax -k "sk-xxx"
 
 # Use Kimi provider
-npx zcf i -s -p kimi -k "sk-xxx"
+npx ccjk i -s -p kimi -k "sk-xxx"
 
 # Use custom provider (requires URL)
-npx zcf i -s -p custom -k "sk-xxx" -u "https://api.example.com"
+npx ccjk i -s -p custom -k "sk-xxx" -u "https://api.example.com"
 ```
 
 #### Traditional API Configuration Parameters
@@ -142,19 +142,19 @@ npx zcf i -s -p custom -k "sk-xxx" -u "https://api.example.com"
 
 ```bash
 # Use API Key
-npx zcf i -s -t api_key -k "sk-ant-xxx"
+npx ccjk i -s -t api_key -k "sk-ant-xxx"
 
 # Use Auth Token (official login)
-npx zcf i -s -t auth_token -k "your-auth-token"
+npx ccjk i -s -t auth_token -k "your-auth-token"
 
 # Use CCR proxy
-npx zcf i -s -t ccr_proxy
+npx ccjk i -s -t ccr_proxy
 
 # Skip API configuration
-npx zcf i -s -t skip
+npx ccjk i -s -t skip
 
 # Configure custom models
-npx zcf i -s -t api_key -k "sk-xxx" -M "claude-sonnet-4-5" -H "claude-haiku-4-5" -S "claude-sonnet-4-5" -O "claude-opus-4-5"
+npx ccjk i -s -t api_key -k "sk-xxx" -M "claude-sonnet-4-5" -H "claude-haiku-4-5" -S "claude-sonnet-4-5" -O "claude-opus-4-5"
 ```
 
 #### Multiple API Configuration
@@ -163,7 +163,7 @@ Supports configuring multiple APIs simultaneously for easy switching:
 
 ```bash
 # Use JSON string
-npx zcf i -s --api-configs '[
+npx ccjk i -s --api-configs '[
   {
     "provider": "302ai",
     "key": "sk-xxx",
@@ -186,7 +186,7 @@ npx zcf i -s --api-configs '[
 ]'
 
 # Use JSON file
-npx zcf i -s --api-configs-file ./api-configs.json
+npx ccjk i -s --api-configs-file ./api-configs.json
 ```
 
 ### MCP Service Configuration
@@ -197,13 +197,13 @@ npx zcf i -s --api-configs-file ./api-configs.json
 
 ```bash
 # Install all MCP services
-npx zcf i -s -m all
+npx ccjk i -s -m all
 
 # Install specific services (comma-separated)
-npx zcf i -s -m context7,open-websearch,spec-workflow
+npx ccjk i -s -m context7,open-websearch,spec-workflow
 
 # Skip MCP service installation
-npx zcf i -s -m skip
+npx ccjk i -s -m skip
 ```
 
 ### Workflow Configuration
@@ -214,13 +214,13 @@ npx zcf i -s -m skip
 
 ```bash
 # Install all workflows
-npx zcf i -s -w all
+npx ccjk i -s -w all
 
 # Install specific workflows
-npx zcf i -s -w sixStepsWorkflow,gitWorkflow
+npx ccjk i -s -w sixStepsWorkflow,gitWorkflow
 
 # Skip workflow installation
-npx zcf i -s -w skip
+npx ccjk i -s -w skip
 ```
 
 > ⚠️ **Note**: Codex currently only supports `sixStepsWorkflow` and `gitWorkflow`. Other workflows are not yet available in Codex.
@@ -234,16 +234,16 @@ npx zcf i -s -w skip
 
 ```bash
 # Install all output styles
-npx zcf i -s -o all
+npx ccjk i -s -o all
 
 # Install specific styles
-npx zcf i -s -o engineer-professional,nekomata-engineer
+npx ccjk i -s -o engineer-professional,nekomata-engineer
 
 # Set default output style
-npx zcf i -s -o all -d engineer-professional
+npx ccjk i -s -o all -d engineer-professional
 
 # Skip output style installation
-npx zcf i -s -o skip
+npx ccjk i -s -o skip
 ```
 
 ### Other Configuration Options
@@ -256,18 +256,18 @@ npx zcf i -s -o skip
 
 ```bash
 # Non-interactive mode
-npx zcf i -s -p 302ai -k "sk-xxx"
+npx ccjk i -s -p 302ai -k "sk-xxx"
 
 # Configuration handling method
-npx zcf i -s --config-action backup  # Backup then overwrite (default)
-npx zcf i -s --config-action merge   # Merge configuration
-npx zcf i -s --config-action new     # Create new configuration
-npx zcf i -s --config-action docs-only  # Only update documents
-npx zcf i -s --config-action skip    # Skip configuration
+npx ccjk i -s --config-action backup  # Backup then overwrite (default)
+npx ccjk i -s --config-action merge   # Merge configuration
+npx ccjk i -s --config-action new     # Create new configuration
+npx ccjk i -s --config-action docs-only  # Only update documents
+npx ccjk i -s --config-action skip    # Skip configuration
 
 # Control CCometixLine installation
-npx zcf i -s -x true   # Install (default)
-npx zcf i -s -x false  # Don't install
+npx ccjk i -s -x true   # Install (default)
+npx ccjk i -s -x false  # Don't install
 ```
 
 ## Complete Examples
@@ -276,23 +276,23 @@ npx zcf i -s -x false  # Don't install
 
 ```bash
 # Interactive initialization (recommended for first-time use)
-npx zcf init
+npx ccjk init
 
 # Or use main menu
-npx zcf
+npx ccjk
 # Select 1 (Complete Initialization)
 ```
 
 ### Scenario 2: Quick Initialization with 302.AI Provider
 
 ```bash
-npx zcf i -s -p 302ai -k "sk-xxx" -g zh-CN
+npx ccjk i -s -p 302ai -k "sk-xxx" -g zh-CN
 ```
 
 ### Scenario 3: Complete Codex Initialization
 
 ```bash
-npx zcf i -s \
+npx ccjk i -s \
   -T codex \
   -p 302ai \
   -k "sk-xxx" \
@@ -327,24 +327,24 @@ cat > api-configs.json << EOF
 EOF
 
 # Initialize using configuration file
-npx zcf i -s --api-configs-file ./api-configs.json -g zh-CN
+npx ccjk i -s --api-configs-file ./api-configs.json -g zh-CN
 ```
 
 ### Scenario 5: Only Update Documents and Templates
 
 ```bash
-npx zcf i -s --config-action docs-only -g zh-CN
+npx ccjk i -s --config-action docs-only -g zh-CN
 ```
 
 ### Scenario 6: Use CCR Proxy
 
 ```bash
-npx zcf i -s -t ccr_proxy -g zh-CN -m all -w all
+npx ccjk i -s -t ccr_proxy -g zh-CN -m all -w all
 ```
 
 ## Configuration Handling Strategies
 
-When existing configuration is detected, ZCF will ask for handling strategy:
+When existing configuration is detected, CCJK will ask for handling strategy:
 
 | Strategy | Description | Use Case |
 |------|------|---------|
@@ -356,9 +356,9 @@ When existing configuration is detected, ZCF will ask for handling strategy:
 
 ## Execution Flow
 
-The execution flow of `zcf init` is as follows:
+The execution flow of `ccjk init` is as follows:
 
-1. **Display Banner**: Display ZCF version information and tool type
+1. **Display Banner**: Display CCJK version information and tool type
 2. **Parse Language Preferences**: Set i18n language based on parameters
 3. **Validate Parameters**: Check parameter validity and mutual exclusivity
 4. **Select Code Tool**: Determine whether it's Claude Code or Codex
@@ -368,7 +368,7 @@ The execution flow of `zcf init` is as follows:
 8. **Import Workflows**: Install workflow templates
 9. **Configure Output Styles**: Set AI output styles
 10. **Install Status Bar**: Optionally install CCometixLine
-11. **Save Preferences**: Update ZCF global configuration
+11. **Save Preferences**: Update CCJK global configuration
 
 ## Troubleshooting
 
@@ -413,7 +413,7 @@ If workflows are not imported:
 
 ```bash
 # Re-import workflows
-npx zcf update
+npx ccjk update
 
 # Check workflow directories
 ls -la ~/.claude/workflows/

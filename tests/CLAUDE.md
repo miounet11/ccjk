@@ -5,7 +5,7 @@
 
 ## Module Responsibilities
 
-Test suite module providing comprehensive test coverage for the ZCF project, including unit tests, integration tests, edge tests, and template validation tests.
+Test suite module providing comprehensive test coverage for the CCJK project, including unit tests, integration tests, edge tests, and template validation tests.
 
 ## Entry Points and Startup
 

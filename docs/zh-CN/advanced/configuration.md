@@ -4,11 +4,11 @@ title: 配置管理
 
 # 配置管理
 
-ZCF 提供完善的配置管理系统，支持增量管理、备份策略和灵活的配置切换。了解配置系统的结构和机制，可以帮助您更好地管理和维护开发环境。
+CCJK 提供完善的配置管理系统，支持增量管理、备份策略和灵活的配置切换。了解配置系统的结构和机制，可以帮助您更好地管理和维护开发环境。
 
 ## 目录结构概览
 
-ZCF 的配置分布在以下目录：
+CCJK 的配置分布在以下目录：
 
 ### 主要配置目录
 
@@ -16,7 +16,7 @@ ZCF 的配置分布在以下目录：
 |------|------|---------|
 | `~/.claude/` | Claude Code 主配置目录 | `settings.json`, `CLAUDE.md`, `prompts/`, `workflows/` |
 | `~/.codex/` | Codex 主配置目录 | `config.toml`, `auth.json`, `prompts/`, `AGENTS.md` |
-| `~/.ufomiao/zcf/` | ZCF 全局配置目录 | `config.toml` |
+| `~/.ufomiao/ccjk/` | CCJK 全局配置目录 | `config.toml` |
 | `~/.claude-code-router/` | CCR 配置目录 | `config.json` |
 | `~/.claude/backup/` | Claude Code 备份目录 | 时间戳备份文件 |
 | `~/.codex/backup/` | Codex 备份目录 | 时间戳备份文件 |
@@ -33,7 +33,7 @@ ZCF 的配置分布在以下目录：
 │   ├── output-style/      # 输出风格模板
 │   └── memory/            # 记忆模板
 └── workflows/             # 工作流目录
-    ├── zcf-workflow/      # 六阶段工作流
+    ├── ccjk-workflow/      # 六阶段工作流
     ├── feat/              # 功能开发工作流
     ├── git/               # Git 工作流
     └── bmad/              # BMad 工作流
@@ -51,21 +51,21 @@ ZCF 的配置分布在以下目录：
 └── system-prompt/         # 系统提示模板
 ```
 
-#### ZCF 全局配置
+#### CCJK 全局配置
 
 ```
-~/.ufomiao/zcf/
-├── config.toml            # ZCF 全局配置（TOML 格式）
+~/.ufomiao/ccjk/
+├── config.toml            # CCJK 全局配置（TOML 格式）
 │   ├── preferredLang      # CLI 语言偏好
 │   ├── templateLang       # 模板语言偏好
 │   ├── aiOutputLang       # AI 输出语言偏好
 │   └── codeToolType       # 当前活动工具类型
-└── backup/                # ZCF 配置备份
+└── backup/                # CCJK 配置备份
 ```
 
 ## 增量管理模式
 
-当 ZCF 检测到已有配置时，会询问操作策略。
+当 CCJK 检测到已有配置时，会询问操作策略。
 
 ### 配置处理策略
 
@@ -79,17 +79,17 @@ ZCF 的配置分布在以下目录：
 
 ### 自动策略应用
 
-在非交互模式下（`--skip-prompt`），ZCF 会自动应用默认策略：
+在非交互模式下（`--skip-prompt`），CCJK 会自动应用默认策略：
 
 - 默认策略：`backup`
 - 可以通过 `--config-action` 参数指定策略
 
 ```bash
 # 指定配置处理策略
-npx zcf init -s --config-action merge
+npx ccjk init -s --config-action merge
 
 # 仅更新文档
-npx zcf init -s --config-action docs-only
+npx ccjk init -s --config-action docs-only
 ```
 
 ### 合并策略详解
@@ -105,7 +105,7 @@ npx zcf init -s --config-action docs-only
 
 ### 四模型架构
 
-ZCF 采用四模型架构,提供细粒度的 AI 模型选择控制:
+CCJK 采用四模型架构,提供细粒度的 AI 模型选择控制:
 
 | 模型类型 | 环境变量 | 默认值 | 用途 |
 |---------|---------|-------|------|
@@ -120,7 +120,7 @@ ZCF 采用四模型架构,提供细粒度的 AI 模型选择控制:
 
 ```bash
 # 配置全部四个模型
-npx zcf i -s \
+npx ccjk i -s \
   --api-key "sk-xxx" \
   --api-model "claude-sonnet-4-5" \
   --api-haiku-model "claude-haiku-4-5" \
@@ -201,7 +201,7 @@ npx zcf i -s \
 使用 `custom` 选项可以输入自定义语言指令：
 
 ```bash
-npx zcf init --ai-output-lang custom
+npx ccjk init --ai-output-lang custom
 # 输入：使用日语回复，保持专业和礼貌的语调
 ```
 
@@ -223,7 +223,7 @@ npx zcf init --ai-output-lang custom
 `resolveTemplateLanguage` 函数会综合以下因素确定模板语言：
 
 1. **命令行参数**：`--config-lang` 或 `--all-lang`
-2. **配置文件**：`~/.ufomiao/zcf/config.toml` 中的 `templateLang`
+2. **配置文件**：`~/.ufomiao/ccjk/config.toml` 中的 `templateLang`
 3. **交互输入**：如果没有指定，会提示用户选择
 4. **系统默认**：最后回退到 `en`
 
@@ -233,10 +233,10 @@ npx zcf init --ai-output-lang custom
 
 ```bash
 # 中文模板 + 英文输出（适合需要英文代码注释）
-npx zcf init --config-lang zh-CN --ai-output-lang en
+npx ccjk init --config-lang zh-CN --ai-output-lang en
 
 # 英文模板 + 中文输出（适合国际化团队）
-npx zcf init --config-lang en --ai-output-lang zh-CN
+npx ccjk init --config-lang en --ai-output-lang zh-CN
 ```
 
 ### 模板语言作用
@@ -256,8 +256,8 @@ npx zcf init --config-lang en --ai-output-lang zh-CN
 
 ```bash
 # 创建配置仓库
-mkdir ~/zcf-configs
-cd ~/zcf-configs
+mkdir ~/ccjk-configs
+cd ~/ccjk-configs
 git init
 
 # 添加配置文件（注意排除敏感信息）
@@ -270,12 +270,12 @@ EOF
 
 # 添加模板和工作流（不含敏感信息）
 git add prompts/ workflows/ templates/
-git commit -m "Add ZCF templates and workflows"
+git commit -m "Add CCJK templates and workflows"
 ```
 
 ### 对比差异
 
-在执行 `zcf update` 前后对比差异：
+在执行 `ccjk update` 前后对比差异：
 
 ```bash
 # 更新前
@@ -283,7 +283,7 @@ git add ~/.claude/
 git commit -m "Before update"
 
 # 执行更新
-npx zcf update
+npx ccjk update
 
 # 查看差异
 git diff ~/.claude/
@@ -329,8 +329,8 @@ cp ~/.claude/backup/backup_*/workflows/custom/my-workflow.md ~/.claude/workflows
 
 ```bash
 # 方法 1：使用 Git
-git clone ~/zcf-configs
-cp -r zcf-configs/templates/* ~/.claude/workflows/
+git clone ~/ccjk-configs
+cp -r ccjk-configs/templates/* ~/.claude/workflows/
 
 # 方法 2：使用云存储
 rsync -av ~/.claude/workflows/ ~/Cloud/.claude/workflows/
@@ -365,14 +365,14 @@ ls -la ~/.claude/workflows/
 
 ### 从旧版本迁移
 
-如果从旧版本 ZCF 升级：
+如果从旧版本 CCJK 升级：
 
 ```bash
-# ZCF 会自动检测并迁移配置
-npx zcf init
+# CCJK 会自动检测并迁移配置
+npx ccjk init
 
 # 或手动检查迁移
-cat ~/.ufomiao/zcf/config.toml
+cat ~/.ufomiao/ccjk/config.toml
 # 检查是否有迁移提示
 ```
 
@@ -385,7 +385,7 @@ cat ~/.ufomiao/zcf/config.toml
 cp -r ~/.claude ~/.claude.backup
 
 # 2. 初始化 Codex
-npx zcf init -T codex
+npx ccjk init -T codex
 
 # 3. 手动迁移工作流和模板（如果需要）
 # 注意：Claude Code 和 Codex 的模板格式可能不同
@@ -399,14 +399,14 @@ npx zcf init -T codex
 
 ```bash
 # 1. 查看冲突详情
-npx zcf init
+npx ccjk init
 # 选择 merge 策略时查看冲突提示
 
 # 2. 手动合并配置
 # 编辑配置文件，手动合并冲突项
 
 # 3. 使用 backup 策略重新开始
-npx zcf init --config-action backup
+npx ccjk init --config-action backup
 ```
 
 ### 配置丢失
@@ -421,7 +421,7 @@ ls -lt ~/.claude/backup/ | head -5
 cp -r ~/.claude/backup/backup_最新时间戳/* ~/.claude/
 
 # 3. 重新初始化（如果备份不可用）
-npx zcf init --config-action new
+npx ccjk init --config-action new
 ```
 
 ### 配置文件损坏
@@ -436,7 +436,7 @@ cat ~/.claude/settings.json | jq .
 cp ~/.claude/backup/backup_*/settings.json ~/.claude/
 
 # 3. 或重新初始化
-npx zcf init --config-action new
+npx ccjk init --config-action new
 ```
 
 ## 相关资源

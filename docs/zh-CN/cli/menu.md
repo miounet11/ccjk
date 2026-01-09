@@ -4,7 +4,7 @@ title: 主菜单
 
 # 主菜单
 
-执行 `npx zcf` 会进入交互式菜单系统。菜单是 ZCF 的核心交互界面，提供可视化的操作选项，无需记忆复杂的命令参数。
+执行 `npx ccjk` 会进入交互式菜单系统。菜单是 CCJK 的核心交互界面，提供可视化的操作选项，无需记忆复杂的命令参数。
 
 ## 菜单特点
 
@@ -17,20 +17,20 @@ title: 主菜单
 
 | 选项 | 功能 | 对应命令 | 说明 |
 |------|------|---------|------|
-| `1` | 完整初始化 | `zcf init` | 完整初始化 Claude Code 环境 |
-| `2` | 导入/更新工作流 | `zcf update` | 更新工作流模板和提示词 |
+| `1` | 完整初始化 | `ccjk init` | 完整初始化 Claude Code 环境 |
+| `2` | 导入/更新工作流 | `ccjk update` | 更新工作流模板和提示词 |
 | `3` | 配置 API 或 CCR | - | 配置 API 密钥、提供商或 CCR 代理 |
 | `4` | 配置 MCP 服务 | - | 安装和配置 MCP 服务 |
 | `5` | 配置默认模型 | - | 设置默认使用的 Claude 模型 |
 | `6` | 配置 AI 记忆与输出风格 | - | 设置 AI 输出语言和全局输出风格 |
 | `7` | 导入推荐环境变量与权限 | - | 配置环境变量和文件系统权限 |
-| `R` | CCR 管理菜单 | `zcf ccr` | Claude Code Router 管理 |
-| `U` | Claude Code 使用分析 | `zcf ccu` | 查看 API 使用统计 |
+| `R` | CCR 管理菜单 | `ccjk ccr` | Claude Code Router 管理 |
+| `U` | Claude Code 使用分析 | `ccjk ccu` | 查看 API 使用统计 |
 | `L` | CCometixLine 管理 | - | 状态栏工具管理 |
 | `0` | 切换脚本语言 | - | 切换 CLI 界面语言（zh-CN/en） |
 | `S` | 切换代码工具 | - | 在 Claude Code ↔ Codex 之间切换 |
-| `-` | 卸载当前工具配置 | `zcf uninstall` | 卸载 Claude Code 配置 |
-| `+` | 检查更新 | `zcf check-updates` | 检查工具版本并更新 |
+| `-` | 卸载当前工具配置 | `ccjk uninstall` | 卸载 Claude Code 配置 |
+| `+` | 检查更新 | `ccjk check-updates` | 检查工具版本并更新 |
 | `Q` | 退出 | - | 退出菜单 |
 
 ## Codex 模式菜单
@@ -53,7 +53,7 @@ Codex 模式下的菜单会调整为 Codex 对应的操作：
 菜单支持快速输入，无需按确认键：
 
 ```bash
-npx zcf
+npx ccjk
 # 输入 1 然后回车，直接进入完整初始化
 # 输入 R 然后回车，直接进入 CCR 管理
 ```
@@ -63,7 +63,7 @@ npx zcf
 如果输入无效字符，CLI 会提示重新输入：
 
 ```bash
-npx zcf
+npx ccjk
 # 输入 X（无效选项）
 # CLI 提示：无效选项，请重新输入
 ```
@@ -81,7 +81,7 @@ npx zcf
 在主菜单中输入 `0` 可以切换 CLI 语言：
 
 ```bash
-npx zcf
+npx ccjk
 # 输入 0
 # 选择语言：zh-CN 或 en
 # 语言切换后菜单会重新显示
@@ -92,7 +92,7 @@ npx zcf
 使用 `S` 可以在 Claude Code 和 Codex 之间切换：
 
 ```bash
-npx zcf
+npx ccjk
 # 当前模式：Claude Code
 # 输入 S
 # 切换到：Codex 模式
@@ -103,7 +103,7 @@ npx zcf
 
 ### 完整初始化（选项 1）
 
-等同于执行 `npx zcf init`，会引导您完成：
+等同于执行 `npx ccjk init`，会引导您完成：
 
 - 选择代码工具类型
 - 配置 API（官方登录/API Key/CCR 代理）
@@ -114,7 +114,7 @@ npx zcf
 
 ### 导入/更新工作流（选项 2）
 
-等同于执行 `npx zcf update`，会：
+等同于执行 `npx ccjk update`，会：
 
 - 更新工作流模板
 - 更新提示词内容
@@ -234,10 +234,10 @@ npx zcf
 
 ### 1. 首次使用
 
-首次使用 ZCF 时，建议从菜单开始：
+首次使用 CCJK 时，建议从菜单开始：
 
 ```bash
-npx zcf
+npx ccjk
 # 选择 1 (完整初始化)
 # 按照提示完成配置
 ```
@@ -248,10 +248,10 @@ npx zcf
 
 ```bash
 # 快速更新工作流
-npx zcf update
+npx ccjk update
 
 # 或通过菜单
-npx zcf
+npx ccjk
 # 选择 2
 ```
 
@@ -260,7 +260,7 @@ npx zcf
 不熟悉命令时，使用菜单探索功能：
 
 ```bash
-npx zcf
+npx ccjk
 # 浏览所有可用选项
 # 尝试不同的功能
 ```
@@ -287,7 +287,7 @@ node --version  # 需要 >= 18
 # 确保终端支持 ANSI 颜色代码
 
 # 3. 直接使用命令
-npx zcf init
+npx ccjk init
 ```
 
 ### 菜单选项无响应
@@ -296,13 +296,13 @@ npx zcf init
 
 ```bash
 # 1. 检查配置权限
-ls -la ~/.ufomiao/zcf/
+ls -la ~/.ufomiao/ccjk/
 
 # 2. 查看详细错误
-npx zcf --verbose
+npx ccjk --verbose
 
 # 3. 重新初始化配置
-npx zcf init --config-action new
+npx ccjk init --config-action new
 ```
 
 ### 工具切换失败
@@ -311,17 +311,17 @@ npx zcf init --config-action new
 
 ```bash
 # 1. 检查配置文件
-cat ~/.ufomiao/zcf/config.toml | grep codeToolType
+cat ~/.ufomiao/ccjk/config.toml | grep codeToolType
 
 # 2. 手动切换
-npx zcf init -T codex  # 切换到 Codex
-npx zcf init -T claude-code  # 切换到 Claude Code
+npx ccjk init -T codex  # 切换到 Codex
+npx ccjk init -T claude-code  # 切换到 Claude Code
 ```
 
 ## 相关资源
 
-- [zcf init](init.md) - 完整初始化命令详解
-- [zcf update](update.md) - 更新命令详解
+- [ccjk init](init.md) - 完整初始化命令详解
+- [ccjk update](update.md) - 更新命令详解
 - [快速开始](../getting-started/installation.md) - 安装和使用指南
 
-> 💡 **提示**：菜单是 ZCF 最友好的使用方式，特别适合不熟悉命令行的用户。建议首次使用时通过菜单完成配置，熟悉后可以结合直接命令使用提高效率。
+> 💡 **提示**：菜单是 CCJK 最友好的使用方式，特别适合不熟悉命令行的用户。建议首次使用时通过菜单完成配置，熟悉后可以结合直接命令使用提高效率。

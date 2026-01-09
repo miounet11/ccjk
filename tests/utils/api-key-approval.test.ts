@@ -23,7 +23,7 @@ vi.mock('../../src/constants', async (importOriginal) => {
 })
 
 describe('aPI Key Approval Management', () => {
-  const CCR_API_KEY = 'sk-zcf-x-ccr'
+  const CCR_API_KEY = 'sk-ccjk-x-ccr'
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -272,8 +272,8 @@ describe('aPI Key Approval Management', () => {
       }
 
       // Test with a long API key (more than 20 characters)
-      const longApiKey = 'sk-zcf-x-ccr-very-long-api-key-that-exceeds-20-characters'
-      const expectedTruncated = longApiKey.substring(0, 20) // 'sk-zcf-x-ccr-very-lo'
+      const longApiKey = 'sk-ccjk-x-ccr-very-long-api-key-that-exceeds-20-characters'
+      const expectedTruncated = longApiKey.substring(0, 20) // 'sk-ccjk-x-ccr-very-lo'
 
       const result = ensureApiKeyApproved(config, longApiKey)
 
@@ -283,7 +283,7 @@ describe('aPI Key Approval Management', () => {
     })
 
     it('should truncate API key when removing from rejected list', () => {
-      const longApiKey = 'sk-zcf-x-ccr-very-long-api-key-that-exceeds-20-characters'
+      const longApiKey = 'sk-ccjk-x-ccr-very-long-api-key-that-exceeds-20-characters'
       const expectedTruncated = longApiKey.substring(0, 20)
 
       const config: ClaudeConfiguration = {
@@ -306,7 +306,7 @@ describe('aPI Key Approval Management', () => {
       }
 
       // Exactly 20 characters
-      const exactApiKey = 'sk-zcf-x-ccr-exact20'
+      const exactApiKey = 'sk-ccjk-x-ccr-exac20'
       expect(exactApiKey).toHaveLength(20)
 
       const result = ensureApiKeyApproved(config, exactApiKey)

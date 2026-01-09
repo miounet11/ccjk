@@ -41,7 +41,7 @@
   "uninstallItemMcpConfig": "MCP 配置 (仅删除 config.toml 中的 MCP 设置)",
   "uninstallItemBackups": "备份目录 (backup/)",
   "customUninstallPrompt": "选择要删除的项目（使用空格选中/取消选中，回车确认）",
-  "uninstallPrompt": "即将移除 ZCF 创建的 Codex 配置，是否继续？",
+  "uninstallPrompt": "即将移除 CCJK 创建的 Codex 配置，是否继续？",
   "uninstallCancelled": "⚠️ 已取消 Codex 卸载",
   "uninstallSuccess": "✔ 已删除 Codex 配置",
   "configNotFound": "配置文件不存在",

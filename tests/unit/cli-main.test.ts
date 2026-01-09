@@ -26,7 +26,7 @@ describe('cli main entry', () => {
   })
 
   it('should create cli instance and setup commands', async () => {
-    process.argv = ['node', 'zcf']
+    process.argv = ['node', 'ccjk']
 
     const cac = (await import('cac')).default as any
     const { setupCommands } = await import('../../src/cli-setup')
@@ -35,14 +35,14 @@ describe('cli main entry', () => {
     await import('../../src/cli')
 
     // Check cac was called with correct name
-    expect(cac).toHaveBeenCalledWith('zcf')
+    expect(cac).toHaveBeenCalledWith('ccjk')
 
     // Check setupCommands was called
     expect(setupCommands).toHaveBeenCalled()
   })
 
   it('should parse command line arguments', async () => {
-    process.argv = ['node', 'zcf', 'init', '--force']
+    process.argv = ['node', 'ccjk', 'init', '--force']
 
     const parseMock = vi.fn()
     const cliMock = {

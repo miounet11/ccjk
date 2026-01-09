@@ -112,7 +112,7 @@ vi.mock('../../../../src/utils/platform', () => ({
   normalizeTomlPath: vi.fn((str: string) => str.replace(/\\+/g, '/').replace(/\/+/g, '/')), // Normalize Windows paths
 }))
 
-vi.mock('../../../../src/utils/zcf-config', () => ({
+vi.mock('../../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(() => ({
     preferredLang: 'en',
     templateLang: 'en',
@@ -176,7 +176,7 @@ describe('codex MCP Deduplication Logic', () => {
       // Initial config with existing MCP services including user custom services
 
       vi.mocked(readFile).mockReturnValue(`
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model_provider = "openai"
 
 [model_providers.openai]
@@ -186,7 +186,7 @@ wire_api = "responses"
 temp_env_key = "OPENAI_API_KEY"
 requires_openai_auth = true
 
-# --- MCP servers added by ZCF ---
+# --- MCP servers added by CCJK ---
 [mcp_servers.context7]
 command = "npx"
 args = ["-y", "context7"]
@@ -251,7 +251,7 @@ args = ["--config", "/path/to/config"]
     it('should preserve user custom services when no predefined services selected', async () => {
       // Initial config with existing MCP services including user custom services
       vi.mocked(readFile).mockReturnValue(`
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model_provider = "openai"
 
 [model_providers.openai]
@@ -261,7 +261,7 @@ wire_api = "responses"
 temp_env_key = "OPENAI_API_KEY"
 requires_openai_auth = true
 
-# --- MCP servers added by ZCF ---
+# --- MCP servers added by CCJK ---
 [mcp_servers.context7]
 command = "npx"
 args = ["-y", "context7"]
@@ -323,7 +323,7 @@ args = ["--config", "/path/to/config"]
 
       // Initial config with user custom service
       vi.mocked(readFile).mockReturnValue(`
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model_provider = "openai"
 
 [model_providers.openai]
@@ -374,7 +374,7 @@ env = {CUSTOM_VAR = "value"}
     it('should handle service selection with mixed custom and predefined services', async () => {
       // Initial config with both custom and predefined services
       vi.mocked(readFile).mockReturnValue(`
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model_provider = "openai"
 
 [model_providers.openai]

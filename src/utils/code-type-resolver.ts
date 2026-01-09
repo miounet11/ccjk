@@ -1,7 +1,7 @@
 import type { CodeToolType } from '../constants'
 import { DEFAULT_CODE_TOOL_TYPE } from '../constants'
 import { i18n } from '../i18n'
-import { readZcfConfigAsync } from './zcf-config'
+import { readZcfConfigAsync } from './ccjk-config'
 
 /**
  * Code type abbreviation mapping

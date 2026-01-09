@@ -430,7 +430,7 @@ export async function uninstallCodeTool(codeType: CodeType): Promise<boolean> {
 }
 
 /**
- * Set installMethod in both ~/.claude.json and zcf-config
+ * Set installMethod in both ~/.claude.json and ccjk-config
  * This ensures Claude Code knows it was installed via npm for proper auto-updates
  */
 export async function setInstallMethod(method: InstallMethod, codeType: CodeType = 'claude-code'): Promise<void> {
@@ -446,7 +446,7 @@ export async function setInstallMethod(method: InstallMethod, codeType: CodeType
       writeMcpConfig(config)
     }
 
-    // Note: ZCF TOML config doesn't have direct TOML read/write functions
+    // Note: CCJK TOML config doesn't have direct TOML read/write functions
     // Installation method tracking is handled through Claude Code config
     // This is intentional to maintain backwards compatibility
   }

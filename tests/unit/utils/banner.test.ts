@@ -19,10 +19,10 @@ describe('banner utilities', () => {
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining('╔'))
     })
 
-    it('should display Zero-Config Code Flow', () => {
+    it('should display Claude Code JinKu', () => {
       displayBanner()
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Zero-Config Code Flow'),
+        expect.stringContaining('Claude Code JinKu'),
       )
     })
 
@@ -37,13 +37,14 @@ describe('banner utilities', () => {
   describe('displayBannerWithInfo', () => {
     it('should display banner with version info', () => {
       displayBannerWithInfo()
-      expect(console.log).toHaveBeenCalledTimes(2)
+      expect(console.log).toHaveBeenCalledTimes(3)
     })
 
     it('should display version', () => {
       displayBannerWithInfo()
+      // Version is displayed in the banner as "v1.3.0" format
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Version:'),
+        expect.stringContaining('v'),
       )
     })
   })

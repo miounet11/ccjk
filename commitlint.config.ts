@@ -2,7 +2,7 @@ import type { UserConfig } from '@commitlint/types'
 import { RuleConfigSeverity } from '@commitlint/types'
 
 /**
- * Commitlint configuration for ZCF project
+ * Commitlint configuration for CCJK project
  * Extends standard Conventional Commits specification with project-specific rules
  *
  * Features:

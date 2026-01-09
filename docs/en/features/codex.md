@@ -4,13 +4,13 @@ title: Codex Support
 
 # Codex Support
 
-[Codex](https://www.npmjs.com/package/@openai/codex) is OpenAI's official code generation CLI tool. ZCF now supports complete Codex integration with the same configuration convenience as Claude Code.
+[Codex](https://www.npmjs.com/package/@openai/codex) is OpenAI's official code generation CLI tool. CCJK now supports complete Codex integration with the same configuration convenience as Claude Code.
 
 ## Core Features
 
-ZCF provides a complete automated configuration experience for Codex, with core features including:
+CCJK provides a complete automated configuration experience for Codex, with core features including:
 
-- **Unified Tool Management**: Seamlessly switch between Claude Code and Codex through ZCF menu
+- **Unified Tool Management**: Seamlessly switch between Claude Code and Codex through CCJK menu
 - **Smart Configuration System**: Automatic Codex CLI installation, API provider setup, and MCP service integration
 - **Complete Backup Mechanism**: All configuration changes include timestamped backups with restore functionality
 - **Multi-Provider Support**: Configure multiple API providers (OpenAI, custom endpoints) with easy switching
@@ -26,10 +26,10 @@ ZCF automatically detects whether `@openai/codex` CLI is installed on the system
 
 ```bash
 # Initialize Codex (auto-detect and install)
-npx zcf i -s -T codex -p 302ai -k "sk-xxx"
+npx ccjk i -s -T codex -p 302ai -k "sk-xxx"
 ```
 
-If Codex is not detected, ZCF will automatically execute:
+If Codex is not detected, CCJK will automatically execute:
 ```bash
 npm install -g @openai/codex
 ```
@@ -40,13 +40,13 @@ ZCF supports one-click Codex CLI upgrade:
 
 ```bash
 # Upgrade through update check
-npx zcf check-updates --code-type codex
+npx ccjk check-updates --code-type codex
 
 # Or through menu
-npx zcf → Select + (Check Updates) → Select Codex
+npx ccjk → Select + (Check Updates) → Select Codex
 ```
 
-> ✅ **Automatic Processing**: If upgrade fails, ZCF will provide detailed error information to help diagnose issues.
+> ✅ **Automatic Processing**: If upgrade fails, CCJK will provide detailed error information to help diagnose issues.
 
 ## Configuration File Management
 
@@ -60,7 +60,7 @@ ZCF creates the following directory structure for Codex:
 ├── auth.json            # Authentication information
 ├── AGENTS.md            # AI agent configuration and system prompts
 ├── prompts/             # Workflow prompt directory
-│   ├── zcf/
+│   ├── ccjk/
 │   │   ├── workflow.md  # Six-stage workflow
 │   │   └── ...
 │   └── ...
@@ -70,7 +70,7 @@ ZCF creates the following directory structure for Codex:
 
 ### Backup Mechanism
 
-ZCF provides a complete backup mechanism:
+CCJK provides a complete backup mechanism:
 
 - **Automatic Backup**: Automatically creates timestamped backups on each configuration modification
 - **Backup Location**: `~/.codex/backup/YYYY-MM-DD_HH-mm-ss/`
@@ -97,17 +97,17 @@ Codex supports the same API configuration methods as Claude Code:
 
 ```bash
 # Use 302.AI provider
-npx zcf i -s -T codex -p 302ai -k "sk-xxx"
+npx ccjk i -s -T codex -p 302ai -k "sk-xxx"
 
 # Use other providers
-npx zcf i -s -T codex -p glm -k "sk-xxx"
-npx zcf i -s -T codex -p minimax -k "sk-xxx"
+npx ccjk i -s -T codex -p glm -k "sk-xxx"
+npx ccjk i -s -T codex -p minimax -k "sk-xxx"
 ```
 
 #### 2. Official Login
 
 ```bash
-npx zcf
+npx ccjk
 # Select S (Switch to Codex)
 # Select 3 (Configure API)
 # Select "Use Official Login"
@@ -116,7 +116,7 @@ npx zcf
 #### 3. Custom API
 
 ```bash
-npx zcf i -s -T codex \
+npx ccjk i -s -T codex \
   --api-type api_key \
   --api-key "sk-xxx" \
   --api-url "https://api.example.com" \
@@ -128,20 +128,20 @@ npx zcf i -s -T codex \
 Codex supports configuring multiple API providers:
 
 ```bash
-npx zcf i -s -T codex --api-configs '[
+npx ccjk i -s -T codex --api-configs '[
   {"provider":"302ai","key":"sk-xxx","default":true},
   {"name":"custom","type":"api_key","key":"sk-yyy","url":"https://custom.api.com","primaryModel":"gpt-5"}
 ]'
 ```
 
-> 📖 **Switch Provider**: Use `npx zcf config-switch -T codex` to switch between multiple providers.
+> 📖 **Switch Provider**: Use `npx ccjk config-switch -T codex` to switch between multiple providers.
 
 ### Model Configuration
 
 Codex supports configuring primary and fast models:
 
 ```bash
-npx zcf i -s -T codex -p 302ai -k "sk-xxx" \
+npx ccjk i -s -T codex -p 302ai -k "sk-xxx" \
   --api-model "gpt-5" \
   --api-fast-model "gpt-4"
 ```
@@ -166,13 +166,13 @@ Codex supports the same MCP services as Claude Code:
 
 ```bash
 # Install all MCP services
-npx zcf i -s -T codex --mcp-services all
+npx ccjk i -s -T codex --mcp-services all
 
 # Selective installation
-npx zcf i -s -T codex --mcp-services context7,open-websearch
+npx ccjk i -s -T codex --mcp-services context7,open-websearch
 
 # Configure through menu
-npx zcf → Select S (Switch to Codex) → Select 4 (Configure MCP)
+npx ccjk → Select S (Switch to Codex) → Select 4 (Configure MCP)
 ```
 
 ### Configuration File Location
@@ -185,7 +185,7 @@ Codex currently supports the following workflow templates (using `/prompts:` pre
 
 | Workflow | Codex Command | Claude Code Command | Description |
 |--------|-----------|-----------------|------|
-| **Six-Stage Workflow** | `/prompts:workflow` | `/zcf:workflow` | Complete six-stage development process (Research→Ideation→Planning→Execution→Optimization→Review) |
+| **Six-Stage Workflow** | `/prompts:workflow` | `/ccjk:workflow` | Complete six-stage development process (Research→Ideation→Planning→Execution→Optimization→Review) |
 | **Git Workflow** | `/prompts:git-commit` | `/git-commit` | Smart Git commit |
 | | `/prompts:git-rollback` | `/git-rollback` | Safe rollback |
 | | `/prompts:git-cleanBranches` | `/git-cleanBranches` | Clean merged branches |
@@ -201,8 +201,8 @@ Although Codex and Claude Code share the same MCP services, there are difference
 
 | Workflow Type | Claude Code | Codex |
 |-----------|------------|-------|
-| Six-Stage Workflow | ✅ `/zcf:workflow` | ✅ `/prompts:workflow` |
-| Feature Development Workflow | ✅ `/zcf:feat` | ❌ Not yet supported |
+| Six-Stage Workflow | ✅ `/ccjk:workflow` | ✅ `/prompts:workflow` |
+| Feature Development Workflow | ✅ `/ccjk:feat` | ❌ Not yet supported |
 | Project Initialization | ✅ `/init-project` | ❌ Not yet supported |
 | Git Workflow | ✅ `/git-commit` etc. | ✅ `/prompts:git-commit` etc. |
 | BMad Workflow | ✅ `/bmad-init` | ❌ Not yet supported |
@@ -211,13 +211,13 @@ Although Codex and Claude Code share the same MCP services, there are difference
 
 ```bash
 # Install all workflows
-npx zcf i -s -T codex --workflows all
+npx ccjk i -s -T codex --workflows all
 
 # Selective installation
-npx zcf i -s -T codex --workflows commonTools,sixStepsWorkflow
+npx ccjk i -s -T codex --workflows commonTools,sixStepsWorkflow
 
 # Import through menu
-npx zcf → Select S (Switch to Codex) → Select 4 (Import Workflows)
+npx ccjk → Select S (Switch to Codex) → Select 4 (Import Workflows)
 ```
 
 Workflow files are saved in the `~/.codex/prompts/` directory.
@@ -243,10 +243,10 @@ Codex supports the same output styles as Claude Code:
 
 ```bash
 # Install output styles
-npx zcf i -s -T codex --output-styles engineer-professional
+npx ccjk i -s -T codex --output-styles engineer-professional
 
 # Set default output style
-npx zcf i -s -T codex --default-output-style engineer-professional
+npx ccjk i -s -T codex --default-output-style engineer-professional
 ```
 
 ## Tool Switching
@@ -254,7 +254,7 @@ npx zcf i -s -T codex --default-output-style engineer-professional
 ### Switch Through Menu
 
 ```bash
-npx zcf
+npx ccjk
 # Enter S to switch between Claude Code and Codex
 ```
 
@@ -283,32 +283,32 @@ ZCF allows seamless switching between Claude Code and Codex while preserving you
 
 ```bash
 # Command line method
-npx zcf i -s -T codex -p 302ai -k "sk-xxx"
+npx ccjk i -s -T codex -p 302ai -k "sk-xxx"
 
 # Interactive method
-npx zcf → Select S (Switch to Codex) → Select 1 (Complete Initialization)
+npx ccjk → Select S (Switch to Codex) → Select 1 (Complete Initialization)
 ```
 
 ### Update Workflows
 
 ```bash
-npx zcf update -T codex -g zh-CN
+npx ccjk update -T codex -g zh-CN
 ```
 
 ### Configuration Switch
 
 ```bash
 # List all providers
-npx zcf config-switch -T codex --list
+npx ccjk config-switch -T codex --list
 
 # Switch to specified provider
-npx zcf config-switch -T codex provider-name
+npx ccjk config-switch -T codex provider-name
 ```
 
 ### Uninstall Codex
 
 ```bash
-npx zcf uninstall -T codex
+npx ccjk uninstall -T codex
 ```
 
 ## Comparison with Claude Code
@@ -323,7 +323,7 @@ npx zcf uninstall -T codex
 | **Output Styles** | ✅ Supported | ✅ Supported |
 | **Workflow Templates** | ✅ Supported | ✅ Supported |
 
-> 💡 **Note**: Although configuration file formats differ, ZCF provides a unified configuration interface, ensuring consistent user experience across both tools.
+> 💡 **Note**: Although configuration file formats differ, CCJK provides a unified configuration interface, ensuring consistent user experience across both tools.
 
 ## Next Steps
 

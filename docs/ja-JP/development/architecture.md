@@ -4,7 +4,7 @@ title: アーキテクチャ
 
 # アーキテクチャ
 
-ZCF は TypeScript で書かれた CLI ツールで、`src/cli.ts` をエントリに、`commands/`・`config/`・`utils/`・`types/` に役割単位で分割されています。
+CCJK は TypeScript で書かれた CLI ツールで、`src/cli.ts` をエントリに、`commands/`・`config/`・`utils/`・`types/` に役割単位で分割されています。
 
 ## ディレクトリ構成（概要）
 

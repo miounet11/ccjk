@@ -4,7 +4,7 @@ title: For Contributors
 
 # For Contributors
 
-Welcome contributors to the ZCF project! This chapter provides complete development guides to help you quickly get started with project development, understand architecture design, and follow best practices.
+Welcome contributors to the CCJK project! This chapter provides complete development guides to help you quickly get started with project development, understand architecture design, and follow best practices.
 
 ## 📋 Documentation Navigation
 
@@ -29,8 +29,8 @@ Ensure your development environment meets the following requirements:
 
 ```bash
 # Fork and clone repository
-git clone https://github.com/YOUR_USERNAME/zcf.git
-cd zcf
+git clone https://github.com/YOUR_USERNAME/ccjk.git
+cd ccjk
 
 # Install dependencies
 pnpm install
@@ -174,13 +174,13 @@ In addition to code contributions, you can also:
 
 ## 📖 Related Resources
 
-- [Project README](https://github.com/UfoMiao/zcf/blob/main/README.md) - Project overview and quick start
-- [CLAUDE.md](https://github.com/UfoMiao/zcf/blob/main/CLAUDE.md) - Complete project architecture documentation
-- [GitHub Issues](https://github.com/UfoMiao/zcf/issues) - Issues and discussions
-- [GitHub Discussions](https://github.com/UfoMiao/zcf/discussions) - Community discussions
+- [Project README](https://github.com/UfoMiao/ccjk/blob/main/README.md) - Project overview and quick start
+- [CLAUDE.md](https://github.com/UfoMiao/ccjk/blob/main/CLAUDE.md) - Complete project architecture documentation
+- [GitHub Issues](https://github.com/UfoMiao/ccjk/issues) - Issues and discussions
+- [GitHub Discussions](https://github.com/UfoMiao/ccjk/discussions) - Community discussions
 
 ---
 
-**Thank you again for your attention and contributions to the ZCF project!** 🎉
+**Thank you again for your attention and contributions to the CCJK project!** 🎉
 
 Before starting to contribute, it's recommended to read the [Contribution Guide](contributing.md) to understand detailed processes and standards.

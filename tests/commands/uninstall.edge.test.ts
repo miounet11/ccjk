@@ -12,7 +12,7 @@ vi.mock('../../src/utils/prompt-helpers')
 vi.mock('../../src/utils/toggle-prompt', () => ({
   promptBoolean: vi.fn(),
 }))
-vi.mock('../../src/utils/zcf-config', () => ({
+vi.mock('../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(() => ({ codeToolType: 'claude-code' })),
   readZcfConfigAsync: vi.fn(async () => ({ codeToolType: 'claude-code' })),
 }))

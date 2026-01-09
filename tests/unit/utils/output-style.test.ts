@@ -21,7 +21,7 @@ vi.mock('../../../src/utils/json-config', () => ({
   readJsonConfig: vi.fn(),
   writeJsonConfig: vi.fn(),
 }))
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   updateZcfConfig: vi.fn(),
 }))
 vi.mock('../../../src/constants', async (importOriginal) => {
@@ -68,7 +68,7 @@ describe('output-style', () => {
     // Initialize mocked modules
     mockFsOperations = vi.mocked(await import('../../../src/utils/fs-operations'))
     mockJsonConfig = vi.mocked(await import('../../../src/utils/json-config'))
-    mockZcfConfig = vi.mocked(await import('../../../src/utils/zcf-config'))
+    mockZcfConfig = vi.mocked(await import('../../../src/utils/ccjk-config'))
     mockInquirer = vi.mocked(await import('inquirer'))
 
     // Initialize real i18n for test environment

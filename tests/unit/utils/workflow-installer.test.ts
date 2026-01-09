@@ -462,7 +462,7 @@ describe('workflow-installer utilities', () => {
         expect(result.installedCommands).toContain('bmad-init.md')
         expect(result.installedCommands).toContain('bmad.md')
         expect(mkdir).toHaveBeenCalledWith(
-          join(CLAUDE_DIR, 'commands', 'zcf'),
+          join(CLAUDE_DIR, 'commands', 'ccjk'),
           { recursive: true },
         )
 
@@ -500,7 +500,7 @@ describe('workflow-installer utilities', () => {
         expect(result.installedAgents).toContain('analyst.md')
         expect(result.installedAgents).toContain('architect.md')
         expect(mkdir).toHaveBeenCalledWith(
-          join(CLAUDE_DIR, 'agents', 'zcf', 'bmad'),
+          join(CLAUDE_DIR, 'agents', 'ccjk', 'bmad'),
           { recursive: true },
         )
 

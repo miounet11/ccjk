@@ -44,7 +44,7 @@ const mockReadZcfConfig = vi.hoisted(() => vi.fn(() => ({
   codeToolType: 'codex',
   lastUpdated: new Date().toISOString(),
 } as any)))
-vi.mock('../../../../src/utils/zcf-config', () => ({
+vi.mock('../../../../src/utils/ccjk-config', () => ({
   readZcfConfig: mockReadZcfConfig,
 }))
 

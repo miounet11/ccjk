@@ -4,27 +4,27 @@ title: 使用分析 ccu
 
 # 使用分析 ccu
 
-`zcf ccu`（Claude Code Usage）用于查看和分析 Claude Code 的使用统计信息，帮助您了解 AI 助手的使用情况和成本。
+`ccjk ccu`（Claude Code Usage）用于查看和分析 Claude Code 的使用统计信息，帮助您了解 AI 助手的使用情况和成本。
 
 ## 命令格式
 
 ```bash
 # 基本使用（显示默认统计）
-npx zcf ccu
+npx ccjk ccu
 
 # 指定统计周期
-npx zcf ccu --period daily
-npx zcf ccu --period weekly
-npx zcf ccu --period monthly
+npx ccjk ccu --period daily
+npx ccjk ccu --period weekly
+npx ccjk ccu --period monthly
 
 # JSON 格式输出（用于脚本处理）
-npx zcf ccu --json
+npx ccjk ccu --json
 
 # CSV 格式输出（用于 Excel 分析）
-npx zcf ccu --csv
+npx ccjk ccu --csv
 
 # 通过主菜单访问
-npx zcf
+npx ccjk
 # 然后选择 U. 使用分析
 ```
 
@@ -115,7 +115,7 @@ Month      | Requests | Duration
 适合脚本处理和自动化：
 
 ```bash
-npx zcf ccu --json --period weekly
+npx ccjk ccu --json --period weekly
 ```
 
 **输出示例**：
@@ -141,7 +141,7 @@ npx zcf ccu --json --period weekly
 适合导入 Excel 或其他分析工具：
 
 ```bash
-npx zcf ccu --csv --period monthly > usage.csv
+npx ccjk ccu --csv --period monthly > usage.csv
 ```
 
 **输出示例**：
@@ -158,7 +158,7 @@ Date,Requests,Duration
 快速查看当天的使用情况：
 
 ```bash
-npx zcf ccu --period daily
+npx ccjk ccu --period daily
 ```
 
 ### 2. 团队使用统计
@@ -167,7 +167,7 @@ npx zcf ccu --period daily
 
 ```bash
 # 每周生成统计报告
-npx zcf ccu --period weekly --json > weekly-usage.json
+npx ccjk ccu --period weekly --json > weekly-usage.json
 ```
 
 ### 3. 成本分析
@@ -176,7 +176,7 @@ npx zcf ccu --period weekly --json > weekly-usage.json
 
 ```bash
 # 生成月度使用报告
-npx zcf ccu --period monthly --csv > monthly-usage.csv
+npx ccjk ccu --period monthly --csv > monthly-usage.csv
 # 然后在 Excel 中结合 API 价格计算成本
 ```
 
@@ -186,14 +186,14 @@ npx zcf ccu --period monthly --csv > monthly-usage.csv
 
 ```bash
 # 添加到 crontab（每天执行）
-0 23 * * * cd /path/to/project && npx zcf ccu --json --period daily >> usage.log
+0 23 * * * cd /path/to/project && npx ccjk ccu --json --period daily >> usage.log
 ```
 
 ## 与 CCometixLine 集成
 
 CCometixLine 状态栏同样可以显示使用统计摘要：
 
-1. 安装 CCometixLine：`npx zcf` → 选择相应选项
+1. 安装 CCometixLine：`npx ccjk` → 选择相应选项
 2. 在状态栏中查看实时使用情况
 3. 点击状态栏可查看详细统计
 

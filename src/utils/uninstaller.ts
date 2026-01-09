@@ -19,7 +19,7 @@ export type UninstallItem
     | 'ccline'
     | 'claude-code'
     | 'backups'
-    | 'zcf-config'
+    | 'ccjk-config'
 
 export interface UninstallResult {
   success: boolean
@@ -30,7 +30,7 @@ export interface UninstallResult {
 }
 
 /**
- * ZCF Uninstaller - Handles removal of ZCF configurations and tools
+ * CCJK Uninstaller - Handles removal of CCJK configurations and tools
  */
 export class ZcfUninstaller {
   private _lang: SupportedLang // Reserved for future i18n support
@@ -98,7 +98,7 @@ export class ZcfUninstaller {
   }
 
   /**
-   * 2. Remove custom commands directory (commands/zcf/)
+   * 2. Remove custom commands directory (commands/ccjk/)
    */
   async removeCustomCommands(): Promise<UninstallResult> {
     const result: UninstallResult = {
@@ -110,14 +110,14 @@ export class ZcfUninstaller {
     }
 
     try {
-      const commandsPath = join(homedir(), '.claude', 'commands', 'zcf')
+      const commandsPath = join(homedir(), '.claude', 'commands', 'ccjk')
 
       if (await pathExists(commandsPath)) {
         const trashResult = await moveToTrash(commandsPath)
         if (!trashResult[0]?.success) {
           result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
         }
-        result.removed.push('commands/zcf/')
+        result.removed.push('commands/ccjk/')
         result.success = true
       }
       else {
@@ -133,7 +133,7 @@ export class ZcfUninstaller {
   }
 
   /**
-   * 3. Remove custom agents directory (agents/zcf/)
+   * 3. Remove custom agents directory (agents/ccjk/)
    */
   async removeCustomAgents(): Promise<UninstallResult> {
     const result: UninstallResult = {
@@ -145,14 +145,14 @@ export class ZcfUninstaller {
     }
 
     try {
-      const agentsPath = join(homedir(), '.claude', 'agents', 'zcf')
+      const agentsPath = join(homedir(), '.claude', 'agents', 'ccjk')
 
       if (await pathExists(agentsPath)) {
         const trashResult = await moveToTrash(agentsPath)
         if (!trashResult[0]?.success) {
           result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
         }
-        result.removed.push('agents/zcf/')
+        result.removed.push('agents/ccjk/')
         result.success = true
       }
       else {
@@ -456,7 +456,7 @@ export class ZcfUninstaller {
   }
 
   /**
-   * 11. Remove ZCF preference configuration
+   * 11. Remove CCJK preference configuration
    */
   async removeZcfConfig(): Promise<UninstallResult> {
     const result: UninstallResult = {
@@ -480,12 +480,12 @@ export class ZcfUninstaller {
         result.success = true
       }
       else {
-        result.warnings.push(i18n.t('uninstall:zcfConfigNotFound'))
+        result.warnings.push(i18n.t('uninstall:ccjkConfigNotFound'))
         result.success = true
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove ZCF config: ${error.message}`)
+      result.errors.push(`Failed to remove CCJK config: ${error.message}`)
     }
 
     return result
@@ -638,7 +638,7 @@ export class ZcfUninstaller {
         return await this.uninstallClaudeCode()
       case 'backups':
         return await this.removeBackups()
-      case 'zcf-config':
+      case 'ccjk-config':
         return await this.removeZcfConfig()
       default:
         return {

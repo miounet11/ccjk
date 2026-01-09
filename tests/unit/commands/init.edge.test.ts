@@ -5,6 +5,7 @@ import inquirer from 'inquirer'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { init } from '../../../src/commands/init'
 import { i18n } from '../../../src/i18n'
+import { readZcfConfig } from '../../../src/utils/ccjk-config'
 import { buildMcpServerConfig } from '../../../src/utils/claude-config'
 import { configureApiCompletely } from '../../../src/utils/config-operations'
 import { getInstallationStatus, installClaudeCode, isClaudeCodeInstalled } from '../../../src/utils/installer'
@@ -12,7 +13,6 @@ import { isTermux, isWindows } from '../../../src/utils/platform'
 import { resolveAiOutputLanguage, resolveTemplateLanguage } from '../../../src/utils/prompts'
 import { promptBoolean } from '../../../src/utils/toggle-prompt'
 import { selectAndInstallWorkflows } from '../../../src/utils/workflow-installer'
-import { readZcfConfig } from '../../../src/utils/zcf-config'
 
 // Mock modules with comprehensive error scenarios
 vi.mock('inquirer', () => ({
@@ -73,7 +73,7 @@ vi.mock('../../../src/utils/platform', () => ({
   isTermux: vi.fn(),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
 }))

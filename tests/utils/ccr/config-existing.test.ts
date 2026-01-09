@@ -91,7 +91,7 @@ describe('cCR Configuration - Existing Config Scenarios', () => {
     CLAUDE_PATH: '',
     HOST: '127.0.0.1',
     PORT: 3456,
-    APIKEY: 'sk-zcf-x-ccr',
+    APIKEY: 'sk-ccjk-x-ccr',
     API_TIMEOUT_MS: '600000',
     PROXY_URL: '',
     transformers: [],
@@ -120,7 +120,7 @@ describe('cCR Configuration - Existing Config Scenarios', () => {
           await configureCcrProxy(existingConfig)
 
           // Simulate API key management
-          const apiKey = existingConfig.APIKEY || 'sk-zcf-x-ccr'
+          const apiKey = existingConfig.APIKEY || 'sk-ccjk-x-ccr'
           manageApiKeyApproval(apiKey)
 
           return true
@@ -138,7 +138,7 @@ describe('cCR Configuration - Existing Config Scenarios', () => {
       expect(result).toBe(true)
       expect(readCcrConfig).toHaveBeenCalled()
       expect(configureCcrProxy).toHaveBeenCalledWith(mockExistingConfig)
-      expect(manageApiKeyApproval).toHaveBeenCalledWith('sk-zcf-x-ccr')
+      expect(manageApiKeyApproval).toHaveBeenCalledWith('sk-ccjk-x-ccr')
     })
 
     it('should handle existing config with different API key', async () => {
@@ -152,7 +152,7 @@ describe('cCR Configuration - Existing Config Scenarios', () => {
         const existingConfig = readCcrConfig()
         if (existingConfig) {
           await configureCcrProxy(existingConfig)
-          const apiKey = existingConfig.APIKEY || 'sk-zcf-x-ccr'
+          const apiKey = existingConfig.APIKEY || 'sk-ccjk-x-ccr'
           manageApiKeyApproval(apiKey)
           return true
         }
@@ -181,7 +181,7 @@ describe('cCR Configuration - Existing Config Scenarios', () => {
         const existingConfig = readCcrConfig()
         if (existingConfig) {
           await configureCcrProxy(existingConfig)
-          const apiKey = existingConfig.APIKEY || 'sk-zcf-x-ccr'
+          const apiKey = existingConfig.APIKEY || 'sk-ccjk-x-ccr'
           manageApiKeyApproval(apiKey)
           return true
         }
@@ -196,7 +196,7 @@ describe('cCR Configuration - Existing Config Scenarios', () => {
 
       // Verify
       expect(result).toBe(true)
-      expect(manageApiKeyApproval).toHaveBeenCalledWith('sk-zcf-x-ccr')
+      expect(manageApiKeyApproval).toHaveBeenCalledWith('sk-ccjk-x-ccr')
     })
 
     it('should continue even if API key management fails', async () => {
@@ -206,7 +206,7 @@ describe('cCR Configuration - Existing Config Scenarios', () => {
         if (existingConfig) {
           await configureCcrProxy(existingConfig)
           try {
-            const apiKey = existingConfig.APIKEY || 'sk-zcf-x-ccr'
+            const apiKey = existingConfig.APIKEY || 'sk-ccjk-x-ccr'
             manageApiKeyApproval(apiKey)
           }
           catch {
@@ -229,7 +229,7 @@ describe('cCR Configuration - Existing Config Scenarios', () => {
       // Should still return true (graceful degradation)
       expect(result).toBe(true)
       expect(configureCcrProxy).toHaveBeenCalledWith(mockExistingConfig)
-      expect(manageApiKeyApproval).toHaveBeenCalledWith('sk-zcf-x-ccr')
+      expect(manageApiKeyApproval).toHaveBeenCalledWith('sk-ccjk-x-ccr')
     })
 
     it('should handle proxy configuration failure gracefully', async () => {

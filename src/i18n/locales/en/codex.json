@@ -41,7 +41,7 @@
   "uninstallItemMcpConfig": "MCP configuration (only remove MCP settings from config.toml)",
   "uninstallItemBackups": "Backup directory (backup/)",
   "customUninstallPrompt": "Select items to remove (use spacebar to select/deselect, enter to confirm)",
-  "uninstallPrompt": "This will remove Codex configuration created by ZCF. Continue?",
+  "uninstallPrompt": "This will remove Codex configuration created by CCJK. Continue?",
   "uninstallCancelled": "⚠️ Codex uninstall cancelled",
   "uninstallSuccess": "✔ Codex configuration removed",
   "configNotFound": "Configuration file not found",

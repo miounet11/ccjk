@@ -18,7 +18,6 @@ interface SessionMetadata {
  */
 export async function saveSession(): Promise<void> {
   try {
-    const cwd = process.cwd()
     const timestamp = new Date().toISOString()
     const sessionId = `session-${Date.now()}`
 

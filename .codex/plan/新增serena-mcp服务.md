@@ -21,8 +21,8 @@
 - 运行 `pnpm typecheck`：类型应通过。
 - 运行 `pnpm test`：新增与回归测试均应通过；`open-websearch` 保持第二位断言。
 - 手动验证：
-  - `zcf i --skip-prompt --mcp-services=serena`（Claude Code）：写入 `--context = "ide-assistant"`。
-  - `zcf i --skip-prompt -T cx --mcp-services=serena`（Codex）：写入 `--context = "codex"`。
+  - `ccjk i --skip-prompt --mcp-services=serena`（Claude Code）：写入 `--context = "ide-assistant"`。
+  - `ccjk i --skip-prompt -T cx --mcp-services=serena`（Codex）：写入 `--context = "codex"`。
 
 ## 回滚
 - 删除 serena 相关配置与 i18n 文案；回退测试改动；不影响其它服务。

@@ -7,7 +7,7 @@
 
 ## Module Responsibilities
 
-Claude Code Router (CCR) integration module providing proxy management, configuration presets, installation, and command execution for the CCR proxy service. Enables seamless integration between ZCF and CCR for enhanced Claude Code API routing.
+Claude Code Router (CCR) integration module providing proxy management, configuration presets, installation, and command execution for the CCR proxy service. Enables seamless integration between CCJK and CCR for enhanced Claude Code API routing.
 
 ## Entry Points and Startup
 

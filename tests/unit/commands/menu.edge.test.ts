@@ -11,7 +11,7 @@ vi.mock('../../../src/utils/prompts', () => ({
   selectScriptLanguage: vi.fn().mockResolvedValue('en'),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   readZcfConfigAsync: vi.fn(),
   updateZcfConfig: vi.fn(),
@@ -106,7 +106,7 @@ describe('menu command - Edge Cases', () => {
   describe('error handling edge cases', () => {
     it('should call handleGeneralError when handleExitPromptError returns false', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfigAsync } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfigAsync } = await import('../../../src/utils/ccjk-config')
       const { handleExitPromptError, handleGeneralError } = await import('../../../src/utils/error-handler')
 
       vi.mocked(readZcfConfigAsync).mockResolvedValue({
@@ -134,7 +134,7 @@ describe('menu command - Edge Cases', () => {
 
     it('should not call handleGeneralError when handleExitPromptError returns true', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfigAsync } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfigAsync } = await import('../../../src/utils/ccjk-config')
       const { handleExitPromptError, handleGeneralError } = await import('../../../src/utils/error-handler')
 
       vi.mocked(readZcfConfigAsync).mockResolvedValue({

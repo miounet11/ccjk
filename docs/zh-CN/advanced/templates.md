@@ -4,11 +4,11 @@ title: 模板与输出风格
 
 # 模板与输出风格
 
-ZCF 提供了完整的模板系统，包括工作流模板、输出风格模板和系统提示模板。这些模板支持多语言（中文和英文），可以自定义以满足团队特定需求。
+CCJK 提供了完整的模板系统，包括工作流模板、输出风格模板和系统提示模板。这些模板支持多语言（中文和英文），可以自定义以满足团队特定需求。
 
 ## 模板系统概述
 
-ZCF 的模板系统分为以下几个层次：
+CCJK 的模板系统分为以下几个层次：
 
 1. **工作流模板**：结构化的开发工作流程
 2. **输出风格模板**：AI 助手的人格和输出风格
@@ -88,16 +88,16 @@ templates/codex/
 
 ```bash
 # 安装所有输出风格
-npx zcf init -o all
+npx ccjk init -o all
 
 # 安装特定风格
-npx zcf init -o engineer-professional,nekomata-engineer
+npx ccjk init -o engineer-professional,nekomata-engineer
 
 # 设置默认输出风格
-npx zcf init -o all -d engineer-professional
+npx ccjk init -o all -d engineer-professional
 
 # 跳过输出风格安装
-npx zcf init -o skip
+npx ccjk init -o skip
 ```
 
 ### 切换输出风格
@@ -193,22 +193,22 @@ git commit -m "Add custom output style"
 
 ```bash
 # 安装所有工作流
-npx zcf init -w all
+npx ccjk init -w all
 
 # 安装特定工作流
-npx zcf init -w sixStepsWorkflow,gitWorkflow
+npx ccjk init -w sixStepsWorkflow,gitWorkflow
 
 # 跳过工作流安装
-npx zcf init -w skip
+npx ccjk init -w skip
 ```
 
 ### 自定义工作流
 
 1. **Fork 仓库并修改模板**：
 ```bash
-# 1. Fork ZCF 仓库
-git clone https://github.com/your-org/zcf.git
-cd zcf
+# 1. Fork CCJK 仓库
+git clone https://github.com/your-org/ccjk.git
+cd ccjk
 
 # 2. 修改模板
 vim templates/claude-code/zh-CN/workflow/custom/my-workflow.md
@@ -221,13 +221,13 @@ npm link
 2. **在初始化时使用**：
 ```bash
 # 使用自定义模板目录初始化
-npx zcf init -w custom
+npx ccjk init -w custom
 ```
 
 3. **团队发布自定义模板**：
 ```bash
 # 发布包含自定义模板的 npm 包
-npm publish @your-org/zcf-templates
+npm publish @your-org/ccjk-templates
 ```
 
 ## 系统提示模板
@@ -271,17 +271,17 @@ npm publish @your-org/zcf-templates
 2. **避免上下文过大**：
 - 全局 `CLAUDE.md` 仅保留必要设定
 - 复杂规范放入输出风格或项目记忆
-- 使用 `/zcf:init-project` 生成层级化结构
+- 使用 `/ccjk:init-project` 生成层级化结构
 
 3. **定期更新**：
 ```bash
 # 更新模板和提示词
-npx zcf update -g zh-CN
+npx ccjk update -g zh-CN
 ```
 
 ## 模板语言支持
 
-ZCF 支持两种语言的模板：
+CCJK 支持两种语言的模板：
 
 ### 中文模板 (`zh-CN`)
 
@@ -301,13 +301,13 @@ ZCF 支持两种语言的模板：
 
 ```bash
 # 使用中文模板初始化
-npx zcf init -c zh-CN
+npx ccjk init -c zh-CN
 
 # 使用英文模板初始化
-npx zcf init -c en
+npx ccjk init -c en
 
 # 更新时切换语言
-npx zcf update -c en
+npx ccjk update -c en
 ```
 
 ## 模板更新策略
@@ -316,9 +316,9 @@ npx zcf update -c en
 
 | 方式 | 命令 | 说明 |
 |------|------|------|
-| **完整更新** | `npx zcf update` | 更新所有模板 |
-| **仅更新文档** | `npx zcf init --config-action docs-only` | 仅更新提示词和文档 |
-| **合并更新** | `npx zcf init --config-action merge` | 合并新模板到现有配置 |
+| **完整更新** | `npx ccjk update` | 更新所有模板 |
+| **仅更新文档** | `npx ccjk init --config-action docs-only` | 仅更新提示词和文档 |
+| **合并更新** | `npx ccjk init --config-action merge` | 合并新模板到现有配置 |
 
 ### 保留自定义内容
 
@@ -352,8 +352,8 @@ diff -r ~/.claude/workflows/ ~/.claude/backup/latest/workflows/
 1. **创建团队模板仓库**：
 ```bash
 # 创建模板仓库
-mkdir team-zcf-templates
-cd team-zcf-templates
+mkdir team-ccjk-templates
+cd team-ccjk-templates
 git init
 
 # 添加模板文件
@@ -384,7 +384,7 @@ cp -r team-* ~/.claude/workflows/
 
 ```bash
 # 重新安装模板
-npx zcf init --config-action new
+npx ccjk init --config-action new
 
 # 检查模板目录
 ls -la ~/.claude/workflows/
@@ -409,10 +409,10 @@ git checkout HEAD -- ~/.claude/workflows/custom/
 
 ```bash
 # 重新初始化并指定语言
-npx zcf init --config-action backup -c zh-CN
+npx ccjk init --config-action backup -c zh-CN
 
 # 或仅更新模板语言
-npx zcf update -c zh-CN
+npx ccjk update -c zh-CN
 ```
 
 ## 相关资源

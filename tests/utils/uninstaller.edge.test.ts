@@ -67,15 +67,18 @@ const mockUninstallCodeTool = vi.mocked(installerModule.uninstallCodeTool)
 
 // Mock constants
 vi.mock('../../src/constants', () => ({
-  ZCF_CONFIG_FILE: '/home/user/.ufomiao/zcf/config.json',
-  ZCF_CONFIG_DIR: '/home/user/.ufomiao/zcf',
+  CCJK_CONFIG_FILE: '/home/user/.ufomiao/ccjk/config.json',
+  CCJK_CONFIG_DIR: '/home/user/.ufomiao/ccjk',
+  LEGACY_ZCF_CONFIG_FILE: '/home/user/.ufomiao/zcf/config.json',
+  LEGACY_ZCF_CONFIG_DIR: '/home/user/.ufomiao/zcf',
   CLAUDE_DIR: '/home/user/.claude',
   SETTINGS_FILE: '/home/user/.claude/settings.json',
   ClAUDE_CONFIG_FILE: '/home/user/.claude.json',
   CLAUDE_MD_FILE: '/home/user/.claude/CLAUDE.md',
+  ZCF_CONFIG_FILE: '/home/user/.ufomiao/ccjk/config.json', // Alias for CCJK_CONFIG_FILE
 }))
 
-describe('zcfUninstaller - Edge Cases', () => {
+describe('ccjkUninstaller - Edge Cases', () => {
   let uninstaller: ZcfUninstaller
 
   beforeEach(() => {
@@ -398,7 +401,7 @@ describe('zcfUninstaller - Edge Cases', () => {
   })
 
   describe('removeZcfConfig edge cases', () => {
-    it('should handle zcf config file access issues', async () => {
+    it('should handle ccjk config file access issues', async () => {
       mockFsExtra.pathExists.mockResolvedValue(true)
       mockTrash.moveToTrash.mockResolvedValue([{ success: false, error: 'File is locked' }])
 
@@ -551,7 +554,7 @@ describe('zcfUninstaller - Edge Cases', () => {
         'ccr',
         'ccline',
         'backups',
-        'zcf-config',
+        'ccjk-config',
       ]
 
       // Mock all methods to return success

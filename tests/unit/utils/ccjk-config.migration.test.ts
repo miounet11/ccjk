@@ -20,12 +20,12 @@ vi.mock('../../../src/utils/json-config', () => ({
   writeJsonConfig: vi.fn(),
 }))
 
-describe('zcf-config migration', () => {
+describe('ccjk-config migration', () => {
   const home = homedir()
   const newDir = join(home, '.ccjk')
   const newPath = join(newDir, 'config.toml')
-  const claudeLegacy = join(home, '.claude', '.zcf-config.json')
-  const legacyJson = join(home, '.zcf.json')
+  const claudeLegacy = join(home, '.claude', '.zcf-config.json') // Legacy ZCF path
+  const legacyJson = join(home, '.zcf.json') // Legacy ZCF path
 
   beforeEach(() => {
     vi.resetModules()
@@ -47,7 +47,7 @@ describe('zcf-config migration', () => {
       return false
     })
 
-    const { migrateZcfConfigIfNeeded } = await import('../../../src/utils/zcf-config')
+    const { migrateZcfConfigIfNeeded } = await import('../../../src/utils/ccjk-config')
     const result = migrateZcfConfigIfNeeded()
 
     expect(mkdirSync).toHaveBeenCalledWith(newDir, { recursive: true })
@@ -75,7 +75,7 @@ describe('zcf-config migration', () => {
       throw error
     })
 
-    const { migrateZcfConfigIfNeeded } = await import('../../../src/utils/zcf-config')
+    const { migrateZcfConfigIfNeeded } = await import('../../../src/utils/ccjk-config')
     const result = migrateZcfConfigIfNeeded()
 
     expect(mkdirSync).toHaveBeenCalledWith(newDir, { recursive: true })
@@ -96,7 +96,7 @@ describe('zcf-config migration', () => {
       return false
     })
 
-    const { migrateZcfConfigIfNeeded } = await import('../../../src/utils/zcf-config')
+    const { migrateZcfConfigIfNeeded } = await import('../../../src/utils/ccjk-config')
     const result = migrateZcfConfigIfNeeded()
 
     expect(renameSync).not.toHaveBeenCalled()
@@ -118,7 +118,7 @@ describe('zcf-config migration', () => {
       return false
     })
 
-    const { migrateZcfConfigIfNeeded } = await import('../../../src/utils/zcf-config')
+    const { migrateZcfConfigIfNeeded } = await import('../../../src/utils/ccjk-config')
     const result = migrateZcfConfigIfNeeded()
 
     expect(renameSync).toHaveBeenCalledWith(legacyJson, newPath)

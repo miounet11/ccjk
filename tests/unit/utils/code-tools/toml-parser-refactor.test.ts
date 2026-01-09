@@ -44,11 +44,11 @@ describe('tOML Parser Refactor', () => {
     it('should parse TOML with project sections correctly', async () => {
       const { parseCodexConfig } = await import('../../../../src/utils/code-tools/codex')
 
-      const complexToml = `[projects."/Users/miaoda/Documents/code/zcf"]
+      const complexToml = `[projects."/Users/miaoda/Documents/code/ccjk"]
 trust_level = "trusted"
 local_model = "wenwen"
 
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model_provider = "gpt-4"
 
 [model_providers.gpt-4]
@@ -75,7 +75,7 @@ requires_openai_auth = true`
 
       // Should preserve project configuration in otherConfig
       expect(result.otherConfig).toBeDefined()
-      expect(result.otherConfig!.some(line => line.includes('projects."/Users/miaoda/Documents/code/zcf"'))).toBe(true)
+      expect(result.otherConfig!.some(line => line.includes('projects."/Users/miaoda/Documents/code/ccjk"'))).toBe(true)
     })
 
     it('should parse MCP services correctly', async () => {
@@ -216,7 +216,7 @@ base_url = "https://api.anthropic.com"
       expect(modelProviderIndex).toBeLessThan(firstSectionIndex)
 
       // Verify the actual structure
-      expect(result).toContain('# --- model provider added by ZCF ---')
+      expect(result).toContain('# --- model provider added by CCJK ---')
       expect(result).toContain('model_provider = "wenwen"')
       expect(result).toContain('[projects."/Users/test/project1"]')
       expect(result).toContain('[projects."/Users/test/project2"]')

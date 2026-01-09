@@ -73,7 +73,7 @@ Safely clean merged branches with features including:
 
 Git worktree management with features including:
 
-- 📁 **Smart Defaults**: Create worktree in `../.zcf/project-name/` directory at project level
+- 📁 **Smart Defaults**: Create worktree in `../.ccjk/project-name/` directory at project level
 - 🔧 **IDE Integration**: Automatically configure IDE to open new worktree
 - 📦 **Content Migration**: Support migrating existing content to worktree
 - 🔄 **Complete Management**: Support complete operations like create, migrate, delete

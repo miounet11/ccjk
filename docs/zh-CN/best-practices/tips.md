@@ -4,17 +4,17 @@ title: 使用技巧
 
 # 使用技巧
 
-本文档收录了 ZCF 在日常使用中的实用技巧和最佳实践，帮助你在各种场景中更高效地使用 ZCF。
+本文档收录了 CCJK 在日常使用中的实用技巧和最佳实践，帮助你在各种场景中更高效地使用 CCJK。
 
 ## 核心技巧
 
 ### 1. 善用交互式菜单
 
-**技巧**：习惯从 `npx zcf` 开始，所有功能都有编号提示，避免记忆命令细节。
+**技巧**：习惯从 `npx ccjk` 开始，所有功能都有编号提示，避免记忆命令细节。
 
 ```bash
 # 打开交互式菜单
-npx zcf
+npx ccjk
 
 # 菜单选项包括：
 # 1 - 完整初始化
@@ -43,13 +43,13 @@ npx zcf
 
 ```bash
 # 每周更新一次（推荐）
-npx zcf update
+npx ccjk update
 
 # 或使用缩写
-npx zcf u
+npx ccjk u
 
 # 非交互式更新
-npx zcf u -s -g zh-CN
+npx ccjk u -s -g zh-CN
 ```
 
 **最佳实践**：
@@ -63,13 +63,13 @@ npx zcf u -s -g zh-CN
 
 ```bash
 # 统一设置所有语言为中文
-npx zcf init -g zh-CN
+npx ccjk init -g zh-CN
 
 # 模板中文，AI 输出英文（适合需要英文代码注释的场景）
-npx zcf init -c zh-CN -a en
+npx ccjk init -c zh-CN -a en
 
 # 仅更新时切换语言
-npx zcf update -c en
+npx ccjk update -c en
 ```
 
 **使用场景**：
@@ -99,25 +99,25 @@ cp -r ~/.claude/* ../project-config/.claude/
 # 将配置目录链接到云存储
 
 # macOS/iCloud
-ln -s ~/Library/Mobile\ Documents/com~apple~CloudDocs/.zcf-configs ~/.zcf-sync
+ln -s ~/Library/Mobile\ Documents/com~apple~CloudDocs/.ccjk-configs ~/.ccjk-sync
 
 # 同步配置
-rsync -av ~/.claude/ ~/.zcf-sync/claude/
-rsync -av ~/.codex/ ~/.zcf-sync/codex/
+rsync -av ~/.claude/ ~/.ccjk-sync/claude/
+rsync -av ~/.codex/ ~/.ccjk-sync/codex/
 ```
 
 #### 方法 3：使用版本控制
 
 ```bash
 # 创建配置仓库
-mkdir ~/zcf-configs && cd ~/zcf-configs
+mkdir ~/ccjk-configs && cd ~/ccjk-configs
 git init
 
 # 添加配置文件（注意排除敏感信息）
 echo "*.key" >> .gitignore
 echo "auth.json" >> .gitignore
 git add .claude/ .codex/
-git commit -m "Initial ZCF configs"
+git commit -m "Initial CCJK configs"
 
 # 在多设备间拉取
 git pull origin main
@@ -131,15 +131,15 @@ git pull origin main
 
 ```bash
 #!/bin/bash
-# deploy-zcf.sh - 自动化部署 ZCF 配置
+# deploy-ccjk.sh - 自动化部署 CCJK 配置
 
 # 从环境变量读取配置
-API_KEY=${ZCF_API_KEY}
-PROVIDER=${ZCF_PROVIDER:-302ai}
-LANG=${ZCF_LANG:-zh-CN}
+API_KEY=${CCJK_API_KEY}
+PROVIDER=${CCJK_PROVIDER:-302ai}
+LANG=${CCJK_LANG:-zh-CN}
 
 # 非交互式初始化
-npx zcf init -s \
+npx ccjk init -s \
   --provider "$PROVIDER" \
   --api-key "$API_KEY" \
   --all-lang "$LANG" \
@@ -147,7 +147,7 @@ npx zcf init -s \
   --workflows all \
   --output-styles all
 
-echo "ZCF 配置部署完成"
+echo "CCJK 配置部署完成"
 ```
 
 #### 新员工入职脚本
@@ -158,14 +158,14 @@ echo "ZCF 配置部署完成"
 
 echo "配置开发环境..."
 
-# 1. 配置 ZCF（使用配置文件）
-npx zcf init -s --api-configs-file ./team-api-configs.json
+# 1. 配置 CCJK（使用配置文件）
+npx ccjk init -s --api-configs-file ./team-api-configs.json
 
 # 2. 更新工作流
-npx zcf update -s -g zh-CN
+npx ccjk update -s -g zh-CN
 
 # 3. 检查工具版本
-npx zcf check-updates
+npx ccjk check-updates
 
 echo "开发环境配置完成！"
 ```
@@ -180,7 +180,7 @@ SERVERS=("server1" "server2" "server3")
 
 for server in "${SERVERS[@]}"; do
   echo "部署到 $server..."
-  ssh "$server" "npx zcf init -s -p 302ai -k '${API_KEY}' -g zh-CN"
+  ssh "$server" "npx ccjk init -s -p 302ai -k '${API_KEY}' -g zh-CN"
 done
 ```
 
@@ -190,13 +190,13 @@ done
 
 ```bash
 # 查看使用统计
-npx zcf ccu
+npx ccjk ccu
 
 # 输出 JSON 格式（用于集成到监控系统）
-npx zcf ccu --json > usage.json
+npx ccjk ccu --json > usage.json
 
 # 查看详细统计
-npx zcf ccu --verbose
+npx ccjk ccu --verbose
 ```
 
 **集成示例**：
@@ -206,7 +206,7 @@ npx zcf ccu --verbose
 # monitor-usage.sh - 使用量监控脚本
 
 # 获取使用量
-USAGE=$(npx zcf ccu --json)
+USAGE=$(npx ccjk ccu --json)
 
 # 解析 JSON（使用 jq）
 TOKENS=$(echo "$USAGE" | jq '.tokens.total')
@@ -214,7 +214,7 @@ COST=$(echo "$USAGE" | jq '.cost.total')
 
 # 发送告警（如果超过阈值）
 if [ "$TOKENS" -gt 1000000 ]; then
-  echo "警告：Token 使用量超过 100 万！" | mail -s "ZCF 使用量告警" admin@example.com
+  echo "警告：Token 使用量超过 100 万！" | mail -s "CCJK 使用量告警" admin@example.com
 fi
 ```
 
@@ -226,7 +226,7 @@ fi
 
 ```bash
 # 传统方式（需要多个参数）
-npx zcf init -s \
+npx ccjk init -s \
   -t api_key \
   -k "sk-xxx" \
   -u "https://api.302.ai/v1" \
@@ -234,7 +234,7 @@ npx zcf init -s \
   -F "claude-haiku-4-5"
 
 # 使用预设（仅需 2 个参数）
-npx zcf init -s -p 302ai -k "sk-xxx"
+npx ccjk init -s -p 302ai -k "sk-xxx"
 ```
 
 **支持的提供商**：`302ai`, `glm`, `minimax`, `kimi`, `custom`
@@ -245,16 +245,16 @@ npx zcf init -s -p 302ai -k "sk-xxx"
 
 ```bash
 # 列出所有配置
-npx zcf config-switch --list
+npx ccjk config-switch --list
 
 # 切换到工作配置
-npx zcf config-switch work
+npx ccjk config-switch work
 
 # 切换到个人配置
-npx zcf config-switch personal
+npx ccjk config-switch personal
 
 # 在 Codex 中切换
-npx zcf config-switch work --code-type codex
+npx ccjk config-switch work --code-type codex
 ```
 
 **命名建议**：
@@ -269,16 +269,16 @@ npx zcf config-switch work --code-type codex
 
 ```bash
 # 1. 使用功能开发工作流规划功能
-/zcf:feat 添加用户评论功能
+/ccjk:feat 添加用户评论功能
 
 # 2. 使用六阶段工作流实现细节
-/zcf:workflow 实现评论的 CRUD 操作
+/ccjk:workflow 实现评论的 CRUD 操作
 
 # 3. 使用 Git 工作流提交代码
 /git-commit
 
 # 4. 使用 BMad 工作流进行迭代
-/zcf:bmad-init
+/ccjk:bmad-init
 ```
 
 ### 10. 输出风格策略
@@ -287,7 +287,7 @@ npx zcf config-switch work --code-type codex
 
 ```bash
 # 查看可用风格
-npx zcf init -s -o all
+npx ccjk init -s -o all
 
 # 在对话中切换风格
 # Claude Code: /output-style engineer-professional
@@ -306,10 +306,10 @@ npx zcf init -s -o all
 
 ```bash
 # 仅安装必需的服务
-npx zcf init -s -m context7,open-websearch
+npx ccjk init -s -m context7,open-websearch
 
 # 查看所有可用服务
-npx zcf
+npx ccjk
 # 选择 4 (配置 MCP)，查看列表
 ```
 
@@ -326,7 +326,7 @@ npx zcf
 
 ```bash
 # 自动备份（init 和 update 时自动执行）
-npx zcf init  # 自动备份
+npx ccjk init  # 自动备份
 
 # 手动备份特定配置
 cp -r ~/.claude ~/.claude.backup.$(date +%Y%m%d)
@@ -347,7 +347,7 @@ ls -lt ~/.claude/backup/ | head -5
 cp -r ~/.claude/backup/backup_2025-01-15_10-30-45/* ~/.claude/
 
 # 3. 或重新初始化（会创建新备份）
-npx zcf init --config-action backup
+npx ccjk init --config-action backup
 ```
 
 ### 14. 版本管理集成
@@ -356,7 +356,7 @@ npx zcf init --config-action backup
 
 ```bash
 # 创建 .gitignore
-cat > ~/.zcf-configs/.gitignore << EOF
+cat > ~/.ccjk-configs/.gitignore << EOF
 # 排除敏感信息
 *.key
 auth.json
@@ -371,7 +371,7 @@ EOF
 
 # 提交配置
 git add .gitignore templates/ workflows/
-git commit -m "Add ZCF templates and workflows"
+git commit -m "Add CCJK templates and workflows"
 ```
 
 ### 15. 性能优化
@@ -380,13 +380,13 @@ git commit -m "Add ZCF templates and workflows"
 
 ```bash
 # 1. 仅安装需要的 MCP 服务
-npx zcf init -s -m context7,open-websearch  # 仅安装必需服务
+npx ccjk init -s -m context7,open-websearch  # 仅安装必需服务
 
 # 2. 使用本地缓存（如果支持）
 # 某些 MCP 服务支持本地缓存，可以加快响应
 
 # 3. 定期清理备份
-npx zcf uninstall --mode custom --items backups
+npx ccjk uninstall --mode custom --items backups
 ```
 
 ## 团队协作技巧
@@ -408,7 +408,7 @@ cat > team-config.json << EOF
 EOF
 
 # 团队成员使用相同配置
-npx zcf init -s --api-configs-file team-config.json -k "个人API密钥"
+npx ccjk init -s --api-configs-file team-config.json -k "个人API密钥"
 ```
 
 ### 17. 文档共享
@@ -425,11 +425,11 @@ tar -xzf team-workflows.tar.gz -C ~/.claude/
 
 ### 18. 代码审查集成
 
-**技巧**：将 ZCF 工作流集成到代码审查流程。
+**技巧**：将 CCJK 工作流集成到代码审查流程。
 
 ```bash
 # 在 PR 描述中使用工作流生成的内容
-/zcf:feat 新功能名称
+/ccjk:feat 新功能名称
 
 # 生成的文档可以直接用于 PR 描述
 ```
@@ -451,19 +451,19 @@ cat ~/.claude/settings.json | jq .mcpServers
 ls -la ~/.claude/workflows/
 
 # 检查版本
-npx zcf check-updates
+npx ccjk check-updates
 ```
 
 ### 20. 日志分析
 
-**技巧**：查看 ZCF 执行日志定位问题。
+**技巧**：查看 CCJK 执行日志定位问题。
 
 ```bash
 # 启用详细输出
-npx zcf init --verbose 2>&1 | tee zcf.log
+npx ccjk init --verbose 2>&1 | tee ccjk.log
 
 # 查看日志
-cat zcf.log | grep -i error
+cat ccjk.log | grep -i error
 ```
 
 ## 相关资源

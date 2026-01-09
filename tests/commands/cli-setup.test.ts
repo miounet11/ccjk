@@ -14,7 +14,7 @@ vi.mock('../../src/i18n', () => ({
   initI18n: vi.fn(),
 }))
 
-vi.mock('../../src/utils/zcf-config', () => ({
+vi.mock('../../src/utils/ccjk-config', () => ({
   readZcfConfigAsync: vi.fn(),
 }))
 
@@ -32,11 +32,11 @@ describe('withLanguageResolution', () => {
     mockAction = vi.fn()
 
     // Get references to the mocked functions
-    const zcfConfigModule = await import('../../src/utils/zcf-config')
+    const ccjkConfigModule = await import('../../src/utils/ccjk-config')
     const promptsModule = await import('../../src/utils/prompts')
     const i18nModule = await import('../../src/i18n')
 
-    mockReadZcfConfigAsync = vi.mocked(zcfConfigModule.readZcfConfigAsync)
+    mockReadZcfConfigAsync = vi.mocked(ccjkConfigModule.readZcfConfigAsync)
     mockSelectScriptLanguage = vi.mocked(promptsModule.selectScriptLanguage)
     mockChangeLanguage = vi.mocked(i18nModule.changeLanguage)
 

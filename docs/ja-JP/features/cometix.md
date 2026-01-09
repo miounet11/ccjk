@@ -4,7 +4,7 @@ title: CCometixLine ステータスバー
 
 # CCometixLine ステータスバー
 
-[CCometixLine](https://github.com/Haleclipse/CCometixLine) は Rust で書かれた高性能な Claude Code ステータスラインツールです。ZCF は完全自動インストール、設定、更新をサポートしています。Git ブランチ情報、ファイル変更状態、Claude Code / Codex 使用統計などの重要な情報をリアルタイムで表示できます。
+[CCometixLine](https://github.com/Haleclipse/CCometixLine) は Rust で書かれた高性能な Claude Code ステータスラインツールです。CCJK は完全自動インストール、設定、更新をサポートしています。Git ブランチ情報、ファイル変更状態、Claude Code / Codex 使用統計などの重要な情報をリアルタイムで表示できます。
 
 ## 主な機能
 
@@ -21,10 +21,10 @@ title: CCometixLine ステータスバー
 
 ```bash
 # メニューから
-npx zcf          # → L を選択
+npx ccjk          # → L を選択
 
 # 直接更新を確認
-npx zcf check-updates --code-type claude
+npx ccjk check-updates --code-type claude
 ```
 
 ## インストール
@@ -181,8 +181,8 @@ transcript 分析に基づくトークン使用率、コンテキスト制限追
 
 ## よくある質問
 
-- **表示が更新されない**：`npx zcf ccr status` で CCR が動作しているか確認し、VS Code を再起動。  
-- **アイコンが消えた**：拡張機能が無効化されていないか確認し、`npx zcf` → L で再インストール。  
+- **表示が更新されない**：`npx ccjk ccr status` で CCR が動作しているか確認し、VS Code を再起動。  
+- **アイコンが消えた**：拡張機能が無効化されていないか確認し、`npx ccjk` → L で再インストール。  
 - **別環境で使いたい**：`config-switch` で設定を切替えた後に VS Code 側で再読み込み。
 
 ## 関連

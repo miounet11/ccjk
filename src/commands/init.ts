@@ -12,6 +12,7 @@ import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
 import { API_DEFAULT_URL, CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
+import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { backupCcrConfig, configureCcrProxy, createDefaultCcrConfig, readCcrConfig, setupCcrConfiguration, writeCcrConfig } from '../utils/ccr/config'
 import { installCcr, isCcrInstalled } from '../utils/ccr/installer'
 import {
@@ -50,7 +51,6 @@ import { promptBoolean } from '../utils/toggle-prompt'
 import { formatApiKeyDisplay } from '../utils/validator'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
 import { selectAndInstallWorkflows } from '../utils/workflow-installer'
-import { readZcfConfig, updateZcfConfig } from '../utils/zcf-config'
 
 export interface InitOptions {
   configLang?: SupportedLang
@@ -273,7 +273,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
   }
 
   try {
-    // Step 2: Read ZCF config once for multiple uses
+    // Step 2: Read CCJK config once for multiple uses
     const zcfConfig = readZcfConfig()
 
     // Step 3: Select code tool
@@ -387,7 +387,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     // Display banner based on selected code tool
     if (!options.skipBanner) {
-      displayBannerWithInfo(CODE_TOOL_BANNERS[codeToolType] || 'ZCF')
+      displayBannerWithInfo(CODE_TOOL_BANNERS[codeToolType] || 'CCJK')
     }
 
     // Show Termux environment info if detected
@@ -425,7 +425,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     if (codeToolType === 'codex') {
       if (options.skipPrompt)
-        process.env.ZCF_CODEX_SKIP_PROMPT_SINGLE_BACKUP = 'true'
+        process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = 'true'
 
       const hasApiConfigs = Boolean(options.apiConfigs || options.apiConfigsFile)
 
@@ -475,7 +475,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       })
       updateZcfConfig({
         version,
-        preferredLang: i18n.language as SupportedLang, // ZCF界面语言
+        preferredLang: i18n.language as SupportedLang, // CCJK界面语言
         templateLang: configLang, // 模板语言
         aiOutputLang: resolvedAiOutputLang
           ?? options.aiOutputLang
@@ -640,7 +640,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
             options.apiOpusModel = options.apiOpusModel || opus
           }
 
-          // Save configuration to ZCF TOML config for persistence and switching
+          // Save configuration to CCJK TOML config for persistence and switching
           await saveSingleConfigToToml(apiConfig, options.provider, options)
         }
         else if (options.apiType === 'auth_token' && options.apiKey) {
@@ -650,7 +650,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
             url: options.apiUrl || API_DEFAULT_URL,
           }
 
-          // Save configuration to ZCF TOML config for persistence and switching
+          // Save configuration to CCJK TOML config for persistence and switching
           await saveSingleConfigToToml(apiConfig, undefined, options)
         }
         else if (options.apiType === 'api_key' && options.apiKey) {
@@ -660,7 +660,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
             url: options.apiUrl || API_DEFAULT_URL,
           }
 
-          // Save configuration to ZCF TOML config for persistence and switching
+          // Save configuration to CCJK TOML config for persistence and switching
           await saveSingleConfigToToml(apiConfig, undefined, options)
         }
         else if (options.apiType === 'ccr_proxy') {
@@ -994,10 +994,10 @@ export async function init(options: InitOptions = {}): Promise<void> {
       console.log(ansis.green(`✔ ${i18n.t('cometix:cometixAlreadyInstalled')}`))
     }
 
-    // Step 12: Save zcf config
+    // Step 12: Save ccjk config
     updateZcfConfig({
       version,
-      preferredLang: i18n.language as SupportedLang, // ZCF界面语言
+      preferredLang: i18n.language as SupportedLang, // CCJK界面语言
       templateLang: configLang, // 模板语言
       aiOutputLang: aiOutputLang as AiOutputLanguage | string,
       codeToolType,
@@ -1237,7 +1237,7 @@ async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promise<void>
  * @param options - Command line options for models
  */
 /**
- * Save single API configuration to ZCF TOML config
+ * Save single API configuration to CCJK TOML config
  * Handles profile creation, switching, and error reporting
  * @param apiConfig - API configuration object
  * @param apiConfig.authType - API authentication type

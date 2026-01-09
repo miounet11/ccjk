@@ -4,7 +4,7 @@ title: Multi-Config and Backup
 
 # Multi-Config and Backup
 
-ZCF provides comprehensive configuration management and backup mechanisms, supporting switching between multiple configurations, version management, and safe rollback. Whether for Claude Code or Codex, you can easily manage multiple API configurations, output styles, and system settings.
+CCJK provides comprehensive configuration management and backup mechanisms, supporting switching between multiple configurations, version management, and safe rollback. Whether for Claude Code or Codex, you can easily manage multiple API configurations, output styles, and system settings.
 
 ## Multi-Configuration System
 
@@ -12,17 +12,17 @@ ZCF provides comprehensive configuration management and backup mechanisms, suppo
 
 ZCF's configuration system is divided into the following levels:
 
-1. **Global Configuration** (`~/.ufomiao/zcf/config.toml`) - ZCF's own configuration
+1. **Global Configuration** (`~/.ufomiao/ccjk/config.toml`) - ZCF's own configuration
 2. **Claude Code Configuration** (`~/.claude/settings.json`) - Claude Code runtime configuration
 3. **Codex Configuration** (`~/.codex/config.toml`) - Codex runtime configuration
 4. **CCR Configuration** (`~/.claude-code-router/config.json`) - Claude Code Router proxy configuration
 
 ### Configuration Management and Switching
 
-ZCF provides powerful CLI tools to create, manage, and switch these configurations.
+CCJK provides powerful CLI tools to create, manage, and switch these configurations.
 
-- **Create Configuration**: You can configure multiple API providers during initialization using `zcf init`.
-- **Switch Configuration**: Use `zcf config-switch` command to quickly switch between different environments, projects, or providers.
+- **Create Configuration**: You can configure multiple API providers during initialization using `ccjk init`.
+- **Switch Configuration**: Use `ccjk config-switch` command to quickly switch between different environments, projects, or providers.
 
 👉 **For detailed command usage, please refer to:**
 - **[Configuration Switch Command (config-switch)](../cli/config-switch.md)**
@@ -45,14 +45,14 @@ Different types of configurations are backed up to different locations:
 | **Codex Prompts** | `~/.codex/backup/` | `prompts.{timestamp}.tar.gz` |
 | **CCR** | `~/.claude-code-router/` | `config.json.{timestamp}.bak` |
 | **CCometixLine** | `~/.cometix/backup/` | `config.{timestamp}.bak` |
-| **ZCF Global Configuration** | `~/.ufomiao/zcf/backup/` | `config.toml.{timestamp}.bak` |
+| **ZCF Global Configuration** | `~/.ufomiao/ccjk/backup/` | `config.toml.{timestamp}.bak` |
 
 ### Automatic Backup Triggers
 
 ZCF automatically creates backups during the following operations:
 
 1. **Initialize Configuration**: First-time configuration or re-initialization
-2. **Update Configuration**: Update workflows or templates via `zcf update`
+2. **Update Configuration**: Update workflows or templates via `ccjk update`
 3. **Switch Configuration**: Use `config-switch` to switch configurations
 4. **Modify API**: Update API keys or providers
 5. **Install Workflows**: Import or update workflow templates
@@ -67,7 +67,7 @@ If you need to restore to previous configuration:
 
 ## Incremental Management
 
-When existing configuration is detected, ZCF will prompt you to choose a management strategy:
+When existing configuration is detected, CCJK will prompt you to choose a management strategy:
 
 ### Strategy Options
 

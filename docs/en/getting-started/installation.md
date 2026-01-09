@@ -6,7 +6,7 @@ title: Installation Guide
 
 This guide will help you quickly get started with ZCF, covering the complete process from environment check to verification. Whether you're using it for the first time or want to quickly deploy on a new device, you can complete the setup by following this guide.
 
-> 💡 **Tip**: ZCF requires no installation, just run `npx zcf` directly. This guide mainly covers environment configuration and usage flow.
+> 💡 **Tip**: CCJK requires no installation, just run `npx ccjk` directly. This guide mainly covers environment configuration and usage flow.
 
 ## Environment Requirements
 
@@ -18,9 +18,9 @@ Before starting, ensure your system meets the following requirements:
 | **npm** | Installed with Node.js | Latest | Requires `npx` command support |
 | **Operating System** | - | - | macOS, Linux, Windows PowerShell/WSL, Termux |
 
-> 💡 **Tip**: If you use WSL (Windows Subsystem for Linux), ZCF will automatically detect the environment and provide corresponding installation prompts.
+> 💡 **Tip**: If you use WSL (Windows Subsystem for Linux), CCJK will automatically detect the environment and provide corresponding installation prompts.
 >
-> 🔐 **Linux Users**: On Linux systems, ZCF automatically detects if you're running as a non-root user and will use `sudo` for global npm installations when needed. You may be prompted for your password during installation of Claude Code, Codex, CCR, or CCometixLine.
+> 🔐 **Linux Users**: On Linux systems, CCJK automatically detects if you're running as a non-root user and will use `sudo` for global npm installations when needed. You may be prompted for your password during installation of Claude Code, Codex, CCR, or CCometixLine.
 
 ### Check Environment
 
@@ -41,26 +41,26 @@ npx --version
 
 ## Usage Methods
 
-ZCF provides two usage methods: **Interactive Use** (suitable for beginners) and **Command Line Direct Use** (suitable for automation and CI/CD).
+CCJK provides two usage methods: **Interactive Use** (suitable for beginners) and **Command Line Direct Use** (suitable for automation and CI/CD).
 
-> 💡 **Tip**: ZCF requires no installation, just use the `npx zcf` command to run.
+> 💡 **Tip**: CCJK requires no installation, just use the `npx ccjk` command to run.
 
 ### Method 1: Interactive Use (Recommended for Beginners)
 
-ZCF provides a friendly interactive menu that allows you to complete all configurations through a graphical interface.
+CCJK provides a friendly interactive menu that allows you to complete all configurations through a graphical interface.
 
 #### Start ZCF
 
 ```bash
-npx zcf
+npx ccjk
 ```
 
-On first run, ZCF will display a welcome screen and ask you which interface language you want to use:
+On first run, CCJK will display a welcome screen and ask you which interface language you want to use:
 
 ```
 ZCF - Zero-Config Code Flow
 
-? Select ZCF display language / 选择ZCF显示语言:
+? Select CCJK display language / 选择ZCF显示语言:
   ❯ 简体中文
     English
 ```
@@ -85,8 +85,8 @@ Please select function:
   U. ccusage - Claude Code Usage Analysis
   L. CCometixLine - High-performance Rust-based status bar tool with Git info and real-time usage tracking
 
-  ------------ ZCF ------------
-  0. Change Display Language / Select display language - Change ZCF interface language
+  ------------ CCJK ------------
+  0. Change Display Language / Select display language - Change CCJK interface language
   -. Uninstall - Remove Claude Code configuration and tools from system
   +. Check Updates - Check and update versions of Claude Code, CCR, and CCometixLine
   Q. Exit
@@ -94,7 +94,7 @@ Please select function:
 
 #### Interactive Initialization Flow
 
-When selecting `1` to perform complete initialization, ZCF will guide you through the following steps:
+When selecting `1` to perform complete initialization, CCJK will guide you through the following steps:
 
 **Step 1: Select Configuration Language**
 ```
@@ -126,7 +126,7 @@ When selecting `1` to perform complete initialization, ZCF will guide you throug
 ? Claude Code not detected, automatically install? (Y/n)
 ```
 
-If you choose to install, ZCF will prompt you to select an installation method:
+If you choose to install, CCJK will prompt you to select an installation method:
 
 ```
 ? Select installation method for Claude Code:
@@ -138,8 +138,8 @@ If you choose to install, ZCF will prompt you to select an installation method:
 ```
 
 > ✅ **Automatic Processing**: 
-> - ZCF automatically detects your platform and recommends the best installation method
-> - If Claude Code is already installed, ZCF will detect the version and can automatically upgrade to the latest version
+> - CCJK automatically detects your platform and recommends the best installation method
+> - If Claude Code is already installed, CCJK will detect the version and can automatically upgrade to the latest version
 > - The installation method is saved for future reference
 
 **Step 4: Handle Existing Configuration**
@@ -197,12 +197,12 @@ ZCF supports API provider presets, which can simplify configuration from 5+ para
 
 ```bash
 # Use 302.AI provider (recommended)
-npx zcf i -s -p 302ai -k "sk-xxx"
+npx ccjk i -s -p 302ai -k "sk-xxx"
 
 # Other providers
-npx zcf i -s -p glm -k "sk-xxx"        # GLM
-npx zcf i -s -p minimax -k "sk-xxx"    # MiniMax
-npx zcf i -s -p kimi -k "sk-xxx"       # Kimi
+npx ccjk i -s -p glm -k "sk-xxx"        # GLM
+npx ccjk i -s -p minimax -k "sk-xxx"    # MiniMax
+npx ccjk i -s -p kimi -k "sk-xxx"       # Kimi
 ```
 
 > ✅ **Advantages**: Presets automatically configure baseUrl, authentication method, and default model, greatly simplifying the configuration process.
@@ -213,15 +213,15 @@ If you need to use a custom API endpoint:
 
 ```bash
 # Manually specify all parameters
-npx zcf i -s -g zh-CN -t api_key -k "sk-xxx" -u "https://api.example.com"
+npx ccjk i -s -g zh-CN -t api_key -k "sk-xxx" -u "https://api.example.com"
 
 # Configure both primary and fast models
-npx zcf i -s -p 302ai -k "sk-xxx" \
+npx ccjk i -s -p 302ai -k "sk-xxx" \
   --api-model "claude-sonnet-4-5" \
   --api-fast-model "claude-haiku-4-5"
 
 # Specify output styles and workflows
-npx zcf i -s -p 302ai -k "sk-xxx" \
+npx ccjk i -s -p 302ai -k "sk-xxx" \
   --output-styles engineer-professional,nekomata-engineer \
   --workflows commonTools,sixStepsWorkflow \
   --default-output-style engineer-professional
@@ -233,14 +233,14 @@ ZCF supports configuring multiple APIs for easy switching in different scenarios
 
 ```bash
 # Configure multiple APIs using JSON string
-npx zcf i -s --api-configs '[
+npx ccjk i -s --api-configs '[
   {"provider":"302ai","key":"sk-xxx"},
   {"provider":"glm","key":"sk-yyy"},
   {"name":"custom","type":"api_key","key":"sk-zzz","url":"https://custom.api.com","primaryModel":"claude-sonnet-4-5","fastModel":"claude-haiku-4-5","default":true}
 ]'
 
 # Use JSON file configuration (suitable for complex multi-configuration scenarios)
-npx zcf i -s --api-configs-file ./api-configs.json
+npx ccjk i -s --api-configs-file ./api-configs.json
 ```
 
 `api-configs.json` file example:
@@ -275,20 +275,20 @@ npx zcf i -s --api-configs-file ./api-configs.json
 | `--mcp-services` | `-m` | MCP services to install | `all`, `skip` or comma-separated list |
 | `--code-type` | `-T` | Target code tool type | `claude-code`, `codex`, `cc`, `cx` |
 
-> 📖 **Complete Parameter List**: For detailed parameter descriptions, please refer to the [CLI Commands - zcf init](../cli/init.md) chapter.
+> 📖 **Complete Parameter List**: For detailed parameter descriptions, please refer to the [CLI Commands - ccjk init](../cli/init.md) chapter.
 
 ## Codex Support
 
-ZCF provides complete Codex support, allowing you to manage both Claude Code and Codex environments in the same tool.
+CCJK provides complete Codex support, allowing you to manage both Claude Code and Codex environments in the same tool.
 
 ### Switch to Codex Mode
 
 ```bash
 # Method 1: Command line direct initialization
-npx zcf i -s -T codex -p 302ai -k "sk-xxx"
+npx ccjk i -s -T codex -p 302ai -k "sk-xxx"
 
 # Method 2: Through interactive menu
-npx zcf → Select S (Switch Tool) → Select 1 (Complete Initialization)
+npx ccjk → Select S (Switch Tool) → Select 1 (Complete Initialization)
 ```
 
 ### Codex Configuration Features
@@ -310,7 +310,7 @@ ZCF fully supports cross-platform operation, including Windows, macOS, Linux, WS
 - **Configuration Fix**: Existing incorrect configurations will be automatically fixed during updates
 - **Zero Configuration**: Windows users need no additional operations, consistent with macOS/Linux experience
 
-> ⚠️ **Note**: If you encounter MCP connection issues on Windows, running `npx zcf` will automatically fix the configuration format.
+> ⚠️ **Note**: If you encounter MCP connection issues on Windows, running `npx ccjk` will automatically fix the configuration format.
 
 ### WSL Support (v2.12.12+)
 
@@ -324,7 +324,7 @@ ZCF fully supports cross-platform operation, including Windows, macOS, Linux, WS
 - **Enhanced Detection**: Intelligently recognizes available commands to ensure normal operation in restricted environments
 - **Full Functionality**: Enjoy the same complete functionality in Termux as on desktop systems
 
-> 📱 **Tip**: In Termux, ZCF will automatically recognize special path structures and correctly install dependencies.
+> 📱 **Tip**: In Termux, CCJK will automatically recognize special path structures and correctly install dependencies.
 
 ## Verify Installation
 
@@ -333,11 +333,11 @@ After installation is complete, follow these steps to verify that the environmen
 ### 1. Verify CLI Availability
 
 ```bash
-# Check if ZCF command is available
-npx zcf --help
+# Check if CCJK command is available
+npx ccjk --help
 
 # Check version information
-npx zcf --version
+npx ccjk --version
 ```
 
 ### 2. Verify Workflows
@@ -346,8 +346,8 @@ According to the tool used, try the following commands in the command palette:
 
 **Claude Code:**
 ```
-/zcf:workflow  # Six-stage development workflow
-/zcf:feat      # Feature development workflow
+/ccjk:workflow  # Six-stage development workflow
+/ccjk:feat      # Feature development workflow
 /git-commit    # Git commit command
 /init-project  # Project initialization
 ```
@@ -365,7 +365,7 @@ According to the tool used, try the following commands in the command palette:
 
 > ✅ **Success Indicator**: If commands can execute normally and display the workflow interface, the workflow import was successful.
 > 
-> 💡 **Tip**: Codex uses `/prompts:` prefix, while Claude Code uses `/zcf:` or direct `/` prefix.
+> 💡 **Tip**: Codex uses `/prompts:` prefix, while Claude Code uses `/ccjk:` or direct `/` prefix.
 
 ### 3. Verify MCP Services
 
@@ -384,16 +384,16 @@ Please query the latest documentation for React useState hook
 ```
 If Context7 is working properly, AI will use the latest documentation to answer.
 
-> 🔧 **Troubleshooting**: If services are not connected, run `npx zcf` → `4` to reconfigure MCP services.
+> 🔧 **Troubleshooting**: If services are not connected, run `npx ccjk` → `4` to reconfigure MCP services.
 
 ### 4. Verify API Connection
 
 ```bash
 # View usage statistics (if using official API)
-npx zcf ccu
+npx ccjk ccu
 
 # Check CCR status (if using CCR proxy)
-npx zcf ccr
+npx ccjk ccr
 ```
 
 ### 5. Verify Output Style
@@ -419,13 +419,13 @@ Here's a complete deployment script example:
 #!/bin/bash
 
 # 1. Initialize Claude Code
-npx zcf i -s -p 302ai -k "$API_KEY" \
+npx ccjk i -s -p 302ai -k "$API_KEY" \
   --output-styles engineer-professional \
   --workflows all \
   --mcp-services all
 
 # 2. Verify installation
-npx zcf --version
+npx ccjk --version
 
 # 3. View configuration location
 echo "Claude Code configuration: ~/.claude/"
@@ -437,17 +437,17 @@ echo "Backup location: ~/.claude/backup/"
 If already initialized, just update workflows and templates:
 
 ```bash
-npx zcf update -g zh-CN
+npx ccjk update -g zh-CN
 ```
 
-> 📖 **Note**: `zcf update` will preserve your existing API configuration and MCP settings by default, only updating workflow templates and documents.
+> 📖 **Note**: `ccjk update` will preserve your existing API configuration and MCP settings by default, only updating workflow templates and documents.
 
 ### Scenario: Configure CCR Proxy
 
 If you need to use CCR (Claude Code Router) proxy:
 
 ```bash
-npx zcf ccr
+npx ccjk ccr
 ```
 
 After entering the CCR management menu, you can choose:
@@ -469,12 +469,12 @@ After entering the CCR management menu, you can choose:
 - Claude Code: `~/.claude/workflows/`
 - Codex: `~/.codex/prompts/`
 
-If files don't exist, run `npx zcf update` to re-import.
+If files don't exist, run `npx ccjk update` to re-import.
 
 ### Q: MCP service connection failed?
 
 **A**: 
-1. Check MCP service configuration: `npx zcf` → `4`
+1. Check MCP service configuration: `npx ccjk` → `4`
 2. Confirm services are installed (most are automatically installed via npm)
 3. For Exa, ensure `EXA_API_KEY` environment variable is set
 
@@ -482,14 +482,14 @@ If files don't exist, run `npx zcf update` to re-import.
 
 **A**: Use the config switch command:
 ```bash
-npx zcf config-switch --list  # List all configurations
-npx zcf cs provider-name      # Switch to specified configuration
+npx ccjk config-switch --list  # List all configurations
+npx ccjk cs provider-name      # Switch to specified configuration
 ```
 
 ### Q: Where are configuration files saved?
 
 **A**: 
-- **ZCF Configuration**: `~/.ufomiao/zcf/config.toml`
+- **ZCF Configuration**: `~/.ufomiao/ccjk/config.toml`
 - **Claude Code Configuration**: `~/.claude/settings.json` and `~/.claude/CLAUDE.md`
 - **Codex Configuration**: `~/.codex/config.toml` and `~/.codex/AGENTS.md`
 - **Backup Location**: `~/.claude/backup/` and `~/.codex/backup/`

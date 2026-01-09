@@ -4,7 +4,7 @@ title: Claude Code Router (CCR)
 
 # Claude Code Router (CCR)
 
-[CCR](https://github.com/musistudio/claude-code-router/blob/main/README_zh.md) (Claude Code Router) is a powerful proxy router that enables intelligent routing and cost optimization for multiple AI models. ZCF has built-in complete CCR management capabilities to help you quickly set up a highly available Claude Code proxy system.
+[CCR](https://github.com/musistudio/claude-code-router/blob/main/README_zh.md) (Claude Code Router) is a powerful proxy router that enables intelligent routing and cost optimization for multiple AI models. CCJK has built-in complete CCR management capabilities to help you quickly set up a highly available Claude Code proxy system.
 
 ## What is CCR
 

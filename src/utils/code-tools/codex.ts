@@ -13,6 +13,7 @@ import { x } from 'tinyexec'
 // Removed MCP config imports; MCP configuration moved to codex-configure.ts
 import { AI_OUTPUT_LANGUAGES, CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_FILE, CODEX_DIR, CODEX_PROMPTS_DIR, SUPPORTED_LANGS, ZCF_CONFIG_FILE } from '../../constants'
 import { ensureI18nInitialized, format, i18n } from '../../i18n'
+import { readDefaultTomlConfig, readZcfConfig, updateTomlConfig, updateZcfConfig } from '../ccjk-config'
 import { applyAiLanguageDirective } from '../config'
 import { copyDir, copyFile, ensureDir, exists, readFile, writeFile } from '../fs-operations'
 import { readJsonConfig, writeJsonConfig } from '../json-config'
@@ -21,7 +22,6 @@ import { normalizeTomlPath, wrapCommandWithSudo } from '../platform'
 import { addNumbersToChoices } from '../prompt-helpers'
 import { resolveAiOutputLanguage } from '../prompts'
 import { promptBoolean } from '../toggle-prompt'
-import { readDefaultTomlConfig, readZcfConfig, updateTomlConfig, updateZcfConfig } from '../zcf-config'
 import { detectConfigManagementMode } from './codex-config-detector'
 import { configureCodexMcp } from './codex-configure'
 
@@ -48,7 +48,7 @@ export interface CodexMcpService {
   args: string[]
   env?: Record<string, string>
   startup_timeout_sec?: number
-  // Preserve all extra configuration fields not directly managed by ZCF
+  // Preserve all extra configuration fields not directly managed by CCJK
   extraFields?: Record<string, any>
 }
 
@@ -58,7 +58,7 @@ export interface CodexConfigData {
   providers: CodexProvider[]
   mcpServices: CodexMcpService[]
   managed: boolean
-  otherConfig?: string[] // Lines that are not managed by ZCF
+  otherConfig?: string[] // Lines that are not managed by CCJK
   modelProviderCommented?: boolean // Whether model_provider line should be commented out
 }
 
@@ -204,7 +204,7 @@ export function backupCodexFiles(): string | null {
     return null
 
   // Skip-prompt模式：只在首次调用时创建备份，其余复用
-  if (process.env.ZCF_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
+  if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
     return cachedSkipPromptBackup
 
   const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
@@ -215,7 +215,7 @@ export function backupCodexFiles(): string | null {
   }
 
   copyDir(CODEX_DIR, backupDir, { filter })
-  if (process.env.ZCF_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true')
+  if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true')
     cachedSkipPromptBackup = backupDir
 
   return backupDir
@@ -249,7 +249,7 @@ export function backupCodexConfig(): string | null {
 }
 
 export function backupCodexAgents(): string | null {
-  if (process.env.ZCF_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
+  if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
     return cachedSkipPromptBackup
   if (!exists(CODEX_AGENTS_FILE))
     return null
@@ -267,7 +267,7 @@ export function backupCodexAgents(): string | null {
 }
 
 export function backupCodexPrompts(): string | null {
-  if (process.env.ZCF_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
+  if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
     return cachedSkipPromptBackup
   if (!exists(CODEX_PROMPTS_DIR))
     return null
@@ -354,7 +354,7 @@ export function migrateEnvKeyToTempEnvKey(): boolean {
     // Write migrated content
     writeFile(CODEX_CONFIG_FILE, migratedContent)
 
-    // Update ZCF config to mark migration as complete
+    // Update CCJK config to mark migration as complete
     updateTomlConfig(ZCF_CONFIG_FILE, {
       codex: {
         envKeyMigrated: true,
@@ -442,7 +442,7 @@ export function migrateEnvKeyInContent(content: string): string {
  * This should be called before any Codex config modification operation
  */
 export function ensureEnvKeyMigration(): void {
-  // Check ZCF config to see if migration has already been done
+  // Check CCJK config to see if migration has already been done
   const tomlConfig = readDefaultTomlConfig()
 
   // Skip if already migrated
@@ -507,13 +507,13 @@ export function parseCodexConfig(content: string): CodexConfigData {
     // Extract MCP services from [mcp_servers.*] sections
     const mcpServices: CodexMcpService[] = []
     if (tomlData.mcp_servers) {
-      // Define known fields that ZCF directly manages
+      // Define known fields that CCJK directly manages
       const KNOWN_MCP_FIELDS = new Set(['command', 'args', 'env', 'startup_timeout_sec'])
 
       for (const [id, mcpData] of Object.entries(tomlData.mcp_servers)) {
         const mcp = mcpData as any
 
-        // Collect extra fields not directly managed by ZCF
+        // Collect extra fields not directly managed by CCJK
         const extraFields: Record<string, any> = {}
         for (const [key, value] of Object.entries(mcp)) {
           if (!KNOWN_MCP_FIELDS.has(key)) {
@@ -564,10 +564,10 @@ export function parseCodexConfig(content: string): CodexConfigData {
           continue
         }
 
-        // Skip comments (but reset inSection flag for ZCF comments)
+        // Skip comments (but reset inSection flag for CCJK comments)
         if (trimmedLine.startsWith('#')) {
-          if (trimmedLine.includes('--- model provider added by ZCF ---')) {
-            inSection = false // ZCF comments mark global config area
+          if (trimmedLine.includes('--- model provider added by CCJK ---')) {
+            inSection = false // CCJK comments mark global config area
           }
           continue
         }
@@ -590,7 +590,7 @@ export function parseCodexConfig(content: string): CodexConfigData {
       }
     }
 
-    // Preserve other configuration (line-scan, skip ZCF-managed sections/fields)
+    // Preserve other configuration (line-scan, skip CCJK-managed sections/fields)
     const otherConfig: string[] = []
     const lines = content.split('\n')
     let skipCurrentSection = false
@@ -600,12 +600,12 @@ export function parseCodexConfig(content: string): CodexConfigData {
       if (!trimmed)
         continue
 
-      // Skip ZCF managed comments/headers
-      if (/^#\s*---\s*model provider added by ZCF\s*---\s*$/i.test(trimmed))
+      // Skip CCJK managed comments/headers
+      if (/^#\s*---\s*model provider added by CCJK\s*---\s*$/i.test(trimmed))
         continue
-      if (/^#\s*---\s*MCP servers added by ZCF\s*---\s*$/i.test(trimmed))
+      if (/^#\s*---\s*MCP servers added by CCJK\s*---\s*$/i.test(trimmed))
         continue
-      if (/Managed by ZCF/i.test(trimmed))
+      if (/Managed by CCJK/i.test(trimmed))
         continue
 
       // Section header detection
@@ -613,7 +613,7 @@ export function parseCodexConfig(content: string): CodexConfigData {
       if (sec) {
         const name = sec[1]
         skipCurrentSection = name.startsWith('model_providers.') || name.startsWith('mcp_servers.')
-        // Do not push the section header if it's ZCF-managed; allow non-managed sections to pass
+        // Do not push the section header if it's CCJK-managed; allow non-managed sections to pass
         if (skipCurrentSection)
           continue
         otherConfig.push(line)
@@ -652,9 +652,9 @@ export function parseCodexConfig(content: string): CodexConfigData {
 
     // Clean previously managed sections to avoid duplication on subsequent renders
     const cleaned = content
-      // Remove ZCF headers
-      .replace(/^\s*#\s*---\s*model provider added by ZCF\s*---\s*$/gim, '')
-      .replace(/^\s*#\s*---\s*MCP servers added by ZCF\s*---\s*$/gim, '')
+      // Remove CCJK headers
+      .replace(/^\s*#\s*---\s*model provider added by CCJK\s*---\s*$/gim, '')
+      .replace(/^\s*#\s*---\s*MCP servers added by CCJK\s*---\s*$/gim, '')
       // Remove entire [model_providers.*] and [mcp_servers.*] blocks
       .replace(/^\[model_providers\.[^\]]+\][\s\S]*?(?=^\[|$)/gim, '')
       .replace(/^\[mcp_servers\.[^\]]+\][\s\S]*?(?=^\[|$)/gim, '')
@@ -811,10 +811,10 @@ export function readCodexConfig(): CodexConfigData | null {
 export function renderCodexConfig(data: CodexConfigData): string {
   const lines: string[] = []
 
-  // CRITICAL: Add ZCF global configuration FIRST to ensure it's truly global
+  // CRITICAL: Add CCJK global configuration FIRST to ensure it's truly global
   // This prevents TOML parser from incorrectly assigning global keys to sections
   if (data.model || data.modelProvider || data.providers.length > 0 || data.modelProviderCommented) {
-    lines.push('# --- model provider added by ZCF ---')
+    lines.push('# --- model provider added by CCJK ---')
 
     // Add model field if present
     if (data.model) {
@@ -830,16 +830,16 @@ export function renderCodexConfig(data: CodexConfigData): string {
     lines.push('')
   }
 
-  // Add preserved non-ZCF configuration after global config
+  // Add preserved non-CCJK configuration after global config
   if (data.otherConfig && data.otherConfig.length > 0) {
     const preserved = data.otherConfig.filter((raw) => {
       const l = String(raw).trim()
       if (!l)
         return false
-      // Guard: never re-insert any ZCF-managed headers/sections/fields
-      if (/^#\s*---\s*model provider added by ZCF\s*---\s*$/i.test(l))
+      // Guard: never re-insert any CCJK-managed headers/sections/fields
+      if (/^#\s*---\s*model provider added by CCJK\s*---\s*$/i.test(l))
         return false
-      if (/^#\s*---\s*MCP servers added by ZCF\s*---\s*$/i.test(l))
+      if (/^#\s*---\s*MCP servers added by CCJK\s*---\s*$/i.test(l))
         return false
       if (/^\[\s*mcp_servers\./i.test(l))
         return false
@@ -882,7 +882,7 @@ export function renderCodexConfig(data: CodexConfigData): string {
   // Add MCP servers sections
   if (data.mcpServices.length > 0) {
     lines.push('')
-    lines.push('# --- MCP servers added by ZCF ---')
+    lines.push('# --- MCP servers added by CCJK ---')
     for (const service of data.mcpServices) {
       lines.push(`[mcp_servers.${service.id}]`)
       // Normalize Windows paths: convert backslashes to forward slashes
@@ -1143,7 +1143,7 @@ export async function runCodexSystemPromptSelection(skipPrompt = false): Promise
 
   // Read both legacy and new config formats
   const zcfConfig = readZcfConfig()
-  const { readDefaultTomlConfig } = await import('../zcf-config')
+  const { readDefaultTomlConfig } = await import('../ccjk-config')
   const tomlConfig = readDefaultTomlConfig()
 
   // Use intelligent template language selection
@@ -1220,9 +1220,9 @@ export async function runCodexSystemPromptSelection(skipPrompt = false): Promise
   // Write to AGENTS.md
   writeFile(CODEX_AGENTS_FILE, content)
 
-  // Update ZCF configuration to save the selected system prompt style
+  // Update CCJK configuration to save the selected system prompt style
   try {
-    const { updateTomlConfig } = await import('../zcf-config')
+    const { updateTomlConfig } = await import('../ccjk-config')
     const { ZCF_CONFIG_FILE } = await import('../../constants')
 
     updateTomlConfig(ZCF_CONFIG_FILE, {
@@ -1233,7 +1233,7 @@ export async function runCodexSystemPromptSelection(skipPrompt = false): Promise
   }
   catch (error) {
     // Silently handle config update failure - the main functionality (writing AGENTS.md) has succeeded
-    console.error('Failed to update ZCF config:', error)
+    console.error('Failed to update CCJK config:', error)
   }
 }
 

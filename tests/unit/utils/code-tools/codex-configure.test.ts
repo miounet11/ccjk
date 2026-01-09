@@ -31,7 +31,7 @@ vi.mock('../../../../src/utils/platform', () => ({
   getSystemRoot: vi.fn(),
 }))
 
-vi.mock('../../../../src/utils/zcf-config', () => ({
+vi.mock('../../../../src/utils/ccjk-config', () => ({
   updateZcfConfig: vi.fn(),
 }))
 
@@ -65,7 +65,7 @@ describe('codex-configure', () => {
   describe('configureCodexMcp - skipPrompt mode', () => {
     it('should skip MCP installation when mcpServices is false', async () => {
       const { configureCodexMcp } = await import('../../../../src/utils/code-tools/codex-configure')
-      const { updateZcfConfig } = vi.mocked(await import('../../../../src/utils/zcf-config'))
+      const { updateZcfConfig } = vi.mocked(await import('../../../../src/utils/ccjk-config'))
       const { backupCodexComplete, readCodexConfig } = vi.mocked(await import('../../../../src/utils/code-tools/codex'))
 
       backupCodexComplete.mockReturnValue('/backup/path')
@@ -239,7 +239,7 @@ describe('codex-configure', () => {
       const { configureCodexMcp } = await import('../../../../src/utils/code-tools/codex-configure')
       const { selectMcpServices } = vi.mocked(await import('../../../../src/utils/mcp-selector'))
       const { backupCodexComplete, readCodexConfig, writeCodexConfig } = vi.mocked(await import('../../../../src/utils/code-tools/codex'))
-      const { updateZcfConfig } = vi.mocked(await import('../../../../src/utils/zcf-config'))
+      const { updateZcfConfig } = vi.mocked(await import('../../../../src/utils/ccjk-config'))
 
       backupCodexComplete.mockReturnValue('/backup/path')
       readCodexConfig.mockReturnValue(null)

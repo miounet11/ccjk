@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { readZcfConfig, updateZcfConfig } from '../../../src/utils/ccjk-config'
 import { applyAiLanguageDirective } from '../../../src/utils/config'
 import { exists, readFile } from '../../../src/utils/fs-operations'
 import { resolveAiOutputLanguage, resolveTemplateLanguage } from '../../../src/utils/prompts'
-import { readZcfConfig, updateZcfConfig } from '../../../src/utils/zcf-config'
 
 // Mock i18n
 vi.mock('../../../src/i18n', () => ({
@@ -50,8 +50,8 @@ vi.mock('../../../src/utils/prompts', () => ({
   resolveSystemPromptStyle: vi.fn(),
 }))
 
-// Mock zcf-config
-vi.mock('../../../src/utils/zcf-config', () => ({
+// Mock ccjk-config
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
 }))
@@ -181,7 +181,7 @@ describe('codex Skip Prompt Integration', () => {
       })
       vi.mocked(readFile).mockImplementation((path: string) => {
         if (path.includes('config.toml')) {
-          return `# --- model provider added by ZCF ---
+          return `# --- model provider added by CCJK ---
 model = "claude-3-5-sonnet-20241022"
 model_provider = "official"
 

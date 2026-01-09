@@ -4,7 +4,7 @@ title: Architecture Documentation
 
 # Architecture Documentation
 
-This document details the architecture design, module organization, key processes, and extension points of the ZCF project, helping developers understand and participate in project development.
+This document details the architecture design, module organization, key processes, and extension points of the CCJK project, helping developers understand and participate in project development.
 
 ## 📋 Table of Contents
 
@@ -43,9 +43,9 @@ This document details the architecture design, module organization, key processe
 ### Directory Hierarchy
 
 ```
-zcf/
+ccjk/
 ├── bin/
-│   └── zcf.mjs              # CLI executable entry
+│   └── ccjk.mjs              # CLI executable entry
 ├── src/                     # Source code
 │   ├── cli.ts              # CLI main entry (cac initialization)
 │   ├── cli-setup.ts        # Command registration and setup
@@ -146,7 +146,7 @@ zcf/
 ```typescript
 // cli.ts
 async function main(): Promise<void> {
-  const cli = cac('zcf')
+  const cli = cac('ccjk')
   await setupCommands(cli)
   cli.parse()
 }
@@ -262,7 +262,7 @@ graph TD
 
 ```mermaid
 graph TD
-    A[zcf init] --> B{code-type?}
+    A[ccjk init] --> B{code-type?}
     B -->|claude-code| C[Claude Code flow]
     B -->|codex| D[Codex flow]
     
@@ -470,6 +470,6 @@ Exception Thrown → error-handler Capture → Error Type Judgment → i18n Erro
 
 - [Contribution Guide](contributing.md) - Detailed guide for participating in development
 - [Testing Guide](testing.md) - Test writing and running
-- [CLAUDE.md](https://github.com/UfoMiao/zcf/blob/main/CLAUDE.md) - Complete project architecture documentation
+- [CLAUDE.md](https://github.com/UfoMiao/ccjk/blob/main/CLAUDE.md) - Complete project architecture documentation
 
 

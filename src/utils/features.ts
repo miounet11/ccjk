@@ -5,6 +5,7 @@ import inquirer from 'inquirer'
 import { getMcpServices } from '../config/mcp-services'
 import { LANG_LABELS, SUPPORTED_LANGS } from '../constants'
 import { changeLanguage, ensureI18nInitialized, i18n } from '../i18n'
+import { readZcfConfig, updateZcfConfig } from './ccjk-config'
 import { setupCcrConfiguration } from './ccr/config'
 import { installCcr, isCcrInstalled } from './ccr/installer'
 import {
@@ -33,7 +34,6 @@ import { addNumbersToChoices } from './prompt-helpers'
 import { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from './simple-config'
 import { promptBoolean } from './toggle-prompt'
 import { formatApiKeyDisplay, validateApiKey } from './validator'
-import { readZcfConfig, updateZcfConfig } from './zcf-config'
 
 // Helper function to handle cancelled operations
 async function handleCancellation(): Promise<void> {
@@ -57,7 +57,7 @@ async function handleOfficialLoginMode(): Promise<void> {
 async function handleCustomApiMode(): Promise<void> {
   ensureI18nInitialized()
 
-  // Get current code tool type from ZCF config
+  // Get current code tool type from CCJK config
   const zcfConfig = readZcfConfig()
   const codeToolType = zcfConfig?.codeToolType || 'claude-code'
 

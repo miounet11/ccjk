@@ -4,11 +4,11 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { readZcfConfig } from '../utils/ccjk-config'
 import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
 import { listCodexProviders, readCodexConfig, switchToOfficialLogin as switchCodexOfficialLogin, switchCodexProvider, switchToProvider } from '../utils/code-tools/codex'
 import { handleGeneralError } from '../utils/error-handler'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
-import { readZcfConfig } from '../utils/zcf-config'
 
 interface ConfigSwitchOptions {
   codeType?: CodeToolType // --code-type, -T
@@ -50,7 +50,7 @@ export async function configSwitchCommand(options: ConfigSwitchOptions): Promise
 }
 
 /**
- * Resolve code type with priority: parameter > ZCF config > default value (claude-code)
+ * Resolve code type with priority: parameter > CCJK config > default value (claude-code)
  * @param codeType - Code type from command line parameter (supports short aliases like 'cc', 'cx')
  */
 function resolveCodeType(codeType?: unknown): CodeToolType {
@@ -60,7 +60,7 @@ function resolveCodeType(codeType?: unknown): CodeToolType {
     return resolved
   }
 
-  // Fall back to ZCF config
+  // Fall back to CCJK config
   const zcfConfig = readZcfConfig()
   if (zcfConfig?.codeToolType && isCodeToolType(zcfConfig.codeToolType)) {
     return zcfConfig.codeToolType

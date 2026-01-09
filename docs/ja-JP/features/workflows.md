@@ -4,7 +4,7 @@ title: ワークフローシステム
 
 # ワークフローシステム
 
-ZCF は開発作業を構造化する複数のワークフローを同梱し、`zcf init` で自動導入します。
+CCJK は開発作業を構造化する複数のワークフローを同梱し、`ccjk init` で自動導入します。
 
 ## 主なワークフロー
 
@@ -16,9 +16,9 @@ ZCF は開発作業を構造化する複数のワークフローを同梱し、`
 
 ## 使い方
 
-- インタラクティブ導入：`npx zcf` → 2 (Import Workflows)  
-- CLI：`npx zcf init -s --workflows all` または `--workflows skip`  
-- 会話中：`/zcf:workflow <内容>`、`/zcf:feat <機能名>`、`/git-commit` など
+- インタラクティブ導入：`npx ccjk` → 2 (Import Workflows)  
+- CLI：`npx ccjk init -s --workflows all` または `--workflows skip`  
+- 会話中：`/ccjk:workflow <内容>`、`/ccjk:feat <機能名>`、`/git-commit` など
 
 ## ベストプラクティス
 

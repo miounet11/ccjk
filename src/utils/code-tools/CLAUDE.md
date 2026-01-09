@@ -5,7 +5,7 @@
 
 ## Module Responsibilities
 
-Codex integration module providing dual code tool support for ZCF, enabling configuration, installation, provider management, and uninstallation for Codex alongside Claude Code. Implements comprehensive Codex-specific functionality including TOML configuration management, provider switching, and platform-specific adaptations.
+Codex integration module providing dual code tool support for CCJK, enabling configuration, installation, provider management, and uninstallation for Codex alongside Claude Code. Implements comprehensive Codex-specific functionality including TOML configuration management, provider switching, and platform-specific adaptations.
 
 ## Entry Points and Startup
 
@@ -167,7 +167,7 @@ export interface CodexStatus {
 // Internal dependencies
 import { i18n } from '../../i18n'
 import { getPlatform, isWindows } from '../platform'
-import { readZcfConfigAsync, writeZcfConfigAsync } from '../zcf-config'
+import { readZcfConfigAsync, writeZcfConfigAsync } from '../ccjk-config'
 
 // External dependencies
 import { parse as parseToml, stringify as stringifyToml } from 'smol-toml'

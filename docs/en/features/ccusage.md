@@ -21,7 +21,7 @@ ccusage is a powerful usage analysis tool designed to help developers understand
 
 ## Usage Guide
 
-ccusage is fully integrated into ZCF and can be used directly via CLI commands.
+ccusage is fully integrated into CCJK and can be used directly via CLI commands.
 
 For detailed usage commands, parameter descriptions, and export formats, please refer to the CLI documentation:
 

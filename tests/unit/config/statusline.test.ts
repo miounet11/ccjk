@@ -7,7 +7,7 @@ import { readJsonConfig, writeJsonConfig } from '../../../src/utils/json-config'
 // Mock external dependencies
 vi.mock('../../../src/utils/fs-operations')
 vi.mock('../../../src/utils/json-config')
-vi.mock('../../../src/utils/zcf-config')
+vi.mock('../../../src/utils/ccjk-config')
 
 const mockExists = vi.mocked(exists)
 const mockReadJsonConfig = vi.mocked(readJsonConfig)

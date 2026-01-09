@@ -2,14 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ccr } from '../../src/commands/ccr'
 import * as menu from '../../src/commands/menu'
 import * as banner from '../../src/utils/banner'
+import * as ccjkConfig from '../../src/utils/ccjk-config'
 import * as errorHandler from '../../src/utils/error-handler'
 import * as prompts from '../../src/utils/prompts'
 import * as ccrMenu from '../../src/utils/tools/ccr-menu'
-import * as zcfConfig from '../../src/utils/zcf-config'
 
 vi.mock('../../src/utils/tools/ccr-menu')
 vi.mock('../../src/utils/error-handler')
-vi.mock('../../src/utils/zcf-config')
+vi.mock('../../src/utils/ccjk-config')
 vi.mock('../../src/utils/prompts')
 vi.mock('../../src/utils/banner')
 vi.mock('../../src/commands/menu')
@@ -25,7 +25,7 @@ describe('ccr command', () => {
 
     // Default mocks
     vi.mocked(banner.displayBannerWithInfo).mockImplementation(() => {})
-    vi.mocked(zcfConfig.readZcfConfigAsync).mockResolvedValue({
+    vi.mocked(ccjkConfig.readZcfConfigAsync).mockResolvedValue({
       preferredLang: 'en',
       codeToolType: 'claude-code',
     } as any)
@@ -51,7 +51,7 @@ describe('ccr command', () => {
     })
 
     it('should show CCR menu with config language', async () => {
-      vi.mocked(zcfConfig.readZcfConfigAsync).mockResolvedValue({
+      vi.mocked(ccjkConfig.readZcfConfigAsync).mockResolvedValue({
         preferredLang: 'zh-CN',
         codeToolType: 'claude-code',
       } as any)
@@ -62,7 +62,7 @@ describe('ccr command', () => {
     })
 
     it('should prompt for language when not configured', async () => {
-      vi.mocked(zcfConfig.readZcfConfigAsync).mockResolvedValue(null)
+      vi.mocked(ccjkConfig.readZcfConfigAsync).mockResolvedValue(null)
       vi.mocked(prompts.selectScriptLanguage).mockResolvedValue('zh-CN')
 
       await ccr({})
@@ -147,7 +147,7 @@ describe('ccr command', () => {
     })
 
     it('should use default language when not specified', async () => {
-      vi.mocked(zcfConfig.readZcfConfigAsync).mockResolvedValue(null)
+      vi.mocked(ccjkConfig.readZcfConfigAsync).mockResolvedValue(null)
       vi.mocked(prompts.selectScriptLanguage).mockResolvedValue('zh-CN')
 
       await ccr({})

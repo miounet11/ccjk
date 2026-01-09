@@ -13,7 +13,7 @@ describe('statusLine Configuration Integration', () => {
 
   beforeEach(async () => {
     // Create temporary directory for testing
-    tempDir = await mkdtemp(join(tmpdir(), 'zcf-statusline-test-'))
+    tempDir = await mkdtemp(join(tmpdir(), 'ccjk-statusline-test-'))
     templatePath = join(tempDir, 'template-settings.json')
     targetPath = join(tempDir, 'target-settings.json')
   })

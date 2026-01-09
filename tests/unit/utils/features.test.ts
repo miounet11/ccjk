@@ -66,7 +66,7 @@ vi.mock('../../../src/utils/prompts', () => ({
   selectAiOutputLanguage: vi.fn(),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
 }))
@@ -385,7 +385,7 @@ describe('features utilities', () => {
       const { applyAiLanguageDirective } = await import('../../../src/utils/config')
       await import('../../../src/utils/output-style')
       const { selectAiOutputLanguage } = await import('../../../src/utils/prompts')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({} as any)
       vi.mocked(inquirer.prompt).mockResolvedValue({
@@ -406,7 +406,7 @@ describe('features utilities', () => {
       const { configureAiMemoryFeature } = await import('../../../src/utils/features')
       const { applyAiLanguageDirective } = await import('../../../src/utils/config')
       const { selectAiOutputLanguage } = await import('../../../src/utils/prompts')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ aiOutputLang: 'en' } as any)
       vi.mocked(inquirer.prompt).mockResolvedValueOnce({ option: 'language' })
@@ -426,7 +426,7 @@ describe('features utilities', () => {
       const { configureAiMemoryFeature } = await import('../../../src/utils/features')
       const { applyAiLanguageDirective } = await import('../../../src/utils/config')
       const { selectAiOutputLanguage } = await import('../../../src/utils/prompts')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ aiOutputLang: 'chinese-simplified' } as any)
       vi.mocked(inquirer.prompt).mockResolvedValueOnce({ option: 'language' })
@@ -470,7 +470,7 @@ describe('features utilities', () => {
   describe('changeScriptLanguageFeature', () => {
     it('should change script language', async () => {
       const { changeScriptLanguageFeature } = await import('../../../src/utils/features')
-      const { updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { updateZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(inquirer.prompt).mockResolvedValue({ lang: 'en' })
       vi.mocked(updateZcfConfig).mockResolvedValue(undefined)
@@ -589,7 +589,7 @@ describe('features utilities', () => {
 
     it('should handle language configuration option', async () => {
       const { configureCodexAiMemoryFeature } = await import('../../../src/utils/features')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { selectAiOutputLanguage } = await import('../../../src/utils/prompts')
 
       vi.mocked(readZcfConfig).mockReturnValue(null)
@@ -604,7 +604,7 @@ describe('features utilities', () => {
 
     it('should handle existing language configuration', async () => {
       const { configureCodexAiMemoryFeature } = await import('../../../src/utils/features')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({
         version: '1.0.0',
@@ -624,7 +624,7 @@ describe('features utilities', () => {
 
     it('should handle system prompt configuration option', async () => {
       const { configureCodexAiMemoryFeature } = await import('../../../src/utils/features')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { runCodexSystemPromptSelection } = await import('../../../src/utils/code-tools/codex')
 
       vi.mocked(readZcfConfig).mockReturnValue({

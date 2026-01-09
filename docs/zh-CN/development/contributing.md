@@ -4,7 +4,7 @@ title: 贡献指南
 
 # 贡献指南
 
-欢迎贡献者参与 ZCF 项目！本文档将指导您如何参与项目开发、提交代码和贡献文档。
+欢迎贡献者参与 CCJK 项目！本文档将指导您如何参与项目开发、提交代码和贡献文档。
 
 ## 📋 目录
 
@@ -43,15 +43,15 @@ title: 贡献指南
 ```bash
 # Fork 仓库到您的 GitHub 账号
 # 然后克隆您的 fork
-git clone https://github.com/YOUR_USERNAME/zcf.git
-cd zcf
+git clone https://github.com/YOUR_USERNAME/ccjk.git
+cd ccjk
 ```
 
 ### 2. 添加上游仓库
 
 ```bash
 # 添加上游仓库以便同步更新
-git remote add upstream https://github.com/UfoMiao/zcf.git
+git remote add upstream https://github.com/UfoMiao/ccjk.git
 
 # 验证远程仓库
 git remote -v
@@ -163,7 +163,7 @@ git push origin feat/your-feature-name
 
 1. 在 GitHub 上访问您的 fork
 2. 点击 "New Pull Request"
-3. 选择 `UfoMiao/zcf:main` 作为目标分支
+3. 选择 `UfoMiao/ccjk:main` 作为目标分支
 4. 填写 PR 描述（使用模板）
 5. 等待代码审查
 
@@ -244,7 +244,7 @@ const config = await readConfig(); // 避免不必要的 await
 
 ## 提交规范
 
-ZCF 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范。
+CCJK 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范。
 
 ### 提交格式
 

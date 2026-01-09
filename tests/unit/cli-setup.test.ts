@@ -32,7 +32,7 @@ vi.mock('../../src/i18n', async (importOriginal) => {
   }
 })
 
-// Mock zcf-config
+// Mock ccjk-config
 function createMockZcfConfig() {
   return {
     version: '1.0.0',
@@ -42,7 +42,7 @@ function createMockZcfConfig() {
   }
 }
 
-vi.mock('../../src/utils/zcf-config', () => ({
+vi.mock('../../src/utils/ccjk-config', () => ({
   readZcfConfigAsync: vi.fn().mockResolvedValue(createMockZcfConfig()),
   readZcfConfig: vi.fn().mockReturnValue(createMockZcfConfig()),
   updateZcfConfig: vi.fn(),
@@ -56,7 +56,7 @@ vi.mock('../../src/utils/prompts', () => ({
 const { changeLanguage, i18n } = await import('../../src/i18n')
 const { checkUpdates } = await import('../../src/commands/check-updates')
 const mockedCheckUpdates = vi.mocked(checkUpdates)
-const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
 const { selectScriptLanguage } = await import('../../src/utils/prompts')
 const mockSelectScriptLanguage = vi.mocked(selectScriptLanguage)
 
@@ -144,14 +144,15 @@ describe('cli-setup', () => {
 
       const result = customizeHelp(sections)
 
-      // Should add header
-      expect(result[0].body).toContain('ZCF - Zero-Config Code Flow')
+      // Should add header with CCJK branding and version
+      expect(result[0].body).toContain('CCJK - Claude Code Jailbreak Kit')
+      expect(result[0].body).toContain('v')
 
       // Should add commands section
       const commandsSection = result.find(s => s.title.includes('Commands'))
       expect(commandsSection).toBeDefined()
-      expect(commandsSection.body).toContain('zcf init')
-      expect(commandsSection.body).toContain('zcf update')
+      expect(commandsSection.body).toContain('ccjk init')
+      expect(commandsSection.body).toContain('ccjk update')
 
       // Should add options section
       const optionsSection = result.find(s => s.title.includes('Options'))
@@ -163,9 +164,9 @@ describe('cli-setup', () => {
       // Should add examples section
       const examplesSection = result.find(s => s.title.includes('Examples'))
       expect(examplesSection).toBeDefined()
-      expect(examplesSection.body).toContain('npx zcf')
-      expect(examplesSection.body).toContain('npx zcf init')
-      expect(examplesSection.body).toContain('npx zcf u')
+      expect(examplesSection.body).toContain('npx ccjk')
+      expect(examplesSection.body).toContain('npx ccjk init')
+      expect(examplesSection.body).toContain('npx ccjk u')
     })
 
     it('should maintain existing sections', () => {
@@ -201,7 +202,7 @@ describe('cli-setup', () => {
     let cli: any
 
     beforeEach(async () => {
-      cli = cac('zcf-test')
+      cli = cac('ccjk-test')
       await setupCommands(cli)
     })
 

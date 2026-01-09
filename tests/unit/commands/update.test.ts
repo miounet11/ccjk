@@ -28,7 +28,7 @@ vi.mock('../../../src/utils/config-operations', () => ({
   updatePromptOnly: vi.fn(),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
 }))
@@ -93,7 +93,7 @@ describe('update command', () => {
   describe('update function', () => {
     it('should handle update with existing config', async () => {
       const { update } = await import('../../../src/commands/update')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { resolveAiOutputLanguage, resolveTemplateLanguage } = await import('../../../src/utils/prompts')
       const { updatePromptOnly: _updatePromptOnly } = await import('../../../src/utils/config-operations')
       const { selectAndInstallWorkflows } = await import('../../../src/utils/workflow-installer')
@@ -129,7 +129,7 @@ describe('update command', () => {
 
     it('should handle cancel update', async () => {
       const { update } = await import('../../../src/commands/update')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { resolveTemplateLanguage } = await import('../../../src/utils/prompts')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
@@ -144,7 +144,7 @@ describe('update command', () => {
 
     it('should handle options correctly', async () => {
       const { update } = await import('../../../src/commands/update')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { resolveAiOutputLanguage, resolveTemplateLanguage } = await import('../../../src/utils/prompts')
       const { updatePromptOnly: _updatePromptOnly } = await import('../../../src/utils/config-operations')
 
@@ -166,7 +166,7 @@ describe('update command', () => {
 
     it('should persist code tool type selection', async () => {
       const { update } = await import('../../../src/commands/update')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
       const codexModule = await import('../../../src/utils/code-tools/codex')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
@@ -186,7 +186,7 @@ describe('update command', () => {
 
     it('should handle errors gracefully', async () => {
       const { update } = await import('../../../src/commands/update')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const error = new Error('Test error')
 
       vi.mocked(readZcfConfig).mockImplementation(() => {

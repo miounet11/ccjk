@@ -41,7 +41,7 @@ vi.mock('../../../src/i18n', () => ({
         'codex:officialConfigured': '✔ 已切换为官方登录模式',
         'common:cancelled': '已取消操作',
         'common:operationFailed': '操作失败',
-        'common:goodbye': '👋 感谢使用 ZCF！再见！',
+        'common:goodbye': '👋 感谢使用 CCJK！再见！',
       }
       return translations[key] || key
     }),
@@ -65,7 +65,7 @@ vi.mock('../../../src/utils/error-handler', () => ({
   handleGeneralError: vi.fn(),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(() => ({
     version: '1.0.0',
     preferredLang: 'zh-CN',

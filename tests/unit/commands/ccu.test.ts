@@ -2,14 +2,14 @@ import ansis from 'ansis'
 import { x } from 'tinyexec'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { executeCcusage } from '../../../src/commands/ccu'
-import * as zcfConfig from '../../../src/utils/zcf-config'
+import * as ccjkConfig from '../../../src/utils/ccjk-config'
 
 vi.mock('tinyexec')
-vi.mock('../../../src/utils/zcf-config')
+vi.mock('../../../src/utils/ccjk-config')
 
 describe('executeCcusage', () => {
   const mockX = vi.mocked(x)
-  const mockReadZcfConfigAsync = vi.mocked(zcfConfig.readZcfConfigAsync)
+  const mockReadZcfConfigAsync = vi.mocked(ccjkConfig.readZcfConfigAsync)
   const consoleLogSpy = vi.spyOn(console, 'log')
   const consoleErrorSpy = vi.spyOn(console, 'error')
   vi.spyOn(process, 'exit').mockImplementation((() => {

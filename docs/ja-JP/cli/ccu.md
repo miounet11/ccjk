@@ -4,27 +4,27 @@ title: 使用分析 ccu
 
 # 使用分析 ccu
 
-`zcf ccu`（Claude Code Usage）は、Claude Code の使用統計情報を表示および分析するために使用され、AI アシスタントの使用状況とコストを理解するのに役立ちます。
+`ccjk ccu`（Claude Code Usage）は、Claude Code の使用統計情報を表示および分析するために使用され、AI アシスタントの使用状況とコストを理解するのに役立ちます。
 
 ## コマンド形式
 
 ```bash
 # 基本使用（デフォルト統計を表示）
-npx zcf ccu
+npx ccjk ccu
 
 # 統計期間を指定
-npx zcf ccu --period daily
-npx zcf ccu --period weekly
-npx zcf ccu --period monthly
+npx ccjk ccu --period daily
+npx ccjk ccu --period weekly
+npx ccjk ccu --period monthly
 
 # JSON 形式で出力（スクリプト処理用）
-npx zcf ccu --json
+npx ccjk ccu --json
 
 # CSV 形式で出力（Excel 分析用）
-npx zcf ccu --csv
+npx ccjk ccu --csv
 
 # メインメニューからアクセス
-npx zcf
+npx ccjk
 # 次に U. 使用分析 を選択
 ```
 
@@ -115,7 +115,7 @@ Month      | Requests | Duration
 スクリプト処理と自動化に適しています：
 
 ```bash
-npx zcf ccu --json --period weekly
+npx ccjk ccu --json --period weekly
 ```
 
 **出力例**：
@@ -141,7 +141,7 @@ npx zcf ccu --json --period weekly
 Excel またはその他の分析ツールにインポートするのに適しています：
 
 ```bash
-npx zcf ccu --csv --period monthly > usage.csv
+npx ccjk ccu --csv --period monthly > usage.csv
 ```
 
 **出力例**：
@@ -158,7 +158,7 @@ Date,Requests,Duration
 当日の使用状況をすばやく確認：
 
 ```bash
-npx zcf ccu --period daily
+npx ccjk ccu --period daily
 ```
 
 ### 2. チーム使用統計
@@ -167,7 +167,7 @@ npx zcf ccu --period daily
 
 ```bash
 # 週次統計レポートを生成
-npx zcf ccu --period weekly --json > weekly-usage.json
+npx ccjk ccu --period weekly --json > weekly-usage.json
 ```
 
 ### 3. コスト分析
@@ -176,7 +176,7 @@ API 価格と組み合わせてコストを推定：
 
 ```bash
 # 月次使用レポートを生成
-npx zcf ccu --period monthly --csv > monthly-usage.csv
+npx ccjk ccu --period monthly --csv > monthly-usage.csv
 # 次に Excel で API 価格と組み合わせてコストを計算
 ```
 
@@ -186,14 +186,14 @@ npx zcf ccu --period monthly --csv > monthly-usage.csv
 
 ```bash
 # crontab に追加（毎日実行）
-0 23 * * * cd /path/to/project && npx zcf ccu --json --period daily >> usage.log
+0 23 * * * cd /path/to/project && npx ccjk ccu --json --period daily >> usage.log
 ```
 
 ## CCometixLine との統合
 
 CCometixLine ステータスバーも使用統計のサマリーを表示できます：
 
-1. CCometixLine をインストール：`npx zcf` → 対応するオプションを選択
+1. CCometixLine をインストール：`npx ccjk` → 対応するオプションを選択
 2. ステータスバーでリアルタイムの使用状況を確認
 3. ステータスバーをクリックして詳細統計を表示
 

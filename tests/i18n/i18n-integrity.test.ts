@@ -253,7 +253,7 @@ describe('i18n Integrity Tests', () => {
 
     it('should verify CLI translations work with built package', async () => {
       // Test that the built CLI actually shows translations, not raw keys
-      if (!existsSync(join(projectRoot, 'bin/zcf.mjs'))) {
+      if (!existsSync(join(projectRoot, 'bin/ccjk.mjs'))) {
         console.warn('Built CLI not found, skipping CLI translation test')
         return
       }
@@ -262,7 +262,7 @@ describe('i18n Integrity Tests', () => {
 
       try {
         // Test Chinese CLI output (using Node.js timeout instead of shell timeout for cross-platform compatibility)
-        const zhOutput = execSync('node bin/zcf.mjs --lang zh-CN --help', {
+        const zhOutput = execSync('node bin/ccjk.mjs --lang zh-CN --help', {
           encoding: 'utf8',
           cwd: projectRoot,
           stdio: 'pipe',
@@ -275,7 +275,7 @@ describe('i18n Integrity Tests', () => {
         expect(zhOutput).not.toContain('menuDescriptions.')
 
         // Test English CLI output
-        const enOutput = execSync('node bin/zcf.mjs --lang en --help', {
+        const enOutput = execSync('node bin/ccjk.mjs --lang en --help', {
           encoding: 'utf8',
           cwd: projectRoot,
           stdio: 'pipe',

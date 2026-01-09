@@ -4,9 +4,9 @@ title: 使用指南
 
 # 使用指南
 
-本指南将帮助您快速开始使用 ZCF，从环境检查到验证使用的完整流程。无论您是首次使用还是希望在新设备上快速部署，都可以按照本指南完成设置。
+本指南将帮助您快速开始使用 CCJK，从环境检查到验证使用的完整流程。无论您是首次使用还是希望在新设备上快速部署，都可以按照本指南完成设置。
 
-> 💡 **提示**：ZCF 无需安装，直接使用 `npx zcf` 即可运行。本指南主要介绍环境配置和使用流程。
+> 💡 **提示**：CCJK 无需安装，直接使用 `npx ccjk` 即可运行。本指南主要介绍环境配置和使用流程。
 
 ## 环境要求
 
@@ -18,9 +18,9 @@ title: 使用指南
 | **npm** | 随 Node.js 安装 | 最新版 | 需要支持 `npx` 命令 |
 | **操作系统** | - | - | macOS、Linux、Windows PowerShell/WSL、Termux |
 
-> 💡 **提示**：如果您使用 WSL（Windows Subsystem for Linux），ZCF 会自动检测环境并提供相应的安装提示。
+> 💡 **提示**：如果您使用 WSL（Windows Subsystem for Linux），CCJK 会自动检测环境并提供相应的安装提示。
 >
-> 🔐 **Linux 用户**：在 Linux 系统上，ZCF 会自动检测您是否以非 root 用户运行，并在需要时使用 `sudo` 进行全局 npm 安装。在安装 Claude Code、Codex、CCR 或 CCometixLine 时，您可能需要输入密码。
+> 🔐 **Linux 用户**：在 Linux 系统上，CCJK 会自动检测您是否以非 root 用户运行，并在需要时使用 `sudo` 进行全局 npm 安装。在安装 Claude Code、Codex、CCR 或 CCometixLine 时，您可能需要输入密码。
 
 ### 检查环境
 
@@ -41,26 +41,26 @@ npx --version
 
 ## 使用方式
 
-ZCF 提供两种使用方式：**交互式使用**（适合新手）和**命令行直接使用**（适合自动化和 CI/CD）。
+CCJK 提供两种使用方式：**交互式使用**（适合新手）和**命令行直接使用**（适合自动化和 CI/CD）。
 
-> 💡 **提示**：ZCF 无需安装，直接使用 `npx zcf` 命令即可运行。
+> 💡 **提示**：CCJK 无需安装，直接使用 `npx ccjk` 命令即可运行。
 
 ### 方式一：交互式使用（推荐新手）
 
-ZCF 提供了友好的交互式菜单，让您可以通过图形化界面完成所有配置。
+CCJK 提供了友好的交互式菜单，让您可以通过图形化界面完成所有配置。
 
-#### 启动 ZCF
+#### 启动 CCJK
 
 ```bash
-npx zcf
+npx ccjk
 ```
 
-首次运行时，ZCF 会显示欢迎界面并询问您希望使用的界面语言：
+首次运行时，CCJK 会显示欢迎界面并询问您希望使用的界面语言：
 
 ```
-ZCF - Zero-Config Code Flow
+CCJK - Zero-Config Code Flow
 
-? Select ZCF display language / 选择ZCF显示语言:
+? Select CCJK display language / 选择CCJK显示语言:
   ❯ 简体中文
     English
 ```
@@ -85,8 +85,8 @@ ZCF - Zero-Config Code Flow
   U. ccusage - Claude Code 用量分析
   L. CCometixLine - 基于 Rust 的高性能状态栏工具，集成 Git 信息和实时使用量跟踪
 
-  ------------ ZCF ------------
-  0. 更改显示语言 / Select display language - 更改 ZCF 界面语言
+  ------------ CCJK ------------
+  0. 更改显示语言 / Select display language - 更改 CCJK 界面语言
   -. 卸载 - 从系统中删除 Claude Code 配置和工具
   +. 检查更新 - 检查并更新 Claude Code、CCR 和 CCometixLine 的版本
   Q. 退出
@@ -94,7 +94,7 @@ ZCF - Zero-Config Code Flow
 
 #### 交互式初始化流程
 
-选择 `1` 执行完整初始化时，ZCF 会引导您完成以下步骤：
+选择 `1` 执行完整初始化时，CCJK 会引导您完成以下步骤：
 
 **步骤 1：选择配置语言**
 ```
@@ -126,7 +126,7 @@ ZCF - Zero-Config Code Flow
 ? 检测到 Claude Code 未安装，是否自动安装？(Y/n)
 ```
 
-如果选择安装，ZCF 会提示您选择安装方法：
+如果选择安装，CCJK 会提示您选择安装方法：
 
 ```
 ? 选择 Claude Code 的安装方法：
@@ -138,8 +138,8 @@ ZCF - Zero-Config Code Flow
 ```
 
 > ✅ **自动处理**：
-> - ZCF 会自动检测您的平台并推荐最佳的安装方法
-> - 如果 Claude Code 已安装，ZCF 会检测版本并可以自动升级到最新版本
+> - CCJK 会自动检测您的平台并推荐最佳的安装方法
+> - 如果 Claude Code 已安装，CCJK 会检测版本并可以自动升级到最新版本
 > - 安装方法会被保存以供将来参考
 
 **步骤 4：处理现有配置**
@@ -193,16 +193,16 @@ ZCF - Zero-Config Code Flow
 
 #### 使用 API 提供商预设（最简单）
 
-ZCF 支持 API 提供商预设，可将配置从 5+ 个参数简化为仅需 2 个：
+CCJK 支持 API 提供商预设，可将配置从 5+ 个参数简化为仅需 2 个：
 
 ```bash
 # 使用 302.AI 提供商（推荐）
-npx zcf i -s -p 302ai -k "sk-xxx"
+npx ccjk i -s -p 302ai -k "sk-xxx"
 
 # 其他提供商
-npx zcf i -s -p glm -k "sk-xxx"        # GLM
-npx zcf i -s -p minimax -k "sk-xxx"    # MiniMax
-npx zcf i -s -p kimi -k "sk-xxx"       # Kimi
+npx ccjk i -s -p glm -k "sk-xxx"        # GLM
+npx ccjk i -s -p minimax -k "sk-xxx"    # MiniMax
+npx ccjk i -s -p kimi -k "sk-xxx"       # Kimi
 ```
 
 > ✅ **优势**：预设会自动配置 baseUrl、认证方式和默认模型，大大简化了配置流程。
@@ -213,15 +213,15 @@ npx zcf i -s -p kimi -k "sk-xxx"       # Kimi
 
 ```bash
 # 手动指定所有参数
-npx zcf i -s -g zh-CN -t api_key -k "sk-xxx" -u "https://api.example.com"
+npx ccjk i -s -g zh-CN -t api_key -k "sk-xxx" -u "https://api.example.com"
 
 # 同时配置主模型与快速模型
-npx zcf i -s -p 302ai -k "sk-xxx" \
+npx ccjk i -s -p 302ai -k "sk-xxx" \
   --api-model "claude-sonnet-4-5" \
   --api-fast-model "claude-haiku-4-5"
 
 # 指定输出风格和工作流
-npx zcf i -s -p 302ai -k "sk-xxx" \
+npx ccjk i -s -p 302ai -k "sk-xxx" \
   --output-styles engineer-professional,nekomata-engineer \
   --workflows commonTools,sixStepsWorkflow \
   --default-output-style engineer-professional
@@ -229,18 +229,18 @@ npx zcf i -s -p 302ai -k "sk-xxx" \
 
 #### 多 API 配置
 
-ZCF 支持配置多个 API，方便在不同场景下切换：
+CCJK 支持配置多个 API，方便在不同场景下切换：
 
 ```bash
 # 使用 JSON 字符串配置多个 API
-npx zcf i -s --api-configs '[
+npx ccjk i -s --api-configs '[
   {"provider":"302ai","key":"sk-xxx"},
   {"provider":"glm","key":"sk-yyy"},
   {"name":"custom","type":"api_key","key":"sk-zzz","url":"https://custom.api.com","primaryModel":"claude-sonnet-4-5","fastModel":"claude-haiku-4-5","default":true}
 ]'
 
 # 使用 JSON 文件配置（适合复杂的多配置场景）
-npx zcf i -s --api-configs-file ./api-configs.json
+npx ccjk i -s --api-configs-file ./api-configs.json
 ```
 
 `api-configs.json` 文件示例：
@@ -275,20 +275,20 @@ npx zcf i -s --api-configs-file ./api-configs.json
 | `--mcp-services` | `-m` | 要安装的 MCP 服务 | `all`, `skip` 或逗号分隔列表 |
 | `--code-type` | `-T` | 目标代码工具类型 | `claude-code`, `codex`, `cc`, `cx` |
 
-> 📖 **完整参数列表**：详细参数说明请参考 [CLI 命令 - zcf init](../cli/init.md) 章节。
+> 📖 **完整参数列表**：详细参数说明请参考 [CLI 命令 - ccjk init](../cli/init.md) 章节。
 
 ## Codex 支持
 
-ZCF 提供完整的 Codex 支持，让您可以在同一个工具中管理 Claude Code 和 Codex 两种环境。
+CCJK 提供完整的 Codex 支持，让您可以在同一个工具中管理 Claude Code 和 Codex 两种环境。
 
 ### 切换到 Codex 模式
 
 ```bash
 # 方式 1：命令行直接初始化
-npx zcf i -s -T codex -p 302ai -k "sk-xxx"
+npx ccjk i -s -T codex -p 302ai -k "sk-xxx"
 
 # 方式 2：通过交互式菜单
-npx zcf → 选择 S（切换工具）→ 选择 1（完整初始化）
+npx ccjk → 选择 S（切换工具）→ 选择 1（完整初始化）
 ```
 
 ### Codex 配置特点
@@ -302,7 +302,7 @@ npx zcf → 选择 S（切换工具）→ 选择 1（完整初始化）
 
 ## 跨平台支持
 
-ZCF 全面支持跨平台运行，包括 Windows、macOS、Linux、WSL 和 Termux。
+CCJK 全面支持跨平台运行，包括 Windows、macOS、Linux、WSL 和 Termux。
 
 ### Windows 平台
 
@@ -310,7 +310,7 @@ ZCF 全面支持跨平台运行，包括 Windows、macOS、Linux、WSL 和 Termu
 - **配置修复**：现有的错误配置会在更新时自动修复
 - **零配置**：Windows 用户无需任何额外操作，与 macOS/Linux 体验一致
 
-> ⚠️ **注意**：如果在 Windows 上遇到 MCP 连接问题，运行 `npx zcf` 会自动修复配置格式。
+> ⚠️ **注意**：如果在 Windows 上遇到 MCP 连接问题，运行 `npx ccjk` 会自动修复配置格式。
 
 ### WSL 支持（v2.12.12+）
 
@@ -324,7 +324,7 @@ ZCF 全面支持跨平台运行，包括 Windows、macOS、Linux、WSL 和 Termu
 - **增强检测**：智能识别可用命令，确保在受限环境中正常工作
 - **完整功能**：在 Termux 中享受与桌面系统相同的完整功能
 
-> 📱 **提示**：在 Termux 中，ZCF 会自动识别特殊的路径结构并正确安装依赖。
+> 📱 **提示**：在 Termux 中，CCJK 会自动识别特殊的路径结构并正确安装依赖。
 
 ## 验证安装
 
@@ -333,11 +333,11 @@ ZCF 全面支持跨平台运行，包括 Windows、macOS、Linux、WSL 和 Termu
 ### 1. 验证 CLI 可用性
 
 ```bash
-# 检查 ZCF 命令是否可用
-npx zcf --help
+# 检查 CCJK 命令是否可用
+npx ccjk --help
 
 # 检查版本信息
-npx zcf --version
+npx ccjk --version
 ```
 
 ### 2. 验证工作流
@@ -346,8 +346,8 @@ npx zcf --version
 
 **Claude Code：**
 ```
-/zcf:workflow  # 六阶段开发工作流
-/zcf:feat      # 功能开发工作流
+/ccjk:workflow  # 六阶段开发工作流
+/ccjk:feat      # 功能开发工作流
 /git-commit    # Git 提交命令
 /init-project  # 项目初始化
 ```
@@ -365,7 +365,7 @@ npx zcf --version
 
 > ✅ **成功标志**：如果命令能够正常执行并显示工作流界面，说明工作流导入成功。
 > 
-> 💡 **提示**：Codex 使用 `/prompts:` 前缀，而 Claude Code 使用 `/zcf:` 或直接 `/` 前缀。
+> 💡 **提示**：Codex 使用 `/prompts:` 前缀，而 Claude Code 使用 `/ccjk:` 或直接 `/` 前缀。
 
 ### 3. 验证 MCP 服务
 
@@ -384,16 +384,16 @@ npx zcf --version
 ```
 如果 Context7 正常工作，AI 会使用最新文档回答。
 
-> 🔧 **故障排除**：如果服务未连接，运行 `npx zcf` → `4` 重新配置 MCP 服务。
+> 🔧 **故障排除**：如果服务未连接，运行 `npx ccjk` → `4` 重新配置 MCP 服务。
 
 ### 4. 验证 API 连接
 
 ```bash
 # 查看使用统计（如果使用官方 API）
-npx zcf ccu
+npx ccjk ccu
 
 # 检查 CCR 状态（如果使用 CCR 代理）
-npx zcf ccr
+npx ccjk ccr
 ```
 
 ### 5. 验证输出风格
@@ -419,13 +419,13 @@ npx zcf ccr
 #!/bin/bash
 
 # 1. 初始化 Claude Code
-npx zcf i -s -p 302ai -k "$API_KEY" \
+npx ccjk i -s -p 302ai -k "$API_KEY" \
   --output-styles engineer-professional \
   --workflows all \
   --mcp-services all
 
 # 2. 验证安装
-npx zcf --version
+npx ccjk --version
 
 # 3. 查看配置位置
 echo "Claude Code 配置: ~/.claude/"
@@ -437,17 +437,17 @@ echo "备份位置: ~/.claude/backup/"
 如果已初始化，只需要更新工作流和模板：
 
 ```bash
-npx zcf update -g zh-CN
+npx ccjk update -g zh-CN
 ```
 
-> 📖 **说明**：`zcf update` 默认会保留您现有的 API 配置和 MCP 设置，只更新工作流模板和文档。
+> 📖 **说明**：`ccjk update` 默认会保留您现有的 API 配置和 MCP 设置，只更新工作流模板和文档。
 
 ### 场景：配置 CCR 代理
 
 如果需要使用 CCR（Claude Code Router）代理：
 
 ```bash
-npx zcf ccr
+npx ccjk ccr
 ```
 
 进入 CCR 管理菜单后，可以选择：
@@ -469,12 +469,12 @@ npx zcf ccr
 - Claude Code：`~/.claude/workflows/`
 - Codex：`~/.codex/prompts/`
 
-如果文件不存在，运行 `npx zcf update` 重新导入。
+如果文件不存在，运行 `npx ccjk update` 重新导入。
 
 ### Q: MCP 服务连接失败？
 
 **A**: 
-1. 检查 MCP 服务配置：`npx zcf` → `4`
+1. 检查 MCP 服务配置：`npx ccjk` → `4`
 2. 确认服务已安装（大部分通过 npm 自动安装）
 3. 对于 Exa，确保设置了 `EXA_API_KEY` 环境变量
 
@@ -482,14 +482,14 @@ npx zcf ccr
 
 **A**: 使用配置切换命令：
 ```bash
-npx zcf config-switch --list  # 列出所有配置
-npx zcf cs provider-name      # 切换到指定配置
+npx ccjk config-switch --list  # 列出所有配置
+npx ccjk cs provider-name      # 切换到指定配置
 ```
 
 ### Q: 配置文件保存在哪里？
 
 **A**: 
-- **ZCF 配置**：`~/.ufomiao/zcf/config.toml`
+- **CCJK 配置**：`~/.ufomiao/ccjk/config.toml`
 - **Claude Code 配置**：`~/.claude/settings.json` 和 `~/.claude/CLAUDE.md`
 - **Codex 配置**：`~/.codex/config.toml` 和 `~/.codex/AGENTS.md`
 - **备份位置**：`~/.claude/backup/` 和 `~/.codex/backup/`
@@ -498,7 +498,7 @@ npx zcf cs provider-name      # 切换到指定配置
 
 完成快速开始后，建议您：
 
-1. 🎯 探索 [功能特性](../features/) 了解 ZCF 的完整能力
+1. 🎯 探索 [功能特性](../features/) 了解 CCJK 的完整能力
 2. 📚 深入学习 [工作流详解](../workflows/) 掌握各种工作流
 3. ⚙️ 参考 [配置管理](../advanced/configuration.md) 进行个性化设置
 4. 🔧 查看 [CLI 命令](../cli/) 掌握所有可用命令

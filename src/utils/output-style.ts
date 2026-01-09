@@ -6,11 +6,11 @@ import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { updateZcfConfig } from './ccjk-config'
 import { copyFile, ensureDir, exists, removeFile } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
 import { addNumbersToChoices } from './prompt-helpers'
 import { promptBoolean } from './toggle-prompt'
-import { updateZcfConfig } from './zcf-config'
 
 export interface OutputStyle {
   id: string
@@ -253,7 +253,7 @@ export async function configureOutputStyle(
   // Set global default output style
   setGlobalDefaultOutputStyle(defaultStyle)
 
-  // Update ZCF config
+  // Update CCJK config
   updateZcfConfig({
     outputStyles: selectedStyles,
     defaultOutputStyle: defaultStyle,

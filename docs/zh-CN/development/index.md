@@ -4,7 +4,7 @@ title: 面向贡献者
 
 # 面向贡献者
 
-欢迎贡献者参与 ZCF 项目！本章提供完整的开发指南，帮助您快速上手项目开发，了解架构设计，并遵循最佳实践。
+欢迎贡献者参与 CCJK 项目！本章提供完整的开发指南，帮助您快速上手项目开发，了解架构设计，并遵循最佳实践。
 
 ## 📋 文档导航
 
@@ -29,8 +29,8 @@ title: 面向贡献者
 
 ```bash
 # Fork 并克隆仓库
-git clone https://github.com/YOUR_USERNAME/zcf.git
-cd zcf
+git clone https://github.com/YOUR_USERNAME/ccjk.git
+cd ccjk
 
 # 安装依赖
 pnpm install
@@ -76,7 +76,7 @@ pnpm build
 
 ### 架构说明
 
-深入理解 ZCF 的架构设计：
+深入理解 CCJK 的架构设计：
 
 - 🏗️ **技术栈**：使用的技术和依赖
 - 📁 **项目结构**：详细的目录组织
@@ -108,7 +108,7 @@ pnpm build
 
 ### TDD（测试驱动开发）
 
-ZCF 严格遵循 TDD 方法：
+CCJK 严格遵循 TDD 方法：
 
 1. **Red**: 先写失败的测试
 2. **Green**: 写最小代码使测试通过
@@ -174,13 +174,13 @@ ZCF 严格遵循 TDD 方法：
 
 ## 📖 相关资源
 
-- [项目 README](https://github.com/UfoMiao/zcf/blob/main/README.md) - 项目概览和快速开始
-- [CLAUDE.md](https://github.com/UfoMiao/zcf/blob/main/CLAUDE.md) - 完整的项目架构文档
-- [GitHub Issues](https://github.com/UfoMiao/zcf/issues) - 问题和讨论
-- [GitHub Discussions](https://github.com/UfoMiao/zcf/discussions) - 社区讨论
+- [项目 README](https://github.com/UfoMiao/ccjk/blob/main/README.md) - 项目概览和快速开始
+- [CLAUDE.md](https://github.com/UfoMiao/ccjk/blob/main/CLAUDE.md) - 完整的项目架构文档
+- [GitHub Issues](https://github.com/UfoMiao/ccjk/issues) - 问题和讨论
+- [GitHub Discussions](https://github.com/UfoMiao/ccjk/discussions) - 社区讨论
 
 ---
 
-**再次感谢您对 ZCF 项目的关注和贡献！** 🎉
+**再次感谢您对 CCJK 项目的关注和贡献！** 🎉
 
 开始贡献之前，建议先阅读 [贡献指南](contributing.md) 了解详细的流程和规范。

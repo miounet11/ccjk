@@ -4,11 +4,11 @@ title: API 提供商预设
 
 # API 提供商预设
 
-ZCF 提供了 API 提供商预设系统，可以大大简化 API 配置。使用预设可以将配置从 5+ 个参数减少到仅需 2 个（提供商 + API 密钥）。
+CCJK 提供了 API 提供商预设系统，可以大大简化 API 配置。使用预设可以将配置从 5+ 个参数减少到仅需 2 个（提供商 + API 密钥）。
 
 ## 支持的提供商
 
-ZCF 目前支持以下 API 提供商预设：
+CCJK 目前支持以下 API 提供商预设：
 
 | 预设 ID | 提供商名称 | 描述 | Claude Code 支持 | Codex 支持 | 认证方式 |
 |---------|-----------|------|----------------|-----------|---------|
@@ -39,10 +39,10 @@ ZCF 目前支持以下 API 提供商预设：
 **使用示例**：
 ```bash
 # Claude Code
-npx zcf init -s -p 302ai -k "sk-xxx"
+npx ccjk init -s -p 302ai -k "sk-xxx"
 
 # Codex
-npx zcf init -s -T codex -p 302ai -k "sk-xxx"
+npx ccjk init -s -T codex -p 302ai -k "sk-xxx"
 ```
 
 ### GLM (智谱AI)
@@ -65,10 +65,10 @@ npx zcf init -s -T codex -p 302ai -k "sk-xxx"
 **使用示例**：
 ```bash
 # Claude Code
-npx zcf init -s -p glm -k "your-auth-token"
+npx ccjk init -s -p glm -k "your-auth-token"
 
 # Codex
-npx zcf init -s -T codex -p glm -k "your-auth-token"
+npx ccjk init -s -T codex -p glm -k "your-auth-token"
 ```
 
 ### MiniMax
@@ -91,10 +91,10 @@ npx zcf init -s -T codex -p glm -k "your-auth-token"
 **使用示例**：
 ```bash
 # Claude Code
-npx zcf init -s -p minimax -k "your-auth-token"
+npx ccjk init -s -p minimax -k "your-auth-token"
 
 # Codex
-npx zcf init -s -T codex -p minimax -k "your-auth-token"
+npx ccjk init -s -T codex -p minimax -k "your-auth-token"
 ```
 
 ### Kimi (月之暗面)
@@ -117,10 +117,10 @@ npx zcf init -s -T codex -p minimax -k "your-auth-token"
 **使用示例**：
 ```bash
 # Claude Code
-npx zcf init -s -p kimi -k "your-auth-token"
+npx ccjk init -s -p kimi -k "your-auth-token"
 
 # Codex
-npx zcf init -s -T codex -p kimi -k "your-auth-token"
+npx ccjk init -s -T codex -p kimi -k "your-auth-token"
 ```
 
 ### Custom (自定义)
@@ -135,10 +135,10 @@ npx zcf init -s -T codex -p kimi -k "your-auth-token"
 **使用方式**：
 ```bash
 # 使用自定义提供商（需要提供 URL）
-npx zcf init -s -p custom -k "sk-xxx" -u "https://api.example.com/v1"
+npx ccjk init -s -p custom -k "sk-xxx" -u "https://api.example.com/v1"
 
 # 或使用传统方式（不使用预设）
-npx zcf init -s -t api_key -k "sk-xxx" -u "https://api.example.com/v1"
+npx ccjk init -s -t api_key -k "sk-xxx" -u "https://api.example.com/v1"
 ```
 
 ## 使用方式
@@ -149,15 +149,15 @@ npx zcf init -s -t api_key -k "sk-xxx" -u "https://api.example.com/v1"
 
 ```bash
 # 使用提供商预设
-npx zcf init -s -p <provider-id> -k <api-key>
+npx ccjk init -s -p <provider-id> -k <api-key>
 
 # 示例：使用 302.AI
-npx zcf init -s -p 302ai -k "sk-xxx"
+npx ccjk init -s -p 302ai -k "sk-xxx"
 ```
 
 ### 自动配置
 
-使用预设时，ZCF 会自动配置：
+使用预设时，CCJK 会自动配置：
 
 1. ✅ **Base URL**：自动填充正确的 API 端点
 2. ✅ **认证方式**：自动设置认证类型（`api_key` 或 `auth_token`）
@@ -170,12 +170,12 @@ npx zcf init -s -p 302ai -k "sk-xxx"
 
 ```bash
 # 使用预设但覆盖模型
-npx zcf init -s -p 302ai -k "sk-xxx" \
+npx ccjk init -s -p 302ai -k "sk-xxx" \
   -M "claude-sonnet-4-5" \
   -F "claude-haiku-4-5"
 
 # 使用预设但覆盖 URL（不推荐，除非测试）
-npx zcf init -s -p 302ai -k "sk-xxx" \
+npx ccjk init -s -p 302ai -k "sk-xxx" \
   -u "https://custom.302.ai/api"
 ```
 
@@ -187,7 +187,7 @@ npx zcf init -s -p 302ai -k "sk-xxx" \
 
 ```bash
 # 使用 JSON 字符串配置多个提供商
-npx zcf init -s --api-configs '[
+npx ccjk init -s --api-configs '[
   {
     "provider": "302ai",
     "key": "sk-302ai-xxx",
@@ -227,7 +227,7 @@ npx zcf init -s --api-configs '[
 }
 
 # 使用配置文件
-npx zcf init -s --api-configs-file ./api-configs.json
+npx ccjk init -s --api-configs-file ./api-configs.json
 ```
 
 ## 提供商切换
@@ -238,20 +238,20 @@ npx zcf init -s --api-configs-file ./api-configs.json
 
 ```bash
 # 列出所有配置
-npx zcf config-switch --list
+npx ccjk config-switch --list
 
 # 切换到指定提供商
-npx zcf config-switch 302ai-config
+npx ccjk config-switch 302ai-config
 ```
 
 ### Codex
 
 ```bash
 # 列出 Codex 提供商
-npx zcf config-switch --code-type codex --list
+npx ccjk config-switch --code-type codex --list
 
 # 切换到指定提供商
-npx zcf config-switch glm-provider --code-type codex
+npx ccjk config-switch glm-provider --code-type codex
 ```
 
 ## 最佳实践
@@ -265,10 +265,10 @@ npx zcf config-switch glm-provider --code-type codex
 
 ```bash
 # 推荐：使用预设
-npx zcf init -s -p 302ai -k "sk-xxx"
+npx ccjk init -s -p 302ai -k "sk-xxx"
 
 # 不推荐：手动配置所有参数
-npx zcf init -s -t api_key -k "sk-xxx" -u "https://api.302.ai/cc" -M "claude-sonnet-4-5"
+npx ccjk init -s -t api_key -k "sk-xxx" -u "https://api.302.ai/cc" -M "claude-sonnet-4-5"
 ```
 
 ### 2. 测试配置
@@ -277,13 +277,13 @@ npx zcf init -s -t api_key -k "sk-xxx" -u "https://api.302.ai/cc" -M "claude-son
 
 ```bash
 # 1. 使用预设初始化
-npx zcf init -s -p 302ai -k "test-key"
+npx ccjk init -s -p 302ai -k "test-key"
 
 # 2. 测试 API 连接
 # 在 Claude Code 或 Codex 中测试对话
 
 # 3. 如果正常，使用正式密钥重新配置
-npx zcf init -s -p 302ai -k "production-key"
+npx ccjk init -s -p 302ai -k "production-key"
 ```
 
 ### 3. 多提供商策略
@@ -292,13 +292,13 @@ npx zcf init -s -p 302ai -k "production-key"
 
 ```bash
 # 项目 A：使用 302.AI 提供商
-npx zcf config-switch 302ai-provider
+npx ccjk config-switch 302ai-provider
 
 # 项目 B：使用 GLM 提供商
-npx zcf config-switch glm-provider
+npx ccjk config-switch glm-provider
 
 # 项目 C：使用 MiniMax 提供商
-npx zcf config-switch minimax-provider
+npx ccjk config-switch minimax-provider
 ```
 
 ### 4. 密钥安全
@@ -310,11 +310,11 @@ npx zcf config-switch minimax-provider
 
 ```bash
 # 使用环境变量
-export ZCF_API_KEY="sk-xxx"
-npx zcf init -s -p 302ai -k "$ZCF_API_KEY"
+export CCJK_API_KEY="sk-xxx"
+npx ccjk init -s -p 302ai -k "$CCJK_API_KEY"
 
 # 或从文件读取（确保文件权限正确）
-npx zcf init -s -p 302ai -k "$(cat ~/.zcf/api-key)"
+npx ccjk init -s -p 302ai -k "$(cat ~/.ccjk/api-key)"
 ```
 
 ## 故障排除
@@ -325,7 +325,7 @@ npx zcf init -s -p 302ai -k "$(cat ~/.zcf/api-key)"
 
 ```bash
 # 错误信息会显示所有有效值
-npx zcf init -s -p invalid-provider -k "sk-xxx"
+npx ccjk init -s -p invalid-provider -k "sk-xxx"
 # 错误：Invalid provider 'invalid-provider'. Valid providers: 302ai, glm, minimax, kimi, custom
 ```
 
@@ -349,7 +349,7 @@ cat ~/.codex/config.toml | grep apiKey
 
 ```bash
 # 覆盖默认模型
-npx zcf init -s -p 302ai -k "sk-xxx" -M "claude-sonnet-4-5"
+npx ccjk init -s -p 302ai -k "sk-xxx" -M "claude-sonnet-4-5"
 
 # 或手动编辑配置文件
 vim ~/.claude/settings.json

@@ -3,20 +3,20 @@ description: Create pull request based on current branch changes
 allowed-tools: Read(**), Exec(git, pnpm, node, date, cat, gh)
 argument-hint: [--base <branch>] [--draft] [--title <title>]
 # examples:
-#   - /zcf-pr                        # Create PR from current branch to main
-#   - /zcf-pr --base develop         # Create PR to develop branch
-#   - /zcf-pr --draft                # Create draft PR
-#   - /zcf-pr --title "Bug Fix"      # Custom PR title
+#   - /ccjk-pr                        # Create PR from current branch to main
+#   - /ccjk-pr --base develop         # Create PR to develop branch
+#   - /ccjk-pr --draft                # Create draft PR
+#   - /ccjk-pr --title "Bug Fix"      # Custom PR title
 ---
 
-# ZCF PR - Create Pull Request from Current Branch
+# CCJK PR - Create Pull Request from Current Branch
 
 Create pull request based on current branch changes and generate standardized PR description.
 
 ## Usage
 
 ```bash
-/zcf-pr [--base <branch>] [--draft] [--title <title>]
+/ccjk-pr [--base <branch>] [--draft] [--title <title>]
 ```
 
 ## Parameters
@@ -70,12 +70,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo "❌ Unknown parameter: $1"
-      echo "Usage: /zcf-pr [--base <branch>] [--draft] [--title <title>]"
+      echo "Usage: /ccjk-pr [--base <branch>] [--draft] [--title <title>]"
       echo "Examples:"
-      echo "  /zcf-pr                           # Create PR to main"
-      echo "  /zcf-pr --base develop            # Create PR to develop"
-      echo "  /zcf-pr --draft                   # Create draft PR"
-      echo "  /zcf-pr --title 'Bug Fix'         # Custom title"
+      echo "  /ccjk-pr                           # Create PR to main"
+      echo "  /ccjk-pr --base develop            # Create PR to develop"
+      echo "  /ccjk-pr --draft                   # Create draft PR"
+      echo "  /ccjk-pr --title 'Bug Fix'         # Custom title"
       exit 1
       ;;
   esac
@@ -348,7 +348,7 @@ $COMMITS
 \`\`\`
 
 ---
-🤖 Generated with /zcf-pr command
+🤖 Generated with /ccjk-pr command
 EOF
 
 echo "✅ PR description generated"
@@ -438,19 +438,19 @@ The command automatically categorizes changes based on:
 
 ```bash
 # Standard PR to main
-/zcf-pr
+/ccjk-pr
 # → Creates PR: "feat: add new feature" with full description
 
 # PR to develop branch
-/zcf-pr --base develop
+/ccjk-pr --base develop
 # → Creates PR to develop branch instead of main
 
 # Draft PR
-/zcf-pr --draft
+/ccjk-pr --draft
 # → Creates draft PR for initial review
 
 # Custom title
-/zcf-pr --title "Critical bug fix for authentication"
+/ccjk-pr --title "Critical bug fix for authentication"
 # → Uses custom title instead of auto-generated one
 ```
 

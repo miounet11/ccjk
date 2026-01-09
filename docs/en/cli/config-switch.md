@@ -4,33 +4,33 @@ title: Config Switch
 
 # Config Switch
 
-`zcf config-switch` is used to quickly switch between multiple API configurations, suitable for users who use different API providers for different projects.
+`ccjk config-switch` is used to quickly switch between multiple API configurations, suitable for users who use different API providers for different projects.
 
-> **Alias**: `zcf cs` provides the same functionality, so any example can be shortened (for example `npx zcf cs --list`).
+> **Alias**: `ccjk cs` provides the same functionality, so any example can be shortened (for example `npx ccjk cs --list`).
 
 ## Command Format
 
 ```bash
 # Interactive switch (recommended)
-npx zcf cs
+npx ccjk cs
 
 # List all available configurations
-npx zcf cs --list
+npx ccjk cs --list
 
 # Directly switch to specified configuration (Claude Code)
-npx zcf cs provider1
+npx ccjk cs provider1
 
 # Specify tool type (Supports short alias -T cc/cx)
-npx zcf cs --list -T cc      # List Claude Code configs
-npx zcf cs --list -T cx      # List Codex configs
-npx zcf cs provider1 -T cx   # Switch Codex config
+npx ccjk cs --list -T cc      # List Claude Code configs
+npx ccjk cs --list -T cx      # List Codex configs
+npx ccjk cs provider1 -T cx   # Switch Codex config
 ```
 
 ## Parameter Descriptions
 
 | Parameter | Description | Optional Values | Default |
 |------|------|--------|--------|
-| `--code-type`, `-T` | Specify tool type | `claude-code` (cc), `codex` (cx) | Read from ZCF configuration |
+| `--code-type`, `-T` | Specify tool type | `claude-code` (cc), `codex` (cx) | Read from CCJK configuration |
 | `--list`, `-l` | Only list configurations, don't switch | None | No |
 | `Target Config` | Directly specify configuration name to switch to | Configuration name or ID | None |
 
@@ -42,7 +42,7 @@ Supports switching the following types of configurations:
 
 1. **Official Login**: Use Claude official OAuth login
 2. **CCR Proxy**: Use Claude Code Router proxy
-3. **Custom Configuration**: Multiple API configurations created through `zcf init`
+3. **Custom Configuration**: Multiple API configurations created through `ccjk init`
 
 **Configuration Source**:
 - Configuration file: `~/.claude/settings.json`
@@ -54,7 +54,7 @@ Supports switching the following types of configurations:
 Supports switching Codex model providers:
 
 1. **Official Login**: Use Codex official OAuth login
-2. **Custom Providers**: Providers configured through `zcf init` (like 302.AI, GLM, etc.)
+2. **Custom Providers**: Providers configured through `ccjk init` (like 302.AI, GLM, etc.)
 
 **Configuration Source**:
 - Configuration file: `~/.codex/config.toml`
@@ -67,7 +67,7 @@ Supports switching Codex model providers:
 The most common method, select configuration through interactive menu:
 
 ```bash
-npx zcf cs
+npx ccjk cs
 ```
 
 **Claude Code Interactive Interface**:
@@ -95,10 +95,10 @@ View all currently available configurations:
 
 ```bash
 # Claude Code configurations
-npx zcf cs --list -T cc
+npx ccjk cs --list -T cc
 
 # Codex configurations
-npx zcf cs --list -T cx
+npx ccjk cs --list -T cx
 ```
 
 **Output Example**:
@@ -117,10 +117,10 @@ If you know the configuration name, you can switch directly:
 
 ```bash
 # Switch to specified Profile (using provider English name)
-npx zcf cs glm-provider
+npx ccjk cs glm-provider
 
 # Codex switch provider
-npx zcf cs glm-provider -T cx
+npx ccjk cs glm-provider -T cx
 ```
 
 **Supported Matching Methods**:
@@ -135,7 +135,7 @@ Create multiple API configurations during initialization:
 
 ```bash
 # Use multi-configuration parameters
-npx zcf init --api-configs '[
+npx ccjk init --api-configs '[
   {
     "name": "GLM Provider",
     "provider": "glm",
@@ -189,33 +189,33 @@ After switching configuration:
 
 ```bash
 # Project A uses GLM
-npx zcf cs glm-provider
+npx ccjk cs glm-provider
 
 # Project B uses 302.AI
-npx zcf cs 302ai-provider
+npx ccjk cs 302ai-provider
 
 # Project C uses MiniMax
-npx zcf cs minimax-provider
+npx ccjk cs minimax-provider
 ```
 
 ### 2. Test New Configuration
 
 ```bash
 # Switch to test configuration
-npx zcf cs kimi-provider
+npx ccjk cs kimi-provider
 
 # Switch back after testing
-npx zcf cs glm-provider
+npx ccjk cs glm-provider
 ```
 
 ### 3. Switch Codex Provider
 
 ```bash
 # List Codex providers
-npx zcf cs -T cx --list
+npx ccjk cs -T cx --list
 
 # Switch to specified provider
-npx zcf cs glm-provider -T cx
+npx ccjk cs glm-provider -T cx
 ```
 
 ## Best Practices
@@ -238,14 +238,14 @@ Use different configurations in different Worktrees:
 
 ```bash
 # Main branch uses GLM configuration
-npx zcf cs glm-provider
+npx ccjk cs glm-provider
 
 # Create feature branch Worktree
 /git-worktree add feat/new-feature -o
 
 # Switch configuration in feature branch
-cd ../.zcf/project-name/feat/new-feature
-npx zcf cs 302ai-provider
+cd ../.ccjk/project-name/feat/new-feature
+npx ccjk cs 302ai-provider
 ```
 
 ## Common Questions
@@ -259,9 +259,9 @@ A:
 
 ### Q: How to add, edit or delete configurations?
 
-A: You can manage configurations through the ZCF Main Menu:
+A: You can manage configurations through the CCJK Main Menu:
 
-1. Run `npx zcf` to enter the main menu
+1. Run `npx ccjk` to enter the main menu
 2. Select **"3. API Config"**
 3. Select **"Custom API Config"**
 

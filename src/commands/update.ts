@@ -4,13 +4,13 @@ import { version } from '../../package.json'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias } from '../constants'
 import { i18n } from '../i18n'
 import { displayBanner } from '../utils/banner'
+import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { runCodexUpdate } from '../utils/code-tools/codex'
 import { updatePromptOnly } from '../utils/config-operations'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { resolveAiOutputLanguage } from '../utils/prompts'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
 import { selectAndInstallWorkflows } from '../utils/workflow-installer'
-import { readZcfConfig, updateZcfConfig } from '../utils/zcf-config'
 
 export interface UpdateOptions {
   configLang?: SupportedLang
@@ -91,7 +91,7 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
     // Check for Claude Code updates (update command always checks interactively)
     await checkClaudeCodeVersionAndPrompt(false)
 
-    // Update zcf config with new version, template language, and AI language preference
+    // Update ccjk config with new version, template language, and AI language preference
     updateZcfConfig({
       version,
       templateLang: configLang, // 保存模板语言选择

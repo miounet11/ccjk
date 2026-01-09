@@ -4,12 +4,12 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { readZcfConfig } from '../utils/ccjk-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { ZcfUninstaller } from '../utils/uninstaller'
-import { readZcfConfig } from '../utils/zcf-config'
 
 export interface UninstallOptions {
   lang?: SupportedLang
@@ -19,7 +19,7 @@ export interface UninstallOptions {
 }
 
 /**
- * Main uninstall command - Remove ZCF configurations and tools
+ * Main uninstall command - Remove CCJK configurations and tools
  * Supports both interactive and non-interactive modes
  */
 export async function uninstall(options: UninstallOptions = {}): Promise<void> {
@@ -184,8 +184,8 @@ async function showCustomUninstallMenu(uninstaller: ZcfUninstaller): Promise<voi
         value: 'backups' as const,
       },
       {
-        name: i18n.t('uninstall:zcfConfig'),
-        value: 'zcf-config' as const,
+        name: i18n.t('uninstall:ccjkConfig'),
+        value: 'ccjk-config' as const,
       },
     ],
     validate: (answers: readonly unknown[]) => {

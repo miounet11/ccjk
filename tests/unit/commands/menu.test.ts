@@ -11,7 +11,7 @@ vi.mock('../../../src/utils/prompts', () => ({
   selectScriptLanguage: vi.fn().mockResolvedValue('zh-CN'),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   readZcfConfigAsync: vi.fn(),
   updateZcfConfig: vi.fn(),
@@ -121,7 +121,7 @@ describe('menu command', () => {
   describe('showMainMenu', () => {
     it('should display menu and handle exit', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt).mockResolvedValue({ choice: 'q' })
@@ -133,7 +133,7 @@ describe('menu command', () => {
 
     it('should display banner with Claude Code label', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { displayBannerWithInfo } = await import('../../../src/utils/banner')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
@@ -146,7 +146,7 @@ describe('menu command', () => {
 
     it('should display banner with Codex label', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { displayBannerWithInfo } = await import('../../../src/utils/banner')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'codex' } as any)
@@ -160,7 +160,7 @@ describe('menu command', () => {
     it('should handle full initialization option', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { init } = await import('../../../src/commands/init')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -176,7 +176,7 @@ describe('menu command', () => {
     it('should handle API configuration option', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { configureApiFeature } = await import('../../../src/utils/features')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -192,7 +192,7 @@ describe('menu command', () => {
     it('should handle MCP configuration option', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { configureMcpFeature } = await import('../../../src/utils/features')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -208,7 +208,7 @@ describe('menu command', () => {
     it('should handle language change option', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { changeScriptLanguageFeature } = await import('../../../src/utils/features')
-      const { readZcfConfigAsync } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfigAsync } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfigAsync).mockResolvedValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -224,7 +224,7 @@ describe('menu command', () => {
     it('should handle CCU usage analysis option', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { runCcusageFeature } = await import('../../../src/utils/tools')
-      const { readZcfConfigAsync } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfigAsync } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfigAsync).mockResolvedValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -240,7 +240,7 @@ describe('menu command', () => {
     it('should handle CCU usage analysis option in English', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { runCcusageFeature } = await import('../../../src/utils/tools')
-      const { readZcfConfigAsync } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfigAsync } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfigAsync).mockResolvedValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -256,7 +256,7 @@ describe('menu command', () => {
     it('should handle check updates option', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { checkUpdates } = await import('../../../src/commands/check-updates')
-      const { readZcfConfigAsync } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfigAsync } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfigAsync).mockResolvedValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -272,7 +272,7 @@ describe('menu command', () => {
     it('should handle check updates option in English', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { checkUpdates } = await import('../../../src/commands/check-updates')
-      const { readZcfConfigAsync } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfigAsync } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfigAsync).mockResolvedValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -287,7 +287,7 @@ describe('menu command', () => {
 
     it('should allow switching code tool type', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -302,7 +302,7 @@ describe('menu command', () => {
 
     it('should route codex menu actions', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { runCodexFullInit } = await import('../../../src/utils/code-tools/codex')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'codex' } as any)
@@ -317,7 +317,7 @@ describe('menu command', () => {
 
     it('should handle codex uninstall option', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { runCodexUninstall } = await import('../../../src/utils/code-tools/codex')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'codex' } as any)
@@ -332,7 +332,7 @@ describe('menu command', () => {
 
     it('should handle codex update option', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       // Simply test that the menu handles the update option without error
       vi.mocked(readZcfConfig).mockReturnValue({
@@ -353,7 +353,7 @@ describe('menu command', () => {
 
     it('should handle errors gracefully', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { handleGeneralError, handleExitPromptError } = await import('../../../src/utils/error-handler')
 
       vi.mocked(readZcfConfig).mockReturnValue({
@@ -387,7 +387,7 @@ describe('menu command', () => {
   describe('menu edge cases through public API', () => {
     it('should handle code tool switching through main menu', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       // Setup: current tool is claude-code, user selects to switch
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
@@ -404,7 +404,7 @@ describe('menu command', () => {
 
     it('should handle cancelled tool selection', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -420,7 +420,7 @@ describe('menu command', () => {
 
     it('should handle same tool selection', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt)
@@ -436,7 +436,7 @@ describe('menu command', () => {
 
     it('should handle menu display for different code tools', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { displayBannerWithInfo } = await import('../../../src/utils/banner')
 
       // Test with codex tool
@@ -450,7 +450,7 @@ describe('menu command', () => {
 
     it('should handle console output sections', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
       vi.mocked(inquirer.prompt).mockResolvedValue({ choice: 'q' })
@@ -469,7 +469,7 @@ describe('menu command', () => {
 
     it('should handle claude-code menu navigation', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { init } = await import('../../../src/commands/init')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
@@ -484,7 +484,7 @@ describe('menu command', () => {
 
     it('should handle codex menu navigation', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { runCodexFullInit } = await import('../../../src/utils/code-tools/codex')
 
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'codex' } as any)
@@ -499,7 +499,7 @@ describe('menu command', () => {
 
     it('should handle unknown menu actions gracefully', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       vi.mocked(readZcfConfig).mockReturnValue({
         version: '1.0.0',
@@ -515,7 +515,7 @@ describe('menu command', () => {
 
     it('should handle menu with different language settings', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { selectScriptLanguage } = await import('../../../src/utils/prompts')
 
       // Test with different language setting
@@ -537,7 +537,7 @@ describe('menu command', () => {
     it('should switch code tool type when valid codeType parameter is provided', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { resolveCodeType } = await import('../../../src/utils/code-type-resolver')
-      const { updateZcfConfig, readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { updateZcfConfig, readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       // Mock current code tool type
       vi.mocked(readZcfConfig).mockReturnValue({
@@ -568,7 +568,7 @@ describe('menu command', () => {
     it('should not update config when codeType matches current tool', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { resolveCodeType } = await import('../../../src/utils/code-type-resolver')
-      const { updateZcfConfig, readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { updateZcfConfig, readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       // Mock current code tool type as codex
       vi.mocked(readZcfConfig).mockReturnValue({
@@ -596,7 +596,7 @@ describe('menu command', () => {
     it('should handle invalid codeType parameter gracefully', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { resolveCodeType } = await import('../../../src/utils/code-type-resolver')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       // Mock current code tool type
       vi.mocked(readZcfConfig).mockReturnValue({
@@ -622,7 +622,7 @@ describe('menu command', () => {
     it('should continue to menu after handling codeType parameter', async () => {
       const { showMainMenu } = await import('../../../src/commands/menu')
       const { resolveCodeType } = await import('../../../src/utils/code-type-resolver')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
 
       // Mock current code tool type
       vi.mocked(readZcfConfig).mockReturnValue({

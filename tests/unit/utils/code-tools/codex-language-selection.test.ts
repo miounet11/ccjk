@@ -1,11 +1,11 @@
 import inquirer from 'inquirer'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { readZcfConfig, updateZcfConfig } from '../../../../src/utils/ccjk-config'
 import { configureCodexApi, configureCodexMcp, runCodexWorkflowImportWithLanguageSelection, runCodexWorkflowSelection } from '../../../../src/utils/code-tools/codex'
 import { applyAiLanguageDirective } from '../../../../src/utils/config'
 import { exists, readFile, writeFile } from '../../../../src/utils/fs-operations'
 import { resolveAiOutputLanguage, resolveTemplateLanguage } from '../../../../src/utils/prompts'
-import { readZcfConfig, updateZcfConfig } from '../../../../src/utils/zcf-config'
 
 // Mock i18n
 vi.mock('../../../../src/i18n', () => ({
@@ -46,8 +46,8 @@ vi.mock('../../../../src/utils/prompts', () => ({
   resolveSystemPromptStyle: vi.fn(),
 }))
 
-// Mock zcf-config
-vi.mock('../../../../src/utils/zcf-config', () => ({
+// Mock ccjk-config
+vi.mock('../../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
   updateTomlConfig: vi.fn(),
@@ -149,7 +149,7 @@ describe('codex Language Selection', () => {
       })
       vi.mocked(readFile).mockImplementation((path: string) => {
         if (path.includes('config.toml')) {
-          return `# --- model provider added by ZCF ---
+          return `# --- model provider added by CCJK ---
 model = "claude-3-5-sonnet-20241022"
 model_provider = "official"
 
@@ -219,8 +219,8 @@ model_provider = "official"
       // Assert - should not write config.toml with MCP servers
       expect(inquirer.prompt).not.toHaveBeenCalled()
       // Verify workflow selection was still called
-      const zcfConfig = await import('../../../../src/utils/zcf-config')
-      expect(vi.mocked(zcfConfig.updateZcfConfig)).toHaveBeenCalled()
+      const ccjkConfig = await import('../../../../src/utils/ccjk-config')
+      expect(vi.mocked(ccjkConfig.updateZcfConfig)).toHaveBeenCalled()
     })
 
     it('should use provided mcpServices array when specified', async () => {
@@ -384,7 +384,7 @@ model_provider = "official"
       // Should not prompt for AI language again since it's saved
     })
 
-    it('should respect ZCF config language priority in skip-prompt mode', async () => {
+    it('should respect CCJK config language priority in skip-prompt mode', async () => {
       // Arrange
       const mockZcfConfig = {
         preferredLang: 'zh-CN' as const,

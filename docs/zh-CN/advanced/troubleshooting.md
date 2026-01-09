@@ -4,7 +4,7 @@ title: 故障排除
 
 # 故障排除
 
-本文档收录了 ZCF 使用过程中的常见问题和解决方案，帮助您快速定位和解决问题。
+本文档收录了 CCJK 使用过程中的常见问题和解决方案，帮助您快速定位和解决问题。
 
 ## 常见问题分类
 
@@ -21,7 +21,7 @@ title: 故障排除
 
 ### 1. 初始化失败或卡住
 
-**症状**：运行 `npx zcf init` 后无响应或报错
+**症状**：运行 `npx ccjk init` 后无响应或报错
 
 **可能原因**：
 - Node.js 版本过低
@@ -44,11 +44,11 @@ nvm use 22
 ls -la ~/.claude ~/.codex
 
 # 如果目录不存在或权限不足，手动创建
-mkdir -p ~/.claude ~/.codex ~/.ufomiao/zcf
-chmod 755 ~/.claude ~/.codex ~/.ufomiao/zcf
+mkdir -p ~/.claude ~/.codex ~/.ufomiao/ccjk
+chmod 755 ~/.claude ~/.codex ~/.ufomiao/ccjk
 
 # 3. 跳过 MCP 安装（如果网络问题）
-npx zcf init -s -m skip
+npx ccjk init -s -m skip
 
 # 4. 检查网络连接
 ping npmjs.com
@@ -69,7 +69,7 @@ ls -la ~/.claude/backup/
 cp -r ~/.claude/backup/backup_最新时间戳/* ~/.claude/
 
 # 3. 重新初始化
-npx zcf init --config-action backup
+npx ccjk init --config-action backup
 ```
 
 ### 3. 配置目录创建失败
@@ -80,13 +80,13 @@ npx zcf init --config-action backup
 
 ```bash
 # macOS/Linux
-mkdir -p ~/.claude ~/.codex ~/.ufomiao/zcf
-chmod 755 ~/.claude ~/.codex ~/.ufomiao/zcf
+mkdir -p ~/.claude ~/.codex ~/.ufomiao/ccjk
+chmod 755 ~/.claude ~/.codex ~/.ufomiao/ccjk
 
 # Windows (PowerShell)
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude"
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex"
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ufomiao\zcf"
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ufomiao\ccjk"
 
 # 检查磁盘空间
 df -h ~  # macOS/Linux
@@ -106,14 +106,14 @@ cat ~/.claude/settings.json | jq .env
 cat ~/.codex/config.toml | grep -A 5 apiKey
 
 # 2. 重新配置 API
-npx zcf init
+npx ccjk init
 # 选择 3 (配置 API 或 CCR)
 # 或使用命令行
-npx zcf init -s -t api_key -k "your-api-key"
+npx ccjk init -s -t api_key -k "your-api-key"
 
 # 3. 对于 CCR 模式，确保 Router 运行
-npx zcf ccr status
-npx zcf ccr start
+npx ccjk ccr status
+npx ccjk ccr start
 ```
 
 ### 2. API 密钥格式错误
@@ -132,7 +132,7 @@ npx zcf ccr start
 # 或尝试在提供商控制台验证
 
 # 重新输入正确的密钥
-npx zcf init -s -p 302ai -k "正确的密钥"
+npx ccjk init -s -p 302ai -k "正确的密钥"
 ```
 
 ### 3. API 端点无法访问
@@ -158,7 +158,7 @@ export HTTPS_PROXY=http://127.0.0.1:7890
 # MiniMax: https://api.minimaxi.com/anthropic
 
 # 4. 使用提供商预设（推荐）
-npx zcf init -s -p 302ai -k "sk-xxx"
+npx ccjk init -s -p 302ai -k "sk-xxx"
 ```
 
 ### 4. 多 API 配置冲突
@@ -169,10 +169,10 @@ npx zcf init -s -p 302ai -k "sk-xxx"
 
 ```bash
 # 1. 列出所有配置
-npx zcf config-switch --list
+npx ccjk config-switch --list
 
 # 2. 切换到正确的配置
-npx zcf config-switch provider-name
+npx ccjk config-switch provider-name
 
 # 3. 检查配置文件中的默认配置
 cat ~/.claude/settings.json | jq .apiKeys
@@ -193,19 +193,19 @@ ls -la ~/.claude/workflows/
 ls -la ~/.codex/prompts/
 
 # 2. 重新导入工作流
-npx zcf update -w all
+npx ccjk update -w all
 
 # 3. 检查 Codex 配置（Codex 需要 managed = true）
 cat ~/.codex/config.toml | grep managed
 # 如果 managed = false，设置为 true 后重新导入
 
 # 4. 手动检查工作流文件
-cat ~/.claude/workflows/zcf-workflow/workflow.md
+cat ~/.claude/workflows/ccjk-workflow/workflow.md
 ```
 
 ### 2. 工作流命令不识别
 
-**症状**：输入 `/zcf:workflow` 无响应
+**症状**：输入 `/ccjk:workflow` 无响应
 
 **解决方案**：
 
@@ -215,12 +215,12 @@ cat ~/.claude/workflows/zcf-workflow/workflow.md
 # Codex: ~/.codex/prompts/
 
 # 2. 验证工作流文件格式
-head -20 ~/.claude/workflows/zcf-workflow/workflow.md
+head -20 ~/.claude/workflows/ccjk-workflow/workflow.md
 
 # 3. 重启 Claude Code 或 Codex 应用
 
 # 4. 检查命令前缀
-# Claude Code: /zcf:workflow 或 /workflow
+# Claude Code: /ccjk:workflow 或 /workflow
 # Codex: /prompts:workflow
 ```
 
@@ -232,10 +232,10 @@ head -20 ~/.claude/workflows/zcf-workflow/workflow.md
 
 ```bash
 # 更新工作流模板
-npx zcf update -g zh-CN
+npx ccjk update -g zh-CN
 
 # 或强制更新
-npx zcf init --config-action docs-only -w all
+npx ccjk init --config-action docs-only -w all
 ```
 
 ## MCP 服务问题
@@ -252,7 +252,7 @@ cat ~/.claude/settings.json | jq .mcpServers
 cat ~/.codex/config.toml | grep -A 10 mcp_server
 
 # 2. 重新配置 MCP
-npx zcf
+npx ccjk
 # 选择 4 (配置 MCP)
 
 # 3. 检查服务依赖
@@ -444,8 +444,8 @@ codex --version
 # 1. 检查 Codex 配置文件
 cat ~/.codex/config.toml
 
-# 2. 确保 managed = true（ZCF 管理的配置）
-# 如果 managed = false，ZCF 不会修改配置
+# 2. 确保 managed = true（CCJK 管理的配置）
+# 如果 managed = false，CCJK 不会修改配置
 
 # 3. 检查 API 配置
 cat ~/.codex/config.toml | grep -A 10 modelProvider
@@ -454,7 +454,7 @@ cat ~/.codex/config.toml | grep -A 10 modelProvider
 cat ~/.codex/auth.json
 
 # 5. 重新配置
-npx zcf init -T codex -s -p 302ai -k "sk-xxx"
+npx ccjk init -T codex -s -p 302ai -k "sk-xxx"
 ```
 
 ### 3. Codex 工作流命令格式
@@ -466,13 +466,13 @@ npx zcf init -T codex -s -p 302ai -k "sk-xxx"
 ```bash
 # Codex 使用不同的命令前缀
 # 正确格式：/prompts:workflow
-# 错误格式：/zcf:workflow
+# 错误格式：/ccjk:workflow
 
 # 检查工作流文件
 ls -la ~/.codex/prompts/
 
 # 重新导入工作流
-npx zcf update -T codex -g zh-CN
+npx ccjk update -T codex -g zh-CN
 ```
 
 ## CCR 相关问题
@@ -485,14 +485,14 @@ npx zcf update -T codex -g zh-CN
 
 ```bash
 # 1. 检查 CCR 安装
-npx zcf ccr status
+npx ccjk ccr status
 
 # 2. 检查端口占用
 lsof -i :3456  # macOS/Linux
 netstat -ano | findstr :3456  # Windows
 
 # 3. 重新安装 CCR
-npx zcf ccr install
+npx ccjk ccr install
 
 # 4. 检查配置文件
 cat ~/.claude-code-router/config.json
@@ -524,10 +524,10 @@ netstat -ano | findstr :3456
 taskkill /PID 1208 /F
 
 # 3. 重启 CCR
-npx zcf ccr restart
+npx ccjk ccr restart
 
 # 4. 检查状态
-npx zcf ccr status
+npx ccjk ccr status
 ```
 
 #### macOS/Linux 平台
@@ -540,10 +540,10 @@ lsof -t -i:3456 | xargs kill
 lsof -t -i:3456 | xargs -r kill
 
 # 2. 重启 CCR
-npx zcf ccr restart
+npx ccjk ccr restart
 
 # 3. 检查状态
-npx zcf ccr status
+npx ccjk ccr status
 ```
 
 **验证步骤**：
@@ -554,10 +554,10 @@ lsof -i :3456  # macOS/Linux（应无输出）
 netstat -ano | findstr :3456  # Windows（应无输出）
 
 # 如果端口已释放，重新启动
-npx zcf ccr start
+npx ccjk ccr start
 
 # 验证 CCR 正常运行
-npx zcf ccr status
+npx ccjk ccr status
 
 # 如果状态正常，Claude Code 应能正常连接
 ```
@@ -579,9 +579,9 @@ curl http://127.0.0.1:3456/health
 cat ~/.claude/settings.json | jq .env.ANTHROPIC_BASE_URL
 
 # 4. 重新配置 CCR 代理
-npx zcf ccr
+npx ccjk ccr
 # 或
-npx zcf init -s -t ccr_proxy
+npx ccjk init -s -t ccr_proxy
 ```
 
 ### 3. CCR Web UI 无法访问
@@ -592,7 +592,7 @@ npx zcf init -s -t ccr_proxy
 
 ```bash
 # 1. 确认 CCR 正在运行
-npx zcf ccr status
+npx ccjk ccr status
 
 # 2. 检查端口
 lsof -i :3456
@@ -622,7 +622,7 @@ cp -r ~/.claude/backup/backup_最新时间戳/* ~/.claude/
 cp -r ~/.codex/backup/backup_最新时间戳/* ~/.codex/
 
 # 3. 重新初始化（如果备份不可用）
-npx zcf init --config-action backup
+npx ccjk init --config-action backup
 ```
 
 ### 2. 备份失败
@@ -654,13 +654,13 @@ cp -r ~/.claude ~/.claude.backup.$(date +%Y%m%d)
 
 ```bash
 # 1. 查看所有配置
-npx zcf config-switch --list
+npx ccjk config-switch --list
 
 # 2. 备份当前配置
 cp -r ~/.claude ~/.claude.conflict.backup
 
 # 3. 使用合并策略重新初始化
-npx zcf init --config-action merge
+npx ccjk init --config-action merge
 
 # 4. 手动合并配置（如果需要）
 # 编辑配置文件，合并冲突的配置项
@@ -677,7 +677,7 @@ npx zcf init --config-action merge
 **解决方案**：
 
 ```bash
-# ZCF 会自动处理路径中的空格
+# CCJK 会自动处理路径中的空格
 # 如果遇到问题，检查配置中的路径是否被正确引号包裹
 
 # 查看配置
@@ -691,9 +691,9 @@ cat "$env:USERPROFILE\.claude\settings.json"
 **解决方案**：
 
 ```bash
-# ZCF 会自动修复 Windows MCP 配置格式
+# CCJK 会自动修复 Windows MCP 配置格式
 # 运行更新命令会自动修复
-npx zcf update
+npx ccjk update
 
 # 或手动检查配置格式
 cat "$env:USERPROFILE\.claude\settings.json" | jq .mcpServers
@@ -720,12 +720,12 @@ chmod 755 ~/.claude ~/.codex
 
 #### WSL 环境检测
 
-**症状**：ZCF 未正确检测 WSL 环境
+**症状**：CCJK 未正确检测 WSL 环境
 
 **解决方案**：
 
 ```bash
-# ZCF 会自动检测 WSL 环境
+# CCJK 会自动检测 WSL 环境
 # 如果检测失败，手动指定路径
 
 # 检查 WSL 环境变量
@@ -739,7 +739,7 @@ echo $WSL_DISTRO_NAME
 **解决方案**：
 
 ```bash
-# ZCF 支持 Termux 环境
+# CCJK 支持 Termux 环境
 # 确保使用最新的 Node.js 版本
 
 # 使用 nvm（推荐）
@@ -753,13 +753,13 @@ nvm install 20
 
 ```bash
 # 启用详细输出
-npx zcf init --verbose 2>&1 | tee zcf-debug.log
+npx ccjk init --verbose 2>&1 | tee ccjk-debug.log
 
 # 查看错误信息
-cat zcf-debug.log | grep -i error
+cat ccjk-debug.log | grep -i error
 
 # 检查版本信息
-npx zcf --version
+npx ccjk --version
 ```
 
 ### 恢复历史
@@ -776,9 +776,9 @@ cp -r ~/.claude/backup/backup_YYYY-MM-DD_HH-mm-ss/* ~/.claude/
 ### 文档资源
 
 - 阅读仓库 `CLAUDE.md` 和 `AGENTS.md` 了解系统提示要求
-- 查看 [GitHub Issues](https://github.com/UfoMiao/zcf/issues) 搜索类似问题
+- 查看 [GitHub Issues](https://github.com/UfoMiao/ccjk/issues) 搜索类似问题
 - 在 GitHub Issues 提交问题时附带：
-  - `npx zcf --version` 输出
+  - `npx ccjk --version` 输出
   - 完整的终端日志
   - 操作系统和 Node.js 版本
   - 重现步骤

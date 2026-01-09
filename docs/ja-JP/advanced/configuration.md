@@ -4,11 +4,11 @@ title: 設定管理
 
 # 設定管理
 
-ZCFは、増分管理、バックアップ戦略、柔軟な設定切り替えをサポートする包括的な設定管理システムを提供します。設定システムの構造とメカニズムを理解することで、開発環境をより適切に管理および維持できます。
+CCJKは、増分管理、バックアップ戦略、柔軟な設定切り替えをサポートする包括的な設定管理システムを提供します。設定システムの構造とメカニズムを理解することで、開発環境をより適切に管理および維持できます。
 
 ## ディレクトリ構造の概要
 
-ZCFの設定は以下のディレクトリに分散しています：
+CCJKの設定は以下のディレクトリに分散しています：
 
 ### 主要設定ディレクトリ
 
@@ -16,7 +16,7 @@ ZCFの設定は以下のディレクトリに分散しています：
 |------|------|---------|
 | `~/.claude/` | Claude Code メイン設定ディレクトリ | `settings.json`, `CLAUDE.md`, `prompts/`, `workflows/` |
 | `~/.codex/` | Codex メイン設定ディレクトリ | `config.toml`, `auth.json`, `prompts/`, `AGENTS.md` |
-| `~/.ufomiao/zcf/` | ZCF グローバル設定ディレクトリ | `config.toml` |
+| `~/.ufomiao/ccjk/` | CCJK グローバル設定ディレクトリ | `config.toml` |
 | `~/.claude-code-router/` | CCR 設定ディレクトリ | `config.json` |
 | `~/.claude/backup/` | Claude Code バックアップディレクトリ | タイムスタンプ付きバックアップファイル |
 | `~/.codex/backup/` | Codex バックアップディレクトリ | タイムスタンプ付きバックアップファイル |
@@ -33,7 +33,7 @@ ZCFの設定は以下のディレクトリに分散しています：
 │   ├── output-style/      # 出力スタイルテンプレート
 │   └── memory/            # メモリテンプレート
 └── workflows/             # ワークフローディレクトリ
-    ├── zcf-workflow/      # 6段階ワークフロー
+    ├── ccjk-workflow/      # 6段階ワークフロー
     ├── feat/              # 機能開発ワークフロー
     ├── git/               # Git ワークフロー
     └── bmad/              # BMad ワークフロー
@@ -51,21 +51,21 @@ ZCFの設定は以下のディレクトリに分散しています：
 └── system-prompt/         # システムプロンプトテンプレート
 ```
 
-#### ZCF グローバル設定
+#### CCJK グローバル設定
 
 ```
-~/.ufomiao/zcf/
-├── config.toml            # ZCF グローバル設定（TOML形式）
+~/.ufomiao/ccjk/
+├── config.toml            # CCJK グローバル設定（TOML形式）
 │   ├── preferredLang      # CLI 言語設定
 │   ├── templateLang       # テンプレート言語設定
 │   ├── aiOutputLang       # AI 出力言語設定
 │   └── codeToolType       # 現在アクティブなツールタイプ
-└── backup/                # ZCF 設定バックアップ
+└── backup/                # CCJK 設定バックアップ
 ```
 
 ## 増分管理モード
 
-ZCFが既存の設定を検出すると、操作戦略を尋ねます。
+CCJKが既存の設定を検出すると、操作戦略を尋ねます。
 
 ### 設定処理戦略
 
@@ -79,17 +79,17 @@ ZCFが既存の設定を検出すると、操作戦略を尋ねます。
 
 ### 自動戦略適用
 
-非対話モード（`--skip-prompt`）では、ZCFは自動的にデフォルト戦略を適用します：
+非対話モード（`--skip-prompt`）では、CCJKは自動的にデフォルト戦略を適用します：
 
 - デフォルト戦略：`backup`
 - `--config-action` パラメータで戦略を指定可能
 
 ```bash
 # 設定処理戦略を指定
-npx zcf init -s --config-action merge
+npx ccjk init -s --config-action merge
 
 # ドキュメントのみ更新
-npx zcf init -s --config-action docs-only
+npx ccjk init -s --config-action docs-only
 ```
 
 ### マージ戦略の詳細
@@ -105,7 +105,7 @@ npx zcf init -s --config-action docs-only
 
 ### 4モデルアーキテクチャ
 
-ZCF は、AI モデル選択をきめ細かく制御するための4モデルアーキテクチャを使用しています：
+CCJK は、AI モデル選択をきめ細かく制御するための4モデルアーキテクチャを使用しています：
 
 | モデルタイプ | 環境変数 | デフォルト値 | 用途 |
 |------------|---------|------------|------|
@@ -120,7 +120,7 @@ API 設定を構成する際、各モデルを個別に指定できます：
 
 ```bash
 # 4つすべてのモデルを設定
-npx zcf i -s \
+npx ccjk i -s \
   --api-key "sk-xxx" \
   --api-model "claude-sonnet-4-5" \
   --api-haiku-model "claude-haiku-4-5" \
@@ -201,7 +201,7 @@ npx zcf i -s \
 `custom` オプションを使用すると、カスタム言語指令を入力できます：
 
 ```bash
-npx zcf init --ai-output-lang custom
+npx ccjk init --ai-output-lang custom
 # 入力: 日本語で返信し、プロフェッショナルで丁寧なトーンを維持
 ```
 
@@ -223,7 +223,7 @@ npx zcf init --ai-output-lang custom
 `resolveTemplateLanguage` 関数は、以下の要因を考慮してテンプレート言語を決定します：
 
 1. **コマンドラインパラメータ**: `--config-lang` または `--all-lang`
-2. **設定ファイル**: `~/.ufomiao/zcf/config.toml` の `templateLang`
+2. **設定ファイル**: `~/.ufomiao/ccjk/config.toml` の `templateLang`
 3. **対話入力**: 指定されていない場合、ユーザーに選択を促します
 4. **システムデフォルト**: 最終的に `en` にフォールバック
 
@@ -233,10 +233,10 @@ npx zcf init --ai-output-lang custom
 
 ```bash
 # 中国語テンプレート + 英語出力（英語コードコメントが必要なプロジェクトに適している）
-npx zcf init --config-lang zh-CN --ai-output-lang en
+npx ccjk init --config-lang zh-CN --ai-output-lang en
 
 # 英語テンプレート + 中国語出力（国際チームに適している）
-npx zcf init --config-lang en --ai-output-lang zh-CN
+npx ccjk init --config-lang en --ai-output-lang zh-CN
 ```
 
 ### テンプレート言語の影響
@@ -256,8 +256,8 @@ npx zcf init --config-lang en --ai-output-lang zh-CN
 
 ```bash
 # 設定リポジトリを作成
-mkdir ~/zcf-configs
-cd ~/zcf-configs
+mkdir ~/ccjk-configs
+cd ~/ccjk-configs
 git init
 
 # 設定ファイルを追加（注意：機密情報を除外）
@@ -270,12 +270,12 @@ EOF
 
 # テンプレートとワークフローを追加（機密情報なし）
 git add prompts/ workflows/ templates/
-git commit -m "Add ZCF templates and workflows"
+git commit -m "Add CCJK templates and workflows"
 ```
 
 ### 差分の比較
 
-`zcf update` を実行する前後の差分を比較：
+`ccjk update` を実行する前後の差分を比較：
 
 ```bash
 # 更新前
@@ -283,7 +283,7 @@ git add ~/.claude/
 git commit -m "Before update"
 
 # 更新を実行
-npx zcf update
+npx ccjk update
 
 # 差分を表示
 git diff ~/.claude/
@@ -329,8 +329,8 @@ cp ~/.claude/backup/backup_*/workflows/custom/my-workflow.md ~/.claude/workflows
 
 ```bash
 # 方法1: Gitを使用
-git clone ~/zcf-configs
-cp -r zcf-configs/templates/* ~/.claude/workflows/
+git clone ~/ccjk-configs
+cp -r ccjk-configs/templates/* ~/.claude/workflows/
 
 # 方法2: クラウドストレージを使用
 rsync -av ~/.claude/workflows/ ~/Cloud/.claude/workflows/
@@ -365,14 +365,14 @@ ls -la ~/.claude/workflows/
 
 ### 旧バージョンからの移行
 
-ZCFの旧バージョンからアップグレードする場合：
+CCJKの旧バージョンからアップグレードする場合：
 
 ```bash
-# ZCFは自動的に設定を検出して移行します
-npx zcf init
+# CCJKは自動的に設定を検出して移行します
+npx ccjk init
 
 # または手動で移行を確認
-cat ~/.ufomiao/zcf/config.toml
+cat ~/.ufomiao/ccjk/config.toml
 # 移行プロンプトがあるか確認
 ```
 
@@ -385,7 +385,7 @@ Claude CodeからCodexに移行：
 cp -r ~/.claude ~/.claude.backup
 
 # 2. Codexを初期化
-npx zcf init -T codex
+npx ccjk init -T codex
 
 # 3. ワークフローとテンプレートを手動で移行（必要に応じて）
 # 注意: Claude CodeとCodexのテンプレート形式は異なる場合があります
@@ -399,14 +399,14 @@ npx zcf init -T codex
 
 ```bash
 # 1. 競合の詳細を表示
-npx zcf init
+npx ccjk init
 # マージ戦略を選択する際に競合プロンプトを表示
 
 # 2. 設定を手動でマージ
 # 設定ファイルを編集し、競合する項目を手動でマージ
 
 # 3. バックアップ戦略を使用して最初からやり直す
-npx zcf init --config-action backup
+npx ccjk init --config-action backup
 ```
 
 ### 設定の紛失
@@ -421,7 +421,7 @@ ls -lt ~/.claude/backup/ | head -5
 cp -r ~/.claude/backup/backup_latest_timestamp/* ~/.claude/
 
 # 3. 再初期化（バックアップが利用できない場合）
-npx zcf init --config-action new
+npx ccjk init --config-action new
 ```
 
 ### 設定ファイルの破損
@@ -436,7 +436,7 @@ cat ~/.claude/settings.json | jq .
 cp ~/.claude/backup/backup_*/settings.json ~/.claude/
 
 # 3. または再初期化
-npx zcf init --config-action new
+npx ccjk init --config-action new
 ```
 
 ## 関連リソース

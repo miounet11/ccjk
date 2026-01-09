@@ -29,7 +29,7 @@ export interface CodexConfig {
 }
 
 /**
- * General ZCF configuration
+ * General CCJK configuration
  */
 export interface GeneralConfig {
   preferredLang: SupportedLang
@@ -39,7 +39,7 @@ export interface GeneralConfig {
 }
 
 /**
- * Complete ZCF TOML configuration structure
+ * Complete CCJK TOML configuration structure
  */
 export interface ZcfTomlConfig {
   version: string

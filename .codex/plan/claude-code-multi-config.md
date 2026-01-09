@@ -1,8 +1,8 @@
 # Claude Code 多配置存储迁移计划
 
 ## 上下文
-- 目标：将 Claude Code 多配置持久化从 `claude-code-configs.json` 迁移到 `~/.ufomiao/zcf/config.toml`，与原始规划保持一致。
-- 基线：已有 `smol-toml` 工具链用于 ZCF 配置；`.claude/plan/Claude-Code-Multi-Config-TDD-Plan.md` 定义的 TOML 结构为真源。
+- 目标：将 Claude Code 多配置持久化从 `claude-code-configs.json` 迁移到 `~/.ufomiao/ccjk/config.toml`，与原始规划保持一致。
+- 基线：已有 `smol-toml` 工具链用于 CCJK 配置；`.claude/plan/Claude-Code-Multi-Config-TDD-Plan.md` 定义的 TOML 结构为真源。
 - 约束：遵循既有 CLI 架构、类型定义与 i18n 风格；计划内不新增 JSON 备份，仅对 TOML 进行安全复制备份。
 
 ## 执行步骤

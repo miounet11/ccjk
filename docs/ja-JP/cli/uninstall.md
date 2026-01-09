@@ -4,14 +4,14 @@ title: アンインストールとクリーンアップ
 
 # アンインストールとクリーンアップ
 
-`zcf uninstall` は安全なアンインストールプロセスを提供し、選択的アンインストール、完全アンインストール、競合解決をサポートします。環境をリセット、デバイスを移行、または設定をクリーンアップする必要があるシナリオに適しています。
+`ccjk uninstall` は安全なアンインストールプロセスを提供し、選択的アンインストール、完全アンインストール、競合解決をサポートします。環境をリセット、デバイスを移行、または設定をクリーンアップする必要があるシナリオに適しています。
 
 ## 機能概要
 
-`zcf uninstall` コマンドは以下をサポートします：
+`ccjk uninstall` コマンドは以下をサポートします：
 
 1. 🗑️ **選択的アンインストール**：特定のコンポーネントを選択的に削除
-2. 🔄 **完全アンインストール**：すべての ZCF 設定とツールを完全に削除
+2. 🔄 **完全アンインストール**：すべての CCJK 設定とツールを完全に削除
 3. 💾 **バックアップ保持**：復元のためにバックアップを保持することをサポート
 4. 🔍 **競合検出**：ファイル競合を検出して解決
 5. 🗂️ **ゴミ箱サポート**：システムゴミ箱を使用して安全に削除（macOS、Windows、Linux をサポート）
@@ -22,14 +22,14 @@ title: アンインストールとクリーンアップ
 
 ```bash
 # 対話式アンインストールメニューを開く
-npx zcf uninstall
+npx ccjk uninstall
 
 # またはメインメニューから
-npx zcf
+npx ccjk
 # 次に該当するアンインストールオプションを選択
 ```
 
-対話式モードでは、ZCF が以下を案内します：
+対話式モードでは、CCJK が以下を案内します：
 
 1. アンインストールモードを選択（完全アンインストールまたはカスタムアンインストール）
 2. アンインストールするコンポーネントを選択（カスタムを選択した場合）
@@ -38,18 +38,18 @@ npx zcf
 
 ### 完全アンインストール
 
-すべての ZCF 関連の設定とツールを完全に削除します：
+すべての CCJK 関連の設定とツールを完全に削除します：
 
 ```bash
 # 対話式完全アンインストール
-npx zcf uninstall
+npx ccjk uninstall
 # 次に「完全アンインストール」を選択
 
 # 非対話式完全アンインストール
-npx zcf uninstall --mode complete
+npx ccjk uninstall --mode complete
 
 # 言語を指定
-npx zcf uninstall --mode complete --lang zh-CN
+npx ccjk uninstall --mode complete --lang zh-CN
 ```
 
 ### カスタムアンインストール
@@ -58,28 +58,28 @@ npx zcf uninstall --mode complete --lang zh-CN
 
 ```bash
 # 対話式カスタムアンインストール
-npx zcf uninstall
+npx ccjk uninstall
 # 次に「カスタムアンインストール」を選択し、アンインストールするコンポーネントを選択
 
 # 非対話式カスタムアンインストール（カンマ区切り）
-npx zcf uninstall --mode custom --items "ccr,backups,cometix"
+npx ccjk uninstall --mode custom --items "ccr,backups,cometix"
 
 # 配列形式を使用（コード内）
-npx zcf uninstall --mode custom --items '["ccr","backups"]'
+npx ccjk uninstall --mode custom --items '["ccr","backups"]'
 ```
 
 ## アンインストールモード
 
 ### 完全アンインストールモード
 
-すべての ZCF 関連の設定とツールを削除します：
+すべての CCJK 関連の設定とツールを削除します：
 
 **削除される内容**：
 - ✅ Claude Code 設定（`~/.claude/`）
 - ✅ Codex 設定（`~/.codex/`）
 - ✅ CCR 設定（`~/.claude-code-router/`）
 - ✅ CCometixLine 設定（`~/.cometix/`）
-- ✅ ZCF グローバル設定（`~/.ufomiao/zcf/`）
+- ✅ CCJK グローバル設定（`~/.ufomiao/ccjk/`）
 - ✅ すべてのバックアップファイル
 
 **削除されない内容**：
@@ -98,17 +98,17 @@ npx zcf uninstall --mode custom --items '["ccr","backups"]'
 | `ccr` | Claude Code Router 設定 | `~/.claude-code-router/` |
 | `cometix` | CCometixLine 設定 | `~/.cometix/` |
 | `backups` | すべてのバックアップファイル | `~/.claude/backup/`, `~/.codex/backup/` など |
-| `zcf-config` | ZCF グローバル設定 | `~/.ufomiao/zcf/` |
+| `ccjk-config` | CCJK グローバル設定 | `~/.ufomiao/ccjk/` |
 
 ```bash
 # CCR のみをアンインストール
-npx zcf uninstall --mode custom --items ccr
+npx ccjk uninstall --mode custom --items ccr
 
 # 複数のコンポーネントをアンインストール
-npx zcf uninstall --mode custom --items "ccr,cometix,backups"
+npx ccjk uninstall --mode custom --items "ccr,cometix,backups"
 
 # すべてのバックアップをアンインストール（スペースを解放）
-npx zcf uninstall --mode custom --items backups
+npx ccjk uninstall --mode custom --items backups
 ```
 
 ## よく使うパラメータ
@@ -125,15 +125,15 @@ npx zcf uninstall --mode custom --items backups
 
 ```bash
 # 完全アンインストールして再初期化
-npx zcf uninstall --mode complete
-npx zcf init
+npx ccjk uninstall --mode complete
+npx ccjk init
 ```
 
 ### シナリオ 2：バックアップファイルをクリーンアップ
 
 ```bash
 # スペースを解放するためにバックアップのみをクリーンアップ
-npx zcf uninstall --mode custom --items backups
+npx ccjk uninstall --mode custom --items backups
 ```
 
 ### シナリオ 3：新しいデバイスに移行
@@ -145,27 +145,27 @@ cp -r ~/.claude ~/claude-backup
 cp -r ~/.codex ~/codex-backup
 
 # 2. 新しいデバイスで初期化
-npx zcf init
+npx ccjk init
 
 # 3. 古いデバイスでクリーンアップ
-npx zcf uninstall --mode complete
+npx ccjk uninstall --mode complete
 ```
 
 ### シナリオ 4：特定のツールのみを削除
 
 ```bash
 # CCR のみをアンインストール（他の設定を保持）
-npx zcf uninstall --mode custom --items ccr
+npx ccjk uninstall --mode custom --items ccr
 
 # CCometixLine のみをアンインストール
-npx zcf uninstall --mode custom --items cometix
+npx ccjk uninstall --mode custom --items cometix
 ```
 
 ## バックアップメカニズム
 
 ### アンインストール前のバックアップ
 
-アンインストールを実行する前に、ZCF は：
+アンインストールを実行する前に、CCJK は：
 
 1. **アンインストールバックアップを作成**：設定を一時ディレクトリにバックアップ
 2. **バックアップ場所を記録**：復元のためにバックアップ場所を表示
@@ -229,8 +229,8 @@ tar -czf claude-backup.tar.gz ~/.claude/
 # Codex 設定をバックアップ
 tar -czf codex-backup.tar.gz ~/.codex/
 
-# ZCF 設定をバックアップ
-tar -czf zcf-backup.tar.gz ~/.ufomiao/zcf/
+# CCJK 設定をバックアップ
+tar -czf ccjk-backup.tar.gz ~/.ufomiao/ccjk/
 ```
 
 ### 2. 選択的アンインストール
@@ -239,10 +239,10 @@ tar -czf zcf-backup.tar.gz ~/.ufomiao/zcf/
 
 ```bash
 # バックアップファイルをクリーンアップ（スペースを解放）
-npx zcf uninstall --mode custom --items backups
+npx ccjk uninstall --mode custom --items backups
 
 # 特定のツールの設定をクリーンアップ
-npx zcf uninstall --mode custom --items ccr
+npx ccjk uninstall --mode custom --items ccr
 ```
 
 ### 3. チーム環境
@@ -259,8 +259,8 @@ npx zcf uninstall --mode custom --items ccr
 
 ```bash
 # テスト環境をすばやくリセット
-npx zcf uninstall --mode complete
-npx zcf init -s -p 302ai -k "test-key" -g zh-CN
+npx ccjk uninstall --mode complete
+npx ccjk init -s -p 302ai -k "test-key" -g zh-CN
 ```
 
 ## トラブルシューティング
@@ -293,7 +293,7 @@ lsof ~/.claude/  # macOS/Linux
 # 手動クリーンアップ（注意して使用）
 rm -rf ~/.claude/
 rm -rf ~/.codex/
-rm -rf ~/.ufomiao/zcf/
+rm -rf ~/.ufomiao/ccjk/
 ```
 
 ### バックアップの復元が失敗する
@@ -306,7 +306,7 @@ rm -rf ~/.ufomiao/zcf/
 
 ## 他の操作との違い
 
-| 操作 | `zcf uninstall` | `zcf init --config-action new` |
+| 操作 | `ccjk uninstall` | `ccjk init --config-action new` |
 |------|----------------|-------------------------------|
 | **目的** | 設定を完全に削除 | 設定を再作成 |
 | **削除内容** | すべての設定とツールを削除 | 設定のみをリセットし、ツールを保持 |
@@ -314,13 +314,13 @@ rm -rf ~/.ufomiao/zcf/
 | **復元** | バックアップを手動復元 | 古い設定を自動保持 |
 
 > 💡 **推奨事項**：
-> - 環境を完全にクリーンアップする必要がある場合、`zcf uninstall` を使用
-> - 設定をリセットするがツールを保持する必要がある場合、`zcf init --config-action new` を使用
+> - 環境を完全にクリーンアップする必要がある場合、`ccjk uninstall` を使用
+> - 設定をリセットするがツールを保持する必要がある場合、`ccjk init --config-action new` を使用
 
 ## 関連リソース
 
-- [zcf init](init.md) - 環境を再初期化
+- [ccjk init](init.md) - 環境を再初期化
 - [設定管理](../features/multi-config.md) - バックアップと復元メカニズム
 - [トラブルシューティング](../advanced/troubleshooting.md) - 一般的な問題の解決
 
-> ⚠️ **警告**：アンインストール操作は不可逆です。実行前に重要な設定をバックアップしたことを確認してください。一部の設定のみをリセットする必要がある場合は、完全アンインストールではなく、`zcf init` の `--config-action` オプションを使用することをお勧めします。
+> ⚠️ **警告**：アンインストール操作は不可逆です。実行前に重要な設定をバックアップしたことを確認してください。一部の設定のみをリセットする必要がある場合は、完全アンインストールではなく、`ccjk init` の `--config-action` オプションを使用することをお勧めします。

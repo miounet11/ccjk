@@ -1,14 +1,14 @@
 ---
-title: zcf update
+title: ccjk update
 ---
 
-# zcf update
+# ccjk update
 
-`zcf update`（省略形 `zcf u`）は、ワークフローテンプレート、プロンプト、ツールバージョンの確認を更新するために使用されます。これは軽量な更新コマンドで、API 設定やインストール済みの MCP サービスを変更しません。
+`ccjk update`（省略形 `ccjk u`）は、ワークフローテンプレート、プロンプト、ツールバージョンの確認を更新するために使用されます。これは軽量な更新コマンドで、API 設定やインストール済みの MCP サービスを変更しません。
 
 ## 機能概要
 
-`zcf update` コマンドは以下の操作を実行します：
+`ccjk update` コマンドは以下の操作を実行します：
 
 1. 📝 **プロンプトを更新**：最新のワークフローテンプレートとプロンプト内容を同期
 2. 🔄 **ワークフローを更新**：ワークフローテンプレートを更新またはインストール
@@ -22,17 +22,17 @@ title: zcf update
 
 ```bash
 # 保存された設定を使用して更新
-npx zcf update
+npx ccjk update
 
 # または省略形を使用
-npx zcf u
+npx ccjk u
 
 # またはメインメニューから
-npx zcf
+npx ccjk
 # 次に 2 (ワークフローをインポート) を選択
 ```
 
-対話式モードでは、ZCF は：
+対話式モードでは、CCJK は：
 
 1. テンプレート言語を尋ねる（設定が保存されていない場合）
 2. AI 出力言語を尋ねる（設定が保存されていない場合）
@@ -43,19 +43,19 @@ npx zcf
 
 ```bash
 # デフォルト言語設定を使用して更新
-npx zcf u -s
+npx ccjk u -s
 
 # テンプレート言語を指定
-npx zcf u -s -c zh-CN
+npx ccjk u -s -c zh-CN
 
 # AI 出力言語を指定
-npx zcf u -s -a zh-CN
+npx ccjk u -s -a zh-CN
 
 # テンプレートと出力言語を同時に指定
-npx zcf u -s -g zh-CN
+npx ccjk u -s -g zh-CN
 
 # コードツールタイプを指定
-npx zcf u -s -T codex
+npx ccjk u -s -T codex
 ```
 
 ## よく使うパラメータ
@@ -66,7 +66,7 @@ npx zcf u -s -T codex
 | `--config-lang, -c` | `-c` | テンプレートファイル言語 | `zh-CN`, `en` | ユーザー保存設定または `en` |
 | `--ai-output-lang, -a` | `-a` | AI 出力言語 | `zh-CN`, `en`, カスタム文字列 | ユーザー保存設定または `en` |
 | `--all-lang, -g` | `-g` | すべての言語パラメータを統一設定 | `zh-CN`, `en`, カスタム文字列 | - |
-| `--code-type, -T` | `-T` | 対象コードツールタイプ | `claude-code`, `codex`, `cc`, `cx` | ZCF 設定の現在のツールタイプ |
+| `--code-type, -T` | `-T` | 対象コードツールタイプ | `claude-code`, `codex`, `cc`, `cx` | CCJK 設定の現在のツールタイプ |
 
 > 💡 **ヒント**：`--all-lang` を使用すると、テンプレート言語と AI 出力言語を一度に設定できます。
 
@@ -76,7 +76,7 @@ npx zcf u -s -T codex
 
 ```bash
 # 最新のワークフローテンプレートを取得するために定期的に実行
-npx zcf u
+npx ccjk u
 
 # 週に1回更新（推奨）
 # cron タスクまたは CI/CD プロセスに追加できます
@@ -86,32 +86,32 @@ npx zcf u
 
 ```bash
 # Claude Code ワークフローを更新
-npx zcf u -T claude-code -c zh-CN
+npx ccjk u -T claude-code -c zh-CN
 
 # Codex ワークフローを更新
-npx zcf u -T codex -c zh-CN
+npx ccjk u -T codex -c zh-CN
 ```
 
 ### シナリオ 3：言語設定を同期
 
 ```bash
 # すべての言語設定を中国語に切替
-npx zcf u -g zh-CN
+npx ccjk u -g zh-CN
 
 # テンプレートは中国語、AI 出力は英語
-npx zcf u -c zh-CN -a en
+npx ccjk u -c zh-CN -a en
 ```
 
 ### シナリオ 4：自動化更新
 
 ```bash
 # 非対話式更新（スクリプトに適している）
-npx zcf u -s -g zh-CN -T claude-code
+npx ccjk u -s -g zh-CN -T claude-code
 ```
 
 ## 実行フロー
 
-`zcf update` の実行フローは以下のとおりです：
+`ccjk update` の実行フローは以下のとおりです：
 
 ### Claude Code フロー
 
@@ -120,23 +120,23 @@ npx zcf u -s -g zh-CN -T claude-code
 3. **プロンプトを更新**：最新のワークフローテンプレートとプロンプトを同期
 4. **ワークフローを選択**：インストール/更新するワークフローを対話式で選択
 5. **バージョンを確認**：Claude Code バージョンを確認して更新を促す
-6. **設定を保存**：ZCF グローバル設定を更新
+6. **設定を保存**：CCJK グローバル設定を更新
 
 ### Codex フロー
 
 1. **Banner を表示**：更新プロンプトを表示
 2. **Codex 更新を実行**：Codex 固有の更新フローを実行
 3. **ワークフローを更新**：Codex ワークフローテンプレートを更新
-4. **設定を保存**：ZCF グローバル設定を更新
+4. **設定を保存**：CCJK グローバル設定を更新
 
 ## 更新内容
 
-`zcf update` は以下の内容を更新します：
+`ccjk update` は以下の内容を更新します：
 
 ### ワークフローテンプレート
 
-- ✅ 6段階ワークフロー（`/zcf:workflow`）
-- ✅ 機能開発ワークフロー（`/zcf:feat`）
+- ✅ 6段階ワークフロー（`/ccjk:workflow`）
+- ✅ 機能開発ワークフロー（`/ccjk:feat`）
 - ✅ Git ワークフロー（`/git-commit` など）
 - ✅ BMad ワークフロー（`/bmad-init`）
 - ✅ 共通ツール（`/init-project`）
@@ -152,18 +152,18 @@ npx zcf u -s -g zh-CN -T claude-code
 
 ### 更新されない内容
 
-`zcf update` は以下の内容を**変更しません**：
+`ccjk update` は以下の内容を**変更しません**：
 
 - ❌ API 設定（キー、認証方式など）
 - ❌ MCP サービス設定（インストール済みサービス）
 - ❌ カスタム出力スタイル
 - ❌ プロジェクト固有の設定
 
-これらの内容を更新する必要がある場合は、`zcf init` または対応する設定メニューを使用してください。
+これらの内容を更新する必要がある場合は、`ccjk init` または対応する設定メニューを使用してください。
 
 ## バージョン確認
 
-`zcf update` は自動的にツールバージョンを確認します：
+`ccjk update` は自動的にツールバージョンを確認します：
 
 ### Claude Code バージョン確認
 
@@ -178,7 +178,7 @@ npx zcf u -s -g zh-CN -T claude-code
 
 ## バックアップメカニズム
 
-ワークフローとプロンプトを更新する前に、ZCF は自動的にバックアップを作成します：
+ワークフローとプロンプトを更新する前に、CCJK は自動的にバックアップを作成します：
 
 ### Claude Code バックアップ
 
@@ -196,14 +196,14 @@ npx zcf u -s -g zh-CN -T claude-code
 
 ### 1. 定期的な更新
 
-最新のワークフローと改善を取得するために、定期的に `zcf update` を実行することをお勧めします：
+最新のワークフローと改善を取得するために、定期的に `ccjk update` を実行することをお勧めします：
 
 ```bash
 # 週に1回更新
-npx zcf u -g zh-CN
+npx ccjk u -g zh-CN
 
 # または cron タスクに追加
-0 0 * * 0 /usr/local/bin/npx zcf u -s -g zh-CN
+0 0 * * 0 /usr/local/bin/npx ccjk u -s -g zh-CN
 ```
 
 ### 2. 更新前の確認
@@ -223,7 +223,7 @@ ls -la ~/.claude/backup/
 カスタムワークフローまたはプロンプトがある場合：
 
 1. **カスタム内容をバックアップ**：更新前に手動でバックアップ
-2. **`docs-only` モードを使用**：`zcf init` で `--config-action docs-only` を使用
+2. **`docs-only` モードを使用**：`ccjk init` で `--config-action docs-only` を使用
 3. **差分を確認**：更新後、バックアップと現在のファイルを比較
 
 ### 4. チーム同期
@@ -236,7 +236,7 @@ ls -la ~/.claude/backup/
 
 ```bash
 # チーム統一の更新コマンド
-npx zcf u -s -g zh-CN -T claude-code
+npx ccjk u -s -g zh-CN -T claude-code
 ```
 
 ## トラブルシューティング
@@ -263,7 +263,7 @@ mkdir -p ~/.claude/backup ~/.codex/backup
 
 ```bash
 # ワークフローを強制的に再インストール
-npx zcf init --config-action new -w all
+npx ccjk init --config-action new -w all
 
 # または手動でワークフローディレクトリを確認
 ls -la ~/.claude/workflows/
@@ -275,11 +275,11 @@ ls -la ~/.claude/workflows/
 
 1. **Claude Code がインストールされていることを確認**：`claude-code` コマンドが利用可能か確認
 2. **手動でバージョンを確認**：`claude-code --version` を使用
-3. **check-updates コマンドを使用**：`npx zcf check-updates` を実行
+3. **check-updates コマンドを使用**：`npx ccjk check-updates` を実行
 
 ## init との違い
 
-| 特性 | `zcf init` | `zcf update` |
+| 特性 | `ccjk init` | `ccjk update` |
 |------|-----------|-------------|
 | **主な用途** | 環境を完全に初期化 | ワークフローとテンプレートを更新 |
 | **API 設定** | ✅ 設定する | ❌ 変更しない |
@@ -290,14 +290,14 @@ ls -la ~/.claude/workflows/
 | **バックアップ** | ✅ バックアップを作成 | ✅ バックアップを作成 |
 
 > 💡 **推奨事項**：
-> - 初回使用時、または API/MCP 設定を変更する必要がある場合、`zcf init` を使用
-> - ワークフローとテンプレートのみを更新する必要がある場合、`zcf update` を使用
+> - 初回使用時、または API/MCP 設定を変更する必要がある場合、`ccjk init` を使用
+> - ワークフローとテンプレートのみを更新する必要がある場合、`ccjk update` を使用
 
 ## 関連リソース
 
-- [zcf init](init.md) - 完全初期化コマンド
+- [ccjk init](init.md) - 完全初期化コマンド
 - [ワークフローシステム](../features/workflows.md) - ワークフローの詳細な紹介
 - [設定管理](../features/multi-config.md) - バックアップと復元
 - [check-updates](check-updates.md) - バージョン確認コマンド
 
-> 💡 **ヒント**：特に新機能がリリースされたり、テンプレートが更新されたりした場合、ワークフローテンプレートとプロンプトを最新の状態に保つために、定期的に `zcf update` を実行することをお勧めします。
+> 💡 **ヒント**：特に新機能がリリースされたり、テンプレートが更新されたりした場合、ワークフローテンプレートとプロンプトを最新の状態に保つために、定期的に `ccjk update` を実行することをお勧めします。

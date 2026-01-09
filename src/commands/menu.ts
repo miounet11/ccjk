@@ -4,6 +4,7 @@ import inquirer from 'inquirer'
 import { CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
+import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { configureCodexApi, configureCodexMcp, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../utils/code-tools/codex'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
@@ -20,7 +21,6 @@ import {
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../utils/tools'
-import { readZcfConfig, updateZcfConfig } from '../utils/zcf-config'
 import { checkUpdates } from './check-updates'
 import { init } from './init'
 import { uninstall } from './uninstall'
@@ -107,7 +107,7 @@ function printZcfSection(options: {
   updateOption: string
   updateDescription: string
 }): void {
-  console.log('  ------------ ZCF ------------')
+  console.log('  ------------ CCJK ------------')
   console.log(
     `  ${ansis.cyan('0.')} ${i18n.t('menu:menuOptions.changeLanguage')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
   )
@@ -384,7 +384,7 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
     let exitMenu = false
     while (!exitMenu) {
       const codeTool = getCurrentCodeTool()
-      displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'ZCF')
+      displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
       const result = codeTool === 'codex'
         ? await showCodexMenu()

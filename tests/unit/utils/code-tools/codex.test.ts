@@ -96,7 +96,7 @@ vi.mock('node:fs/promises', () => ({
   rm: vi.fn(),
 }))
 
-vi.mock('../../../../src/utils/zcf-config', () => ({
+vi.mock('../../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
   updateTomlConfig: vi.fn(),
@@ -215,9 +215,9 @@ describe('codex code tool utilities', () => {
       action: 'trash',
     })
 
-    // Setup default zcf-config mocks
-    const zcfConfig = await import('../../../../src/utils/zcf-config')
-    vi.mocked(zcfConfig.readDefaultTomlConfig).mockReturnValue({
+    // Setup default ccjk-config mocks
+    const ccjkConfig = await import('../../../../src/utils/ccjk-config')
+    vi.mocked(ccjkConfig.readDefaultTomlConfig).mockReturnValue({
       version: '1.0.0',
       lastUpdated: new Date().toISOString(),
       general: {
@@ -259,7 +259,7 @@ describe('codex code tool utilities', () => {
       return path.startsWith('/project/templates/codex/zh-CN')
     })
 
-    const { readZcfConfig } = await import('../../../../src/utils/zcf-config')
+    const { readZcfConfig } = await import('../../../../src/utils/ccjk-config')
     vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN' } as any)
 
     const codexModule = await import('../../../../src/utils/code-tools/codex')
@@ -304,7 +304,7 @@ describe('codex code tool utilities', () => {
 
     expect(writeFileMock).toHaveBeenCalledTimes(1)
     const configContent = writeFileMock.mock.calls[0][1] as string
-    expect(configContent).toContain('# --- model provider added by ZCF ---')
+    expect(configContent).toContain('# --- model provider added by CCJK ---')
     expect(configContent).toContain('model_provider = "packycode"')
     expect(configContent).toContain('[model_providers.packycode]')
     expect(configContent).toContain('base_url = "https://api.example.com/v1"')
@@ -317,7 +317,7 @@ describe('codex code tool utilities', () => {
       { pretty: true },
     )
 
-    const { updateZcfConfig } = await import('../../../../src/utils/zcf-config')
+    const { updateZcfConfig } = await import('../../../../src/utils/ccjk-config')
     expect(updateZcfConfig).toHaveBeenCalledWith(expect.objectContaining({ codeToolType: 'codex' }))
   })
 
@@ -371,7 +371,7 @@ describe('codex code tool utilities', () => {
   })
 
   it('configureCodexMcp should update MCP services while preserving providers', async () => {
-    const managedConfig = `# Managed by ZCF\nmodel_provider = "packycode"\n\n[model_providers.packycode]\nname = "PackyCode"\nbase_url = "https://api.example.com"\nwire_api = "responses"\ntemp_env_key = "OPENAI_API_KEY"\n`
+    const managedConfig = `# Managed by CCJK\nmodel_provider = "packycode"\n\n[model_providers.packycode]\nname = "PackyCode"\nbase_url = "https://api.example.com"\nwire_api = "responses"\ntemp_env_key = "OPENAI_API_KEY"\n`
 
     const selectMcpServices = (await import('../../../../src/utils/mcp-selector')).selectMcpServices
     vi.mocked(selectMcpServices).mockResolvedValue(['context7'])
@@ -412,7 +412,7 @@ describe('codex code tool utilities', () => {
       expect.anything(),
     )
 
-    const { updateZcfConfig } = await import('../../../../src/utils/zcf-config')
+    const { updateZcfConfig } = await import('../../../../src/utils/ccjk-config')
     expect(updateZcfConfig).toHaveBeenCalledWith(expect.objectContaining({ codeToolType: 'codex' }))
   })
 
@@ -1114,7 +1114,7 @@ describe('codex code tool utilities', () => {
     it('parseCodexConfig should handle commented model_provider', async () => {
       const codexModule = await import('../../../../src/utils/code-tools/codex')
       const tomlWithCommentedProvider = `
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model = "gpt-4"
 # model_provider = "claude-api"
 
@@ -1136,7 +1136,7 @@ requires_openai_auth = true
     it('parseCodexConfig should handle complex TOML with multiple providers and MCP services', async () => {
       const codexModule = await import('../../../../src/utils/code-tools/codex')
       const complexToml = `
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model = "gpt-4"
 model_provider = "claude-api"
 
@@ -1154,7 +1154,7 @@ wire_api = "chat"
 temp_env_key = "OPENAI_API_KEY"
 requires_openai_auth = false
 
-# --- MCP servers added by ZCF ---
+# --- MCP servers added by CCJK ---
 [mcp_servers.context7]
 command = "npx"
 args = ["-y", "context7"]
@@ -1194,7 +1194,7 @@ startup_timeout_sec = 30
 debug = true
 log_level = "info"
 
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model = "gpt-4"
 model_provider = "test"
 
@@ -1214,18 +1214,18 @@ requires_openai_auth = true
       expect(result.otherConfig!).toContain('log_level = "info"')
       expect(result.otherConfig!).toContain('[custom_section]')
       expect(result.otherConfig!).toContain('custom_key = "custom_value"')
-      // Should not contain ZCF managed sections
+      // Should not contain CCJK managed sections
       expect(result.otherConfig!.join('\n')).not.toContain('model_provider = "test"')
       expect(result.otherConfig!.join('\n')).not.toContain('[model_providers.test]')
     })
 
-    it('parseCodexConfig should handle model_provider detection with ZCF comments', async () => {
+    it('parseCodexConfig should handle model_provider detection with CCJK comments', async () => {
       const codexModule = await import('../../../../src/utils/code-tools/codex')
-      const tomlWithZcfComments = `
+      const tomlWithCcjkComments = `
 [some_section]
 key = "value"
 
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model_provider = "claude"
 
 [model_providers.claude]
@@ -1235,10 +1235,10 @@ wire_api = "responses"
 temp_env_key = "ANTHROPIC_API_KEY"
 requires_openai_auth = true
 `
-      const result = codexModule.parseCodexConfig(tomlWithZcfComments)
+      const result = codexModule.parseCodexConfig(tomlWithCcjkComments)
       expect(result.modelProvider).toBe('claude')
       expect(result.modelProviderCommented).toBe(false)
-      // ZCF comment should reset inSection flag, so model_provider is treated as global
+      // CCJK comment should reset inSection flag, so model_provider is treated as global
       expect(result.managed).toBe(true)
     })
 
@@ -1408,8 +1408,8 @@ env = {}
       vi.mocked(fsOps.readFile).mockReturnValue('# Test system prompt content')
       vi.mocked(fsOps.writeFile).mockImplementation(() => {})
 
-      const zcfConfig = await import('../../../../src/utils/zcf-config')
-      vi.mocked(zcfConfig.readZcfConfig).mockReturnValue({
+      const ccjkConfig = await import('../../../../src/utils/ccjk-config')
+      vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
         aiOutputLang: 'zh-CN',
         templateLang: 'zh-CN',
       } as any)
@@ -1444,8 +1444,8 @@ env = {}
       vi.mocked(fsOps.readFile).mockReturnValue('# Test system prompt content')
       vi.mocked(fsOps.writeFile).mockImplementation(() => {})
 
-      const zcfConfig = await import('../../../../src/utils/zcf-config')
-      vi.mocked(zcfConfig.readZcfConfig).mockReturnValue({
+      const ccjkConfig = await import('../../../../src/utils/ccjk-config')
+      vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
         aiOutputLang: 'zh-CN',
         templateLang: 'zh-CN',
       } as any)
@@ -1477,8 +1477,8 @@ env = {}
       const { x } = await import('tinyexec')
       vi.mocked(x).mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 })
 
-      const zcfConfig = await import('../../../../src/utils/zcf-config')
-      vi.mocked(zcfConfig.readZcfConfig).mockReturnValue({
+      const ccjkConfig = await import('../../../../src/utils/ccjk-config')
+      vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
         aiOutputLang: 'en',
         templateLang: 'en',
       } as any)
@@ -1546,8 +1546,8 @@ env = {}
       const fsOps = await import('../../../../src/utils/fs-operations')
       vi.mocked(fsOps.exists).mockReturnValue(false) // No files exist, simplest path
 
-      const zcfConfig = await import('../../../../src/utils/zcf-config')
-      vi.mocked(zcfConfig.readZcfConfig).mockReturnValue({
+      const ccjkConfig = await import('../../../../src/utils/ccjk-config')
+      vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
         aiOutputLang: 'chinese-simplified',
         templateLang: 'zh-CN',
       } as any)
@@ -1584,7 +1584,7 @@ env = {}
 # Some config
 debug = true
 
-# --- model provider added by ZCF ---
+# --- model provider added by CCJK ---
 model = "gpt-4"
 model_provider = "claude-api"
 
@@ -1807,8 +1807,8 @@ model_provider = ""
         vi.mocked(fsOps.copyDir).mockImplementation(() => {})
         vi.mocked(fsOps.writeFile).mockImplementation(() => {})
 
-        const zcfConfig = await import('../../../../src/utils/zcf-config')
-        vi.mocked(zcfConfig.readZcfConfig).mockReturnValue({
+        const ccjkConfig = await import('../../../../src/utils/ccjk-config')
+        vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
           aiOutputLang: 'chinese-simplified',
         } as any)
 
@@ -1830,8 +1830,8 @@ model_provider = ""
         vi.mocked(fsOps.copyDir).mockImplementation(() => {})
         vi.mocked(fsOps.writeFile).mockImplementation(() => {})
 
-        const zcfConfig = await import('../../../../src/utils/zcf-config')
-        vi.mocked(zcfConfig.readZcfConfig).mockReturnValue({} as any)
+        const ccjkConfig = await import('../../../../src/utils/ccjk-config')
+        vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({} as any)
 
         const result = await codexModule.runCodexWorkflowImportWithLanguageSelection({
           aiOutputLang: '',
@@ -1996,7 +1996,7 @@ model_provider = ""
   describe('runCodexWorkflowSelection - presetWorkflows filtering', () => {
     let codexModule: typeof import('../../../../src/utils/code-tools/codex')
     let fsOps: typeof import('../../../../src/utils/fs-operations')
-    let zcfConfig: typeof import('../../../../src/utils/zcf-config')
+    let ccjkConfig: typeof import('../../../../src/utils/ccjk-config')
 
     beforeEach(async () => {
       vi.clearAllMocks()
@@ -2004,10 +2004,10 @@ model_provider = ""
       // Import modules
       codexModule = await import('../../../../src/utils/code-tools/codex')
       fsOps = await import('../../../../src/utils/fs-operations')
-      zcfConfig = await import('../../../../src/utils/zcf-config')
+      ccjkConfig = await import('../../../../src/utils/ccjk-config')
 
       // Setup default mocks
-      vi.mocked(zcfConfig.readZcfConfig).mockReturnValue({
+      vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
         preferredLang: 'zh-CN',
         templateLang: 'zh-CN',
         version: '3.4.3',
@@ -2250,7 +2250,7 @@ model_provider = ""
 
     it('should handle English locale correctly', async () => {
       // Arrange
-      vi.mocked(zcfConfig.readZcfConfig).mockReturnValue({
+      vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
         preferredLang: 'en',
         templateLang: 'en',
         version: '3.4.3',

@@ -57,8 +57,8 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: UfoMiao/zcf
+          slug: UfoMiao/ccjk
           directory: ./coverage
           flags: unit-tests
-          name: zcf-coverage
+          name: ccjk-coverage
           fail_ci_if_error: false

@@ -2,14 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ccr } from '../../src/commands/ccr'
 import * as menu from '../../src/commands/menu'
 import * as banner from '../../src/utils/banner'
+import * as ccjkConfig from '../../src/utils/ccjk-config'
 import * as errorHandler from '../../src/utils/error-handler'
 import * as prompts from '../../src/utils/prompts'
 import * as ccrMenu from '../../src/utils/tools/ccr-menu'
-import * as zcfConfig from '../../src/utils/zcf-config'
 
 vi.mock('../../src/utils/tools/ccr-menu')
 vi.mock('../../src/utils/error-handler')
-vi.mock('../../src/utils/zcf-config')
+vi.mock('../../src/utils/ccjk-config')
 vi.mock('../../src/utils/prompts')
 vi.mock('../../src/utils/banner')
 vi.mock('../../src/commands/menu')
@@ -23,7 +23,7 @@ describe('ccr command - edge cases', () => {
 
     // Default mocks
     vi.mocked(banner.displayBannerWithInfo).mockImplementation(() => {})
-    vi.mocked(zcfConfig.readZcfConfigAsync).mockResolvedValue({
+    vi.mocked(ccjkConfig.readZcfConfigAsync).mockResolvedValue({
       preferredLang: 'en',
       codeToolType: 'claude-code',
     } as any)
@@ -173,7 +173,7 @@ describe('ccr command - edge cases', () => {
     })
 
     it('should handle slow config read', async () => {
-      vi.mocked(zcfConfig.readZcfConfigAsync).mockImplementation(
+      vi.mocked(ccjkConfig.readZcfConfigAsync).mockImplementation(
         () => new Promise(resolve =>
           setTimeout(() => resolve({ preferredLang: 'en' } as any), 100),
         ),

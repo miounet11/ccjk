@@ -4,33 +4,33 @@ title: 設定切替
 
 # 設定切替
 
-`zcf config-switch` は複数の API 設定間を素早く切り替えるために使用されます。異なるプロジェクトで異なる API プロバイダーを使用するユーザーに適しています。
+`ccjk config-switch` は複数の API 設定間を素早く切り替えるために使用されます。異なるプロジェクトで異なる API プロバイダーを使用するユーザーに適しています。
 
-> **別名**：`zcf cs` という短縮形を使用できます。すべての例は `npx zcf cs --list` などの形式に書き換えることができます。
+> **別名**：`ccjk cs` という短縮形を使用できます。すべての例は `npx ccjk cs --list` などの形式に書き換えることができます。
 
 ## コマンド形式
 
 ```bash
 # インタラクティブ切替（推奨）
-npx zcf cs
+npx ccjk cs
 
 # 利用可能なすべての設定を一覧表示
-npx zcf cs --list
+npx ccjk cs --list
 
 # 指定された設定に直接切替（Claude Code）
-npx zcf cs provider1
+npx ccjk cs provider1
 
 # ツールタイプを指定（短縮形 -T cc/cx をサポート）
-npx zcf cs --list -T cc      # Claude Code 設定を一覧表示
-npx zcf cs --list -T cx      # Codex 設定を一覧表示
-npx zcf cs provider1 -T cx   # Codex 設定を切替
+npx ccjk cs --list -T cc      # Claude Code 設定を一覧表示
+npx ccjk cs --list -T cx      # Codex 設定を一覧表示
+npx ccjk cs provider1 -T cx   # Codex 設定を切替
 ```
 
 ## パラメータ説明
 
 | パラメータ | 説明 | オプション値 | デフォルト値 |
 |------|------|--------|--------|
-| `--code-type`, `-T` | ツールタイプを指定 | `claude-code` (cc), `codex` (cx) | ZCF 設定から読み取り |
+| `--code-type`, `-T` | ツールタイプを指定 | `claude-code` (cc), `codex` (cx) | CCJK 設定から読み取り |
 | `--list`, `-l` | 設定のみを一覧表示し、切替しない | なし | いいえ |
 | `目標設定` | 切替先の設定名を直接指定 | 設定名または ID | なし |
 
@@ -42,7 +42,7 @@ npx zcf cs provider1 -T cx   # Codex 設定を切替
 
 1. **公式ログイン**：Claude 公式 OAuth ログインを使用
 2. **CCR プロキシ**：Claude Code Router プロキシを使用
-3. **カスタム設定**：`zcf init` で作成された複数の API 設定
+3. **カスタム設定**：`ccjk init` で作成された複数の API 設定
 
 **設定ソース**：
 - 設定ファイル：`~/.claude/settings.json`
@@ -54,7 +54,7 @@ npx zcf cs provider1 -T cx   # Codex 設定を切替
 Codex のモデルプロバイダーの切替をサポートします：
 
 1. **公式ログイン**：Codex 公式 OAuth ログインを使用
-2. **カスタムプロバイダー**：`zcf init` で設定されたプロバイダー（302.AI、GLM など）
+2. **カスタムプロバイダー**：`ccjk init` で設定されたプロバイダー（302.AI、GLM など）
 
 **設定ソース**：
 - 設定ファイル：`~/.codex/config.toml`
@@ -67,7 +67,7 @@ Codex のモデルプロバイダーの切替をサポートします：
 最も一般的な方法で、インタラクティブメニューから設定を選択します：
 
 ```bash
-npx zcf cs
+npx ccjk cs
 ```
 
 **Claude Code インタラクティブインターフェース**：
@@ -95,10 +95,10 @@ npx zcf cs
 
 ```bash
 # Claude Code 設定
-npx zcf cs --list --code-type claude-code
+npx ccjk cs --list --code-type claude-code
 
 # Codex 設定
-npx zcf cs --list --code-type codex
+npx ccjk cs --list --code-type codex
 ```
 
 **出力例**：
@@ -117,10 +117,10 @@ npx zcf cs --list --code-type codex
 
 ```bash
 # 指定されたプロファイルに切替（プロバイダーの英語名を使用）
-npx zcf cs glm-provider
+npx ccjk cs glm-provider
 
 # Codex プロバイダーを切替
-npx zcf cs glm-provider --code-type codex
+npx ccjk cs glm-provider --code-type codex
 ```
 
 **サポートされるマッチング方法**：
@@ -135,7 +135,7 @@ npx zcf cs glm-provider --code-type codex
 
 ```bash
 # 複数設定パラメータを使用
-npx zcf init --api-configs '[
+npx ccjk init --api-configs '[
   {
     "name": "GLM Provider",
     "provider": "glm",
@@ -189,33 +189,33 @@ npx zcf init --api-configs '[
 
 ```bash
 # プロジェクト A は GLM を使用
-npx zcf cs glm-provider
+npx ccjk cs glm-provider
 
 # プロジェクト B は 302.AI を使用
-npx zcf cs 302ai-provider
+npx ccjk cs 302ai-provider
 
 # プロジェクト C は MiniMax を使用
-npx zcf cs minimax-provider
+npx ccjk cs minimax-provider
 ```
 
 ### 2. 新しい設定をテスト
 
 ```bash
 # テスト設定に切替
-npx zcf cs kimi-provider
+npx ccjk cs kimi-provider
 
 # テスト完了後に戻す
-npx zcf cs glm-provider
+npx ccjk cs glm-provider
 ```
 
 ### 3. Codex プロバイダーを切替
 
 ```bash
 # Codex プロバイダーを一覧表示
-npx zcf cs --code-type codex --list
+npx ccjk cs --code-type codex --list
 
 # 指定されたプロバイダーに切替
-npx zcf cs glm-provider --code-type codex
+npx ccjk cs glm-provider --code-type codex
 ```
 
 ## ベストプラクティス
@@ -238,14 +238,14 @@ npx zcf cs glm-provider --code-type codex
 
 ```bash
 # メインブランチは GLM 設定を使用
-npx zcf cs glm-provider
+npx ccjk cs glm-provider
 
 # 機能ブランチ Worktree を作成
 /git-worktree add feat/new-feature -o
 
 # 機能ブランチで設定を切替
-cd ../.zcf/project-name/feat/new-feature
-npx zcf cs 302ai-provider
+cd ../.ccjk/project-name/feat/new-feature
+npx ccjk cs 302ai-provider
 ```
 
 ## よくある質問
@@ -259,9 +259,9 @@ A:
 
 ### Q: 設定を追加、編集、または削除するには？
 
-A: ZCF メインメニューから設定を管理できます：
+A: CCJK メインメニューから設定を管理できます：
 
-1. `npx zcf` を実行してメインメニューに入る
+1. `npx ccjk` を実行してメインメニューに入る
 2. **"3. API 設定"** を選択
 3. **"カスタム API 設定"** を選択
 

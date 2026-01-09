@@ -1,7 +1,7 @@
 {
   "menuDescriptions.ccrManagement": "Configure Claude Code Router to use multiple AI models",
   "menuDescriptions.ccusage": "Claude Code usage analysis",
-  "menuDescriptions.changeLanguage": "Change ZCF interface language",
+  "menuDescriptions.changeLanguage": "Change CCJK interface language",
   "menuDescriptions.checkUpdates": "Check and update Claude Code, CCR and CCometixLine versions",
   "menuDescriptions.uninstall": "Remove Claude Code configurations and tools from your system",
   "menuDescriptions.cometixLine": "High-performance Claude Code statusline tool with Git integration and real-time usage tracking",

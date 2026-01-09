@@ -3,7 +3,6 @@ import type {
 } from '../../../src/types/toml-config'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_CODE_TOOL_TYPE } from '../../../src/constants'
-import * as jsonConfig from '../../../src/utils/json-config'
 import {
   createDefaultTomlConfig,
   getZcfConfig,
@@ -16,7 +15,8 @@ import {
   updateZcfConfig,
   writeTomlConfig,
   writeZcfConfig,
-} from '../../../src/utils/zcf-config'
+} from '../../../src/utils/ccjk-config'
+import * as jsonConfig from '../../../src/utils/json-config'
 
 // Mock dependencies
 vi.mock('../../../src/utils/json-config')
@@ -38,7 +38,7 @@ vi.mocked(await import('../../../src/utils/fs-operations')).ensureDir = mockEnsu
 vi.mocked(await import('smol-toml')).parse = mockParse
 vi.mocked(await import('smol-toml')).stringify = mockStringify
 
-describe('zcf-config utilities', () => {
+describe('ccjk-config utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -304,8 +304,8 @@ system_prompt_style = "engineer-professional"`
     })
   })
 
-  // Extended Tests from zcf-config.extended.test.ts
-  describe('zcf-config extended tests', () => {
+  // Extended Tests from "./ccjk-config.extended.test.ts
+  describe('ccjk-config extended tests', () => {
     it('should handle cache cleanup', () => {
       // This is a placeholder test - the actual extended tests were minimal
       expect(true).toBe(true)

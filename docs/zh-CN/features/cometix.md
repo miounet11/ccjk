@@ -4,7 +4,7 @@ title: CCometixLine 状态栏
 
 # CCometixLine 状态栏
 
-CCometixLine 是基于 Rust 的高性能终端/IDE 状态栏插件，ZCF 支持全自动安装、配置和更新。它可以实时显示 Git 分支信息、文件变更状态、Claude Code / Codex 使用统计等关键信息。
+CCometixLine 是基于 Rust 的高性能终端/IDE 状态栏插件，CCJK 支持全自动安装、配置和更新。它可以实时显示 Git 分支信息、文件变更状态、Claude Code / Codex 使用统计等关键信息。
 
 ## 什么是 CCometixLine
 
@@ -23,24 +23,24 @@ CCometixLine 是基于 Rust 的高性能状态栏工具，为 Claude Code 提供
 
 ### 自动安装
 
-ZCF 在初始化时会自动安装 CCometixLine：
+CCJK 在初始化时会自动安装 CCometixLine：
 
 ```bash
 # 完整初始化（默认包含 CCometixLine 安装）
-npx zcf init
+npx ccjk init
 
 # 或者在交互式菜单中选择初始化
-npx zcf
+npx ccjk
 ```
 
-> 💡 **提示**：`zcf init` 默认启用 `--install-cometix-line true`，若无需安装可显式传入 `false`。
+> 💡 **提示**：`ccjk init` 默认启用 `--install-cometix-line true`，若无需安装可显式传入 `false`。
 
 ### 手动管理
 
 在主菜单中输入 `L` 进入 CCometixLine 管理界面：
 
 ```bash
-npx zcf
+npx ccjk
 # 然后输入 L
 ```
 
@@ -162,8 +162,8 @@ CCometixLine 支持跨平台安装：
 ### 检查版本
 
 ```bash
-# 通过 ZCF 菜单检查
-npx zcf → 选择 L → 查看版本信息
+# 通过 CCJK 菜单检查
+npx ccjk → 选择 L → 查看版本信息
 
 # 或者直接运行
 ccline --version
@@ -171,14 +171,14 @@ ccline --version
 
 ### 自动更新
 
-ZCF 在初始化或更新时会自动检查 CCometixLine 版本：
+CCJK 在初始化或更新时会自动检查 CCometixLine 版本：
 
 ```bash
 # 使用 check-updates 命令检查并更新
-npx zcf check-updates
+npx ccjk check-updates
 
 # 或者在菜单中选择
-npx zcf → 选择 + 检查更新
+npx ccjk → 选择 + 检查更新
 ```
 
 ### 手动更新
@@ -187,8 +187,8 @@ npx zcf → 选择 + 检查更新
 # 通过 npm 更新
 npm update -g @cometix/ccline
 
-# 或者通过 ZCF 菜单
-npx zcf → 选择 L → 升级
+# 或者通过 CCJK 菜单
+npx ccjk → 选择 L → 升级
 ```
 
 ## 故障排除
@@ -368,10 +368,10 @@ npm update -g @cometix/ccline
 
 ## 与其他工具的集成
 
-CCometixLine 可以与以下 ZCF 工具无缝集成：
+CCometixLine 可以与以下 CCJK 工具无缝集成：
 
 - **ccusage**：共享使用统计数据
 - **CCR**：显示代理路由状态（如果配置）
 - **工作流**：根据工作流状态显示相应信息
 
-> 💡 **提示**：CCometixLine 是 ZCF 生态的重要组成部分，建议在初始化时一起安装，以获得完整的状态监控体验。
+> 💡 **提示**：CCometixLine 是 CCJK 生态的重要组成部分，建议在初始化时一起安装，以获得完整的状态监控体验。

@@ -90,7 +90,7 @@ templates/
 - **Purpose**: Feature planning and UX design
 
 ##### Six-Step Workflow
-- **Commands**: `zcf-update-docs`, `zcf-pr`, `zcf-release`
+- **Commands**: `ccjk-update-docs`, `ccjk-pr`, `ccjk-release`
 - **Purpose**: Structured development process
 
 ##### BMAD Workflow
@@ -178,7 +178,7 @@ interface OutputStyle {
 
 ### Recent Updates
 
-- Consolidated sixStep workflow templates to `templates/common/workflow/sixStep/` with unified `.zcf` plan directory for both Claude Code and Codex
+- Consolidated sixStep workflow templates to `templates/common/workflow/sixStep/` with unified `.ccjk` plan directory for both Claude Code and Codex
 - Consolidated output-styles/system-prompt templates to `templates/common/output-styles/`
 - Consolidated git workflow templates to `templates/common/workflow/git/`
 - Added Codex template support for dual code tool architecture

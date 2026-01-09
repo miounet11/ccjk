@@ -4,17 +4,17 @@
 
 ## Project Overview
 
-ZCF (Zero-Config Code Flow) is a CLI tool that automatically configures Claude Code environments. Built with TypeScript and distributed as an npm package, it provides one-click setup for Claude Code including configuration files, API settings, MCP services, and AI workflows. The current version v3.4.3 features advanced i18next internationalization, enhanced engineering templates, intelligent IDE detection, comprehensive multi-platform support including Termux compatibility, sophisticated uninstallation capabilities with advanced conflict resolution, and API provider preset system for simplified configuration. The project also integrates dual code tool support, enabling both Claude Code and Codex environment configuration, with consolidated template architecture for shared resources.
+CCJK (Claude Code JinKu) is a CLI tool that automatically configures Claude Code environments. Built with TypeScript and distributed as an npm package, it provides one-click setup for Claude Code including configuration files, API settings, MCP services, and AI workflows. The current version v3.4.3 features advanced i18next internationalization, enhanced engineering templates, intelligent IDE detection, comprehensive multi-platform support including Termux compatibility, sophisticated uninstallation capabilities with advanced conflict resolution, and API provider preset system for simplified configuration. The project also integrates dual code tool support, enabling both Claude Code and Codex environment configuration, with consolidated template architecture for shared resources.
 
 ## Architecture Overview
 
-ZCF follows a modular CLI architecture with strict TypeScript typing, comprehensive i18next-based internationalization, and cross-platform support. The project is built using modern tooling including unbuild, Vitest, ESM-only configuration, and @antfu/eslint-config for code quality. The architecture emphasizes robust error handling, user-friendly interfaces, and extensive testing coverage with advanced tool integration including CCR proxy, Cometix status line, and CCusage analytics. Version 3.4.x introduces consolidated template architecture with shared resources in `templates/common/` for output styles, git workflows, and sixStep workflows, enabling code reuse between Claude Code and Codex.
+CCJK follows a modular CLI architecture with strict TypeScript typing, comprehensive i18next-based internationalization, and cross-platform support. The project is built using modern tooling including unbuild, Vitest, ESM-only configuration, and @antfu/eslint-config for code quality. The architecture emphasizes robust error handling, user-friendly interfaces, and extensive testing coverage with advanced tool integration including CCR proxy, Cometix status line, and CCusage analytics. Version 3.4.x introduces consolidated template architecture with shared resources in `templates/common/` for output styles, git workflows, and sixStep workflows, enabling code reuse between Claude Code and Codex.
 
 ### Module Structure Diagram
 
 ```mermaid
 graph TD
-    A["🚀 ZCF Root (v3.4.3)"] --> B["src/commands"];
+    A["🚀 CCJK Root (v3.4.3)"] --> B["src/commands"];
     A --> C["src/utils"];
     A --> D["src/i18n"];
     A --> E["src/types"];
@@ -28,7 +28,7 @@ graph TD
     B --> B4["ccr.ts - Router management"];
     B --> B5["ccu.ts - Usage analysis"];
     B --> B6["check-updates.ts - Tool updates"];
-    B --> B7["uninstall.ts - ZCF uninstallation"];
+    B --> B7["uninstall.ts - CCJK uninstallation"];
     B --> B8["config-switch.ts - Config switching"];
 
     C --> C1["config.ts - Configuration management"];
@@ -105,30 +105,30 @@ graph TD
 
 ## CLI Usage
 
-ZCF provides both direct commands and an interactive menu system with advanced internationalization and comprehensive uninstallation:
+CCJK provides both direct commands and an interactive menu system with advanced internationalization and comprehensive uninstallation:
 
 ```bash
 # Interactive menu (recommended)
-npx zcf                    # Opens main menu with all options
+npx ccjk                    # Opens main menu with all options
 
 # Direct commands
-npx zcf i                  # Full initialization
-npx zcf u                  # Update workflows only
-npx zcf ccr [--lang <en|zh-CN>]  # Claude Code Router management
-npx zcf ccu [args...]      # Run ccusage with arguments
-npx zcf check-updates [--lang <en|zh-CN>] [--code-type <claude-code|codex>]  # Check tool updates
-npx zcf config-switch [target] [--code-type <claude-code|codex>]  # Switch configurations
-npx zcf uninstall [--mode <complete|custom|interactive>] [--items <items>] [--lang <en|zh-CN>]  # ZCF uninstallation
+npx ccjk i                  # Full initialization
+npx ccjk u                  # Update workflows only
+npx ccjk ccr [--lang <en|zh-CN>]  # Claude Code Router management
+npx ccjk ccu [args...]      # Run ccusage with arguments
+npx ccjk check-updates [--lang <en|zh-CN>] [--code-type <claude-code|codex>]  # Check tool updates
+npx ccjk config-switch [target] [--code-type <claude-code|codex>]  # Switch configurations
+npx ccjk uninstall [--mode <complete|custom|interactive>] [--items <items>] [--lang <en|zh-CN>]  # CCJK uninstallation
 
 # Config switch examples
-npx zcf config-switch --list                    # List available configurations
-npx zcf config-switch provider1 --code-type codex  # Switch Codex provider
-npx zcf config-switch config1 --code-type claude-code  # Switch Claude Code config
+npx ccjk config-switch --list                    # List available configurations
+npx ccjk config-switch provider1 --code-type codex  # Switch Codex provider
+npx ccjk config-switch config1 --code-type claude-code  # Switch Claude Code config
 
 # Uninstall examples
-npx zcf uninstall                                    # Interactive uninstall menu
-npx zcf uninstall --mode complete                    # Complete uninstallation
-npx zcf uninstall --mode custom --items ccr,backups # Custom uninstallation
+npx ccjk uninstall                                    # Interactive uninstall menu
+npx ccjk uninstall --mode complete                    # Complete uninstallation
+npx ccjk uninstall --mode custom --items ccr,backups # Custom uninstallation
 ```
 
 ## Running and Development
@@ -242,41 +242,41 @@ The project uses Vitest with a comprehensive layered testing approach:
 - **Testing Organization**: Tests organized with comprehensive unit/integration/edge structure and 80% coverage requirement
 - **Trash/Recycle Bin Integration**: Uses `trash` package for safe cross-platform file deletion
 
-## 🤖 ZCF AI Team Configuration
+## 🤖 CCJK AI Team Configuration
 
-The ZCF project employs a specialized AI agent team optimized for CLI development, i18n systems, and tool integration. Each agent is designed with specific domain expertise and strict boundaries to ensure efficient collaboration.
+The CCJK project employs a specialized AI agent team optimized for CLI development, i18n systems, and tool integration. Each agent is designed with specific domain expertise and strict boundaries to ensure efficient collaboration.
 
 ### Project-Specific AI Agents
 
 | Agent | Model | Domain | Primary Responsibilities |
 |-------|-------|--------|-------------------------|
 | **typescript-cli-architect** | sonnet | CLI Architecture | TypeScript CLI design, CAC integration, ESM modules, developer experience |
-| **zcf-i18n-specialist** | opus | Internationalization | i18next configuration, translation management, namespace organization |
-| **zcf-tools-integration-specialist** | sonnet | Tool Integration | CCR/Cometix/CCusage integration, version management, cross-platform compatibility |
-| **zcf-template-engine** | haiku | Template System | Template design, workflow configurations, output styles, multilingual templates |
-| **zcf-config-architect** | opus | Configuration Management | Config merging, MCP services, TOML/JSON validation, backup systems |
-| **zcf-testing-specialist** | sonnet | Testing Infrastructure | Vitest configuration, test coverage, mock systems, quality assurance |
-| **zcf-devops-engineer** | inherit | DevOps & Deployment | Build optimization, release management, CI/CD, cross-platform deployment |
+| **ccjk-i18n-specialist** | opus | Internationalization | i18next configuration, translation management, namespace organization |
+| **ccjk-tools-integration-specialist** | sonnet | Tool Integration | CCR/Cometix/CCusage integration, version management, cross-platform compatibility |
+| **ccjk-template-engine** | haiku | Template System | Template design, workflow configurations, output styles, multilingual templates |
+| **ccjk-config-architect** | opus | Configuration Management | Config merging, MCP services, TOML/JSON validation, backup systems |
+| **ccjk-testing-specialist** | sonnet | Testing Infrastructure | Vitest configuration, test coverage, mock systems, quality assurance |
+| **ccjk-devops-engineer** | inherit | DevOps & Deployment | Build optimization, release management, CI/CD, cross-platform deployment |
 
 ### Agent Collaboration Matrix
 
 ```mermaid
 graph TD
-    A[typescript-cli-architect] --> B[zcf-i18n-specialist]
-    A --> C[zcf-tools-integration-specialist]
-    A --> D[zcf-template-engine]
+    A[typescript-cli-architect] --> B[ccjk-i18n-specialist]
+    A --> C[ccjk-tools-integration-specialist]
+    A --> D[ccjk-template-engine]
 
-    E[zcf-config-architect] --> A
+    E[ccjk-config-architect] --> A
     E --> C
     E --> D
 
-    F[zcf-testing-specialist] --> A
+    F[ccjk-testing-specialist] --> A
     F --> B
     F --> C
     F --> D
     F --> E
 
-    G[zcf-devops-engineer] --> A
+    G[ccjk-devops-engineer] --> A
     G --> F
     G --> E
 
@@ -292,12 +292,12 @@ graph TD
 ### Agent Boundaries & Delegation Rules
 
 - **CLI Architecture**: typescript-cli-architect handles all CLI structure, command parsing, and TypeScript configuration
-- **Internationalization**: zcf-i18n-specialist manages all i18next systems, translations, and language detection
-- **Tool Integration**: zcf-tools-integration-specialist handles CCR, Cometix, CCusage integration and version management
-- **Templates**: zcf-template-engine manages all template systems, workflow configurations, and output styles
-- **Configuration**: zcf-config-architect handles complex config merging, MCP services, and backup systems
-- **Testing**: zcf-testing-specialist maintains Vitest infrastructure, coverage, and quality assurance
-- **DevOps**: zcf-devops-engineer manages builds, releases, and deployment processes
+- **Internationalization**: ccjk-i18n-specialist manages all i18next systems, translations, and language detection
+- **Tool Integration**: ccjk-tools-integration-specialist handles CCR, Cometix, CCusage integration and version management
+- **Templates**: ccjk-template-engine manages all template systems, workflow configurations, and output styles
+- **Configuration**: ccjk-config-architect handles complex config merging, MCP services, and backup systems
+- **Testing**: ccjk-testing-specialist maintains Vitest infrastructure, coverage, and quality assurance
+- **DevOps**: ccjk-devops-engineer manages builds, releases, and deployment processes
 
 ### Model Selection Rationale
 

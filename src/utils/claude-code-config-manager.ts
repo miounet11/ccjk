@@ -4,10 +4,10 @@ import type { ZcfTomlConfig } from '../types/toml-config'
 import dayjs from 'dayjs'
 import { join } from 'pathe'
 import { SETTINGS_FILE, ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants'
+import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from './ccjk-config'
 import { clearModelEnv } from './config.model-keys'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
-import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from './zcf-config'
 
 export class ClaudeCodeConfigManager {
   static readonly CONFIG_FILE = ZCF_CONFIG_FILE
@@ -241,7 +241,7 @@ export class ClaudeCodeConfigManager {
 
         const host = ccrConfig.HOST || '127.0.0.1'
         const port = ccrConfig.PORT || 3456
-        const apiKey = ccrConfig.APIKEY || 'sk-zcf-x-ccr'
+        const apiKey = ccrConfig.APIKEY || 'sk-ccjk-x-ccr'
 
         settings.env.ANTHROPIC_BASE_URL = `http://${host}:${port}`
         settings.env.ANTHROPIC_API_KEY = apiKey
@@ -779,7 +779,7 @@ export class ClaudeCodeConfigManager {
 
     const host = ccrConfig.HOST || '127.0.0.1'
     const port = ccrConfig.PORT || 3456
-    const apiKey = ccrConfig.APIKEY || 'sk-zcf-x-ccr'
+    const apiKey = ccrConfig.APIKEY || 'sk-ccjk-x-ccr'
     const baseUrl = `http://${host}:${port}`
 
     // 创建或更新CCR配置

@@ -16,7 +16,7 @@ vi.mock('../../../src/utils/installer', () => ({
   getInstallationStatus: vi.fn(),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
 }))
@@ -54,7 +54,7 @@ vi.mock('../../../src/constants', () => ({
   DEFAULT_CODE_TOOL_TYPE: 'claude-code',
   SETTINGS_FILE: '/test/.claude/settings.json',
   CODE_TOOL_BANNERS: {
-    'claude-code': 'ZCF',
+    'claude-code': 'CCJK',
     'codex': 'Codex',
   },
   API_DEFAULT_URL: 'https://api.anthropic.com',

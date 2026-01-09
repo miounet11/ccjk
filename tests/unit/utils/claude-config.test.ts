@@ -556,17 +556,17 @@ describe('claude-config', () => {
   })
 
   describe('setPrimaryApiKey', () => {
-    it('should set primaryApiKey to "zcf" for new config', () => {
+    it('should set primaryApiKey to "ccjk" for new config', () => {
       mockJsonConfig.readJsonConfig.mockReturnValue(null)
 
       setPrimaryApiKey()
 
       expect(mockJsonConfig.writeJsonConfig).toHaveBeenCalledWith('/test/.claude/config.json', {
-        primaryApiKey: 'zcf',
+        primaryApiKey: 'ccjk',
       })
     })
 
-    it('should set primaryApiKey to "zcf" for existing config', () => {
+    it('should set primaryApiKey to "ccjk" for existing config', () => {
       const existingConfig = {
         someOtherField: 'value',
       }
@@ -576,7 +576,7 @@ describe('claude-config', () => {
 
       expect(mockJsonConfig.writeJsonConfig).toHaveBeenCalledWith('/test/.claude/config.json', {
         someOtherField: 'value',
-        primaryApiKey: 'zcf',
+        primaryApiKey: 'ccjk',
       })
     })
 
@@ -589,7 +589,7 @@ describe('claude-config', () => {
       setPrimaryApiKey()
 
       expect(mockJsonConfig.writeJsonConfig).toHaveBeenCalledWith('/test/.claude/config.json', {
-        primaryApiKey: 'zcf',
+        primaryApiKey: 'ccjk',
       })
     })
 
@@ -607,7 +607,7 @@ describe('claude-config', () => {
         customField1: 'test1',
         customField2: { nested: 'value' },
         customField3: ['array', 'values'],
-        primaryApiKey: 'zcf',
+        primaryApiKey: 'ccjk',
       })
     })
 

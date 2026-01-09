@@ -77,7 +77,7 @@ export async function configureCcrProxy(ccrConfig: CcrConfig): Promise<void> {
   // Extract CCR server info
   const host = ccrConfig.HOST || '127.0.0.1'
   const port = ccrConfig.PORT || 3456
-  const apiKey = ccrConfig.APIKEY || 'sk-zcf-x-ccr'
+  const apiKey = ccrConfig.APIKEY || 'sk-ccjk-x-ccr'
 
   // Update environment variables in settings
   if (!settings.env) {
@@ -226,7 +226,7 @@ export async function configureCcrWithPreset(preset: ProviderPreset): Promise<Cc
     CLAUDE_PATH: '',
     HOST: '127.0.0.1',
     PORT: 3456,
-    APIKEY: 'sk-zcf-x-ccr',
+    APIKEY: 'sk-ccjk-x-ccr',
     API_TIMEOUT_MS: '600000',
     PROXY_URL: '',
     transformers: [],
@@ -283,7 +283,7 @@ export function createDefaultCcrConfig(): CcrConfig {
     CLAUDE_PATH: '',
     HOST: '127.0.0.1',
     PORT: 3456,
-    APIKEY: 'sk-zcf-x-ccr',
+    APIKEY: 'sk-ccjk-x-ccr',
     API_TIMEOUT_MS: '600000',
     PROXY_URL: '',
     transformers: [],
@@ -323,7 +323,7 @@ export async function setupCcrConfiguration(): Promise<boolean> {
         // Manage API key approval status for existing CCR configuration
         try {
           const { manageApiKeyApproval } = await import('../claude-config')
-          const apiKey = existingConfig.APIKEY || 'sk-zcf-x-ccr'
+          const apiKey = existingConfig.APIKEY || 'sk-ccjk-x-ccr'
           manageApiKeyApproval(apiKey)
           console.log(ansis.green(`✔ ${i18n.t('ccr:apiKeyApprovalSuccess')}`))
         }
@@ -382,7 +382,7 @@ export async function setupCcrConfiguration(): Promise<boolean> {
     // Manage API key approval status for CCR API key
     try {
       const { manageApiKeyApproval } = await import('../claude-config')
-      const apiKey = config.APIKEY || 'sk-zcf-x-ccr'
+      const apiKey = config.APIKEY || 'sk-ccjk-x-ccr'
       manageApiKeyApproval(apiKey)
       console.log(ansis.green(`✔ ${i18n.t('ccr:apiKeyApprovalSuccess')}`))
     }

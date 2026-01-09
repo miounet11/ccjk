@@ -1,6 +1,6 @@
-# Contributing to ZCF
+# Contributing to CCJK
 
-Thank you for your interest in contributing to ZCF (Zero-Config Code Flow)! We welcome contributions from the community and are pleased to have you join us.
+Thank you for your interest in contributing to CCJK (Zero-Config Code Flow)! We welcome contributions from the community and are pleased to have you join us.
 
 ## 📋 Table of Contents
 
@@ -17,10 +17,10 @@ Thank you for your interest in contributing to ZCF (Zero-Config Code Flow)! We w
 
 ## 🚀 Getting Started
 
-ZCF is a CLI tool built with TypeScript that provides zero-configuration setup for Claude Code environments. Before contributing, please:
+CCJK is a CLI tool built with TypeScript that provides zero-configuration setup for Claude Code environments. Before contributing, please:
 
 1. Read our [Code of Conduct](CODE_OF_CONDUCT.md)
-2. Check existing [issues](https://github.com/UfoMiao/zcf/issues) and [pull requests](https://github.com/UfoMiao/zcf/pulls)
+2. Check existing [issues](https://github.com/miounet11/ccjk/issues) and [pull requests](https://github.com/miounet11/ccjk/pulls)
 3. Fork the repository and create your feature branch
 
 ## 💻 Development Setup
@@ -35,8 +35,8 @@ ZCF is a CLI tool built with TypeScript that provides zero-configuration setup f
 1. Fork and clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/zcf.git
-cd zcf
+git clone https://github.com/YOUR_USERNAME/ccjk.git
+cd ccjk
 ```
 
 2. Install dependencies:
@@ -228,14 +228,14 @@ Brief description of changes
 
 When reporting bugs, please include:
 
-1. **ZCF Version**: Run `npx zcf --version`
+1. **CCJK Version**: Run `npx ccjk --version`
 2. **Environment**: OS, Node.js version, pnpm version
 3. **Steps to Reproduce**: Minimal reproduction steps
 4. **Expected Behavior**: What should happen
 5. **Actual Behavior**: What actually happens
 6. **Error Messages**: Any error output or logs
 
-Use our [bug report template](https://github.com/UfoMiao/zcf/issues/new?template=bug_report.md).
+Use our [bug report template](https://github.com/miounet11/ccjk/issues/new?template=bug_report.md).
 
 ## 💡 Feature Requests
 
@@ -247,7 +247,7 @@ For new features:
 4. **Alternatives**: Other solutions considered
 5. **Implementation**: Willing to contribute code?
 
-Use our [feature request template](https://github.com/UfoMiao/zcf/issues/new?template=feature_request.md).
+Use our [feature request template](https://github.com/miounet11/ccjk/issues/new?template=feature_request.md).
 
 ## 📚 Documentation
 
@@ -267,7 +267,7 @@ Use our [feature request template](https://github.com/UfoMiao/zcf/issues/new?tem
 
 ## 🌍 Internationalization (i18n)
 
-ZCF supports bilingual functionality (English/Chinese):
+CCJK supports bilingual functionality (English/Chinese):
 
 ### Adding Translations
 
@@ -349,6 +349,6 @@ Contributors will be:
 
 ## 🎉 Thank You!
 
-Thank you for contributing to ZCF! Your efforts help make Claude Code more accessible and powerful for developers worldwide.
+Thank you for contributing to CCJK! Your efforts help make Claude Code more accessible and powerful for developers worldwide.
 
-For questions about contributing, please [open an issue](https://github.com/UfoMiao/zcf/issues/new) or start a [discussion](https://github.com/UfoMiao/zcf/discussions).
+For questions about contributing, please [open an issue](https://github.com/miounet11/ccjk/issues/new) or start a [discussion](https://github.com/miounet11/ccjk/discussions).

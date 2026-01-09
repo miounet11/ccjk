@@ -4,7 +4,7 @@ title: Main Menu
 
 # Main Menu
 
-Running `npx zcf` enters the interactive menu system. The menu is ZCF's core interactive interface, providing visual operation options without needing to remember complex command parameters.
+Running `npx ccjk` enters the interactive menu system. The menu is ZCF's core interactive interface, providing visual operation options without needing to remember complex command parameters.
 
 ## Menu Features
 
@@ -17,20 +17,20 @@ Running `npx zcf` enters the interactive menu system. The menu is ZCF's core int
 
 | Option | Function | Corresponding Command | Description |
 |------|------|---------|------|
-| `1` | Complete Initialization | `zcf init` | Complete Claude Code environment initialization |
-| `2` | Import/Update Workflows | `zcf update` | Update workflow templates and prompts |
+| `1` | Complete Initialization | `ccjk init` | Complete Claude Code environment initialization |
+| `2` | Import/Update Workflows | `ccjk update` | Update workflow templates and prompts |
 | `3` | Configure API or CCR | - | Configure API keys, providers, or CCR proxy |
 | `4` | Configure MCP Services | - | Install and configure MCP services |
 | `5` | Configure Default Model | - | Set default Claude model to use |
 | `6` | Configure AI Memory & Output Style | - | Set AI output language and global output style |
 | `7` | Import Recommended Environment Variables & Permissions | - | Configure environment variables and file system permissions |
-| `R` | CCR Management Menu | `zcf ccr` | Claude Code Router management |
-| `U` | Claude Code Usage Analysis | `zcf ccu` | View API usage statistics |
+| `R` | CCR Management Menu | `ccjk ccr` | Claude Code Router management |
+| `U` | Claude Code Usage Analysis | `ccjk ccu` | View API usage statistics |
 | `L` | CCometixLine Management | - | Status bar tool management |
 | `0` | Switch Script Language | - | Switch CLI interface language (zh-CN/en) |
 | `S` | Switch Code Tool | - | Switch between Claude Code ↔ Codex |
-| `-` | Uninstall Current Tool Configuration | `zcf uninstall` | Uninstall Claude Code configuration |
-| `+` | Check Updates | `zcf check-updates` | Check tool versions and update |
+| `-` | Uninstall Current Tool Configuration | `ccjk uninstall` | Uninstall Claude Code configuration |
+| `+` | Check Updates | `ccjk check-updates` | Check tool versions and update |
 | `Q` | Exit | - | Exit menu |
 
 ## Codex Mode Menu
@@ -53,7 +53,7 @@ The menu in Codex mode adjusts to Codex corresponding operations:
 The menu supports quick input without confirmation key:
 
 ```bash
-npx zcf
+npx ccjk
 # Enter 1 then Enter, directly enter complete initialization
 # Enter R then Enter, directly enter CCR management
 ```
@@ -63,7 +63,7 @@ npx zcf
 If invalid characters are entered, CLI will prompt to re-enter:
 
 ```bash
-npx zcf
+npx ccjk
 # Enter X (invalid option)
 # CLI prompts: Invalid option, please re-enter
 ```
@@ -81,7 +81,7 @@ You can quickly navigate in the menu:
 Enter `0` in the main menu to switch CLI language:
 
 ```bash
-npx zcf
+npx ccjk
 # Enter 0
 # Select language: zh-CN or en
 # Menu will redisplay after language switch
@@ -92,7 +92,7 @@ npx zcf
 Use `S` to switch between Claude Code and Codex:
 
 ```bash
-npx zcf
+npx ccjk
 # Current mode: Claude Code
 # Enter S
 # Switch to: Codex mode
@@ -103,7 +103,7 @@ npx zcf
 
 ### Complete Initialization (Option 1)
 
-Equivalent to running `npx zcf init`, will guide you through:
+Equivalent to running `npx ccjk init`, will guide you through:
 
 - Select code tool type
 - Configure API (official login/API Key/CCR proxy)
@@ -114,7 +114,7 @@ Equivalent to running `npx zcf init`, will guide you through:
 
 ### Import/Update Workflows (Option 2)
 
-Equivalent to running `npx zcf update`, will:
+Equivalent to running `npx ccjk update`, will:
 
 - Update workflow templates
 - Update prompt content
@@ -234,10 +234,10 @@ If you need to customize the menu, you can:
 
 ### 1. First-Time Use
 
-When using ZCF for the first time, it's recommended to start from the menu:
+When using CCJK for the first time, it's recommended to start from the menu:
 
 ```bash
-npx zcf
+npx ccjk
 # Select 1 (Complete Initialization)
 # Complete configuration according to prompts
 ```
@@ -248,10 +248,10 @@ In daily use, you can directly use commands or through menu:
 
 ```bash
 # Quick update workflows
-npx zcf update
+npx ccjk update
 
 # Or through menu
-npx zcf
+npx ccjk
 # Select 2
 ```
 
@@ -260,7 +260,7 @@ npx zcf
 When unfamiliar with commands, use menu to explore features:
 
 ```bash
-npx zcf
+npx ccjk
 # Browse all available options
 # Try different features
 ```
@@ -287,7 +287,7 @@ node --version  # Requires >= 18
 # Ensure terminal supports ANSI color codes
 
 # 3. Use commands directly
-npx zcf init
+npx ccjk init
 ```
 
 ### Menu Option No Response
@@ -296,13 +296,13 @@ If menu option has no response after selection:
 
 ```bash
 # 1. Check configuration permissions
-ls -la ~/.ufomiao/zcf/
+ls -la ~/.ufomiao/ccjk/
 
 # 2. View detailed errors
-npx zcf --verbose
+npx ccjk --verbose
 
 # 3. Reinitialize configuration
-npx zcf init --config-action new
+npx ccjk init --config-action new
 ```
 
 ### Tool Switch Failed
@@ -311,17 +311,17 @@ If `S` option fails to switch tools:
 
 ```bash
 # 1. Check configuration file
-cat ~/.ufomiao/zcf/config.toml | grep codeToolType
+cat ~/.ufomiao/ccjk/config.toml | grep codeToolType
 
 # 2. Manually switch
-npx zcf init -T codex  # Switch to Codex
-npx zcf init -T claude-code  # Switch to Claude Code
+npx ccjk init -T codex  # Switch to Codex
+npx ccjk init -T claude-code  # Switch to Claude Code
 ```
 
 ## Related Resources
 
-- [zcf init](init.md) - Detailed complete initialization command
-- [zcf update](update.md) - Detailed update command
+- [ccjk init](init.md) - Detailed complete initialization command
+- [ccjk update](update.md) - Detailed update command
 - [Quick Start](../getting-started/installation.md) - Installation and usage guide
 
 > 💡 **Tip**: The menu is ZCF's most user-friendly way to use, especially suitable for users unfamiliar with command line. It's recommended to complete configuration through the menu on first use, and after familiarizing yourself, you can combine direct commands to improve efficiency.

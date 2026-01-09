@@ -4,7 +4,7 @@ title: Claude Code Router (CCR)
 
 # Claude Code Router (CCR)
 
-[CCR](https://github.com/musistudio/claude-code-router/blob/main/README_zh.md) (Claude Code Router) は、複数の AI モデルへのインテリジェントなルーティングとコスト最適化を実現する強力なプロキシルーターです。ZCF には完全な CCR 管理機能が組み込まれており、高可用性の Claude Code プロキシシステムを迅速に構築できます。
+[CCR](https://github.com/musistudio/claude-code-router/blob/main/README_zh.md) (Claude Code Router) は、複数の AI モデルへのインテリジェントなルーティングとコスト最適化を実現する強力なプロキシルーターです。CCJK には完全な CCR 管理機能が組み込まれており、高可用性の Claude Code プロキシシステムを迅速に構築できます。
 
 ## CCR とは
 

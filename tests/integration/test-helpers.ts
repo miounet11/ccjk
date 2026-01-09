@@ -129,7 +129,7 @@ export function createMcpConfig(servers = {}): { mcpServers: Record<string, any>
  * 运行CLI命令
  */
 export async function runCliCommand(args: string[]): Promise<void> {
-  process.argv = ['node', 'zcf', ...args]
+  process.argv = ['node', 'ccjk', ...args]
 
   // Clear module cache to force re-import
   const cliPath = require.resolve('../../src/cli')

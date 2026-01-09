@@ -4,24 +4,24 @@ title: Version Check
 
 # Version Check
 
-`zcf check-updates` is used to detect and update various components in the ZCF toolchain, including ZCF itself, Claude Code, CCR, CCometixLine, Codex, and other tools.
+`ccjk check-updates` is used to detect and update various components in the CCJK toolchain, including CCJK itself, Claude Code, CCR, CCometixLine, Codex, and other tools.
 
-> **Alias**: `zcf check` provides the same command with a shorter name (`npx zcf check -T cx`).
+> **Alias**: `ccjk check` provides the same command with a shorter name (`npx ccjk check -T cx`).
 
 ## Command Format
 
 ```bash
 # Check all tool updates (Claude Code mode)
-npx zcf check
+npx ccjk check
 
 # Check Codex related tool updates
-npx zcf check -T cx
+npx ccjk check -T cx
 
 # Non-interactive mode (auto update, skip confirmation)
-npx zcf check -s
+npx ccjk check -s
 
 # Access through main menu
-npx zcf
+npx ccjk
 # Then select +. Check Updates
 ```
 
@@ -29,7 +29,7 @@ npx zcf
 
 | Parameter | Abbreviation | Description | Optional Values | Default |
 |------|------|------|--------|--------|
-| `--code-type, -T` | `-T` | Specify tool type | `claude-code`, `codex`, `cc`, `cx` | Read from ZCF configuration |
+| `--code-type, -T` | `-T` | Specify tool type | `claude-code`, `codex`, `cc`, `cx` | Read from CCJK configuration |
 | `--skip-prompt, -s` | `-s` | Skip interactive confirmation (non-interactive mode) | None | No (interactive mode) |
 
 ## Tools Checked
@@ -119,7 +119,7 @@ It's recommended to regularly check for updates to get latest features and fixes
 
 ```bash
 # Check once per week
-npx zcf check
+npx ccjk check
 ```
 
 ### Automated Updates
@@ -128,7 +128,7 @@ Use non-interactive mode in CI/CD or automation scripts:
 
 ```bash
 # Automatically update all tools
-npx zcf check -s
+npx ccjk check -s
 ```
 
 ### Targeted Updates
@@ -137,7 +137,7 @@ Only check updates for specific tool types:
 
 ```bash
 # Only check Codex related tools
-npx zcf check -T cx
+npx ccjk check -T cx
 ```
 
 ## Update Strategy
@@ -158,7 +158,7 @@ npx zcf check -T cx
 
 ### Update Failure Handling
 
-If update fails, ZCF will:
+If update fails, CCJK will:
 
 1. Display error information
 2. Preserve original version
@@ -175,19 +175,19 @@ Common failure reasons:
 - **Permission Issues**: Need sudo permissions (macOS/Linux)
   ```bash
   # Execute with sudo
-  sudo npx zcf check
+  sudo npx ccjk check
   ```
 
 - **Port Occupied**: Service is running and cannot update
   ```bash
   # Stop service first then update
   ccr stop
-  npx zcf check
+  npx ccjk check
   ```
 
 ## Version Compatibility
 
-### ZCF Version Requirements
+### CCJK Version Requirements
 
 - **Node.js**: >= 22
 - **npm/pnpm**: Latest version
@@ -235,15 +235,15 @@ ccline --version
 codex --version
 ```
 
-## Integration with zcf init
+## Integration with ccjk init
 
-`zcf init`'s backup functionality can automatically backup configuration before updating:
+`ccjk init`'s backup functionality can automatically backup configuration before updating:
 
 ```bash
 # Initialize before updating (will backup configuration)
-npx zcf init
+npx ccjk init
 # Or manually use backup functionality
-npx zcf i -s -r backup
+npx ccjk i -s -r backup
 ```
 
 ## Common Questions
@@ -262,7 +262,7 @@ A:
 A: 
 1. Check if tools are correctly installed: `which ccr`
 2. View error logs
-3. Try reinstall: `npx zcf ccr` (for CCR)
+3. Try reinstall: `npx ccjk ccr` (for CCR)
 
 ### Q: How to rollback to old version?
 

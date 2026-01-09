@@ -1,5 +1,5 @@
 ---
-description: Manage Git worktrees in project-level ../.zcf/project-name/ directory with smart defaults, IDE integration and content migration
+description: Manage Git worktrees in project-level ../.ccjk/project-name/ directory with smart defaults, IDE integration and content migration
 allowed-tools: Read(**), Exec(git worktree add, git worktree list, git worktree remove, git worktree prune, git branch, git checkout, git rev-parse, git stash, git cp, detect-ide, open-ide, which, command, basename, dirname)
 argument-hint: <add|list|remove|prune|migrate> [path] [-b <branch>] [-o|--open] [--track] [--guess-remote] [--detach] [--checkout] [--lock] [--migrate-from <source-path>] [--migrate-stash]
 # examples:
@@ -12,7 +12,7 @@ argument-hint: <add|list|remove|prune|migrate> [path] [-b <branch>] [-o|--open] 
 
 # Claude Command: Git Worktree
 
-Manage Git worktrees with smart defaults, IDE integration and content migration in structured `../.zcf/project-name/` paths.
+Manage Git worktrees with smart defaults, IDE integration and content migration in structured `../.ccjk/project-name/` paths.
 
 Execute commands directly and provide concise results.
 
@@ -38,7 +38,7 @@ Execute commands directly and provide concise results.
 
 | Option             | Description                                            |
 | ------------------ | ------------------------------------------------------ |
-| `add [<path>]`     | Add new worktree in `../.zcf/project-name/<path>`      |
+| `add [<path>]`     | Add new worktree in `../.ccjk/project-name/<path>`      |
 | `migrate <target>` | Migrate content to specified worktree                  |
 | `list`             | List all worktrees and their status                    |
 | `remove <path>`    | Remove worktree at specified path                      |
@@ -63,7 +63,7 @@ Execute commands directly and provide concise results.
 
 2. **Smart Path Management**
    - Auto-calculate project name from main repository path using worktree detection
-   - Create worktrees in structured `../.zcf/project-name/<path>` directory
+   - Create worktrees in structured `../.ccjk/project-name/<path>` directory
    - Handle both main repo and worktree execution contexts correctly
 
 ```bash
@@ -84,13 +84,13 @@ get_main_repo_path() {
 
 MAIN_REPO_PATH=$(get_main_repo_path)
 PROJECT_NAME=$(basename "$MAIN_REPO_PATH")
-WORKTREE_BASE="$MAIN_REPO_PATH/../.zcf/$PROJECT_NAME"
+WORKTREE_BASE="$MAIN_REPO_PATH/../.ccjk/$PROJECT_NAME"
 
 # Always use absolute path to prevent nesting issues
 ABSOLUTE_WORKTREE_PATH="$WORKTREE_BASE/<path>"
 ```
 
-**Critical Fix**: Always use absolute paths when creating worktrees from within existing worktrees to prevent path nesting issues like `../.zcf/project/.zcf/project/path`.
+**Critical Fix**: Always use absolute paths when creating worktrees from within existing worktrees to prevent path nesting issues like `../.ccjk/project/.ccjk/project/path`.
 
 3. **Worktree Operations**
    - **add**: Create new worktree with smart branch/path defaults
@@ -112,7 +112,7 @@ ABSOLUTE_WORKTREE_PATH="$WORKTREE_BASE/<path>"
 6. **Safety Features**
    - **Path conflict prevention**: Check for existing directories before creation
    - **Branch checkout validation**: Ensure branches aren't already in use
-   - **Absolute path enforcement**: Prevent nested `.zcf` directories when in worktree
+   - **Absolute path enforcement**: Prevent nested `.ccjk` directories when in worktree
    - **Auto-cleanup on removal**: Clean both directory and git references
    - **Clear status reporting**: Display worktree locations and branch status
 
@@ -216,12 +216,12 @@ copy_environment_files() {
 **Example Output**:
 
 ```
-✅ Worktree created at ../.zcf/project-name/feature-ui
+✅ Worktree created at ../.ccjk/project-name/feature-ui
 ✅ Copied .env
 ✅ Copied .env.local
 📋 Copied 2 environment file(s) from .gitignore
-🖥️ Open ../.zcf/project-name/feature-ui in IDE? [y/n]: y
-🚀 Opening ../.zcf/project-name/feature-ui in VS Code...
+🖥️ Open ../.ccjk/project-name/feature-ui in IDE? [y/n]: y
+🚀 Opening ../.ccjk/project-name/feature-ui in VS Code...
 ```
 
 ---
@@ -233,7 +233,7 @@ parent-directory/
 ├── your-project/            # main project
 │   ├── .git/
 │   └── src/
-└── .zcf/                    # worktree management
+└── .ccjk/                    # worktree management
     └── your-project/        # project worktrees
         ├── feature-ui/      # feature branch
         ├── hotfix/          # hotfix branch

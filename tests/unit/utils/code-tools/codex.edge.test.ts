@@ -154,8 +154,8 @@ vi.mock('../../../../src/utils/prompt-helpers', () => ({
   addNumbersToChoices: vi.fn(choices => choices),
 }))
 
-// Mock zcf-config
-vi.mock('../../../../src/utils/zcf-config', () => ({
+// Mock ccjk-config
+vi.mock('../../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(() => ({ preferredLang: 'en', codeToolType: 'codex' })),
   updateZcfConfig: vi.fn(),
   readDefaultTomlConfig: vi.fn(() => ({
@@ -197,8 +197,8 @@ describe('codex utilities - edge cases', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    // Reset zcf-config mock to default
-    const { readZcfConfig } = await import('../../../../src/utils/zcf-config')
+    // Reset ccjk-config mock to default
+    const { readZcfConfig } = await import('../../../../src/utils/ccjk-config')
     vi.mocked(readZcfConfig).mockReturnValue({
       version: '1.0.0',
       preferredLang: 'en',
@@ -352,7 +352,7 @@ describe('codex utilities - edge cases', () => {
       const { exists } = await import('../../../../src/utils/fs-operations')
 
       // Reset readZcfConfig for this test to avoid pollution from previous tests
-      const { readZcfConfig } = await import('../../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue({
         version: '1.0.0',
         preferredLang: 'en',

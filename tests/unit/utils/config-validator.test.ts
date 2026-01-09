@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { sanitizeClaudeSettings, validateClaudeSettings } from '../../../src/utils/config-validator'
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn().mockReturnValue({ preferredLang: 'en' }),
 }))
 

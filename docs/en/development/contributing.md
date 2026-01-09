@@ -4,7 +4,7 @@ title: Contribution Guide
 
 # Contribution Guide
 
-Welcome contributors to the ZCF project! This document will guide you on how to participate in project development, submit code, and contribute documentation.
+Welcome contributors to the CCJK project! This document will guide you on how to participate in project development, submit code, and contribute documentation.
 
 ## 📋 Table of Contents
 
@@ -43,15 +43,15 @@ You can contribute in the following ways:
 ```bash
 # Fork repository to your GitHub account
 # Then clone your fork
-git clone https://github.com/YOUR_USERNAME/zcf.git
-cd zcf
+git clone https://github.com/YOUR_USERNAME/ccjk.git
+cd ccjk
 ```
 
 ### 2. Add Upstream Repository
 
 ```bash
 # Add upstream repository to sync updates
-git remote add upstream https://github.com/UfoMiao/zcf.git
+git remote add upstream https://github.com/UfoMiao/ccjk.git
 
 # Verify remote repositories
 git remote -v
@@ -163,7 +163,7 @@ git push origin feat/your-feature-name
 
 1. Visit your fork on GitHub
 2. Click "New Pull Request"
-3. Select `UfoMiao/zcf:main` as target branch
+3. Select `UfoMiao/ccjk:main` as target branch
 4. Fill in PR description (use template)
 5. Wait for code review
 

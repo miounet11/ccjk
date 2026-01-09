@@ -9,7 +9,7 @@ vi.mock('ansis', () => ({
   },
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
 }))
 
@@ -35,7 +35,7 @@ describe('error-handler utilities', () => {
 
   describe('handleExitPromptError', () => {
     it('should handle ExitPromptError and exit gracefully', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN', version: '1.0.0', lastUpdated: '2024-01-01', codeToolType: 'claude-code' })
 
       const error = new Error('User exited')
@@ -47,7 +47,7 @@ describe('error-handler utilities', () => {
     })
 
     it('should use default language when config is not available', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue(null)
 
       const error = new Error('User exited')
@@ -83,7 +83,7 @@ describe('error-handler utilities', () => {
 
   describe('handleGeneralError', () => {
     it('should handle Error objects with stack trace', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', version: '1.0.0', lastUpdated: '2024-01-01', codeToolType: 'claude-code' })
 
       const error = new Error('Test error')
@@ -97,7 +97,7 @@ describe('error-handler utilities', () => {
     })
 
     it('should handle non-Error objects', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN', version: '1.0.0', lastUpdated: '2024-01-01', codeToolType: 'claude-code' })
 
       expect(() => handleGeneralError('string error')).toThrow('process.exit called')
@@ -106,7 +106,7 @@ describe('error-handler utilities', () => {
     })
 
     it('should use provided language parameter', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'zh-CN', version: '1.0.0', lastUpdated: '2024-01-01', codeToolType: 'claude-code' })
 
       expect(() => handleGeneralError(new Error('Test'))).toThrow('process.exit called')
@@ -115,7 +115,7 @@ describe('error-handler utilities', () => {
     })
 
     it('should fall back to en when no config and no lang provided', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue(null)
 
       expect(() => handleGeneralError(new Error('Test'))).toThrow('process.exit called')
@@ -124,7 +124,7 @@ describe('error-handler utilities', () => {
     })
 
     it('should handle undefined error', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', version: '1.0.0', lastUpdated: '2024-01-01', codeToolType: 'claude-code' })
 
       expect(() => handleGeneralError(undefined)).toThrow('process.exit called')
@@ -133,7 +133,7 @@ describe('error-handler utilities', () => {
     })
 
     it('should handle null error', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue({ preferredLang: 'en', version: '1.0.0', lastUpdated: '2024-01-01', codeToolType: 'claude-code' })
 
       expect(() => handleGeneralError(null)).toThrow('process.exit called')

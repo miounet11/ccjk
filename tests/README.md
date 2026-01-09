@@ -1,6 +1,6 @@
-# ZCF Test Documentation
+# CCJK Test Documentation
 
-This directory contains all test files for the ZCF project. We adopt a layered testing architecture to ensure code quality and maintainability.
+This directory contains all test files for the CCJK project. We adopt a layered testing architecture to ensure code quality and maintainability.
 
 ## Directory Structure
 

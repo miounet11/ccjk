@@ -4,7 +4,7 @@ title: Claude Code Configuration
 
 # Claude Code Configuration
 
-ZCF provides a complete zero-configuration experience for Claude Code. Through the `zcf init` command, you can complete all configurations from environment initialization to workflow import with one click.
+CCJK provides a complete zero-configuration experience for Claude Code. Through the `ccjk init` command, you can complete all configurations from environment initialization to workflow import with one click.
 
 ## Core Features
 
@@ -13,8 +13,8 @@ ZCF's configuration for Claude Code includes the following core capabilities:
 | Feature Module | Description | Configuration File Location |
 |---------|------|------------|
 | **API Configuration** | Supports three modes: official login, API Key, and CCR proxy | `~/.claude/settings.json` |
-| **Workflow Commands** | Six-step, Feat, Git, BMAD commands | `~/.claude/commands/zcf/` |
-| **Workflow Agents** | Planner, UX, common helper agents | `~/.claude/agents/zcf/` |
+| **Workflow Commands** | Six-step, Feat, Git, BMAD commands | `~/.claude/commands/ccjk/` |
+| **Workflow Agents** | Planner, UX, common helper agents | `~/.claude/agents/ccjk/` |
 | **Output Styles** | Multiple AI personalized output styles | `~/.claude/output-styles/` |
 | **MCP Services** | Integrates Context7, Open Web Search, etc. | `~/.claude/settings.json` |
 | **System Prompts** | Global AI memory and instruction configuration | `~/.claude/CLAUDE.md` |
@@ -23,14 +23,14 @@ ZCF's configuration for Claude Code includes the following core capabilities:
 
 ### Automatically Created Directory Structure
 
-After executing `zcf init`, ZCF will automatically create the following directory structure:
+After executing `ccjk init`, CCJK will automatically create the following directory structure:
 
 ```
 ~/.claude/
 ├── settings.json                # Main configuration (API, MCP, permissions, etc.)
 ├── CLAUDE.md                    # System prompts and AI memory
 ├── commands/                    # Workflow commands
-│   └── zcf/
+│   └── ccjk/
 │       ├── init-project.md
 │       ├── workflow.md          # Six-step workflow command
 │       ├── feat.md              # Feature development workflow command
@@ -40,7 +40,7 @@ After executing `zcf init`, ZCF will automatically create the following director
 │       ├── git-worktree.md
 │       └── bmad-init.md
 ├── agents/                      # Workflow agents
-│   └── zcf/
+│   └── ccjk/
 │       ├── common/
 │       │   ├── init-architect.md
 │       │   └── get-current-datetime.md
@@ -54,18 +54,18 @@ After executing `zcf init`, ZCF will automatically create the following director
 
 ### Backup Mechanism
 
-ZCF provides a comprehensive backup mechanism to ensure your configuration security:
+CCJK provides a comprehensive backup mechanism to ensure your configuration security:
 
 - **Automatic Backup**: Automatically creates timestamped backups on each configuration modification
 - **Backup Location**: `~/.claude/backup/YYYY-MM-DD_HH-mm-ss/`
 - **Backup Content**: Includes all configuration files, workflows, and custom settings
-- **Compatibility**: Compatible with legacy files like `~/.claude.json`, `.zcf-config.json`, etc.
+- **Compatibility**: Compatible with legacy files like `~/.claude.json`, `.ccjk-config.json`, etc.
 
 > 💡 **Restore Configuration**: If you need to restore previous configuration, you can copy the corresponding files from the backup directory.
 
 ### Configuration Handling Strategies
 
-When existing configuration is detected, ZCF provides multiple handling strategies:
+When existing configuration is detected, CCJK provides multiple handling strategies:
 
 | Strategy | Description | Use Case |
 |------|------|---------|
@@ -97,10 +97,10 @@ Suitable for using third-party API providers:
 
 ```bash
 # Use provider preset (recommended)
-npx zcf i -s -p 302ai -k "sk-xxx"
+npx ccjk i -s -p 302ai -k "sk-xxx"
 
 # Custom API endpoint
-npx zcf i -s -t api_key -k "sk-xxx" -u "https://api.example.com"
+npx ccjk i -s -t api_key -k "sk-xxx" -u "https://api.example.com"
 ```
 
 Supported provider presets:
@@ -114,9 +114,9 @@ Supported provider presets:
 Use multiple models through Claude Code Router proxy:
 
 ```bash
-npx zcf i -s -t ccr_proxy
+npx ccjk i -s -t ccr_proxy
 # Or configure CCR first
-npx zcf ccr
+npx ccjk ccr
 ```
 
 > 💡 **CCR Advantages**:
@@ -130,7 +130,7 @@ ZCF supports configuring multiple models:
 
 ```bash
 # Configure primary and fast models
-npx zcf i -s -p 302ai -k "sk-xxx" \
+npx ccjk i -s -p 302ai -k "sk-xxx" \
   --api-model "claude-sonnet-4-5" \
   --api-fast-model "claude-haiku-4-5"
 ```
@@ -143,25 +143,25 @@ npx zcf i -s -p 302ai -k "sk-xxx" \
 ZCF supports configuring multiple APIs for easy switching in different scenarios:
 
 ```bash
-npx zcf i -s --api-configs '[
+npx ccjk i -s --api-configs '[
   {"provider":"302ai","key":"sk-xxx","default":true},
   {"provider":"glm","key":"sk-yyy"},
   {"name":"custom","type":"api_key","key":"sk-zzz","url":"https://custom.api.com"}
 ]'
 ```
 
-> 📖 **Switch Configuration**: Use `npx zcf config-switch` to switch between multiple configurations.
+> 📖 **Switch Configuration**: Use `npx ccjk config-switch` to switch between multiple configurations.
 
 ## Workflow System
 
-ZCF provides rich workflow templates to help standardize development processes.
+CCJK provides rich workflow templates to help standardize development processes.
 
 ### Default Workflows
 
 | Workflow | Command | Description |
 |--------|------|------|
-| **Six-Stage Workflow** | `/zcf:workflow` | Complete six-stage development process (Research→Ideation→Planning→Execution→Optimization→Review) |
-| **Feature Development Workflow** | `/zcf:feat` | New feature design and implementation, includes planning and UI/UX design |
+| **Six-Stage Workflow** | `/ccjk:workflow` | Complete six-stage development process (Research→Ideation→Planning→Execution→Optimization→Review) |
+| **Feature Development Workflow** | `/ccjk:feat` | New feature design and implementation, includes planning and UI/UX design |
 | **Common Tools** | `/init-project` | Project initialization tool |
 | **Git Workflow** | `/git-commit` etc. | Git operation automation commands |
 | **BMad Workflow** | `/bmad-init` | Enterprise-level agile development process |
@@ -170,13 +170,13 @@ ZCF provides rich workflow templates to help standardize development processes.
 
 ```bash
 # Install all workflows (default)
-npx zcf i -s --workflows all
+npx ccjk i -s --workflows all
 
 # Selective installation
-npx zcf i -s --workflows commonTools,sixStepsWorkflow,featPlanUx
+npx ccjk i -s --workflows commonTools,sixStepsWorkflow,featPlanUx
 
 # Skip workflow installation
-npx zcf i -s --workflows skip
+npx ccjk i -s --workflows skip
 ```
 
 > 📚 **Workflow Details**: For detailed usage instructions, please refer to the [Workflow Details](../workflows/) chapter.
@@ -198,10 +198,10 @@ ZCF supports multiple AI output styles to personalize your AI assistant experien
 
 ```bash
 # Install multiple output styles
-npx zcf i -s --output-styles engineer-professional,nekomata-engineer
+npx ccjk i -s --output-styles engineer-professional,nekomata-engineer
 
 # Set default output style
-npx zcf i -s --default-output-style engineer-professional
+npx ccjk i -s --default-output-style engineer-professional
 ```
 
 ### Project-Level Switching
@@ -213,7 +213,7 @@ In Claude Code, you can switch project-level output styles via commands:
 /output-style nekomata-engineer      # Switch to nekomata engineer
 ```
 
-> ⚠️ **Version Requirement**: Claude Code version needs to be greater than 1.0.81 to support output-style. Use `npx zcf check-updates` to update.
+> ⚠️ **Version Requirement**: Claude Code version needs to be greater than 1.0.81 to support output-style. Use `npx ccjk check-updates` to update.
 
 ## MCP Service Integration
 
@@ -235,26 +235,26 @@ ZCF has built-in common MCP service configurations, supporting one-click install
 
 ```bash
 # Install all MCP services (recommended)
-npx zcf i -s --mcp-services all
+npx ccjk i -s --mcp-services all
 
 # Selective installation
-npx zcf i -s --mcp-services context7,open-websearch,spec-workflow
+npx ccjk i -s --mcp-services context7,open-websearch,spec-workflow
 
 # Skip MCP service installation
-npx zcf i -s --mcp-services skip
+npx ccjk i -s --mcp-services skip
 ```
 
 ### Configuration Location
 
 - **Claude Code**: `mcpServers` in `~/.claude/settings.json`
-- **Windows Special Handling**: ZCF automatically corrects Windows path format
+- **Windows Special Handling**: CCJK automatically corrects Windows path format
 
 ### Reconfiguration
 
 If you need to reconfigure MCP services:
 
 ```bash
-npx zcf
+npx ccjk
 # Select 4. Configure MCP
 ```
 
@@ -270,10 +270,10 @@ CCometixLine is a high-performance Rust-based status bar tool:
 
 ```bash
 # Install CCometixLine (enabled by default)
-npx zcf i -s --install-cometix-line true
+npx ccjk i -s --install-cometix-line true
 
 # Install via menu
-npx zcf → Select L
+npx ccjk → Select L
 ```
 
 ### Environment Variables and Permissions
@@ -281,7 +281,7 @@ npx zcf → Select L
 ZCF can import recommended environment variables and permission configurations:
 
 ```bash
-npx zcf
+npx ccjk
 # Select 7. Import recommended environment variables and permission configurations
 ```
 
@@ -294,26 +294,26 @@ This includes:
 
 ### Save Configuration Preferences
 
-All configuration choices are written to `~/.ufomiao/zcf/config.toml`, including:
+All configuration choices are written to `~/.ufomiao/ccjk/config.toml`, including:
 - Language preferences
 - Default tool type
 - Recent installation options
 
 ### Incremental Updates
 
-Use `zcf update` to update workflows and templates while preserving existing configuration:
+Use `ccjk update` to update workflows and templates while preserving existing configuration:
 
 ```bash
 # Update workflows and templates, preserve API and MCP configuration
-npx zcf update
+npx ccjk update
 
 # Specify language update
-npx zcf update -g zh-CN
+npx ccjk update -g zh-CN
 ```
 
 > 💡 **Best Practices**:
-> - Use `zcf init` for complete initialization on first use
-> - Use `zcf update` to update workflows and templates subsequently
+> - Use `ccjk init` for complete initialization on first use
+> - Use `ccjk update` to update workflows and templates subsequently
 > - Update specific configurations individually through menu options
 
 ## Next Steps

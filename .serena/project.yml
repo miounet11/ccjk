@@ -64,4 +64,4 @@ excluded_tools: []
 # (contrary to the memories, which are loaded on demand).
 initial_prompt: ''
 
-project_name: zcf
+project_name: ccjk

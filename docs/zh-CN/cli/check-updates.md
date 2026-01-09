@@ -4,24 +4,24 @@ title: 版本检查
 
 # 版本检查
 
-`zcf check-updates` 用于检测并更新 ZCF 工具链中的各个组件，包括 ZCF 本身、Claude Code、CCR、CCometixLine、Codex 等工具。
+`ccjk check-updates` 用于检测并更新 CCJK 工具链中的各个组件，包括 CCJK 本身、Claude Code、CCR、CCometixLine、Codex 等工具。
 
-> **别名**：可使用同等效果的 `zcf check`（如 `npx zcf check -T cx`）。
+> **别名**：可使用同等效果的 `ccjk check`（如 `npx ccjk check -T cx`）。
 
 ## 命令格式
 
 ```bash
 # 检查所有工具更新（Claude Code 模式）
-npx zcf check
+npx ccjk check
 
 # 检查 Codex 相关工具更新
-npx zcf check -T cx
+npx ccjk check -T cx
 
 # 非交互模式（自动更新，跳过确认）
-npx zcf check -s
+npx ccjk check -s
 
 # 通过主菜单访问
-npx zcf
+npx ccjk
 # 然后选择 +. 检查更新
 ```
 
@@ -29,7 +29,7 @@ npx zcf
 
 | 参数 | 简写 | 说明 | 可选值 | 默认值 |
 |------|------|------|--------|--------|
-| `--code-type, -T` | `-T` | 指定工具类型 | `claude-code`, `codex`, `cc`, `cx` | 从 ZCF 配置读取 |
+| `--code-type, -T` | `-T` | 指定工具类型 | `claude-code`, `codex`, `cc`, `cx` | 从 CCJK 配置读取 |
 | `--skip-prompt, -s` | `-s` | 跳过交互确认（非交互模式） | 无 | 否（交互模式） |
 
 ## 检查的工具
@@ -119,7 +119,7 @@ CCometixLine
 
 ```bash
 # 每周检查一次
-npx zcf check
+npx ccjk check
 ```
 
 ### 自动化更新
@@ -128,7 +128,7 @@ npx zcf check
 
 ```bash
 # 自动更新所有工具
-npx zcf check -s
+npx ccjk check -s
 ```
 
 ### 针对性更新
@@ -137,7 +137,7 @@ npx zcf check -s
 
 ```bash
 # 只检查 Codex 相关工具
-npx zcf check -T cx
+npx ccjk check -T cx
 ```
 
 ## 更新策略
@@ -158,7 +158,7 @@ npx zcf check -T cx
 
 ### 更新失败处理
 
-如果更新失败，ZCF 会：
+如果更新失败，CCJK 会：
 
 1. 显示错误信息
 2. 保留原有版本
@@ -175,26 +175,26 @@ npx zcf check -T cx
 - **权限问题**：需要 sudo 权限（macOS/Linux）
   ```bash
   # 使用 sudo 执行
-  sudo npx zcf check
+  sudo npx ccjk check
   ```
 
 - **端口占用**：服务正在运行无法更新
   ```bash
   # 先停止服务再更新
   ccr stop
-  npx zcf check
+  npx ccjk check
   ```
 
 ## 版本兼容性
 
-### ZCF 版本要求
+### CCJK 版本要求
 
 - **Node.js**：>= 22
 - **npm/pnpm**：最新版本
 
 ### 工具版本兼容
 
-ZCF 会检查工具之间的版本兼容性，确保：
+CCJK 会检查工具之间的版本兼容性，确保：
 
 - CCR 与 Claude Code 版本匹配
 - CCometixLine 与 Claude Code 兼容
@@ -235,15 +235,15 @@ ccline --version
 codex --version
 ```
 
-## 与 zcf init 联动
+## 与 ccjk init 联动
 
-`zcf init` 的备份功能可以在更新前自动备份配置：
+`ccjk init` 的备份功能可以在更新前自动备份配置：
 
 ```bash
 # 更新前先初始化（会备份配置）
-npx zcf init
+npx ccjk init
 # 或手动使用备份功能
-npx zcf i -s -r backup
+npx ccjk i -s -r backup
 ```
 
 ## 常见问题
@@ -262,7 +262,7 @@ A:
 A: 
 1. 检查工具是否正确安装：`which ccr`
 2. 查看错误日志
-3. 尝试重新安装：`npx zcf ccr`（对于 CCR）
+3. 尝试重新安装：`npx ccjk ccr`（对于 CCR）
 
 ### Q: 如何回退到旧版本？
 

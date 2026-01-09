@@ -21,14 +21,14 @@ Spec Workflow MCP is a service based on Model Context Protocol (MCP), specifical
 
 ### Install via ZCF
 
-Spec Workflow, as part of MCP services, can be selected for installation during ZCF initialization:
+Spec Workflow, as part of MCP services, can be selected for installation during CCJK initialization:
 
 ```bash
 # Select Spec Workflow during complete initialization
-npx zcf init
+npx ccjk init
 
 # Or add MCP service in existing environment
-npx zcf → Select 4 (Configure MCP)
+npx ccjk → Select 4 (Configure MCP)
 ```
 
 In MCP service selection interface, select `spec-workflow` to install.
@@ -193,16 +193,16 @@ Break down the comment feature into specific development tasks and list task dep
 Please start implementing the first task of comment feature according to the task list
 ```
 
-### Combine with ZCF Workflows
+### Combine with CCJK Workflows
 
-Spec Workflow can be combined with other ZCF workflows:
+Spec Workflow can be combined with other CCJK workflows:
 
 ```bash
 # In Claude Code
-/zcf:workflow Develop user comment feature, use Spec Workflow for requirements analysis
+/ccjk:workflow Develop user comment feature, use Spec Workflow for requirements analysis
 
 # Or use feature development workflow
-/zcf:feat User comment feature
+/ccjk:feat User comment feature
 ```
 
 In Codex, although Spec Workflow can be used as MCP service, there's no corresponding `/prompts:` command, need to use directly in conversation.
@@ -271,7 +271,7 @@ Please query the project architecture documentation to understand modules that c
 
 ### Git Workflow Integration
 
-Combine with ZCF Git workflow to automatically generate commit messages:
+Combine with CCJK Git workflow to automatically generate commit messages:
 
 ```bash
 # After completing requirements analysis
@@ -334,6 +334,6 @@ May not be suitable for:
 - ⚠️ **Small Fixes**: Simple bug fixes or small feature improvements
 - ⚠️ **Personal Projects**: Personal projects may not need such detailed requirements documents
 
-> 💡 **Tip**: Spec Workflow is an important part of ZCF workflow ecosystem. It's recommended to introduce it early in the project to gain maximum benefits. Combined with other ZCF workflows and tools, you can build a complete development process.
+> 💡 **Tip**: Spec Workflow is an important part of CCJK workflow ecosystem. It's recommended to introduce it early in the project to gain maximum benefits. Combined with other CCJK workflows and tools, you can build a complete development process.
 
 

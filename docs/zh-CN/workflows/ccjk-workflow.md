@@ -1,10 +1,10 @@
 ---
-title: ZCF 六阶段工作流
+title: CCJK 六阶段工作流
 ---
 
-# ZCF 六阶段工作流
+# CCJK 六阶段工作流
 
-六阶段工作流是 ZCF 的核心开发流程，涵盖完整的软件开发生命周期：**研究 → 构思 → 计划 → 执行 → 优化 → 评审**。
+六阶段工作流是 CCJK 的核心开发流程，涵盖完整的软件开发生命周期：**研究 → 构思 → 计划 → 执行 → 优化 → 评审**。
 
 ## 功能特点
 
@@ -20,12 +20,12 @@ title: ZCF 六阶段工作流
 在 Claude Code 中使用以下命令：
 
 ```
-/zcf:workflow <任务描述>
+/ccjk:workflow <任务描述>
 ```
 
 **示例**：
 ```
-/zcf:workflow 实现用户登录功能，支持邮箱和手机号登录
+/ccjk:workflow 实现用户登录功能，支持邮箱和手机号登录
 ```
 
 ### Codex
@@ -41,7 +41,7 @@ title: ZCF 六阶段工作流
 /prompts:workflow 实现用户登录功能，支持邮箱和手机号登录
 ```
 
-> 💡 **提示**：Codex 使用 `/prompts:` 前缀，而 Claude Code 使用 `/zcf:` 前缀。
+> 💡 **提示**：Codex 使用 `/prompts:` 前缀，而 Claude Code 使用 `/ccjk:` 前缀。
 
 ## 六阶段详解
 
@@ -89,7 +89,7 @@ title: ZCF 六阶段工作流
 - 详细的任务分解
 - 技术实现方案
 - 开发计划和时间线
-- 计划文档（保存在 `.zcf/plan/current/任务名.md`）
+- 计划文档（保存在 `.ccjk/plan/current/任务名.md`）
 
 ### 4. 执行（Execute）
 
@@ -141,7 +141,7 @@ title: ZCF 六阶段工作流
 
 ### 基本流程
 
-1. **输入命令**：输入 `/zcf:workflow` 或 `/prompts:workflow` 并描述任务
+1. **输入命令**：输入 `/ccjk:workflow` 或 `/prompts:workflow` 并描述任务
 2. **阶段执行**：AI 按顺序执行六个阶段
 3. **用户确认**：每个阶段完成后等待用户确认
 4. **继续下一步**：用户确认后进入下一阶段
@@ -151,10 +151,10 @@ title: ZCF 六阶段工作流
 
 工作流会自动生成计划文档并要求保存：
 
-- **进行中的任务**：`.zcf/plan/current/` 目录
-- **已完成的任务**：`.zcf/plan/history/` 目录
+- **进行中的任务**：`.ccjk/plan/current/` 目录
+- **已完成的任务**：`.ccjk/plan/history/` 目录
 
-> 💡 **提示**：`.zcf/` 是统一的工作流目录，无论使用 Claude Code 还是 Codex 都使用相同的路径。
+> 💡 **提示**：`.ccjk/` 是统一的工作流目录，无论使用 Claude Code 还是 Codex 都使用相同的路径。
 
 #### 文件命名规则
 
@@ -171,16 +171,16 @@ title: ZCF 六阶段工作流
 
 ```
 # 主任务
-/zcf:workflow 构建用户管理系统
+/ccjk:workflow 构建用户管理系统
 
 # 子任务 1
-/zcf:workflow 实现用户注册功能
+/ccjk:workflow 实现用户注册功能
 
 # 子任务 2
-/zcf:workflow 实现用户登录功能
+/ccjk:workflow 实现用户登录功能
 
 # 子任务 3
-/zcf:workflow 实现用户信息管理
+/ccjk:workflow 实现用户信息管理
 ```
 
 ### 2. 结合项目初始化
@@ -195,7 +195,7 @@ title: ZCF 六阶段工作流
 # Codex 暂不支持 init-project，可直接使用工作流
 
 # 3. 执行工作流
-/zcf:workflow <任务描述>
+/ccjk:workflow <任务描述>
 ```
 
 初始化后会生成：
@@ -228,10 +228,10 @@ title: ZCF 六阶段工作流
 
 ```bash
 # 1. 使用功能开发工作流规划功能
-/zcf:feat 用户评论功能
+/ccjk:feat 用户评论功能
 
 # 2. 使用六阶段工作流实现细节
-/zcf:workflow 实现评论的 CRUD 操作和权限控制
+/ccjk:workflow 实现评论的 CRUD 操作和权限控制
 
 # 3. 使用 Git 工作流提交代码
 /git-commit
@@ -242,7 +242,7 @@ title: ZCF 六阶段工作流
 ### 示例 1：简单功能开发
 
 ```
-/zcf:workflow 添加用户头像上传功能
+/ccjk:workflow 添加用户头像上传功能
 ```
 
 工作流会：
@@ -256,7 +256,7 @@ title: ZCF 六阶段工作流
 ### 示例 2：复杂系统开发
 
 ```
-/zcf:workflow 构建微服务架构的用户认证系统，支持 OAuth2 和 JWT
+/ccjk:workflow 构建微服务架构的用户认证系统，支持 OAuth2 和 JWT
 ```
 
 工作流会：
@@ -270,7 +270,7 @@ title: ZCF 六阶段工作流
 ### 示例 3：代码重构
 
 ```
-/zcf:workflow 重构用户模块，提升代码质量和可维护性
+/ccjk:workflow 重构用户模块，提升代码质量和可维护性
 ```
 
 工作流会：
@@ -285,11 +285,11 @@ title: ZCF 六阶段工作流
 
 ### 计划文档位置
 
-工作流使用统一的 `.zcf/plan/` 目录结构：
+工作流使用统一的 `.ccjk/plan/` 目录结构：
 
 ```
 项目根目录/
-└── .zcf/
+└── .ccjk/
     └── plan/
         ├── current/                     # 当前进行中的任务
         │   └── 任务名.md                # 执行计划和上下文
@@ -297,7 +297,7 @@ title: ZCF 六阶段工作流
             └── [完成时间]任务名.md      # 归档的任务记录
 ```
 
-- ⚠️ **统一目录**：无论使用 Claude Code 还是 Codex，都使用 `.zcf/plan/` 目录
+- ⚠️ **统一目录**：无论使用 Claude Code 还是 Codex，都使用 `.ccjk/plan/` 目录
 - ✅ **版本控制**：建议将计划文档纳入 Git 版本控制
 - 📁 **自动归档**：任务完成后，计划文件自动从 `current/` 移动到 `history/`
 
@@ -324,4 +324,4 @@ title: ZCF 六阶段工作流
 - [Git 智能命令](git-commands.md) - Git 操作自动化
 - [工作流系统](../features/workflows.md) - 工作流详细介绍
 
-> 💡 **提示**：六阶段工作流是 ZCF 的核心功能，适合大多数开发任务。建议先从小任务开始熟悉流程，然后逐步应用到更复杂的项目中。合理利用阶段确认机制，可以获得更好的开发体验。
+> 💡 **提示**：六阶段工作流是 CCJK 的核心功能，适合大多数开发任务。建议先从小任务开始熟悉流程，然后逐步应用到更复杂的项目中。合理利用阶段确认机制，可以获得更好的开发体验。

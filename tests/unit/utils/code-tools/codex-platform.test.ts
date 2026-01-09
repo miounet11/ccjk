@@ -45,7 +45,7 @@ vi.mock('../../../../src/utils/code-tools/codex-config-detector', () => ({
 }))
 
 const mockUpdateZcfConfig = vi.fn()
-vi.mock('../../../../src/utils/zcf-config', () => ({
+vi.mock('../../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(() => null),
   updateZcfConfig: mockUpdateZcfConfig,
 }))

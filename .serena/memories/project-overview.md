@@ -1,7 +1,7 @@
-# ZCF项目概览
+# CCJK项目概览
 
 ## 项目基本信息
-- **项目名称**: ZCF (Zero-Config Code Flow)
+- **项目名称**: CCJK (Claude Code Japanese Kit)
 - **版本**: 3.0.2
 - **描述**: 一键配置Claude Code环境的CLI工具
 - **技术栈**: TypeScript, Node.js, ESM, unbuild, Vitest

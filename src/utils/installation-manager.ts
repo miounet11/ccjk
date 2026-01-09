@@ -3,8 +3,8 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { CLAUDE_DIR, ZCF_CONFIG_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { readTomlConfig, updateTomlConfig } from './ccjk-config'
 import { removeLocalClaudeCode } from './installer'
-import { readTomlConfig, updateTomlConfig } from './zcf-config'
 
 /**
  * Installation method type

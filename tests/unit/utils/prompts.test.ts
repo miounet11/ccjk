@@ -22,7 +22,7 @@ vi.mock('ansis', () => ({
   },
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
   readDefaultTomlConfig: vi.fn(),
@@ -136,7 +136,7 @@ describe('prompts utilities', () => {
 
   describe('selectScriptLanguage', () => {
     it('should return saved language from config', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue({
         version: '2.3.0',
         preferredLang: 'en',
@@ -151,7 +151,7 @@ describe('prompts utilities', () => {
     })
 
     it('should return provided current language', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue(null)
 
       const result = await selectScriptLanguage('zh-CN')
@@ -161,7 +161,7 @@ describe('prompts utilities', () => {
     })
 
     it('should prompt user when no config and no current lang', async () => {
-      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig, updateZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue(null)
       vi.mocked(inquirer.prompt).mockResolvedValue({ lang: 'en' })
 
@@ -176,7 +176,7 @@ describe('prompts utilities', () => {
     })
 
     it('should exit when cancelled', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue(null)
       vi.mocked(inquirer.prompt).mockResolvedValue({ lang: undefined })
 
@@ -185,7 +185,7 @@ describe('prompts utilities', () => {
     })
 
     it('should handle undefined config', async () => {
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       vi.mocked(readZcfConfig).mockReturnValue(undefined as any)
       vi.mocked(inquirer.prompt).mockResolvedValue({ lang: 'zh-CN' })
 

@@ -1,15 +1,15 @@
 import { x } from 'tinyexec'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { executeCcusage } from '../../src/commands/ccu'
-import * as zcfConfig from '../../src/utils/zcf-config'
+import * as ccjkConfig from '../../src/utils/ccjk-config'
 
 // Mock tinyexec
 vi.mock('tinyexec', () => ({
   x: vi.fn(),
 }))
 
-// Mock zcf-config
-vi.mock('../../src/utils/zcf-config')
+// Mock ccjk-config
+vi.mock('../../src/utils/ccjk-config')
 
 describe('cCU Command - Edge Cases', () => {
   let consoleLogSpy: any
@@ -24,8 +24,8 @@ describe('cCU Command - Edge Cases', () => {
     // Set test environment
     process.env = { ...originalEnv, NODE_ENV: 'test' }
 
-    // Default mock for zcfConfig
-    vi.mocked(zcfConfig.readZcfConfigAsync).mockResolvedValue({
+    // Default mock for ccjkConfig
+    vi.mocked(ccjkConfig.readZcfConfigAsync).mockResolvedValue({
       preferredLang: 'en',
     } as any)
   })
@@ -96,9 +96,9 @@ describe('cCU Command - Edge Cases', () => {
       expect(results).toHaveLength(3)
     })
 
-    it('should handle zcfConfig read errors', async () => {
+    it('should handle ccjkConfig read errors', async () => {
       // Config read fails, but we catch it and use default
-      vi.mocked(zcfConfig.readZcfConfigAsync)
+      vi.mocked(ccjkConfig.readZcfConfigAsync)
         .mockRejectedValueOnce(new Error('Config file corrupted'))
         .mockRejectedValueOnce(new Error('Config file corrupted'))
 
@@ -115,8 +115,8 @@ describe('cCU Command - Edge Cases', () => {
       expect(x).toHaveBeenCalled()
     })
 
-    it('should handle undefined zcfConfig fields', async () => {
-      vi.mocked(zcfConfig.readZcfConfigAsync).mockResolvedValue({
+    it('should handle undefined ccjkConfig fields', async () => {
+      vi.mocked(ccjkConfig.readZcfConfigAsync).mockResolvedValue({
         // preferredLang is undefined
       } as any)
       vi.mocked(x).mockResolvedValueOnce({
@@ -179,7 +179,7 @@ describe('cCU Command - Edge Cases', () => {
       vi.clearAllMocks()
       consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-      vi.mocked(zcfConfig.readZcfConfigAsync).mockResolvedValue({
+      vi.mocked(ccjkConfig.readZcfConfigAsync).mockResolvedValue({
         preferredLang: 'en',
       } as any)
       vi.mocked(x).mockRejectedValueOnce(new Error('Test error 2'))
@@ -201,7 +201,7 @@ describe('cCU Command - Edge Cases', () => {
     it('should handle race condition in error handling', async () => {
       // Simulate rapid config read during error
       let configCallCount = 0
-      vi.mocked(zcfConfig.readZcfConfigAsync).mockImplementation(async () => {
+      vi.mocked(ccjkConfig.readZcfConfigAsync).mockImplementation(async () => {
         configCallCount++
         await new Promise(resolve => setTimeout(resolve, 10))
         return {

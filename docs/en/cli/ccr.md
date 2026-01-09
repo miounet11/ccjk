@@ -4,22 +4,22 @@ title: CCR Proxy Management
 
 # CCR Proxy Management
 
-`zcf ccr` provides a complete management menu for Claude Code Router (CCR), including installation, configuration, service control, and Web UI access.
+`ccjk ccr` provides a complete management menu for Claude Code Router (CCR), including installation, configuration, service control, and Web UI access.
 
 ## Command Format
 
 ```bash
 # Open CCR management menu
-npx zcf ccr
+npx ccjk ccr
 
 # Or access through main menu
-npx zcf
+npx ccjk
 # Then select R. CCR Management
 ```
 
 ## Menu Options
 
-Running `zcf ccr` will display the following menu:
+Running `ccjk ccr` will display the following menu:
 
 ```
 ═══════════════════════════════════════════════════
@@ -59,7 +59,7 @@ Running `zcf ccr` will display the following menu:
 
 **Example**:
 ```bash
-npx zcf ccr
+npx ccjk ccr
 # Select 1
 # Complete configuration according to prompts
 ```
@@ -82,12 +82,12 @@ npx zcf ccr
 - Configuration file `~/.claude-code-router/config.json` must exist
 
 **API Key**:
-- When starting UI, CCR API key will be displayed (default: `sk-zcf-x-ccr`)
+- When starting UI, CCR API key will be displayed (default: `sk-ccjk-x-ccr`)
 - Use this key to log in to Web UI
 
 **Example**:
 ```bash
-npx zcf ccr
+npx ccjk ccr
 # Select 2
 # After service starts, access http://localhost:3456/ui
 ```
@@ -109,7 +109,7 @@ npx zcf ccr
 
 **Example**:
 ```bash
-npx zcf ccr
+npx ccjk ccr
 # Select 3
 ```
 
@@ -124,7 +124,7 @@ npx zcf ccr
 
 **Example**:
 ```bash
-npx zcf ccr
+npx ccjk ccr
 # Select 4
 ```
 
@@ -138,7 +138,7 @@ npx zcf ccr
 
 **Example**:
 ```bash
-npx zcf ccr
+npx ccjk ccr
 # Select 5
 ```
 
@@ -153,7 +153,7 @@ npx zcf ccr
 
 **Example**:
 ```bash
-npx zcf ccr
+npx ccjk ccr
 # Select 6
 ```
 
@@ -168,7 +168,7 @@ CCR supports flexible route rule configuration, which can be set through Web UI 
   "LOG": true,
   "HOST": "127.0.0.1",
   "PORT": 3456,
-  "APIKEY": "sk-zcf-x-ccr",
+  "APIKEY": "sk-ccjk-x-ccr",
   "API_TIMEOUT_MS": "600000",
   "PROXY_URL": "",
   "Providers": [
@@ -236,7 +236,7 @@ CCR supports flexible route rule configuration, which can be set through Web UI 
 | `LOG` | boolean | Enable logging | `true` |
 | `HOST` | string | Service listen address | `127.0.0.1` |
 | `PORT` | number | Service port | `3456` |
-| `APIKEY` | string | CCR API key | `sk-zcf-x-ccr` |
+| `APIKEY` | string | CCR API key | `sk-ccjk-x-ccr` |
 | `API_TIMEOUT_MS` | string | API timeout (milliseconds) | `600000` |
 | `PROXY_URL` | string | Proxy URL (optional) | `""` |
 
@@ -270,7 +270,7 @@ CCR supports flexible route rule configuration, which can be set through Web UI 
 ZCF supports multiple CCR provider presets to simplify configuration:
 
 ```bash
-npx zcf ccr
+npx ccjk ccr
 # Select 1. Initialize CCR
 # Select provider preset
 ```
@@ -292,7 +292,7 @@ A: Need to run Option 1 (Initialize CCR) first to complete configuration.
 A: 
 1. Ensure UI is started (Option 2)
 2. Check if port 3456 is occupied
-3. Use API key `sk-zcf-x-ccr` to log in (or check `APIKEY` in configuration)
+3. Use API key `sk-ccjk-x-ccr` to log in (or check `APIKEY` in configuration)
 
 ### Q: How to modify route rules?
 

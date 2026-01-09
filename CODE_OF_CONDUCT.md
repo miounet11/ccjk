@@ -2,7 +2,7 @@
 
 ## Our Commitment
 
-We are committed to providing a welcoming and inclusive environment for all contributors to the ZCF project, regardless of background, identity, or experience level.
+We are committed to providing a welcoming and inclusive environment for all contributors to the CCJK project, regardless of background, identity, or experience level.
 
 ## Expected Behavior
 
@@ -30,7 +30,7 @@ The following behaviors are not acceptable:
 
 If you experience or witness unacceptable behavior, please report it by:
 
-- Opening an issue on our [GitHub repository](https://github.com/UfoMiao/zcf/issues)
+- Opening an issue on our [GitHub repository](https://github.com/miounet11/ccjk/issues)
 - Contacting the project maintainers directly
 
 All reports will be handled confidentially and reviewed promptly.
@@ -59,8 +59,8 @@ This Code of Conduct applies to:
 
 For questions about this Code of Conduct, please:
 
-- Open an issue: https://github.com/UfoMiao/zcf/issues
-- Start a discussion: https://github.com/UfoMiao/zcf/discussions
+- Open an issue: https://github.com/miounet11/ccjk/issues
+- Start a discussion: https://github.com/miounet11/ccjk/discussions
 
 ## Acknowledgment
 

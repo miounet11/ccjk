@@ -54,8 +54,8 @@ vi.mock('ora', () => ({
   })),
 }))
 
-// Mock ZCF config for code type resolver
-vi.mock('../../src/utils/zcf-config', () => ({
+// Mock CCJK config for code type resolver
+vi.mock('../../src/utils/ccjk-config', () => ({
   readZcfConfigAsync: vi.fn(),
 }))
 
@@ -241,7 +241,7 @@ describe('tools', () => {
   describe('code type resolver', () => {
     describe('resolveCodeType', () => {
       it('should return claude-code when "cc" abbreviation is provided', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue(null)
 
         const result = await resolveCodeType('cc')
@@ -249,7 +249,7 @@ describe('tools', () => {
       })
 
       it('should return codex when "cx" abbreviation is provided', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue(null)
 
         const result = await resolveCodeType('cx')
@@ -257,7 +257,7 @@ describe('tools', () => {
       })
 
       it('should return claude-code when full name "claude-code" is provided', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue(null)
 
         const result = await resolveCodeType('claude-code')
@@ -265,15 +265,15 @@ describe('tools', () => {
       })
 
       it('should return codex when full name "codex" is provided', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue(null)
 
         const result = await resolveCodeType('codex')
         expect(result).toBe('codex')
       })
 
-      it('should return default from ZCF config when no parameter provided', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+      it('should return default from CCJK config when no parameter provided', async () => {
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue({
           version: '3.1.3',
           preferredLang: 'en',
@@ -286,7 +286,7 @@ describe('tools', () => {
       })
 
       it('should return claude-code as fallback when no parameter provided and no config exists', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue(null)
 
         const result = await resolveCodeType(undefined)
@@ -294,14 +294,14 @@ describe('tools', () => {
       })
 
       it('should throw error for invalid code type', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue(null)
 
         await expect(resolveCodeType('invalid-type')).rejects.toThrow('errors:invalidCodeType')
       })
 
       it('should handle case insensitive abbreviations', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue(null)
 
         const result1 = await resolveCodeType('CC')
@@ -312,7 +312,7 @@ describe('tools', () => {
       })
 
       it('should prioritize parameter over config when both provided', async () => {
-        const { readZcfConfigAsync } = await import('../../src/utils/zcf-config')
+        const { readZcfConfigAsync } = await import('../../src/utils/ccjk-config')
         vi.mocked(readZcfConfigAsync).mockResolvedValue({
           version: '3.1.3',
           preferredLang: 'en',

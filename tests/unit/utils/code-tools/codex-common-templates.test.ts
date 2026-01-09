@@ -25,7 +25,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   copyDir: vi.fn(),
 }))
 
-vi.mock('../../../../src/utils/zcf-config', () => ({
+vi.mock('../../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
   readDefaultTomlConfig: vi.fn(),
@@ -73,7 +73,7 @@ describe('codex - common templates usage', () => {
 
     // Initialize mocked modules
     mockFsOperations = vi.mocked(await import('../../../../src/utils/fs-operations'))
-    mockZcfConfig = vi.mocked(await import('../../../../src/utils/zcf-config'))
+    mockZcfConfig = vi.mocked(await import('../../../../src/utils/ccjk-config'))
     mockInquirer = vi.mocked(await import('inquirer'))
     mockPrompts = vi.mocked(await import('../../../../src/utils/prompts'))
     mockNodeFs = vi.mocked(await import('node:fs'))

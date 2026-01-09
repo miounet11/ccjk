@@ -2,7 +2,7 @@
 
 上下文：
 - 需改文件：README.md、README_zh-CN.md、README_ja-JP.md。
-- 文档主页链接：英文 http://zcf.ufomiao.com/ ，中文 http://zcf.ufomiao.com/zh-CN/ ，日文 http://zcf.ufomiao.com/ja-JP/。
+- 文档主页链接：英文 http://ccjk.ufomiao.com/ ，中文 http://ccjk.ufomiao.com/zh-CN/ ，日文 http://ccjk.ufomiao.com/ja-JP/。
 - 精简：保留简介+文档入口，缩短命令说明，仅保留核心 Quick Start 示例。
 
 计划：

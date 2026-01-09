@@ -42,7 +42,7 @@ vi.mock('../../../src/utils/output-style', () => ({
   configureOutputStyle: vi.fn(),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
 }))
@@ -68,10 +68,12 @@ vi.mock('../../../src/constants', () => ({
   CLAUDE_DIR: '/test/.claude',
   DEFAULT_CODE_TOOL_TYPE: 'claude-code',
   SETTINGS_FILE: '/test/.claude/settings.json',
-  ZCF_CONFIG_DIR: '/test/.ufomiao/zcf',
-  ZCF_CONFIG_FILE: '/test/.ufomiao/zcf/config.toml',
+  CCJK_CONFIG_DIR: '/test/.ufomiao/ccjk',
+  CCJK_CONFIG_FILE: '/test/.ufomiao/ccjk/config.toml',
+  LEGACY_ZCF_CONFIG_DIR: '/test/.ufomiao/zcf',
+  LEGACY_ZCF_CONFIG_FILE: '/test/.ufomiao/zcf/config.toml',
   CODE_TOOL_BANNERS: {
-    'claude-code': 'ZCF',
+    'claude-code': 'CCJK',
   },
   API_DEFAULT_URL: 'https://api.anthropic.com',
   API_ENV_KEY: 'ANTHROPIC_API_KEY',
@@ -194,7 +196,7 @@ describe('init command - API provider preset', () => {
       const { init } = await import('../../../src/commands/init')
       const { getInstallationStatus } = await import('../../../src/utils/installer')
       const { existsSync } = await import('node:fs')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { configureApi } = await import('../../../src/utils/config')
 
       vi.mocked(getInstallationStatus).mockResolvedValue({
@@ -235,7 +237,7 @@ describe('init command - API provider preset', () => {
       const { init } = await import('../../../src/commands/init')
       const { getInstallationStatus } = await import('../../../src/utils/installer')
       const { existsSync } = await import('node:fs')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { configureApi } = await import('../../../src/utils/config')
 
       vi.mocked(getInstallationStatus).mockResolvedValue({
@@ -276,7 +278,7 @@ describe('init command - API provider preset', () => {
       const { init } = await import('../../../src/commands/init')
       const { getInstallationStatus } = await import('../../../src/utils/installer')
       const { existsSync } = await import('node:fs')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { configureApi } = await import('../../../src/utils/config')
 
       vi.mocked(getInstallationStatus).mockResolvedValue({
@@ -317,7 +319,7 @@ describe('init command - API provider preset', () => {
       const { init } = await import('../../../src/commands/init')
       const { getInstallationStatus } = await import('../../../src/utils/installer')
       const { existsSync } = await import('node:fs')
-      const { readZcfConfig } = await import('../../../src/utils/zcf-config')
+      const { readZcfConfig } = await import('../../../src/utils/ccjk-config')
       const { configureApi } = await import('../../../src/utils/config')
 
       vi.mocked(getInstallationStatus).mockResolvedValue({

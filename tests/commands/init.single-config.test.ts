@@ -64,7 +64,7 @@ vi.mock('../../src/utils/installer', () => ({
   displayVerificationResult: vi.fn(),
 }))
 
-vi.mock('../../src/utils/zcf-config', () => ({
+vi.mock('../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(() => ({
     version: '1.0.0',
     preferredLang: 'zh-CN',

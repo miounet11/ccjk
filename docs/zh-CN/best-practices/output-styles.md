@@ -23,13 +23,13 @@ title: 输出风格策略
 
 ```bash
 # 安装所有输出风格
-npx zcf init -o all
+npx ccjk init -o all
 
 # 安装特定风格
-npx zcf init -o engineer-professional,nekomata-engineer
+npx ccjk init -o engineer-professional,nekomata-engineer
 
 # 跳过输出风格安装
-npx zcf init -o skip
+npx ccjk init -o skip
 ```
 
 ### 切换输出风格
@@ -37,7 +37,7 @@ npx zcf init -o skip
 #### 在主菜单中切换
 
 ```bash
-npx zcf
+npx ccjk
 # 选择 6 (配置 AI 记忆与输出风格)
 # 然后选择输出风格管理
 ```
@@ -76,7 +76,7 @@ vim ~/.claude/prompts/output-style/my-custom-style.md
   <p>傲娇的<a href="https://github.com/Haleclipse">哈雷酱</a>大小姐(￣▽￣)ゞ</p>
 </div>
 
-ZCF 提供以下预置输出风格：
+CCJK 提供以下预置输出风格：
 
 | 风格 ID | 名称 | 特点 | 适用场景 |
 |---------|------|------|---------|
@@ -234,7 +234,7 @@ vim ~/.claude/prompts/output-style/my-style.md
 3. **使用自定义风格**：
 ```bash
 # 设置默认风格
-npx zcf
+npx ccjk
 # 选择 6，然后选择 my-style
 
 # 或在项目中使用
@@ -330,7 +330,7 @@ git commit -m "Update output style standards"
 ### Claude Code 版本要求
 
 - ⚠️ **版本要求**：Claude Code 版本必须 > 1.0.81 才支持输出风格
-- ✅ **检查版本**：使用 `npx zcf check-updates` 检查并更新
+- ✅ **检查版本**：使用 `npx ccjk check-updates` 检查并更新
 - 📝 **迁移说明**：旧版本的全局记忆规则已迁移到 `engineer-professional` 风格
 
 ### 风格文件位置

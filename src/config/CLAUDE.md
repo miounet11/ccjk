@@ -5,7 +5,7 @@
 
 ## Module Responsibilities
 
-Configuration definition module providing centralized workflow configurations, system presets, and template mappings for the ZCF project.
+Configuration definition module providing centralized workflow configurations, system presets, and template mappings for the CCJK project.
 
 ## Entry Points and Startup
 

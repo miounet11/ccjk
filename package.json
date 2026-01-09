@@ -76,8 +76,7 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.mts",
   "bin": {
-    "ccjk": "bin/ccjk.mjs",
-    "zcf": "bin/ccjk.mjs"
+    "ccjk": "bin/ccjk.mjs"
   },
   "files": [
     "bin",
@@ -107,9 +106,9 @@
     "prepare": "husky",
     "commitlint": "commitlint",
     "commitlint:check": "commitlint --from HEAD~1 --to HEAD --verbose",
-    "docs:dev": "pnpm -F @zcf/docs dev",
-    "docs:build": "pnpm -F @zcf/docs build",
-    "docs:preview": "pnpm -F @zcf/docs preview"
+    "docs:dev": "pnpm -F @ccjk/docs dev",
+    "docs:build": "pnpm -F @ccjk/docs build",
+    "docs:preview": "pnpm -F @ccjk/docs preview"
   },
   "dependencies": {
     "@types/semver": "catalog:types",

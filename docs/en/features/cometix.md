@@ -4,7 +4,7 @@ title: CCometixLine Status Bar
 
 # CCometixLine Status Bar
 
-CCometixLine is a high-performance Rust-based terminal/IDE status bar plugin. ZCF supports fully automatic installation, configuration, and updates. It can display Git branch information, file change status, Claude Code / Codex usage statistics, and other key information in real-time.
+CCometixLine is a high-performance Rust-based terminal/IDE status bar plugin. CCJK supports fully automatic installation, configuration, and updates. It can display Git branch information, file change status, Claude Code / Codex usage statistics, and other key information in real-time.
 
 ## What is CCometixLine
 
@@ -27,20 +27,20 @@ ZCF automatically installs CCometixLine during initialization:
 
 ```bash
 # Complete initialization (includes CCometixLine installation by default)
-npx zcf init
+npx ccjk init
 
 # Or select initialization in interactive menu
-npx zcf
+npx ccjk
 ```
 
-> 💡 **Tip**: `zcf init` enables `--install-cometix-line true` by default. If you don't need installation, explicitly pass `false`.
+> 💡 **Tip**: `ccjk init` enables `--install-cometix-line true` by default. If you don't need installation, explicitly pass `false`.
 
 ### Manual Management
 
 Enter `L` in the main menu to enter CCometixLine management interface:
 
 ```bash
-npx zcf
+npx ccjk
 # Then enter L
 ```
 
@@ -162,8 +162,8 @@ The installation process automatically detects the platform and selects the appr
 ### Check Version
 
 ```bash
-# Check through ZCF menu
-npx zcf → Select L → View version information
+# Check through CCJK menu
+npx ccjk → Select L → View version information
 
 # Or run directly
 ccline --version
@@ -175,10 +175,10 @@ ZCF automatically checks CCometixLine version during initialization or updates:
 
 ```bash
 # Use check-updates command to check and update
-npx zcf check-updates
+npx ccjk check-updates
 
 # Or select in menu
-npx zcf → Select + Check Updates
+npx ccjk → Select + Check Updates
 ```
 
 ### Manual Update
@@ -187,8 +187,8 @@ npx zcf → Select + Check Updates
 # Update via npm
 npm update -g @cometix/ccline
 
-# Or through ZCF menu
-npx zcf → Select L → Upgrade
+# Or through CCJK menu
+npx ccjk → Select L → Upgrade
 ```
 
 ## Troubleshooting
@@ -368,12 +368,12 @@ Token usage percentage based on transcript analysis with context limit tracking.
 
 ## Integration with Other Tools
 
-CCometixLine can seamlessly integrate with the following ZCF tools:
+CCometixLine can seamlessly integrate with the following CCJK tools:
 
 - **ccusage**: Share usage statistics data
 - **CCR**: Display proxy routing status (if configured)
 - **Workflows**: Display corresponding information based on workflow status
 
-> 💡 **Tip**: CCometixLine is an important part of the ZCF ecosystem. It's recommended to install it together during initialization for a complete status monitoring experience.
+> 💡 **Tip**: CCometixLine is an important part of the CCJK ecosystem. It's recommended to install it together during initialization for a complete status monitoring experience.
 
 

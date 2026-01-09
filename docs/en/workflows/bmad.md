@@ -27,7 +27,7 @@ BMad Method is a universal AI agent framework designed for enterprise-level agil
 Use the following command in Claude Code to initialize BMad workflow:
 
 ```
-/zcf:bmad-init
+/ccjk:bmad-init
 ```
 
 ### Codex
@@ -40,7 +40,7 @@ If you need similar enterprise-level agile development processes, you can use `/
 
 ### 1. One-Time Import of Complete Workflow
 
-After executing `/zcf:bmad-init`, ZCF will:
+After executing `/ccjk:bmad-init`, CCJK will:
 
 - ✅ Import all BMad command sets and document templates
 - ✅ Create complete project structure
@@ -74,7 +74,7 @@ Suitable for new projects starting from scratch:
 
 ```bash
 # Execute in project root directory
-/zcf:bmad-init
+/ccjk:bmad-init
 
 # BMad will guide you:
 # 1. Create PRD (Product Requirements Document)
@@ -89,7 +89,7 @@ Suitable for modernizing existing codebases and feature enhancement:
 
 ```bash
 # Execute in existing project root directory
-/zcf:bmad-init
+/ccjk:bmad-init
 
 # BMad will:
 # 1. Analyze existing code structure
@@ -144,7 +144,7 @@ In team environments, it's recommended to uniformly use BMad workflow:
 
 ```bash
 # Team members uniformly execute
-/zcf:bmad-init
+/ccjk:bmad-init
 
 # This ensures:
 # - Workflow standards are consistent
@@ -158,7 +158,7 @@ Combining with MCP services can improve analysis quality:
 
 ```bash
 # Configure MCP services
-npx zcf
+npx ccjk
 # Select 4 (Configure MCP)
 
 # Recommended services:
@@ -179,19 +179,19 @@ npx zcf
 - **Version Control**: Include documents in Git version control
 - **Team Sharing**: Ensure team members can access latest documents
 
-### 5. Combine with Other ZCF Workflows
+### 5. Combine with Other CCJK Workflows
 
-BMad can be combined with other ZCF workflows:
+BMad can be combined with other CCJK workflows:
 
 ```bash
 # 1. Use BMad for project planning
-/zcf:bmad-init
+/ccjk:bmad-init
 
 # 2. Use six-stage workflow to implement specific features
-/zcf:workflow Implement user login functionality
+/ccjk:workflow Implement user login functionality
 
 # 3. Use feature development workflow to handle new requirements
-/zcf:feat Add comment functionality
+/ccjk:feat Add comment functionality
 
 # 4. Use Git workflow to manage code
 /git-commit
@@ -218,7 +218,7 @@ Project Root/
 
 ### Initialization Failure
 
-If `/zcf:bmad-init` execution fails:
+If `/ccjk:bmad-init` execution fails:
 
 ```bash
 # 1. Check if in project root directory
@@ -228,10 +228,10 @@ pwd
 ls -la ~/.claude/workflows/bmad/
 
 # 3. Reinstall workflow
-npx zcf update -w bmadWorkflow
+npx ccjk update -w bmadWorkflow
 
 # 4. Check Claude Code version
-npx zcf check-updates
+npx ccjk check-updates
 ```
 
 ### Document Generation Issues
@@ -247,7 +247,7 @@ cat PRD.md
 cat ARCHITECTURE.md
 
 # 3. Reinitialize (will merge updates, won't overwrite existing content)
-/zcf:bmad-init
+/ccjk:bmad-init
 ```
 
 ### Agent Team Configuration Issues
@@ -262,7 +262,7 @@ cat ~/.claude/workflows/bmad/bmad-init.md
 cat ~/.claude/settings.json | jq .mcpServers
 
 # 3. Reconfigure MCP services (if needed)
-npx zcf
+npx ccjk
 # Select 4 (Configure MCP)
 ```
 
@@ -292,6 +292,6 @@ May not be suitable for:
 - ⚠️ **Small Projects**: Simple personal projects or small tools
 - ⚠️ **One-Time Scripts**: Scripts that don't require continuous maintenance
 
-> 💡 **Tip**: BMad workflow is an important part of ZCF workflow ecosystem, particularly suitable for standardized development of enterprise-level projects. It's recommended to introduce BMad workflow early in the project to gain maximum benefits. Combined with other ZCF workflows and tools, you can build a complete AI-driven development process.
+> 💡 **Tip**: BMad workflow is an important part of CCJK workflow ecosystem, particularly suitable for standardized development of enterprise-level projects. It's recommended to introduce BMad workflow early in the project to gain maximum benefits. Combined with other CCJK workflows and tools, you can build a complete AI-driven development process.
 
 

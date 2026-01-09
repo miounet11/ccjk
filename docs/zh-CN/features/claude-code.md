@@ -4,17 +4,17 @@ title: Claude Code 配置能力
 
 # Claude Code 配置能力
 
-ZCF 为 Claude Code 提供完整的零配置体验，通过 `zcf init` 命令可以一键完成从环境初始化到工作流导入的全部配置。
+CCJK 为 Claude Code 提供完整的零配置体验，通过 `ccjk init` 命令可以一键完成从环境初始化到工作流导入的全部配置。
 
 ## 核心特性
 
-ZCF 针对 Claude Code 的配置包括以下核心能力：
+CCJK 针对 Claude Code 的配置包括以下核心能力：
 
 | 功能模块 | 说明 | 配置文件位置 |
 |---------|------|------------|
 | **API 配置** | 支持官方登录、API Key、CCR 代理三种模式 | `~/.claude/settings.json` |
-| **工作流命令** | 预置六阶段、Feat、Git、BMAD 等命令 | `~/.claude/commands/zcf/` |
-| **工作流智能体** | 规划、UX 等智能体 | `~/.claude/agents/zcf/` |
+| **工作流命令** | 预置六阶段、Feat、Git、BMAD 等命令 | `~/.claude/commands/ccjk/` |
+| **工作流智能体** | 规划、UX 等智能体 | `~/.claude/agents/ccjk/` |
 | **输出风格** | 多种 AI 个性化输出风格 | `~/.claude/output-styles/` |
 | **MCP 服务** | 集成 Context7、Open Web Search 等 | `~/.claude/settings.json` |
 | **系统提示** | 全局 AI 记忆和指令配置 | `~/.claude/CLAUDE.md` |
@@ -23,14 +23,14 @@ ZCF 针对 Claude Code 的配置包括以下核心能力：
 
 ### 自动创建的目录结构
 
-执行 `zcf init` 后，ZCF 会自动创建以下目录结构：
+执行 `ccjk init` 后，CCJK 会自动创建以下目录结构：
 
 ```
 ~/.claude/
 ├── settings.json                # Claude Code 主配置文件（API、MCP、权限等）
 ├── CLAUDE.md                    # 系统提示和 AI 记忆配置
 ├── commands/                    # 工作流命令目录
-│   └── zcf/
+│   └── ccjk/
 │       ├── init-project.md
 │       ├── workflow.md          # 六阶段工作流命令
 │       ├── feat.md              # 功能开发工作流命令
@@ -40,7 +40,7 @@ ZCF 针对 Claude Code 的配置包括以下核心能力：
 │       ├── git-worktree.md
 │       └── bmad-init.md
 ├── agents/                      # 工作流智能体目录
-│   └── zcf/
+│   └── ccjk/
 │       ├── common/
 │       │   ├── init-architect.md
 │       │   └── get-current-datetime.md
@@ -54,18 +54,18 @@ ZCF 针对 Claude Code 的配置包括以下核心能力：
 
 ### 备份机制
 
-ZCF 提供完善的备份机制，确保您的配置安全：
+CCJK 提供完善的备份机制，确保您的配置安全：
 
 - **自动备份**：每次修改配置时自动创建时间戳备份
 - **备份位置**：`~/.claude/backup/YYYY-MM-DD_HH-mm-ss/`
 - **备份内容**：包含所有配置文件、工作流和自定义设置
-- **兼容性**：兼容旧版 `~/.claude.json`、`.zcf-config.json` 等遗留文件
+- **兼容性**：兼容旧版 `~/.claude.json`、`.ccjk-config.json` 等遗留文件
 
 > 💡 **恢复配置**：如果需要恢复之前的配置，可以从备份目录中复制相应文件。
 
 ### 配置处理策略
 
-当检测到已有配置时，ZCF 提供多种处理策略：
+当检测到已有配置时，CCJK 提供多种处理策略：
 
 | 策略 | 说明 | 适用场景 |
 |------|------|---------|
@@ -78,7 +78,7 @@ ZCF 提供完善的备份机制，确保您的配置安全：
 
 ### API 配置模式
 
-ZCF 支持三种 API 配置模式：
+CCJK 支持三种 API 配置模式：
 
 #### 1. 官方登录
 
@@ -97,10 +97,10 @@ ZCF 支持三种 API 配置模式：
 
 ```bash
 # 使用提供商预设（推荐）
-npx zcf i -s -p 302ai -k "sk-xxx"
+npx ccjk i -s -p 302ai -k "sk-xxx"
 
 # 自定义 API 端点
-npx zcf i -s -t api_key -k "sk-xxx" -u "https://api.example.com"
+npx ccjk i -s -t api_key -k "sk-xxx" -u "https://api.example.com"
 ```
 
 支持的提供商预设：
@@ -114,9 +114,9 @@ npx zcf i -s -t api_key -k "sk-xxx" -u "https://api.example.com"
 通过 Claude Code Router 代理使用多个模型：
 
 ```bash
-npx zcf i -s -t ccr_proxy
+npx ccjk i -s -t ccr_proxy
 # 或先配置 CCR
-npx zcf ccr
+npx ccjk ccr
 ```
 
 > 💡 **CCR 优势**：
@@ -126,11 +126,11 @@ npx zcf ccr
 
 ### 模型配置
 
-ZCF 支持配置多个模型：
+CCJK 支持配置多个模型：
 
 ```bash
 # 配置主模型和快速模型
-npx zcf i -s -p 302ai -k "sk-xxx" \
+npx ccjk i -s -p 302ai -k "sk-xxx" \
   --api-model "claude-sonnet-4-5" \
   --api-fast-model "claude-haiku-4-5"
 ```
@@ -140,28 +140,28 @@ npx zcf i -s -p 302ai -k "sk-xxx" \
 
 ### 多 API 配置
 
-ZCF 支持配置多个 API，方便在不同场景下切换：
+CCJK 支持配置多个 API，方便在不同场景下切换：
 
 ```bash
-npx zcf i -s --api-configs '[
+npx ccjk i -s --api-configs '[
   {"provider":"302ai","key":"sk-xxx","default":true},
   {"provider":"glm","key":"sk-yyy"},
   {"name":"custom","type":"api_key","key":"sk-zzz","url":"https://custom.api.com"}
 ]'
 ```
 
-> 📖 **切换配置**：使用 `npx zcf config-switch` 在多个配置之间切换。
+> 📖 **切换配置**：使用 `npx ccjk config-switch` 在多个配置之间切换。
 
 ## 工作流系统
 
-ZCF 提供丰富的工作流模板，帮助标准化开发流程。
+CCJK 提供丰富的工作流模板，帮助标准化开发流程。
 
 ### 默认工作流
 
 | 工作流 | 命令 | 说明 |
 |--------|------|------|
-| **六阶段工作流** | `/zcf:workflow` | 完整的六阶段开发流程（研究→构思→计划→执行→优化→评审） |
-| **功能开发工作流** | `/zcf:feat` | 新功能设计与实现，包含规划和 UI/UX 设计 |
+| **六阶段工作流** | `/ccjk:workflow` | 完整的六阶段开发流程（研究→构思→计划→执行→优化→评审） |
+| **功能开发工作流** | `/ccjk:feat` | 新功能设计与实现，包含规划和 UI/UX 设计 |
 | **通用工具** | `/init-project` | 项目初始化工具 |
 | **Git 工作流** | `/git-commit` 等 | Git 操作自动化命令 |
 | **BMad 工作流** | `/bmad-init` | 企业级敏捷开发流程 |
@@ -170,20 +170,20 @@ ZCF 提供丰富的工作流模板，帮助标准化开发流程。
 
 ```bash
 # 安装所有工作流（默认）
-npx zcf i -s --workflows all
+npx ccjk i -s --workflows all
 
 # 选择性安装
-npx zcf i -s --workflows commonTools,sixStepsWorkflow,featPlanUx
+npx ccjk i -s --workflows commonTools,sixStepsWorkflow,featPlanUx
 
 # 跳过工作流安装
-npx zcf i -s --workflows skip
+npx ccjk i -s --workflows skip
 ```
 
 > 📚 **工作流详解**：详细使用说明请参考 [工作流详解](../workflows/) 章节。
 
 ## 输出风格系统
 
-ZCF 支持多种 AI 输出风格，个性化您的 AI 助手体验。
+CCJK 支持多种 AI 输出风格，个性化您的 AI 助手体验。
 
 ### 可用的输出风格
 
@@ -198,10 +198,10 @@ ZCF 支持多种 AI 输出风格，个性化您的 AI 助手体验。
 
 ```bash
 # 安装多个输出风格
-npx zcf i -s --output-styles engineer-professional,nekomata-engineer
+npx ccjk i -s --output-styles engineer-professional,nekomata-engineer
 
 # 设置默认输出风格
-npx zcf i -s --default-output-style engineer-professional
+npx ccjk i -s --default-output-style engineer-professional
 ```
 
 ### 项目级切换
@@ -213,11 +213,11 @@ npx zcf i -s --default-output-style engineer-professional
 /output-style nekomata-engineer      # 切换到猫娘工程师
 ```
 
-> ⚠️ **版本要求**：Claude Code 版本需要大于 1.0.81 才支持 output-style，可使用 `npx zcf check-updates` 进行更新。
+> ⚠️ **版本要求**：Claude Code 版本需要大于 1.0.81 才支持 output-style，可使用 `npx ccjk check-updates` 进行更新。
 
 ## MCP 服务集成
 
-ZCF 内置常用 MCP 服务配置，支持一键安装和管理。
+CCJK 内置常用 MCP 服务配置，支持一键安装和管理。
 
 ### 默认 MCP 服务列表
 
@@ -235,26 +235,26 @@ ZCF 内置常用 MCP 服务配置，支持一键安装和管理。
 
 ```bash
 # 安装所有 MCP 服务（推荐）
-npx zcf i -s --mcp-services all
+npx ccjk i -s --mcp-services all
 
 # 选择性安装
-npx zcf i -s --mcp-services context7,open-websearch,spec-workflow
+npx ccjk i -s --mcp-services context7,open-websearch,spec-workflow
 
 # 跳过 MCP 服务安装
-npx zcf i -s --mcp-services skip
+npx ccjk i -s --mcp-services skip
 ```
 
 ### 配置位置
 
 - **Claude Code**：`~/.claude/settings.json` 中的 `mcpServers`
-- **Windows 特殊处理**：ZCF 会自动修正 Windows 路径格式
+- **Windows 特殊处理**：CCJK 会自动修正 Windows 路径格式
 
 ### 重新配置
 
 如果需要重新配置 MCP 服务：
 
 ```bash
-npx zcf
+npx ccjk
 # 选择 4. 配置 MCP
 ```
 
@@ -270,18 +270,18 @@ CCometixLine 是一个基于 Rust 的高性能状态栏工具：
 
 ```bash
 # 安装 CCometixLine（默认启用）
-npx zcf i -s --install-cometix-line true
+npx ccjk i -s --install-cometix-line true
 
 # 通过菜单安装
-npx zcf → 选择 L
+npx ccjk → 选择 L
 ```
 
 ### 环境变量与权限
 
-ZCF 可以导入推荐的环境变量和权限配置：
+CCJK 可以导入推荐的环境变量和权限配置：
 
 ```bash
-npx zcf
+npx ccjk
 # 选择 7. 导入推荐环境变量和权限配置
 ```
 
@@ -294,26 +294,26 @@ npx zcf
 
 ### 保存配置偏好
 
-所有配置选择会写入 `~/.ufomiao/zcf/config.toml`，包括：
+所有配置选择会写入 `~/.ufomiao/ccjk/config.toml`，包括：
 - 语言偏好
 - 默认工具类型
 - 最近安装选项
 
 ### 增量更新
 
-使用 `zcf update` 可以更新工作流和模板，同时保留现有配置：
+使用 `ccjk update` 可以更新工作流和模板，同时保留现有配置：
 
 ```bash
 # 更新工作流和模板，保留 API 和 MCP 配置
-npx zcf update
+npx ccjk update
 
 # 指定语言更新
-npx zcf update -g zh-CN
+npx ccjk update -g zh-CN
 ```
 
 > 💡 **最佳实践**：
-> - 首次使用 `zcf init` 完成完整初始化
-> - 后续使用 `zcf update` 更新工作流和模板
+> - 首次使用 `ccjk init` 完成完整初始化
+> - 后续使用 `ccjk update` 更新工作流和模板
 > - 通过菜单选项单独更新特定配置
 
 ## 下一步

@@ -4,27 +4,27 @@ title: Usage Analysis ccu
 
 # Usage Analysis ccu
 
-`zcf ccu` (Claude Code Usage) is used to view and analyze Claude Code usage statistics, helping you understand AI assistant usage and costs.
+`ccjk ccu` (Claude Code Usage) is used to view and analyze Claude Code usage statistics, helping you understand AI assistant usage and costs.
 
 ## Command Format
 
 ```bash
 # Basic usage (display default statistics)
-npx zcf ccu
+npx ccjk ccu
 
 # Specify statistics period
-npx zcf ccu --period daily
-npx zcf ccu --period weekly
-npx zcf ccu --period monthly
+npx ccjk ccu --period daily
+npx ccjk ccu --period weekly
+npx ccjk ccu --period monthly
 
 # JSON format output (for script processing)
-npx zcf ccu --json
+npx ccjk ccu --json
 
 # CSV format output (for Excel analysis)
-npx zcf ccu --csv
+npx ccjk ccu --csv
 
 # Access through main menu
-npx zcf
+npx ccjk
 # Then select U. Usage Analysis
 ```
 
@@ -115,7 +115,7 @@ Suitable for terminal viewing, clear and readable format. Automatically adapts t
 Suitable for script processing and automation:
 
 ```bash
-npx zcf ccu --json --period weekly
+npx ccjk ccu --json --period weekly
 ```
 
 **Output Example**:
@@ -141,7 +141,7 @@ npx zcf ccu --json --period weekly
 Suitable for importing into Excel or other analysis tools:
 
 ```bash
-npx zcf ccu --csv --period monthly > usage.csv
+npx ccjk ccu --csv --period monthly > usage.csv
 ```
 
 **Output Example**:
@@ -158,7 +158,7 @@ Date,Requests,Duration
 Quickly view today's usage:
 
 ```bash
-npx zcf ccu --period daily
+npx ccjk ccu --period daily
 ```
 
 ### 2. Team Usage Statistics
@@ -167,7 +167,7 @@ Regularly statistics team member usage:
 
 ```bash
 # Generate weekly statistics report
-npx zcf ccu --period weekly --json > weekly-usage.json
+npx ccjk ccu --period weekly --json > weekly-usage.json
 ```
 
 ### 3. Cost Analysis
@@ -176,7 +176,7 @@ Combine with API pricing for cost estimation:
 
 ```bash
 # Generate monthly usage report
-npx zcf ccu --period monthly --csv > monthly-usage.csv
+npx ccjk ccu --period monthly --csv > monthly-usage.csv
 # Then calculate costs in Excel combined with API pricing
 ```
 
@@ -186,14 +186,14 @@ Combine with `cron` to regularly collect usage data:
 
 ```bash
 # Add to crontab (execute daily)
-0 23 * * * cd /path/to/project && npx zcf ccu --json --period daily >> usage.log
+0 23 * * * cd /path/to/project && npx ccjk ccu --json --period daily >> usage.log
 ```
 
 ## Integration with CCometixLine
 
 CCometixLine status bar can also display usage statistics summary:
 
-1. Install CCometixLine: `npx zcf` → Select corresponding option
+1. Install CCometixLine: `npx ccjk` → Select corresponding option
 2. View real-time usage in status bar
 3. Click status bar to view detailed statistics
 

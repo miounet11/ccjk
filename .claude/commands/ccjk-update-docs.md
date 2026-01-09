@@ -3,18 +3,18 @@ description: Automatically check code changes since last tag and update document
 allowed-tools: Read(**), Exec(git, cat, grep, diff)
 argument-hint: [--check-only]
 # examples:
-#   - /zcf-update-docs                 # Check and update all documentation files
-#   - /zcf-update-docs --check-only    # Only check for inconsistencies without making updates (dry run)
+#   - /ccjk-update-docs                 # Check and update all documentation files
+#   - /ccjk-update-docs --check-only    # Only check for inconsistencies without making updates (dry run)
 ---
 
-# ZCF Update Docs - Documentation Synchronization
+# CCJK Update Docs - Documentation Synchronization
 
 Automatically check code changes since last tag and update documentation in `docs/` directory (multilingual: en, zh-CN, ja-JP) and CLAUDE.md to ensure consistency with actual code implementation.
 
 ## Usage
 
 ```bash
-/zcf-update-docs [--check-only]
+/ccjk-update-docs [--check-only]
 ```
 
 ## Parameters
@@ -58,7 +58,7 @@ case "$ARGUMENTS" in
     ;;
   *)
     echo "Unknown parameter: $ARGUMENTS"
-    echo "Usage: /zcf-update-docs [--check-only]"
+    echo "Usage: /ccjk-update-docs [--check-only]"
     exit 1
     ;;
 esac

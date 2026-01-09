@@ -85,7 +85,7 @@ vi.mock('../../../src/utils/output-style', () => ({
   configureOutputStyle: vi.fn(),
 }))
 
-vi.mock('../../../src/utils/zcf-config', () => ({
+vi.mock('../../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(),
   updateZcfConfig: vi.fn(),
 }))
@@ -142,7 +142,7 @@ vi.mock('../../../src/constants', () => ({
   DEFAULT_CODE_TOOL_TYPE: 'claude-code',
   SETTINGS_FILE: '/test/.claude/settings.json',
   CODE_TOOL_BANNERS: {
-    'claude-code': 'ZCF',
+    'claude-code': 'CCJK',
     'codex': 'Codex',
   },
   isCodeToolType: vi.fn((type: string) => ['claude-code', 'codex'].includes(type)),
@@ -195,7 +195,7 @@ describe('init command', () => {
     const { selectMcpServices } = await import('../../../src/utils/mcp-selector')
     const { selectAndInstallWorkflows } = await import('../../../src/utils/workflow-installer')
     const { configureOutputStyle } = await import('../../../src/utils/output-style')
-    const { updateZcfConfig, readZcfConfig } = await import('../../../src/utils/zcf-config')
+    const { updateZcfConfig, readZcfConfig } = await import('../../../src/utils/ccjk-config')
     const { isCcrInstalled, installCcr: _installCcr } = await import('../../../src/utils/ccr/installer')
     const { setupCcrConfiguration } = await import('../../../src/utils/ccr/config')
     const { configureApiCompletely, modifyApiConfigPartially } = await import('../../../src/utils/config-operations')
@@ -291,7 +291,7 @@ describe('init command', () => {
       })
     })
 
-    it('should persist resolved code tool type to zcf config', async () => {
+    it('should persist resolved code tool type to ccjk config', async () => {
       const { init } = await import('../../../src/commands/init')
 
       testMocks.getInstallationStatus.mockResolvedValue({
@@ -515,7 +515,7 @@ describe('init command', () => {
           skipPrompt: true,
           apiMode: 'skip',
           customApiConfig: undefined,
-          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow'],
+          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow', 'interviewWorkflow'],
         })
       })
 
@@ -547,7 +547,7 @@ describe('init command', () => {
           skipPrompt: true,
           apiMode: 'skip',
           customApiConfig: undefined,
-          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow'],
+          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow', 'interviewWorkflow'],
         })
         // Should not call resolveTemplateLanguage for codex when skipPrompt is true
         expect(testMocks.resolveTemplateLanguage).not.toHaveBeenCalled()
@@ -620,7 +620,7 @@ describe('init command', () => {
           skipPrompt: true,
           apiMode: 'skip',
           customApiConfig: undefined,
-          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow'],
+          workflows: ['commonTools', 'sixStepsWorkflow', 'featPlanUx', 'gitWorkflow', 'bmadWorkflow', 'interviewWorkflow'],
         })
 
         expect(runCodexFullInitSpy).toHaveBeenCalled()
@@ -728,8 +728,8 @@ describe('init command', () => {
           configLang: 'zh-CN',
         })
 
-        // Should call displayBannerWithInfo with 'ZCF' (fallback)
-        expect(displayBannerSpy).toHaveBeenCalledWith('ZCF')
+        // Should call displayBannerWithInfo with 'CCJK' (fallback)
+        expect(displayBannerSpy).toHaveBeenCalledWith('CCJK')
       })
 
       it('should call resolveTemplateLanguage for claude-code in interactive mode', async () => {

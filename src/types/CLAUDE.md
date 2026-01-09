@@ -5,7 +5,7 @@
 
 ## Module Responsibilities
 
-TypeScript type definition module providing complete type system support for the ZCF project, including workflow configuration, Claude configuration, CCR integration, and core business logic type definitions.
+TypeScript type definition module providing complete type system support for the CCJK project, including workflow configuration, Claude configuration, CCR integration, and core business logic type definitions.
 
 ## Entry Points and Startup
 

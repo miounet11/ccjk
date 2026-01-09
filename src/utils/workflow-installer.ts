@@ -97,7 +97,7 @@ async function installWorkflowWithDependencies(
   console.log(ansis.cyan(`\n📦 ${i18n.t('workflow:installingWorkflow')}: ${workflowName}...`))
 
   // Install commands to new structure
-  const commandsDir = join(CLAUDE_DIR, 'commands', 'zcf')
+  const commandsDir = join(CLAUDE_DIR, 'commands', 'ccjk')
   if (!existsSync(commandsDir)) {
     await mkdir(commandsDir, { recursive: true })
   }
@@ -133,7 +133,7 @@ async function installWorkflowWithDependencies(
       try {
         await copyFile(commandSource, commandDest)
         result.installedCommands.push(destFileName)
-        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedCommand')}: zcf/${destFileName}`))
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedCommand')}: ccjk/${destFileName}`))
       }
       catch (error) {
         const errorMsg = `${i18n.t('workflow:failedToInstallCommand')} ${commandFile}: ${error}`
@@ -146,7 +146,7 @@ async function installWorkflowWithDependencies(
 
   // Install agents if autoInstallAgents is true
   if (config.autoInstallAgents && config.agents.length > 0) {
-    const agentsCategoryDir = join(CLAUDE_DIR, 'agents', 'zcf', config.category)
+    const agentsCategoryDir = join(CLAUDE_DIR, 'agents', 'ccjk', config.category)
     if (!existsSync(agentsCategoryDir)) {
       await mkdir(agentsCategoryDir, { recursive: true })
     }
@@ -168,7 +168,7 @@ async function installWorkflowWithDependencies(
         try {
           await copyFile(agentSource, agentDest)
           result.installedAgents.push(agent.filename)
-          console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedAgent')}: zcf/${config.category}/${agent.filename}`))
+          console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedAgent')}: ccjk/${config.category}/${agent.filename}`))
         }
         catch (error) {
           const errorMsg = `${i18n.t('workflow:failedToInstallAgent')} ${agent.filename}: ${error}`

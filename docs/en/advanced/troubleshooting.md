@@ -21,7 +21,7 @@ This document compiles common problems and solutions encountered when using ZCF,
 
 ### 1. Initialization Failed or Stuck
 
-**Symptoms**: No response or error after running `npx zcf init`
+**Symptoms**: No response or error after running `npx ccjk init`
 
 **Possible Causes**:
 - Node.js version too low
@@ -44,11 +44,11 @@ nvm use 22
 ls -la ~/.claude ~/.codex
 
 # If directory doesn't exist or insufficient permissions, manually create
-mkdir -p ~/.claude ~/.codex ~/.ufomiao/zcf
-chmod 755 ~/.claude ~/.codex ~/.ufomiao/zcf
+mkdir -p ~/.claude ~/.codex ~/.ufomiao/ccjk
+chmod 755 ~/.claude ~/.codex ~/.ufomiao/ccjk
 
 # 3. Skip MCP installation (if network issues)
-npx zcf init -s -m skip
+npx ccjk init -s -m skip
 
 # 4. Check network connection
 ping npmjs.com
@@ -69,7 +69,7 @@ ls -la ~/.claude/backup/
 cp -r ~/.claude/backup/backup_latest_timestamp/* ~/.claude/
 
 # 3. Reinitialize
-npx zcf init --config-action backup
+npx ccjk init --config-action backup
 ```
 
 ### 3. Configuration Directory Creation Failed
@@ -80,13 +80,13 @@ npx zcf init --config-action backup
 
 ```bash
 # macOS/Linux
-mkdir -p ~/.claude ~/.codex ~/.ufomiao/zcf
-chmod 755 ~/.claude ~/.codex ~/.ufomiao/zcf
+mkdir -p ~/.claude ~/.codex ~/.ufomiao/ccjk
+chmod 755 ~/.claude ~/.codex ~/.ufomiao/ccjk
 
 # Windows (PowerShell)
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude"
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex"
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ufomiao\zcf"
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ufomiao\ccjk"
 
 # Check disk space
 df -h ~  # macOS/Linux
@@ -106,14 +106,14 @@ cat ~/.claude/settings.json | jq .env
 cat ~/.codex/config.toml | grep -A 5 apiKey
 
 # 2. Reconfigure API
-npx zcf init
+npx ccjk init
 # Select 3 (Configure API or CCR)
 # Or use command line
-npx zcf init -s -t api_key -k "your-api-key"
+npx ccjk init -s -t api_key -k "your-api-key"
 
 # 3. For CCR mode, ensure Router is running
-npx zcf ccr status
-npx zcf ccr start
+npx ccjk ccr status
+npx ccjk ccr start
 ```
 
 ### 2. API Key Format Error
@@ -132,7 +132,7 @@ npx zcf ccr start
 # Or try to verify in provider console
 
 # Re-enter correct key
-npx zcf init -s -p 302ai -k "correct-key"
+npx ccjk init -s -p 302ai -k "correct-key"
 ```
 
 ### 3. API Endpoint Unreachable
@@ -158,7 +158,7 @@ export HTTPS_PROXY=http://127.0.0.1:7890
 # MiniMax: https://api.minimaxi.com/anthropic
 
 # 4. Use provider preset (recommended)
-npx zcf init -s -p 302ai -k "sk-xxx"
+npx ccjk init -s -p 302ai -k "sk-xxx"
 ```
 
 ### 4. Multiple API Configuration Conflicts
@@ -169,10 +169,10 @@ npx zcf init -s -p 302ai -k "sk-xxx"
 
 ```bash
 # 1. List all configurations
-npx zcf config-switch --list
+npx ccjk config-switch --list
 
 # 2. Switch to correct configuration
-npx zcf config-switch provider-name
+npx ccjk config-switch provider-name
 
 # 3. Check default configuration in configuration file
 cat ~/.claude/settings.json | jq .apiKeys
@@ -193,19 +193,19 @@ ls -la ~/.claude/workflows/
 ls -la ~/.codex/prompts/
 
 # 2. Reimport workflows
-npx zcf update -w all
+npx ccjk update -w all
 
 # 3. Check Codex configuration (Codex requires managed = true)
 cat ~/.codex/config.toml | grep managed
 # If managed = false, set to true then reimport
 
 # 4. Manually check workflow files
-cat ~/.claude/workflows/zcf-workflow/workflow.md
+cat ~/.claude/workflows/ccjk-workflow/workflow.md
 ```
 
 ### 2. Workflow Commands Not Recognized
 
-**Symptoms**: No response when entering `/zcf:workflow`
+**Symptoms**: No response when entering `/ccjk:workflow`
 
 **Solutions**:
 
@@ -215,12 +215,12 @@ cat ~/.claude/workflows/zcf-workflow/workflow.md
 # Codex: ~/.codex/prompts/
 
 # 2. Verify workflow file format
-head -20 ~/.claude/workflows/zcf-workflow/workflow.md
+head -20 ~/.claude/workflows/ccjk-workflow/workflow.md
 
 # 3. Restart Claude Code or Codex application
 
 # 4. Check command prefix
-# Claude Code: /zcf:workflow or /workflow
+# Claude Code: /ccjk:workflow or /workflow
 # Codex: /prompts:workflow
 ```
 
@@ -232,10 +232,10 @@ head -20 ~/.claude/workflows/zcf-workflow/workflow.md
 
 ```bash
 # Update workflow templates
-npx zcf update -g zh-CN
+npx ccjk update -g zh-CN
 
 # Or force update
-npx zcf init --config-action docs-only -w all
+npx ccjk init --config-action docs-only -w all
 ```
 
 ## MCP Service Issues
@@ -252,7 +252,7 @@ cat ~/.claude/settings.json | jq .mcpServers
 cat ~/.codex/config.toml | grep -A 10 mcp_server
 
 # 2. Reconfigure MCP
-npx zcf
+npx ccjk
 # Select 4 (Configure MCP)
 
 # 3. Check service dependencies
@@ -445,7 +445,7 @@ codex --version
 cat ~/.codex/config.toml
 
 # 2. Ensure managed = true (ZCF-managed configuration)
-# If managed = false, ZCF will not modify configuration
+# If managed = false, CCJK will not modify configuration
 
 # 3. Check API configuration
 cat ~/.codex/config.toml | grep -A 10 modelProvider
@@ -454,7 +454,7 @@ cat ~/.codex/config.toml | grep -A 10 modelProvider
 cat ~/.codex/auth.json
 
 # 5. Reconfigure
-npx zcf init -T codex -s -p 302ai -k "sk-xxx"
+npx ccjk init -T codex -s -p 302ai -k "sk-xxx"
 ```
 
 ### 3. Codex Workflow Command Format
@@ -466,13 +466,13 @@ npx zcf init -T codex -s -p 302ai -k "sk-xxx"
 ```bash
 # Codex uses different command prefix
 # Correct format: /prompts:workflow
-# Wrong format: /zcf:workflow
+# Wrong format: /ccjk:workflow
 
 # Check workflow files
 ls -la ~/.codex/prompts/
 
 # Reimport workflows
-npx zcf update -T codex -g zh-CN
+npx ccjk update -T codex -g zh-CN
 ```
 
 ## CCR Related Issues
@@ -485,14 +485,14 @@ npx zcf update -T codex -g zh-CN
 
 ```bash
 # 1. Check CCR installation
-npx zcf ccr status
+npx ccjk ccr status
 
 # 2. Check port occupancy
 lsof -i :3456  # macOS/Linux
 netstat -ano | findstr :3456  # Windows
 
 # 3. Reinstall CCR
-npx zcf ccr install
+npx ccjk ccr install
 
 # 4. Check configuration file
 cat ~/.claude-code-router/config.json
@@ -524,10 +524,10 @@ netstat -ano | findstr :3456
 taskkill /PID 1208 /F
 
 # 3. Restart CCR
-npx zcf ccr restart
+npx ccjk ccr restart
 
 # 4. Check status
-npx zcf ccr status
+npx ccjk ccr status
 ```
 
 #### macOS/Linux Platform
@@ -540,10 +540,10 @@ lsof -t -i:3456 | xargs kill
 lsof -t -i:3456 | xargs -r kill
 
 # 2. Restart CCR
-npx zcf ccr restart
+npx ccjk ccr restart
 
 # 3. Check status
-npx zcf ccr status
+npx ccjk ccr status
 ```
 
 **Verification Steps**:
@@ -554,10 +554,10 @@ lsof -i :3456  # macOS/Linux (should have no output)
 netstat -ano | findstr :3456  # Windows (should have no output)
 
 # If port is released, restart
-npx zcf ccr start
+npx ccjk ccr start
 
 # Verify CCR running normally
-npx zcf ccr status
+npx ccjk ccr status
 
 # If status is normal, Claude Code should be able to connect normally
 ```
@@ -579,9 +579,9 @@ curl http://127.0.0.1:3456/health
 cat ~/.claude/settings.json | jq .env.ANTHROPIC_BASE_URL
 
 # 4. Reconfigure CCR proxy
-npx zcf ccr
+npx ccjk ccr
 # Or
-npx zcf init -s -t ccr_proxy
+npx ccjk init -s -t ccr_proxy
 ```
 
 ### 3. CCR Web UI Cannot Be Accessed
@@ -592,7 +592,7 @@ npx zcf init -s -t ccr_proxy
 
 ```bash
 # 1. Confirm CCR is running
-npx zcf ccr status
+npx ccjk ccr status
 
 # 2. Check port
 lsof -i :3456
@@ -622,7 +622,7 @@ cp -r ~/.claude/backup/backup_latest_timestamp/* ~/.claude/
 cp -r ~/.codex/backup/backup_latest_timestamp/* ~/.codex/
 
 # 3. Reinitialize (if backup unavailable)
-npx zcf init --config-action backup
+npx ccjk init --config-action backup
 ```
 
 ### 2. Backup Failed
@@ -654,13 +654,13 @@ cp -r ~/.claude ~/.claude.backup.$(date +%Y%m%d)
 
 ```bash
 # 1. View all configurations
-npx zcf config-switch --list
+npx ccjk config-switch --list
 
 # 2. Backup current configuration
 cp -r ~/.claude ~/.claude.conflict.backup
 
 # 3. Reinitialize using merge strategy
-npx zcf init --config-action merge
+npx ccjk init --config-action merge
 
 # 4. Manually merge configuration (if needed)
 # Edit configuration file, merge conflicting configuration items
@@ -677,7 +677,7 @@ npx zcf init --config-action merge
 **Solutions**:
 
 ```bash
-# ZCF automatically handles spaces in paths
+# CCJK automatically handles spaces in paths
 # If issues occur, check if paths in configuration are properly quoted
 
 # View configuration
@@ -691,9 +691,9 @@ cat "$env:USERPROFILE\.claude\settings.json"
 **Solutions**:
 
 ```bash
-# ZCF automatically fixes Windows MCP configuration format
+# CCJK automatically fixes Windows MCP configuration format
 # Running update command will automatically fix
-npx zcf update
+npx ccjk update
 
 # Or manually check configuration format
 cat "$env:USERPROFILE\.claude\settings.json" | jq .mcpServers
@@ -720,12 +720,12 @@ chmod 755 ~/.claude ~/.codex
 
 #### WSL Environment Detection
 
-**Symptoms**: ZCF did not correctly detect WSL environment
+**Symptoms**: CCJK did not correctly detect WSL environment
 
 **Solutions**:
 
 ```bash
-# ZCF automatically detects WSL environment
+# CCJK automatically detects WSL environment
 # If detection fails, manually specify path
 
 # Check WSL environment variable
@@ -739,7 +739,7 @@ echo $WSL_DISTRO_NAME
 **Solutions**:
 
 ```bash
-# ZCF supports Termux environment
+# CCJK supports Termux environment
 # Ensure using latest Node.js version
 
 # Use nvm (recommended)
@@ -753,13 +753,13 @@ nvm install 20
 
 ```bash
 # Enable verbose output
-npx zcf init --verbose 2>&1 | tee zcf-debug.log
+npx ccjk init --verbose 2>&1 | tee ccjk-debug.log
 
 # View error messages
-cat zcf-debug.log | grep -i error
+cat ccjk-debug.log | grep -i error
 
 # Check version information
-npx zcf --version
+npx ccjk --version
 ```
 
 ### Recovery History
@@ -776,9 +776,9 @@ cp -r ~/.claude/backup/backup_YYYY-MM-DD_HH-mm-ss/* ~/.claude/
 ### Documentation Resources
 
 - Read repository `CLAUDE.md` and `AGENTS.md` to understand system prompt requirements
-- Check [GitHub Issues](https://github.com/UfoMiao/zcf/issues) to search for similar problems
+- Check [GitHub Issues](https://github.com/UfoMiao/ccjk/issues) to search for similar problems
 - When submitting issues on GitHub Issues, include:
-  - `npx zcf --version` output
+  - `npx ccjk --version` output
   - Complete terminal logs
   - Operating system and Node.js version
   - Reproduction steps

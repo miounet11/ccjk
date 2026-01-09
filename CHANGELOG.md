@@ -8,13 +8,13 @@
   - Consolidate templates into common directory for better code reuse
   - Unify output-styles, git workflows, and sixStep workflows to `templates/common/`
   - Remove duplicate Codex templates (now sharing with Claude Code)
-  - Standardize sixStep plan directory to `.zcf` for consistency
+  - Standardize sixStep plan directory to `.ccjk` for consistency
 
   ## 重构
   - 将模板整合到 common 目录以提高代码复用
   - 统一 output-styles、git workflows 和 sixStep workflows 到 `templates/common/`
   - 移除重复的 Codex 模板（现与 Claude Code 共享）
-  - 统一 sixStep 计划目录为 `.zcf` 以保持一致性
+  - 统一 sixStep 计划目录为 `.ccjk` 以保持一致性
 
   ## Fixes
   - Remove ANTHROPIC_AUTH_TOKEN when configuring CCR proxy to prevent conflicts
@@ -554,7 +554,7 @@
   - Add code type resolver with improved error handling and i18n support
   - Add tool update scheduler for automated tool management
   - Enhance Codex tool with skipPrompt support and language selection
-  - Add ZCF pull request creation command (/zcf-pr)
+  - Add CCJK pull request creation command (/ccjk-pr)
   - Add comprehensive Git workflow prompt templates collection
   - Support grouped Git workflows selection and expansion
   - Add Termux user sponsor information to README files
@@ -563,7 +563,7 @@
   - 添加代码类型解析器，增强错误处理和国际化支持
   - 新增工具更新调度器，实现自动化工具管理
   - 增强 Codex 工具的 skipPrompt 支持和语言选择功能
-  - 新增 ZCF PR 创建命令 (/zcf-pr)
+  - 新增 CCJK PR 创建命令 (/ccjk-pr)
   - 添加完整的 Git 工作流提示模板集合
   - 支持分组 Git 工作流选择和扩展
   - 在 README 文件中添加 Termux 用户赞助信息
@@ -749,12 +749,12 @@
 ### Patch Changes
 
 - ## New Features
-  - Enhanced ZCF configuration migration with cross-device rename failure handling
+  - Enhanced CCJK configuration migration with cross-device rename failure handling
   - Improved Codex integration and configuration management
   - Advanced error handling for cross-platform file operations
 
   ## 新功能
-  - 增强ZCF配置迁移，支持跨设备重命名失败处理
+  - 增强CCJK配置迁移，支持跨设备重命名失败处理
   - 改进Codex集成和配置管理功能
   - 高级跨平台文件操作错误处理
 
@@ -893,20 +893,20 @@
 ### Patch Changes
 
 - ## New Features
-  - Add comprehensive ZCF uninstallation functionality with interactive confirmation system
+  - Add comprehensive CCJK uninstallation functionality with interactive confirmation system
   - Support safe trash-based removal with cross-platform compatibility (Windows/macOS/Linux/Termux)
   - Implement selective uninstallation options: configs only or complete removal
   - Add feature detection system for installed components validation
-  - Enhance zcf-release command with automatic commit handling and conventional commit message generation
+  - Enhance ccjk-release command with automatic commit handling and conventional commit message generation
   - Support automatic detection and commit of uncommitted changes during release process
   - Improve release branch workflow to prevent main branch pollution
 
   ## 新功能
-  - 添加完整的 ZCF 卸载功能，支持交互式确认系统
+  - 添加完整的 CCJK 卸载功能，支持交互式确认系统
   - 支持基于回收站的安全移除，兼容多平台（Windows/macOS/Linux/Termux）
   - 实现选择性卸载选项：仅配置文件或完全移除
   - 添加已安装组件的功能检测系统
-  - 增强 zcf-release 命令，支持自动提交处理和规范化提交信息生成
+  - 增强 ccjk-release 命令，支持自动提交处理和规范化提交信息生成
   - 支持发版过程中自动检测和提交未提交的更改
   - 改进发版分支工作流，避免污染主分支
 
@@ -1000,13 +1000,13 @@
   - 优化猫娘工程师输出样式模板，使用全角波浪号提升显示效果
   - 增强错误处理机制，提供更友好的i18n错误提示信息
   - 改进文件系统操作工具，添加可执行文件检测和递归删除功能
-  - 扩展ZCF配置持久化，支持安装方式偏好设置
+  - 扩展CCJK配置持久化，支持安装方式偏好设置
 
   ## Optimization
   - Optimize nekomata engineer output style template with full-width tilde for better display
   - Enhance error handling with more user-friendly i18n error messages
   - Improve file system operation tools with executable detection and recursive removal
-  - Extend ZCF configuration persistence to support installation method preferences
+  - Extend CCJK configuration persistence to support installation method preferences
 
   ## 修复
   - 修复ESLint hook路径解析问题，确保项目级代码规范一致性
@@ -1078,11 +1078,11 @@
 
   ## 文档
   - 更新 README 文件，添加开放网页搜索服务说明
-  - 完善 ZCF 发版命令文档，增强自动化发版指南
+  - 完善 CCJK 发版命令文档，增强自动化发版指南
 
   ## Documentation
   - Update README files to include Open Web Search service documentation
-  - Enhance ZCF release command documentation with automation guidelines
+  - Enhance CCJK release command documentation with automation guidelines
 
   ## 修复
   - 修复 Spec Workflow 文档内容位置错误
@@ -1190,14 +1190,14 @@
 
 - ## 修复
   - 改进 i18n 国际化系统的包路径解析机制
-  - 支持 NPM 包安装后的路径查找（/node_modules/zcf/dist/i18n/locales）
+  - 支持 NPM 包安装后的路径查找（/node_modules/ccjk/dist/i18n/locales）
   - 添加包根目录自动检测，通过搜索 package.json 定位
   - 增加多种备用路径支持，提升各种打包结构的兼容性
   - 优化生产部署环境的国际化文件加载
 
   ## Fixes
   - Improve i18n package path resolution mechanism
-  - Support path finding after NPM package installation (/node_modules/zcf/dist/i18n/locales)
+  - Support path finding after NPM package installation (/node_modules/ccjk/dist/i18n/locales)
   - Add automatic package root detection by searching for package.json
   - Add multiple fallback path support for better compatibility with various bundling structures
   - Optimize i18n file loading in production deployment environments
@@ -1252,7 +1252,7 @@
   - 优化版本检查器实现，提升工具链稳定性
 
   ## 文档完善
-  - 更新命令文档，完善 zcf-release 和 zcf-update-docs 使用说明
+  - 更新命令文档，完善 ccjk-release 和 ccjk-update-docs 使用说明
   - 改进 README 文档，增加 spec-workflow 集成说明
   - 完善模板变更日志和 bmad 工作流文档
 
@@ -1276,7 +1276,7 @@
   - Optimize version checker implementation for improved toolchain stability
 
   ## Documentation Enhancement
-  - Update command documentation with comprehensive zcf-release and zcf-update-docs guides
+  - Update command documentation with comprehensive ccjk-release and ccjk-update-docs guides
   - Improve README documentation with spec-workflow integration details
   - Enhance template changelog and bmad workflow documentation
 
@@ -1310,9 +1310,9 @@
   - Update nekomata engineer output style templates with enhanced self-reference and user address specifications
   - Improve nekomata engineer identity recognition descriptions with bilingual template consistency
 
-  注：本版本变更主要涉及 BMad 模板优化。其他 BMad 系统文件的批量更新为 bmad-init 触发的自动同步，非 ZCF 核心功能变更。
+  注：本版本变更主要涉及 BMad 模板优化。其他 BMad 系统文件的批量更新为 bmad-init 触发的自动同步，非 CCJK 核心功能变更。
 
-  Note: This version primarily focuses on BMad template optimization. Other bulk BMad system file updates are automatic synchronizations triggered by bmad-init, not ZCF core functionality changes.
+  Note: This version primarily focuses on BMad template optimization. Other bulk BMad system file updates are automatic synchronizations triggered by bmad-init, not CCJK core functionality changes.
 
 ## 2.12.2
 
@@ -1647,14 +1647,14 @@
 ### Patch Changes
 
 - ## 新功能
-  - 添加 git-worktree 命令，支持在 .zcf/ 目录下管理多个工作树
+  - 添加 git-worktree 命令，支持在 .ccjk/ 目录下管理多个工作树
   - 支持 worktree 的创建、列表、删除和迁移操作
   - 自动配置 git 忽略规则，避免 worktree 目录被意外提交
   - 支持 IDE 快速打开 worktree (VS Code, Cursor, WebStorm)
   - 支持跨 worktree 内容迁移，包括未提交更改和 stash 内容
 
   ## New Features
-  - Add git-worktree command for managing multiple working trees in .zcf/ directory
+  - Add git-worktree command for managing multiple working trees in .ccjk/ directory
   - Support worktree add, list, remove, and migrate operations
   - Automatically configure git ignore rules to prevent worktree directories from being committed
   - Support quick IDE opening for worktrees (VS Code, Cursor, WebStorm)
@@ -1802,13 +1802,13 @@
 
 - ## 新功能
   - 新增 Git 工作流命令套件，包含智能提交、安全回滚、分支清理功能
-  - 添加 /zcf-update-docs 命令，自动检查并同步文档与代码实现
+  - 添加 /ccjk-update-docs 命令，自动检查并同步文档与代码实现
   - Git 命令支持自动暂存、智能生成提交信息、批量分支清理
   - 感谢@konbakuyomu 提供的 git commands
 
   ## New Features
   - Add Git workflow command suite with smart commit, safe rollback, and branch cleanup
-  - Add /zcf-update-docs command for automatic documentation synchronization
+  - Add /ccjk-update-docs command for automatic documentation synchronization
   - Git commands support auto-staging, intelligent commit message generation, and batch branch cleanup
   - Thank you to @konbakuyomu for providing these Git commands
 
@@ -1989,11 +1989,11 @@
 ### Patch Changes
 
 - ## 文档
-  - 更新 zcf-release 命令文档，强调不手动创建标签的重要性
+  - 更新 ccjk-release 命令文档，强调不手动创建标签的重要性
   - 改进发布流程说明，明确 GitHub Actions 自动化处理
 
   ## Documentation
-  - Update zcf-release command documentation to emphasize no manual tag creation
+  - Update ccjk-release command documentation to emphasize no manual tag creation
   - Improve release workflow documentation, clarify GitHub Actions automation
 
 ## 2.6.0
@@ -2218,13 +2218,13 @@
 
 - ## 新功能
   - 添加技术执行指南文档，提供命令执行最佳实践
-  - 新增 /zcf-release 自动化发版命令
+  - 新增 /ccjk-release 自动化发版命令
   - 支持跨平台路径处理，自动为包含空格的路径添加引号
   - 优先使用 ripgrep 提升文件内容搜索性能
 
   ## New Features
   - Add technical execution guidelines with command best practices
-  - Add /zcf-release automated release command
+  - Add /ccjk-release automated release command
   - Support cross-platform path handling with automatic quotes for paths with spaces
   - Prioritize ripgrep for better file content search performance
 
