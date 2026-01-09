@@ -71,14 +71,34 @@
 
 ## 🚀 快速入门
 
-### 第一步：安装CCJK（30秒）
+### 一键安装（推荐）
 
 ```bash
-# 方式A：直接运行（推荐新手使用）
-npx ccjk
+# 方式一：使用 npmmirror 镜像（国内最快）
+npm install -g ccjk --registry https://registry.npmmirror.com
 
-# 方式B：全局安装
-npm install -g ccjk
+# 方式二：使用 ghproxy 镜像
+curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+
+# 方式三：使用 jsdelivr CDN
+curl -fsSL https://cdn.jsdelivr.net/gh/miounet11/ccjk@main/install.sh | bash
+
+# 方式四：国际线路（需科学上网）
+curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+```
+
+### 其他安装方式
+
+```bash
+# 方式A：克隆仓库手动安装
+git clone https://github.com/miounet11/ccjk.git
+cd ccjk && pnpm install && pnpm build && npm install -g .
+
+# 方式B：从 GitHub 直接安装
+npm install -g git+https://github.com/miounet11/ccjk.git
+
+# 方式C：直接运行（无需安装）
+npx ccjk
 ```
 
 ### 第二步：配置API

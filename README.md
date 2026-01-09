@@ -79,6 +79,19 @@
 curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
 ```
 
+### 🇨🇳 中国用户安装 (China Mirror)
+
+```bash
+# 方式一：使用 ghproxy 镜像
+curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+
+# 方式二：使用 npmmirror 直接安装
+npm install -g ccjk --registry https://registry.npmmirror.com
+
+# 方式三：使用 jsdelivr CDN
+curl -fsSL https://cdn.jsdelivr.net/gh/miounet11/ccjk@main/install.sh | bash
+```
+
 ### Alternative Installation Methods
 
 ```bash
@@ -88,6 +101,10 @@ cd ccjk && pnpm install && pnpm build && npm install -g .
 
 # Option B: Install from GitHub directly
 npm install -g git+https://github.com/miounet11/ccjk.git
+
+# Option C: Use gitee mirror (中国镜像)
+git clone https://gitee.com/mirrors/ccjk.git
+cd ccjk && pnpm install && pnpm build && npm install -g .
 ```
 
 ### Step 2: Configure Your API
