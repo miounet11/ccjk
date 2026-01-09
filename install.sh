@@ -73,46 +73,72 @@ configure_path() {
 }
 
 # ============================================================
-# Check if already installed and working
+# Quick check: Is CCJK already installed?
 # ============================================================
 
-NPM_GLOBAL_BIN=$(get_npm_global_bin)
+# Check in PATH first (fastest)
+if command -v ccjk &> /dev/null; then
+    EXISTING_VERSION=$(ccjk --version 2>/dev/null || echo "unknown")
+    echo -e "${GREEN}✓ CCJK is already installed and working!${NC}"
+    echo -e "${CYAN}Version:${NC} $EXISTING_VERSION"
+    echo ""
+    echo -e "${YELLOW}To reinstall:${NC}"
+    echo -e "  ${GREEN}npm uninstall -g ccjk${NC}"
+    echo -e "  Then run this script again."
+    echo ""
+    echo -e "${CYAN}To use CCJK now:${NC}"
+    echo -e "  ${GREEN}ccjk${NC}"
+    exit 0
+fi
 
-# First, check if ccjk is already installed and accessible
-check_existing_installation() {
-    # Check in PATH
-    if command -v ccjk &> /dev/null; then
-        EXISTING_VERSION=$(ccjk --version 2>/dev/null || echo "unknown")
-        echo -e "${GREEN}✓ CCJK is already installed and working!${NC}"
-        echo -e "${CYAN}Version:${NC} $EXISTING_VERSION"
-        echo ""
-        echo -e "${YELLOW}To reinstall, run:${NC}"
-        echo -e "  ${GREEN}npm uninstall -g ccjk && curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash${NC}"
-        echo ""
-        echo -e "${YELLOW}To use CCJK now:${NC}"
-        echo -e "  ${GREEN}ccjk${NC}"
-        return 0
-    fi
+# Check common npm global bin locations
+check_npm_bin_locations() {
+    local locations=(
+        "/root/.npm-global/bin/ccjk"
+        "/usr/local/bin/ccjk"
+        "/usr/bin/ccjk"
+        "$HOME/.npm-global/bin/ccjk"
+        "$HOME/.local/bin/ccjk"
+    )
 
-    # Check if binary exists but not in PATH
-    if [ -f "$NPM_GLOBAL_BIN/ccjk" ]; then
-        echo -e "${GREEN}✓ CCJK is installed at $NPM_GLOBAL_BIN/ccjk${NC}"
-        echo -e "${YELLOW}But it's not in your PATH. Configuring...${NC}"
-        echo ""
-        configure_path "$NPM_GLOBAL_BIN"
-        echo ""
-        echo -e "${CYAN}To use CCJK now, run:${NC}"
-        echo -e "  ${GREEN}source $(get_shell_rc) && ccjk${NC}"
-        echo ""
-        echo -e "${CYAN}Or run directly:${NC}"
-        echo -e "  ${GREEN}$NPM_GLOBAL_BIN/ccjk${NC}"
-        return 0
+    for loc in "${locations[@]}"; do
+        if [ -f "$loc" ]; then
+            echo "$loc"
+            return 0
+        fi
+    done
+
+    # Try npm prefix
+    if command -v npm &> /dev/null; then
+        local npm_bin="$(npm prefix -g 2>/dev/null)/bin/ccjk"
+        if [ -f "$npm_bin" ]; then
+            echo "$npm_bin"
+            return 0
+        fi
     fi
 
     return 1
 }
 
-if check_existing_installation; then
+EXISTING_BIN=$(check_npm_bin_locations)
+if [ -n "$EXISTING_BIN" ]; then
+    echo -e "${GREEN}✓ CCJK found at: $EXISTING_BIN${NC}"
+    echo -e "${YELLOW}But it's not in your PATH. Configuring...${NC}"
+    echo ""
+
+    NPM_BIN_DIR=$(dirname "$EXISTING_BIN")
+    configure_path "$NPM_BIN_DIR"
+
+    echo ""
+    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}  ✓ PATH Configured!${NC}"
+    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "${CYAN}To use CCJK now, run:${NC}"
+    echo -e "  ${GREEN}source $(get_shell_rc) && ccjk${NC}"
+    echo ""
+    echo -e "${CYAN}Or run directly:${NC}"
+    echo -e "  ${GREEN}$EXISTING_BIN${NC}"
     exit 0
 fi
 
