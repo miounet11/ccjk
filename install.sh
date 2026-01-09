@@ -260,7 +260,26 @@ else
     # Running via pipe (curl | bash)
     echo -e "${GREEN}Installation complete!${NC}"
     echo ""
-    echo -e "${YELLOW}To start using CCJK, run:${NC}"
-    echo -e "  ${GREEN}ccjk${NC}"
-    echo ""
+
+    # Always show PATH instructions when running via pipe
+    NPM_BIN_CHECK=$(npm prefix -g)/bin
+    if ! command -v ccjk &> /dev/null; then
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}⚠️  IMPORTANT: You need to add npm to your PATH!${NC}"
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo ""
+        echo -e "${CYAN}Run these commands:${NC}"
+        echo ""
+        echo -e "  ${GREEN}echo 'export PATH=\"$NPM_BIN_CHECK:\$PATH\"' >> ~/.bashrc${NC}"
+        echo -e "  ${GREEN}source ~/.bashrc${NC}"
+        echo -e "  ${GREEN}ccjk${NC}"
+        echo ""
+        echo -e "${CYAN}Or run directly:${NC}"
+        echo -e "  ${GREEN}$NPM_BIN_CHECK/ccjk${NC}"
+        echo ""
+    else
+        echo -e "${YELLOW}To start using CCJK, run:${NC}"
+        echo -e "  ${GREEN}ccjk${NC}"
+        echo ""
+    fi
 fi
