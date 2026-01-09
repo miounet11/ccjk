@@ -121,26 +121,66 @@ check_npm_bin_locations() {
     return 1
 }
 
+# Check if a symlink is broken (exists as link but target doesn't exist)
+is_broken_symlink() {
+    local path="$1"
+    # -L checks if it's a symlink, ! -e checks if target doesn't exist
+    [ -L "$path" ] && [ ! -e "$path" ]
+}
+
+# Clean up broken installation
+cleanup_broken_install() {
+    local bin_path="$1"
+    echo -e "${YELLOW}⚠ Detected broken installation at: $bin_path${NC}"
+    echo -e "${CYAN}  Cleaning up and reinstalling...${NC}"
+    echo ""
+
+    # Remove broken symlink
+    rm -f "$bin_path" 2>/dev/null
+
+    # Try to find and remove broken npm module
+    local npm_prefix=$(npm prefix -g 2>/dev/null)
+    if [ -n "$npm_prefix" ]; then
+        local module_path="$npm_prefix/lib/node_modules/ccjk"
+        if [ -d "$module_path" ] || [ -L "$module_path" ]; then
+            rm -rf "$module_path" 2>/dev/null
+        fi
+    fi
+
+    # Also try npm uninstall to be thorough
+    npm uninstall -g ccjk 2>/dev/null || true
+
+    echo -e "${GREEN}✓ Cleaned up broken installation${NC}"
+    echo ""
+}
+
 EXISTING_BIN=$(check_npm_bin_locations)
 if [ -n "$EXISTING_BIN" ]; then
-    echo -e "${GREEN}✓ CCJK found at: $EXISTING_BIN${NC}"
-    echo -e "${YELLOW}But it's not in your PATH. Configuring...${NC}"
-    echo ""
+    # Check if it's a broken symlink
+    if is_broken_symlink "$EXISTING_BIN"; then
+        cleanup_broken_install "$EXISTING_BIN"
+        # Continue to fresh install below
+    else
+        # Valid installation, just needs PATH config
+        echo -e "${GREEN}✓ CCJK found at: $EXISTING_BIN${NC}"
+        echo -e "${YELLOW}But it's not in your PATH. Configuring...${NC}"
+        echo ""
 
-    NPM_BIN_DIR=$(dirname "$EXISTING_BIN")
-    configure_path "$NPM_BIN_DIR"
+        NPM_BIN_DIR=$(dirname "$EXISTING_BIN")
+        configure_path "$NPM_BIN_DIR"
 
-    echo ""
-    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}  ✓ PATH Configured!${NC}"
-    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-    echo ""
-    echo -e "${CYAN}To use CCJK now, run:${NC}"
-    echo -e "  ${GREEN}source $(get_shell_rc) && ccjk${NC}"
-    echo ""
-    echo -e "${CYAN}Or run directly:${NC}"
-    echo -e "  ${GREEN}$EXISTING_BIN${NC}"
-    exit 0
+        echo ""
+        echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+        echo -e "${GREEN}  ✓ PATH Configured!${NC}"
+        echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+        echo ""
+        echo -e "${CYAN}To use CCJK now, run:${NC}"
+        echo -e "  ${GREEN}source $(get_shell_rc) && ccjk${NC}"
+        echo ""
+        echo -e "${CYAN}Or run directly:${NC}"
+        echo -e "  ${GREEN}$EXISTING_BIN${NC}"
+        exit 0
+    fi
 fi
 
 # ============================================================
