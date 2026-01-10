@@ -47,6 +47,7 @@ import { configureOutputStyle } from '../utils/output-style'
 import { isTermux, isWindows } from '../utils/platform'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { resolveAiOutputLanguage } from '../utils/prompts'
+import { checkSuperpowersInstalled, installSuperpowers } from '../utils/superpowers/installer'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { formatApiKeyDisplay } from '../utils/validator'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
@@ -75,6 +76,7 @@ export interface InitOptions {
   defaultOutputStyle?: string
   allLang?: string // New: unified language parameter
   installCometixLine?: string | boolean // New: CCometixLine installation control
+  installSuperpowers?: string | boolean // New: Superpowers installation control
   // Multi-configuration parameters
   apiConfigs?: string // JSON string for multiple API configurations
   apiConfigsFile?: string // Path to JSON file with API configurations
@@ -146,6 +148,14 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
   }
   if (options.installCometixLine === undefined) {
     options.installCometixLine = true
+  }
+
+  // Parse installSuperpowers parameter
+  if (typeof options.installSuperpowers === 'string') {
+    options.installSuperpowers = options.installSuperpowers.toLowerCase() === 'true'
+  }
+  if (options.installSuperpowers === undefined) {
+    options.installSuperpowers = false // Default to false (opt-in)
   }
 
   // Validate configAction
@@ -263,6 +273,72 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
     options.workflows = 'all'
     // Convert "all" to actual workflow array
     options.workflows = WORKFLOW_CONFIG_BASE.map(w => w.id)
+  }
+}
+
+/**
+ * Handle Superpowers installation
+ * @param options - Init options
+ */
+async function handleSuperpowersInstallation(options: InitOptions): Promise<void> {
+  try {
+    // Check if already installed
+    const status = await checkSuperpowersInstalled()
+
+    if (status.installed) {
+      console.log(ansis.green(`✔ ${i18n.t('superpowers:alreadyInstalled')}`))
+      if (status.version) {
+        console.log(ansis.gray(`  ${i18n.t('superpowers:status.version', { version: status.version })}`))
+      }
+      if (status.skillCount) {
+        console.log(ansis.gray(`  ${i18n.t('superpowers:status.skillCount', { count: status.skillCount })}`))
+      }
+      return
+    }
+
+    // Determine if we should install
+    let shouldInstall = false
+
+    if (options.skipPrompt) {
+      // Use the installSuperpowers option (default: false)
+      shouldInstall = options.installSuperpowers === true
+    }
+    else {
+      // Show interactive prompt with description
+      console.log(ansis.cyan(`\n${i18n.t('superpowers:title')}`))
+      console.log(ansis.gray(i18n.t('superpowers:description')))
+      console.log(ansis.gray(i18n.t('superpowers:installPromptDescription')))
+
+      shouldInstall = await promptBoolean({
+        message: i18n.t('superpowers:installPrompt'),
+        defaultValue: false,
+      })
+    }
+
+    if (!shouldInstall) {
+      console.log(ansis.yellow(i18n.t('common:skip')))
+      return
+    }
+
+    // Install Superpowers
+    const result = await installSuperpowers({
+      lang: i18n.language as SupportedLang,
+      skipPrompt: options.skipPrompt,
+    })
+
+    if (result.success) {
+      console.log(ansis.green(`✔ ${result.message}`))
+    }
+    else {
+      console.error(ansis.red(`✖ ${result.message}`))
+      if (result.error) {
+        console.error(ansis.gray(`  ${result.error}`))
+      }
+    }
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${i18n.t('superpowers:installFailed')}: ${errorMessage}`))
   }
 }
 
@@ -992,6 +1068,24 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
     else {
       console.log(ansis.green(`✔ ${i18n.t('cometix:cometixAlreadyInstalled')}`))
+    }
+
+    // Step 11.5: Superpowers installation (optional)
+    if (!options.skipPrompt || options.installSuperpowers) {
+      await handleSuperpowersInstallation(options)
+    }
+
+    // Step 11.6: Smart Guide injection (auto-enable for better UX)
+    try {
+      const { injectSmartGuide } = await import('../utils/smart-guide')
+      const smartGuideSuccess = await injectSmartGuide(configLang as SupportedLang)
+      if (smartGuideSuccess) {
+        console.log(ansis.green(`✔ ${i18n.t('smartGuide:enabled')}`))
+      }
+    }
+    catch {
+      // Silent fail - smart guide is optional
+      console.log(ansis.gray(`ℹ ${i18n.t('smartGuide:skipped')}`))
     }
 
     // Step 12: Save ccjk config

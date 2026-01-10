@@ -1,0 +1,49 @@
+{
+  "enabled": "智能助手已启用 - 在 Claude Code 中输入数字 (1-8) 快速执行操作",
+  "skipped": "智能助手设置已跳过",
+  "disabled": "智能助手已禁用",
+  "title": "🎯 智能助手",
+  "description": "在 Claude Code 中输入数字即可执行操作",
+  "status": "状态",
+  "statusEnabled": "已启用",
+  "statusDisabled": "未启用",
+  "enable": "启用智能助手",
+  "update": "更新智能助手",
+  "disable": "禁用智能助手",
+  "viewCard": "查看技能速查卡",
+  "enableSuccess": "智能助手已启用",
+  "enableFailed": "启用智能助手失败",
+  "disableSuccess": "智能助手已禁用",
+  "disableFailed": "禁用智能助手失败",
+  "notEnabled": "智能助手未启用",
+  "quickActions": {
+    "title": "🚀 快捷操作",
+    "prompt": "输入数字 (1-8) 或描述你的任务...",
+    "back": "输入数字 (1-8) 或 0 返回:",
+    "executing": "执行",
+    "command": "命令",
+    "tip": "提示: 在 Claude Code 中输入 \"{{command}}\" 或直接输入 \"{{number}}\" 来执行此操作"
+  },
+  "actions": {
+    "smartCommit": "智能提交",
+    "smartCommitDesc": "自动生成 commit 消息",
+    "codeReview": "代码审查",
+    "codeReviewDesc": "深度两阶段代码审查",
+    "writeTests": "编写测试",
+    "writeTestsDesc": "TDD 工作流",
+    "planFeature": "规划功能",
+    "planFeatureDesc": "6步开发流程",
+    "debugIssue": "调试问题",
+    "debugIssueDesc": "系统性调试",
+    "brainstorm": "头脑风暴",
+    "brainstormDesc": "探索想法和方案",
+    "verifyCode": "验证代码",
+    "verifyCodeDesc": "质量验证",
+    "writeDocs": "写文档",
+    "writeDocsDesc": "生成文档"
+  },
+  "referenceCard": {
+    "title": "CCJK 技能速查卡",
+    "tip": "提示: 直接输入数字，Claude 会自动执行对应操作"
+  }
+}

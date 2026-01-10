@@ -1,4 +1,7 @@
 {
+  "menuSections.ccjkFeatures": "CCJK 功能",
+  "menuSections.recommendedPlugins": "推荐插件",
+  "menuSections.marketplace": "插件市场",
   "menuDescriptions.ccrManagement": "配置 Claude Code Router 以使用多个 AI 模型",
   "menuDescriptions.ccusage": "Claude Code 用量分析",
   "menuDescriptions.changeLanguage": "更改 CCJK 界面语言",
@@ -36,6 +39,10 @@
   "menuOptions.codexUninstall": "卸载 Codex",
   "menuOptions.codexCheckUpdates": "检查 Codex 更新",
   "menuSections.otherTools": "其他工具",
+  "menuOptions.superpowers": "Superpowers",
+  "menuOptions.marketplace": "插件市场",
+  "menuDescriptions.superpowers": "安装 Superpowers 技能系统，增强 AI 工作流",
+  "menuDescriptions.marketplace": "浏览和安装插件、技能和工作流",
   "menuDescriptions.switchCodeTool": "在支持的代码工具之间切换 (Claude Code, Codex)",
   "menuDescriptions.codexFullInit": "安装 Codex + 导入工作流 + 配置 API + 配置 MCP 服务",
   "menuDescriptions.codexImportWorkflow": "仅导入/更新 Codex 工作流相关文件",
@@ -47,5 +54,35 @@
   "menuDescriptions.codexCheckUpdates": "检查并更新 Codex",
   "switchCodeToolPrompt": "请选择代码工具类型",
   "codeToolSwitched": "已切换为 {{tool}}",
-  "selectFunction": "请选择功能"
+  "selectFunction": "请选择功能",
+
+  "menuOptions.workflowsAndSkills": "工作流与技能",
+  "menuOptions.outputStyles": "输出风格",
+  "menuOptions.configSwitch": "配置切换",
+
+  "menuDescriptions.workflowsAndSkills": "查看和管理已安装的工作流和技能",
+  "menuDescriptions.outputStyles": "配置 AI 输出风格 (专家简洁/教学模式/结对编程等)",
+  "menuDescriptions.configSwitch": "在多个 API 配置之间快速切换",
+
+  "ccjkFeatures.workflowsTitle": "工作流与技能管理",
+  "ccjkFeatures.viewInstalledWorkflows": "查看已安装的工作流",
+  "ccjkFeatures.viewInstalledSkills": "查看已安装的技能",
+  "ccjkFeatures.installNewWorkflow": "安装新工作流",
+  "ccjkFeatures.noWorkflowsInstalled": "未安装任何工作流",
+  "ccjkFeatures.noSkillsInstalled": "未安装任何技能",
+  "ccjkFeatures.workflowCount": "已安装 {{count}} 个工作流",
+  "ccjkFeatures.skillCount": "已安装 {{count}} 个技能",
+
+  "ccjkFeatures.outputStylesTitle": "输出风格配置",
+  "ccjkFeatures.currentStyle": "当前风格: {{style}}",
+  "ccjkFeatures.selectStyle": "选择输出风格",
+  "ccjkFeatures.styleChanged": "输出风格已更改为 {{style}}",
+  "ccjkFeatures.availableStyles": "可用的输出风格:",
+
+  "ccjkFeatures.configSwitchTitle": "API 配置切换",
+  "ccjkFeatures.currentConfig": "当前配置: {{config}}",
+  "ccjkFeatures.selectConfig": "选择 API 配置",
+  "ccjkFeatures.configChanged": "已切换到 {{config}}",
+  "ccjkFeatures.noConfigs": "没有其他可用配置",
+  "ccjkFeatures.availableConfigs": "可用配置:"
 }

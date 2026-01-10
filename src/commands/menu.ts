@@ -18,10 +18,34 @@ import {
   configureEnvPermissionFeature,
   configureMcpFeature,
 } from '../utils/features'
+import {
+  checkForUpdates,
+  getInstalledPackages,
+} from '../utils/marketplace/index.js'
+import {
+  searchPackages,
+} from '../utils/marketplace/registry.js'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
+import {
+  generateQuickActionsPanel,
+  generateSkillReferenceCard,
+  injectSmartGuide,
+  isSmartGuideInstalled,
+  QUICK_ACTIONS,
+  removeSmartGuide,
+} from '../utils/smart-guide'
+import {
+  checkSuperpowersInstalled,
+  getSuperpowersSkills,
+  installSuperpowers,
+  installSuperpowersViaGit,
+  uninstallSuperpowers,
+  updateSuperpowers,
+} from '../utils/superpowers/index.js'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../utils/tools'
 import { checkUpdates } from './check-updates'
+import { configSwitchCommand } from './config-switch'
 import { init } from './init'
 import { uninstall } from './uninstall'
 import { update } from './update'
@@ -87,8 +111,507 @@ async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
   return true
 }
 
-function printOtherToolsSection(): void {
-  console.log(`  --------- ${i18n.t('menu:menuSections.otherTools')} ----------`)
+async function showSuperpowersMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('superpowers:menu.title')))
+  console.log('  -------- Superpowers --------')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('superpowers:menu.install')} ${ansis.gray(`- ${i18n.t('superpowers:menu.installDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('superpowers:menu.uninstall')} ${ansis.gray(`- ${i18n.t('superpowers:menu.uninstallDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('superpowers:menu.update')} ${ansis.gray(`- ${i18n.t('superpowers:menu.updateDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('superpowers:menu.checkStatus')} ${ansis.gray(`- ${i18n.t('superpowers:menu.checkStatusDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('superpowers:menu.viewSkills')} ${ansis.gray(`- ${i18n.t('superpowers:menu.viewSkillsDesc')}`)}`,
+  )
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('superpowers:menu.back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '5', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  switch (choice) {
+    case '1': {
+      // Install Superpowers
+      const { method } = await inquirer.prompt<{ method: string }>({
+        type: 'list',
+        name: 'method',
+        message: i18n.t('superpowers:install.selectMethod'),
+        choices: addNumbersToChoices([
+          { name: i18n.t('superpowers:install.methodNpm'), value: 'npm' },
+          { name: i18n.t('superpowers:install.methodGit'), value: 'git' },
+        ]),
+      })
+
+      if (method === 'npm') {
+        await installSuperpowers({ lang: i18n.language as SupportedLang })
+      }
+      else if (method === 'git') {
+        await installSuperpowersViaGit()
+      }
+      break
+    }
+    case '2': {
+      // Uninstall Superpowers
+      const status = await checkSuperpowersInstalled()
+      if (!status.installed) {
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        break
+      }
+
+      const { confirm } = await inquirer.prompt<{ confirm: boolean }>({
+        type: 'confirm',
+        name: 'confirm',
+        message: i18n.t('superpowers:uninstall.confirm'),
+        default: false,
+      })
+
+      if (confirm) {
+        await uninstallSuperpowers()
+      }
+      else {
+        console.log(ansis.yellow(i18n.t('common:cancelled')))
+      }
+      break
+    }
+    case '3': {
+      // Update Superpowers
+      const status = await checkSuperpowersInstalled()
+      if (!status.installed) {
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        break
+      }
+
+      await updateSuperpowers()
+      break
+    }
+    case '4': {
+      // Check Status
+      const status = await checkSuperpowersInstalled()
+      if (status.installed) {
+        console.log(ansis.green(`✔ ${i18n.t('superpowers:status.installed')}`))
+      }
+      else {
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+      }
+      break
+    }
+    case '5': {
+      // View Available Skills
+      const status = await checkSuperpowersInstalled()
+      if (!status.installed) {
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        break
+      }
+
+      const skills = await getSuperpowersSkills()
+      if (skills.length === 0) {
+        console.log(ansis.yellow(i18n.t('superpowers:skills.noSkills')))
+      }
+      else {
+        console.log(ansis.cyan(i18n.t('superpowers:skills.available')))
+        skills.forEach((skill) => {
+          console.log(`  ${ansis.green('•')} ${skill}`)
+        })
+      }
+      break
+    }
+    case '0':
+      // Back to main menu
+      return
+    default:
+      return
+  }
+
+  printSeparator()
+}
+
+async function showMarketplaceMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('marketplace:menu.title')))
+  console.log('  -------- Marketplace --------')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('marketplace:menu.search')} ${ansis.gray(`- ${i18n.t('marketplace:commands.search')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('marketplace:menu.browse')} ${ansis.gray(`- Browse by category`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('marketplace:menu.installed')} ${ansis.gray(`- ${i18n.t('marketplace:commands.list')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('marketplace:menu.updates')} ${ansis.gray(`- ${i18n.t('marketplace:commands.update')}`)}`,
+  )
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('marketplace:menu.back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  switch (choice) {
+    case '1': {
+      // Search packages
+      const { query } = await inquirer.prompt<{ query: string }>({
+        type: 'input',
+        name: 'query',
+        message: i18n.t('marketplace:prompts.searchQuery'),
+      })
+
+      if (query) {
+        console.log(i18n.t('marketplace:searching', { query }))
+        try {
+          const result = await searchPackages({ query, limit: 10 })
+          if (result.packages.length === 0) {
+            console.log(ansis.yellow(i18n.t('marketplace:noResults')))
+          }
+          else {
+            console.log(ansis.green(i18n.t('marketplace:searchResults', { count: result.total })))
+            console.log('')
+            for (const pkg of result.packages) {
+              console.log(`  ${ansis.cyan(pkg.id)} ${ansis.gray(`v${pkg.version}`)}`)
+              const description = pkg.description.en || Object.values(pkg.description)[0] || ''
+              console.log(`    ${ansis.dim(description)}`)
+            }
+          }
+        }
+        catch {
+          console.error(ansis.red(i18n.t('marketplace:searchFailed')))
+        }
+      }
+      break
+    }
+    case '2': {
+      // Browse categories
+      console.log(ansis.cyan(i18n.t('marketplace:categories.plugin')))
+      console.log(ansis.dim('Category browsing coming soon...'))
+      break
+    }
+    case '3': {
+      // List installed packages
+      try {
+        const installed = await getInstalledPackages()
+        if (installed.length === 0) {
+          console.log(ansis.yellow(i18n.t('marketplace:noInstalled')))
+        }
+        else {
+          console.log(ansis.green(i18n.t('marketplace:installedPackages', { count: installed.length })))
+          console.log('')
+          for (const pkg of installed) {
+            const status = pkg.enabled ? ansis.green('●') : ansis.gray('○')
+            console.log(`  ${status} ${ansis.cyan(pkg.package.id)} ${ansis.gray(`v${pkg.package.version}`)}`)
+          }
+        }
+      }
+      catch {
+        console.error(ansis.red(i18n.t('marketplace:listFailed')))
+      }
+      break
+    }
+    case '4': {
+      // Check for updates
+      console.log(i18n.t('marketplace:checkingUpdates'))
+      try {
+        const updates = await checkForUpdates()
+        if (updates.length === 0) {
+          console.log(ansis.green(i18n.t('marketplace:noUpdates')))
+        }
+        else {
+          console.log(ansis.cyan(i18n.t('marketplace:updatesAvailable', { count: updates.length })))
+          console.log('')
+          for (const update of updates) {
+            console.log(`  ${ansis.cyan(update.id)}: ${update.currentVersion} → ${ansis.green(update.latestVersion)}`)
+          }
+        }
+      }
+      catch {
+        console.error(ansis.red(i18n.t('marketplace:updateCheckFailed')))
+      }
+      break
+    }
+    case '0':
+      // Back to main menu
+      return
+    default:
+      return
+  }
+
+  printSeparator()
+  // Return to marketplace menu
+  await showMarketplaceMenu()
+}
+
+async function showQuickActionsMenu(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log(ansis.cyan(isZh ? '🚀 快捷操作' : '🚀 Quick Actions'))
+  console.log('')
+  console.log(generateQuickActionsPanel(lang))
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: isZh ? '输入数字 (1-8) 或 0 返回:' : 'Enter number (1-8) or 0 to go back:',
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '0', '?']
+      return valid.includes(value) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  if (choice === '?') {
+    // Show skill reference card
+    console.log('')
+    console.log(generateSkillReferenceCard(lang))
+    console.log('')
+    printSeparator()
+    await showQuickActionsMenu()
+    return
+  }
+
+  const actionNum = Number.parseInt(choice, 10)
+  const action = QUICK_ACTIONS.find(a => a.id === actionNum)
+
+  if (action) {
+    const actionName = isZh ? action.nameZh : action.name
+    console.log('')
+    console.log(ansis.green(`✔ ${isZh ? '执行' : 'Executing'}: ${action.icon} ${actionName}`))
+    console.log(ansis.gray(`${isZh ? '命令' : 'Command'}: ${action.command}`))
+    console.log('')
+    console.log(ansis.cyan(isZh
+      ? `💡 提示: 在 Claude Code 中输入 "${action.command}" 或直接输入 "${choice}" 来执行此操作`
+      : `💡 Tip: In Claude Code, type "${action.command}" or just "${choice}" to execute this action`))
+  }
+
+  printSeparator()
+}
+
+async function showSmartGuideMenu(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+  const installed = await isSmartGuideInstalled()
+
+  console.log(ansis.cyan(isZh ? '🎯 智能助手' : '🎯 Smart Assistant'))
+  console.log('')
+  console.log(isZh
+    ? '智能助手让你在 Claude Code 中通过输入数字快速执行操作'
+    : 'Smart Assistant lets you execute actions by typing numbers in Claude Code')
+  console.log('')
+  console.log(`  ${isZh ? '状态' : 'Status'}: ${installed ? ansis.green(isZh ? '已启用' : 'Enabled') : ansis.yellow(isZh ? '未启用' : 'Disabled')}`)
+  console.log('')
+  console.log(`  ${ansis.cyan('1.')} ${installed ? (isZh ? '更新智能助手' : 'Update Smart Assistant') : (isZh ? '启用智能助手' : 'Enable Smart Assistant')}`)
+  console.log(`  ${ansis.cyan('2.')} ${isZh ? '禁用智能助手' : 'Disable Smart Assistant'}`)
+  console.log(`  ${ansis.cyan('3.')} ${isZh ? '查看技能速查卡' : 'View Skills Reference Card'}`)
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  switch (choice) {
+    case '1': {
+      const success = await injectSmartGuide(lang)
+      if (success) {
+        console.log(ansis.green(`✔ ${isZh ? '智能助手已启用' : 'Smart Assistant enabled'}`))
+      }
+      else {
+        console.log(ansis.red(isZh ? '启用失败' : 'Failed to enable'))
+      }
+      break
+    }
+    case '2': {
+      if (!installed) {
+        console.log(ansis.yellow(isZh ? '智能助手未启用' : 'Smart Assistant is not enabled'))
+        break
+      }
+      const success = await removeSmartGuide()
+      if (success) {
+        console.log(ansis.green(`✔ ${isZh ? '智能助手已禁用' : 'Smart Assistant disabled'}`))
+      }
+      else {
+        console.log(ansis.red(isZh ? '禁用失败' : 'Failed to disable'))
+      }
+      break
+    }
+    case '3': {
+      console.log('')
+      console.log(generateSkillReferenceCard(lang))
+      break
+    }
+  }
+
+  printSeparator()
+}
+
+async function showWorkflowsAndSkillsMenu(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log(ansis.cyan(i18n.t('menu:ccjkFeatures.workflowsTitle')))
+  console.log('  -------- Workflows & Skills --------')
+  console.log(`  ${ansis.cyan('1.')} ${i18n.t('menu:ccjkFeatures.viewInstalledWorkflows')}`)
+  console.log(`  ${ansis.cyan('2.')} ${i18n.t('menu:ccjkFeatures.viewInstalledSkills')}`)
+  console.log(`  ${ansis.cyan('3.')} ${i18n.t('menu:ccjkFeatures.installNewWorkflow')}`)
+  console.log(`  ${ansis.cyan('4.')} ${isZh ? '🚀 快捷操作面板' : '🚀 Quick Actions Panel'}`)
+  console.log(`  ${ansis.cyan('5.')} ${isZh ? '🎯 智能助手设置' : '🎯 Smart Assistant Settings'}`)
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '5', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  switch (choice) {
+    case '1': {
+      // View installed workflows - placeholder implementation
+      console.log(ansis.cyan(i18n.t('menu:ccjkFeatures.availableStyles')))
+      console.log(ansis.dim('Feature coming soon - will show installed workflows'))
+      break
+    }
+    case '2': {
+      // View installed skills - use existing Superpowers functionality
+      const status = await checkSuperpowersInstalled()
+      if (!status.installed) {
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        break
+      }
+
+      const skills = await getSuperpowersSkills()
+      if (skills.length === 0) {
+        console.log(ansis.yellow(i18n.t('menu:ccjkFeatures.noSkillsInstalled')))
+      }
+      else {
+        console.log(ansis.cyan(i18n.t('menu:ccjkFeatures.skillCount', { count: skills.length })))
+        console.log('')
+        skills.forEach((skill) => {
+          console.log(`  ${ansis.green('•')} ${skill}`)
+        })
+      }
+      break
+    }
+    case '3': {
+      // Install new workflow - redirect to update command
+      await update({ skipBanner: true })
+      break
+    }
+    case '4': {
+      // Quick Actions Panel
+      printSeparator()
+      await showQuickActionsMenu()
+      return
+    }
+    case '5': {
+      // Smart Assistant Settings
+      printSeparator()
+      await showSmartGuideMenu()
+      return
+    }
+    case '0':
+      return
+    default:
+      return
+  }
+
+  printSeparator()
+}
+
+async function showOutputStylesMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:ccjkFeatures.outputStylesTitle')))
+  console.log('')
+
+  // Placeholder implementation - will be enhanced with actual output style management
+  console.log(ansis.cyan(i18n.t('menu:ccjkFeatures.availableStyles')))
+  console.log(`  ${ansis.green('•')} speed-coder`)
+  console.log(`  ${ansis.green('•')} senior-architect`)
+  console.log(`  ${ansis.green('•')} pair-programmer`)
+  console.log(`  ${ansis.green('•')} expert-concise`)
+  console.log(`  ${ansis.green('•')} teaching-mode`)
+  console.log(`  ${ansis.green('•')} casual-friendly`)
+  console.log(`  ${ansis.green('•')} technical-precise`)
+  console.log('')
+  console.log(ansis.dim('Tip: Output styles are configured during initialization or via "Configure Claude global memory"'))
+
+  printSeparator()
+}
+
+async function showConfigSwitchMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:ccjkFeatures.configSwitchTitle')))
+  console.log('')
+
+  // Use existing config-switch functionality
+  await configSwitchCommand({ codeType: 'claude-code' })
+}
+
+function printCcjkFeaturesSection(): void {
+  console.log(`  -------- ${i18n.t('menu:menuSections.ccjkFeatures')} --------`)
+  console.log(
+    `  ${ansis.cyan('W.')} ${i18n.t('menu:menuOptions.workflowsAndSkills')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.workflowsAndSkills')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('O.')} ${i18n.t('menu:menuOptions.outputStyles')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.outputStyles')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('C.')} ${i18n.t('menu:menuOptions.configSwitch')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.configSwitch')}`)}`,
+  )
+  console.log('')
+}
+
+function printRecommendedPluginsSection(): void {
+  console.log(`  -------- ${i18n.t('menu:menuSections.recommendedPlugins')} --------`)
   console.log(
     `  ${ansis.cyan('R.')} ${i18n.t('menu:menuOptions.ccrManagement')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.ccrManagement')}`)}`,
   )
@@ -97,6 +620,12 @@ function printOtherToolsSection(): void {
   )
   console.log(
     `  ${ansis.cyan('L.')} ${i18n.t('menu:menuOptions.cometixLine')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.cometixLine')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('P.')} ${i18n.t('menu:menuOptions.superpowers')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.superpowers')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('M.')} ${i18n.t('menu:menuOptions.marketplace')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.marketplace')}`)}`,
   )
   console.log('')
 }
@@ -149,7 +678,8 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     `  ${ansis.cyan('7.')} ${i18n.t('menu:menuOptions.configureEnvPermission')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.configureEnvPermission')}`)}`,
   )
   console.log('')
-  printOtherToolsSection()
+  printCcjkFeaturesSection()
+  printRecommendedPluginsSection()
   printZcfSection({
     uninstallOption: i18n.t('menu:menuOptions.uninstall'),
     uninstallDescription: i18n.t('menu:menuDescriptions.uninstall'),
@@ -162,7 +692,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', 'r', 'R', 'u', 'U', 'l', 'L', '0', '-', '+', 's', 'S', 'q', 'Q']
+      const valid = ['1', '2', '3', '4', '5', '6', '7', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', '0', '-', '+', 's', 'S', 'q', 'Q']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -196,6 +726,18 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     case '7':
       await configureEnvPermissionFeature()
       break
+    case 'w':
+      await showWorkflowsAndSkillsMenu()
+      printSeparator()
+      return undefined
+    case 'o':
+      await showOutputStylesMenu()
+      printSeparator()
+      return undefined
+    case 'c':
+      await showConfigSwitchMenu()
+      printSeparator()
+      return undefined
     case 'r':
       await runCcrMenuFeature()
       printSeparator()
@@ -206,6 +748,14 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
       return undefined
     case 'l':
       await runCometixMenuFeature()
+      printSeparator()
+      return undefined
+    case 'p':
+      await showSuperpowersMenu()
+      printSeparator()
+      return undefined
+    case 'm':
+      await showMarketplaceMenu()
       printSeparator()
       return undefined
     case '0': {

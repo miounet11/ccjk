@@ -1,4 +1,7 @@
 {
+  "menuSections.ccjkFeatures": "CCJK Features",
+  "menuSections.recommendedPlugins": "Recommended Plugins",
+  "menuSections.marketplace": "Marketplace",
   "menuDescriptions.ccrManagement": "Configure Claude Code Router to use multiple AI models",
   "menuDescriptions.ccusage": "Claude Code usage analysis",
   "menuDescriptions.changeLanguage": "Change CCJK interface language",
@@ -36,6 +39,10 @@
   "menuOptions.codexUninstall": "Uninstall Codex",
   "menuOptions.codexCheckUpdates": "Check Codex updates",
   "menuSections.otherTools": "Other Tools",
+  "menuOptions.superpowers": "Superpowers",
+  "menuOptions.marketplace": "Marketplace",
+  "menuDescriptions.superpowers": "Install Superpowers skill system for enhanced AI workflows",
+  "menuDescriptions.marketplace": "Browse and install plugins, skills, and workflows",
   "menuDescriptions.switchCodeTool": "Switch between supported code tools (Claude Code, Codex)",
   "menuDescriptions.codexFullInit": "Install Codex + Import workflow + Configure API + Configure MCP",
   "menuDescriptions.codexImportWorkflow": "Import/update Codex workflow-related files",
@@ -47,5 +54,35 @@
   "menuDescriptions.codexCheckUpdates": "Check and update Codex",
   "switchCodeToolPrompt": "Select code tool type",
   "codeToolSwitched": "Code tool switched to {{tool}}",
-  "selectFunction": "Select function"
+  "selectFunction": "Select function",
+
+  "menuOptions.workflowsAndSkills": "Workflows & Skills",
+  "menuOptions.outputStyles": "Output Styles",
+  "menuOptions.configSwitch": "Config Switch",
+
+  "menuDescriptions.workflowsAndSkills": "View and manage installed workflows and skills",
+  "menuDescriptions.outputStyles": "Configure AI output style (expert-concise/teaching-mode/pair-programmer)",
+  "menuDescriptions.configSwitch": "Quickly switch between multiple API configurations",
+
+  "ccjkFeatures.workflowsTitle": "Workflows & Skills Management",
+  "ccjkFeatures.viewInstalledWorkflows": "View installed workflows",
+  "ccjkFeatures.viewInstalledSkills": "View installed skills",
+  "ccjkFeatures.installNewWorkflow": "Install new workflow",
+  "ccjkFeatures.noWorkflowsInstalled": "No workflows installed",
+  "ccjkFeatures.noSkillsInstalled": "No skills installed",
+  "ccjkFeatures.workflowCount": "{{count}} workflows installed",
+  "ccjkFeatures.skillCount": "{{count}} skills installed",
+
+  "ccjkFeatures.outputStylesTitle": "Output Styles Configuration",
+  "ccjkFeatures.currentStyle": "Current style: {{style}}",
+  "ccjkFeatures.selectStyle": "Select output style",
+  "ccjkFeatures.styleChanged": "Output style changed to {{style}}",
+  "ccjkFeatures.availableStyles": "Available output styles:",
+
+  "ccjkFeatures.configSwitchTitle": "API Configuration Switch",
+  "ccjkFeatures.currentConfig": "Current config: {{config}}",
+  "ccjkFeatures.selectConfig": "Select API configuration",
+  "ccjkFeatures.configChanged": "Switched to {{config}}",
+  "ccjkFeatures.noConfigs": "No additional configurations available",
+  "ccjkFeatures.availableConfigs": "Available configurations:"
 }

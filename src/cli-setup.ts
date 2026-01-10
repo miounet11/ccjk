@@ -10,6 +10,7 @@ import { commit } from './commands/commit'
 import { configSwitchCommand } from './commands/config-switch'
 import { init } from './commands/init'
 import { deepInterview, interview, listInterviewSessions, quickInterview, resumeInterview } from './commands/interview'
+import { registerMarketplaceCommands } from './commands/marketplace'
 import { mcpMarket } from './commands/mcp-market'
 import { showMainMenu } from './commands/menu'
 import { exportSession, listSessions, restoreSession, saveSession } from './commands/session'
@@ -536,6 +537,9 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .action(await withLanguageResolution(async (action, args, options) => {
       await mcpMarket(action, args, options)
     }))
+
+  // Marketplace command - Plugin/Extension marketplace
+  await registerMarketplaceCommands(cli, withLanguageResolution)
 
   // Session management command
   cli

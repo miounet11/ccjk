@@ -126,6 +126,7 @@
     "dayjs": "catalog:runtime",
     "find-up-simple": "catalog:runtime",
     "fs-extra": "catalog:runtime",
+    "gray-matter": "catalog:runtime",
     "i18next": "catalog:runtime",
     "i18next-fs-backend": "catalog:runtime",
     "inquirer": "catalog:cli",

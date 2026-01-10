@@ -23,10 +23,14 @@ const NAMESPACES = [
   'installation',
   'interview', // Interview-Driven Development
   'language',
+  'marketplace', // Marketplace system for plugins, skills, and workflows
   'mcp',
   'menu',
   'multi-config',
   'shencha',
+  'skills', // Skills management system
+  'smartGuide', // Smart Guide for quick actions
+  'superpowers', // Superpowers plugin integration
   'team',
   'tools',
   'uninstall',
