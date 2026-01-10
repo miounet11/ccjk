@@ -387,7 +387,7 @@ export const workflowCompleteCleanup: Hook = {
   id: 'builtin-workflow-completed',
   name: 'Workflow Complete Cleanup',
   description: 'Performs cleanup and logs workflow completion statistics',
-  type: 'workflow-complete',
+  type: 'workflow-completed',
   priority: 5,
   enabled: true,
   source: 'builtin',

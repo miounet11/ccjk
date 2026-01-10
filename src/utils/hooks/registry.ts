@@ -277,6 +277,20 @@ export class HookRegistry {
   }
 
   /**
+   * List all hooks with their registry entries
+   *
+   * @returns Array of all registry entries
+   *
+   * @example
+   * ```typescript
+   * const entries = registry.listAll()
+   * ```
+   */
+  listAll(): HookRegistryEntry[] {
+    return Array.from(this.state.hooks.values())
+  }
+
+  /**
    * Filter hooks by criteria
    *
    * Returns hooks matching the specified filter options.
