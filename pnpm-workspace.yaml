@@ -2,6 +2,8 @@ packages:
   - .
   - docs
 
+catalog:
+  '@iarna/toml': ^2.2.5
 catalogs:
   build:
     '@antfu/eslint-config': ^5.4.1

@@ -470,4 +470,4 @@ export function getConfigPath(): string {
 
 - [贡献指南](contributing.md) - 参与开发的详细指南
 - [测试指南](testing.md) - 测试编写和运行
-- [CLAUDE.md](https://github.com/UfoMiao/ccjk/blob/main/CLAUDE.md) - 项目完整架构文档
+- [CLAUDE.md](https://github.com/miounet11/ccjk/blob/main/CLAUDE.md) - 项目完整架构文档

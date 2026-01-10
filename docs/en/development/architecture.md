@@ -470,6 +470,6 @@ Exception Thrown → error-handler Capture → Error Type Judgment → i18n Erro
 
 - [Contribution Guide](contributing.md) - Detailed guide for participating in development
 - [Testing Guide](testing.md) - Test writing and running
-- [CLAUDE.md](https://github.com/UfoMiao/ccjk/blob/main/CLAUDE.md) - Complete project architecture documentation
+- [CLAUDE.md](https://github.com/miounet11/ccjk/blob/main/CLAUDE.md) - Complete project architecture documentation
 
 

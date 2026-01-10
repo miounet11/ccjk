@@ -51,7 +51,7 @@ cd ccjk
 
 ```bash
 # Add upstream repository to sync updates
-git remote add upstream https://github.com/UfoMiao/ccjk.git
+git remote add upstream https://github.com/miounet11/ccjk.git
 
 # Verify remote repositories
 git remote -v

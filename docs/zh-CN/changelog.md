@@ -246,8 +246,8 @@ npx ccjk migrate --from 0.2 --to 0.3
 
 如果你发现任何问题或有功能建议，请：
 
-1. 查看 [已知问题](https://github.com/anthropics/ccjk/issues)
-2. 提交新的 [Issue](https://github.com/anthropics/ccjk/issues/new)
-3. 参与 [讨论](https://github.com/anthropics/ccjk/discussions)
+1. 查看 [已知问题](https://github.com/miounet11/ccjk/issues)
+2. 提交新的 [Issue](https://github.com/miounet11/ccjk/issues/new)
+3. 参与 [讨论](https://github.com/miounet11/ccjk/discussions)
 
-> 💡 **提示**：订阅 [Release 通知](https://github.com/anthropics/ccjk/releases) 以获取最新更新信息。
+> 💡 **提示**：订阅 [Release 通知](https://github.com/miounet11/ccjk/releases) 以获取最新更新信息。

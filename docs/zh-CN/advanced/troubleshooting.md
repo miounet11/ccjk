@@ -776,7 +776,7 @@ cp -r ~/.claude/backup/backup_YYYY-MM-DD_HH-mm-ss/* ~/.claude/
 ### 文档资源
 
 - 阅读仓库 `CLAUDE.md` 和 `AGENTS.md` 了解系统提示要求
-- 查看 [GitHub Issues](https://github.com/UfoMiao/ccjk/issues) 搜索类似问题
+- 查看 [GitHub Issues](https://github.com/miounet11/ccjk/issues) 搜索类似问题
 - 在 GitHub Issues 提交问题时附带：
   - `npx ccjk --version` 输出
   - 完整的终端日志

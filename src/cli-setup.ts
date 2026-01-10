@@ -15,6 +15,7 @@ import { deepInterview, interview, listInterviewSessions, quickInterview, resume
 import { registerMarketplaceCommands } from './commands/marketplace'
 import { mcpMarket } from './commands/mcp-market'
 import { showMainMenu } from './commands/menu'
+import { notificationCommand } from './commands/notification'
 import { exportSession, listSessions, restoreSession, saveSession } from './commands/session'
 import { shenchaFix, shenchaReport, shenchaScan } from './commands/shencha'
 import { teamInit, teamShare, teamSync } from './commands/team'
@@ -579,6 +580,15 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
     .action(await withLanguageResolution(async () => {
       await showWorkflows()
+    }))
+
+  // Notification command - Task completion notifications
+  cli
+    .command('notification [action]', 'Manage task completion notifications (config, status, test, enable, disable, channels)')
+    .alias('notify')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .action(await withLanguageResolution(async (action) => {
+      await notificationCommand(action)
     }))
 
   // Custom help

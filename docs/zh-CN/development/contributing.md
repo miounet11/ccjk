@@ -51,7 +51,7 @@ cd ccjk
 
 ```bash
 # 添加上游仓库以便同步更新
-git remote add upstream https://github.com/UfoMiao/ccjk.git
+git remote add upstream https://github.com/miounet11/ccjk.git
 
 # 验证远程仓库
 git remote -v

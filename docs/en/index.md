@@ -5,7 +5,7 @@ title: CCJK - Claude Code JinKu
 <p style="margin: 0; line-height: 1.5;">
 <a href="https://npmjs.com/package/ccjk" target="_blank" rel="noreferrer"><img src="https://img.shields.io/npm/v/ccjk?style=flat&colorA=080f12&colorB=1fa669" alt="npm version" style="display: inline-block; margin-right: 8px; vertical-align: middle;"></a>
 <a href="https://npmjs.com/package/ccjk" target="_blank" rel="noreferrer"><img src="https://img.shields.io/npm/dm/ccjk?style=flat&colorA=080f12&colorB=1fa669" alt="npm downloads" style="display: inline-block; margin-right: 8px; vertical-align: middle;"></a>
-<a href="https://github.com/UfoMiao/ccjk/blob/main/LICENSE" target="_blank" rel="noreferrer"><img src="https://img.shields.io/github/license/ufomiao/ccjk.svg?style=flat&colorA=080f12&colorB=1fa669" alt="License" style="display: inline-block; margin-right: 8px; vertical-align: middle;"></a>
+<a href="https://github.com/miounet11/ccjk/blob/main/LICENSE" target="_blank" rel="noreferrer"><img src="https://img.shields.io/github/license/miounet11/ccjk.svg?style=flat&colorA=080f12&colorB=1fa669" alt="License" style="display: inline-block; margin-right: 8px; vertical-align: middle;"></a>
 <a href="https://claude.ai/code" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Claude-Code-1fa669?style=flat&colorA=080f12&colorB=1fa669" alt="Claude Code" style="display: inline-block; margin-right: 8px; vertical-align: middle;"></a>
 <a href="https://codecov.io/gh/UfoMiao/ccjk" target="_blank" rel="noreferrer"><img src="https://codecov.io/gh/UfoMiao/ccjk/graph/badge.svg?token=HZI6K4Y7D7&style=flat&colorA=080f12&colorB=1fa669" alt="codecov" style="display: inline-block; margin-right: 8px; vertical-align: middle;"></a>
 <a href="https://www.jsdocs.io/package/ccjk" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/jsdocs-reference-1fa669?style=flat&colorA=080f12&colorB=1fa669" alt="JSDocs" style="display: inline-block; margin-right: 8px; vertical-align: middle;"></a>
@@ -77,9 +77,9 @@ CCJK (Claude Code JinKu) is a CLI tool designed for professional developers, aim
 
 ## Related Links
 
-- **GitHub**: <https://github.com/UfoMiao/ccjk>
+- **GitHub**: <https://github.com/miounet11/ccjk>
 - **npm**: <https://www.npmjs.com/package/ccjk>
-- **Changelog**: [CHANGELOG.md](https://github.com/UfoMiao/ccjk/blob/main/CHANGELOG.md)
+- **Changelog**: [CHANGELOG.md](https://github.com/miounet11/ccjk/blob/main/CHANGELOG.md)
 
 ## 💬 Community
 
@@ -93,8 +93,8 @@ Join our Telegram group for support, discussions, and updates:
 [npm-version-href]: https://npmjs.com/package/ccjk
 [npm-downloads-src]: https://img.shields.io/npm/dm/ccjk?style=flat&colorA=080f12&colorB=1fa669
 [npm-downloads-href]: https://npmjs.com/package/ccjk
-[license-src]: https://img.shields.io/github/license/ufomiao/ccjk.svg?style=flat&colorA=080f12&colorB=1fa669
-[license-href]: https://github.com/UfoMiao/ccjk/blob/main/LICENSE
+[license-src]: https://img.shields.io/github/license/miounet11/ccjk.svg?style=flat&colorA=080f12&colorB=1fa669
+[license-href]: https://github.com/miounet11/ccjk/blob/main/LICENSE
 [claude-code-src]: https://img.shields.io/badge/Claude-Code-1fa669?style=flat&colorA=080f12&colorB=1fa669
 [claude-code-href]: https://claude.ai/code
 [codecov-src]: https://codecov.io/gh/UfoMiao/ccjk/graph/badge.svg?token=HZI6K4Y7D7&style=flat&colorA=080f12&colorB=1fa669

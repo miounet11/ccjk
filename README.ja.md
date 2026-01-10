@@ -18,7 +18,7 @@
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![License][license-src]][license-href]
 [![GitHub stars][stars-src]][stars-href]
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/anthropics/claude-code/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/miounet11/ccjk/pulls)
 
 **[English](README.md)** | **[简体中文](README.zh-CN.md)** | **[日本語](README.ja.md)** | **[한국어](README.ko.md)**
 
@@ -349,7 +349,7 @@ ccjk init --lang ko      # 韓国語
 
 <div align="center">
 
-[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-333?style=for-the-badge&logo=github)](https://github.com/anthropics/claude-code/discussions)
+[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-333?style=for-the-badge&logo=github)](https://github.com/miounet11/ccjk/discussions)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/ccjk)
 [![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=twitter)](https://twitter.com/anthropaboratory)
 
@@ -360,7 +360,7 @@ ccjk init --lang ko      # 韓国語
 ## 🤝 貢献
 
 ```bash
-git clone https://github.com/anthropics/claude-code.git
+git clone https://github.com/miounet11/ccjk.git
 cd ccjk
 pnpm install
 pnpm dev
@@ -372,7 +372,7 @@ pnpm dev
 
 ## 📄 ライセンス
 
-MIT © [CCJK Team](https://github.com/anthropics/claude-code)
+MIT © [CCJK Team](https://github.com/miounet11/ccjk)
 
 ---
 
@@ -402,6 +402,6 @@ CCJK があなたのコーディングを改善するのに役立つ場合は、
 [npm-downloads-src]: https://img.shields.io/npm/dm/ccjk?style=flat&colorA=18181B&colorB=28CF8D
 [npm-downloads-href]: https://npmjs.com/package/ccjk
 [license-src]: https://img.shields.io/github/license/anthropics/claude-code?style=flat&colorA=18181B&colorB=28CF8D
-[license-href]: https://github.com/anthropics/claude-code/blob/main/LICENSE
+[license-href]: https://github.com/miounet11/ccjk/blob/main/LICENSE
 [stars-src]: https://img.shields.io/github/stars/anthropics/claude-code?style=flat&colorA=18181B&colorB=28CF8D
-[stars-href]: https://github.com/anthropics/claude-code/stargazers
+[stars-href]: https://github.com/miounet11/ccjk/stargazers

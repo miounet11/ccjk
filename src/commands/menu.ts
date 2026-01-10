@@ -746,70 +746,55 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     // Smart Features
     case 'a':
       await showQuickActionsMenu()
-      printSeparator()
-      return undefined
+      break
     case 'g':
       await showSmartGuideMenu()
-      printSeparator()
-      return undefined
+      break
     case 'd':
       await doctor()
-      printSeparator()
-      return undefined
+      break
     // CCJK Features
     case 'w':
       await showWorkflowsAndSkillsMenu()
-      printSeparator()
-      return undefined
+      break
     case 'o':
       await showOutputStylesMenu()
-      printSeparator()
-      return undefined
+      break
     case 'c':
       await showConfigSwitchMenu()
-      printSeparator()
-      return undefined
+      break
     case 'r':
       await runCcrMenuFeature()
-      printSeparator()
-      return undefined
+      break
     case 'u':
       await runCcusageFeature()
-      printSeparator()
-      return undefined
+      break
     case 'l':
       await runCometixMenuFeature()
-      printSeparator()
-      return undefined
+      break
     case 'p':
       await showSuperpowersMenu()
-      printSeparator()
-      return undefined
+      break
     case 'm':
       await showMarketplaceMenu()
-      printSeparator()
-      return undefined
+      break
     case '0': {
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)
-      printSeparator()
-      return undefined
+      break
     }
     case '-':
       await uninstall()
-      printSeparator()
-      return undefined
+      break
     case '+':
       await checkUpdates()
-      printSeparator()
-      return undefined
+      break
     case 's': {
       const switched = await handleCodeToolSwitch('claude-code')
       if (switched) {
         return 'switch'
       }
-      printSeparator()
-      return undefined
+      break
     }
     case 'q':
       console.log(ansis.cyan(i18n.t('common:goodbye')))

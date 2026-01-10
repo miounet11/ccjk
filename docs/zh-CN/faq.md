@@ -469,8 +469,8 @@ ccjk skill list --verbose
 
 ### 社区支持
 
-- **GitHub Issues**: [报告问题](https://github.com/anthropics/ccjk/issues)
-- **GitHub Discussions**: [讨论交流](https://github.com/anthropics/ccjk/discussions)
+- **GitHub Issues**: [报告问题](https://github.com/miounet11/ccjk/issues)
+- **GitHub Discussions**: [讨论交流](https://github.com/miounet11/ccjk/discussions)
 - **Discord**: [加入社区](https://discord.gg/ccjk)
 
 ### 反馈建议

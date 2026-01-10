@@ -776,7 +776,7 @@ cp -r ~/.claude/backup/backup_YYYY-MM-DD_HH-mm-ss/* ~/.claude/
 ### Documentation Resources
 
 - Read repository `CLAUDE.md` and `AGENTS.md` to understand system prompt requirements
-- Check [GitHub Issues](https://github.com/UfoMiao/ccjk/issues) to search for similar problems
+- Check [GitHub Issues](https://github.com/miounet11/ccjk/issues) to search for similar problems
 - When submitting issues on GitHub Issues, include:
   - `npx ccjk --version` output
   - Complete terminal logs

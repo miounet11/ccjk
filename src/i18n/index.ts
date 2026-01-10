@@ -18,6 +18,7 @@ const NAMESPACES = [
   'ccjk', // CCJK-specific translations
   'cli',
   'cometix',
+  'codex',
   'configuration',
   'errors',
   'installation',
@@ -27,6 +28,7 @@ const NAMESPACES = [
   'mcp',
   'menu',
   'multi-config',
+  'notification', // Task completion notifications
   'shencha',
   'skills', // Skills management system
   'smartGuide', // Smart Guide for quick actions
@@ -36,7 +38,6 @@ const NAMESPACES = [
   'uninstall',
   'updater',
   'workflow',
-  'codex',
 ] as const
 
 // Ensure i18n is initialized - safety check for utility functions

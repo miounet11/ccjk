@@ -1685,11 +1685,11 @@
 ### Patch Changes
 
 - ## 新功能
-  - 在 ZCF 菜单中添加检查更新选项 (+)，支持一键检查并更新 Claude Code 和 CCR 版本
+  - 在 CCJK 菜单中添加检查更新选项 (+)，支持一键检查并更新 Claude Code 和 CCR 版本
   - 支持通过菜单直接访问检查更新功能，提升用户体验
 
   ## New Features
-  - Add check updates option (+) to ZCF menu for one-click checking and updating Claude Code and CCR versions
+  - Add check updates option (+) to CCJK menu for one-click checking and updating Claude Code and CCR versions
   - Support direct access to check updates feature via menu, improving user experience
 
   ## 文档
@@ -2046,11 +2046,11 @@
 
 - ## 修复
   - 移除配置文件不存在时的强制退出判断，支持无权限环境下的优雅降级
-  - 为 zcf 配置读写添加静默错误处理，提升兼容性
+  - 为 ccjk 配置读写添加静默错误处理，提升兼容性
 
   ## Fixes
   - Remove forced exit when config file doesn't exist, support graceful degradation in permission-restricted environments
-  - Add silent error handling for zcf config read/write operations, improving compatibility
+  - Add silent error handling for ccjk config read/write operations, improving compatibility
 
 ## 2.5.1
 
@@ -2263,7 +2263,7 @@
 ### Minor Changes
 
 - faca88e: 新增 Termux 环境支持和增强的命令检测功能
-  - 支持在 Termux 环境下运行 ZCF
+  - 支持在 Termux 环境下运行 CCJK
   - 增强命令检测机制，自动识别可用命令
 
 - 429794a: 修复中文模板文件的 description 字段使用中文描述
@@ -2282,7 +2282,7 @@
 ---
 
 - faca88e: Add Termux environment support with enhanced command detection
-  - Support running ZCF in Termux environment
+  - Support running CCJK in Termux environment
   - Enhanced command detection to automatically identify available commands
 
 - 429794a: Fix Chinese template files description fields to use Chinese descriptions
@@ -2314,12 +2314,12 @@
 
 ### Major Changes
 
-- ## ZCF 2.0.0 - 重大更新
+- ## CCJK 2.0.0 - 重大更新
 
   ### 新增功能
 
   #### 交互式菜单系统
-  - 新增 `zcf menu` 命令（默认命令改为显示菜单）
+  - 新增 `ccjk menu` 命令（默认命令改为显示菜单）
   - 提供可视化配置管理界面
   - 支持所有功能的图形化操作
 
@@ -2333,7 +2333,7 @@
   - 新增默认模型配置功能
   - 新增 AI 记忆管理功能
   - 配置合并支持深度合并
-  - 新增 ZCF 缓存清理功能
+  - 新增 CCJK 缓存清理功能
 
   #### 项目结构优化
   - 模板文件重构：CLAUDE.md 拆分为 rules.md、personality.md 和 mcp.md
@@ -2346,18 +2346,18 @@
   - 跨平台兼容性提升
 
   ### 破坏性变更
-  - `zcf` 默认命令从初始化改为显示菜单
-  - 初始化命令改为 `zcf init` 或 `zcf i`
+  - `ccjk` 默认命令从初始化改为显示菜单
+  - 初始化命令改为 `ccjk init` 或 `ccjk i`
   - 模板文件结构调整
 
   ***
 
-  ## ZCF 2.0.0 - Major Update
+  ## CCJK 2.0.0 - Major Update
 
   ### New Features
 
   #### Interactive Menu System
-  - Added `zcf menu` command (default command now shows menu)
+  - Added `ccjk menu` command (default command now shows menu)
   - Provides visual configuration management interface
   - Supports graphical operation for all features
 
@@ -2371,7 +2371,7 @@
   - Added default model configuration
   - Added AI memory management
   - Configuration merge supports deep merge
-  - Added ZCF cache cleanup
+  - Added CCJK cache cleanup
 
   #### Project Structure Optimization
   - Template files refactoring: CLAUDE.md split into rules.md, personality.md, and mcp.md
@@ -2384,8 +2384,8 @@
   - Improved cross-platform compatibility
 
   ### Breaking Changes
-  - `zcf` default command changed from initialization to showing menu
-  - Initialization command changed to `zcf init` or `zcf i`
+  - `ccjk` default command changed from initialization to showing menu
+  - Initialization command changed to `ccjk init` or `ccjk i`
   - Template file structure adjustment
 
 ## 1.2.0

@@ -38,6 +38,11 @@ export {
   registerBuiltinHooks,
   skillActivateNotification,
   skillCompleteStatistics,
+  // Task notification hooks
+  taskCompleteNotification,
+  taskFailedNotification,
+  taskProgressNotification,
+  taskStartNotification,
   workflowCompleteCleanup,
   workflowStartInitialization,
 } from './builtin-hooks.js'

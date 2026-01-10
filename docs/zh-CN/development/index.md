@@ -174,10 +174,10 @@ CCJK 严格遵循 TDD 方法：
 
 ## 📖 相关资源
 
-- [项目 README](https://github.com/UfoMiao/ccjk/blob/main/README.md) - 项目概览和快速开始
-- [CLAUDE.md](https://github.com/UfoMiao/ccjk/blob/main/CLAUDE.md) - 完整的项目架构文档
-- [GitHub Issues](https://github.com/UfoMiao/ccjk/issues) - 问题和讨论
-- [GitHub Discussions](https://github.com/UfoMiao/ccjk/discussions) - 社区讨论
+- [项目 README](https://github.com/miounet11/ccjk/blob/main/README.md) - 项目概览和快速开始
+- [CLAUDE.md](https://github.com/miounet11/ccjk/blob/main/CLAUDE.md) - 完整的项目架构文档
+- [GitHub Issues](https://github.com/miounet11/ccjk/issues) - 问题和讨论
+- [GitHub Discussions](https://github.com/miounet11/ccjk/discussions) - 社区讨论
 
 ---
 

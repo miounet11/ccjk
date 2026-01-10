@@ -9,7 +9,7 @@ For help, run: pnpm help install
 Error: Process completed with exit code 1.
 ```
 
-**PR链接**: https://github.com/UfoMiao/zcf/pull/54
+**PR链接**: https://github.com/miounet11/ccjk/pull/54
 
 ## 🔍 问题分析
 

@@ -348,7 +348,7 @@ ccjk init --lang ko      # 한국어
 
 <div align="center">
 
-[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-333?style=for-the-badge&logo=github)](https://github.com/anthropics/claude-code/discussions)
+[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-333?style=for-the-badge&logo=github)](https://github.com/miounet11/ccjk/discussions)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/ccjk)
 [![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=twitter)](https://twitter.com/anthropaboratory)
 
@@ -359,7 +359,7 @@ ccjk init --lang ko      # 한국어
 ## 🤝 기여
 
 ```bash
-git clone https://github.com/anthropics/claude-code.git
+git clone https://github.com/miounet11/ccjk.git
 cd ccjk
 pnpm install
 pnpm dev
@@ -371,7 +371,7 @@ pnpm dev
 
 ## 📄 라이선스
 
-MIT © [CCJK Team](https://github.com/anthropics/claude-code)
+MIT © [CCJK Team](https://github.com/miounet11/ccjk)
 
 ---
 
@@ -401,6 +401,6 @@ CCJK가 더 나은 코드 작성에 도움이 된다면 별을 주세요!
 [npm-downloads-src]: https://img.shields.io/npm/dm/ccjk?style=flat&colorA=18181B&colorB=28CF8D
 [npm-downloads-href]: https://npmjs.com/package/ccjk
 [license-src]: https://img.shields.io/github/license/anthropics/claude-code?style=flat&colorA=18181B&colorB=28CF8D
-[license-href]: https://github.com/anthropics/claude-code/blob/main/LICENSE
+[license-href]: https://github.com/miounet11/ccjk/blob/main/LICENSE
 [stars-src]: https://img.shields.io/github/stars/anthropics/claude-code?style=flat&colorA=18181B&colorB=28CF8D
-[stars-href]: https://github.com/anthropics/claude-code/stargazers
+[stars-href]: https://github.com/miounet11/ccjk/stargazers

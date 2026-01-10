@@ -267,6 +267,10 @@ export class HookRegistry {
       'workflow-complete': 0,
       'config-change': 0,
       'error': 0,
+      'task-start': 0,
+      'task-complete': 0,
+      'task-failed': 0,
+      'task-progress': 0,
     }
 
     const hooksBySource: Record<string, number> = {}

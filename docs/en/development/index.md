@@ -174,10 +174,10 @@ In addition to code contributions, you can also:
 
 ## 📖 Related Resources
 
-- [Project README](https://github.com/UfoMiao/ccjk/blob/main/README.md) - Project overview and quick start
-- [CLAUDE.md](https://github.com/UfoMiao/ccjk/blob/main/CLAUDE.md) - Complete project architecture documentation
-- [GitHub Issues](https://github.com/UfoMiao/ccjk/issues) - Issues and discussions
-- [GitHub Discussions](https://github.com/UfoMiao/ccjk/discussions) - Community discussions
+- [Project README](https://github.com/miounet11/ccjk/blob/main/README.md) - Project overview and quick start
+- [CLAUDE.md](https://github.com/miounet11/ccjk/blob/main/CLAUDE.md) - Complete project architecture documentation
+- [GitHub Issues](https://github.com/miounet11/ccjk/issues) - Issues and discussions
+- [GitHub Discussions](https://github.com/miounet11/ccjk/discussions) - Community discussions
 
 ---
 

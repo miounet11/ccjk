@@ -10,6 +10,12 @@ import type { HookRegistry } from './registry.js'
 
 import type { Hook, HookContext, HookResult } from './types.js'
 import process from 'node:process'
+import {
+  completeTaskMonitoring,
+  failTaskMonitoring,
+  getNotificationManager,
+  startTaskMonitoring,
+} from '../notification/index.js'
 
 /**
  * Pre-tool-use validation hook
@@ -291,6 +297,211 @@ export const globalErrorHandler: Hook = {
   },
 }
 
+// ============================================================================
+// Task Notification Hooks
+// ============================================================================
+
+/**
+ * Task start notification hook
+ *
+ * Starts task monitoring when a task begins.
+ */
+export const taskStartNotification: Hook = {
+  id: 'builtin:task-start-notification',
+  name: 'Task Start Notification',
+  description: 'Starts task monitoring for notifications',
+  type: 'task-start',
+  priority: 10,
+  enabled: true,
+  source: 'builtin',
+  version: '1.0.0',
+  tags: ['notification', 'task'],
+  action: {
+    execute: async (context: HookContext): Promise<HookResult> => {
+      const startTime = Date.now()
+
+      try {
+        if (context.taskId && context.taskDescription) {
+          await startTaskMonitoring(context.taskId, context.taskDescription)
+
+          if (process.env.DEBUG) {
+            console.log(`[Hook] Task monitoring started: ${context.taskId}`)
+          }
+        }
+
+        return {
+          success: true,
+          status: 'success',
+          durationMs: Date.now() - startTime,
+          continueChain: true,
+        }
+      }
+      catch (error) {
+        return {
+          success: false,
+          status: 'failed',
+          durationMs: Date.now() - startTime,
+          error: error instanceof Error ? error.message : String(error),
+          continueChain: true, // Don't block task execution on notification failure
+        }
+      }
+    },
+    timeout: 5000,
+    continueOnError: true,
+  },
+}
+
+/**
+ * Task complete notification hook
+ *
+ * Sends notification when a task completes successfully.
+ */
+export const taskCompleteNotification: Hook = {
+  id: 'builtin:task-complete-notification',
+  name: 'Task Complete Notification',
+  description: 'Sends notification when task completes',
+  type: 'task-complete',
+  priority: 5,
+  enabled: true,
+  source: 'builtin',
+  version: '1.0.0',
+  tags: ['notification', 'task'],
+  action: {
+    execute: async (context: HookContext): Promise<HookResult> => {
+      const startTime = Date.now()
+
+      try {
+        const results = await completeTaskMonitoring(context.taskResult)
+
+        if (process.env.DEBUG) {
+          console.log(`[Hook] Task completed, notifications sent: ${results.length}`)
+        }
+
+        return {
+          success: true,
+          status: 'success',
+          durationMs: Date.now() - startTime,
+          output: { notificationResults: results },
+          continueChain: true,
+        }
+      }
+      catch (error) {
+        return {
+          success: false,
+          status: 'failed',
+          durationMs: Date.now() - startTime,
+          error: error instanceof Error ? error.message : String(error),
+          continueChain: true,
+        }
+      }
+    },
+    timeout: 30000, // Allow more time for network requests
+    continueOnError: true,
+  },
+}
+
+/**
+ * Task failed notification hook
+ *
+ * Sends notification when a task fails.
+ */
+export const taskFailedNotification: Hook = {
+  id: 'builtin:task-failed-notification',
+  name: 'Task Failed Notification',
+  description: 'Sends notification when task fails',
+  type: 'task-failed',
+  priority: 10, // High priority for failure notifications
+  enabled: true,
+  source: 'builtin',
+  version: '1.0.0',
+  tags: ['notification', 'task', 'error'],
+  action: {
+    execute: async (context: HookContext): Promise<HookResult> => {
+      const startTime = Date.now()
+
+      try {
+        const errorMessage = context.error?.message || 'Unknown error'
+        const results = await failTaskMonitoring(errorMessage)
+
+        if (process.env.DEBUG) {
+          console.log(`[Hook] Task failed, notifications sent: ${results.length}`)
+        }
+
+        return {
+          success: true,
+          status: 'success',
+          durationMs: Date.now() - startTime,
+          output: { notificationResults: results },
+          continueChain: true,
+        }
+      }
+      catch (error) {
+        return {
+          success: false,
+          status: 'failed',
+          durationMs: Date.now() - startTime,
+          error: error instanceof Error ? error.message : String(error),
+          continueChain: true,
+        }
+      }
+    },
+    timeout: 30000,
+    continueOnError: true,
+  },
+}
+
+/**
+ * Task progress notification hook
+ *
+ * Handles task progress updates (e.g., threshold reached).
+ */
+export const taskProgressNotification: Hook = {
+  id: 'builtin:task-progress-notification',
+  name: 'Task Progress Notification',
+  description: 'Handles task progress updates',
+  type: 'task-progress',
+  priority: 5,
+  enabled: true,
+  source: 'builtin',
+  version: '1.0.0',
+  tags: ['notification', 'task', 'progress'],
+  action: {
+    execute: async (context: HookContext): Promise<HookResult> => {
+      const startTime = Date.now()
+
+      try {
+        const manager = getNotificationManager()
+        const currentTask = manager.getCurrentTask()
+
+        if (process.env.DEBUG && currentTask) {
+          const durationMin = context.taskDuration
+            ? Math.round(context.taskDuration / 60000)
+            : 0
+          console.log(`[Hook] Task progress: ${currentTask.taskId} running for ${durationMin} minutes`)
+        }
+
+        return {
+          success: true,
+          status: 'success',
+          durationMs: Date.now() - startTime,
+          continueChain: true,
+        }
+      }
+      catch (error) {
+        return {
+          success: false,
+          status: 'failed',
+          durationMs: Date.now() - startTime,
+          error: error instanceof Error ? error.message : String(error),
+          continueChain: true,
+        }
+      }
+    },
+    timeout: 5000,
+    continueOnError: true,
+  },
+}
+
 /**
  * All built-in hooks
  */
@@ -303,6 +514,11 @@ export const builtinHooks: Hook[] = [
   workflowCompleteCleanup,
   configChangeLogger,
   globalErrorHandler,
+  // Task notification hooks
+  taskStartNotification,
+  taskCompleteNotification,
+  taskFailedNotification,
+  taskProgressNotification,
 ]
 
 /**

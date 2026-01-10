@@ -23,6 +23,10 @@ export type HookType
     | 'workflow-complete' // When a workflow completes
     | 'config-change' // When configuration changes
     | 'error' // When an error occurs
+    | 'task-start' // When a task starts (for notifications)
+    | 'task-complete' // When a task completes (for notifications)
+    | 'task-failed' // When a task fails (for notifications)
+    | 'task-progress' // When task progress is updated (for notifications)
 
 /**
  * Hook execution priority (1-10)
@@ -63,6 +67,18 @@ export interface HookContext {
 
   /** Error object (for error hooks) */
   error?: Error
+
+  /** Task ID (for task-related hooks) */
+  taskId?: string
+
+  /** Task description (for task-related hooks) */
+  taskDescription?: string
+
+  /** Task result (for task-complete hooks) */
+  taskResult?: string
+
+  /** Task duration in milliseconds (for task-related hooks) */
+  taskDuration?: number
 
   /** User's preferred language */
   lang?: SupportedLang

@@ -412,7 +412,7 @@ echo "🤖 After PR merge, GitHub Actions will automatically:"
 echo "   - Create the release tag"
 echo "   - Publish to npm"
 echo "   - Generate GitHub Release"
-echo "👀 View release status: https://github.com/UfoMiao/ccjk/actions"
+echo "👀 View release status: https://github.com/miounet11/ccjk/actions"
 ````
 
 ## Complete Workflow Summary
