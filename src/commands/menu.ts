@@ -50,6 +50,7 @@ import { checkUpdates } from './check-updates'
 import { configSwitchCommand } from './config-switch'
 import { doctor } from './doctor'
 import { init } from './init'
+import { notificationCommand } from './notification'
 import { uninstall } from './uninstall'
 import { update } from './update'
 
@@ -647,6 +648,14 @@ function printRecommendedPluginsSection(): void {
   console.log('')
 }
 
+function printCloudServicesSection(): void {
+  console.log(`  -------- ${i18n.t('menu:menuSections.cloudServices')} --------`)
+  console.log(
+    `  ${ansis.cyan('N.')} ${i18n.t('menu:menuOptions.cloudNotification')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.cloudNotification')}`)}`,
+  )
+  console.log('')
+}
+
 function printZcfSection(options: {
   uninstallOption: string
   uninstallDescription: string
@@ -697,6 +706,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
   console.log('')
   printCcjkFeaturesSection()
   printRecommendedPluginsSection()
+  printCloudServicesSection()
   printZcfSection({
     uninstallOption: i18n.t('menu:menuOptions.uninstall'),
     uninstallDescription: i18n.t('menu:menuDescriptions.uninstall'),
@@ -709,7 +719,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', 'a', 'A', 'g', 'G', 'd', 'D', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', '0', '-', '+', 's', 'S', 'q', 'Q']
+      const valid = ['1', '2', '3', '4', '5', '6', '7', 'a', 'A', 'g', 'G', 'd', 'D', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', 'n', 'N', '0', '-', '+', 's', 'S', 'q', 'Q']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -777,6 +787,10 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
       break
     case 'm':
       await showMarketplaceMenu()
+      break
+    // Cloud Services
+    case 'n':
+      await notificationCommand()
       break
     case '0': {
       const currentLang = i18n.language as SupportedLang

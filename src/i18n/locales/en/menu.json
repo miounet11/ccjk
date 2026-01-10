@@ -112,5 +112,9 @@
   "smartFeatures.refreshGuide": "Refresh Smart Guide",
   "smartFeatures.removeGuide": "Remove Smart Guide",
   "smartFeatures.guideRefreshed": "Smart Guide refreshed",
-  "smartFeatures.guideRemoved": "Smart Guide removed"
+  "smartFeatures.guideRemoved": "Smart Guide removed",
+
+  "menuSections.cloudServices": "☁️ Cloud Services",
+  "menuOptions.cloudNotification": "📱 Task Notifications",
+  "menuDescriptions.cloudNotification": "Configure task completion notifications (Feishu/WeChat/Email/SMS)"
 }

@@ -112,5 +112,9 @@
   "smartFeatures.refreshGuide": "刷新智能引导",
   "smartFeatures.removeGuide": "移除智能引导",
   "smartFeatures.guideRefreshed": "智能引导已刷新",
-  "smartFeatures.guideRemoved": "智能引导已移除"
+  "smartFeatures.guideRemoved": "智能引导已移除",
+
+  "menuSections.cloudServices": "☁️ 云服务",
+  "menuOptions.cloudNotification": "📱 任务通知",
+  "menuDescriptions.cloudNotification": "配置任务完成通知（飞书/微信/邮件/短信）"
 }
