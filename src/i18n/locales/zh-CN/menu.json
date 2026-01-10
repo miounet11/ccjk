@@ -1,5 +1,6 @@
 {
   "menuSections.ccjkFeatures": "CCJK 功能",
+  "menuSections.smartFeatures": "🎯 智能功能 (新)",
   "menuSections.recommendedPlugins": "推荐插件",
   "menuSections.marketplace": "插件市场",
   "menuDescriptions.ccrManagement": "配置 Claude Code Router 以使用多个 AI 模型",
@@ -84,5 +85,32 @@
   "ccjkFeatures.selectConfig": "选择 API 配置",
   "ccjkFeatures.configChanged": "已切换到 {{config}}",
   "ccjkFeatures.noConfigs": "没有其他可用配置",
-  "ccjkFeatures.availableConfigs": "可用配置:"
+  "ccjkFeatures.availableConfigs": "可用配置:",
+
+  "menuOptions.quickActions": "🚀 快捷操作",
+  "menuOptions.smartGuide": "🎯 智能助手",
+  "menuOptions.doctor": "🔧 诊断工具",
+
+  "menuDescriptions.quickActions": "一键执行常用操作 (输入数字即可)",
+  "menuDescriptions.smartGuide": "根据上下文智能推荐功能",
+  "menuDescriptions.doctor": "检查配置问题并自动修复",
+
+  "smartFeatures.quickActionsTitle": "快捷操作面板",
+  "smartFeatures.availableActions": "可用的快捷操作:",
+  "smartFeatures.selectAction": "输入操作编号 (q 退出)",
+  "smartFeatures.actionSelected": "已选择操作",
+  "smartFeatures.runCommand": "在 Claude Code 中运行",
+
+  "smartFeatures.smartGuideTitle": "智能引导",
+  "smartFeatures.guideInstalled": "智能引导已激活",
+  "smartFeatures.guideNotInstalled": "智能引导未安装",
+  "smartFeatures.guideDescription": "智能引导会根据您当前的工作上下文提供智能推荐。",
+  "smartFeatures.guideInstallPrompt": "安装智能引导以获取智能功能推荐。",
+  "smartFeatures.installGuide": "现在安装智能引导？",
+  "smartFeatures.guideInstalledSuccess": "智能引导安装成功！",
+  "smartFeatures.guideAction": "您想要做什么？",
+  "smartFeatures.refreshGuide": "刷新智能引导",
+  "smartFeatures.removeGuide": "移除智能引导",
+  "smartFeatures.guideRefreshed": "智能引导已刷新",
+  "smartFeatures.guideRemoved": "智能引导已移除"
 }

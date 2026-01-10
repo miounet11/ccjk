@@ -1,5 +1,6 @@
 {
   "menuSections.ccjkFeatures": "CCJK Features",
+  "menuSections.smartFeatures": "🎯 Smart Features (New)",
   "menuSections.recommendedPlugins": "Recommended Plugins",
   "menuSections.marketplace": "Marketplace",
   "menuDescriptions.ccrManagement": "Configure Claude Code Router to use multiple AI models",
@@ -84,5 +85,32 @@
   "ccjkFeatures.selectConfig": "Select API configuration",
   "ccjkFeatures.configChanged": "Switched to {{config}}",
   "ccjkFeatures.noConfigs": "No additional configurations available",
-  "ccjkFeatures.availableConfigs": "Available configurations:"
+  "ccjkFeatures.availableConfigs": "Available configurations:",
+
+  "menuOptions.quickActions": "🚀 Quick Actions",
+  "menuOptions.smartGuide": "🎯 Smart Assistant",
+  "menuOptions.doctor": "🔧 Diagnostics",
+
+  "menuDescriptions.quickActions": "Execute common actions with one key (just type a number)",
+  "menuDescriptions.smartGuide": "Context-aware feature recommendations",
+  "menuDescriptions.doctor": "Check configuration issues and auto-fix",
+
+  "smartFeatures.quickActionsTitle": "Quick Actions Panel",
+  "smartFeatures.availableActions": "Available Quick Actions:",
+  "smartFeatures.selectAction": "Enter action number (q to quit)",
+  "smartFeatures.actionSelected": "Action selected",
+  "smartFeatures.runCommand": "Run in Claude Code",
+
+  "smartFeatures.smartGuideTitle": "Smart Guide",
+  "smartFeatures.guideInstalled": "Smart Guide is active",
+  "smartFeatures.guideNotInstalled": "Smart Guide is not installed",
+  "smartFeatures.guideDescription": "Smart Guide provides context-aware recommendations based on your current work.",
+  "smartFeatures.guideInstallPrompt": "Install Smart Guide to get intelligent feature recommendations.",
+  "smartFeatures.installGuide": "Install Smart Guide now?",
+  "smartFeatures.guideInstalledSuccess": "Smart Guide installed successfully!",
+  "smartFeatures.guideAction": "What would you like to do?",
+  "smartFeatures.refreshGuide": "Refresh Smart Guide",
+  "smartFeatures.removeGuide": "Remove Smart Guide",
+  "smartFeatures.guideRefreshed": "Smart Guide refreshed",
+  "smartFeatures.guideRemoved": "Smart Guide removed"
 }

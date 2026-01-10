@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "packageManager": "pnpm@10.17.1",
   "description": "Claude Code JinKu - Advanced AI-powered development assistant with skills, agents, and LLM-driven audit",
   "author": {

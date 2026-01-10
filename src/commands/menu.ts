@@ -48,6 +48,7 @@ import { promptBoolean } from '../utils/toggle-prompt'
 import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../utils/tools'
 import { checkUpdates } from './check-updates'
 import { configSwitchCommand } from './config-switch'
+import { doctor } from './doctor'
 import { init } from './init'
 import { uninstall } from './uninstall'
 import { update } from './update'
@@ -599,6 +600,20 @@ async function showConfigSwitchMenu(): Promise<void> {
 }
 
 function printCcjkFeaturesSection(): void {
+  // Smart Features section - NEW and prominent
+  console.log(`  -------- ${i18n.t('menu:menuSections.smartFeatures')} --------`)
+  console.log(
+    `  ${ansis.cyan('A.')} ${i18n.t('menu:menuOptions.quickActions')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.quickActions')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('G.')} ${i18n.t('menu:menuOptions.smartGuide')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.smartGuide')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('D.')} ${i18n.t('menu:menuOptions.doctor')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.doctor')}`)}`,
+  )
+  console.log('')
+
+  // CCJK Features section
   console.log(`  -------- ${i18n.t('menu:menuSections.ccjkFeatures')} --------`)
   console.log(
     `  ${ansis.cyan('W.')} ${i18n.t('menu:menuOptions.workflowsAndSkills')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.workflowsAndSkills')}`)}`,
@@ -694,7 +709,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', '0', '-', '+', 's', 'S', 'q', 'Q']
+      const valid = ['1', '2', '3', '4', '5', '6', '7', 'a', 'A', 'g', 'G', 'd', 'D', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', '0', '-', '+', 's', 'S', 'q', 'Q']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -728,6 +743,20 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     case '7':
       await configureEnvPermissionFeature()
       break
+    // Smart Features
+    case 'a':
+      await showQuickActionsMenu()
+      printSeparator()
+      return undefined
+    case 'g':
+      await showSmartGuideMenu()
+      printSeparator()
+      return undefined
+    case 'd':
+      await doctor()
+      printSeparator()
+      return undefined
+    // CCJK Features
     case 'w':
       await showWorkflowsAndSkillsMenu()
       printSeparator()
