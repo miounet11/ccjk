@@ -366,7 +366,13 @@ export class SkillHotReloader extends EventEmitter {
    * console.log(`Total accesses: ${stats.totalAccesses}`)
    * ```
    */
-  getCacheStats(): { totalSkills: number, totalAccesses: number, cacheSize: number } {
+  getCacheStats(): {
+    totalSkills: number
+    totalAccesses: number
+    averageAccesses: number
+    oldestLoadedAt: Date | null
+    newestLoadedAt: Date | null
+  } {
     return this.skillCache.getStats()
   }
 

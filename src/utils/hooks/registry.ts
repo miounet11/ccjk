@@ -1,8 +1,7 @@
 /**
- * Hook Registry
+ * Hook Registry Module
  *
- * Manages global hook registration, storage, and retrieval.
- * Provides indexing by type, tool, and other criteria for efficient lookup.
+ * Manages registration and retrieval of hooks in the CCJK system.
  *
  * @module utils/hooks/registry
  */
@@ -13,7 +12,6 @@ import type {
   HookRegistrationOptions,
   HookRegistryEntry,
   HookRegistryState,
-  HookResult,
   HookStatistics,
   HookType,
 } from './types.js'
@@ -21,22 +19,11 @@ import type {
 /**
  * Hook Registry
  *
- * Central registry for managing hooks across the CCJK system.
- * Provides registration, retrieval, filtering, and statistics tracking.
- *
- * @example
- * ```typescript
- * const registry = new HookRegistry()
- * registry.register(myHook, 'my-plugin')
- * const hooks = registry.getHooksForType('pre-tool-use')
- * ```
+ * Central registry for managing hooks in the system.
  */
 export class HookRegistry {
   private state: HookRegistryState
 
-  /**
-   * Create a new hook registry
-   */
   constructor() {
     this.state = {
       version: '1.0.0',
@@ -50,84 +37,55 @@ export class HookRegistry {
   /**
    * Register a hook
    *
-   * Adds a hook to the registry with optional overwrite support.
-   * Updates all relevant indexes for efficient lookup.
-   *
    * @param hook - Hook to register
-   * @param source - Source identifier (e.g., 'builtin', 'my-plugin', 'user')
    * @param options - Registration options
-   * @throws Error if hook already exists and overwrite is false
-   *
-   * @example
-   * ```typescript
-   * registry.register(hook, 'my-plugin', { overwrite: true })
-   * ```
+   * @returns Whether registration was successful
    */
-  register(
-    hook: Hook,
-    source: string,
-    options?: HookRegistrationOptions,
-  ): void {
-    // Check if hook already exists
-    if (this.state.hooks.has(hook.id) && !options?.overwrite) {
-      throw new Error(`Hook with id '${hook.id}' already exists. Use overwrite option to replace.`)
+  register(hook: Hook, options?: HookRegistrationOptions): boolean {
+    const existingEntry = this.state.hooks.get(hook.id)
+
+    if (existingEntry && !options?.overwrite) {
+      return false
     }
 
-    // Apply enabled option
-    const finalHook = {
-      ...hook,
-      enabled: options?.enabled ?? hook.enabled,
-    }
-
-    // Create registry entry
     const entry: HookRegistryEntry = {
-      hook: finalHook,
+      hook: {
+        ...hook,
+        enabled: options?.enabled ?? hook.enabled,
+      },
       registeredAt: new Date(),
-      source: options?.source ?? source,
+      source: options?.source ?? hook.source,
       executionCount: 0,
       failureCount: 0,
     }
 
-    // Add to main registry
     this.state.hooks.set(hook.id, entry)
 
-    // Update type index
-    const typeHooks = this.state.hooksByType.get(hook.type) || []
+    // Index by type
+    const typeHooks = this.state.hooksByType.get(hook.type) ?? []
     if (!typeHooks.includes(hook.id)) {
       typeHooks.push(hook.id)
       this.state.hooksByType.set(hook.type, typeHooks)
     }
 
-    // Update tool index if condition specifies tool
-    if (hook.condition?.tool) {
-      const toolPattern = typeof hook.condition.tool === 'string'
-        ? hook.condition.tool
-        : hook.condition.tool.source
-      const toolHooks = this.state.hooksByTool.get(toolPattern) || []
+    // Index by tool if applicable
+    if (hook.condition?.tool && typeof hook.condition.tool === 'string') {
+      const toolHooks = this.state.hooksByTool.get(hook.condition.tool) ?? []
       if (!toolHooks.includes(hook.id)) {
         toolHooks.push(hook.id)
-        this.state.hooksByTool.set(toolPattern, toolHooks)
+        this.state.hooksByTool.set(hook.condition.tool, toolHooks)
       }
     }
 
-    // Update timestamp
     this.state.lastUpdated = new Date()
+    return true
   }
 
   /**
    * Unregister a hook
    *
-   * Removes a hook from the registry and all indexes.
-   *
    * @param hookId - ID of hook to unregister
-   * @returns True if hook was found and removed
-   *
-   * @example
-   * ```typescript
-   * if (registry.unregister('my-hook')) {
-   *   console.log('Hook removed')
-   * }
-   * ```
+   * @returns Whether unregistration was successful
    */
   unregister(hookId: string): boolean {
     const entry = this.state.hooks.get(hookId)
@@ -135,334 +93,170 @@ export class HookRegistry {
       return false
     }
 
-    const hook = entry.hook
-
-    // Remove from main registry
     this.state.hooks.delete(hookId)
 
     // Remove from type index
-    const typeHooks = this.state.hooksByType.get(hook.type)
+    const typeHooks = this.state.hooksByType.get(entry.hook.type)
     if (typeHooks) {
       const index = typeHooks.indexOf(hookId)
-      if (index > -1) {
+      if (index !== -1) {
         typeHooks.splice(index, 1)
-      }
-      if (typeHooks.length === 0) {
-        this.state.hooksByType.delete(hook.type)
       }
     }
 
     // Remove from tool index
-    if (hook.condition?.tool) {
-      const toolPattern = typeof hook.condition.tool === 'string'
-        ? hook.condition.tool
-        : hook.condition.tool.source
-      const toolHooks = this.state.hooksByTool.get(toolPattern)
+    if (entry.hook.condition?.tool && typeof entry.hook.condition.tool === 'string') {
+      const toolHooks = this.state.hooksByTool.get(entry.hook.condition.tool)
       if (toolHooks) {
         const index = toolHooks.indexOf(hookId)
-        if (index > -1) {
+        if (index !== -1) {
           toolHooks.splice(index, 1)
-        }
-        if (toolHooks.length === 0) {
-          this.state.hooksByTool.delete(toolPattern)
         }
       }
     }
 
-    // Update timestamp
     this.state.lastUpdated = new Date()
-
     return true
+  }
+
+  /**
+   * Get a hook by ID
+   *
+   * @param hookId - Hook ID
+   * @returns Hook entry or undefined
+   */
+  get(hookId: string): HookRegistryEntry | undefined {
+    return this.state.hooks.get(hookId)
   }
 
   /**
    * Get hooks for a specific type
    *
-   * Returns all hooks registered for the given type, sorted by priority.
-   *
    * @param type - Hook type
-   * @returns Array of hooks
-   *
-   * @example
-   * ```typescript
-   * const preToolHooks = registry.getHooksForType('pre-tool-use')
-   * ```
+   * @returns Array of hooks sorted by priority
    */
   getHooksForType(type: HookType): Hook[] {
-    const hookIds = this.state.hooksByType.get(type) || []
-    const hooks = hookIds
+    const hookIds = this.state.hooksByType.get(type) ?? []
+    return hookIds
       .map(id => this.state.hooks.get(id)?.hook)
       .filter((hook): hook is Hook => hook !== undefined)
-
-    // Sort by priority (higher first)
-    return hooks.sort((a, b) => {
-      const priorityA = a.priority ?? 5
-      const priorityB = b.priority ?? 5
-      return priorityB - priorityA
-    })
+      .sort((a, b) => (b.priority ?? 5) - (a.priority ?? 5))
   }
 
   /**
    * Get hooks for a specific tool
    *
-   * Returns all hooks that match the given tool name.
-   *
    * @param tool - Tool name
-   * @returns Array of hooks
-   *
-   * @example
-   * ```typescript
-   * const grepHooks = registry.getHooksForTool('grep')
-   * ```
+   * @returns Array of hooks sorted by priority
    */
   getHooksForTool(tool: string): Hook[] {
-    const hooks: Hook[] = []
-
-    // Check exact matches
-    const exactHookIds = this.state.hooksByTool.get(tool) || []
-    for (const id of exactHookIds) {
-      const entry = this.state.hooks.get(id)
-      if (entry) {
-        hooks.push(entry.hook)
-      }
-    }
-
-    // Check pattern matches
-    for (const [pattern, hookIds] of this.state.hooksByTool.entries()) {
-      if (pattern !== tool && this.matchToolPattern(pattern, tool)) {
-        for (const id of hookIds) {
-          const entry = this.state.hooks.get(id)
-          if (entry && !hooks.some(h => h.id === id)) {
-            hooks.push(entry.hook)
-          }
-        }
-      }
-    }
-
-    // Sort by priority (higher first)
-    return hooks.sort((a, b) => {
-      const priorityA = a.priority ?? 5
-      const priorityB = b.priority ?? 5
-      return priorityB - priorityA
-    })
+    const hookIds = this.state.hooksByTool.get(tool) ?? []
+    return hookIds
+      .map(id => this.state.hooks.get(id)?.hook)
+      .filter((hook): hook is Hook => hook !== undefined)
+      .sort((a, b) => (b.priority ?? 5) - (a.priority ?? 5))
   }
 
   /**
-   * Get a specific hook by ID
-   *
-   * @param hookId - Hook ID
-   * @returns Hook or undefined if not found
-   *
-   * @example
-   * ```typescript
-   * const hook = registry.getHook('my-hook')
-   * ```
-   */
-  getHook(hookId: string): Hook | undefined {
-    return this.state.hooks.get(hookId)?.hook
-  }
-
-  /**
-   * Get all hooks
-   *
-   * @returns Array of all registered hooks
-   *
-   * @example
-   * ```typescript
-   * const allHooks = registry.getAllHooks()
-   * ```
-   */
-  getAllHooks(): Hook[] {
-    return Array.from(this.state.hooks.values()).map(entry => entry.hook)
-  }
-
-  /**
-   * List all hooks with their registry entries
-   *
-   * @returns Array of all registry entries
-   *
-   * @example
-   * ```typescript
-   * const entries = registry.listAll()
-   * ```
-   */
-  listAll(): HookRegistryEntry[] {
-    return Array.from(this.state.hooks.values())
-  }
-
-  /**
-   * Filter hooks by criteria
-   *
-   * Returns hooks matching the specified filter options.
+   * Filter hooks based on options
    *
    * @param options - Filter options
    * @returns Array of matching hooks
-   *
-   * @example
-   * ```typescript
-   * const hooks = registry.filterHooks({
-   *   type: 'pre-tool-use',
-   *   enabled: true,
-   *   tags: ['validation']
-   * })
-   * ```
    */
-  filterHooks(options: HookFilterOptions): Hook[] {
-    let hooks = this.getAllHooks()
+  filter(options: HookFilterOptions): Hook[] {
+    let hooks = Array.from(this.state.hooks.values()).map(entry => entry.hook)
 
-    // Filter by type
     if (options.type) {
       hooks = hooks.filter(h => h.type === options.type)
     }
 
-    // Filter by tool
-    if (options.tool) {
-      hooks = hooks.filter(h =>
-        h.condition?.tool
-        && this.matchToolPattern(
-          typeof h.condition.tool === 'string'
-            ? h.condition.tool
-            : h.condition.tool.source,
-          options.tool!,
-        ),
-      )
-    }
-
-    // Filter by skill ID
-    if (options.skillId) {
-      hooks = hooks.filter(h =>
-        h.condition?.skillId
-        && this.matchPattern(
-          typeof h.condition.skillId === 'string'
-            ? h.condition.skillId
-            : h.condition.skillId.source,
-          options.skillId!,
-        ),
-      )
-    }
-
-    // Filter by workflow ID
-    if (options.workflowId) {
-      hooks = hooks.filter(h =>
-        h.condition?.workflowId
-        && this.matchPattern(
-          typeof h.condition.workflowId === 'string'
-            ? h.condition.workflowId
-            : h.condition.workflowId.source,
-          options.workflowId!,
-        ),
-      )
-    }
-
-    // Filter by enabled status
     if (options.enabled !== undefined) {
       hooks = hooks.filter(h => h.enabled === options.enabled)
     }
 
-    // Filter by source
     if (options.source) {
-      hooks = hooks.filter((h) => {
-        const entry = this.state.hooks.get(h.id)
-        return entry?.source === options.source
-      })
+      hooks = hooks.filter(h => h.source === options.source)
     }
 
-    // Filter by tags
     if (options.tags && options.tags.length > 0) {
       hooks = hooks.filter(h =>
-        h.tags && options.tags!.every(tag => h.tags!.includes(tag)),
+        options.tags!.every(tag => h.tags?.includes(tag)),
       )
     }
 
-    // Filter by priority range
     if (options.priorityRange) {
+      const { min, max } = options.priorityRange
       hooks = hooks.filter((h) => {
         const priority = h.priority ?? 5
-        const min = options.priorityRange!.min ?? 1
-        const max = options.priorityRange!.max ?? 10
-        return priority >= min && priority <= max
+        if (min !== undefined && priority < min)
+          return false
+        if (max !== undefined && priority > max)
+          return false
+        return true
       })
     }
 
-    return hooks
+    return hooks.sort((a, b) => (b.priority ?? 5) - (a.priority ?? 5))
   }
 
   /**
-   * Enable or disable a hook
+   * Enable a hook
    *
    * @param hookId - Hook ID
-   * @param enabled - Whether to enable or disable
-   * @returns True if hook was found and updated
-   *
-   * @example
-   * ```typescript
-   * registry.setEnabled('my-hook', false)
-   * ```
+   * @returns Whether operation was successful
    */
-  setEnabled(hookId: string, enabled: boolean): boolean {
+  enable(hookId: string): boolean {
     const entry = this.state.hooks.get(hookId)
-    if (!entry) {
+    if (!entry)
       return false
-    }
-
-    entry.hook.enabled = enabled
+    entry.hook.enabled = true
     this.state.lastUpdated = new Date()
     return true
   }
 
   /**
-   * Record hook execution
-   *
-   * Updates execution statistics for a hook.
+   * Disable a hook
    *
    * @param hookId - Hook ID
-   * @param result - Execution result
-   *
-   * @example
-   * ```typescript
-   * registry.recordExecution('my-hook', result)
-   * ```
+   * @returns Whether operation was successful
    */
-  recordExecution(hookId: string, result: HookResult): void {
+  disable(hookId: string): boolean {
     const entry = this.state.hooks.get(hookId)
-    if (!entry) {
-      return
-    }
-
-    entry.executionCount++
-    if (!result.success) {
-      entry.failureCount++
-    }
-    entry.lastExecutedAt = new Date()
-    entry.lastResult = result
+    if (!entry)
+      return false
+    entry.hook.enabled = false
+    this.state.lastUpdated = new Date()
+    return true
   }
 
   /**
-   * Get hook statistics
+   * Update hook execution statistics
    *
-   * Returns comprehensive statistics about registered hooks and their executions.
+   * @param hookId - Hook ID
+   * @param success - Whether execution was successful
+   * @param result - Execution result
+   */
+  updateStats(hookId: string, success: boolean, result?: unknown): void {
+    const entry = this.state.hooks.get(hookId)
+    if (!entry)
+      return
+
+    entry.executionCount++
+    if (!success) {
+      entry.failureCount++
+    }
+    entry.lastExecutedAt = new Date()
+    entry.lastResult = result as HookRegistryEntry['lastResult']
+  }
+
+  /**
+   * Get registry statistics
    *
    * @returns Hook statistics
-   *
-   * @example
-   * ```typescript
-   * const stats = registry.getStatistics()
-   * console.log(`Total hooks: ${stats.totalHooks}`)
-   * ```
    */
   getStatistics(): HookStatistics {
     const entries = Array.from(this.state.hooks.values())
-
-    const totalHooks = entries.length
-    const enabledHooks = entries.filter(e => e.hook.enabled).length
-    const disabledHooks = totalHooks - enabledHooks
-
-    const totalExecutions = entries.reduce((sum, e) => sum + e.executionCount, 0)
-    const totalFailures = entries.reduce((sum, e) => sum + e.failureCount, 0)
-
-    const totalDuration = entries.reduce((sum, e) =>
-      sum + (e.lastResult?.durationMs ?? 0), 0)
-    const averageExecutionMs = totalExecutions > 0 ? totalDuration / totalExecutions : 0
+    const hooks = entries.map(e => e.hook)
 
     const hooksByType: Record<HookType, number> = {
       'pre-tool-use': 0,
@@ -477,36 +271,33 @@ export class HookRegistry {
 
     const hooksBySource: Record<string, number> = {}
 
-    for (const entry of entries) {
-      hooksByType[entry.hook.type]++
-      hooksBySource[entry.source] = (hooksBySource[entry.source] || 0) + 1
+    for (const hook of hooks) {
+      hooksByType[hook.type]++
+      hooksBySource[hook.source] = (hooksBySource[hook.source] ?? 0) + 1
     }
+
+    const totalExecutions = entries.reduce((sum, e) => sum + e.executionCount, 0)
+    const totalFailures = entries.reduce((sum, e) => sum + e.failureCount, 0)
 
     const mostExecuted = entries
       .filter(e => e.executionCount > 0)
       .sort((a, b) => b.executionCount - a.executionCount)
-      .slice(0, 10)
-      .map(e => ({
-        hookId: e.hook.id,
-        executionCount: e.executionCount,
-      }))
+      .slice(0, 5)
+      .map(e => ({ hookId: e.hook.id, executionCount: e.executionCount }))
 
     const mostFailed = entries
       .filter(e => e.failureCount > 0)
       .sort((a, b) => b.failureCount - a.failureCount)
-      .slice(0, 10)
-      .map(e => ({
-        hookId: e.hook.id,
-        failureCount: e.failureCount,
-      }))
+      .slice(0, 5)
+      .map(e => ({ hookId: e.hook.id, failureCount: e.failureCount }))
 
     return {
-      totalHooks,
-      enabledHooks,
-      disabledHooks,
+      totalHooks: hooks.length,
+      enabledHooks: hooks.filter(h => h.enabled).length,
+      disabledHooks: hooks.filter(h => !h.enabled).length,
       totalExecutions,
       totalFailures,
-      averageExecutionMs,
+      averageExecutionMs: 0, // Would need to track this separately
       hooksByType,
       hooksBySource,
       mostExecuted,
@@ -516,13 +307,6 @@ export class HookRegistry {
 
   /**
    * Clear all hooks
-   *
-   * Removes all hooks from the registry.
-   *
-   * @example
-   * ```typescript
-   * registry.clear()
-   * ```
    */
   clear(): void {
     this.state.hooks.clear()
@@ -532,67 +316,22 @@ export class HookRegistry {
   }
 
   /**
-   * Get registry state
+   * Get all hooks
    *
-   * Returns the complete registry state (useful for debugging).
-   *
-   * @returns Registry state
+   * @returns Array of all hooks
    */
-  getState(): HookRegistryState {
-    return this.state
-  }
-
-  /**
-   * Match a tool pattern against a tool name
-   *
-   * @private
-   * @param pattern - Pattern to match
-   * @param tool - Tool name
-   * @returns True if pattern matches tool
-   */
-  private matchToolPattern(pattern: string, tool: string): boolean {
-    return this.matchPattern(pattern, tool)
-  }
-
-  /**
-   * Match a pattern against a value
-   *
-   * @private
-   * @param pattern - Pattern to match
-   * @param value - Value to match
-   * @returns True if pattern matches value
-   */
-  private matchPattern(pattern: string, value: string): boolean {
-    // Support wildcards
-    if (pattern.includes('*')) {
-      const regexPattern = pattern
-        .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // Escape special chars
-        .replace(/\*/g, '.*') // Convert * to .*
-      return new RegExp(`^${regexPattern}$`).test(value)
-    }
-
-    // Exact match
-    return pattern === value
+  getAll(): Hook[] {
+    return Array.from(this.state.hooks.values()).map(entry => entry.hook)
   }
 }
 
-/**
- * Global hook registry instance
- */
+// Global registry instance
 let globalRegistry: HookRegistry | null = null
 
 /**
  * Get the global hook registry
  *
- * Returns the singleton global registry instance.
- *
- * @returns Global hook registry
- *
- * @example
- * ```typescript
- * const registry = getGlobalRegistry()
- * registry.register(myHook, 'my-plugin')
- * ```
+ * @returns Global hook registry instance
  */
 export function getGlobalRegistry(): HookRegistry {
   if (!globalRegistry) {
@@ -604,26 +343,16 @@ export function getGlobalRegistry(): HookRegistry {
 /**
  * Reset the global hook registry
  *
- * Creates a new global registry instance (useful for testing).
- *
- * @example
- * ```typescript
- * resetGlobalRegistry()
- * ```
+ * Useful for testing.
  */
 export function resetGlobalRegistry(): void {
-  globalRegistry = new HookRegistry()
+  globalRegistry = null
 }
 
 /**
- * Create a new hook registry instance
+ * Create a new hook registry
  *
- * @returns New HookRegistry instance
- *
- * @example
- * ```typescript
- * const registry = createHookRegistry()
- * ```
+ * @returns New hook registry instance
  */
 export function createHookRegistry(): HookRegistry {
   return new HookRegistry()

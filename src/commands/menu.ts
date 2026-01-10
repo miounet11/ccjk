@@ -1,7 +1,9 @@
 import type { CodeToolType, SupportedLang } from '../constants'
+import { existsSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
+import { join } from 'pathe'
+import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
@@ -911,8 +913,103 @@ async function showCodexMenu(): Promise<MenuResult> {
   return undefined
 }
 
+/**
+ * Check if this is a first-time user
+ * @returns true if user has never completed initialization
+ */
+async function isFirstTimeUser(): Promise<boolean> {
+  const config = readZcfConfig()
+  // If no config or no version, likely first time
+  if (!config || !config.version) {
+    return true
+  }
+  // Check if user has completed init (commands directory exists)
+  if (!existsSync(join(CLAUDE_DIR, 'commands'))) {
+    return true
+  }
+  return false
+}
+
+/**
+ * Show welcome screen for new users
+ * @returns User's choice: 'quick' for quick start, 'full' for full menu, 'help' for features
+ */
+async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
+  console.log('')
+  console.log(ansis.bold.cyan('╔══════════════════════════════════════════════════════════════╗'))
+  console.log(ansis.bold.cyan('║') + ansis.bold.white('  👋 欢迎使用 CCJK！                                          ') + ansis.bold.cyan('║'))
+  console.log(`${ansis.bold.cyan('║')}                                                              ${ansis.bold.cyan('║')}`)
+  console.log(`${ansis.bold.cyan('║')}  CCJK 帮助您快速配置 Claude Code 开发环境                    ${ansis.bold.cyan('║')}`)
+  console.log(`${ansis.bold.cyan('║')}  包括 API 设置、工作流模板、MCP 服务等                       ${ansis.bold.cyan('║')}`)
+  console.log(ansis.bold.cyan('╚══════════════════════════════════════════════════════════════╝'))
+  console.log('')
+
+  const { mode } = await inquirer.prompt<{ mode: 'quick' | 'full' | 'help' }>({
+    type: 'list',
+    name: 'mode',
+    message: '请选择：',
+    choices: [
+      {
+        name: ansis.green('🚀 快速开始') + ansis.dim(' - 推荐新手，3分钟完成配置'),
+        value: 'quick',
+      },
+      {
+        name: ansis.cyan('⚙️  完整配置') + ansis.dim(' - 自定义所有选项'),
+        value: 'full',
+      },
+      {
+        name: ansis.yellow('📖 查看帮助') + ansis.dim(' - 了解 CCJK 功能'),
+        value: 'help',
+      },
+    ],
+  })
+
+  return mode
+}
+
+/**
+ * Show features overview for new users
+ */
+async function showFeaturesOverview(): Promise<void> {
+  console.log('')
+  console.log(ansis.bold.cyan('📖 CCJK 功能介绍'))
+  console.log('')
+  console.log(ansis.cyan('核心功能：'))
+  console.log(`  ${ansis.green('•')} API 配置 - 支持 Auth Token、API Key、CCR 代理`)
+  console.log(`  ${ansis.green('•')} 工作流模板 - Git、SixStep、Common Tools 等预设工作流`)
+  console.log(`  ${ansis.green('•')} MCP 服务 - 代码库搜索、文件系统、网络搜索等`)
+  console.log(`  ${ansis.green('•')} 输出风格 - 多种 AI 输出风格（速度优先、架构师、结对编程等）`)
+  console.log('')
+  console.log(ansis.cyan('推荐插件：'))
+  console.log(`  ${ansis.green('•')} CCR - Claude Code Router 代理工具`)
+  console.log(`  ${ansis.green('•')} CCusage - API 使用量统计工具`)
+  console.log(`  ${ansis.green('•')} Cometix - 状态栏增强工具`)
+  console.log(`  ${ansis.green('•')} Superpowers - 技能扩展系统`)
+  console.log('')
+  console.log(ansis.dim('按 Enter 继续...'))
+  await inquirer.prompt([{ type: 'input', name: 'continue', message: '' }])
+}
+
 export async function showMainMenu(options: { codeType?: string } = {}): Promise<void> {
   try {
+    // New user detection
+    if (await isFirstTimeUser()) {
+      const mode = await showNewUserWelcome()
+
+      if (mode === 'quick') {
+        // Run quick init with sensible defaults
+        await init({ skipPrompt: false })
+        return
+      }
+      else if (mode === 'help') {
+        // Show features overview
+        await showFeaturesOverview()
+        // Then show menu again
+        return showMainMenu(options)
+      }
+      // 'full' mode continues to normal menu
+    }
+
     // Handle code type parameter if provided
     if (options.codeType) {
       try {

@@ -71,5 +71,16 @@
   "codexModelOptions.gpt5": "GPT-5 - General powerful model, suitable for complex tasks",
   "codexModelOptions.gpt5Codex": "GPT-5-Codex - Code-optimized model, recommended for programming tasks",
   "codexModelOptions.custom": "Custom - Specify custom model names",
-  "windowsMcpConfigFixed": "Windows MCP configuration fixed"
+  "windowsMcpConfigFixed": "Windows MCP configuration fixed",
+  "setupCompleteTitle": "✅ CCJK Configuration Complete!",
+  "nextSteps": "🎯 Next Steps:",
+  "guidanceStep1": "1. Open Claude Code and use number shortcuts:",
+  "guidanceStep1Detail": "1 = Smart Commit  2 = Code Review  3 = Write Tests",
+  "guidanceStep1Detail2": "4 = Plan Feature  5 = Debug Issue  6 = Brainstorm",
+  "guidanceStep2": "2. Or use workflow commands:",
+  "guidanceStep2Example": "/ccjk:workflow implement user login feature",
+  "guidanceStep3": "3. View all features:",
+  "guidanceStep3Command": "npx ccjk features",
+  "guidanceStep4": "4. Having issues? Run:",
+  "guidanceStep4Command": "npx ccjk doctor"
 }

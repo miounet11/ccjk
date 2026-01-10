@@ -1,132 +1,83 @@
 /**
- * Hook Executor
+ * Hook Executor Module
  *
- * Executes hooks with timeout support, error handling, and context management.
- * Supports both sequential and parallel execution of hook chains.
+ * Executes hooks with proper error handling, timeouts, and chain management.
  *
  * @module utils/hooks/executor
  */
 
-import type { HookRegistry } from './registry.js'
 import type {
   Hook,
   HookChainResult,
   HookContext,
   HookExecutionOptions,
   HookResult,
-  HookStatus,
 } from './types.js'
-import { HookTimeoutError } from './types.js'
-
-/**
- * Default hook execution timeout (30 seconds)
- */
-const DEFAULT_TIMEOUT = 30000
-
-/**
- * Default maximum parallel executions
- */
-const DEFAULT_MAX_PARALLEL = 5
+import { HookError, HookTimeoutError } from './types.js'
 
 /**
  * Hook Executor
  *
- * Manages the execution of individual hooks and hook chains with
- * comprehensive error handling, timeout support, and context management.
- *
- * @example
- * ```typescript
- * const registry = new HookRegistry()
- * const executor = new HookExecutor(registry)
- * const context: HookContext = {
- *   type: 'pre-tool-use',
- *   tool: 'grep',
- *   timestamp: new Date()
- * }
- * const result = await executor.execute(hook, context)
- * ```
+ * Executes hooks with proper error handling and timeout management.
  */
 export class HookExecutor {
-  private registry?: HookRegistry
+  private defaultTimeout: number
 
-  /**
-   * Create a new HookExecutor
-   *
-   * @param registry - Optional hook registry for convenience methods
-   */
-  constructor(registry?: HookRegistry) {
-    this.registry = registry
+  constructor(options?: { defaultTimeout?: number }) {
+    this.defaultTimeout = options?.defaultTimeout ?? 30000
   }
 
   /**
    * Execute a single hook
    *
-   * Executes a hook with timeout support and comprehensive error handling.
-   * Returns a HookResult containing execution status and output.
-   *
    * @param hook - Hook to execute
    * @param context - Execution context
    * @param options - Execution options
-   * @returns Hook execution result
-   *
-   * @example
-   * ```typescript
-   * const result = await executor.execute(hook, context, { timeout: 5000 })
-   * if (result.success) {
-   *   console.log('Hook executed successfully:', result.output)
-   * }
-   * ```
+   * @returns Hook result
    */
   async execute(
     hook: Hook,
     context: HookContext,
-    options?: Pick<HookExecutionOptions, 'timeout'>,
+    options?: HookExecutionOptions,
   ): Promise<HookResult> {
     const startTime = Date.now()
-    let status: HookStatus = 'pending'
+    const timeout = options?.timeout ?? hook.action.timeout ?? this.defaultTimeout
 
     // Check if hook is enabled
-    if (!hook.enabled) {
+    if (!hook.enabled && options?.skipDisabled !== false) {
       return {
-        success: false,
+        success: true,
         status: 'skipped',
         durationMs: 0,
         continueChain: true,
-        error: 'Hook is disabled',
       }
     }
 
-    // Check if hook matches context
-    if (!this.matchHook(hook, context)) {
-      return {
-        success: false,
-        status: 'skipped',
-        durationMs: 0,
-        continueChain: true,
-        error: 'Hook condition does not match context',
+    // Check condition
+    if (hook.condition) {
+      const conditionMet = await this.checkCondition(hook.condition, context)
+      if (!conditionMet) {
+        return {
+          success: true,
+          status: 'skipped',
+          durationMs: Date.now() - startTime,
+          continueChain: true,
+        }
       }
     }
-
-    status = 'running'
 
     try {
-      // Determine timeout
-      const timeout = options?.timeout ?? hook.action.timeout ?? DEFAULT_TIMEOUT
-
-      // Execute hook with timeout
+      // Execute with timeout
       const result = await this.executeWithTimeout(
         hook,
         context,
         timeout,
       )
 
-      const durationMs = Date.now() - startTime
-      status = 'success'
-
       return {
         success: true,
-        status,
-        durationMs,
+        status: 'success',
+        durationMs: Date.now() - startTime,
         output: result?.output,
         continueChain: result?.continueChain ?? true,
         modifiedContext: result?.modifiedContext,
@@ -136,44 +87,32 @@ export class HookExecutor {
       const durationMs = Date.now() - startTime
 
       if (error instanceof HookTimeoutError) {
-        status = 'timeout'
+        return {
+          success: false,
+          status: 'timeout',
+          durationMs,
+          error: error.message,
+          continueChain: hook.action.continueOnError ?? true,
+        }
       }
-      else {
-        status = 'failed'
-      }
-
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      const continueOnError = hook.action.continueOnError ?? true
 
       return {
         success: false,
-        status,
+        status: 'failed',
         durationMs,
-        error: errorMessage,
-        continueChain: continueOnError,
+        error: error instanceof Error ? error.message : String(error),
+        continueChain: hook.action.continueOnError ?? true,
       }
     }
   }
 
   /**
-   * Execute a hook chain (multiple hooks in sequence or parallel)
+   * Execute a chain of hooks
    *
-   * Executes multiple hooks with support for sequential or parallel execution.
-   * Manages context propagation between hooks and aggregates results.
-   *
-   * @param hooks - Array of hooks to execute
-   * @param context - Initial execution context
+   * @param hooks - Hooks to execute
+   * @param context - Execution context
    * @param options - Execution options
-   * @returns Aggregated chain execution result
-   *
-   * @example
-   * ```typescript
-   * const result = await executor.executeChain(hooks, context, {
-   *   parallel: false,
-   *   stopOnError: true
-   * })
-   * console.log(`Executed ${result.executedCount} hooks`)
-   * ```
+   * @returns Chain result
    */
   async executeChain(
     hooks: Hook[],
@@ -181,61 +120,35 @@ export class HookExecutor {
     options?: HookExecutionOptions,
   ): Promise<HookChainResult> {
     const startTime = Date.now()
-    const results: Array<{ hookId: string, result: HookResult }> = []
+    const results: HookChainResult['results'] = []
     let currentContext = { ...context }
     let executedCount = 0
     let skippedCount = 0
     let failedCount = 0
 
-    // Filter hooks based on options
-    const hooksToExecute = options?.skipDisabled !== false
-      ? hooks.filter(h => h.enabled)
-      : hooks
+    // Sort by priority (higher first)
+    const sortedHooks = [...hooks].sort((a, b) =>
+      (b.priority ?? 5) - (a.priority ?? 5),
+    )
 
-    // Sort hooks by priority (higher priority number executes first)
-    const sortedHooks = [...hooksToExecute].sort((a, b) => {
-      const priorityA = a.priority ?? 5
-      const priorityB = b.priority ?? 5
-      return priorityB - priorityA
-    })
-
-    // Execute hooks
     if (options?.parallel) {
       // Parallel execution
-      const maxParallel = options.maxParallel ?? DEFAULT_MAX_PARALLEL
-      const batches = this.createBatches(sortedHooks, maxParallel)
+      const parallelResults = await this.executeParallel(
+        sortedHooks,
+        currentContext,
+        options,
+      )
 
-      for (const batch of batches) {
-        const batchResults = await Promise.all(
-          batch.map(hook => this.execute(hook, currentContext, options)),
-        )
-
-        for (let i = 0; i < batch.length; i++) {
-          const hook = batch[i]
-          const result = batchResults[i]
-
-          results.push({ hookId: hook.id, result })
-
-          if (result.status === 'skipped') {
-            skippedCount++
-          }
-          else if (result.success) {
-            executedCount++
-            // Apply context modifications
-            if (result.modifiedContext) {
-              currentContext = { ...currentContext, ...result.modifiedContext }
-            }
-          }
-          else {
-            failedCount++
-            if (options?.stopOnError) {
-              break
-            }
-          }
+      for (const { hookId, result } of parallelResults) {
+        results.push({ hookId, result })
+        if (result.status === 'skipped') {
+          skippedCount++
         }
-
-        if (options?.stopOnError && failedCount > 0) {
-          break
+        else if (!result.success) {
+          failedCount++
+        }
+        else {
+          executedCount++
         }
       }
     }
@@ -248,32 +161,31 @@ export class HookExecutor {
         if (result.status === 'skipped') {
           skippedCount++
         }
-        else if (result.success) {
-          executedCount++
-          // Apply context modifications
-          if (result.modifiedContext) {
-            currentContext = { ...currentContext, ...result.modifiedContext }
-          }
-          // Check if we should continue the chain
-          if (!result.continueChain) {
+        else if (!result.success) {
+          failedCount++
+          if (options?.stopOnError) {
             break
           }
         }
         else {
-          failedCount++
-          if (options?.stopOnError || !result.continueChain) {
-            break
-          }
+          executedCount++
+        }
+
+        // Apply context modifications
+        if (result.modifiedContext) {
+          currentContext = { ...currentContext, ...result.modifiedContext }
+        }
+
+        // Check if chain should continue
+        if (!result.continueChain) {
+          break
         }
       }
     }
 
-    const totalDurationMs = Date.now() - startTime
-    const success = failedCount === 0 && executedCount > 0
-
     return {
-      success,
-      totalDurationMs,
+      success: failedCount === 0,
+      totalDurationMs: Date.now() - startTime,
       results,
       executedCount,
       skippedCount,
@@ -283,86 +195,39 @@ export class HookExecutor {
   }
 
   /**
-   * Check if a hook matches the current context
+   * Execute hooks in parallel
    *
-   * Evaluates hook conditions against the provided context to determine
-   * if the hook should be executed.
-   *
-   * @param hook - Hook to check
+   * @param hooks - Hooks to execute
    * @param context - Execution context
-   * @returns True if hook matches context
-   *
-   * @example
-   * ```typescript
-   * if (executor.matchHook(hook, context)) {
-   *   console.log('Hook matches context')
-   * }
-   * ```
+   * @param options - Execution options
+   * @returns Array of results
    */
-  matchHook(hook: Hook, context: HookContext): boolean {
-    // Check hook type
-    if (hook.type !== context.type) {
-      return false
+  private async executeParallel(
+    hooks: Hook[],
+    context: HookContext,
+    options?: HookExecutionOptions,
+  ): Promise<Array<{ hookId: string, result: HookResult }>> {
+    const maxParallel = options?.maxParallel ?? 5
+    const results: Array<{ hookId: string, result: HookResult }> = []
+
+    // Process in batches
+    for (let i = 0; i < hooks.length; i += maxParallel) {
+      const batch = hooks.slice(i, i + maxParallel)
+      const batchResults = await Promise.all(
+        batch.map(async (hook) => {
+          const result = await this.execute(hook, context, options)
+          return { hookId: hook.id, result }
+        }),
+      )
+      results.push(...batchResults)
     }
 
-    // If no condition specified, match all
-    if (!hook.condition) {
-      return true
-    }
-
-    const condition = hook.condition
-
-    // Check tool pattern
-    if (condition.tool && context.tool) {
-      if (!this.matchPattern(condition.tool, context.tool)) {
-        return false
-      }
-    }
-
-    // Check skill ID pattern
-    if (condition.skillId && context.skillId) {
-      if (!this.matchPattern(condition.skillId, context.skillId)) {
-        return false
-      }
-    }
-
-    // Check workflow ID pattern
-    if (condition.workflowId && context.workflowId) {
-      if (!this.matchPattern(condition.workflowId, context.workflowId)) {
-        return false
-      }
-    }
-
-    // Check config key pattern
-    if (condition.configKey && context.configKey) {
-      if (!this.matchPattern(condition.configKey, context.configKey)) {
-        return false
-      }
-    }
-
-    // Check custom condition
-    if (condition.custom) {
-      try {
-        const result = condition.custom(context)
-        if (result instanceof Promise) {
-          // For async conditions, we can't wait here
-          // Return true and let the executor handle it
-          return true
-        }
-        return result
-      }
-      catch {
-        return false
-      }
-    }
-
-    return true
+    return results
   }
 
   /**
    * Execute hook with timeout
    *
-   * @private
    * @param hook - Hook to execute
    * @param context - Execution context
    * @param timeout - Timeout in milliseconds
@@ -385,228 +250,92 @@ export class HookExecutor {
         })
         .catch((error) => {
           clearTimeout(timeoutId)
-          reject(error)
+          reject(new HookError(
+            error instanceof Error ? error.message : String(error),
+            hook.id,
+            context,
+            error instanceof Error ? error : undefined,
+          ))
         })
     })
   }
 
   /**
-   * Match a pattern against a value
+   * Check if hook condition is met
    *
-   * @private
-   * @param pattern - String or RegExp pattern
-   * @param value - Value to match
-   * @returns True if pattern matches value
+   * @param condition - Hook condition
+   * @param context - Execution context
+   * @returns Whether condition is met
    */
-  private matchPattern(pattern: string | RegExp, value: string): boolean {
-    if (pattern instanceof RegExp) {
-      return pattern.test(value)
+  private async checkCondition(
+    condition: Hook['condition'],
+    context: HookContext,
+  ): Promise<boolean> {
+    if (!condition)
+      return true
+
+    // Check tool condition
+    if (condition.tool && context.tool) {
+      if (condition.tool instanceof RegExp) {
+        if (!condition.tool.test(context.tool))
+          return false
+      }
+      else if (condition.tool !== context.tool) {
+        return false
+      }
     }
 
-    // Support wildcards
-    if (pattern.includes('*')) {
-      const regexPattern = pattern
-        .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // Escape special chars
-        .replace(/\*/g, '.*') // Convert * to .*
-      return new RegExp(`^${regexPattern}$`).test(value)
+    // Check skill condition
+    if (condition.skillId && context.skillId) {
+      if (condition.skillId instanceof RegExp) {
+        if (!condition.skillId.test(context.skillId))
+          return false
+      }
+      else if (condition.skillId !== context.skillId) {
+        return false
+      }
     }
 
-    // Exact match
-    return pattern === value
-  }
-
-  /**
-   * Create batches for parallel execution
-   *
-   * @private
-   * @param hooks - Hooks to batch
-   * @param batchSize - Maximum batch size
-   * @returns Array of hook batches
-   */
-  private createBatches<T>(items: T[], batchSize: number): T[][] {
-    const batches: T[][] = []
-    for (let i = 0; i < items.length; i += batchSize) {
-      batches.push(items.slice(i, i + batchSize))
-    }
-    return batches
-  }
-
-  /**
-   * Execute hooks of a specific type with context
-   *
-   * @private
-   * @param type - Hook type to execute
-   * @param context - Base context to merge with
-   * @param options - Execution options
-   * @returns Array of hook results
-   */
-  private async executeHookType(
-    type: HookType,
-    context: Partial<HookContext>,
-    options?: HookExecutionOptions,
-  ): Promise<HookResult[]> {
-    if (!this.registry) {
-      throw new Error('Registry not provided to executor')
+    // Check workflow condition
+    if (condition.workflowId && context.workflowId) {
+      if (condition.workflowId instanceof RegExp) {
+        if (!condition.workflowId.test(context.workflowId))
+          return false
+      }
+      else if (condition.workflowId !== context.workflowId) {
+        return false
+      }
     }
 
-    const hooks = this.registry.getHooksForType(type)
-    const fullContext: HookContext = {
-      type,
-      timestamp: new Date(),
-      ...context,
+    // Check config condition
+    if (condition.configKey && context.configKey) {
+      if (condition.configKey instanceof RegExp) {
+        if (!condition.configKey.test(context.configKey))
+          return false
+      }
+      else if (condition.configKey !== context.configKey) {
+        return false
+      }
     }
 
-    const chainResult = await this.executeChain(hooks, fullContext, options)
-    return chainResult.results.map(r => r.result)
-  }
+    // Check custom condition
+    if (condition.custom) {
+      const customResult = await Promise.resolve(condition.custom(context))
+      if (!customResult)
+        return false
+    }
 
-  /**
-   * Execute pre-tool-use hooks
-   *
-   * @param tool - Tool name
-   * @param path - File path
-   * @param metadata - Optional metadata
-   * @returns Array of hook results
-   */
-  async executePreToolUse(
-    tool: string,
-    path: string,
-    metadata?: Record<string, unknown>,
-  ): Promise<HookResult[]> {
-    return this.executeHookType('pre-tool-use', { tool, cwd: path, metadata })
-  }
-
-  /**
-   * Execute post-tool-use hooks
-   *
-   * @param tool - Tool name
-   * @param path - File path
-   * @param error - Optional error if tool failed
-   * @param metadata - Optional metadata
-   * @returns Array of hook results
-   */
-  async executePostToolUse(
-    tool: string,
-    path: string,
-    error?: Error,
-    metadata?: Record<string, unknown>,
-  ): Promise<HookResult[]> {
-    return this.executeHookType('post-tool-use', { tool, cwd: path, error, metadata })
-  }
-
-  /**
-   * Execute skill-activated hooks
-   *
-   * @param skill - Skill name
-   * @param path - File path
-   * @param metadata - Optional metadata
-   * @returns Array of hook results
-   */
-  async executeSkillActivated(
-    skill: string,
-    path: string,
-    metadata?: Record<string, unknown>,
-  ): Promise<HookResult[]> {
-    return this.executeHookType('skill-activated', { skillId: skill, cwd: path, metadata })
-  }
-
-  /**
-   * Execute skill-completed hooks
-   *
-   * @param skill - Skill name
-   * @param path - File path
-   * @param error - Optional error if skill failed
-   * @param metadata - Optional metadata
-   * @returns Array of hook results
-   */
-  async executeSkillCompleted(
-    skill: string,
-    path: string,
-    error?: Error,
-    metadata?: Record<string, unknown>,
-  ): Promise<HookResult[]> {
-    return this.executeHookType('skill-completed', { skillId: skill, cwd: path, error, metadata })
-  }
-
-  /**
-   * Execute workflow-started hooks
-   *
-   * @param workflow - Workflow name
-   * @param path - File path
-   * @param metadata - Optional metadata
-   * @returns Array of hook results
-   */
-  async executeWorkflowStarted(
-    workflow: string,
-    path: string,
-    metadata?: Record<string, unknown>,
-  ): Promise<HookResult[]> {
-    return this.executeHookType('workflow-started', { workflowId: workflow, cwd: path, metadata })
-  }
-
-  /**
-   * Execute workflow-completed hooks
-   *
-   * @param workflow - Workflow name
-   * @param path - File path
-   * @param error - Optional error if workflow failed
-   * @param metadata - Optional metadata
-   * @returns Array of hook results
-   */
-  async executeWorkflowCompleted(
-    workflow: string,
-    path: string,
-    error?: Error,
-    metadata?: Record<string, unknown>,
-  ): Promise<HookResult[]> {
-    return this.executeHookType('workflow-completed', { workflowId: workflow, cwd: path, error, metadata })
-  }
-
-  /**
-   * Execute on-error hooks
-   *
-   * @param error - Error that occurred
-   * @param path - File path
-   * @param metadata - Optional metadata
-   * @returns Array of hook results
-   */
-  async executeOnError(
-    error: Error,
-    path: string,
-    metadata?: Record<string, unknown>,
-  ): Promise<HookResult[]> {
-    return this.executeHookType('on-error', { error, path, metadata })
-  }
-
-  /**
-   * Execute config-changed hooks
-   *
-   * @param config - Config key that changed
-   * @param path - File path
-   * @param metadata - Optional metadata
-   * @returns Array of hook results
-   */
-  async executeConfigChanged(
-    config: string,
-    path: string,
-    metadata?: Record<string, unknown>,
-  ): Promise<HookResult[]> {
-    return this.executeHookType('config-changed', { configKey: config, cwd: path, metadata })
+    return true
   }
 }
 
 /**
- * Create a default hook executor instance
+ * Create a new hook executor
  *
- * @param registry - Optional hook registry for convenience methods
- * @returns New HookExecutor instance
- *
- * @example
- * ```typescript
- * const registry = new HookRegistry()
- * const executor = createHookExecutor(registry)
- * ```
+ * @param options - Executor options
+ * @param options.defaultTimeout - Default timeout in milliseconds
+ * @returns New hook executor instance
  */
-export function createHookExecutor(registry?: HookRegistry): HookExecutor {
-  return new HookExecutor(registry)
+export function createHookExecutor(options?: { defaultTimeout?: number }): HookExecutor {
+  return new HookExecutor(options)
 }

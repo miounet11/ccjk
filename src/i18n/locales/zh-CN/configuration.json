@@ -71,5 +71,16 @@
   "codexModelOptions.gpt5": "GPT-5 - 通用强力模型，适合复杂任务",
   "codexModelOptions.gpt5Codex": "GPT-5-Codex - 专为代码优化的模型，推荐用于编程任务",
   "codexModelOptions.custom": "自定义 - 指定自定义模型名称",
-  "windowsMcpConfigFixed": "Windows MCP 配置已修复"
+  "windowsMcpConfigFixed": "Windows MCP 配置已修复",
+  "setupCompleteTitle": "✅ CCJK 配置完成！",
+  "nextSteps": "🎯 下一步：",
+  "guidanceStep1": "1. 打开 Claude Code，输入数字快速操作：",
+  "guidanceStep1Detail": "1 = 智能提交  2 = 代码审查  3 = 编写测试",
+  "guidanceStep1Detail2": "4 = 规划功能  5 = 调试问题  6 = 头脑风暴",
+  "guidanceStep2": "2. 或使用工作流命令：",
+  "guidanceStep2Example": "/ccjk:workflow 实现用户登录功能",
+  "guidanceStep3": "3. 查看所有功能：",
+  "guidanceStep3Command": "npx ccjk features",
+  "guidanceStep4": "4. 遇到问题？运行：",
+  "guidanceStep4Command": "npx ccjk doctor"
 }

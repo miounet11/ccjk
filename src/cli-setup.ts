@@ -8,6 +8,8 @@ import { executeCcusage } from './commands/ccu'
 import { checkUpdates } from './commands/check-updates'
 import { commit } from './commands/commit'
 import { configSwitchCommand } from './commands/config-switch'
+import { doctor } from './commands/doctor'
+import { showFeatures } from './commands/features'
 import { init } from './commands/init'
 import { deepInterview, interview, listInterviewSessions, quickInterview, resumeInterview } from './commands/interview'
 import { registerMarketplaceCommands } from './commands/marketplace'
@@ -19,10 +21,10 @@ import { teamInit, teamShare, teamSync } from './commands/team'
 import { toolsCommand } from './commands/tools'
 import { uninstall } from './commands/uninstall'
 import { update } from './commands/update'
+import { showWorkflows } from './commands/workflows'
 import { changeLanguage, i18n, initI18n } from './i18n'
 import { readZcfConfigAsync } from './utils/ccjk-config'
 import { detectAllConfigs, displayConfigScan } from './utils/config-consolidator'
-import { runDoctor } from './utils/health-check'
 import { quickSync, runOnboarding } from './utils/onboarding'
 import { displayPermissions } from './utils/permission-manager'
 import { selectScriptLanguage } from './utils/prompts'
@@ -140,6 +142,8 @@ export function customizeHelp(sections: any[]): any[] {
       `  ${ansis.cyan('ccjk quick')}        Express interview (~10 questions)`,
       `  ${ansis.cyan('ccjk deep')}         Deep dive interview (~40+ questions)`,
       `  ${ansis.cyan('ccjk mcp')} <action> MCP Server marketplace (search, trending, install)`,
+      `  ${ansis.cyan('ccjk workflows')} | ${ansis.cyan('wf')} Manage installed workflows`,
+      `  ${ansis.cyan('ccjk doctor')}       Health check and diagnostics`,
       `  ${ansis.cyan('ccjk uninstall')}     ${i18n.t('cli:help.commandDescriptions.uninstallConfigurations')}`,
       `  ${ansis.cyan('ccjk check-updates')} ${i18n.t('cli:help.commandDescriptions.checkUpdateVersions')}`,
       '',
@@ -384,9 +388,8 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // CCJK Doctor command - Health check
   cli
     .command('doctor', 'Run environment health check')
-    .option('--fix', 'Attempt to fix issues automatically')
-    .action(async (options) => {
-      await runDoctor(options.fix)
+    .action(async () => {
+      await doctor()
     })
 
   // CCJK Versions command - Check versions
@@ -561,6 +564,22 @@ export async function setupCommands(cli: CAC): Promise<void> {
         console.error(`Unknown action: ${action}. Use: save, list, restore, or export`)
       }
     })
+
+  // Features command - Display all available features
+  cli
+    .command('features', 'Show all available features')
+    .action(async () => {
+      await showFeatures()
+    })
+
+  // Workflows command - Manage installed workflows
+  cli
+    .command('workflows', 'Manage installed workflows')
+    .alias('wf')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .action(await withLanguageResolution(async () => {
+      await showWorkflows()
+    }))
 
   // Custom help
   cli.help(sections => customizeHelp(sections))
