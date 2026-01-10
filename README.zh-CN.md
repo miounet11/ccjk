@@ -233,6 +233,341 @@ permissions:
 | 📚 **文档专家** | API文档、README | "为这个代码库写文档" |
 | 🔄 **重构专家** | 整洁代码、SOLID | "应用设计模式重构" |
 
+#### 📘 如何使用 AI 代理
+
+**方法一：直接 @ 调用代理**
+
+在 Claude Code 对话中，使用 `@代理名` 直接调用：
+
+```bash
+# 调用规划师代理进行任务分解
+> @planner 我需要为应用添加用户认证功能
+
+# 调用代码审查代理
+> @ccjk-code-reviewer 请帮我审查 src/auth.ts 这个文件
+
+# 调用安全专家
+> @ccjk-security-expert 检查这个项目的安全漏洞
+
+# 调用性能专家
+> @ccjk-performance-expert 分析这个函数的性能问题
+```
+
+**方法二：通过斜杠命令自动触发**
+
+某些命令会自动调用相关代理：
+
+```bash
+# /feat 命令自动调用 planner 代理进行任务规划
+> /feat 添加购物车功能
+
+# /init-project 命令调用 init-architect 代理
+> /init-project
+
+# /workflow 命令启动六步开发流程
+> /workflow
+```
+
+**方法三：代理协作（自动委派）**
+
+代理之间可以自动协作，例如代码审查员发现安全问题时会自动委派给安全专家：
+
+```yaml
+# 代理定义中的委派规则
+## DELEGATIONS
+- Security issues → ccjk-security-expert
+- Performance issues → ccjk-performance-expert
+- Missing tests → ccjk-testing-specialist
+```
+
+#### 🎯 完整代理列表
+
+| 代理名称 | 调用方式 | 专业领域 |
+|----------|----------|----------|
+| `planner` | `@planner` | 📋 任务规划和分解 |
+| `ui-ux-designer` | `@ui-ux-designer` | 🎨 UI/UX 设计 |
+| `init-architect` | `@init-architect` | 🏗️ 项目初始化架构 |
+| `ccjk-code-reviewer` | `@ccjk-code-reviewer` | 🔍 代码审查 |
+| `ccjk-security-expert` | `@ccjk-security-expert` | 🔒 安全审计 |
+| `ccjk-performance-expert` | `@ccjk-performance-expert` | ⚡ 性能优化 |
+| `ccjk-frontend-architect` | `@ccjk-frontend-architect` | 🖥️ 前端架构 |
+| `ccjk-backend-architect` | `@ccjk-backend-architect` | ⚙️ 后端架构 |
+| `ccjk-database-expert` | `@ccjk-database-expert` | 🗄️ 数据库设计 |
+| `ccjk-devops-expert` | `@ccjk-devops-expert` | 🚀 DevOps/CI/CD |
+| `ccjk-testing-specialist` | `@ccjk-testing-specialist` | 🧪 测试专家 |
+| `ccjk-refactoring-expert` | `@ccjk-refactoring-expert` | ♻️ 代码重构 |
+| `ccjk-documentation-expert` | `@ccjk-documentation-expert` | 📚 文档生成 |
+| `ccjk-api-architect` | `@ccjk-api-architect` | 🔌 API 设计 |
+| `ccjk-i18n-specialist` | `@ccjk-i18n-specialist` | 🌍 国际化 |
+
+#### 💡 代理使用示例
+
+```bash
+# 示例 1：复杂功能规划
+> @planner 我需要为电商应用添加以下功能：
+  1. 用户购物车
+  2. 订单管理
+  3. 支付集成
+  请帮我分解任务并制定实施计划
+
+# 示例 2：代码审查
+> @ccjk-code-reviewer 请审查 src/services/ 目录下的所有服务代码，
+  重点关注错误处理和代码复用
+
+# 示例 3：安全审计
+> @ccjk-security-expert 对这个 Node.js 后端项目进行全面安全审计，
+  特别关注 SQL 注入和 XSS 漏洞
+
+# 示例 4：性能优化
+> @ccjk-performance-expert 分析 src/utils/data-processor.ts 的性能，
+  这个函数处理大数据集时很慢
+```
+
+### 🪝 Hooks 钩子系统
+
+Hooks 是 CCJK 的扩展机制，允许你在特定事件发生时自动执行自定义逻辑。
+
+#### 🎯 Hook 类型
+
+| 类型 | 触发时机 | 典型用途 |
+|------|----------|----------|
+| `pre-tool-use` | 工具执行**前** | 输入验证、限流、添加默认值 |
+| `post-tool-use` | 工具执行**后** | 日志记录、缓存结果、资源清理 |
+| `skill-activated` | 技能激活时 | 权限检查、环境初始化 |
+| `skill-completed` | 技能完成时 | 清理资源、发送通知 |
+| `workflow-started` | 工作流开始 | 环境设置、参数验证 |
+| `workflow-completed` | 工作流结束 | 生成报告、清理临时文件 |
+| `on-error` | 发生错误时 | 错误追踪、自动恢复 |
+| `config-changed` | 配置变更时 | 重新加载、验证配置 |
+
+#### 📝 创建自定义 Hook
+
+在项目的 `.claude/hooks/` 目录下创建 TypeScript 文件：
+
+```typescript
+// .claude/hooks/my-hooks.ts
+import { registry } from 'ccjk/hooks'
+
+// 示例 1：文件修改前自动备份
+registry.register({
+  id: 'auto-backup',
+  name: '自动备份',
+  type: 'pre-tool-use',
+  priority: 9,  // 优先级 1-10，数字越大越先执行
+  condition: {
+    tools: ['Edit', 'Write']  // 只在编辑/写入文件时触发
+  },
+  action: {
+    execute: async (context) => {
+      console.log(`📦 备份文件: ${context.path}`)
+      await backupFile(context.path)
+      return {
+        success: true,
+        status: 'success',
+        durationMs: 0,
+        continueChain: true  // 继续执行后续 hooks
+      }
+    },
+    timeout: 5000  // 5秒超时
+  }
+})
+
+// 示例 2：操作完成后记录日志
+registry.register({
+  id: 'audit-log',
+  name: '审计日志',
+  type: 'post-tool-use',
+  priority: 1,
+  action: {
+    execute: async (context) => {
+      await logToFile({
+        timestamp: new Date().toISOString(),
+        tool: context.tool,
+        path: context.path,
+        success: !context.error
+      })
+      return {
+        success: true,
+        status: 'success',
+        durationMs: 0,
+        continueChain: true
+      }
+    }
+  }
+})
+
+// 示例 3：性能监控
+registry.register({
+  id: 'perf-monitor',
+  name: '性能监控',
+  type: 'post-tool-use',
+  action: {
+    execute: async (context) => {
+      const duration = context.result?.durationMs || 0
+      if (duration > 5000) {
+        console.warn(`⚠️ 操作耗时过长: ${context.tool} - ${duration}ms`)
+      }
+      return {
+        success: true,
+        status: 'success',
+        durationMs: 0,
+        continueChain: true
+      }
+    }
+  }
+})
+```
+
+#### 🔧 实用 Hook 模板
+
+**限流 Hook（防止 API 过载）**
+
+```typescript
+const requests = new Map<string, number[]>()
+const MAX_PER_MINUTE = 60
+
+registry.register({
+  id: 'rate-limit',
+  name: '请求限流',
+  type: 'pre-tool-use',
+  priority: 10,  // 最高优先级
+  action: {
+    execute: async (context) => {
+      const tool = context.tool || 'unknown'
+      const now = Date.now()
+      let reqs = requests.get(tool) || []
+      reqs = reqs.filter(t => t > now - 60000)  // 保留最近1分钟
+
+      if (reqs.length >= MAX_PER_MINUTE) {
+        return {
+          success: false,
+          status: 'failed',
+          error: `限流：${tool} 每分钟最多 ${MAX_PER_MINUTE} 次`,
+          continueChain: false  // 阻止执行
+        }
+      }
+
+      reqs.push(now)
+      requests.set(tool, reqs)
+      return { success: true, status: 'success', durationMs: 0, continueChain: true }
+    }
+  }
+})
+```
+
+**缓存 Hook（避免重复计算）**
+
+```typescript
+const cache = new Map<string, any>()
+
+// 执行前检查缓存
+registry.register({
+  id: 'cache-check',
+  name: '缓存检查',
+  type: 'pre-tool-use',
+  priority: 8,
+  action: {
+    execute: async (context) => {
+      const key = `${context.tool}:${JSON.stringify(context.args)}`
+      const cached = cache.get(key)
+      if (cached) {
+        return {
+          success: true,
+          status: 'success',
+          output: cached,
+          continueChain: false  // 跳过实际执行，直接返回缓存
+        }
+      }
+      return { success: true, status: 'success', durationMs: 0, continueChain: true }
+    }
+  }
+})
+
+// 执行后存入缓存
+registry.register({
+  id: 'cache-store',
+  name: '缓存存储',
+  type: 'post-tool-use',
+  action: {
+    execute: async (context) => {
+      if (context.result && !context.error) {
+        const key = `${context.tool}:${JSON.stringify(context.args)}`
+        cache.set(key, context.result)
+      }
+      return { success: true, status: 'success', durationMs: 0, continueChain: true }
+    }
+  }
+})
+```
+
+**错误通知 Hook**
+
+```typescript
+registry.register({
+  id: 'error-notify',
+  name: '错误通知',
+  type: 'on-error',
+  action: {
+    execute: async (context) => {
+      // 发送错误通知（如 Slack、邮件等）
+      await sendNotification({
+        title: '⚠️ CCJK 错误',
+        message: context.error?.message,
+        stack: context.error?.stack
+      })
+      return { success: true, status: 'success', durationMs: 0, continueChain: true }
+    },
+    continueOnError: true  // 即使通知失败也不影响主流程
+  }
+})
+```
+
+#### 🎚️ 优先级指南
+
+| 优先级 | 用途 | 示例 |
+|--------|------|------|
+| 10 | 关键验证 | 安全检查、权限验证 |
+| 9 | 限流控制 | 请求频率限制 |
+| 8 | 缓存操作 | 缓存检查/存储 |
+| 7 | 业务验证 | 输入格式验证 |
+| 6 | 数据转换 | 格式转换、标准化 |
+| 5 | 默认值 | 添加默认参数 |
+| 4 | 监控 | 性能追踪 |
+| 3 | 缓存管理 | 缓存清理 |
+| 2 | 日志 | 调试输出 |
+| 1 | 清理 | 资源释放 |
+
+#### 📊 Hook 管理 API
+
+```typescript
+import { initializeHooksSystem } from 'ccjk/hooks'
+
+const { registry, executor } = initializeHooksSystem()
+
+// 注册 Hook
+registry.register(myHook)
+
+// 注销 Hook
+registry.unregister('hook-id')
+
+// 启用/禁用 Hook
+registry.setEnabled('hook-id', false)
+
+// 获取所有 Hooks
+const hooks = registry.getAllHooks()
+
+// 按类型获取
+const preHooks = registry.getHooksForType('pre-tool-use')
+
+// 获取统计信息
+const stats = registry.getStatistics()
+// { totalHooks: 10, enabledHooks: 8, successRate: 96.67, ... }
+
+// 手动执行 Hooks
+await executor.executePreToolUse('grep', '/path', { pattern: 'TODO' })
+await executor.executePostToolUse('grep', '/path', result, error)
+```
+
 ### 🔍 审查引擎 - AI代码审计器
 
 全自动AI代码审计器，无需预定义规则：

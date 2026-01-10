@@ -233,6 +233,341 @@ Your personal AI development team, available 24/7:
 | 📚 **Documentation Expert** | API docs, READMEs | "Document this codebase" |
 | 🔄 **Refactoring Expert** | Clean code, SOLID | "Apply design patterns" |
 
+#### 📘 How to Use AI Agents
+
+**Method 1: Direct @ Mention**
+
+In Claude Code conversation, use `@agent-name` to invoke directly:
+
+```bash
+# Call planner agent for task breakdown
+> @planner I need to add user authentication to my app
+
+# Call code reviewer agent
+> @ccjk-code-reviewer Please review src/auth.ts
+
+# Call security expert
+> @ccjk-security-expert Check this project for security vulnerabilities
+
+# Call performance expert
+> @ccjk-performance-expert Analyze performance issues in this function
+```
+
+**Method 2: Auto-trigger via Slash Commands**
+
+Some commands automatically invoke related agents:
+
+```bash
+# /feat command auto-invokes planner agent
+> /feat Add shopping cart feature
+
+# /init-project invokes init-architect agent
+> /init-project
+
+# /workflow starts six-step development flow
+> /workflow
+```
+
+**Method 3: Agent Collaboration (Auto-delegation)**
+
+Agents can automatically collaborate. For example, code reviewer delegates security issues to security expert:
+
+```yaml
+# Delegation rules in agent definition
+## DELEGATIONS
+- Security issues → ccjk-security-expert
+- Performance issues → ccjk-performance-expert
+- Missing tests → ccjk-testing-specialist
+```
+
+#### 🎯 Complete Agent List
+
+| Agent Name | Invocation | Specialty |
+|------------|------------|-----------|
+| `planner` | `@planner` | 📋 Task planning & breakdown |
+| `ui-ux-designer` | `@ui-ux-designer` | 🎨 UI/UX design |
+| `init-architect` | `@init-architect` | 🏗️ Project initialization |
+| `ccjk-code-reviewer` | `@ccjk-code-reviewer` | 🔍 Code review |
+| `ccjk-security-expert` | `@ccjk-security-expert` | 🔒 Security audit |
+| `ccjk-performance-expert` | `@ccjk-performance-expert` | ⚡ Performance optimization |
+| `ccjk-frontend-architect` | `@ccjk-frontend-architect` | 🖥️ Frontend architecture |
+| `ccjk-backend-architect` | `@ccjk-backend-architect` | ⚙️ Backend architecture |
+| `ccjk-database-expert` | `@ccjk-database-expert` | 🗄️ Database design |
+| `ccjk-devops-expert` | `@ccjk-devops-expert` | 🚀 DevOps/CI/CD |
+| `ccjk-testing-specialist` | `@ccjk-testing-specialist` | 🧪 Testing expert |
+| `ccjk-refactoring-expert` | `@ccjk-refactoring-expert` | ♻️ Code refactoring |
+| `ccjk-documentation-expert` | `@ccjk-documentation-expert` | 📚 Documentation |
+| `ccjk-api-architect` | `@ccjk-api-architect` | 🔌 API design |
+| `ccjk-i18n-specialist` | `@ccjk-i18n-specialist` | 🌍 Internationalization |
+
+#### 💡 Agent Usage Examples
+
+```bash
+# Example 1: Complex feature planning
+> @planner I need to add these features to my e-commerce app:
+  1. Shopping cart
+  2. Order management
+  3. Payment integration
+  Please break down tasks and create implementation plan
+
+# Example 2: Code review
+> @ccjk-code-reviewer Review all service code in src/services/,
+  focus on error handling and code reuse
+
+# Example 3: Security audit
+> @ccjk-security-expert Perform full security audit on this Node.js backend,
+  especially check for SQL injection and XSS vulnerabilities
+
+# Example 4: Performance optimization
+> @ccjk-performance-expert Analyze src/utils/data-processor.ts performance,
+  this function is slow when processing large datasets
+```
+
+### 🪝 Hooks System
+
+Hooks are CCJK's extension mechanism, allowing you to automatically execute custom logic when specific events occur.
+
+#### 🎯 Hook Types
+
+| Type | Trigger | Typical Use |
+|------|---------|-------------|
+| `pre-tool-use` | **Before** tool execution | Input validation, rate limiting, defaults |
+| `post-tool-use` | **After** tool execution | Logging, caching, cleanup |
+| `skill-activated` | When skill activates | Permission checks, initialization |
+| `skill-completed` | When skill completes | Cleanup, notifications |
+| `workflow-started` | Workflow begins | Environment setup, validation |
+| `workflow-completed` | Workflow ends | Report generation, cleanup |
+| `on-error` | Error occurs | Error tracking, recovery |
+| `config-changed` | Config changes | Reload, validate config |
+
+#### 📝 Creating Custom Hooks
+
+Create TypeScript files in your project's `.claude/hooks/` directory:
+
+```typescript
+// .claude/hooks/my-hooks.ts
+import { registry } from 'ccjk/hooks'
+
+// Example 1: Auto-backup before file modification
+registry.register({
+  id: 'auto-backup',
+  name: 'Auto Backup',
+  type: 'pre-tool-use',
+  priority: 9,  // Priority 1-10, higher runs first
+  condition: {
+    tools: ['Edit', 'Write']  // Only trigger on edit/write
+  },
+  action: {
+    execute: async (context) => {
+      console.log(`📦 Backing up: ${context.path}`)
+      await backupFile(context.path)
+      return {
+        success: true,
+        status: 'success',
+        durationMs: 0,
+        continueChain: true  // Continue to next hooks
+      }
+    },
+    timeout: 5000  // 5 second timeout
+  }
+})
+
+// Example 2: Audit logging after operations
+registry.register({
+  id: 'audit-log',
+  name: 'Audit Logger',
+  type: 'post-tool-use',
+  priority: 1,
+  action: {
+    execute: async (context) => {
+      await logToFile({
+        timestamp: new Date().toISOString(),
+        tool: context.tool,
+        path: context.path,
+        success: !context.error
+      })
+      return {
+        success: true,
+        status: 'success',
+        durationMs: 0,
+        continueChain: true
+      }
+    }
+  }
+})
+
+// Example 3: Performance monitoring
+registry.register({
+  id: 'perf-monitor',
+  name: 'Performance Monitor',
+  type: 'post-tool-use',
+  action: {
+    execute: async (context) => {
+      const duration = context.result?.durationMs || 0
+      if (duration > 5000) {
+        console.warn(`⚠️ Slow operation: ${context.tool} - ${duration}ms`)
+      }
+      return {
+        success: true,
+        status: 'success',
+        durationMs: 0,
+        continueChain: true
+      }
+    }
+  }
+})
+```
+
+#### 🔧 Useful Hook Templates
+
+**Rate Limiting Hook (Prevent API Overload)**
+
+```typescript
+const requests = new Map<string, number[]>()
+const MAX_PER_MINUTE = 60
+
+registry.register({
+  id: 'rate-limit',
+  name: 'Rate Limiter',
+  type: 'pre-tool-use',
+  priority: 10,  // Highest priority
+  action: {
+    execute: async (context) => {
+      const tool = context.tool || 'unknown'
+      const now = Date.now()
+      let reqs = requests.get(tool) || []
+      reqs = reqs.filter(t => t > now - 60000)  // Keep last minute
+
+      if (reqs.length >= MAX_PER_MINUTE) {
+        return {
+          success: false,
+          status: 'failed',
+          error: `Rate limit: ${tool} max ${MAX_PER_MINUTE}/min`,
+          continueChain: false  // Block execution
+        }
+      }
+
+      reqs.push(now)
+      requests.set(tool, reqs)
+      return { success: true, status: 'success', durationMs: 0, continueChain: true }
+    }
+  }
+})
+```
+
+**Caching Hook (Avoid Redundant Computation)**
+
+```typescript
+const cache = new Map<string, any>()
+
+// Check cache before execution
+registry.register({
+  id: 'cache-check',
+  name: 'Cache Check',
+  type: 'pre-tool-use',
+  priority: 8,
+  action: {
+    execute: async (context) => {
+      const key = `${context.tool}:${JSON.stringify(context.args)}`
+      const cached = cache.get(key)
+      if (cached) {
+        return {
+          success: true,
+          status: 'success',
+          output: cached,
+          continueChain: false  // Skip execution, return cached
+        }
+      }
+      return { success: true, status: 'success', durationMs: 0, continueChain: true }
+    }
+  }
+})
+
+// Store in cache after execution
+registry.register({
+  id: 'cache-store',
+  name: 'Cache Store',
+  type: 'post-tool-use',
+  action: {
+    execute: async (context) => {
+      if (context.result && !context.error) {
+        const key = `${context.tool}:${JSON.stringify(context.args)}`
+        cache.set(key, context.result)
+      }
+      return { success: true, status: 'success', durationMs: 0, continueChain: true }
+    }
+  }
+})
+```
+
+**Error Notification Hook**
+
+```typescript
+registry.register({
+  id: 'error-notify',
+  name: 'Error Notifier',
+  type: 'on-error',
+  action: {
+    execute: async (context) => {
+      // Send notification (Slack, email, etc.)
+      await sendNotification({
+        title: '⚠️ CCJK Error',
+        message: context.error?.message,
+        stack: context.error?.stack
+      })
+      return { success: true, status: 'success', durationMs: 0, continueChain: true }
+    },
+    continueOnError: true  // Don't affect main flow if notification fails
+  }
+})
+```
+
+#### 🎚️ Priority Guidelines
+
+| Priority | Use For | Examples |
+|----------|---------|----------|
+| 10 | Critical validation | Security checks, permissions |
+| 9 | Rate limiting | Request throttling |
+| 8 | Caching | Cache check/store |
+| 7 | Business validation | Input format validation |
+| 6 | Data transformation | Format conversion |
+| 5 | Default values | Add default parameters |
+| 4 | Monitoring | Performance tracking |
+| 3 | Cache management | Cache cleanup |
+| 2 | Logging | Debug output |
+| 1 | Cleanup | Resource release |
+
+#### 📊 Hook Management API
+
+```typescript
+import { initializeHooksSystem } from 'ccjk/hooks'
+
+const { registry, executor } = initializeHooksSystem()
+
+// Register hook
+registry.register(myHook)
+
+// Unregister hook
+registry.unregister('hook-id')
+
+// Enable/disable hook
+registry.setEnabled('hook-id', false)
+
+// Get all hooks
+const hooks = registry.getAllHooks()
+
+// Get by type
+const preHooks = registry.getHooksForType('pre-tool-use')
+
+// Get statistics
+const stats = registry.getStatistics()
+// { totalHooks: 10, enabledHooks: 8, successRate: 96.67, ... }
+
+// Manually execute hooks
+await executor.executePreToolUse('grep', '/path', { pattern: 'TODO' })
+await executor.executePostToolUse('grep', '/path', result, error)
+```
+
 ### 🔍 ShenCha - AI Code Auditor
 
 Fully autonomous AI code auditor:
