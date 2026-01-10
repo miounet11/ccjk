@@ -82,6 +82,40 @@ export function writeFile(path: string, content: string, encoding: BufferEncodin
 }
 
 /**
+ * Read and parse JSON file
+ */
+export function readJsonFile<T = any>(path: string): T {
+  try {
+    const content = readFile(path, 'utf-8')
+    return JSON.parse(content) as T
+  }
+  catch (error) {
+    throw new FileSystemError(
+      `Failed to read JSON file: ${path}`,
+      path,
+      error as Error,
+    )
+  }
+}
+
+/**
+ * Write object to JSON file
+ */
+export function writeJsonFile(path: string, data: any, pretty = true): void {
+  try {
+    const content = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data)
+    writeFile(path, content, 'utf-8')
+  }
+  catch (error) {
+    throw new FileSystemError(
+      `Failed to write JSON file: ${path}`,
+      path,
+      error as Error,
+    )
+  }
+}
+
+/**
  * Copy a file from source to destination
  */
 export function copyFile(src: string, dest: string): void {

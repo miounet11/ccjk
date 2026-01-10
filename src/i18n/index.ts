@@ -17,6 +17,7 @@ const NAMESPACES = [
   'ccr',
   'ccjk', // CCJK-specific translations
   'cli',
+  'cloudPlugins', // Cloud-based plugin system
   'cometix',
   'codex',
   'configuration',
@@ -29,8 +30,10 @@ const NAMESPACES = [
   'menu',
   'multi-config',
   'notification', // Task completion notifications
+  'plugins', // Cloud plugins management
   'shencha',
   'skills', // Skills management system
+  'skillsSync', // Skills cloud synchronization
   'smartGuide', // Smart Guide for quick actions
   'superpowers', // Superpowers plugin integration
   'team',
@@ -150,6 +153,18 @@ export async function changeLanguage(lng: SupportedLang): Promise<void> {
 
 export function getCurrentLanguage(): SupportedLang {
   return i18n.language as SupportedLang
+}
+
+// Get translation function with namespace support
+export function getTranslation(_lang?: SupportedLang) {
+  return (key: string, options?: Record<string, any>) => {
+    // Support namespace:key format
+    if (key.includes(':')) {
+      return i18n.t(key, options)
+    }
+    // Default to common namespace
+    return i18n.t(`common:${key}`, options)
+  }
 }
 
 export type { SupportedLang }

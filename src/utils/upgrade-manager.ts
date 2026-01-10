@@ -1,3 +1,4 @@
+import process from 'node:process'
 import ansis from 'ansis'
 import ora from 'ora'
 import semver from 'semver'

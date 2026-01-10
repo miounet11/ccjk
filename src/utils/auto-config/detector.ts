@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
+import process from 'node:process'
 import { join } from 'pathe'
 
 /**

@@ -1,0 +1,45 @@
+{
+  "name": "@ccjk/cloud-sdk",
+  "version": "1.0.0",
+  "description": "CCJK Cloud SDK - 设备绑定和通知发送客户端",
+  "author": "CCJK Team",
+  "license": "MIT",
+  "homepage": "https://www.claudehome.cn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthropics/claude-code"
+  },
+  "keywords": [
+    "ccjk",
+    "claude",
+    "notification",
+    "feishu",
+    "dingtalk",
+    "wechat"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "build": "tsup index.ts --format cjs,esm --dts",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.2"
+  }
+}

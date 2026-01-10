@@ -10,6 +10,7 @@
 import type { SkillMdFile, SkillValidationResult } from '../../types/skill-md.js'
 import { readdir, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
+import { cwd } from 'node:process'
 import { join, resolve } from 'pathe'
 import { parseSkillMdFile, validateSkillMd } from './parser.js'
 
@@ -72,7 +73,7 @@ export class SkillDiscovery {
   getDefaultDirs(): string[] {
     const home = homedir()
     const globalSkillsDir = join(home, '.claude', 'skills')
-    const localSkillsDir = resolve(globalThis.process.cwd(), '.claude', 'skills')
+    const localSkillsDir = resolve(cwd(), '.claude', 'skills')
 
     return [globalSkillsDir, localSkillsDir]
   }

@@ -59,6 +59,9 @@
  */
 
 // Export main manager class
+// Import for createSubagentManager
+import { SubagentManager } from './manager'
+
 export { SubagentManager } from './manager'
 
 // Export transcript utilities
@@ -102,6 +105,5 @@ export type {
  * ```
  */
 export function createSubagentManager(options?: import('./types').SubagentManagerOptions): import('./manager').SubagentManager {
-  const { SubagentManager } = require('./manager')
   return new SubagentManager(options)
 }

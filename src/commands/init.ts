@@ -11,7 +11,7 @@ import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
 import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
-import { displayBannerWithInfo } from '../utils/banner'
+import { displayBannerWithInfo, padToDisplayWidth } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { backupCcrConfig, configureCcrProxy, createDefaultCcrConfig, readCcrConfig, setupCcrConfiguration, writeCcrConfig } from '../utils/ccr/config'
 import { installCcr, isCcrInstalled } from '../utils/ccr/installer'
@@ -1100,20 +1100,20 @@ export async function init(options: InitOptions = {}): Promise<void> {
     // Step 13: Success message with enhanced guidance
     console.log('')
     console.log(ansis.bold.green('╔══════════════════════════════════════════════════════════════╗'))
-    console.log(ansis.bold.green('║') + ansis.bold.white(`  ${i18n.t('configuration:setupCompleteTitle')}`.padEnd(62)) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + ansis.bold.white(padToDisplayWidth(`  ${i18n.t('configuration:setupCompleteTitle')}`, 62)) + ansis.bold.green('║'))
     console.log(ansis.bold.green('╠══════════════════════════════════════════════════════════════╣'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + ansis.cyan(`  ${i18n.t('configuration:nextSteps')}`.padEnd(62)) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + ansis.cyan(padToDisplayWidth(`  ${i18n.t('configuration:nextSteps')}`, 62)) + ansis.bold.green('║'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + `  ${i18n.t('configuration:guidanceStep1')}`.padEnd(62) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + ansis.dim(`     ${i18n.t('configuration:guidanceStep1Detail')}`.padEnd(62)) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + ansis.dim(`     ${i18n.t('configuration:guidanceStep1Detail2')}`.padEnd(62)) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep1')}`, 62) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail')}`, 62)) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail2')}`, 62)) + ansis.bold.green('║'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + `  ${i18n.t('configuration:guidanceStep2')}`.padEnd(62) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + ansis.cyan(`     ${i18n.t('configuration:guidanceStep2Example')}`.padEnd(62)) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep2')}`, 62) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + ansis.cyan(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep2Example')}`, 62)) + ansis.bold.green('║'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + `  ${i18n.t('configuration:guidanceStep3')} `.padEnd(44) + ansis.yellow(i18n.t('configuration:guidanceStep3Command')).padEnd(18) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + `  ${i18n.t('configuration:guidanceStep4')} `.padEnd(44) + ansis.yellow(i18n.t('configuration:guidanceStep4Command')).padEnd(18) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep3')} `, 44) + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep3Command'), 18)) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep4')} `, 44) + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep4Command'), 18)) + ansis.bold.green('║'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
     console.log(ansis.bold.green('╚══════════════════════════════════════════════════════════════╝'))
     console.log('')

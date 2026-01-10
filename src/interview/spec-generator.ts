@@ -81,7 +81,7 @@ export class SpecGenerator {
   private extractTitle(session: InterviewSession): string {
     if (session.context) {
       // Try to extract a title from context
-      const match = session.context.match(/(?:build|create|implement)\s+(?:a\s+)?(.+?)(?:\s+app|\s+application|\s+system)?$/i)
+      const match = session.context.match(/(?:build|create|implement)\s+(?:a\s+)?(\w+(?:\s+\w+)*)/i)
       if (match) {
         return match[1].trim()
       }

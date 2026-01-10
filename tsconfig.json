@@ -1,11 +1,17 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "ES2022.Error"],
+    "lib": [
+      "ES2022",
+      "ES2022.Error"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "types": ["node", "vitest/globals"],
+    "types": [
+      "node",
+      "vitest/globals"
+    ],
     "allowArbitraryExtensions": false,
     "allowImportingTsExtensions": false,
     "strict": true,

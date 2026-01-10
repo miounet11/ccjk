@@ -1,0 +1,127 @@
+{
+  "templates": [
+    {
+      "id": "nodejs-express",
+      "name": "Node.js Express API",
+      "category": "backend",
+      "description": "CLAUDE.md template for Node.js Express REST API projects",
+      "tags": ["nodejs", "express", "api", "backend", "rest"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION", "PORT"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\nThis is a Node.js Express REST API project built with modern JavaScript/TypeScript practices.\n\n## Architecture Overview\n\nThe project follows a layered architecture pattern:\n\n- **Routes Layer**: Express route handlers\n- **Controller Layer**: Business logic and request handling\n- **Service Layer**: Core business logic\n- **Data Layer**: Database access and models\n- **Middleware**: Authentication, validation, error handling\n\n## Development Guidelines\n\n### Core Principles\n\n- **RESTful Design**: Follow REST principles for API endpoints\n- **Error Handling**: Comprehensive error handling with proper HTTP status codes\n- **Validation**: Input validation using express-validator or Joi\n- **Security**: Implement authentication, authorization, and rate limiting\n- **Testing**: Unit tests for services, integration tests for routes\n\n### Coding Standards\n\n- Use ESLint and Prettier for code formatting\n- Follow Airbnb JavaScript Style Guide\n- Write meaningful commit messages\n- Document all API endpoints\n\n## API Documentation\n\n### Base URL\n\n```\nhttp://localhost:{{PORT}}/api/v1\n```\n\n### Authentication\n\nUse JWT tokens for authentication:\n\n```\nAuthorization: Bearer <token>\n```\n\n## Running and Development\n\n```bash\n# Install dependencies\nnpm install\n\n# Development mode\nnpm run dev\n\n# Production build\nnpm run build\nnpm start\n\n# Run tests\nnpm test\n```\n\n## Environment Variables\n\n```env\nPORT={{PORT}}\nNODE_ENV=development\nDATABASE_URL=postgresql://localhost:5432/{{PROJECT_NAME}}\nJWT_SECRET=your-secret-key\n```\n\n## Author\n\n{{AUTHOR}}\n"
+    },
+    {
+      "id": "react-webapp",
+      "name": "React Web Application",
+      "category": "frontend",
+      "description": "CLAUDE.md template for React web applications",
+      "tags": ["react", "frontend", "webapp", "spa"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\nThis is a modern React web application built with the latest React features and best practices.\n\n## Architecture Overview\n\nThe project follows a component-based architecture:\n\n```mermaid\ngraph TD\n    A[App] --> B[Pages]\n    A --> C[Components]\n    A --> D[Hooks]\n    A --> E[Services]\n    A --> F[Utils]\n    B --> C\n    C --> D\n    D --> E\n```\n\n## Development Guidelines\n\n### Core Principles\n\n- **Component Composition**: Build reusable, composable components\n- **State Management**: Use React hooks and Context API for state\n- **Performance**: Optimize with React.memo, useMemo, useCallback\n- **Accessibility**: Follow WCAG guidelines\n- **Testing**: Unit tests with Jest, integration tests with React Testing Library\n\n### Coding Standards\n\n- Use TypeScript for type safety\n- Follow React best practices and hooks rules\n- Use ESLint and Prettier for code formatting\n- Write meaningful component documentation\n\n## Project Structure\n\n```\nsrc/\n├── components/     # Reusable UI components\n├── pages/          # Page components\n├── hooks/          # Custom React hooks\n├── services/       # API services\n├── utils/          # Utility functions\n├── styles/         # Global styles\n└── types/          # TypeScript types\n```\n\n## Running and Development\n\n```bash\n# Install dependencies\nnpm install\n\n# Development mode\nnpm run dev\n\n# Production build\nnpm run build\n\n# Run tests\nnpm test\n```\n\n## Author\n\n{{AUTHOR}}\n"
+    },
+    {
+      "id": "python-fastapi",
+      "name": "Python FastAPI",
+      "category": "backend",
+      "description": "CLAUDE.md template for Python FastAPI projects",
+      "tags": ["python", "fastapi", "api", "backend"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\nThis is a Python FastAPI project following modern async Python practices.\n\n## Architecture Overview\n\nThe project follows a clean architecture pattern:\n\n- **API Layer**: FastAPI route handlers\n- **Service Layer**: Business logic\n- **Repository Layer**: Data access\n- **Models**: Pydantic models and database schemas\n\n## Development Guidelines\n\n### Core Principles\n\n- **Async First**: Use async/await for I/O operations\n- **Type Hints**: Use Python type hints everywhere\n- **Validation**: Pydantic models for request/response validation\n- **Documentation**: Auto-generated OpenAPI docs\n- **Testing**: pytest with async support\n\n### Coding Standards\n\n- Follow PEP 8 style guide\n- Use Black for code formatting\n- Use mypy for type checking\n- Write docstrings for all functions\n\n## Running and Development\n\n```bash\n# Create virtual environment\npython -m venv venv\nsource venv/bin/activate\n\n# Install dependencies\npip install -r requirements.txt\n\n# Development mode\nuvicorn main:app --reload\n\n# Run tests\npytest\n```\n\n## API Documentation\n\nFastAPI automatically generates interactive API documentation:\n\n- Swagger UI: http://localhost:8000/docs\n- ReDoc: http://localhost:8000/redoc\n\n## Author\n\n{{AUTHOR}}\n"
+    },
+    {
+      "id": "nextjs-fullstack",
+      "name": "Next.js Full-Stack",
+      "category": "fullstack",
+      "description": "CLAUDE.md template for Next.js full-stack applications",
+      "tags": ["nextjs", "react", "fullstack", "ssr"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\nThis is a Next.js full-stack application with server-side rendering and API routes.\n\n## Architecture Overview\n\nThe project uses Next.js App Router architecture:\n\n- **App Directory**: Server and client components\n- **API Routes**: Backend API endpoints\n- **Server Actions**: Server-side mutations\n- **Database**: Prisma ORM with PostgreSQL\n\n## Development Guidelines\n\n### Core Principles\n\n- **Server Components**: Use server components by default\n- **Client Components**: Only when needed for interactivity\n- **Data Fetching**: Use server-side data fetching\n- **Performance**: Optimize with Next.js Image and Font\n- **SEO**: Implement proper metadata and structured data\n\n### Coding Standards\n\n- Use TypeScript for type safety\n- Follow Next.js best practices\n- Use Tailwind CSS for styling\n- Write E2E tests with Playwright\n\n## Project Structure\n\n```\napp/\n├── (routes)/       # App routes\n├── api/            # API routes\n├── components/     # Shared components\n└── lib/            # Utilities and services\n```\n\n## Running and Development\n\n```bash\n# Install dependencies\npnpm install\n\n# Development mode\npnpm dev\n\n# Production build\npnpm build\npnpm start\n\n# Run tests\npnpm test\n```\n\n## Author\n\n{{AUTHOR}}\n"
+    },
+    {
+      "id": "rust-cli",
+      "name": "Rust CLI Tool",
+      "category": "cli",
+      "description": "CLAUDE.md template for Rust CLI applications",
+      "tags": ["rust", "cli", "tool"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\nThis is a Rust CLI tool built with modern Rust practices and the clap crate.\n\n## Architecture Overview\n\nThe project follows a modular CLI architecture:\n\n- **CLI Layer**: Command parsing with clap\n- **Core Logic**: Business logic modules\n- **Utils**: Helper functions and utilities\n- **Error Handling**: Custom error types with thiserror\n\n## Development Guidelines\n\n### Core Principles\n\n- **Safety**: Leverage Rust's type system and ownership\n- **Performance**: Zero-cost abstractions\n- **Error Handling**: Use Result and custom error types\n- **Testing**: Unit tests and integration tests\n- **Documentation**: Rustdoc comments for all public APIs\n\n### Coding Standards\n\n- Follow Rust API guidelines\n- Use rustfmt for code formatting\n- Use clippy for linting\n- Write comprehensive tests\n\n## Running and Development\n\n```bash\n# Build\ncargo build\n\n# Run\ncargo run -- [args]\n\n# Test\ncargo test\n\n# Release build\ncargo build --release\n```\n\n## Author\n\n{{AUTHOR}}\n"
+    },
+    {
+      "id": "data-science",
+      "name": "Data Science Project",
+      "category": "data-science",
+      "description": "CLAUDE.md template for data science and ML projects",
+      "tags": ["python", "data-science", "ml", "jupyter"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\nThis is a data science project for analysis, modeling, and visualization.\n\n## Architecture Overview\n\nThe project follows a standard data science workflow:\n\n1. **Data Collection**: Gather and load data\n2. **Data Cleaning**: Handle missing values, outliers\n3. **EDA**: Exploratory data analysis\n4. **Feature Engineering**: Create and select features\n5. **Modeling**: Train and evaluate models\n6. **Deployment**: Deploy model to production\n\n## Development Guidelines\n\n### Core Principles\n\n- **Reproducibility**: Use random seeds and version control\n- **Documentation**: Document all experiments and findings\n- **Code Quality**: Write clean, modular code\n- **Version Control**: Track data, code, and models\n- **Testing**: Test data pipelines and model code\n\n### Tools and Libraries\n\n- **Data**: pandas, numpy\n- **Visualization**: matplotlib, seaborn, plotly\n- **ML**: scikit-learn, xgboost, lightgbm\n- **Deep Learning**: tensorflow, pytorch\n- **Experiment Tracking**: mlflow, wandb\n\n## Project Structure\n\n```\n├── data/           # Raw and processed data\n├── notebooks/      # Jupyter notebooks\n├── src/            # Source code\n├── models/         # Trained models\n├── reports/        # Analysis reports\n└── tests/          # Tests\n```\n\n## Running and Development\n\n```bash\n# Create environment\nconda create -n {{PROJECT_NAME}} python=3.10\nconda activate {{PROJECT_NAME}}\n\n# Install dependencies\npip install -r requirements.txt\n\n# Start Jupyter\njupyter lab\n```\n\n## Author\n\n{{AUTHOR}}\n"
+    },
+    {
+      "id": "devops-infrastructure",
+      "name": "DevOps Infrastructure",
+      "category": "devops",
+      "description": "CLAUDE.md template for DevOps and infrastructure projects",
+      "tags": ["devops", "infrastructure", "terraform", "kubernetes"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\nThis is a DevOps infrastructure project for cloud infrastructure management.\n\n## Architecture Overview\n\nThe project uses Infrastructure as Code (IaC) principles:\n\n- **Terraform**: Infrastructure provisioning\n- **Kubernetes**: Container orchestration\n- **Helm**: Kubernetes package management\n- **CI/CD**: GitHub Actions / GitLab CI\n\n## Development Guidelines\n\n### Core Principles\n\n- **Infrastructure as Code**: All infrastructure in version control\n- **Immutable Infrastructure**: Never modify running infrastructure\n- **Security**: Follow security best practices\n- **Monitoring**: Comprehensive logging and monitoring\n- **Documentation**: Document all infrastructure decisions\n\n### Coding Standards\n\n- Use Terraform modules for reusability\n- Follow naming conventions\n- Use pre-commit hooks for validation\n- Write tests for infrastructure code\n\n## Project Structure\n\n```\n├── terraform/      # Terraform configurations\n├── kubernetes/     # K8s manifests\n├── helm/           # Helm charts\n├── scripts/        # Automation scripts\n└── docs/           # Documentation\n```\n\n## Running and Development\n\n```bash\n# Initialize Terraform\nterraform init\n\n# Plan changes\nterraform plan\n\n# Apply changes\nterraform apply\n\n# Deploy to Kubernetes\nkubectl apply -f kubernetes/\n```\n\n## Author\n\n{{AUTHOR}}\n"
+    },
+    {
+      "id": "mobile-react-native",
+      "name": "React Native Mobile App",
+      "category": "mobile",
+      "description": "CLAUDE.md template for React Native mobile applications",
+      "tags": ["react-native", "mobile", "ios", "android"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\nThis is a React Native mobile application for iOS and Android.\n\n## Architecture Overview\n\nThe project follows a feature-based architecture:\n\n- **Features**: Self-contained feature modules\n- **Components**: Reusable UI components\n- **Navigation**: React Navigation\n- **State**: Redux or Zustand\n- **API**: Axios or React Query\n\n## Development Guidelines\n\n### Core Principles\n\n- **Cross-Platform**: Write once, run on iOS and Android\n- **Performance**: Optimize for mobile performance\n- **Offline Support**: Handle offline scenarios\n- **Native Modules**: Use native modules when needed\n- **Testing**: Unit tests and E2E tests with Detox\n\n### Coding Standards\n\n- Use TypeScript for type safety\n- Follow React Native best practices\n- Use ESLint and Prettier\n- Write component documentation\n\n## Running and Development\n\n```bash\n# Install dependencies\nnpm install\n\n# iOS\nnpx pod-install\nnpm run ios\n\n# Android\nnpm run android\n\n# Run tests\nnpm test\n```\n\n## Author\n\n{{AUTHOR}}\n"
+    },
+    {
+      "id": "general-project",
+      "name": "General Project",
+      "category": "general",
+      "description": "Generic CLAUDE.md template for any project type",
+      "tags": ["general", "template"],
+      "variables": ["PROJECT_NAME", "AUTHOR", "DESCRIPTION", "TECH_STACK"],
+      "content": "# {{PROJECT_NAME}}\n\n**Last Updated**: {{TIMESTAMP}}\n\n## Project Overview\n\n{{DESCRIPTION}}\n\n## Technology Stack\n\n{{TECH_STACK}}\n\n## Architecture Overview\n\nDescribe your project architecture here.\n\n## Development Guidelines\n\n### Core Principles\n\n- Write clean, maintainable code\n- Follow established coding standards\n- Write comprehensive tests\n- Document important decisions\n\n### Coding Standards\n\n- Use consistent code formatting\n- Write meaningful commit messages\n- Review code before merging\n- Keep dependencies up to date\n\n## Running and Development\n\n```bash\n# Add your development commands here\n```\n\n## Testing\n\n```bash\n# Add your testing commands here\n```\n\n## Deployment\n\n```bash\n# Add your deployment commands here\n```\n\n## Author\n\n{{AUTHOR}}\n"
+    }
+  ],
+  "categories": [
+    {
+      "id": "frontend",
+      "name": "Frontend Development",
+      "description": "Templates for frontend web applications"
+    },
+    {
+      "id": "backend",
+      "name": "Backend Development",
+      "description": "Templates for backend APIs and services"
+    },
+    {
+      "id": "fullstack",
+      "name": "Full-Stack Development",
+      "description": "Templates for full-stack applications"
+    },
+    {
+      "id": "mobile",
+      "name": "Mobile Development",
+      "description": "Templates for mobile applications"
+    },
+    {
+      "id": "cli",
+      "name": "CLI Tools",
+      "description": "Templates for command-line tools"
+    },
+    {
+      "id": "data-science",
+      "name": "Data Science & ML",
+      "description": "Templates for data science and machine learning projects"
+    },
+    {
+      "id": "devops",
+      "name": "DevOps & Infrastructure",
+      "description": "Templates for DevOps and infrastructure projects"
+    },
+    {
+      "id": "general",
+      "name": "General",
+      "description": "Generic templates for any project type"
+    }
+  ]
+}

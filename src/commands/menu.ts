@@ -5,7 +5,7 @@ import inquirer from 'inquirer'
 import { join } from 'pathe'
 import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
-import { displayBannerWithInfo } from '../utils/banner'
+import { displayBannerWithInfo, padToDisplayWidth } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { configureCodexApi, configureCodexMcp, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../utils/code-tools/codex'
 import { resolveCodeType } from '../utils/code-type-resolver'
@@ -49,7 +49,9 @@ import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../
 import { checkUpdates } from './check-updates'
 import { configSwitchCommand } from './config-switch'
 import { doctor } from './doctor'
+import { hooksSync } from './hooks-sync'
 import { init } from './init'
+import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from './mcp-market'
 import { notificationCommand } from './notification'
 import { uninstall } from './uninstall'
 import { update } from './update'
@@ -242,6 +244,146 @@ async function showSuperpowersMenu(): Promise<void> {
       return
     default:
       return
+  }
+
+  printSeparator()
+}
+
+async function showHooksSyncMenu(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  void lang // Used for i18n
+
+  console.log(ansis.cyan(i18n.t('menu:hooksSync.title')))
+  console.log('  -------- Hooks Cloud Sync --------')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:hooksSync.viewStatus')} ${ansis.gray(`- ${i18n.t('menu:hooksSync.viewStatusDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:hooksSync.syncNow')} ${ansis.gray(`- ${i18n.t('menu:hooksSync.syncNowDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:hooksSync.configure')} ${ansis.gray(`- ${i18n.t('menu:hooksSync.configureDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:hooksSync.browseTemplates')} ${ansis.gray(`- ${i18n.t('menu:hooksSync.browseTemplatesDesc')}`)}`,
+  )
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  switch (choice) {
+    case '1':
+      await hooksSync({ action: 'list' })
+      break
+    case '2':
+      await hooksSync({ action: 'sync' })
+      break
+    case '3':
+      await hooksSync({})
+      break
+    case '4':
+      await hooksSync({ action: 'templates' })
+      break
+  }
+
+  printSeparator()
+}
+
+async function showMcpMarketMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:mcpMarket.title')))
+  console.log('  -------- MCP Market --------')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:mcpMarket.search')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.searchDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:mcpMarket.trending')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.trendingDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:mcpMarket.install')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.installDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:mcpMarket.uninstall')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.uninstallDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:mcpMarket.list')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.listDesc')}`)}`,
+  )
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '5', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  switch (choice) {
+    case '1': {
+      // Search MCP servers
+      const { query } = await inquirer.prompt<{ query: string }>({
+        type: 'input',
+        name: 'query',
+        message: i18n.t('menu:mcpMarket.searchPrompt'),
+      })
+      if (query) {
+        await mcpSearch(query)
+      }
+      break
+    }
+    case '2': {
+      // Trending MCP servers
+      await mcpTrending()
+      break
+    }
+    case '3': {
+      // Install MCP server
+      const { serverName } = await inquirer.prompt<{ serverName: string }>({
+        type: 'input',
+        name: 'serverName',
+        message: i18n.t('menu:mcpMarket.installPrompt'),
+      })
+      if (serverName) {
+        await mcpInstall(serverName)
+      }
+      break
+    }
+    case '4': {
+      // Uninstall MCP server
+      const { serverName } = await inquirer.prompt<{ serverName: string }>({
+        type: 'input',
+        name: 'serverName',
+        message: i18n.t('menu:mcpMarket.uninstallPrompt'),
+      })
+      if (serverName) {
+        await mcpUninstall(serverName)
+      }
+      break
+    }
+    case '5': {
+      // List installed MCP servers
+      await mcpList()
+      break
+    }
   }
 
   printSeparator()
@@ -653,6 +795,12 @@ function printCloudServicesSection(): void {
   console.log(
     `  ${ansis.cyan('N.')} ${i18n.t('menu:menuOptions.cloudNotification')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.cloudNotification')}`)}`,
   )
+  console.log(
+    `  ${ansis.cyan('K.')} ${i18n.t('menu:menuOptions.mcpMarket')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.mcpMarket')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('H.')} ${i18n.t('menu:menuOptions.hooksSync')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.hooksSync')}`)}`,
+  )
   console.log('')
 }
 
@@ -719,7 +867,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', 'a', 'A', 'g', 'G', 'd', 'D', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', 'n', 'N', '0', '-', '+', 's', 'S', 'q', 'Q']
+      const valid = ['1', '2', '3', '4', '5', '6', '7', 'a', 'A', 'g', 'G', 'd', 'D', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', 'n', 'N', 'k', 'K', '0', '-', '+', 's', 'S', 'q', 'Q']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -791,6 +939,12 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     // Cloud Services
     case 'n':
       await notificationCommand()
+      break
+    case 'k':
+      await showMcpMarketMenu()
+      break
+    case 'h':
+      await showHooksSyncMenu()
       break
     case '0': {
       const currentLang = i18n.language as SupportedLang
@@ -965,28 +1119,28 @@ async function isFirstTimeUser(): Promise<boolean> {
 async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
   console.log('')
   console.log(ansis.bold.cyan('╔══════════════════════════════════════════════════════════════╗'))
-  console.log(ansis.bold.cyan('║') + ansis.bold.white('  👋 欢迎使用 CCJK！                                          ') + ansis.bold.cyan('║'))
+  console.log(ansis.bold.cyan('║') + ansis.bold.white(padToDisplayWidth(`  ${i18n.t('menu:newUser.welcomeTitle')}`, 62)) + ansis.bold.cyan('║'))
   console.log(`${ansis.bold.cyan('║')}                                                              ${ansis.bold.cyan('║')}`)
-  console.log(`${ansis.bold.cyan('║')}  CCJK 帮助您快速配置 Claude Code 开发环境                    ${ansis.bold.cyan('║')}`)
-  console.log(`${ansis.bold.cyan('║')}  包括 API 设置、工作流模板、MCP 服务等                       ${ansis.bold.cyan('║')}`)
+  console.log(ansis.bold.cyan('║') + padToDisplayWidth(`  ${i18n.t('menu:newUser.welcomeDesc1')}`, 62) + ansis.bold.cyan('║'))
+  console.log(ansis.bold.cyan('║') + padToDisplayWidth(`  ${i18n.t('menu:newUser.welcomeDesc2')}`, 62) + ansis.bold.cyan('║'))
   console.log(ansis.bold.cyan('╚══════════════════════════════════════════════════════════════╝'))
   console.log('')
 
   const { mode } = await inquirer.prompt<{ mode: 'quick' | 'full' | 'help' }>({
     type: 'list',
     name: 'mode',
-    message: '请选择：',
+    message: i18n.t('menu:newUser.selectPrompt'),
     choices: [
       {
-        name: ansis.green('🚀 快速开始') + ansis.dim(' - 推荐新手，3分钟完成配置'),
+        name: ansis.green(i18n.t('menu:newUser.quickStart')) + ansis.dim(` - ${i18n.t('menu:newUser.quickStartDesc')}`),
         value: 'quick',
       },
       {
-        name: ansis.cyan('⚙️  完整配置') + ansis.dim(' - 自定义所有选项'),
+        name: ansis.cyan(i18n.t('menu:newUser.fullConfig')) + ansis.dim(` - ${i18n.t('menu:newUser.fullConfigDesc')}`),
         value: 'full',
       },
       {
-        name: ansis.yellow('📖 查看帮助') + ansis.dim(' - 了解 CCJK 功能'),
+        name: ansis.yellow(i18n.t('menu:newUser.viewHelp')) + ansis.dim(` - ${i18n.t('menu:newUser.viewHelpDesc')}`),
         value: 'help',
       },
     ],
@@ -1000,21 +1154,21 @@ async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
  */
 async function showFeaturesOverview(): Promise<void> {
   console.log('')
-  console.log(ansis.bold.cyan('📖 CCJK 功能介绍'))
+  console.log(ansis.bold.cyan(i18n.t('menu:newUser.featuresTitle')))
   console.log('')
-  console.log(ansis.cyan('核心功能：'))
-  console.log(`  ${ansis.green('•')} API 配置 - 支持 Auth Token、API Key、CCR 代理`)
-  console.log(`  ${ansis.green('•')} 工作流模板 - Git、SixStep、Common Tools 等预设工作流`)
-  console.log(`  ${ansis.green('•')} MCP 服务 - 代码库搜索、文件系统、网络搜索等`)
-  console.log(`  ${ansis.green('•')} 输出风格 - 多种 AI 输出风格（速度优先、架构师、结对编程等）`)
+  console.log(ansis.cyan(i18n.t('menu:newUser.coreFeatures')))
+  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.feature.api')}`)
+  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.feature.workflow')}`)
+  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.feature.mcp')}`)
+  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.feature.outputStyle')}`)
   console.log('')
-  console.log(ansis.cyan('推荐插件：'))
-  console.log(`  ${ansis.green('•')} CCR - Claude Code Router 代理工具`)
-  console.log(`  ${ansis.green('•')} CCusage - API 使用量统计工具`)
-  console.log(`  ${ansis.green('•')} Cometix - 状态栏增强工具`)
-  console.log(`  ${ansis.green('•')} Superpowers - 技能扩展系统`)
+  console.log(ansis.cyan(i18n.t('menu:newUser.recommendedPlugins')))
+  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.plugin.ccr')}`)
+  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.plugin.ccusage')}`)
+  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.plugin.cometix')}`)
+  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.plugin.superpowers')}`)
   console.log('')
-  console.log(ansis.dim('按 Enter 继续...'))
+  console.log(ansis.dim(i18n.t('menu:newUser.pressEnter')))
   await inquirer.prompt([{ type: 'input', name: 'continue', message: '' }])
 }
 

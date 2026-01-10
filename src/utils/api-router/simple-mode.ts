@@ -4,9 +4,10 @@ import type { ApiConfigResult, ClaudeEnvSettings, ProviderPreset, SimpleApiConfi
  * Most common mode: Just API key + base URL configuration
  * No CCR required - directly modifies Claude Code settings.json
  */
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { getPresetById } from './presets'
 
 // Claude Code settings file path
 const CLAUDE_DIR = join(homedir(), '.claude')
@@ -20,7 +21,6 @@ function readSettings(): Record<string, any> {
     return {}
   }
   try {
-    const { readFileSync } = require('node:fs')
     return JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
   }
   catch {
@@ -32,7 +32,7 @@ function readSettings(): Record<string, any> {
  * Write Claude settings
  */
 function writeSettings(settings: Record<string, any>): void {
-  const { writeFileSync, mkdirSync } = require('node:fs')
+  // writeFileSync and mkdirSync imported at top
   if (!existsSync(CLAUDE_DIR)) {
     mkdirSync(CLAUDE_DIR, { recursive: true })
   }
@@ -279,7 +279,6 @@ export function quickSetup(
   providerId: string,
   apiKey: string,
 ): ApiConfigResult {
-  const { getPresetById } = require('./presets')
   const preset = getPresetById(providerId)
 
   if (!preset) {

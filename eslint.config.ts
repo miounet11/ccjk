@@ -9,6 +9,7 @@ export default antfu({
     '.claude/**',
     '**/**.md',
     '.cunzhi-memory/**',
+    'docs/docs/sdk/**',
   ],
   rules: {
     'no-console': 'off',

@@ -28,6 +28,11 @@
  * ```
  */
 
+// Imports for initializeHooksSystem
+import { registerBuiltinHooks } from './builtin-hooks.js'
+import { createHookExecutor } from './executor.js'
+import { getGlobalRegistry } from './registry.js'
+
 // Export built-in hooks
 export {
   builtinHooks,
@@ -117,10 +122,6 @@ export function initializeHooksSystem(options?: {
   registry: import('./registry.js').HookRegistry
   executor: import('./executor.js').HookExecutor
 } {
-  const { registerBuiltinHooks } = require('./builtin-hooks.js')
-  const { createHookExecutor } = require('./executor.js')
-  const { getGlobalRegistry } = require('./registry.js')
-
   const registry = getGlobalRegistry()
   const executor = createHookExecutor()
 

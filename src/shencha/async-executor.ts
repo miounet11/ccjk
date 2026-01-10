@@ -159,7 +159,7 @@ Return JSON:
     this.isRunning = true
 
     // Run the cycle asynchronously
-    this.runCycleAsync(this.currentCycle).catch((error) => {
+    this.runCycleAsync(this.currentCycle).catch ((error): void => {
       if (this.currentCycle) {
         this.currentCycle.status = 'failed'
         this.currentCycle.error = error instanceof Error ? error.message : String(error)
@@ -173,12 +173,12 @@ Return JSON:
    * Run full audit cycle asynchronously
    */
   private async runCycleAsync(cycle: AuditCycle): Promise<void> {
-    const readFile = async (path: string) => {
+    const readFile = async (path: string): Promise<string> => {
       if (!existsSync(path))
         throw new Error(`File not found: ${path}`)
       return readFileAsync(path, 'utf-8')
     }
-    const writeFile = async (path: string, content: string) => writeFileAsync(path, content)
+    const writeFile = async (path: string, content: string): Promise<void> => writeFileAsync(path, content)
 
     try {
       // Phase 1: Scan

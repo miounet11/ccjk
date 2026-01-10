@@ -40,6 +40,20 @@ export const CCJK_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'plugins')
 export const CCJK_SKILLS_DIR = join(CCJK_CONFIG_DIR, 'skills')
 export const CCJK_GROUPS_DIR = join(CCJK_CONFIG_DIR, 'groups')
 
+// Cloud plugins configuration paths
+export const CCJK_CLOUD_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'cloud-plugins')
+export const CCJK_CLOUD_PLUGINS_CACHE_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'cache')
+export const CCJK_CLOUD_PLUGINS_CACHE_FILE = join(CCJK_CLOUD_PLUGINS_CACHE_DIR, 'plugins.json')
+export const CCJK_CLOUD_PLUGINS_INSTALLED_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'installed')
+
+// Cloud API configuration
+export const CCJK_CLOUD_API_URL = 'https://api.ccjk.dev/v1'
+export const CCJK_CLOUD_PLUGINS_API = `${CCJK_CLOUD_API_URL}/plugins`
+
+// Cloud plugins cache configuration
+export const CLOUD_PLUGINS_CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
+export const CLOUD_PLUGINS_MAX_CACHE_SIZE = 1000 // max plugins to cache
+
 // Legacy ZCF paths for migration support
 export const LEGACY_ZCF_CONFIG_DIR = join(homedir(), '.ufomiao', 'zcf')
 export const LEGACY_ZCF_CONFIG_FILE = join(LEGACY_ZCF_CONFIG_DIR, 'config.toml')

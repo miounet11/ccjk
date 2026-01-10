@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import process from 'node:process'
 import ansis from 'ansis'
 import dayjs from 'dayjs'
 import inquirer from 'inquirer'
@@ -163,7 +164,7 @@ function scanAgents(projectDir: string): Array<{ path: string, name: string, con
   for (const dir of agentDirs) {
     if (existsSync(dir)) {
       try {
-        const files = require('node:fs').readdirSync(dir)
+        const files = readdirSync(dir)
         for (const file of files) {
           if (file.endsWith('.md')) {
             const filePath = join(dir, file)
@@ -199,7 +200,7 @@ function scanSkills(projectDir: string): Array<{ path: string, name: string, con
   for (const dir of skillDirs) {
     if (existsSync(dir)) {
       try {
-        const files = require('node:fs').readdirSync(dir)
+        const files = readdirSync(dir)
         for (const file of files) {
           if (file.endsWith('.md')) {
             const filePath = join(dir, file)

@@ -14,7 +14,7 @@ export const COLORS = {
   bold: ansis.bold,
 }
 
-function getDisplayWidth(str: string): number {
+export function getDisplayWidth(str: string): number {
   let width = 0
   for (const char of str) {
     // Chinese characters, full-width symbols, and other wide characters
@@ -28,7 +28,7 @@ function getDisplayWidth(str: string): number {
   return width
 }
 
-function padToDisplayWidth(str: string, targetWidth: number): string {
+export function padToDisplayWidth(str: string, targetWidth: number): string {
   const currentWidth = getDisplayWidth(str)
   const paddingNeeded = Math.max(0, targetWidth - currentWidth)
   return str + ' '.repeat(paddingNeeded)

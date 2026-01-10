@@ -227,7 +227,7 @@ async function askQuestion(
       return { values: [selected] }
     }
   }
-  catch (_error) {
+  catch {
     // Handle Ctrl+C gracefully
     return null
   }

@@ -8,7 +8,7 @@ import type {
   SkillRegistry,
   SkillSearchOptions,
 } from './types'
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { CCJK_SKILLS_DIR } from '../constants'
 
@@ -159,8 +159,7 @@ export function addSkill(skill: CcjkSkill): SkillInstallResult {
 export function removeSkill(id: string): boolean {
   const filePath = join(CCJK_SKILLS_DIR, `${id}.json`)
   if (existsSync(filePath)) {
-    const fs = require('node:fs')
-    fs.unlinkSync(filePath)
+    unlinkSync(filePath)
     refreshRegistry()
     return true
   }

@@ -1,11 +1,14 @@
 import type { CAC } from 'cac'
 import type { CodeToolType, SupportedLang } from './constants'
+import process from 'node:process'
 import ansis from 'ansis'
 import { version } from '../package.json'
+import { registerAgentsSyncCommand } from './commands/agents-sync'
 import { apiCommand } from './commands/api'
 import { ccr } from './commands/ccr'
 import { executeCcusage } from './commands/ccu'
 import { checkUpdates } from './commands/check-updates'
+import { registerCloudPluginsCommand } from './commands/cloud-plugins'
 import { commit } from './commands/commit'
 import { configSwitchCommand } from './commands/config-switch'
 import { doctor } from './commands/doctor'
@@ -69,12 +72,14 @@ async function resolveAndSwitchLanguage(
   skipPrompt: boolean = false,
 ): Promise<SupportedLang> {
   const ccjkConfig = await readZcfConfigAsync()
+  const envLang = process.env.CCJK_LANG as SupportedLang | undefined
 
-  // Determine target language with priority: allLang > lang > config > prompt
+  // Determine target language with priority: allLang > lang > env > config > prompt
   const targetLang
     = (options?.allLang as SupportedLang)
       || (lang as SupportedLang)
       || (options?.lang as SupportedLang)
+      || envLang
       || ccjkConfig?.preferredLang
       || (skipPrompt ? 'en' : await selectScriptLanguage()) as SupportedLang
 
@@ -144,6 +149,7 @@ export function customizeHelp(sections: any[]): any[] {
       `  ${ansis.cyan('ccjk deep')}         Deep dive interview (~40+ questions)`,
       `  ${ansis.cyan('ccjk mcp')} <action> MCP Server marketplace (search, trending, install)`,
       `  ${ansis.cyan('ccjk workflows')} | ${ansis.cyan('wf')} Manage installed workflows`,
+      `  ${ansis.cyan('ccjk skills-sync')} | ${ansis.cyan('ss')} Manage skills cloud synchronization`,
       `  ${ansis.cyan('ccjk doctor')}       Health check and diagnostics`,
       `  ${ansis.cyan('ccjk uninstall')}     ${i18n.t('cli:help.commandDescriptions.uninstallConfigurations')}`,
       `  ${ansis.cyan('ccjk check-updates')} ${i18n.t('cli:help.commandDescriptions.checkUpdateVersions')}`,
@@ -247,9 +253,10 @@ export function customizeHelp(sections: any[]): any[] {
 export async function setupCommands(cli: CAC): Promise<void> {
   // Use async initialization to ensure help text displays correctly
   try {
-    // Try to get language from existing config for help system
+    // Priority: CCJK_LANG env var > config file > default 'en'
+    const envLang = process.env.CCJK_LANG as SupportedLang | undefined
     const ccjkConfig = await readZcfConfigAsync()
-    const defaultLang = ccjkConfig?.preferredLang || 'en'
+    const defaultLang = envLang || ccjkConfig?.preferredLang || 'en'
 
     // Initialize i18n for help system using imported function
     await initI18n(defaultLang)
@@ -544,6 +551,57 @@ export async function setupCommands(cli: CAC): Promise<void> {
 
   // Marketplace command - Plugin/Extension marketplace
   await registerMarketplaceCommands(cli, withLanguageResolution)
+
+  // Cloud plugins command - Manage cloud-based plugins
+  await registerCloudPluginsCommand(cli, withLanguageResolution)
+
+  // Agents sync command - Manage AI agent definitions and cloud sync
+  await registerAgentsSyncCommand(cli, withLanguageResolution)
+
+  // Skills sync command - Manage skills cloud synchronization
+  cli
+    .command('skills-sync [action]', 'Manage skills cloud synchronization (sync, push, pull, list, status)')
+    .alias('ss')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .option('--conflict-resolution, -r <strategy>', 'Conflict resolution strategy (prompt, local, remote, newest)')
+    .option('--dry-run, -d', 'Preview changes without applying')
+    .option('--force, -f', 'Force sync without confirmation')
+    .option('--skill-ids, -s <ids>', 'Comma-separated skill IDs to sync')
+    .option('--privacy, -p <privacy>', 'Privacy level filter (private, team, public)')
+    .action(await withLanguageResolution(async (action, options) => {
+      const { skillsSyncMenu, syncSkills, pushSkillsCommand, pullSkillsCommand, listCloudSkillsCommand, showSyncStatus } = await import('./commands/skills-sync')
+
+      const syncOptions = {
+        lang: options.lang,
+        conflictResolution: options.conflictResolution,
+        dryRun: options.dryRun,
+        force: options.force,
+        skillIds: options.skillIds ? options.skillIds.split(',') : undefined,
+        privacy: options.privacy,
+      }
+
+      if (!action) {
+        await skillsSyncMenu(syncOptions)
+      }
+      else if (action === 'sync') {
+        await syncSkills(syncOptions)
+      }
+      else if (action === 'push') {
+        await pushSkillsCommand(syncOptions)
+      }
+      else if (action === 'pull') {
+        await pullSkillsCommand(syncOptions)
+      }
+      else if (action === 'list') {
+        await listCloudSkillsCommand(syncOptions)
+      }
+      else if (action === 'status') {
+        await showSyncStatus(syncOptions)
+      }
+      else {
+        console.error(`Unknown action: ${action}. Use: sync, push, pull, list, or status`)
+      }
+    }))
 
   // Session management command
   cli

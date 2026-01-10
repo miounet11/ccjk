@@ -1,5 +1,6 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
+import process from 'node:process'
 import ansis from 'ansis'
 import dayjs from 'dayjs'
 import { join } from 'pathe'
@@ -349,8 +350,7 @@ export function removeRedundantConfigs(configs: ConfigLocation[], keepPath: stri
         const bakPath = `${config.path}.bak`
         if (existsSync(config.path)) {
           copyFileSync(config.path, bakPath)
-          const fs = require('node:fs')
-          fs.unlinkSync(config.path)
+          unlinkSync(config.path)
           removed.push(config.path)
         }
       }

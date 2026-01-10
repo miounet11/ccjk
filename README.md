@@ -102,6 +102,44 @@ claude
 
 ## ✨ Core Features
 
+### 🆕 NEW in v2.0.9: Multi-Dimensional Cloud Sync System
+
+**Sync your configurations across devices and teams!**
+
+<table>
+<tr>
+<td width="20%" align="center">
+<h4>☁️ Skills Sync</h4>
+<p>Bidirectional sync with conflict resolution</p>
+</td>
+<td width="20%" align="center">
+<h4>📄 CLAUDE.md</h4>
+<p>Template marketplace with 9+ templates</p>
+</td>
+<td width="20%" align="center">
+<h4>🤖 Agents Sync</h4>
+<p>6 pre-built agent templates</p>
+</td>
+<td width="20%" align="center">
+<h4>🔗 Hooks Sync</h4>
+<p>15 automation hook templates</p>
+</td>
+<td width="20%" align="center">
+<h4>🎯 Smart Recommend</h4>
+<p>AI-powered plugin recommendations</p>
+</td>
+</tr>
+</table>
+
+```bash
+# New cloud sync commands
+ccjk skills-sync          # Sync skills to/from cloud
+ccjk claude-md templates  # Browse CLAUDE.md templates
+ccjk agents search        # Search agent marketplace
+ccjk hooks-sync           # Manage automation hooks
+ccjk plugins recommend    # Get personalized plugin recommendations
+```
+
 ### ⚡ Zero-Configuration Setup
 
 Get started in seconds with intelligent defaults:
@@ -239,9 +277,17 @@ npx ccjk init --provider minimax --api-key YOUR_KEY
 
 ## 🗺️ Roadmap
 
-The following features are planned for future releases:
+### ✅ Recently Completed (v2.0.9)
 
-### 🔮 Planned Features (v2.0+)
+#### ☁️ Multi-Dimensional Cloud Sync System
+- **Skills Cloud Sync** - Bidirectional sync with 4 conflict resolution strategies
+- **CLAUDE.md Sync** - Template marketplace with 9 project templates
+- **Agents Sync** - 6 pre-built agent templates with version management
+- **Hooks Sync** - 15 automation hook templates
+- **Smart Plugin Recommendations** - AI-powered personalized recommendations
+- **Status**: ✅ **COMPLETED** - 55+ tests passing, full i18n support
+
+### 🔮 Planned Features (v2.1+)
 
 #### 🔥 Smart Skills Hot-Reload System
 - Real-time skill file watching and auto-reload

@@ -48,7 +48,7 @@ export async function listTools(options: ToolsCommandOptions = {}): Promise<void
   const extensionTools = toolsStatus.filter(t => CODE_TOOL_INFO[t.tool].category === 'extension')
   const editorTools = toolsStatus.filter(t => CODE_TOOL_INFO[t.tool].category === 'editor')
 
-  const renderToolList = (tools: ToolStatus[], title: string) => {
+  const renderToolList = (tools: ToolStatus[], title: string): void => {
     console.log(COLORS.secondary(`  ${title}:`))
     for (const tool of tools) {
       const info = CODE_TOOL_INFO[tool.tool]

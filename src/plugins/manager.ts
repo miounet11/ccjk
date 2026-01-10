@@ -9,8 +9,11 @@ import type {
   PluginStorage,
 } from './types'
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { env } from 'node:process'
 import { join } from 'pathe'
+import { version } from '../../package.json'
 import { CCJK_PLUGINS_DIR } from '../constants'
+import { i18n } from '../i18n'
 
 // In-memory plugin registry
 const loadedPlugins = new Map<string, LoadedPlugin>()
@@ -37,7 +40,7 @@ function createLogger(pluginName: string): PluginLogger {
     warn: (msg: string) => console.warn(`${prefix} ${msg}`),
     error: (msg: string) => console.error(`${prefix} ${msg}`),
     debug: (msg: string) => {
-      if (process.env.DEBUG)
+      if (env.DEBUG)
         console.log(`${prefix} [DEBUG] ${msg}`)
     },
   }
@@ -60,7 +63,7 @@ function createStorage(pluginName: string): PluginStorage {
     }
   }
 
-  const save = () => {
+  const save = (): void => {
     const dir = join(CCJK_PLUGINS_DIR, pluginName)
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true })
@@ -89,11 +92,10 @@ function createStorage(pluginName: string): PluginStorage {
  * Create plugin context
  */
 function createContext(pluginName: string): PluginContext {
-  const { version } = require('../../package.json')
   return {
     ccjkVersion: version,
     configDir: join(CCJK_PLUGINS_DIR, pluginName),
-    i18n: require('../i18n').i18n,
+    i18n,
     logger: createLogger(pluginName),
     storage: createStorage(pluginName),
   }
@@ -203,20 +205,24 @@ export async function loadPlugin(pathOrName: string): Promise<LoadedPlugin | nul
     const tsIndexPath = join(pluginPath, 'index.ts')
 
     let plugin: CcjkPlugin
+    let loadedModule: any
 
     if (existsSync(indexPath)) {
-      plugin = require(indexPath).default || require(indexPath)
+      loadedModule = await import(indexPath)
+      plugin = loadedModule.default || loadedModule
     }
     else if (existsSync(tsIndexPath)) {
       // For development, use tsx
-      plugin = require(tsIndexPath).default || require(tsIndexPath)
+      loadedModule = await import(tsIndexPath)
+      plugin = loadedModule.default || loadedModule
     }
     else {
       // Try package.json main field
       const pkg = JSON.parse(readFileSync(join(pluginPath, 'package.json'), 'utf-8'))
       if (pkg.main) {
         const mainPath = join(pluginPath, pkg.main)
-        plugin = require(mainPath).default || require(mainPath)
+        loadedModule = await import(mainPath)
+        plugin = loadedModule.default || loadedModule
       }
       else {
         throw new Error('No entry point found')
@@ -357,7 +363,7 @@ export async function disablePlugin(name: string): Promise<boolean> {
 /**
  * Get all workflows from plugins
  */
-export function getPluginWorkflows() {
+export function getPluginWorkflows(): any[] {
   const workflows: any[] = []
   for (const loaded of loadedPlugins.values()) {
     if (loaded.enabled && loaded.plugin.workflows) {
@@ -370,7 +376,7 @@ export function getPluginWorkflows() {
 /**
  * Get all agents from plugins
  */
-export function getPluginAgents() {
+export function getPluginAgents(): any[] {
   const agents: any[] = []
   for (const loaded of loadedPlugins.values()) {
     if (loaded.enabled && loaded.plugin.agents) {
@@ -383,7 +389,7 @@ export function getPluginAgents() {
 /**
  * Get all MCP services from plugins
  */
-export function getPluginMcpServices() {
+export function getPluginMcpServices(): any[] {
   const services: any[] = []
   for (const loaded of loadedPlugins.values()) {
     if (loaded.enabled && loaded.plugin.mcpServices) {
@@ -396,7 +402,7 @@ export function getPluginMcpServices() {
 /**
  * Get all output styles from plugins
  */
-export function getPluginOutputStyles() {
+export function getPluginOutputStyles(): any[] {
   const styles: any[] = []
   for (const loaded of loadedPlugins.values()) {
     if (loaded.enabled && loaded.plugin.outputStyles) {
@@ -409,7 +415,7 @@ export function getPluginOutputStyles() {
 /**
  * Get all skills from plugins
  */
-export function getPluginSkills() {
+export function getPluginSkills(): any[] {
   const skills: any[] = []
   for (const loaded of loadedPlugins.values()) {
     if (loaded.enabled && loaded.plugin.skills) {

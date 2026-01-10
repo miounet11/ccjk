@@ -1,5 +1,6 @@
 import type { ProjectContext } from '../shencha/types'
 import { readFile } from 'node:fs/promises'
+import process from 'node:process'
 import ansis from 'ansis'
 import { resolve } from 'pathe'
 import { createMockLLMClient, LLMScanner } from '../shencha/llm-scanner'
@@ -26,7 +27,7 @@ export async function shenchaScan(options: ShenchaOptions = {}): Promise<void> {
   const llmClient = createMockLLMClient()
   const scanner = new LLMScanner(llmClient)
 
-  const readFileWrapper = async (path: string) => {
+  const readFileWrapper = async (path: string): Promise<string> => {
     return await readFile(resolve(context.rootPath, path), 'utf-8')
   }
 

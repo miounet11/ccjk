@@ -19,6 +19,11 @@ import {
 } from '../../constants'
 
 /**
+ * Code tool info type (extracted from CODE_TOOL_INFO)
+ */
+export type CodeToolInfo = (typeof CODE_TOOL_INFO)[CodeToolType]
+
+/**
  * Tool installation status
  */
 export interface ToolStatus {
@@ -91,14 +96,20 @@ export async function isToolInstalled(tool: CodeToolType): Promise<boolean> {
   try {
     switch (tool) {
       case 'claude-code':
+      {
         const ccResult = await exec('claude', ['--version'])
         return ccResult.exitCode === 0
+      }
       case 'codex':
+      {
         const cxResult = await exec('codex', ['--version'])
         return cxResult.exitCode === 0
+      }
       case 'aider':
+      {
         const adResult = await exec('aider', ['--version'])
         return adResult.exitCode === 0
+      }
       case 'continue':
         // Continue is typically an extension, check config
         return existsSync(CONTINUE_DIR)
@@ -106,8 +117,10 @@ export async function isToolInstalled(tool: CodeToolType): Promise<boolean> {
         // Cline is a VS Code extension
         return existsSync(CLINE_DIR)
       case 'cursor':
+      {
         const cuResult = await exec('cursor', ['--version'])
         return cuResult.exitCode === 0
+      }
       default:
         return false
     }
@@ -237,14 +250,14 @@ export async function installTool(tool: CodeToolType): Promise<ToolInstallResult
 /**
  * Get tool info
  */
-export function getToolInfo(tool: CodeToolType) {
+export function getToolInfo(tool: CodeToolType): CodeToolInfo {
   return CODE_TOOL_INFO[tool]
 }
 
 /**
  * Get all tools info
  */
-export function getAllToolsInfo() {
+export function getAllToolsInfo(): Record<CodeToolType, CodeToolInfo> {
   return CODE_TOOL_INFO
 }
 

@@ -147,7 +147,7 @@ function parseYamlConfig(content: string): AiderConfig {
     if (!trimmed || trimmed.startsWith('#'))
       continue
 
-    const match = trimmed.match(/^(\w+):\s*(.+)$/)
+    const match = trimmed.match(/^(\w+):\s+(\S.*)$/)
     if (match) {
       const [, key, value] = match
       const normalizedKey = kebabToCamel(key)

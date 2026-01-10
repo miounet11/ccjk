@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
+import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 

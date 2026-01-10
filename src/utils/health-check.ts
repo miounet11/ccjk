@@ -1,4 +1,5 @@
 import { homedir } from 'node:os'
+import process from 'node:process'
 import ansis from 'ansis'
 import ora from 'ora'
 import { exec } from 'tinyexec'
@@ -498,7 +499,7 @@ export async function runDoctor(fix = false): Promise<void> {
           await exec(parts[0], parts.slice(1), { throwOnError: true })
           spinner.succeed(`Fixed ${check.name}`)
         }
-        catch (_error) {
+        catch {
           spinner.fail(`Failed to fix ${check.name}`)
         }
       }
