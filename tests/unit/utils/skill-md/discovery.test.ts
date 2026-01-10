@@ -5,11 +5,10 @@
  * directory scanning, skill validation, and search operations.
  */
 
-import type { SkillMdFile } from '../../../../src/types/skill-md.js'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'pathe'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { SkillDiscovery } from '../../../../src/utils/skill-md/discovery.js'
 
 describe('skillDiscovery', () => {

@@ -6,7 +6,7 @@
  */
 
 import type { SkillMdFile } from '../../../../src/types/skill-md.js'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { parseSkillMd, validateSkillMd } from '../../../../src/utils/skill-md/parser.js'
 
 describe('sKILL.md Parser', () => {

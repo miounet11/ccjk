@@ -5,7 +5,7 @@
  */
 
 import type { Hook, HookContext } from '../../../src/utils/hooks/types.js'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { HookExecutor } from '../../../src/utils/hooks/executor.js'
 import { HookRegistry } from '../../../src/utils/hooks/registry.js'
 
@@ -398,7 +398,7 @@ describe('hookExecutor', () => {
         description: 'Hook 1',
         type: 'pre-tool-use',
         enabled: true,
-        priority: 100,
+        priority: 200, // Higher priority executes first
         action: {
           execute: async () => {
             return {
@@ -418,7 +418,7 @@ describe('hookExecutor', () => {
         description: 'Hook 2',
         type: 'pre-tool-use',
         enabled: true,
-        priority: 200,
+        priority: 100, // Lower priority executes second
         action: {
           execute: async () => {
             return {
@@ -438,6 +438,7 @@ describe('hookExecutor', () => {
       const results = await executor.executePreToolUse('test-tool', '/test')
 
       expect(results).toHaveLength(2)
+      // Higher priority (200) executes before lower priority (100)
       expect(results[0].output).toEqual({ hook: 'hook-1' })
       expect(results[1].output).toEqual({ hook: 'hook-2' })
     })
@@ -478,7 +479,7 @@ describe('hookExecutor', () => {
         description: 'Error hook',
         type: 'pre-tool-use',
         enabled: true,
-        priority: 100,
+        priority: 100, // Lower priority executes second
         action: {
           execute: async () => {
             executionLog.push('error-hook')
@@ -493,7 +494,7 @@ describe('hookExecutor', () => {
         description: 'Success hook',
         type: 'pre-tool-use',
         enabled: true,
-        priority: 200,
+        priority: 200, // Higher priority executes first
         action: {
           execute: async () => {
             executionLog.push('success-hook')
@@ -507,10 +508,11 @@ describe('hookExecutor', () => {
 
       const results = await executor.executePreToolUse('test-tool', '/test')
 
-      expect(executionLog).toEqual(['error-hook', 'success-hook'])
+      // Higher priority (200) executes before lower priority (100)
+      expect(executionLog).toEqual(['success-hook', 'error-hook'])
       expect(results).toHaveLength(2)
-      expect(results[0].success).toBe(false)
-      expect(results[1].success).toBe(true)
+      expect(results[0].success).toBe(true)
+      expect(results[1].success).toBe(false)
     })
   })
 })

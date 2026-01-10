@@ -72,7 +72,7 @@ export class SkillDiscovery {
   getDefaultDirs(): string[] {
     const home = homedir()
     const globalSkillsDir = join(home, '.claude', 'skills')
-    const localSkillsDir = resolve(process.cwd(), '.claude', 'skills')
+    const localSkillsDir = resolve(globalThis.process.cwd(), '.claude', 'skills')
 
     return [globalSkillsDir, localSkillsDir]
   }

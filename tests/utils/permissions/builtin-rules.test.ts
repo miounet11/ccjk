@@ -298,7 +298,7 @@ describe('builtinRules', () => {
         seen.get(key)!.push(rule)
       }
 
-      for (const [key, rules] of seen) {
+      for (const [, rules] of seen) {
         if (rules.length > 1) {
           // Multiple rules with same pattern and priority should have same action
           const actions = new Set(rules.map(r => r.action))

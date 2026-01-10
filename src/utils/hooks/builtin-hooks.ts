@@ -32,7 +32,7 @@ const logger = {
  * ```
  */
 export const preToolUseValidation: Hook = {
-  id: 'builtin-pre-tool-validation',
+  id: 'builtin-tool-validation',
   name: 'Pre-Tool Validation',
   description: 'Validates tool arguments and context before execution',
   type: 'pre-tool-use',
@@ -118,7 +118,7 @@ export const preToolUseValidation: Hook = {
  * ```
  */
 export const postToolUseLogging: Hook = {
-  id: 'builtin-post-tool-logging',
+  id: 'builtin-tool-logging',
   name: 'Post-Tool Logging',
   description: 'Logs tool execution results and statistics',
   type: 'post-tool-use',
@@ -182,10 +182,10 @@ export const postToolUseLogging: Hook = {
  * ```
  */
 export const skillActivateNotification: Hook = {
-  id: 'builtin-skill-activate-notification',
+  id: 'builtin-skill-activation',
   name: 'Skill Activation Notification',
   description: 'Notifies when a skill is activated',
-  type: 'skill-activate',
+  type: 'skill-activated',
   priority: 7,
   enabled: true,
   source: 'builtin',
@@ -244,7 +244,7 @@ export const skillActivateNotification: Hook = {
  * ```
  */
 export const skillCompleteStatistics: Hook = {
-  id: 'builtin-skill-complete-statistics',
+  id: 'builtin-skill-completion',
   name: 'Skill Completion Statistics',
   description: 'Tracks skill completion and collects statistics',
   type: 'skill-complete',
@@ -316,7 +316,7 @@ export const skillCompleteStatistics: Hook = {
  * ```
  */
 export const workflowStartInitialization: Hook = {
-  id: 'builtin-workflow-start-initialization',
+  id: 'builtin-workflow-started',
   name: 'Workflow Start Initialization',
   description: 'Initializes workflow context and validates configuration',
   type: 'workflow-start',
@@ -384,7 +384,7 @@ export const workflowStartInitialization: Hook = {
  * ```
  */
 export const workflowCompleteCleanup: Hook = {
-  id: 'builtin-workflow-complete-cleanup',
+  id: 'builtin-workflow-completed',
   name: 'Workflow Complete Cleanup',
   description: 'Performs cleanup and logs workflow completion statistics',
   type: 'workflow-complete',
@@ -454,7 +454,7 @@ export const workflowCompleteCleanup: Hook = {
  * ```
  */
 export const globalErrorHandler: Hook = {
-  id: 'builtin-global-error-handler',
+  id: 'builtin-error-handler',
   name: 'Global Error Handler',
   description: 'Handles and logs errors across the CCJK system',
   type: 'error',
@@ -544,7 +544,7 @@ export const globalErrorHandler: Hook = {
  * ```
  */
 export const configChangeLogger: Hook = {
-  id: 'builtin-config-change-logger',
+  id: 'builtin-config-change',
   name: 'Configuration Change Logger',
   description: 'Logs configuration changes for audit purposes',
   type: 'config-change',

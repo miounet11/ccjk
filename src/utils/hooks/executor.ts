@@ -15,9 +15,8 @@ import type {
   HookExecutionOptions,
   HookResult,
   HookStatus,
-  HookType,
 } from './types.js'
-import { HookError, HookTimeoutError } from './types.js'
+import { HookTimeoutError } from './types.js'
 
 /**
  * Default hook execution timeout (30 seconds)
@@ -193,7 +192,7 @@ export class HookExecutor {
       ? hooks.filter(h => h.enabled)
       : hooks
 
-    // Sort hooks by priority (higher priority first)
+    // Sort hooks by priority (higher priority number executes first)
     const sortedHooks = [...hooksToExecute].sort((a, b) => {
       const priorityA = a.priority ?? 5
       const priorityB = b.priority ?? 5
@@ -386,12 +385,7 @@ export class HookExecutor {
         })
         .catch((error) => {
           clearTimeout(timeoutId)
-          reject(new HookError(
-            `Hook execution failed: ${error.message}`,
-            hook.id,
-            context,
-            error,
-          ))
+          reject(error)
         })
     })
   }
@@ -436,18 +430,183 @@ export class HookExecutor {
     }
     return batches
   }
+
+  /**
+   * Execute hooks of a specific type with context
+   *
+   * @private
+   * @param type - Hook type to execute
+   * @param context - Base context to merge with
+   * @param options - Execution options
+   * @returns Array of hook results
+   */
+  private async executeHookType(
+    type: HookType,
+    context: Partial<HookContext>,
+    options?: HookExecutionOptions,
+  ): Promise<HookResult[]> {
+    if (!this.registry) {
+      throw new Error('Registry not provided to executor')
+    }
+
+    const hooks = this.registry.getHooksForType(type)
+    const fullContext: HookContext = {
+      type,
+      timestamp: new Date(),
+      ...context,
+    }
+
+    const chainResult = await this.executeChain(hooks, fullContext, options)
+    return chainResult.results.map(r => r.result)
+  }
+
+  /**
+   * Execute pre-tool-use hooks
+   *
+   * @param tool - Tool name
+   * @param path - File path
+   * @param metadata - Optional metadata
+   * @returns Array of hook results
+   */
+  async executePreToolUse(
+    tool: string,
+    path: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<HookResult[]> {
+    return this.executeHookType('pre-tool-use', { tool, cwd: path, metadata })
+  }
+
+  /**
+   * Execute post-tool-use hooks
+   *
+   * @param tool - Tool name
+   * @param path - File path
+   * @param error - Optional error if tool failed
+   * @param metadata - Optional metadata
+   * @returns Array of hook results
+   */
+  async executePostToolUse(
+    tool: string,
+    path: string,
+    error?: Error,
+    metadata?: Record<string, unknown>,
+  ): Promise<HookResult[]> {
+    return this.executeHookType('post-tool-use', { tool, cwd: path, error, metadata })
+  }
+
+  /**
+   * Execute skill-activated hooks
+   *
+   * @param skill - Skill name
+   * @param path - File path
+   * @param metadata - Optional metadata
+   * @returns Array of hook results
+   */
+  async executeSkillActivated(
+    skill: string,
+    path: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<HookResult[]> {
+    return this.executeHookType('skill-activated', { skillId: skill, cwd: path, metadata })
+  }
+
+  /**
+   * Execute skill-completed hooks
+   *
+   * @param skill - Skill name
+   * @param path - File path
+   * @param error - Optional error if skill failed
+   * @param metadata - Optional metadata
+   * @returns Array of hook results
+   */
+  async executeSkillCompleted(
+    skill: string,
+    path: string,
+    error?: Error,
+    metadata?: Record<string, unknown>,
+  ): Promise<HookResult[]> {
+    return this.executeHookType('skill-completed', { skillId: skill, cwd: path, error, metadata })
+  }
+
+  /**
+   * Execute workflow-started hooks
+   *
+   * @param workflow - Workflow name
+   * @param path - File path
+   * @param metadata - Optional metadata
+   * @returns Array of hook results
+   */
+  async executeWorkflowStarted(
+    workflow: string,
+    path: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<HookResult[]> {
+    return this.executeHookType('workflow-started', { workflowId: workflow, cwd: path, metadata })
+  }
+
+  /**
+   * Execute workflow-completed hooks
+   *
+   * @param workflow - Workflow name
+   * @param path - File path
+   * @param error - Optional error if workflow failed
+   * @param metadata - Optional metadata
+   * @returns Array of hook results
+   */
+  async executeWorkflowCompleted(
+    workflow: string,
+    path: string,
+    error?: Error,
+    metadata?: Record<string, unknown>,
+  ): Promise<HookResult[]> {
+    return this.executeHookType('workflow-completed', { workflowId: workflow, cwd: path, error, metadata })
+  }
+
+  /**
+   * Execute on-error hooks
+   *
+   * @param error - Error that occurred
+   * @param path - File path
+   * @param metadata - Optional metadata
+   * @returns Array of hook results
+   */
+  async executeOnError(
+    error: Error,
+    path: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<HookResult[]> {
+    return this.executeHookType('on-error', { error, path, metadata })
+  }
+
+  /**
+   * Execute config-changed hooks
+   *
+   * @param config - Config key that changed
+   * @param path - File path
+   * @param metadata - Optional metadata
+   * @returns Array of hook results
+   */
+  async executeConfigChanged(
+    config: string,
+    path: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<HookResult[]> {
+    return this.executeHookType('config-changed', { configKey: config, cwd: path, metadata })
+  }
 }
 
 /**
  * Create a default hook executor instance
  *
+ * @param registry - Optional hook registry for convenience methods
  * @returns New HookExecutor instance
  *
  * @example
  * ```typescript
- * const executor = createHookExecutor()
+ * const registry = new HookRegistry()
+ * const executor = createHookExecutor(registry)
  * ```
  */
-export function createHookExecutor(): HookExecutor {
-  return new HookExecutor()
+export function createHookExecutor(registry?: HookRegistry): HookExecutor {
+  return new HookExecutor(registry)
 }

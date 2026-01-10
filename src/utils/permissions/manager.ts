@@ -191,6 +191,7 @@ export class PermissionManager {
         // Format: - allow: Pattern
         // Format: - deny: Pattern (reason)
         // Format: - ask: Pattern [priority: 10]
+        // eslint-disable-next-line regexp/no-super-linear-backtracking
         const match = trimmed.match(/^-\s+(allow|deny|ask):\s+(.+)$/i)
         if (match) {
           const action = match[1].toLowerCase() as 'allow' | 'deny' | 'ask'
@@ -199,6 +200,7 @@ export class PermissionManager {
           let rulePriority = priority
 
           // Extract reason in parentheses
+          // eslint-disable-next-line regexp/no-super-linear-backtracking
           const reasonMatch = pattern.match(/^(.+?)\s+\((.+)\)$/)
           if (reasonMatch) {
             pattern = reasonMatch[1].trim()
@@ -206,6 +208,7 @@ export class PermissionManager {
           }
 
           // Extract priority in brackets
+          // eslint-disable-next-line regexp/no-super-linear-backtracking
           const priorityMatch = pattern.match(/^(.+?)\s+\[priority:\s*(\d+)\]$/i)
           if (priorityMatch) {
             pattern = priorityMatch[1].trim()
@@ -488,7 +491,7 @@ export class PermissionManager {
    *
    * @returns Statistics object
    */
-  getStatistics() {
+  getStatistics(): { totalRules: number, bySource: Record<string, number>, byAction: Record<string, number>, averagePriority: number } {
     const bySource = new Map<PermissionSource, number>()
     const byAction = new Map<string, number>()
     let totalPriority = 0
