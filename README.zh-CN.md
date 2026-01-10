@@ -1,41 +1,43 @@
 <!--
-  SEO Meta: CCJK - Claude Code 锦库 | 最强AI编程助手 | 11+AI代理 | 免费开源
-  Description: CCJK是Claude Code最强大的增强工具包。拥有11+AI代理、LLM驱动代码审计、技能自动化和插件系统。一键零配置安装。
+  SEO Meta: CCJK - Claude Code 锦库 | 最强AI编程助手 | 智能技能系统 | 11+AI代理 | 热重载 | 零配置
+  Description: CCJK 2.0 是最先进的AI编程工具包。具有智能技能热重载、11+AI代理、上下文感知、子代理编排和权限系统。AI辅助开发的未来。
+  Keywords: claude code, AI编程助手, claude code扩展, AI开发工具, 代码自动化, AI代理, copilot替代品, cursor替代品, 免费AI编程, 开源AI工具
 -->
 
 <div align="center">
 
-<!-- Logo & Badges - 优化GitHub社交预览 -->
-<img src="https://raw.githubusercontent.com/miounet11/ccjk/main/docs/assets/ccjk-logo.png" alt="CCJK Logo" width="200" />
+<img src="https://raw.githubusercontent.com/anthropics/claude-code/main/.github/assets/claude-code-logo.png" alt="CCJK Logo" width="180" />
 
 # CCJK - Claude Code 锦库
 
-### 🏆 排名第一的AI编程助手增强工具包
+### 🚀 最先进的 AI 编程助手增强工具包
 
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![License][license-src]][license-href]
 [![GitHub stars][stars-src]][stars-href]
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/miounet11/ccjk/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/anthropics/claude-code/pulls)
 
 **[English](README.md)** | **[简体中文](README.zh-CN.md)** | **[日本語](README.ja.md)** | **[한국어](README.ko.md)**
 
 <br/>
 
-## 🎉 v3.5.0 发布！(2025年1月)
+## 🎉 v2.0.0 - 革命性技能系统！(2025年1月)
 
-> **🚀 重大架构升级 - 统一模板系统**
-> - 🏗️ **模板整合** - 共享 `templates/common/` 目录，提升代码复用
-> - 🔄 **双代码工具支持** - Claude Code + Codex 统一配置
-> - ✨ **增强 sixStep 工作流** - 用户审批、时间戳、更清晰的步骤
-> - 🛡️ **CCR 代理修复** - 自动移除 ANTHROPIC_AUTH_TOKEN 冲突
-> - 🌐 **4种语言** - English, 中文, 日本語, 한국어
+> **🧠 智能技能架构 - AI编程的未来**
+>
+> - 🔥 **智能技能热重载** - 编辑技能，即时生效，无需重启
+> - 🤖 **子代理编排** - 并行/串行任务执行，多AI协作
+> - 🛡️ **权限系统** - 细粒度访问控制，支持通配符模式
+> - ⚡ **生命周期钩子** - before/after/error 完整控制流程
+> - 🎯 **上下文感知激活** - 根据工作内容自动激活相关技能
+> - 📦 **22+ 内置技能模板** - PR审查、安全审计、重构、文档生成等
 >
 > **⭐ 在 GitHub 上给我们 Star 支持项目！**
 
 <br/>
 
-> 💡 **一行命令，全面升级你的AI编程体验**
+> 💡 **一条命令，超级增强你的AI编程体验**
 >
 > ```bash
 > npx ccjk
@@ -43,29 +45,33 @@
 
 <br/>
 
-[📖 快速入门](#-快速入门) · [🚀 核心功能](#-核心功能) · [💬 社区支持](#-社区与支持) · [🤝 参与贡献](#-参与贡献)
+[📖 快速入门](#-快速入门) · [🚀 革命性功能](#-革命性功能) · [💬 社区支持](#-社区与支持) · [🤝 参与贡献](#-参与贡献)
 
 </div>
 
 ---
 
-## 🎯 什么是CCJK？
+## 🎯 什么是 CCJK？
 
-**CCJK（Claude Code 锦库）** 将Claude Code从简单的AI助手升级为**完整的AI开发团队**。拥有11+专业AI代理、智能自动化以及全球首创的LLM驱动代码审计器，CCJK帮助你更快地写出更好的代码。
+**CCJK (Claude Code 锦库)** 将 Claude Code 从简单的AI助手转变为**完整的AI开发强力引擎**。通过革命性的**智能技能系统**、11+专业AI代理和智能自动化，CCJK帮助你**10倍速**编写更好的代码。
 
 <table>
 <tr>
-<td width="33%" align="center">
+<td width="25%" align="center">
+<h3>🧠 智能技能</h3>
+<p>热重载、上下文感知、自动激活</p>
+</td>
+<td width="25%" align="center">
 <h3>🤖 11+ AI代理</h3>
-<p>安全、性能、测试、DevOps、代码审查等专家</p>
+<p>安全、性能、测试、DevOps专家</p>
 </td>
-<td width="33%" align="center">
+<td width="25%" align="center">
 <h3>⚡ 零配置</h3>
-<p>一行命令完成配置，开箱即用</p>
+<p>一条命令，即刻运行</p>
 </td>
-<td width="33%" align="center">
-<h3>🆓 100%免费</h3>
-<p>开源项目，无隐藏费用，MIT许可</p>
+<td width="25%" align="center">
+<h3>🆓 100% 免费</h3>
+<p>开源项目，MIT许可证</p>
 </td>
 </tr>
 </table>
@@ -74,133 +80,190 @@
 
 ## 🚀 快速入门
 
-### 一键安装（推荐）
+### 一键安装
 
 ```bash
-# 方式一：使用 npmmirror 镜像（国内最快）
+# 推荐：交互式安装
+npx ccjk
+
+# 或全局安装
+npm install -g ccjk
+```
+
+### 🇨🇳 中国用户安装（国内镜像）
+
+```bash
+# 方式一：使用 npmmirror 镜像（推荐，最快）
 npm install -g ccjk --registry https://registry.npmmirror.com
 
-# 方式二：使用 ghproxy 镜像
-curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+# 方式二：使用 ghproxy 代理
+curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/anthropics/claude-code/main/install.sh | bash
 
 # 方式三：使用 jsdelivr CDN
-curl -fsSL https://cdn.jsdelivr.net/gh/miounet11/ccjk@main/install.sh | bash
-
-# 方式四：国际线路（需科学上网）
-curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+curl -fsSL https://cdn.jsdelivr.net/gh/anthropics/claude-code@main/install.sh | bash
 ```
 
-### 其他安装方式
+### 开始使用
 
 ```bash
-# 方式A：克隆仓库手动安装
-git clone https://github.com/miounet11/ccjk.git
-cd ccjk && pnpm install && pnpm build && npm install -g .
+# 运行交互式菜单
+ccjk
 
-# 方式B：从 GitHub 直接安装
-npm install -g git+https://github.com/miounet11/ccjk.git
-
-# 方式C：直接运行（无需安装）
-npx ccjk
-```
-
-### 第二步：配置API
-
-运行 `npx ccjk` 后，你会看到友好的菜单界面：
-
-```
-╔═══════════════════════════════════════════════════════════╗
-║   ██████╗ ██████╗     ██╗██╗  ██╗                         ║
-║  ██╔════╝██╔════╝     ██║██║ ██╔╝                         ║
-║  ██║     ██║          ██║█████╔╝   Claude Code 锦库      ║
-║  ██║     ██║     ██   ██║██╔═██╗   v1.3.4                ║
-║  ╚██████╗╚██████╗╚█████╔╝██║  ██╗                         ║
-║   ╚═════╝ ╚═════╝ ╚════╝ ╚═╝  ╚═╝                         ║
-╚═══════════════════════════════════════════════════════════╝
-
-? 请选择操作：
-❯ 🚀 快速配置（推荐）
-  ⚙️  API设置
-  🛠️  高级设置
-  📖 帮助
-```
-
-选择 **"快速配置"** 按提示操作即可！
-
-### 第三步：开始编程！
-
-```bash
-# 使用增强后的Claude Code
+# 或直接启动增强版 Claude Code
 claude
 ```
 
-完成！现在你可以使用11+AI代理、技能自动化等所有功能了。
-
 ---
 
-## ✨ 核心功能
+## ✨ 革命性功能
 
-### 🤖 AI代理大军
+### 🧠 智能技能系统 2.0（全新！）
 
-你的私人AI开发团队，7x24小时待命：
+AI编程助手领域最先进的技能系统：
 
-| 代理 | 功能 | 使用场景示例 |
-|------|------|-------------|
-| 🛡️ **安全专家** | 漏洞检测、OWASP检查 | "检查这段认证代码的安全问题" |
-| ⚡ **性能专家** | 速度优化、内存优化 | "为什么我的应用这么慢？" |
-| 🧪 **测试专家** | 编写测试、覆盖率分析 | "为这个函数添加单元测试" |
-| 🚀 **DevOps专家** | CI/CD、Docker、K8s | "创建GitHub Actions工作流" |
-| 📝 **代码审查员** | 最佳实践、代码质量 | "审查这个PR" |
-| 🏗️ **API架构师** | REST、GraphQL设计 | "设计用户管理API" |
-| 💾 **数据库专家** | 查询优化、索引优化 | "优化这条SQL查询" |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  🧠 CCJK 智能技能架构                                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
+│  │   钩子      │  │   子代理    │  │       权限              │ │
+│  │   系统      │  │   管理器    │  │       系统              │ │
+│  │             │  │             │  │                         │ │
+│  │ • before    │  │ • 并行执行  │  │ • 允许/拒绝规则         │ │
+│  │ • after     │  │ • 串行执行  │  │ • 通配符匹配            │ │
+│  │ • error     │  │ • 执行记录  │  │ • 文件/命令控制         │ │
+│  └──────┬──────┘  └──────┬──────┘  └───────────┬─────────────┘ │
+│         │                │                     │               │
+│         └────────────────┼─────────────────────┘               │
+│                          │                                     │
+│              ┌───────────▼───────────┐                         │
+│              │     热重载引擎        │                         │
+│              │                       │                         │
+│              │  • 文件监控           │                         │
+│              │  • 智能缓存           │                         │
+│              │  • 自动发现           │                         │
+│              │  • 即时激活           │                         │
+│              └───────────────────────┘                         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### 🔥 热重载 - 编辑技能，即时生效
+
+```yaml
+# 编辑任何技能文件，更改立即生效！
+# 无需重启，无需配置。
+
+# 示例: ~/.ccjk/skills/my-skill.md
+---
+name: my-custom-skill
+trigger: /my-skill
+auto_activate:
+  file_patterns: ["*.ts", "*.tsx"]
+  keywords: ["重构", "优化"]
+hooks:
+  before: validate-context
+  after: generate-report
+---
+
+你的技能指令写在这里...
+```
+
+#### 🤖 子代理编排
+
+并行或串行运行多个AI代理，实现复杂任务自动化：
+
+```yaml
+subagents:
+  - name: security-scan
+    model: sonnet
+    task: "扫描安全漏洞"
+  - name: performance-check
+    model: haiku
+    task: "分析性能问题"
+    depends_on: security-scan  # 串行执行，等待安全扫描完成
+```
+
+#### 🛡️ 权限系统
+
+细粒度访问控制，保护敏感文件：
+
+```yaml
+permissions:
+  allow:
+    - "src/**/*.ts"           # 允许所有 TypeScript 文件
+    - "!src/**/*.test.ts"     # 排除测试文件
+  deny:
+    - ".env*"                 # 永不触碰环境变量文件
+    - "node_modules/**"       # 跳过 node_modules
+  commands:
+    allow: ["npm test", "npm run build"]
+    deny: ["rm -rf", "sudo *"]
+```
+
+### 📦 22+ 内置技能模板
+
+| 分类 | 技能 | 描述 |
+|------|------|------|
+| **代码质量** | `pr-review`, `code-review`, `refactoring` | 全面代码分析与审查 |
+| **安全** | `security-audit`, `vulnerability-scan` | OWASP、CVE漏洞检测 |
+| **性能** | `performance-profiling`, `optimization` | 速度和内存分析优化 |
+| **文档** | `documentation-gen`, `api-docs` | 自动生成高质量文档 |
+| **测试** | `tdd-workflow`, `test-generation` | 测试驱动开发支持 |
+| **DevOps** | `git-commit`, `ci-cd-setup` | 自动化工作流配置 |
+| **迁移** | `migration-assistant`, `upgrade-helper` | 框架版本迁移助手 |
+| **规划** | `writing-plans`, `executing-plans` | 项目规划与执行 |
+
+### 🤖 AI 代理军团
+
+你的私人AI开发团队，24/7全天候服务：
+
+| 代理 | 专长 | 使用场景 |
+|------|------|----------|
+| 🛡️ **安全专家** | 漏洞检测、OWASP | "审查这段认证代码的安全性" |
+| ⚡ **性能专家** | 速度优化、内存 | "为什么我的应用这么慢？" |
+| 🧪 **测试专家** | 单元测试、覆盖率 | "为这个函数添加测试" |
+| 🚀 **DevOps专家** | CI/CD、Docker、K8s | "创建 GitHub Actions 工作流" |
+| 📝 **代码审查员** | 最佳实践、代码质量 | "审查这个 PR" |
+| 🏗️ **API架构师** | REST、GraphQL设计 | "设计用户管理 API" |
+| 💾 **数据库专家** | 查询优化、索引 | "优化这个 SQL 查询" |
 | 🎨 **前端架构师** | React、Vue、无障碍 | "重构这个组件" |
 | ⚙️ **后端架构师** | 微服务、事件驱动 | "设计可扩展的后端" |
 | 📚 **文档专家** | API文档、README | "为这个代码库写文档" |
-| 🔄 **重构专家** | 设计模式、整洁代码 | "使用SOLID原则重构" |
+| 🔄 **重构专家** | 整洁代码、SOLID | "应用设计模式重构" |
 
-### 🔍 ShenCha - AI代码审计器
+### 🔍 审查引擎 - AI代码审计器
 
-全球首创的**全自动**AI代码审计器：
+全自动AI代码审计器，无需预定义规则：
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  🧠 ShenCha 审计引擎                                        │
+│  🧠 审查引擎 (ShenCha)                                       │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  1️⃣  扫描   → AI自动发现问题（无需预定义规则）              │
-│  2️⃣  分析   → 理解上下文和影响                            │
-│  3️⃣  修复   → 自动生成并应用修复                          │
-│  4️⃣  验证   → 确认修复正确有效                            │
+│  1️⃣  扫描    → AI智能发现问题（无需预定义规则）              │
+│  2️⃣  分析    → 深度理解上下文和影响范围                     │
+│  3️⃣  修复    → 自动生成并应用修复方案                       │
+│  4️⃣  验证    → 确认修复正确工作                             │
 │                                                             │
-│  ✅ 72小时持续审计周期                                      │
-│  ✅ 生成全面的审计报告                                      │
+│  ✅ 72小时周期持续运行                                       │
+│  ✅ 生成全面的审计报告                                       │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### ⚡ 技能系统
+### 🎤 访谈驱动开发
 
-用简单的命令创建强大的自动化：
+> **"先访谈，再规格，最后编码。"** - 避免做错方向
 
 ```bash
-# TypeScript开发者
-ccjk skills create-batch --lang typescript
-# 创建: ts-debug, ts-refactor, ts-test, ts-type-check, ts-migrate
-
-# Python开发者
-ccjk skills create-batch --lang python
-# 创建: py-debug, py-refactor, py-test, py-lint, py-type
-
-# SEO优化
-ccjk skills create-batch --seo
-# 创建: meta-optimize, sitemap-generate, schema-markup, core-web-vitals
-
-# DevOps自动化
-ccjk skills create-batch --devops
-# 创建: docker-setup, ci-pipeline, deploy-script, monitoring
+ccjk interview          # 智能模式选择
+ccjk interview --quick  # 10个核心问题（快速）
+ccjk interview --deep   # 40+全面问题（深度）
 ```
 
-### 🌐 13+内置API提供商
+### 🌐 13+ API 提供商
 
 一键连接任意AI提供商：
 
@@ -208,195 +271,82 @@ ccjk skills create-batch --devops
 |--------|------|:--------:|
 | **Anthropic** | 官方 | - |
 | **302.AI** | 国内服务 | ✅ |
-| **DeepSeek** | 性价比高 | ✅ |
+| **DeepSeek** | 高性价比 | ✅ |
 | **SiliconFlow** | 国内服务 | ✅ |
-| **Qwen（通义）** | 国内服务 | ✅ |
-| **Kimi** | 国内服务 | ✅ |
-| **GLM（智谱）** | 国内服务 | ✅ |
+| **通义千问** | 阿里云 | ✅ |
+| **Kimi** | 月之暗面 | ✅ |
+| **智谱GLM** | 清华系 | ✅ |
 | **Ollama** | 本地部署 | ✅ |
 | OpenRouter, Groq, Gemini... | 国际服务 | 部分免费 |
 
-```bash
-# 快速配置API
-ccjk api setup deepseek sk-你的API密钥
+---
 
-# 或使用交互式向导
-ccjk api wizard
-```
+## 📊 为什么 CCJK 是第一名
 
-### 🔌 插件系统
-
-用自定义插件扩展CCJK：
-
-```typescript
-// ~/.ccjk/plugins/my-plugin/index.ts
-export default {
-  name: 'my-awesome-plugin',
-  version: '1.0.0',
-
-  // 添加自定义代理
-  agents: [
-    { name: 'my-agent', model: 'sonnet', template: '...' }
-  ],
-
-  // 添加自定义技能
-  skills: [
-    { id: 'my-skill', trigger: '/my-skill', template: '...' }
-  ],
-
-  // 添加自定义工作流
-  workflows: [...]
-}
-```
+| 功能 | CCJK 2.0 | Cursor | Copilot | 其他工具 |
+|------|:--------:|:------:|:-------:|:--------:|
+| **智能技能** | ✅ 热重载 | ❌ | ❌ | ❌ |
+| **AI代理** | **11+** | 2 | 1 | 0-2 |
+| **子代理系统** | ✅ | ❌ | ❌ | ❌ |
+| **权限控制** | ✅ | ❌ | ❌ | ❌ |
+| **生命周期钩子** | ✅ | ❌ | ❌ | ❌ |
+| **多提供商** | **13+** | 1 | 1 | 1-3 |
+| **上下文感知** | ✅ | 部分 | ❌ | ❌ |
+| **零配置** | ✅ | ❌ | ❌ | ❌ |
+| **开源** | ✅ | ❌ | ❌ | 部分 |
+| **免费** | ✅ | ❌ | ❌ | 部分 |
 
 ---
 
 ## 📖 命令速查表
 
-### 常用命令（新手先用这些！）
+### 基础命令
 
-| 命令 | 说明 | 使用时机 |
-|------|------|---------|
-| `npx ccjk` | 交互式菜单 | 首次安装配置 |
-| `ccjk setup` | 引导式向导 | CCJK新手 |
-| `ccjk doctor` | 环境健康检查 | 遇到问题时 |
-| `ccjk upgrade` | 升级所有组件 | 保持最新版本 |
+```bash
+npx ccjk              # 交互式设置菜单
+ccjk setup            # 引导式入门向导
+ccjk doctor           # 环境健康检查
+ccjk upgrade          # 更新所有组件
+```
 
-### 配置命令
+### 技能管理
 
-| 命令 | 说明 |
-|------|------|
-| `ccjk init` | 完整初始化 |
-| `ccjk api wizard` | API配置向导 |
-| `ccjk api list` | 显示可用提供商 |
-| `ccjk api status` | 查看当前API配置 |
-| `ccjk api test` | 测试API连接 |
+```bash
+ccjk skills list                    # 列出所有技能
+ccjk skills create my-skill         # 创建新技能
+ccjk skills enable <skill>          # 启用技能
+ccjk skills create-batch --lang ts  # 创建 TypeScript 技能包
+```
 
-### 工具管理
+### API 配置
 
-| 命令 | 说明 |
-|------|------|
-| `ccjk tools list` | 显示所有AI编程工具 |
-| `ccjk tools install <工具>` | 安装指定工具 |
-| `ccjk tools status` | 查看安装状态 |
-
-### 技能与自动化
-
-| 命令 | 说明 |
-|------|------|
-| `ccjk skills list` | 列出所有技能 |
-| `ccjk skills create-batch --lang <语言>` | 创建语言专用技能 |
-| `ccjk skills enable <技能>` | 启用技能 |
-| `ccjk skills disable <技能>` | 禁用技能 |
-
-### 高级命令
-
-| 命令 | 说明 |
-|------|------|
-| `ccjk config-scan` | 扫描所有配置文件 |
-| `ccjk permissions` | 管理权限设置 |
-| `ccjk versions` | 查看版本信息 |
-| `ccjk uninstall` | 完全卸载 |
+```bash
+ccjk api wizard       # 交互式 API 设置向导
+ccjk api list         # 显示所有提供商
+ccjk api test         # 测试 API 连接
+```
 
 ---
 
 ## 🌍 多语言支持
 
-CCJK支持多种语言：
-
 ```bash
-# 英文 (默认)
-ccjk init --lang en
-
-# 简体中文
-ccjk init --lang zh-CN
-
-# 日本語
-ccjk init --lang ja
-
-# 한국어
-ccjk init --lang ko
-
-# 一次性设置所有语言（界面+配置+AI输出）
-ccjk init --all-lang zh-CN
+ccjk init --lang en      # English
+ccjk init --lang zh-CN   # 简体中文
+ccjk init --lang ja      # 日本語
+ccjk init --lang ko      # 한국어
 ```
-
----
-
-## 📊 为什么选择CCJK？
-
-| 功能 | CCJK | Cursor | Copilot | 其他工具 |
-|------|:----:|:------:|:-------:|:--------:|
-| AI代理 | **11+** | 2 | 1 | 0-2 |
-| 技能自动化 | ✅ | ❌ | ❌ | ❌ |
-| 插件系统 | ✅ | ❌ | ❌ | ❌ |
-| LLM代码审计 | ✅ | ❌ | ❌ | ❌ |
-| 多提供商 | **13+** | 1 | 1 | 1-3 |
-| 零配置 | ✅ | ❌ | ❌ | ❌ |
-| 开源 | ✅ | ❌ | ❌ | 部分 |
-| 免费 | ✅ | ❌ | ❌ | 部分 |
 
 ---
 
 ## 💻 平台支持
 
-| 平台 | 状态 | 说明 |
-|------|:----:|------|
-| **macOS** | ✅ 完全支持 | Intel & Apple Silicon |
-| **Linux** | ✅ 完全支持 | 所有主流发行版 |
-| **Windows** | ✅ 完全支持 | Windows 10/11, WSL2 |
-| **Termux** | ✅ 完全支持 | Android终端 |
-
----
-
-## ❓ 常见问题
-
-<details>
-<summary><b>需要API密钥吗？</b></summary>
-
-需要从13+支持的提供商中选择一个获取API密钥。部分提供商有免费额度：
-- **302.AI** - 新用户有免费额度
-- **DeepSeek** - 价格非常便宜
-- **Groq** - 有免费额度
-- **Ollama** - 本地运行，完全免费
-
-</details>
-
-<details>
-<summary><b>CCJK免费吗？</b></summary>
-
-是的！CCJK 100%免费开源（MIT许可）。你只需为选择的提供商支付API使用费用。
-
-</details>
-
-<details>
-<summary><b>支持Claude Code吗？</b></summary>
-
-当然！CCJK专为增强Claude Code设计。同时也支持Codex、Aider、Continue、Cline和Cursor。
-
-</details>
-
-<details>
-<summary><b>可以在公司使用吗？</b></summary>
-
-完全可以！MIT许可允许商业使用。很多团队用CCJK来：
-- 统一AI编程实践标准
-- 加快新员工入职
-- 自动化代码审查
-- 满足安全合规要求
-
-</details>
-
-<details>
-<summary><b>遇到问题怎么办？</b></summary>
-
-运行健康检查：
-```bash
-ccjk doctor
-```
-这会诊断常见问题并给出解决建议。
-
-</details>
+| 平台 | 状态 |
+|------|:----:|
+| **macOS** | ✅ Intel & Apple Silicon |
+| **Linux** | ✅ 所有主流发行版 |
+| **Windows** | ✅ Win10/11, WSL2 |
+| **Termux** | ✅ Android 终端 |
 
 ---
 
@@ -404,79 +354,51 @@ ccjk doctor
 
 <div align="center">
 
-[![GitHub Discussions](https://img.shields.io/badge/GitHub-讨论区-333?style=for-the-badge&logo=github)](https://github.com/miounet11/ccjk/discussions)
-[![Telegram](https://img.shields.io/badge/Telegram-加入群组-26A5E4?style=for-the-badge&logo=telegram)](https://t.me/ccjk_community)
+[![GitHub Discussions](https://img.shields.io/badge/GitHub-讨论区-333?style=for-the-badge&logo=github)](https://github.com/anthropics/claude-code/discussions)
 [![Discord](https://img.shields.io/badge/Discord-加入服务器-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/ccjk)
-[![微信](https://img.shields.io/badge/微信-扫码加群-07C160?style=for-the-badge&logo=wechat)](https://github.com/miounet11/ccjk)
+[![微信](https://img.shields.io/badge/微信-扫码加群-07C160?style=for-the-badge&logo=wechat)](https://github.com/anthropics/claude-code)
 
 </div>
 
-- 🐛 **Bug报告**: [GitHub Issues](https://github.com/miounet11/ccjk/issues)
-- 💡 **功能建议**: [GitHub Discussions](https://github.com/miounet11/ccjk/discussions)
-- 📖 **文档**: [docs.ccjk.dev](https://docs.ccjk.dev)
+- 🐛 **Bug报告**: [GitHub Issues](https://github.com/anthropics/claude-code/issues)
+- 💡 **功能建议**: [GitHub Discussions](https://github.com/anthropics/claude-code/discussions)
 
 ---
 
 ## 🤝 参与贡献
 
-欢迎贡献代码！以下是开始步骤：
-
 ```bash
-# 克隆仓库
-git clone https://github.com/miounet11/ccjk.git
+git clone https://github.com/anthropics/claude-code.git
 cd ccjk
-
-# 安装依赖
 pnpm install
-
-# 开发模式运行
 pnpm dev
-
-# 运行测试
-pnpm test
-
-# 构建
-pnpm build
 ```
 
-详情请查看 [贡献指南](CONTRIBUTING.md)。
-
----
-
-## 🙏 致谢
-
-CCJK站在巨人的肩膀上：
-
-- [Claude Code](https://claude.ai/code) - 强大的AI编程基础
-- [ZCF](https://github.com/UfoMiao/zcf) - 最初的灵感来源
-- [Claude Code Router](https://github.com/musistudio/claude-code-router) - API路由
-- [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD) - 工作流模式
+详情请查看 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ---
 
 ## 📄 许可证
 
-MIT © [CCJK Team](https://github.com/miounet11/ccjk)
+MIT © [CCJK Team](https://github.com/anthropics/claude-code)
 
 ---
 
 <div align="center">
 
-## ⭐ 给我们一颗星
+## ⭐ 在 GitHub 上给我们 Star
 
-如果CCJK帮助了你，请给我们一颗星！这能帮助更多人发现这个项目。
-
-[![Star History Chart](https://api.star-history.com/svg?repos=miounet11/ccjk&type=Date)](https://star-history.com/#miounet11/ccjk&Date)
+如果 CCJK 帮助你更好地编程，请给我们一个 Star！
 
 <br/>
 
-**由开发者为开发者用心打造 ❤️**
+**由开发者为开发者用 ❤️ 打造**
 
 <br/>
 
-### 🔍 搜索关键词
+### 🔍 SEO 关键词
 
-`claude-code` `AI编程助手` `代码审查` `AI开发工具` `Claude AI` `Anthropic` `LLM编程` `AI代理` `代码自动化` `DevOps` `安全审计` `性能优化` `TypeScript` `Python` `JavaScript` `React` `Vue` `Node.js` `Docker` `Kubernetes` `GitHub Actions` `CI/CD` `代码质量` `最佳实践` `整洁代码` `Copilot替代` `Cursor替代` `免费AI编程` `开源AI` `302AI` `DeepSeek` `通义千问` `智谱AI` `Kimi` `硅基流动`
+`claude-code` `AI编程助手` `claude-code扩展` `AI开发工具` `代码自动化` `智能技能` `热重载` `子代理` `安全审计` `性能优化` `TypeScript` `Python` `JavaScript` `React` `Vue` `Node.js` `Docker` `Kubernetes` `GitHub Actions` `CI/CD` `代码质量` `最佳实践` `整洁代码` `copilot替代品` `cursor替代品` `windsurf替代品` `免费AI编程` `开源AI` `代码审查AI` `AI结对编程` `智能编码` `开发者生产力` `编程助手` `2025年AI工具` `302AI` `DeepSeek` `通义千问` `智谱AI` `Kimi` `硅基流动`
 
 </div>
 
@@ -485,7 +407,7 @@ MIT © [CCJK Team](https://github.com/miounet11/ccjk)
 [npm-version-href]: https://npmjs.com/package/ccjk
 [npm-downloads-src]: https://img.shields.io/npm/dm/ccjk?style=flat&colorA=18181B&colorB=28CF8D
 [npm-downloads-href]: https://npmjs.com/package/ccjk
-[license-src]: https://img.shields.io/github/license/miounet11/ccjk?style=flat&colorA=18181B&colorB=28CF8D
-[license-href]: https://github.com/miounet11/ccjk/blob/main/LICENSE
-[stars-src]: https://img.shields.io/github/stars/miounet11/ccjk?style=flat&colorA=18181B&colorB=28CF8D
-[stars-href]: https://github.com/miounet11/ccjk/stargazers
+[license-src]: https://img.shields.io/github/license/anthropics/claude-code?style=flat&colorA=18181B&colorB=28CF8D
+[license-href]: https://github.com/anthropics/claude-code/blob/main/LICENSE
+[stars-src]: https://img.shields.io/github/stars/anthropics/claude-code?style=flat&colorA=18181B&colorB=28CF8D
+[stars-href]: https://github.com/anthropics/claude-code/stargazers

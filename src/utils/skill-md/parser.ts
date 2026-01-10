@@ -214,7 +214,201 @@ function extractMetadata(data: any, filePath: string): SkillMdMetadata {
     metadata.tags = data.tags
   }
 
+  // Add new extended fields (v3.5.0+)
+  if (Array.isArray(data.allowed_tools)) {
+    metadata.allowed_tools = data.allowed_tools
+  }
+
+  if (data.context && typeof data.context === 'string') {
+    metadata.context = data.context as 'fork' | 'inherit'
+  }
+
+  if (data.agent && typeof data.agent === 'string') {
+    metadata.agent = data.agent
+  }
+
+  if (typeof data.user_invocable === 'boolean') {
+    metadata.user_invocable = data.user_invocable
+  }
+
+  if (Array.isArray(data.hooks)) {
+    metadata.hooks = data.hooks
+  }
+
+  if (Array.isArray(data.permissions)) {
+    metadata.permissions = data.permissions
+  }
+
+  if (typeof data.timeout === 'number') {
+    metadata.timeout = data.timeout
+  }
+
+  if (Array.isArray(data.outputs)) {
+    metadata.outputs = data.outputs
+  }
+
   return metadata
+}
+
+/**
+ * Validate allowed_tools field format
+ *
+ * Validates that allowed_tools contains valid tool patterns.
+ * Supports wildcards (e.g., "Bash(*)", "mcp__*", "Read", "Write").
+ *
+ * @param tools - Array of tool patterns to validate
+ * @returns Validation result with errors
+ *
+ * @internal
+ */
+function validateAllowedTools(tools: string[]): SkillValidationError[] {
+  const errors: SkillValidationError[] = []
+
+  if (!Array.isArray(tools)) {
+    errors.push({
+      field: 'metadata.allowed_tools',
+      message: 'allowed_tools must be an array',
+      code: 'INVALID_ALLOWED_TOOLS_TYPE',
+    })
+    return errors
+  }
+
+  for (const tool of tools) {
+    if (typeof tool !== 'string' || tool.trim().length === 0) {
+      errors.push({
+        field: 'metadata.allowed_tools',
+        message: `Invalid tool pattern: '${tool}'. Must be a non-empty string`,
+        code: 'INVALID_TOOL_PATTERN',
+      })
+    }
+  }
+
+  return errors
+}
+
+/**
+ * Validate hooks field structure
+ *
+ * Validates that hooks array contains valid hook definitions with
+ * required fields and proper structure.
+ *
+ * @param hooks - Array of hook definitions to validate
+ * @returns Validation result with errors
+ *
+ * @internal
+ */
+function validateHooks(hooks: any[]): SkillValidationError[] {
+  const errors: SkillValidationError[] = []
+
+  if (!Array.isArray(hooks)) {
+    errors.push({
+      field: 'metadata.hooks',
+      message: 'hooks must be an array',
+      code: 'INVALID_HOOKS_TYPE',
+    })
+    return errors
+  }
+
+  const validHookTypes = [
+    'PreToolUse',
+    'PostToolUse',
+    'SubagentStart',
+    'SubagentStop',
+    'PermissionRequest',
+    'SkillActivate',
+    'SkillComplete',
+  ]
+
+  for (let i = 0; i < hooks.length; i++) {
+    const hook = hooks[i]
+
+    // Validate hook type
+    if (!hook.type || typeof hook.type !== 'string') {
+      errors.push({
+        field: `metadata.hooks[${i}]`,
+        message: 'Hook must have a valid type field',
+        code: 'MISSING_HOOK_TYPE',
+      })
+      continue
+    }
+
+    if (!validHookTypes.includes(hook.type)) {
+      errors.push({
+        field: `metadata.hooks[${i}].type`,
+        message: `Invalid hook type '${hook.type}'. Must be one of: ${validHookTypes.join(', ')}`,
+        code: 'INVALID_HOOK_TYPE',
+      })
+    }
+
+    // Validate that either command or script is provided
+    if (!hook.command && !hook.script) {
+      errors.push({
+        field: `metadata.hooks[${i}]`,
+        message: 'Hook must have either command or script field',
+        code: 'MISSING_HOOK_ACTION',
+      })
+    }
+
+    // Validate timeout if present
+    if (hook.timeout !== undefined) {
+      if (typeof hook.timeout !== 'number' || hook.timeout <= 0) {
+        errors.push({
+          field: `metadata.hooks[${i}].timeout`,
+          message: `Hook timeout must be a positive number, got ${hook.timeout}`,
+          code: 'INVALID_HOOK_TIMEOUT',
+        })
+      }
+    }
+
+    // Validate matcher if present
+    if (hook.matcher !== undefined && typeof hook.matcher !== 'string') {
+      errors.push({
+        field: `metadata.hooks[${i}].matcher`,
+        message: 'Hook matcher must be a string',
+        code: 'INVALID_HOOK_MATCHER',
+      })
+    }
+  }
+
+  return errors
+}
+
+/**
+ * Validate permissions field format
+ *
+ * Validates that permissions array contains valid permission strings.
+ * Expected format: "resource:action" (e.g., "file:read", "network:http").
+ *
+ * @param permissions - Array of permission strings to validate
+ * @returns Validation result with errors
+ *
+ * @internal
+ */
+function validatePermissions(permissions: string[]): SkillValidationError[] {
+  const errors: SkillValidationError[] = []
+
+  if (!Array.isArray(permissions)) {
+    errors.push({
+      field: 'metadata.permissions',
+      message: 'permissions must be an array',
+      code: 'INVALID_PERMISSIONS_TYPE',
+    })
+    return errors
+  }
+
+  const permissionPattern = /^[a-z]+:[a-z]+$/
+
+  for (const permission of permissions) {
+    if (typeof permission !== 'string' || !permissionPattern.test(permission)) {
+      errors.push({
+        field: 'metadata.permissions',
+        message: `Invalid permission format: '${permission}'. Expected format: 'resource:action' (e.g., 'file:read')`,
+        code: 'INVALID_PERMISSION_FORMAT',
+      })
+    }
+  }
+
+  return errors
 }
 
 /**
@@ -230,6 +424,7 @@ function extractMetadata(data: any, filePath: string): SkillMdMetadata {
  * - Trigger format (must start with /)
  * - Name format (kebab-case recommended)
  * - Version format (semantic versioning)
+ * - Extended fields validation (allowed_tools, hooks, permissions, etc.)
  *
  * @param skill - Parsed SKILL.md file to validate
  * @returns Validation result with errors and warnings
@@ -355,6 +550,93 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       message: 'Duplicate triggers detected',
       code: 'DUPLICATE_TRIGGERS',
     })
+  }
+
+  // Validate extended fields (v3.5.0+)
+
+  // Validate allowed_tools if present
+  if (metadata.allowed_tools) {
+    const toolErrors = validateAllowedTools(metadata.allowed_tools)
+    errors.push(...toolErrors)
+  }
+
+  // Validate context if present
+  if (metadata.context && !['fork', 'inherit'].includes(metadata.context)) {
+    errors.push({
+      field: 'metadata.context',
+      message: `Invalid context '${metadata.context}'. Must be 'fork' or 'inherit'`,
+      code: 'INVALID_CONTEXT',
+    })
+  }
+
+  // Validate hooks if present
+  if (metadata.hooks) {
+    const hookErrors = validateHooks(metadata.hooks)
+    errors.push(...hookErrors)
+  }
+
+  // Validate permissions if present
+  if (metadata.permissions) {
+    const permissionErrors = validatePermissions(metadata.permissions)
+    errors.push(...permissionErrors)
+  }
+
+  // Validate timeout if present
+  if (metadata.timeout !== undefined) {
+    if (typeof metadata.timeout !== 'number' || metadata.timeout <= 0) {
+      errors.push({
+        field: 'metadata.timeout',
+        message: `Timeout must be a positive number, got ${metadata.timeout}`,
+        code: 'INVALID_TIMEOUT',
+      })
+    }
+    else if (metadata.timeout > 3600) {
+      warnings.push({
+        field: 'metadata.timeout',
+        message: `Timeout of ${metadata.timeout} seconds is very long (>1 hour). Consider reducing it.`,
+        code: 'EXCESSIVE_TIMEOUT',
+      })
+    }
+  }
+
+  // Validate outputs if present
+  if (metadata.outputs) {
+    if (!Array.isArray(metadata.outputs)) {
+      errors.push({
+        field: 'metadata.outputs',
+        message: 'outputs must be an array',
+        code: 'INVALID_OUTPUTS_TYPE',
+      })
+    }
+    else {
+      for (let i = 0; i < metadata.outputs.length; i++) {
+        const output = metadata.outputs[i]
+
+        if (!output.name || typeof output.name !== 'string') {
+          errors.push({
+            field: `metadata.outputs[${i}]`,
+            message: 'Output must have a valid name field',
+            code: 'MISSING_OUTPUT_NAME',
+          })
+        }
+
+        if (!output.type || !['file', 'variable', 'artifact'].includes(output.type)) {
+          errors.push({
+            field: `metadata.outputs[${i}].type`,
+            message: `Invalid output type '${output.type}'. Must be 'file', 'variable', or 'artifact'`,
+            code: 'INVALID_OUTPUT_TYPE',
+          })
+        }
+
+        if (output.type === 'file' && !output.path) {
+          warnings.push({
+            field: `metadata.outputs[${i}].path`,
+            message: `Output '${output.name}' is of type 'file' but has no path specified`,
+            code: 'MISSING_OUTPUT_PATH',
+          })
+        }
+      }
+    }
   }
 
   return {

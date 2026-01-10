@@ -2,7 +2,7 @@
  * SKILL.md Utilities Module
  *
  * Provides comprehensive utilities for parsing, validating, and managing
- * SKILL.md files in the CCJK project.
+ * SKILL.md files in the CCJK project with hot reload support.
  *
  * @module utils/skill-md
  */
@@ -31,6 +31,32 @@ export type {
   SkillValidationWarning,
 } from '../../types/skill-md.js'
 
+// Export cache management
+export {
+  SkillCache,
+} from './cache.js'
+
+export type {
+  CachedSkill,
+} from './cache.js'
+// Export discovery service
+export {
+  SkillDiscovery,
+} from './discovery.js'
+
+export type {
+  SkillValidationResultWithPath,
+} from './discovery.js'
+// Export hot reload system
+export {
+  SkillHotReloader,
+} from './hot-reload.js'
+
+export type {
+  HotReloadEvent,
+  HotReloadEventType,
+  HotReloadOptions,
+} from './hot-reload.js'
 // Export all parser functions
 export {
   extractSkillMetadata,

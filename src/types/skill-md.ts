@@ -35,10 +35,138 @@ export type SkillDifficulty = 'beginner' | 'intermediate' | 'advanced'
 export type SkillPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
 
 /**
+ * Subagent execution context mode
+ *
+ * - `fork`: Execute in isolated context (new conversation)
+ * - `inherit`: Execute in parent context (shared conversation)
+ */
+export type SubagentContextMode = 'fork' | 'inherit'
+
+/**
+ * Hook types for skill lifecycle events
+ *
+ * Hooks allow skills to execute custom logic at specific points
+ * during skill execution and tool usage.
+ */
+export type HookType
+  = | 'PreToolUse' // Before any tool is used
+    | 'PostToolUse' // After any tool is used
+    | 'SubagentStart' // When a subagent starts
+    | 'SubagentStop' // When a subagent stops
+    | 'PermissionRequest' // When permission is requested
+    | 'SkillActivate' // When skill is activated
+    | 'SkillComplete' // When skill completes
+
+/**
+ * Hook definition for skill lifecycle events
+ *
+ * Hooks can execute commands or scripts at specific points
+ * during skill execution.
+ *
+ * @example
+ * ```yaml
+ * hooks:
+ *   - type: PreToolUse
+ *     matcher: "Bash(npm *)"
+ *     command: "echo 'Running npm command'"
+ *     timeout: 5
+ * ```
+ */
+export interface Hook {
+  /** Hook type (lifecycle event) */
+  type: HookType
+
+  /**
+   * Pattern to match for conditional execution
+   * Supports wildcards (e.g., "Bash(npm *)", "mcp__*")
+   */
+  matcher?: string
+
+  /** Shell command to execute */
+  command?: string
+
+  /** Inline script to execute */
+  script?: string
+
+  /**
+   * Timeout in seconds
+   * @default 30
+   */
+  timeout?: number
+}
+
+/**
+ * Skill output definition
+ *
+ * Defines outputs that a skill produces, which can be
+ * files, variables, or artifacts.
+ *
+ * @example
+ * ```yaml
+ * outputs:
+ *   - name: report
+ *     type: file
+ *     path: ./output/report.md
+ *     description: Generated analysis report
+ * ```
+ */
+export interface SkillOutput {
+  /** Output name (identifier) */
+  name: string
+
+  /**
+   * Output type
+   * - `file`: File output
+   * - `variable`: Variable/environment output
+   * - `artifact`: Artifact output
+   */
+  type: 'file' | 'variable' | 'artifact'
+
+  /** Output path (for file type) */
+  path?: string
+
+  /** Output description */
+  description?: string
+}
+
+/**
+ * Subagent execution context
+ *
+ * Tracks the execution state of a subagent (child skill).
+ * Used for managing nested skill executions.
+ */
+export interface SubagentContext {
+  /** Unique subagent ID */
+  id: string
+
+  /** Parent subagent ID (if nested) */
+  parentId?: string
+
+  /**
+   * Execution mode
+   * - `fork`: Isolated execution
+   * - `inherit`: Shared context with parent
+   */
+  mode: SubagentContextMode
+
+  /** Skill being executed */
+  skill: SkillMdFile
+
+  /** Conversation transcript */
+  transcript: string[]
+
+  /** Execution start time */
+  startedAt: Date
+
+  /** Execution end time (if completed) */
+  endedAt?: Date
+}
+
+/**
  * SKILL.md frontmatter metadata
  *
  * Defines the YAML frontmatter structure for SKILL.md files.
- * Compatible with Superpowers-style skill definitions.
+ * Compatible with Superpowers-style skill definitions and Claude Code 2.1.x.
  *
  * @example
  * ```yaml
@@ -53,6 +181,22 @@ export type SkillPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
  *   - When working on git operations
  * auto_activate: true
  * priority: 8
+ * allowed_tools: ['Bash(git *)', 'Read', 'Write']
+ * context: inherit
+ * agent: git-specialist
+ * user_invocable: true
+ * timeout: 300
+ * hooks:
+ *   - type: SkillActivate
+ *     command: git status
+ *   - type: PreToolUse
+ *     matcher: 'Bash(git commit *)'
+ *     script: echo "Committing changes..."
+ * permissions: ['file:read', 'file:write', 'bash:execute']
+ * outputs:
+ *   - name: commit_hash
+ *     type: variable
+ *     description: Git commit SHA
  * ---
  * ```
  */
@@ -124,6 +268,104 @@ export interface SkillMdMetadata {
 
   /** Tags for discovery and search */
   tags?: string[]
+
+  /**
+   * Allowed tools for this skill
+   *
+   * Restricts which tools the skill can use. Supports wildcards.
+   * If not specified, all tools are allowed.
+   *
+   * @example
+   * ["Bash(npm *)", "Bash(git *)", "mcp__*", "Read", "Write"]
+   */
+  allowed_tools?: string[]
+
+  /**
+   * Subagent execution context mode
+   *
+   * - `fork`: Execute in isolated context (new conversation)
+   * - `inherit`: Execute in parent context (shared conversation)
+   *
+   * @default "inherit"
+   */
+  context?: SubagentContextMode
+
+  /**
+   * Agent type to execute this skill
+   *
+   * Specifies which agent should handle this skill execution.
+   * If not specified, uses the default agent.
+   *
+   * @example "typescript-expert", "python-specialist"
+   */
+  agent?: string
+
+  /**
+   * Whether skill is user-invocable
+   *
+   * Controls if the skill appears in user menus and can be
+   * directly invoked by users.
+   *
+   * @default true
+   */
+  user_invocable?: boolean
+
+  /**
+   * Execution hooks
+   *
+   * Lifecycle hooks that execute at specific points during
+   * skill execution. Useful for setup, teardown, and monitoring.
+   *
+   * @example
+   * ```yaml
+   * hooks:
+   *   - type: SkillActivate
+   *     command: "echo 'Skill starting'"
+   *   - type: PreToolUse
+   *     matcher: "Bash(npm *)"
+   *     script: "npm config list"
+   * ```
+   */
+  hooks?: Hook[]
+
+  /**
+   * Permission rules
+   *
+   * Defines what permissions this skill requires.
+   * Used for security and access control.
+   *
+   * @example
+   * ["file:read", "file:write", "network:http", "bash:execute"]
+   */
+  permissions?: string[]
+
+  /**
+   * Execution timeout in seconds
+   *
+   * Maximum time allowed for skill execution.
+   * If exceeded, execution is terminated.
+   *
+   * @default 300 (5 minutes)
+   */
+  timeout?: number
+
+  /**
+   * Skill outputs
+   *
+   * Defines what outputs this skill produces.
+   * Useful for chaining skills and understanding results.
+   *
+   * @example
+   * ```yaml
+   * outputs:
+   *   - name: report
+   *     type: file
+   *     path: ./output/report.md
+   *   - name: status
+   *     type: variable
+   * ```
+   */
+  outputs?: SkillOutput[]
 }
 
 /**

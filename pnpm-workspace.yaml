@@ -23,6 +23,7 @@ catalogs:
     vitepress: ^1.6.4
     vue: ^3.5.25
   runtime:
+    chokidar: ^4.0.3
     dayjs: ^1.11.18
     find-up-simple: ^1.0.1
     fs-extra: ^11.3.2
