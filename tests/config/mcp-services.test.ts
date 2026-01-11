@@ -28,11 +28,16 @@ describe('mcp services configuration', () => {
       const expectedServiceIds = [
         'context7',
         'open-websearch',
-        'spec-workflow',
         'mcp-deepwiki',
-        'Playwright',
-        'exa',
+        'spec-workflow',
         'serena',
+        'Playwright',
+        'puppeteer',
+        'filesystem',
+        'memory',
+        'sequential-thinking',
+        'fetch',
+        'sqlite',
       ]
 
       const actualIds = MCP_SERVICE_CONFIGS.map(config => config.id)
@@ -163,31 +168,23 @@ describe('mcp services configuration', () => {
       expect(service).toBeUndefined()
     })
 
-    it('should correctly handle services that require API key', async () => {
-      const exaService = await getMcpService('exa')
+    it('should correctly handle services that do not require API key', async () => {
+      const context7Service = await getMcpService('context7')
 
-      expect(exaService).toBeDefined()
-      expect(exaService!.requiresApiKey).toBe(true)
-      expect(exaService!.apiKeyPrompt).toBeDefined()
-      expect(exaService!.apiKeyEnvVar).toBe('EXA_API_KEY')
+      expect(context7Service).toBeDefined()
+      expect(context7Service!.requiresApiKey).toBe(false)
+      expect(context7Service!.apiKeyEnvVar).toBeUndefined()
     })
   })
 
   describe('aPI key related functionality', () => {
-    it('services requiring API key should contain prompt information', async () => {
-      const zhServices = await getMcpServices()
-      const enServices = await getMcpServices()
+    it('all current services should not require API key', async () => {
+      const services = await getMcpServices()
 
-      const zhExaService = zhServices.find(s => s.id === 'exa')
-      const enExaService = enServices.find(s => s.id === 'exa')
-
-      expect(zhExaService?.apiKeyPrompt).toContain('API Key')
-      expect(enExaService?.apiKeyPrompt).toContain('API Key')
-
-      // With global English i18n, all prompts are in English
-      expect(zhExaService?.apiKeyPrompt).toContain('API Key')
-      expect(enExaService?.apiKeyPrompt).toContain('API Key')
-      expect(/[\u4E00-\u9FA5]/.test(enExaService?.apiKeyPrompt || '')).toBe(false)
+      services.forEach((service) => {
+        expect(service.requiresApiKey).toBe(false)
+        expect(service.apiKeyEnvVar).toBeUndefined()
+      })
     })
   })
 

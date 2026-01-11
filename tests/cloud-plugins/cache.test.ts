@@ -401,6 +401,7 @@ describe('localPluginCache', () => {
       const mockReadFileSync = vi.mocked(readFileSync)
       const mockWriteFileSync = vi.mocked(writeFileSync)
       const mockMkdirSync = vi.mocked(mkdirSync)
+      const mockUnlinkSync = vi.mocked(unlinkSync)
 
       const originalCreatedAt = new Date('2024-01-01').toISOString()
 
@@ -417,6 +418,7 @@ describe('localPluginCache', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(existingCache))
       mockMkdirSync.mockReturnValue(undefined)
       mockWriteFileSync.mockReturnValue(undefined)
+      mockUnlinkSync.mockReturnValue(undefined)
 
       cache.loadCache()
       cache.updateCache([])

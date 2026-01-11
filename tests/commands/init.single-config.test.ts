@@ -79,6 +79,14 @@ vi.mock('../../src/utils/auto-updater', () => ({
   updateClaudeCode: vi.fn(),
 }))
 
+vi.mock('../../src/utils/error-handler', () => ({
+  handleExitPromptError: vi.fn(() => false),
+  handleGeneralError: vi.fn((error) => {
+    // Don't call process.exit in tests, just log
+    console.warn('handleGeneralError called:', error)
+  }),
+}))
+
 vi.mock('../../src/utils/output-style', () => ({
   configureOutputStyle: vi.fn(),
 }))
