@@ -25,7 +25,7 @@ vi.mock('smol-toml')
 
 const mockExists = vi.fn()
 const mockReadFile = vi.fn()
-const mockWriteFile = vi.fn()
+const mockWriteFileAtomic = vi.fn()
 const mockEnsureDir = vi.fn()
 const mockParse = vi.fn()
 const mockStringify = vi.fn()
@@ -33,7 +33,7 @@ const mockStringify = vi.fn()
 // Setup mocks
 vi.mocked(await import('../../../src/utils/fs-operations')).exists = mockExists
 vi.mocked(await import('../../../src/utils/fs-operations')).readFile = mockReadFile
-vi.mocked(await import('../../../src/utils/fs-operations')).writeFile = mockWriteFile
+vi.mocked(await import('../../../src/utils/fs-operations')).writeFileAtomic = mockWriteFileAtomic
 vi.mocked(await import('../../../src/utils/fs-operations')).ensureDir = mockEnsureDir
 vi.mocked(await import('smol-toml')).parse = mockParse
 vi.mocked(await import('smol-toml')).stringify = mockStringify
@@ -199,11 +199,11 @@ system_prompt_style = "engineer-professional"`
       // Mock internal TOML operations
       mockStringify.mockReturnValue('mocked toml content')
       mockEnsureDir.mockReturnValue(undefined)
-      mockWriteFile.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       writeZcfConfig(config)
 
-      expect(mockWriteFile).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.any(String),
         'mocked toml content',
       )
@@ -239,7 +239,7 @@ system_prompt_style = "engineer-professional"`
 
       updateZcfConfig({ preferredLang: 'zh-CN', codeToolType: 'codex' })
 
-      expect(mockWriteFile).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.any(String),
         'mocked toml content',
       )
@@ -252,11 +252,11 @@ system_prompt_style = "engineer-professional"`
       // Mock internal TOML operations
       mockStringify.mockReturnValue('mocked toml content')
       mockEnsureDir.mockReturnValue(undefined)
-      mockWriteFile.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       updateZcfConfig({ preferredLang: 'zh-CN' })
 
-      expect(mockWriteFile).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.any(String),
         'mocked toml content',
       )
@@ -290,7 +290,7 @@ system_prompt_style = "engineer-professional"`
 
       mockStringify.mockImplementation(() => 'mocked toml content')
       mockEnsureDir.mockReturnValue(undefined)
-      mockWriteFile.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       updateZcfConfig({ codeToolType: 'codex' })
 
@@ -327,7 +327,7 @@ system_prompt_style = "engineer-professional"`
 
   describe('writeZcfConfig - error handling', () => {
     it('should silently fail on write error', () => {
-      mockWriteFile.mockImplementation(() => {
+      mockWriteFileAtomic.mockImplementation(() => {
         throw new Error('Permission denied')
       })
 
@@ -455,11 +455,11 @@ system_prompt_style = "engineer-professional"`
       // Mock internal TOML operations
       mockStringify.mockReturnValue('mocked toml content')
       mockEnsureDir.mockReturnValue(undefined)
-      mockWriteFile.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       await saveZcfConfig(config)
 
-      expect(mockWriteFile).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.any(String),
         'mocked toml content',
       )
@@ -549,7 +549,7 @@ system_prompt_style = "engineer-professional"`
       })
 
       // Since we're mocking migrateFromJsonConfig, we should expect what we mocked
-      expect(mockWriteFile).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.any(String),
         'mocked toml content',
       )
@@ -571,11 +571,11 @@ system_prompt_style = "engineer-professional"`
       // Mock internal TOML operations
       mockStringify.mockReturnValue('mocked toml content')
       mockEnsureDir.mockReturnValue(undefined)
-      mockWriteFile.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       updateZcfConfig(updates)
 
-      expect(mockWriteFile).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.any(String),
         'mocked toml content',
       )
@@ -625,7 +625,7 @@ system_prompt_style = "engineer-professional"`
       it('should serialize and write TOML config to file', () => {
         mockStringify.mockReturnValue(sampleTomlString)
         mockEnsureDir.mockReturnValue(undefined)
-        mockWriteFile.mockReturnValue(undefined)
+        mockWriteFileAtomic.mockReturnValue(undefined)
 
         const configPath = '/test/config.toml'
 
@@ -633,7 +633,7 @@ system_prompt_style = "engineer-professional"`
 
         expect(mockEnsureDir).toHaveBeenCalled()
         expect(mockStringify).toHaveBeenCalledWith(sampleTomlConfig)
-        expect(mockWriteFile).toHaveBeenCalledWith(configPath, sampleTomlString)
+        expect(mockWriteFileAtomic).toHaveBeenCalledWith(configPath, sampleTomlString)
       })
 
       it('should handle write errors gracefully', () => {

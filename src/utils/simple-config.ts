@@ -1,9 +1,9 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
 import { exec } from 'tinyexec'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../constants.js'
-import { ensureDir } from './fs-operations.js'
+import { ensureDir, writeFileAtomic } from './fs-operations.js'
 import { mergeAndCleanPermissions } from './permission-cleaner.js'
 import { getPlatform } from './platform.js'
 
@@ -34,7 +34,7 @@ function loadCurrentSettings(): any {
 // Save settings
 function saveSettings(settings: any): void {
   ensureDir(CLAUDE_DIR)
-  writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2))
+  writeFileAtomic(SETTINGS_FILE, JSON.stringify(settings, null, 2))
 }
 
 // Import recommended environment variables

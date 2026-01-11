@@ -557,13 +557,13 @@ describe('config utilities', () => {
   describe('applyAiLanguageDirective', () => {
     it('should return early for custom language', () => {
       applyAiLanguageDirective('custom')
-      expect(fsOps.writeFile).not.toHaveBeenCalled()
+      expect(fsOps.writeFileAtomic).not.toHaveBeenCalled()
     })
 
     it('should write predefined language directive', () => {
       applyAiLanguageDirective('zh-CN')
 
-      expect(fsOps.writeFile).toHaveBeenCalledWith(
+      expect(fsOps.writeFileAtomic).toHaveBeenCalledWith(
         join(CLAUDE_DIR, 'CLAUDE.md'),
         'Always respond in Chinese-simplified',
       )
@@ -572,7 +572,7 @@ describe('config utilities', () => {
     it('should write custom language string', () => {
       applyAiLanguageDirective('French')
 
-      expect(fsOps.writeFile).toHaveBeenCalledWith(
+      expect(fsOps.writeFileAtomic).toHaveBeenCalledWith(
         join(CLAUDE_DIR, 'CLAUDE.md'),
         'Always respond in French',
       )

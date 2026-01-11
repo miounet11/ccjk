@@ -11,9 +11,10 @@
 import type { SupportedLang } from '../../constants'
 import type { PackageCategory } from '../../types/marketplace'
 import type { CloudApiResponse } from './api-client'
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { homedir, platform } from 'node:os'
 import { join } from 'pathe'
+import { writeFileAtomic } from '../../utils/fs-operations'
 import { CloudApiClient } from './api-client'
 
 // ============================================================================
@@ -361,7 +362,7 @@ export class PluginRecommendationService {
         expiresAt: expiresAt.toISOString(),
       }
 
-      writeFileSync(CACHE_FILE, JSON.stringify(cached, null, 2), 'utf-8')
+      writeFileAtomic(CACHE_FILE, JSON.stringify(cached, null, 2), 'utf-8')
     }
     catch (error) {
       console.warn('Failed to cache recommendations:', error)

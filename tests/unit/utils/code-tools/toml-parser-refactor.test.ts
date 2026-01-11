@@ -16,6 +16,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 
 describe('tOML Parser Refactor', () => {

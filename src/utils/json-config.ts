@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import { join } from 'pathe'
 // JSON utilities use English messages
-import { copyFile, ensureDir, exists, readFile, writeFile } from './fs-operations'
+import { copyFile, ensureDir, exists, readFile, writeFile, writeFileAtomic } from './fs-operations'
 
 export interface JsonConfigOptions<T> {
   defaultValue?: T
@@ -10,6 +10,8 @@ export interface JsonConfigOptions<T> {
   backupDir?: string
   validate?: (data: any) => data is T
   sanitize?: (data: any) => T
+  /** Use atomic write to prevent data corruption (default: true for config files) */
+  atomic?: boolean
 }
 
 /**
@@ -49,7 +51,7 @@ export function readJsonConfig<T>(path: string, options: JsonConfigOptions<T> = 
  * Write JSON configuration file
  */
 export function writeJsonConfig<T>(path: string, data: T, options: JsonConfigOptions<T> = {}): void {
-  const { pretty = true, backup = false, backupDir } = options
+  const { pretty = true, backup = false, backupDir, atomic = true } = options
 
   // Backup existing file if requested
   if (backup && exists(path)) {
@@ -57,7 +59,14 @@ export function writeJsonConfig<T>(path: string, data: T, options: JsonConfigOpt
   }
 
   const content = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data)
-  writeFile(path, content)
+
+  // Use atomic write by default to prevent data corruption
+  if (atomic) {
+    writeFileAtomic(path, content)
+  }
+  else {
+    writeFile(path, content)
+  }
 }
 
 /**

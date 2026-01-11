@@ -49,12 +49,15 @@ export * from './utils/code-tools'
 export * from './utils/config'
 
 export * from './utils/config-consolidator'
+// Context Management
+export * from './utils/context-manager'
 export * from './utils/health-check'
 export * from './utils/installer'
 export * from './utils/onboarding'
 export { cleanupPermissions, mergeAndCleanPermissions } from './utils/permission-cleaner'
 export * from './utils/permission-manager'
 export { commandExists, getPlatform } from './utils/platform'
+
 export { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from './utils/simple-config'
 
 export * from './utils/ui'

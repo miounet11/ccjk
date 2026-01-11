@@ -14,6 +14,7 @@ import * as os from 'node:os'
 import * as path from 'node:path'
 import process from 'node:process'
 import { promisify } from 'node:util'
+import { writeFileAtomic } from '../utils/fs-operations'
 
 const execAsync = promisify(exec)
 
@@ -178,7 +179,7 @@ else:
     }
 
     // Write notification data to temp file
-    fs.writeFileSync(TEMP_NOTIFICATION_FILE, JSON.stringify(notificationData, null, 2), 'utf-8')
+    writeFileAtomic(TEMP_NOTIFICATION_FILE, JSON.stringify(notificationData, null, 2), 'utf-8')
 
     try {
       // Run the shortcut with input file
@@ -431,8 +432,8 @@ export async function saveLocalNotificationConfig(
     const existingConfig = await loadLocalNotificationConfig()
     const newConfig = { ...existingConfig, ...config }
 
-    // Write config file
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(newConfig, null, 2), 'utf-8')
+    // Write config file with atomic write for safety
+    writeFileAtomic(CONFIG_FILE, JSON.stringify(newConfig, null, 2))
   }
   catch (error) {
     throw new Error(`Failed to save local notification config: ${error}`)

@@ -12,6 +12,7 @@
   "cometixLineNotInstalled": "CCometixLine 未安装",
   "cometixLineUpToDate": "CCometixLine 已是最新版本 (v{version})",
   "confirmUpdate": "将 {tool} 更新到最新版本？",
+  "installationBroken": "检测到安装损坏 (命令无法执行)，即将重新安装...",
   "currentVersion": "当前版本: v{version}",
   "errorCheckingUpdates": "检查更新时出错：",
   "failed": "失败",

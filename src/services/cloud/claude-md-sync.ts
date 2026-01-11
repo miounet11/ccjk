@@ -7,10 +7,11 @@
  * @module services/cloud/claude-md-sync
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
 import { join } from 'pathe'
+import { writeFileAtomic } from '../../utils/fs-operations'
 
 // ============================================================================
 // Constants
@@ -391,7 +392,7 @@ export class ClaudeMdSyncService {
 
       // Write to CLAUDE.md file
       const filePath = join(projectPath, 'CLAUDE.md')
-      writeFileSync(filePath, result.content, 'utf-8')
+      writeFileAtomic(filePath, result.content, 'utf-8')
 
       return {
         success: true,
@@ -416,6 +417,11 @@ export class ClaudeMdSyncService {
    *
    * @param filePath - Path to CLAUDE.md file
    * @param metadata - Configuration metadata
+   * @param metadata.name - Configuration name
+   * @param metadata.projectType - Project type identifier
+   * @param metadata.privacy - Privacy level for the upload
+   * @param metadata.description - Optional description
+   * @param metadata.tags - Optional tags for categorization
    * @returns Upload result
    */
   async uploadClaudeMd(
@@ -498,7 +504,7 @@ export class ClaudeMdSyncService {
 
       // Write to file
       const filePath = join(projectPath, 'CLAUDE.md')
-      writeFileSync(filePath, response.data.content, 'utf-8')
+      writeFileAtomic(filePath, response.data.content, 'utf-8')
 
       return {
         success: true,

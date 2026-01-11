@@ -9,6 +9,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   copyFile: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 
 // Mock dayjs for consistent timestamp

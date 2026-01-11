@@ -85,6 +85,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 
 vi.mock('../../../../src/utils/json-config', () => ({
@@ -293,8 +294,8 @@ describe('codex code tool utilities', () => {
       return path.startsWith('/project/templates/codex/zh-CN')
     })
     vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
-    const writeFileMock = vi.mocked(fsOps.writeFile)
-    writeFileMock.mockClear()
+    const writeFileAtomicMock = vi.mocked(fsOps.writeFileAtomic)
+    writeFileAtomicMock.mockClear()
 
     const jsonConfig = await import('../../../../src/utils/json-config')
     vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({})
@@ -302,8 +303,8 @@ describe('codex code tool utilities', () => {
     const codexModule = await import('../../../../src/utils/code-tools/codex')
     await codexModule.configureCodexApi()
 
-    expect(writeFileMock).toHaveBeenCalledTimes(1)
-    const configContent = writeFileMock.mock.calls[0][1] as string
+    expect(writeFileAtomicMock).toHaveBeenCalledTimes(1)
+    const configContent = writeFileAtomicMock.mock.calls[0][1] as string
     expect(configContent).toContain('# --- model provider added by CCJK ---')
     expect(configContent).toContain('model_provider = "packycode"')
     expect(configContent).toContain('[model_providers.packycode]')
@@ -342,9 +343,9 @@ describe('codex code tool utilities', () => {
     vi.mocked(jsonModule.readJsonConfig).mockReturnValue({ OPENAI_API_KEY: 'old', PACKYCODE_API_KEY: 'existing-key' })
 
     const codexModule = await import('../../../../src/utils/code-tools/codex')
-    const writeFileMock = vi.mocked(fsOps.writeFile)
+    const writeFileAtomicMock = vi.mocked(fsOps.writeFileAtomic)
     const copyDirMock = vi.mocked(fsOps.copyDir)
-    writeFileMock.mockClear()
+    writeFileAtomicMock.mockClear()
     copyDirMock.mockClear()
 
     // Mock promptBoolean (not used in official mode, but clear any previous mocks)
@@ -358,7 +359,7 @@ describe('codex code tool utilities', () => {
     // Note: Backup now uses complete backup (copyDir) instead of partial backup (copyFile)
     // This test validates the core functionality but backup verification is handled by dedicated backup tests
     expect(copyDirMock).toHaveBeenCalled() // Verify backup functionality is called
-    const configContent = writeFileMock.mock.calls[0][1] as string
+    const configContent = writeFileAtomicMock.mock.calls[0][1] as string
     // In official mode, model_provider should be commented but providers should be preserved
     expect(configContent).toContain('# model_provider = "packycode"')
     expect(configContent).toContain('[model_providers.packycode]')
@@ -389,9 +390,9 @@ describe('codex code tool utilities', () => {
     vi.mocked(fsOps.readFile).mockReturnValue(managedConfig)
 
     const codexModule = await import('../../../../src/utils/code-tools/codex-configure')
-    const writeFileMock = vi.mocked(fsOps.writeFile)
+    const writeFileAtomicMock = vi.mocked(fsOps.writeFileAtomic)
     const copyDirMock = vi.mocked(fsOps.copyDir)
-    writeFileMock.mockClear()
+    writeFileAtomicMock.mockClear()
     copyDirMock.mockClear()
 
     await codexModule.configureCodexMcp()
@@ -399,8 +400,8 @@ describe('codex code tool utilities', () => {
     // Note: Backup now uses complete backup (copyDir) instead of partial backup (copyFile)
     // This test validates the core functionality but backup verification is handled by dedicated backup tests
     expect(copyDirMock).toHaveBeenCalled() // Verify backup functionality is called
-    expect(writeFileMock).toHaveBeenCalledTimes(1)
-    const updated = writeFileMock.mock.calls[0][1] as string
+    expect(writeFileAtomicMock).toHaveBeenCalledTimes(1)
+    const updated = writeFileAtomicMock.mock.calls[0][1] as string
     expect(updated).toContain('[mcp_servers.context7]')
     expect(updated).toContain('command = "npx"')
 
@@ -452,7 +453,7 @@ describe('codex code tool utilities', () => {
         return path.startsWith('/project/templates/codex/zh-CN/system-prompt')
       })
       vi.mocked(fsOps.readFile).mockReturnValue('# Nekomata Engineer\n\nSystem prompt content...')
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const codexModule = await import('../../../../src/utils/code-tools/codex')
 
@@ -472,7 +473,7 @@ describe('codex code tool utilities', () => {
         return path.startsWith('/project/templates/codex/zh-CN/workflow')
       })
       vi.mocked(fsOps.readFile).mockReturnValue('# Workflow content')
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const codexModule = await import('../../../../src/utils/code-tools/codex')
 
@@ -887,8 +888,8 @@ describe('codex code tool utilities', () => {
 
     it('writeCodexConfig should write configuration to file', async () => {
       const fsOps = await import('../../../../src/utils/fs-operations')
-      const writeFileMock = vi.mocked(fsOps.writeFile)
-      writeFileMock.mockClear()
+      const writeFileAtomicMock = vi.mocked(fsOps.writeFileAtomic)
+      writeFileAtomicMock.mockClear()
 
       const codexModule = await import('../../../../src/utils/code-tools/codex')
       const mockData = {
@@ -902,8 +903,8 @@ describe('codex code tool utilities', () => {
 
       codexModule.writeCodexConfig(mockData)
 
-      expect(writeFileMock).toHaveBeenCalled()
-      const writtenContent = writeFileMock.mock.calls[0][1] as string
+      expect(writeFileAtomicMock).toHaveBeenCalled()
+      const writtenContent = writeFileAtomicMock.mock.calls[0][1] as string
       expect(writtenContent).toContain('model_provider = "test"')
     })
 
@@ -1041,7 +1042,7 @@ describe('codex code tool utilities', () => {
       vi.mocked(fsOps.exists).mockReturnValue(true)
       vi.mocked(fsOps.readFile).mockReturnValue('model_provider = "custom"')
       vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const jsonConfig = await import('../../../../src/utils/json-config')
       vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({ CUSTOM_API_KEY: 'test' })
@@ -1067,7 +1068,7 @@ describe('codex code tool utilities', () => {
         { pretty: true },
       )
       // Should comment out model_provider when switching to official mode
-      const writeCalls = vi.mocked(fsOps.writeFile).mock.calls
+      const writeCalls = vi.mocked(fsOps.writeFileAtomic).mock.calls
       const lastWriteCall = writeCalls[writeCalls.length - 1]
       expect(lastWriteCall?.[1]).toContain('# model_provider = "custom"')
     })
@@ -1406,7 +1407,7 @@ env = {}
         return path.startsWith('/project/templates/codex/zh-CN')
       })
       vi.mocked(fsOps.readFile).mockReturnValue('# Test system prompt content')
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
@@ -1442,7 +1443,7 @@ env = {}
         return path.startsWith('/project/templates/codex/zh-CN')
       })
       vi.mocked(fsOps.readFile).mockReturnValue('# Test system prompt content')
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
@@ -1472,7 +1473,7 @@ env = {}
         return path.startsWith('/project/templates/codex/zh-CN')
       })
       vi.mocked(fsOps.readFile).mockReturnValue('# Test system prompt content')
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const { x } = await import('tinyexec')
       vi.mocked(x).mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 })
@@ -1497,7 +1498,7 @@ env = {}
     it('should write responses wire_api and correct model for custom api_key', async () => {
       const fsOps = await import('../../../../src/utils/fs-operations')
       const jsonConfig = await import('../../../../src/utils/json-config')
-      vi.mocked(fsOps.writeFile).mockClear()
+      vi.mocked(fsOps.writeFileAtomic).mockClear()
       vi.mocked(fsOps.copyDir).mockClear()
       vi.mocked(jsonConfig.writeJsonConfig).mockClear()
       vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({})
@@ -1515,7 +1516,7 @@ env = {}
         },
       })
 
-      const writeCalls = vi.mocked(fsOps.writeFile).mock.calls
+      const writeCalls = vi.mocked(fsOps.writeFileAtomic).mock.calls
       const configWrite = writeCalls.find(call => call[0].includes('config.toml'))
       // Verify custom API configuration is written correctly
       expect(configWrite?.[1]).toContain('wire_api = "responses"')
@@ -1594,7 +1595,8 @@ base_url = "https://api.anthropic.com"
 `
       vi.mocked(fsOps.readFile).mockReturnValue(rawTomlContent)
       vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const jsonConfig = await import('../../../../src/utils/json-config')
       vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({ CUSTOM_API_KEY: 'test' })
@@ -1622,7 +1624,7 @@ base_url = "https://api.anthropic.com"
 
       expect(result).toBe(true)
       // Should comment out the model_provider that was found in raw TOML
-      const writeCalls = vi.mocked(fsOps.writeFile).mock.calls
+      const writeCalls = vi.mocked(fsOps.writeFileAtomic).mock.calls
       const configWriteCall = writeCalls.find(call => call[0].includes('config.toml'))
       expect(configWriteCall?.[1]).toContain('# model_provider = "claude-api"')
     })
@@ -1639,7 +1641,8 @@ base_url = "https://api.anthropic.com"
         return ''
       })
       vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const jsonConfig = await import('../../../../src/utils/json-config')
       vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({})
@@ -1659,7 +1662,7 @@ base_url = "https://api.anthropic.com"
 
       expect(result).toBe(true)
       // Should fall back to using existing config when raw TOML parsing fails
-      const writeCalls = vi.mocked(fsOps.writeFile).mock.calls
+      const writeCalls = vi.mocked(fsOps.writeFileAtomic).mock.calls
       const configWriteCall = writeCalls.find(call => call[0].includes('config.toml'))
       // The config should contain either the original invalid content or the managed config
       expect(configWriteCall?.[1]).toBeDefined()
@@ -1676,7 +1679,8 @@ model_provider = ""
 `
       vi.mocked(fsOps.readFile).mockReturnValue(rawTomlContent)
       vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const jsonConfig = await import('../../../../src/utils/json-config')
       vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({})
@@ -1696,7 +1700,7 @@ model_provider = ""
 
       expect(result).toBe(true)
       // Should not comment model_provider when it's empty
-      const writeCalls = vi.mocked(fsOps.writeFile).mock.calls
+      const writeCalls = vi.mocked(fsOps.writeFileAtomic).mock.calls
       const configWriteCall = writeCalls.find(call => call[0].includes('config.toml'))
       expect(configWriteCall?.[1]).not.toContain('# model_provider = ""')
     })
@@ -1719,7 +1723,7 @@ model_provider = ""
           requires_openai_auth = true
         `)
         vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-        vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+        vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
         const jsonConfig = await import('../../../../src/utils/json-config')
         vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({ TEST_KEY: 'test' })
@@ -1758,7 +1762,7 @@ model_provider = ""
           requires_openai_auth = true
         `)
         vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-        vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+        vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
         const jsonConfig = await import('../../../../src/utils/json-config')
         vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({ TEST_KEY: 'test' })
@@ -1805,7 +1809,7 @@ model_provider = ""
           Some content here
         `)
         vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-        vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+        vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
         const ccjkConfig = await import('../../../../src/utils/ccjk-config')
         vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({
@@ -1828,7 +1832,7 @@ model_provider = ""
         vi.mocked(fsOps.exists).mockReturnValue(true)
         vi.mocked(fsOps.readFile).mockReturnValue('Some content')
         vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-        vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+        vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
         const ccjkConfig = await import('../../../../src/utils/ccjk-config')
         vi.mocked(ccjkConfig.readZcfConfig).mockReturnValue({} as any)
@@ -1857,7 +1861,7 @@ model_provider = ""
           requires_openai_auth = true
         `)
         vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-        vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+        vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
         const jsonConfig = await import('../../../../src/utils/json-config')
         vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({
@@ -1949,7 +1953,8 @@ model_provider = ""
           requires_openai_auth = true
         `)
         vi.mocked(fsOps.copyDir).mockImplementation(() => {})
-        vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+        vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
+        vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
         const jsonConfig = await import('../../../../src/utils/json-config')
         vi.mocked(jsonConfig.readJsonConfig).mockReturnValue({
@@ -1979,7 +1984,7 @@ model_provider = ""
         // Should create backup
         expect(fsOps.copyDir).toHaveBeenCalled()
         // Should write updated config
-        expect(fsOps.writeFile).toHaveBeenCalled()
+        expect(fsOps.writeFileAtomic).toHaveBeenCalled()
         // Should update auth file with OPENAI_API_KEY set to TEST_KEY value
         expect(jsonConfig.writeJsonConfig).toHaveBeenCalledWith(
           expect.stringContaining('auth.json'),
@@ -2035,7 +2040,7 @@ model_provider = ""
       })
 
       vi.mocked(fsOps.readFile).mockReturnValue('# Mock workflow content')
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
     })
 

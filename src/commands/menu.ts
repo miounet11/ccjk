@@ -1,5 +1,6 @@
 import type { CodeToolType, SupportedLang } from '../constants'
 import { existsSync } from 'node:fs'
+import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
@@ -48,6 +49,7 @@ import { promptBoolean } from '../utils/toggle-prompt'
 import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../utils/tools'
 import { checkUpdates } from './check-updates'
 import { configSwitchCommand } from './config-switch'
+import { showContextMenu } from './context-menu'
 import { doctor } from './doctor'
 import { hooksSync } from './hooks-sync'
 import { init } from './init'
@@ -827,6 +829,291 @@ function printZcfSection(options: {
   console.log('')
 }
 
+/**
+ * Show the Config Center submenu
+ */
+async function showConfigCenterMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:configCenter.title')))
+  console.log('')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:configCenter.api')} ${ansis.gray(`- ${i18n.t('menu:configCenter.apiDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:configCenter.mcp')} ${ansis.gray(`- ${i18n.t('menu:configCenter.mcpDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:configCenter.model')} ${ansis.gray(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:configCenter.memory')} ${ansis.gray(`- ${i18n.t('menu:configCenter.memoryDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:configCenter.permission')} ${ansis.gray(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('6.')} ${i18n.t('menu:configCenter.configSwitch')} ${ansis.gray(`- ${i18n.t('menu:configCenter.configSwitchDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('7.')} ${i18n.t('menu:configCenter.context')} ${ansis.gray(`- ${i18n.t('menu:configCenter.contextDesc')}`)}`,
+  )
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '5', '6', '7', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  switch (choice) {
+    case '1':
+      await configureApiFeature()
+      break
+    case '2':
+      await configureMcpFeature()
+      break
+    case '3':
+      await configureDefaultModelFeature()
+      break
+    case '4':
+      await configureAiMemoryFeature()
+      break
+    case '5':
+      await configureEnvPermissionFeature()
+      break
+    case '6':
+      await showConfigSwitchMenu()
+      break
+    case '7':
+      await showContextMenu()
+      break
+  }
+
+  printSeparator()
+}
+
+/**
+ * Show the Recommended Plugins submenu
+ */
+async function showRecommendedPluginsMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:pluginsMenu.title')))
+  console.log('')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:pluginsMenu.ccr')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.ccrDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:pluginsMenu.ccusage')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.ccusageDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:pluginsMenu.cometix')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.cometixDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:pluginsMenu.superpowers')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.superpowersDesc')}`)}`,
+  )
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  switch (choice) {
+    case '1':
+      await runCcrMenuFeature()
+      break
+    case '2':
+      await runCcusageFeature()
+      break
+    case '3':
+      await runCometixMenuFeature()
+      break
+    case '4':
+      await showSuperpowersMenu()
+      break
+  }
+
+  printSeparator()
+}
+
+/**
+ * Show the new categorized main menu (simplified 8-10 items)
+ */
+async function showCategorizedMenu(): Promise<MenuResult> {
+  console.log(ansis.cyan(i18n.t('menu:selectFunction')))
+  console.log('')
+
+  // Quick Start section
+  console.log(`  ${i18n.t('menu:menuSections.quickStart')}`)
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:categorizedMenu.fullInit')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.fullInitDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:categorizedMenu.importWorkflow')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.importWorkflowDesc')}`)}`,
+  )
+  console.log('')
+
+  // Configuration section
+  console.log(`  ${i18n.t('menu:menuSections.configCenter')}`)
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:categorizedMenu.configCenter')} → ${ansis.gray(i18n.t('menu:categorizedMenu.configCenterDesc'))}`,
+  )
+  console.log('')
+
+  // Extensions section
+  console.log(`  ${i18n.t('menu:menuSections.extensions')}`)
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:categorizedMenu.recommendedPlugins')} → ${ansis.gray(i18n.t('menu:categorizedMenu.recommendedPluginsDesc'))}`,
+  )
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:categorizedMenu.mcpMarket')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.mcpMarketDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('6.')} ${i18n.t('menu:categorizedMenu.marketplace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.marketplaceDesc')}`)}`,
+  )
+  console.log('')
+
+  // Smart Tools section
+  console.log(`  ${i18n.t('menu:menuSections.smartTools')}`)
+  console.log(
+    `  ${ansis.cyan('7.')} ${i18n.t('menu:categorizedMenu.quickActions')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.quickActionsDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('8.')} ${i18n.t('menu:categorizedMenu.diagnostics')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
+  )
+  console.log('')
+
+  // System settings (compact row)
+  console.log(`  ${ansis.dim('─'.repeat(50))}`)
+  console.log(
+    `  ${ansis.cyan('0.')} ${i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0]}  `
+    + `${ansis.cyan('S.')} ${i18n.t('menu:menuOptions.switchCodeTool')}  `
+    + `${ansis.cyan('N.')} ${i18n.t('menu:menuOptions.cloudNotification').replace('📱 ', '')}  `
+    + `${ansis.cyan('+.')} ${i18n.t('menu:menuOptions.checkUpdates')}  `
+    + `${ansis.red('Q.')} ${i18n.t('menu:menuOptions.exit')}`,
+  )
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '0', 's', 'S', 'n', 'N', '+', '-', 'q', 'Q', 'h', 'H']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return 'exit'
+  }
+
+  const normalized = choice.toLowerCase()
+
+  switch (normalized) {
+    // Quick Start
+    case '1':
+      await init({ skipBanner: true })
+      break
+    case '2':
+      await update({ skipBanner: true })
+      break
+    // Configuration
+    case '3':
+      printSeparator()
+      await showConfigCenterMenu()
+      return undefined
+    // Extensions
+    case '4':
+      printSeparator()
+      await showRecommendedPluginsMenu()
+      return undefined
+    case '5':
+      printSeparator()
+      await showMcpMarketMenu()
+      return undefined
+    case '6':
+      printSeparator()
+      await showMarketplaceMenu()
+      return undefined
+    // Smart Tools
+    case '7':
+      printSeparator()
+      await showQuickActionsMenu()
+      return undefined
+    case '8':
+      await doctor()
+      break
+    // System settings
+    case '0': {
+      const currentLang = i18n.language as SupportedLang
+      await changeScriptLanguageFeature(currentLang)
+      break
+    }
+    case 's': {
+      const switched = await handleCodeToolSwitch('claude-code')
+      if (switched) {
+        return 'switch'
+      }
+      break
+    }
+    case 'n':
+      await notificationCommand()
+      break
+    case '+':
+      await checkUpdates()
+      break
+    case '-':
+      await uninstall()
+      break
+    case 'h':
+      printSeparator()
+      await showHooksSyncMenu()
+      return undefined
+    case 'q':
+      console.log(ansis.cyan(i18n.t('common:goodbye')))
+      return 'exit'
+    default:
+      return undefined
+  }
+
+  printSeparator()
+
+  const shouldContinue = await promptBoolean({
+    message: i18n.t('common:returnToMenu'),
+    defaultValue: true,
+  })
+
+  if (!shouldContinue) {
+    console.log(ansis.cyan(i18n.t('common:goodbye')))
+    return 'exit'
+  }
+
+  return undefined
+}
+
+/**
+ * Show the legacy full Claude Code menu (all options in one page)
+ * @deprecated Use showCategorizedMenu instead for better UX
+ */
 async function showClaudeCodeMenu(): Promise<MenuResult> {
   console.log(ansis.cyan(i18n.t('menu:selectFunction')))
   console.log('  -------- Claude Code --------')
@@ -867,7 +1154,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', 'a', 'A', 'g', 'G', 'd', 'D', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', 'n', 'N', 'k', 'K', '0', '-', '+', 's', 'S', 'q', 'Q']
+      const valid = ['1', '2', '3', '4', '5', '6', '7', 'a', 'A', 'g', 'G', 'd', 'D', 'w', 'W', 'o', 'O', 'c', 'C', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'm', 'M', 'n', 'N', 'k', 'K', '0', '-', '+', 's', 'S', 'q', 'Q', 'h', 'H']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -1172,7 +1459,7 @@ async function showFeaturesOverview(): Promise<void> {
   await inquirer.prompt([{ type: 'input', name: 'continue', message: '' }])
 }
 
-export async function showMainMenu(options: { codeType?: string } = {}): Promise<void> {
+export async function showMainMenu(options: { codeType?: string, legacyMenu?: boolean } = {}): Promise<void> {
   try {
     // New user detection
     if (await isFirstTimeUser()) {
@@ -1209,15 +1496,27 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       }
     }
 
+    // Check if legacy menu is requested via option or env var
+    const useLegacyMenu = options.legacyMenu || process.env.CCJK_LEGACY_MENU === '1'
+
     // Menu loop
     let exitMenu = false
     while (!exitMenu) {
       const codeTool = getCurrentCodeTool()
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
-      const result = codeTool === 'codex'
-        ? await showCodexMenu()
-        : await showClaudeCodeMenu()
+      let result: MenuResult
+      if (codeTool === 'codex') {
+        result = await showCodexMenu()
+      }
+      else if (useLegacyMenu) {
+        // Use legacy full menu (all options in one page)
+        result = await showClaudeCodeMenu()
+      }
+      else {
+        // Use new categorized menu (default)
+        result = await showCategorizedMenu()
+      }
 
       if (result === 'exit') {
         exitMenu = true

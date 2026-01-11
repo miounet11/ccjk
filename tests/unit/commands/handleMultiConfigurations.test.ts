@@ -56,6 +56,7 @@ vi.mock('../../../src/utils/claude-code-config-manager', () => ({
 
 vi.mock('../../../src/utils/fs-operations', () => ({
   readFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 
 describe('handleMultiConfigurations', () => {

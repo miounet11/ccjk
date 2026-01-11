@@ -6,6 +6,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   copyDir: vi.fn(),
   ensureDir: vi.fn(),
   exists: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 
 vi.mock('dayjs', () => ({

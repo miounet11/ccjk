@@ -1,5 +1,6 @@
 import { exec } from 'node:child_process'
 import * as nodeFs from 'node:fs'
+import * as nodePath from 'node:path'
 import process from 'node:process'
 import { promisify } from 'node:util'
 import semver from 'semver'
@@ -271,12 +272,31 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
   const npmGlobalPaths = [
     '/usr/local/bin/claude',
     '/usr/bin/claude',
+    '/opt/homebrew/bin/claude',
     `${process.env.HOME}/.npm-global/bin/claude`,
     `${process.env.HOME}/.local/bin/claude`,
   ]
 
   for (const path of npmGlobalPaths) {
-    if (nodeFs.existsSync(path)) {
+    // Check if path exists or is a broken symlink
+    let exists = false
+    let isBrokenSymlink = false
+    try {
+      if (nodeFs.existsSync(path)) {
+        exists = true
+      }
+      else {
+        const stats = nodeFs.lstatSync(path)
+        if (stats.isSymbolicLink()) {
+          isBrokenSymlink = true
+        }
+      }
+    }
+    catch {
+      // Ignore errors
+    }
+
+    if (exists || isBrokenSymlink) {
       // Determine if it's npm or curl based on resolved path
       let resolvedPath = path
       try {
@@ -293,10 +313,68 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
       else if (resolvedPath.includes('/Caskroom/')) {
         // Skip, already handled above
       }
+      else if (isBrokenSymlink) {
+        // If it's a broken symlink in a bin dir, and points to Cellar/node, it was likely an npm install
+        // We can check if the global node_modules exists
+        const potentialLibPath = path.replace('/bin/claude', '/lib/node_modules/@anthropic-ai/claude-code')
+        if (nodeFs.existsSync(potentialLibPath)) {
+          // Found the library, so we treat it as an npm install
+          // We'll read the version from package.json since we can't run the binary
+          try {
+            const pkgJsonPath = nodePath.join(potentialLibPath, 'package.json')
+            if (nodeFs.existsSync(pkgJsonPath)) {
+              const pkg = JSON.parse(nodeFs.readFileSync(pkgJsonPath, 'utf8'))
+              installations.push({
+                source: 'npm',
+                path,
+                version: pkg.version,
+                isActive: isActivePath(path),
+              })
+              checkedPaths.add(path) // Prevent re-adding
+            }
+          }
+          catch {}
+        }
+        else {
+          await addInstallation(path, 'other')
+        }
+      }
       else {
         // Could be curl or other installation
         await addInstallation(path, 'other')
       }
+    }
+  }
+
+  // 2.5 Check direct global node_modules locations (fallback for broken symlinks/missing bin)
+  const globalModulesPaths = [
+    '/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code',
+    '/usr/local/lib/node_modules/@anthropic-ai/claude-code',
+    `${process.env.HOME}/.npm-global/lib/node_modules/@anthropic-ai/claude-code`,
+  ]
+
+  for (const libPath of globalModulesPaths) {
+    if (nodeFs.existsSync(libPath) && !checkedPaths.has(libPath)) {
+      try {
+        const pkgJsonPath = nodePath.join(libPath, 'package.json')
+        if (nodeFs.existsSync(pkgJsonPath)) {
+          const pkg = JSON.parse(nodeFs.readFileSync(pkgJsonPath, 'utf8'))
+          // Infer binary path
+          const binPath = libPath.replace('/lib/node_modules/@anthropic-ai/claude-code', '/bin/claude')
+
+          // If we haven't already added this binary path
+          if (!checkedPaths.has(binPath)) {
+            installations.push({
+              source: 'npm',
+              path: nodeFs.existsSync(binPath) ? binPath : libPath, // Use bin path if exists, else lib path
+              version: pkg.version,
+              isActive: false,
+            })
+            checkedPaths.add(libPath)
+          }
+        }
+      }
+      catch {}
     }
   }
 
@@ -677,12 +755,36 @@ export async function checkClaudeCodeVersion(): Promise<{
   isHomebrew: boolean
   commandPath: string | null
   installationSource: 'homebrew-cask' | 'npm' | 'other' | 'not-found'
+  isBroken?: boolean
 }> {
-  const currentVersion = await getInstalledVersion('claude')
+  let currentVersion = await getInstalledVersion('claude')
+  const initialGetVersionSuccess = currentVersion !== null
 
   // Determine installation source by checking actual command path
   // This correctly handles the case where both npm and Homebrew installations exist
-  const installationInfo = await getClaudeCodeInstallationSource()
+  let installationInfo = await getClaudeCodeInstallationSource()
+
+  // Fallback: if getInstalledVersion failed (command not found or broken),
+  // try to detect via detectAllClaudeCodeInstallations to find broken/hidden installs
+  if (!currentVersion) {
+    const installations = await detectAllClaudeCodeInstallations()
+    // Prefer npm/homebrew installs
+    const bestInstall = installations.find(i => i.source === 'homebrew-cask')
+      || installations.find(i => i.source === 'npm')
+      || installations[0]
+
+    if (bestInstall && bestInstall.version) {
+      currentVersion = bestInstall.version
+      installationInfo = {
+        isHomebrew: bestInstall.source === 'homebrew-cask',
+        commandPath: bestInstall.path,
+        source: bestInstall.source === 'npm'
+          ? 'npm'
+          : bestInstall.source === 'homebrew-cask' ? 'homebrew-cask' : 'other',
+      } as any
+    }
+  }
+
   const { isHomebrew, commandPath, source: installationSource } = installationInfo
 
   // Use appropriate version source based on actual installation method
@@ -694,14 +796,17 @@ export async function checkClaudeCodeVersion(): Promise<{
     latestVersion = await getLatestVersion('@anthropic-ai/claude-code')
   }
 
+  const needsUpdate = (currentVersion && latestVersion ? shouldUpdate(currentVersion, latestVersion) : false) || (!initialGetVersionSuccess && currentVersion !== null)
+
   return {
     installed: currentVersion !== null,
     currentVersion,
     latestVersion,
-    needsUpdate: currentVersion && latestVersion ? shouldUpdate(currentVersion, latestVersion) : false,
+    needsUpdate,
     isHomebrew,
     commandPath,
     installationSource,
+    isBroken: !initialGetVersionSuccess && currentVersion !== null,
   }
 }
 

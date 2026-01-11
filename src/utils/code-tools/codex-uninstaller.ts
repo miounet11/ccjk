@@ -3,6 +3,7 @@ import { pathExists } from 'fs-extra'
 import { join } from 'pathe'
 import { CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_FILE, CODEX_DIR, CODEX_PROMPTS_DIR } from '../../constants'
 import { i18n } from '../../i18n'
+import { writeFileAtomic } from '../fs-operations'
 import { moveToTrash } from '../trash'
 
 export type CodexUninstallItem
@@ -224,7 +225,7 @@ export class CodexUninstaller {
     try {
       if (await pathExists(CODEX_CONFIG_FILE)) {
         // Read current config content
-        const { readFileSync, writeFileSync } = await import('node:fs')
+        const { readFileSync } = await import('node:fs')
         const content = readFileSync(CODEX_CONFIG_FILE, 'utf-8')
 
         // Remove model_provider setting and all [model_providers.xxx] sections
@@ -261,7 +262,7 @@ export class CodexUninstaller {
         }
 
         if (configModified) {
-          writeFileSync(CODEX_CONFIG_FILE, newLines.join('\n'))
+          writeFileAtomic(CODEX_CONFIG_FILE, newLines.join('\n'))
           result.removedConfigs.push(i18n.t('codex:apiConfigRemoved'))
         }
         result.success = true
@@ -326,7 +327,7 @@ export class CodexUninstaller {
     try {
       if (await pathExists(CODEX_CONFIG_FILE)) {
         // Read current config content
-        const { readFileSync, writeFileSync } = await import('node:fs')
+        const { readFileSync } = await import('node:fs')
         const content = readFileSync(CODEX_CONFIG_FILE, 'utf-8')
 
         // Remove MCP service sections: [mcp_servers.xxx] (env is inline now)
@@ -357,7 +358,7 @@ export class CodexUninstaller {
         }
 
         if (configModified) {
-          writeFileSync(CODEX_CONFIG_FILE, newLines.join('\n'))
+          writeFileAtomic(CODEX_CONFIG_FILE, newLines.join('\n'))
           result.removedConfigs.push(i18n.t('codex:mcpConfigRemoved'))
         }
         result.success = true

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ensureDir, exists, readFile, writeFile } from '../../../../src/utils/fs-operations'
+import { ensureDir, exists, readFile, writeFileAtomic } from '../../../../src/utils/fs-operations'
 
 vi.mock('../../../../src/i18n', () => ({
   i18n: { t: vi.fn((key: string) => key), isInitialized: true, language: 'en' },
@@ -100,6 +100,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
   copyDir: vi.fn(),
   copyFile: vi.fn(),
 }))
@@ -168,7 +169,7 @@ describe('codex MCP Deduplication Logic', () => {
     vi.clearAllMocks()
     vi.mocked(exists).mockReturnValue(true)
     vi.mocked(ensureDir).mockImplementation(() => {})
-    vi.mocked(writeFile).mockImplementation(() => {})
+    vi.mocked(writeFileAtomic).mockImplementation(() => {})
   })
 
   describe('mCP Service Smart Merge Logic', () => {
@@ -219,29 +220,29 @@ args = ["--config", "/path/to/config"]
       await configureCodexMcp()
 
       // Verify all services are preserved: existing, new selection, and custom
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.context7]'),
       )
 
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.exa]'),
       )
 
       // Verify user custom services are preserved
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.my-custom-tool]'),
       )
 
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.another-custom]'),
       )
 
       // Verify no duplicate services
-      const content = vi.mocked(writeFile).mock.calls[0][1] as string
+      const content = vi.mocked(writeFileAtomic).mock.calls[0][1] as string
       const context7Matches = content.match(/\[mcp_servers\.context7\]/g)
       const exaMatches = content.match(/\[mcp_servers\.exa\]/g)
       expect(context7Matches).toHaveLength(1)
@@ -293,23 +294,23 @@ args = ["--config", "/path/to/config"]
       await configureCodexMcp()
 
       // Union-style merge: predefined services are preserved even when none selected
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.context7]'),
       )
 
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.exa]'),
       )
 
       // Verify user custom services are preserved
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.my-custom-tool]'),
       )
 
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.another-custom]'),
       )
@@ -352,18 +353,18 @@ env = {CUSTOM_VAR = "value"}
       await configureCodexMcp()
 
       // Verify both predefined and custom services have SYSTEMROOT on Windows
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.context7]'),
       )
 
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.my-custom-tool]'),
       )
 
       // Check that SYSTEMROOT is added to both services
-      const content = vi.mocked(writeFile).mock.calls[0][1] as string
+      const content = vi.mocked(writeFileAtomic).mock.calls[0][1] as string
       expect(content).toContain('SYSTEMROOT = \'C:/Windows\'')
 
       // Verify custom service preserves its original env vars and adds SYSTEMROOT
@@ -420,41 +421,41 @@ args = ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
       await configureCodexMcp()
 
       // Verify provider configuration is preserved
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[model_providers.openai]'),
       )
 
       // Verify selected predefined services are present (exa with updated key, filesystem new)
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.exa]'),
       )
 
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.filesystem]'),
       )
 
       // Union-style merge: unselected predefined service is preserved (context7)
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.context7]'),
       )
 
       // Verify all custom services are preserved
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.custom-tool-1]'),
       )
 
-      expect(writeFile).toHaveBeenCalledWith(
+      expect(writeFileAtomic).toHaveBeenCalledWith(
         mockConfigPath,
         expect.stringContaining('[mcp_servers.custom-tool-2]'),
       )
 
       // Verify exa service was updated with new API key
-      const content = vi.mocked(writeFile).mock.calls[0][1] as string
+      const content = vi.mocked(writeFileAtomic).mock.calls[0][1] as string
       expect(content).toContain('EXA_API_KEY = \'updated-exa-key\'')
       expect(content).not.toContain('EXA_API_KEY = \'old-key\'')
     })

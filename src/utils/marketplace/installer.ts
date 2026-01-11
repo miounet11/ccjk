@@ -17,10 +17,11 @@ import type {
   PackageUpdateInfo,
 } from '../../types/marketplace.js'
 import { existsSync } from 'node:fs'
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rm } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { i18n } from '../../i18n/index.js'
+import { writeFileAtomicAsync } from '../fs-operations.js'
 import { getPackage } from './registry.js'
 
 /**
@@ -64,7 +65,7 @@ export async function getInstalledPackages(): Promise<InstalledPackage[]> {
 async function saveInstalledPackages(packages: InstalledPackage[]): Promise<void> {
   const dir = join(homedir(), '.ccjk')
   await mkdir(dir, { recursive: true })
-  await writeFile(INSTALLED_MANIFEST, JSON.stringify(packages, null, 2))
+  await writeFileAtomicAsync(INSTALLED_MANIFEST, JSON.stringify(packages, null, 2))
 }
 
 /**

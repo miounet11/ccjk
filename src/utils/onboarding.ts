@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import process from 'node:process'
 import ansis from 'ansis'
 import dayjs from 'dayjs'
@@ -8,6 +8,7 @@ import { basename, join } from 'pathe'
 import { CCJK_CONFIG_DIR } from '../constants'
 import { detectProject, generateSuggestions, getProjectSummary } from './auto-config/detector'
 import { boxify, COLORS, STATUS } from './banner'
+import { writeFileAtomic } from './fs-operations'
 
 /**
  * Knowledge base entry
@@ -107,7 +108,7 @@ export function saveKnowledgeBase(kb: KnowledgeBase): void {
     mkdirSync(CCJK_CONFIG_DIR, { recursive: true })
   }
   kb.lastSync = new Date().toISOString()
-  writeFileSync(KNOWLEDGE_BASE_FILE, JSON.stringify(kb, null, 2))
+  writeFileAtomic(KNOWLEDGE_BASE_FILE, JSON.stringify(kb, null, 2))
 }
 
 /**
@@ -370,8 +371,8 @@ export async function runOnboarding(projectDir: string = process.cwd()): Promise
       if (updateClaudeMd) {
         const newContent = generateDefaultClaudeMd(project)
         const backupPath = `${claudeMd.path}.backup-${dayjs().format('YYYYMMDD')}`
-        writeFileSync(backupPath, claudeMd.content)
-        writeFileSync(claudeMd.path, newContent)
+        writeFileAtomic(backupPath, claudeMd.content)
+        writeFileAtomic(claudeMd.path, newContent)
         console.log(STATUS.success(`Updated! Backup saved to ${backupPath}`))
         result.claudeMdUpdated = true
         addToKnowledgeBase(kb, 'claude-md', 'CLAUDE.md', claudeMd.path, newContent, projectDir)
@@ -400,7 +401,7 @@ export async function runOnboarding(projectDir: string = process.cwd()): Promise
     if (createClaudeMd) {
       const newContent = generateDefaultClaudeMd(project)
       const newPath = join(projectDir, 'CLAUDE.md')
-      writeFileSync(newPath, newContent)
+      writeFileAtomic(newPath, newContent)
       console.log(STATUS.success(`Created ${newPath}`))
       result.claudeMdFound = true
       result.claudeMdUpdated = true

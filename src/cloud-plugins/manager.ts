@@ -15,7 +15,7 @@ import type {
   RecommendationResult,
 } from './types'
 import { Buffer } from 'node:buffer'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'pathe'
 import {
   CCJK_CLOUD_PLUGINS_CACHE_DIR,
@@ -23,6 +23,7 @@ import {
   CCJK_CLOUD_PLUGINS_INSTALLED_DIR,
 } from '../constants'
 import { i18n } from '../i18n'
+import { writeFileAtomic } from '../utils/fs-operations'
 import { LocalPluginCache } from './cache'
 import { CloudRecommendationClient } from './cloud-client'
 import { RecommendationEngine } from './recommendation-engine'
@@ -249,14 +250,14 @@ export class CloudPluginManager {
       mkdirSync(installDir, { recursive: true })
 
       // Save plugin metadata
-      writeFileSync(
+      writeFileAtomic(
         join(installDir, 'plugin.json'),
         JSON.stringify(plugin, null, 2),
       )
 
       // Save plugin content
       const content = Buffer.from(downloadResult.data.content, 'base64').toString('utf-8')
-      writeFileSync(join(installDir, 'content.json'), content)
+      writeFileAtomic(join(installDir, 'content.json'), content)
 
       // Install dependencies if needed
       const installedDeps: string[] = []

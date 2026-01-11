@@ -8,9 +8,10 @@ import type {
   SkillRegistry,
   SkillSearchOptions,
 } from './types'
-import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { join } from 'pathe'
 import { CCJK_SKILLS_DIR } from '../constants'
+import { writeFileAtomic } from '../utils/fs-operations'
 
 // In-memory registry
 let registry: SkillRegistry | null = null
@@ -135,7 +136,7 @@ export function addSkill(skill: CcjkSkill): SkillInstallResult {
 
   try {
     const filePath = join(CCJK_SKILLS_DIR, `${skill.id}.json`)
-    writeFileSync(filePath, JSON.stringify(skill, null, 2))
+    writeFileAtomic(filePath, JSON.stringify(skill, null, 2))
     refreshRegistry()
 
     return {

@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { exec } from 'tinyexec'
 import { AIDER_CONFIG_FILE, AIDER_DIR, AIDER_ENV_FILE } from '../../constants'
+import { writeFileAtomic } from '../fs-operations'
 
 /**
  * Aider configuration
@@ -132,7 +133,7 @@ export function writeAiderConfig(config: AiderConfig): void {
   ensureAiderDir()
 
   const yamlContent = generateYamlConfig(config)
-  writeFileSync(AIDER_CONFIG_FILE, yamlContent)
+  writeFileAtomic(AIDER_CONFIG_FILE, yamlContent)
 }
 
 /**
@@ -224,7 +225,7 @@ export function configureAiderApi(apiKey: string, apiBase?: string): void {
     envLines.push(`OPENAI_API_BASE=${apiBase}`)
   }
 
-  writeFileSync(AIDER_ENV_FILE, envLines.join('\n'))
+  writeFileAtomic(AIDER_ENV_FILE, envLines.join('\n'))
 }
 
 /**

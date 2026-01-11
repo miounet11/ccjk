@@ -23,6 +23,7 @@ vi.mock('../../../src/utils/ccjk-config', () => ({
 
 vi.mock('../../../src/utils/fs-operations', () => ({
   readFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 
 vi.mock('../../../src/utils/claude-code-config-manager', () => ({

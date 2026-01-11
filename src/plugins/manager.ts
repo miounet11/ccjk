@@ -8,12 +8,13 @@ import type {
   PluginLogger,
   PluginStorage,
 } from './types'
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs'
 import { env } from 'node:process'
 import { join } from 'pathe'
 import { version } from '../../package.json'
 import { CCJK_PLUGINS_DIR } from '../constants'
 import { i18n } from '../i18n'
+import { writeFileAtomic } from '../utils/fs-operations'
 
 // In-memory plugin registry
 const loadedPlugins = new Map<string, LoadedPlugin>()
@@ -68,7 +69,7 @@ function createStorage(pluginName: string): PluginStorage {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true })
     }
-    writeFileSync(storageFile, JSON.stringify(data, null, 2))
+    writeFileAtomic(storageFile, JSON.stringify(data, null, 2))
   }
 
   return {
@@ -128,7 +129,7 @@ export function readPluginConfig(): PluginConfig {
  */
 export function writePluginConfig(config: PluginConfig): void {
   ensurePluginsDir()
-  writeFileSync(PLUGIN_CONFIG_FILE, JSON.stringify(config, null, 2))
+  writeFileAtomic(PLUGIN_CONFIG_FILE, JSON.stringify(config, null, 2))
 }
 
 /**

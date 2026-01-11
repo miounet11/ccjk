@@ -40,7 +40,6 @@ import {
 } from '../utils/config'
 import { configureApiCompletely, modifyApiConfigPartially } from '../utils/config-operations'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
-import { handleMultipleInstallations } from '../utils/installation-manager'
 import { getInstallationStatus, installClaudeCode } from '../utils/installer'
 import { selectMcpServices } from '../utils/mcp-selector'
 import { configureOutputStyle } from '../utils/output-style'
@@ -569,36 +568,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
     // Step 4: Check and handle Claude Code installation
     const installationStatus = await getInstallationStatus()
 
-    // Handle installations (including none, single, or multiple)
-    if (installationStatus.hasGlobal || installationStatus.hasLocal) {
-      // Handle existing installations - always use the installation manager in interactive mode
-      if (!options.skipPrompt) {
-        await handleMultipleInstallations(installationStatus)
-      }
-      else {
-        // Skip-prompt mode: prefer global, auto-handle conflicts
-        if (installationStatus.hasLocal) {
-          // If local installation exists, we prefer global - install global if needed, then remove local
-          if (!installationStatus.hasGlobal) {
-            console.log(ansis.blue(`${i18n.t('installation:installingGlobalClaudeCode')}...`))
-            await installClaudeCode(true) // Skip method selection in non-interactive mode
-            console.log(ansis.green(`✔ ${i18n.t('installation:globalInstallationCompleted')}`))
-          }
-
-          // Always remove local installation in skip-prompt mode
-          if (installationStatus.hasGlobal && installationStatus.hasLocal) {
-            console.log(ansis.yellow(`⚠️  ${i18n.t('installation:multipleInstallationsDetected')}`))
-          }
-          console.log(ansis.blue(`${i18n.t('installation:removingLocalInstallation')}...`))
-          const { removeLocalClaudeCode } = await import('../utils/installer')
-          await removeLocalClaudeCode()
-          console.log(ansis.green(`✔ ${i18n.t('installation:localInstallationRemoved')}`))
-        }
-        // If only global exists, no action needed
-      }
-
-      // Verify installation and ensure symlink exists (handles cask installations without symlink)
-      // This runs regardless of skipPrompt mode to fix broken/missing symlinks
+    // Handle installations (including none or existing)
+    if (installationStatus.hasGlobal) {
+      // Global installation exists - verify and ensure symlink
       const { verifyInstallation, displayVerificationResult } = await import('../utils/installer')
       const verification = await verifyInstallation('claude-code')
       if (verification.symlinkCreated) {
@@ -636,7 +608,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 4.5: Check for Claude Code updates (if any installation exists)
-    if (installationStatus.hasGlobal || installationStatus.hasLocal) {
+    if (installationStatus.hasGlobal) {
       // Skip version check if Claude Code was just installed (it's already latest)
       await checkClaudeCodeVersionAndPrompt(options.skipPrompt)
     }

@@ -22,6 +22,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 
 vi.mock('../../../../src/utils/json-config', () => ({
@@ -167,8 +168,8 @@ requires_openai_auth = true
       vi.mocked(fsOps.copyFile).mockImplementation(() => {})
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
 
-      const writeFileMock = vi.mocked(fsOps.writeFile)
-      writeFileMock.mockImplementation(() => {})
+      const writeFileAtomicMock = vi.mocked(fsOps.writeFileAtomic)
+      writeFileAtomicMock.mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.updateTomlConfig).mockImplementation(() => ({} as any))
@@ -179,8 +180,8 @@ requires_openai_auth = true
       expect(result).toBe(true)
 
       // Verify the file was written with temp_env_key
-      expect(writeFileMock).toHaveBeenCalled()
-      const writtenContent = writeFileMock.mock.calls[0][1] as string
+      expect(writeFileAtomicMock).toHaveBeenCalled()
+      const writtenContent = writeFileAtomicMock.mock.calls[0][1] as string
       expect(writtenContent).toContain('temp_env_key = "TEST_API_KEY"')
       expect(writtenContent).not.toMatch(/^env_key\s*=/m)
 
@@ -206,7 +207,7 @@ env_key = "TEST_API_KEY"
 
       const copyFileMock = vi.mocked(fsOps.copyFile)
       copyFileMock.mockImplementation(() => {})
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.updateTomlConfig).mockImplementation(() => ({} as any))
@@ -237,8 +238,8 @@ env_key = "PROVIDER3_API_KEY"
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
       vi.mocked(fsOps.copyFile).mockImplementation(() => {})
 
-      const writeFileMock = vi.mocked(fsOps.writeFile)
-      writeFileMock.mockImplementation(() => {})
+      const writeFileAtomicMock = vi.mocked(fsOps.writeFileAtomic)
+      writeFileAtomicMock.mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.updateTomlConfig).mockImplementation(() => ({} as any))
@@ -249,7 +250,7 @@ env_key = "PROVIDER3_API_KEY"
       expect(result).toBe(true)
 
       // Verify all env_key fields were migrated
-      const writtenContent = writeFileMock.mock.calls[0][1] as string
+      const writtenContent = writeFileAtomicMock.mock.calls[0][1] as string
       expect(writtenContent).toContain('temp_env_key = "PROVIDER1_API_KEY"')
       expect(writtenContent).toContain('temp_env_key = "PROVIDER2_API_KEY"')
       expect(writtenContent).toContain('temp_env_key = "PROVIDER3_API_KEY"')
@@ -275,8 +276,8 @@ env_key = "OLD2_API_KEY"
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
       vi.mocked(fsOps.copyFile).mockImplementation(() => {})
 
-      const writeFileMock = vi.mocked(fsOps.writeFile)
-      writeFileMock.mockImplementation(() => {})
+      const writeFileAtomicMock = vi.mocked(fsOps.writeFileAtomic)
+      writeFileAtomicMock.mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.updateTomlConfig).mockImplementation(() => ({} as any))
@@ -287,7 +288,7 @@ env_key = "OLD2_API_KEY"
       expect(result).toBe(true)
 
       // Verify all env_key fields were migrated to temp_env_key
-      const writtenContent = writeFileMock.mock.calls[0][1] as string
+      const writtenContent = writeFileAtomicMock.mock.calls[0][1] as string
       expect(writtenContent).toContain('temp_env_key = "MIGRATED_API_KEY"') // Already migrated, should remain
       expect(writtenContent).toContain('temp_env_key = "OLD1_API_KEY"') // Should be migrated
       expect(writtenContent).toContain('temp_env_key = "OLD2_API_KEY"') // Should be migrated
@@ -316,8 +317,8 @@ temp_env_key = "NEW_ONLY_KEY"
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
       vi.mocked(fsOps.copyFile).mockImplementation(() => {})
 
-      const writeFileMock = vi.mocked(fsOps.writeFile)
-      writeFileMock.mockImplementation(() => {})
+      const writeFileAtomicMock = vi.mocked(fsOps.writeFileAtomic)
+      writeFileAtomicMock.mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.updateTomlConfig).mockImplementation(() => ({} as any))
@@ -327,7 +328,7 @@ temp_env_key = "NEW_ONLY_KEY"
 
       expect(result).toBe(true)
 
-      const writtenContent = writeFileMock.mock.calls[0][1] as string
+      const writtenContent = writeFileAtomicMock.mock.calls[0][1] as string
 
       // Mixed provider: env_key should be removed, temp_env_key should remain (no duplicates)
       expect(writtenContent).toContain('temp_env_key = "NEW_KEY"')
@@ -472,7 +473,7 @@ env_key = "TEST_API_KEY"
       ensureEnvKeyMigration()
 
       // Should not attempt to write file since already migrated
-      expect(fsOps.writeFile).not.toHaveBeenCalled()
+      expect(fsOps.writeFileAtomic).not.toHaveBeenCalled()
     })
 
     it('should perform migration when not yet migrated', async () => {
@@ -505,13 +506,13 @@ env_key = "TEST_API_KEY"
 `)
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
       vi.mocked(fsOps.copyFile).mockImplementation(() => {})
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const { ensureEnvKeyMigration } = await import('../../../../src/utils/code-tools/codex')
       ensureEnvKeyMigration()
 
       // Should write migrated content
-      expect(fsOps.writeFile).toHaveBeenCalled()
+      expect(fsOps.writeFileAtomic).toHaveBeenCalled()
     })
 
     it('should skip migration when no config file exists', async () => {
@@ -525,7 +526,7 @@ env_key = "TEST_API_KEY"
       ensureEnvKeyMigration()
 
       // Should not attempt any file operations
-      expect(fsOps.writeFile).not.toHaveBeenCalled()
+      expect(fsOps.writeFileAtomic).not.toHaveBeenCalled()
     })
   })
 
@@ -602,7 +603,7 @@ env_key = "OLD_API_KEY"
 `)
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
       vi.mocked(fsOps.copyFile).mockImplementation(() => {})
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.readDefaultTomlConfig).mockReturnValue({
@@ -665,7 +666,7 @@ env_key = "TEST_API_KEY"
 `)
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
       vi.mocked(fsOps.copyFile).mockImplementation(() => {})
-      vi.mocked(fsOps.writeFile).mockImplementation(() => {})
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {})
 
       const ccjkConfig = await import('../../../../src/utils/ccjk-config')
       vi.mocked(ccjkConfig.readDefaultTomlConfig).mockReturnValue({

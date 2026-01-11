@@ -120,5 +120,8 @@
   "providerManager.baseUrlRequired": "基础 URL 是必需的",
   "providerManager.wireApiInvalid": "Wire API 必须是 \"responses\" 或 \"chat\"",
   "providerManager.unknownError": "未知错误",
-  "envKeyMigrationComplete": "✔ 已完成 env_key 到 temp_env_key 的迁移"
+  "envKeyMigrationComplete": "✔ 已完成 env_key 到 temp_env_key 的迁移",
+  "errorSwitchingProvider": "切换提供商时出错：{{error}}",
+  "errorSwitchingToOfficialLogin": "切换到官方登录时出错：{{error}}",
+  "errorDuringUninstall": "卸载过程中出错：{{error}}"
 }

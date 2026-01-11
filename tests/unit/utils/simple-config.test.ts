@@ -1,12 +1,14 @@
 import * as fs from 'node:fs'
 import { exec } from 'tinyexec'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import * as fsOps from '../../../src/utils/fs-operations'
 import { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from '../../../src/utils/simple-config'
 
 vi.mock('node:fs')
 vi.mock('tinyexec')
 vi.mock('../../../src/utils/fs-operations', () => ({
   ensureDir: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 vi.mock('../../../src/utils/platform', () => ({
   getPlatform: vi.fn().mockReturnValue('macos'),
@@ -55,7 +57,7 @@ describe('simple-config utilities', () => {
         return JSON.stringify(currentSettings)
       })
 
-      const writeSpy = vi.mocked(fs.writeFileSync)
+      const writeSpy = vi.mocked(fsOps.writeFileAtomic)
 
       await importRecommendedEnv()
 
@@ -83,7 +85,7 @@ describe('simple-config utilities', () => {
         throw new Error('File not found')
       })
 
-      const writeSpy = vi.mocked(fs.writeFileSync)
+      const writeSpy = vi.mocked(fsOps.writeFileAtomic)
 
       await importRecommendedEnv()
 
@@ -109,7 +111,7 @@ describe('simple-config utilities', () => {
         return 'invalid json'
       })
 
-      const writeSpy = vi.mocked(fs.writeFileSync)
+      const writeSpy = vi.mocked(fsOps.writeFileAtomic)
 
       await importRecommendedEnv()
 
@@ -143,7 +145,7 @@ describe('simple-config utilities', () => {
         return JSON.stringify(currentSettings)
       })
 
-      const writeSpy = vi.mocked(fs.writeFileSync)
+      const writeSpy = vi.mocked(fsOps.writeFileAtomic)
 
       await importRecommendedPermissions()
 
@@ -170,7 +172,7 @@ describe('simple-config utilities', () => {
         return JSON.stringify(currentSettings)
       })
 
-      const writeSpy = vi.mocked(fs.writeFileSync)
+      const writeSpy = vi.mocked(fsOps.writeFileAtomic)
 
       await importRecommendedPermissions()
 
@@ -196,7 +198,7 @@ describe('simple-config utilities', () => {
         return JSON.stringify(currentSettings)
       })
 
-      const writeSpy = vi.mocked(fs.writeFileSync)
+      const writeSpy = vi.mocked(fsOps.writeFileAtomic)
 
       await importRecommendedPermissions()
 
@@ -245,7 +247,7 @@ describe('simple-config utilities', () => {
     it('should create settings file if it does not exist', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(false)
       vi.mocked(exec).mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 })
-      const writeSpy = vi.mocked(fs.writeFileSync)
+      const writeSpy = vi.mocked(fsOps.writeFileAtomic)
 
       await openSettingsJson()
 

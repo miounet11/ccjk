@@ -7,7 +7,7 @@ import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync } from 'node:fs
 import { dirname } from 'pathe'
 import { parse, stringify } from 'smol-toml'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, LEGACY_ZCF_CONFIG_FILES, SUPPORTED_LANGS, ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants'
-import { ensureDir, exists, readFile, writeFile } from './fs-operations'
+import { ensureDir, exists, readFile, writeFileAtomic } from './fs-operations'
 import { readJsonConfig } from './json-config'
 
 // Legacy interfaces for backward compatibility
@@ -73,9 +73,9 @@ function writeTomlConfig(configPath: string, config: ZcfTomlConfig): void {
     const configDir = dirname(configPath)
     ensureDir(configDir)
 
-    // Serialize to TOML and write to file
+    // Serialize to TOML and write to file atomically to prevent corruption
     const tomlContent = stringify(config)
-    writeFile(configPath, tomlContent)
+    writeFileAtomic(configPath, tomlContent)
   }
   catch {
     // Silently fail if cannot write config - user's system may have permission issues

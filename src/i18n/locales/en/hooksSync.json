@@ -20,6 +20,7 @@
     "syncing": "Syncing hooks from cloud...",
     "syncSuccess": "Successfully synced {{count}} hooks",
     "syncError": "Failed to sync hooks: {{error}}",
+    "syncCompleted": "Sync completed",
     "listing": "Loading hooks...",
     "enabling": "Enabling hook...",
     "enableSuccess": "Hook '{{name}}' enabled successfully",
@@ -27,16 +28,23 @@
     "disabling": "Disabling hook...",
     "disableSuccess": "Hook '{{name}}' disabled successfully",
     "disableError": "Failed to disable hook: {{error}}",
-    "uploading": "Uploading hook to cloud...",
+    "uploading": "Uploading hooks to cloud...",
     "uploadSuccess": "Hook uploaded successfully",
+    "uploadCompleted": "Upload completed",
     "uploadError": "Failed to upload hook: {{error}}",
-    "downloading": "Downloading hook from cloud...",
+    "downloading": "Downloading hooks from cloud...",
     "downloadSuccess": "Hook downloaded successfully",
-    "downloadError": "Failed to download hook: {{error}}"
+    "downloadCompleted": "Download completed",
+    "downloadError": "Failed to download hook: {{error}}",
+    "hookEnabled": "Hook enabled",
+    "hookDisabled": "Hook disabled",
+    "hookToggled": "Hook {{status}}: {{name}}",
+    "templateInstalled": "Template installed: {{name}}",
+    "installError": "Install error: {{error}}"
   },
   "prompts": {
     "selectHook": "Select a hook:",
-    "selectTemplate": "Select a template:",
+    "selectTemplate": "Select a template to install:",
     "selectCategory": "Select a category:",
     "selectPrivacy": "Select privacy level:",
     "enterHookName": "Enter hook name:",
@@ -44,7 +52,8 @@
     "confirmUpload": "Upload this hook to cloud?",
     "confirmDownload": "Download and install this hook?",
     "confirmEnable": "Enable this hook?",
-    "confirmDisable": "Disable this hook?"
+    "confirmDisable": "Disable this hook?",
+    "confirmInstall": "Install this template?"
   },
   "labels": {
     "hookId": "Hook ID",
@@ -52,12 +61,21 @@
     "description": "Description",
     "type": "Type",
     "category": "Category",
+    "categories": "Categories",
     "privacy": "Privacy",
     "enabled": "Enabled",
     "disabled": "Disabled",
     "lastSynced": "Last Synced",
     "createdAt": "Created At",
-    "updatedAt": "Updated At"
+    "updatedAt": "Updated At",
+    "uploaded": "Uploaded",
+    "downloaded": "Downloaded",
+    "skipped": "Skipped",
+    "failed": "Failed",
+    "total": "Total",
+    "found": "Found",
+    "localHooks": "Local Hooks",
+    "variables": "Variables"
   },
   "categories": {
     "git": "Git Automation",
@@ -91,6 +109,8 @@
   },
   "errors": {
     "noHooks": "No hooks found",
+    "noHooksFound": "No hooks found",
+    "noTemplatesFound": "No templates found",
     "hookNotFound": "Hook not found: {{id}}",
     "invalidHookId": "Invalid hook ID",
     "syncFailed": "Failed to sync hooks",
@@ -98,6 +118,8 @@
     "downloadFailed": "Failed to download hook",
     "enableFailed": "Failed to enable hook",
     "disableFailed": "Failed to disable hook",
+    "loadHooksFailed": "Failed to load local hooks:",
+    "saveHooksFailed": "Failed to save local hooks:",
     "networkError": "Network error: {{error}}",
     "authError": "Authentication error. Please check your credentials.",
     "permissionError": "Permission denied. You don't have access to this hook."

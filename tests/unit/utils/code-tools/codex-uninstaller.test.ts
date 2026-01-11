@@ -3,9 +3,25 @@ import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Hoisted mock for node:fs (used by dynamic imports in the code)
+const nodeFsMock = vi.hoisted(() => ({
+  readFileSync: vi.fn(),
+}))
+
+vi.mock('node:fs', () => nodeFsMock)
+
 // Mock dependencies
 vi.mock('fs-extra', () => ({
   pathExists: vi.fn(),
+}))
+
+vi.mock('../../../../src/utils/fs-operations', () => ({
+  exists: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
+  ensureDir: vi.fn(),
+  copyDir: vi.fn(),
 }))
 
 vi.mock('../../../../src/utils/trash', () => ({
@@ -35,6 +51,7 @@ const { moveToTrash } = await import('../../../../src/utils/trash')
 const { readJsonConfig, writeJsonConfig } = await import('../../../../src/utils/json-config')
 const { i18n } = await import('../../../../src/i18n')
 const { uninstallCodeTool } = await import('../../../../src/utils/installer')
+const fsOps = await import('../../../../src/utils/fs-operations')
 
 // Get mock functions
 const mockPathExists = vi.mocked(pathExists)
@@ -289,24 +306,20 @@ command = "npx"
 args = ["-y", "context7"]
 `
 
-      // Mock fs operations
-      const mockReadFileSync = vi.fn().mockReturnValue(tomlContent)
-      const mockWriteFileSync = vi.fn()
-
-      vi.doMock('node:fs', () => ({
-        readFileSync: mockReadFileSync,
-        writeFileSync: mockWriteFileSync,
-      }))
+      // Use hoisted mock for node:fs
+      nodeFsMock.readFileSync.mockReturnValue(tomlContent)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
+      mockWriteFileAtomic.mockClear()
 
       mockPathExists.mockResolvedValue(true as any)
 
       const result = await uninstaller.removeApiConfig()
 
       expect(result.success).toBe(true)
-      expect(mockReadFileSync).toHaveBeenCalledWith(CODEX_CONFIG_FILE, 'utf-8')
-      expect(mockWriteFileSync).toHaveBeenCalled()
+      expect(nodeFsMock.readFileSync).toHaveBeenCalledWith(CODEX_CONFIG_FILE, 'utf-8')
+      expect(mockWriteFileAtomic).toHaveBeenCalled()
 
-      const writtenContent = mockWriteFileSync.mock.calls[0][1]
+      const writtenContent = mockWriteFileAtomic.mock.calls[0][1]
       expect(writtenContent).not.toContain('model_provider = "custom-provider"')
       expect(writtenContent).not.toContain('[model_providers.custom-provider]')
       expect(writtenContent).toContain('[mcp_servers.context7]')
@@ -329,20 +342,16 @@ wire_api = "chat"
 command = "npx"
 `
 
-      const mockReadFileSync = vi.fn().mockReturnValue(complexTomlContent)
-      const mockWriteFileSync = vi.fn()
-
-      vi.doMock('node:fs', () => ({
-        readFileSync: mockReadFileSync,
-        writeFileSync: mockWriteFileSync,
-      }))
+      nodeFsMock.readFileSync.mockReturnValue(complexTomlContent)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
+      mockWriteFileAtomic.mockClear()
 
       mockPathExists.mockResolvedValue(true as any)
 
       const result = await uninstaller.removeApiConfig()
 
       expect(result.success).toBe(true)
-      const writtenContent = mockWriteFileSync.mock.calls[0][1]
+      const writtenContent = mockWriteFileAtomic.mock.calls[0][1]
       expect(writtenContent).not.toContain('model_provider')
       expect(writtenContent).not.toContain('[model_providers.provider1]')
       expect(writtenContent).not.toContain('[model_providers.provider2]')
@@ -350,14 +359,9 @@ command = "npx"
     })
 
     it('should handle file read errors gracefully', async () => {
-      const mockReadFileSync = vi.fn().mockImplementation(() => {
+      nodeFsMock.readFileSync.mockImplementation(() => {
         throw new Error('Permission denied')
       })
-
-      vi.doMock('node:fs', () => ({
-        readFileSync: mockReadFileSync,
-        writeFileSync: vi.fn(),
-      }))
 
       mockPathExists.mockResolvedValue(true as any)
 
@@ -394,20 +398,16 @@ args = ["-y", "exa-mcp-server"]
 env = {EXA_API_KEY = "test-key"}
 `
 
-      const mockReadFileSync = vi.fn().mockReturnValue(tomlContent)
-      const mockWriteFileSync = vi.fn()
-
-      vi.doMock('node:fs', () => ({
-        readFileSync: mockReadFileSync,
-        writeFileSync: mockWriteFileSync,
-      }))
+      nodeFsMock.readFileSync.mockReturnValue(tomlContent)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
+      mockWriteFileAtomic.mockClear()
 
       mockPathExists.mockResolvedValue(true as any)
 
       const result = await uninstaller.removeMcpConfig()
 
       expect(result.success).toBe(true)
-      const writtenContent = mockWriteFileSync.mock.calls[0][1]
+      const writtenContent = mockWriteFileAtomic.mock.calls[0][1]
       expect(writtenContent).toContain('[model_providers.custom-provider]')
       expect(writtenContent).not.toContain('[mcp_servers.context7]')
       expect(writtenContent).not.toContain('[mcp_servers.exa]')
@@ -430,20 +430,16 @@ command = "simple-command"
 key = "value"
 `
 
-      const mockReadFileSync = vi.fn().mockReturnValue(nestedTomlContent)
-      const mockWriteFileSync = vi.fn()
-
-      vi.doMock('node:fs', () => ({
-        readFileSync: mockReadFileSync,
-        writeFileSync: mockWriteFileSync,
-      }))
+      nodeFsMock.readFileSync.mockReturnValue(nestedTomlContent)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
+      mockWriteFileAtomic.mockClear()
 
       mockPathExists.mockResolvedValue(true as any)
 
       const result = await uninstaller.removeMcpConfig()
 
       expect(result.success).toBe(true)
-      const writtenContent = mockWriteFileSync.mock.calls[0][1]
+      const writtenContent = mockWriteFileAtomic.mock.calls[0][1]
       expect(writtenContent).not.toContain('[mcp_servers.complex]')
       expect(writtenContent).not.toContain('[mcp_servers.simple]')
       expect(writtenContent).toContain('[other_section]')
@@ -451,15 +447,10 @@ key = "value"
     })
 
     it('should handle write errors during MCP config removal', async () => {
-      const mockReadFileSync = vi.fn().mockReturnValue('[mcp_servers.test]\ncommand = "test"')
-      const mockWriteFileSync = vi.fn().mockImplementation(() => {
+      nodeFsMock.readFileSync.mockReturnValue('[mcp_servers.test]\ncommand = "test"')
+      vi.mocked(fsOps.writeFileAtomic).mockImplementation(() => {
         throw new Error('Write permission denied')
       })
-
-      vi.doMock('node:fs', () => ({
-        readFileSync: mockReadFileSync,
-        writeFileSync: mockWriteFileSync,
-      }))
 
       mockPathExists.mockResolvedValue(true as any)
 

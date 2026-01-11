@@ -9,9 +9,10 @@
  */
 
 import type { DeviceInfo } from '../utils/notification/token'
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { writeFileAtomic } from '../utils/fs-operations'
 import { getDeviceInfo } from '../utils/notification/token'
 
 // ============================================================================
@@ -210,7 +211,7 @@ export class CCJKCloudClient {
       if (!existsSync(dir)) {
         mkdirSync(dir, { recursive: true })
       }
-      writeFileSync(TOKEN_FILE_PATH, JSON.stringify(storage, null, 2), 'utf-8')
+      writeFileAtomic(TOKEN_FILE_PATH, JSON.stringify(storage, null, 2))
     }
     catch (error) {
       throw new Error(`Failed to save token: ${error instanceof Error ? error.message : String(error)}`)
@@ -582,7 +583,7 @@ export class CCJKCloudClient {
           const storageData = readFileSync(TOKEN_FILE_PATH, 'utf-8')
           const storage: CloudTokenStorage = JSON.parse(storageData)
           storage.lastUsedAt = new Date().toISOString()
-          writeFileSync(TOKEN_FILE_PATH, JSON.stringify(storage, null, 2), 'utf-8')
+          writeFileAtomic(TOKEN_FILE_PATH, JSON.stringify(storage, null, 2))
         }
         catch {
           // Ignore errors updating last used

@@ -66,6 +66,7 @@ vi.mock('../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
   ensureDir: vi.fn(),
   copyFile: vi.fn(),
   copyDir: vi.fn(),

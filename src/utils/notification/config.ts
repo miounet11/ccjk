@@ -17,6 +17,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { parse as parseToml, stringify as stringifyToml } from '@iarna/toml'
+import { writeFileAtomic } from '../fs-operations'
 import {
   decryptToken,
   encryptToken,
@@ -174,7 +175,7 @@ export async function saveNotificationConfig(config: Partial<NotificationConfig>
 
     // Write config file
     const tomlContent = stringifyToml(existingConfig as any)
-    fs.writeFileSync(CONFIG_FILE_PATH, tomlContent, 'utf-8')
+    writeFileAtomic(CONFIG_FILE_PATH, tomlContent)
   }
   catch (error) {
     throw new Error(`Failed to save notification config: ${error}`)
@@ -202,8 +203,8 @@ async function saveDeviceToken(token: string): Promise<void> {
     secrets.deviceToken = encryptedToken
     secrets.updatedAt = new Date().toISOString()
 
-    // Write secrets file with restricted permissions
-    fs.writeFileSync(SECRETS_FILE_PATH, JSON.stringify(secrets, null, 2), {
+    // Write secrets file with restricted permissions (atomic write)
+    writeFileAtomic(SECRETS_FILE_PATH, JSON.stringify(secrets, null, 2), {
       encoding: 'utf-8',
       mode: 0o600, // Owner read/write only
     })

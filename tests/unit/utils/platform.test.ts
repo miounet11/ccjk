@@ -1,5 +1,5 @@
 import { accessSync, existsSync, readdirSync, readFileSync } from 'node:fs'
-import { platform } from 'node:os'
+import { homedir, platform } from 'node:os'
 import { exec } from 'tinyexec'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as platformUtils from '../../../src/utils/platform'
@@ -323,6 +323,7 @@ ID=ubuntu`)
     beforeEach(() => {
       vi.mocked(accessSync).mockImplementation(() => {})
       vi.mocked(platform).mockReturnValue('linux')
+      vi.mocked(homedir).mockReturnValue('/home/test')
       originalHome = process.env.HOME
       process.env.HOME = '/home/test'
       delete process.env.npm_config_prefix
@@ -752,6 +753,7 @@ ID=ubuntu`)
     it('should check user local bin path', async () => {
       vi.mocked(platform).mockReturnValue('linux')
       vi.mocked(exec).mockRejectedValue(new Error('not found'))
+      vi.mocked(homedir).mockReturnValue('/home/testuser')
       process.env.HOME = '/home/testuser'
       vi.mocked(existsSync).mockImplementation((path) => {
         return path === '/home/testuser/.local/bin/claude'

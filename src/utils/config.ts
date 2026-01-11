@@ -16,7 +16,7 @@ import {
   copyFile,
   ensureDir,
   exists,
-  writeFile,
+  writeFileAtomic,
 } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
 import { deepMerge } from './object-utils'
@@ -392,7 +392,7 @@ export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string
   }
 
   // Write to CLAUDE.md file directly without markers
-  writeFile(claudeFile, directive)
+  writeFileAtomic(claudeFile, directive)
 }
 
 /**

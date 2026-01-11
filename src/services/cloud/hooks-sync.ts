@@ -277,6 +277,9 @@ export class CloudHooksSyncClient {
    * Download hooks from cloud
    *
    * @param options - Download options
+   * @param options.privacy - Filter by privacy level
+   * @param options.category - Filter by category
+   * @param options.tags - Filter by tags
    * @returns Downloaded hooks
    */
   async downloadHooks(options?: {
@@ -315,6 +318,9 @@ export class CloudHooksSyncClient {
    * Get hook templates
    *
    * @param options - Filter options
+   * @param options.category - Filter by category
+   * @param options.tags - Filter by tags
+   * @param options.language - Filter by language
    * @returns Hook templates
    */
   async getTemplates(options?: {
@@ -377,6 +383,9 @@ export class CloudHooksSyncClient {
    *
    * @param hookId - Hook ID
    * @param options - Filter options
+   * @param options.limit - Maximum number of logs to return
+   * @param options.offset - Offset for pagination
+   * @param options.status - Filter by execution status
    * @returns Execution logs
    */
   async getExecutionLogs(

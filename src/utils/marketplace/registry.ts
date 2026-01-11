@@ -15,9 +15,10 @@ import type {
   RegistryCacheConfig,
 } from '../../types/marketplace.js'
 import { existsSync } from 'node:fs'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { writeFileAtomicAsync } from '../fs-operations.js'
 
 /**
  * Default registry URL
@@ -135,7 +136,7 @@ export async function writeCacheRegistry(
 ): Promise<void> {
   await mkdir(cacheDir, { recursive: true })
   const cachePath = getCacheFilePath(cacheDir)
-  await writeFile(cachePath, JSON.stringify(registry, null, 2))
+  await writeFileAtomicAsync(cachePath, JSON.stringify(registry, null, 2))
 }
 
 /**

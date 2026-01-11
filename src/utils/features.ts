@@ -708,7 +708,7 @@ async function updateCodexModelProvider(modelProvider: string): Promise<void> {
 
 // Helper function to ensure language directive exists in AGENTS.md
 async function ensureLanguageDirectiveInAgents(aiOutputLang: string): Promise<void> {
-  const { readFile, writeFile, exists } = await import('./fs-operations')
+  const { readFile, writeFileAtomic, exists } = await import('./fs-operations')
   const { homedir } = await import('node:os')
   const { join } = await import('pathe')
 
@@ -751,14 +751,14 @@ async function ensureLanguageDirectiveInAgents(aiOutputLang: string): Promise<vo
     }
     updatedContent += `\n**Most Important:Always respond in ${langLabel}**\n`
 
-    writeFile(CODEX_AGENTS_FILE, updatedContent)
+    writeFileAtomic(CODEX_AGENTS_FILE, updatedContent)
     console.log(ansis.gray(`  ${i18n.t('configuration:addedLanguageDirective')}: ${langLabel}`))
   }
 }
 
 // Helper function to update Codex language directive in AGENTS.md
 async function updateCodexLanguageDirective(aiOutputLang: string): Promise<void> {
-  const { readFile, writeFile, exists } = await import('./fs-operations')
+  const { readFile, writeFileAtomic, exists } = await import('./fs-operations')
   const { backupCodexAgents, getBackupMessage } = await import('./code-tools/codex')
   const { homedir } = await import('node:os')
   const { join } = await import('pathe')
@@ -799,8 +799,8 @@ async function updateCodexLanguageDirective(aiOutputLang: string): Promise<void>
 
   content += `\n**Most Important:Always respond in ${langLabel}**\n`
 
-  // Write updated content
-  writeFile(CODEX_AGENTS_FILE, content)
+  // Write updated content atomically to prevent corruption
+  writeFileAtomic(CODEX_AGENTS_FILE, content)
 }
 
 // Configure environment variables and permissions

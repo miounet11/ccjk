@@ -9,7 +9,7 @@ import { join } from 'pathe'
 import { exec } from 'tinyexec'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { updateClaudeCode } from './auto-updater'
-import { exists, isExecutable, remove } from './fs-operations'
+import { exists } from './fs-operations'
 import { commandExists, findCommandPath, getHomebrewCommandPaths, getPlatform, getRecommendedInstallMethods, getTermuxPrefix, getWSLInfo, isTermux, isWSL, wrapCommandWithSudo } from './platform'
 
 export async function isClaudeCodeInstalled(): Promise<boolean> {
@@ -206,59 +206,42 @@ export async function installCodex(skipMethodSelection: boolean = false): Promis
 }
 
 /**
- * Check if local Claude Code installation exists
- */
-export async function isLocalClaudeCodeInstalled(): Promise<boolean> {
-  const localClaudePath = join(homedir(), '.claude', 'local', 'claude')
-
-  if (!exists(localClaudePath)) {
-    return false
-  }
-
-  return await isExecutable(localClaudePath)
-}
-
-/**
- * Get installation status for both global and local Claude Code
+ * Get installation status for Claude Code
+ * Note: Local installation support was removed as it was never implemented.
+ * The ~/.claude/local/claude path was never created by any installation method.
  */
 export interface InstallationStatus {
   hasGlobal: boolean
+  /** @deprecated Local installation is no longer supported - always false */
   hasLocal: boolean
+  /** @deprecated Local installation is no longer supported - empty string */
   localPath: string
 }
 
 export async function getInstallationStatus(): Promise<InstallationStatus> {
-  const localPath = join(homedir(), '.claude', 'local', 'claude')
-
-  const [hasGlobal, hasLocal] = await Promise.all([
-    isClaudeCodeInstalled(),
-    isLocalClaudeCodeInstalled(),
-  ])
+  const hasGlobal = await isClaudeCodeInstalled()
 
   return {
     hasGlobal,
-    hasLocal,
-    localPath,
+    // Local installation was never implemented - these are kept for backward compatibility
+    hasLocal: false,
+    localPath: '',
   }
 }
 
 /**
- * Remove local Claude Code installation
+ * @deprecated Local installation is no longer supported - this is a no-op
  */
 export async function removeLocalClaudeCode(): Promise<void> {
-  const localDir = join(homedir(), '.claude', 'local')
+  // No-op: Local installation was never implemented
+  // Kept for backward compatibility with existing code that may call this
+}
 
-  if (!exists(localDir)) {
-    return
-  }
-
-  try {
-    await remove(localDir)
-  }
-  catch (error) {
-    ensureI18nInitialized()
-    throw new Error(`${i18n.t('installation:failedToRemoveLocalInstallation')}: ${error}`)
-  }
+/**
+ * @deprecated Local installation is no longer supported - always returns false
+ */
+export async function isLocalClaudeCodeInstalled(): Promise<boolean> {
+  return false
 }
 
 /**

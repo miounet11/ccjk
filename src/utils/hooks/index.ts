@@ -97,6 +97,7 @@ export {
  * built-in hooks registered and ready to use.
  *
  * @param options - Initialization options
+ * @param options.registerBuiltins - Whether to register built-in hooks
  * @returns Initialized registry and executor
  *
  * @example

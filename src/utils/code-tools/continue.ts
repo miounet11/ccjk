@@ -1,5 +1,6 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { CONTINUE_CONFIG_FILE, CONTINUE_DIR } from '../../constants'
+import { writeFileAtomic } from '../fs-operations'
 
 /**
  * Continue model configuration
@@ -129,7 +130,7 @@ export function readContinueConfig(): ContinueConfig {
  */
 export function writeContinueConfig(config: ContinueConfig): void {
   ensureContinueDir()
-  writeFileSync(CONTINUE_CONFIG_FILE, JSON.stringify(config, null, 2))
+  writeFileAtomic(CONTINUE_CONFIG_FILE, JSON.stringify(config, null, 2))
 }
 
 /**

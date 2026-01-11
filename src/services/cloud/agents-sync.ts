@@ -31,11 +31,12 @@ import type {
   CloudAgent,
   InstalledAgent,
 } from '../../types/agent.js'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
 import { join } from 'pathe'
 import agentTemplatesData from '../../data/agent-templates.json'
+import { writeFileAtomic } from '../../utils/fs-operations'
 
 // ============================================================================
 // Constants
@@ -107,7 +108,7 @@ function saveInstalledAgents(agents: InstalledAgent[]): void {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true })
     }
-    writeFileSync(INSTALLED_AGENTS_FILE, JSON.stringify(agents, null, 2), 'utf-8')
+    writeFileAtomic(INSTALLED_AGENTS_FILE, JSON.stringify(agents, null, 2), 'utf-8')
   }
   catch (error) {
     throw new Error(`Failed to save installed agents: ${error instanceof Error ? error.message : String(error)}`)
@@ -139,7 +140,7 @@ function saveAgentToFile(agent: CloudAgent, filePath: string): void {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true })
     }
-    writeFileSync(filePath, JSON.stringify(agent, null, 2), 'utf-8')
+    writeFileAtomic(filePath, JSON.stringify(agent, null, 2), 'utf-8')
   }
   catch (error) {
     throw new Error(`Failed to save agent: ${error instanceof Error ? error.message : String(error)}`)
@@ -425,7 +426,7 @@ export class CCJKAgentsClient {
         throw new Error(`Unsupported format: ${format}`)
     }
 
-    writeFileSync(outputPath, content, 'utf-8')
+    writeFileAtomic(outputPath, content, 'utf-8')
     return outputPath
   }
 

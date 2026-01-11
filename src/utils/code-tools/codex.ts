@@ -15,7 +15,7 @@ import { AI_OUTPUT_LANGUAGES, CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_F
 import { ensureI18nInitialized, format, i18n } from '../../i18n'
 import { readDefaultTomlConfig, readZcfConfig, updateTomlConfig, updateZcfConfig } from '../ccjk-config'
 import { applyAiLanguageDirective } from '../config'
-import { copyDir, copyFile, ensureDir, exists, readFile, writeFile } from '../fs-operations'
+import { copyDir, copyFile, ensureDir, exists, readFile, writeFile, writeFileAtomic } from '../fs-operations'
 import { readJsonConfig, writeJsonConfig } from '../json-config'
 import { normalizeTomlPath, wrapCommandWithSudo } from '../platform'
 // Removed MCP selection and platform command imports from this module
@@ -351,8 +351,8 @@ export function migrateEnvKeyToTempEnvKey(): boolean {
     // Split content into provider sections and process each separately
     const migratedContent = migrateEnvKeyInContent(content)
 
-    // Write migrated content
-    writeFile(CODEX_CONFIG_FILE, migratedContent)
+    // Write migrated content atomically to prevent corruption
+    writeFileAtomic(CODEX_CONFIG_FILE, migratedContent)
 
     // Update CCJK config to mark migration as complete
     updateTomlConfig(ZCF_CONFIG_FILE, {
@@ -943,7 +943,8 @@ export function writeCodexConfig(data: CodexConfigData): void {
   ensureEnvKeyMigration()
 
   ensureDir(CODEX_DIR)
-  writeFile(CODEX_CONFIG_FILE, renderCodexConfig(data))
+  // Use atomic write to prevent config corruption
+  writeFileAtomic(CODEX_CONFIG_FILE, renderCodexConfig(data))
 }
 
 export function writeAuthFile(newEntries: Record<string, string>): void {
@@ -1212,8 +1213,8 @@ export async function runCodexSystemPromptSelection(skipPrompt = false): Promise
     console.log(ansis.gray(getBackupMessage(backupPath)))
   }
 
-  // Write to AGENTS.md
-  writeFile(CODEX_AGENTS_FILE, content)
+  // Write to AGENTS.md atomically to prevent corruption
+  writeFileAtomic(CODEX_AGENTS_FILE, content)
 
   // Update CCJK configuration to save the selected system prompt style
   try {
@@ -1858,7 +1859,7 @@ function ensureCodexAgentsLanguageDirective(aiOutputLang: AiOutputLanguage | str
   if (backupPath)
     console.log(ansis.gray(getBackupMessage(backupPath)))
 
-  writeFile(CODEX_AGENTS_FILE, updatedContent)
+  writeFileAtomic(CODEX_AGENTS_FILE, updatedContent)
   console.log(ansis.gray(`  ${i18n.t('configuration:addedLanguageDirective')}: ${targetLabel}`))
 }
 
@@ -2014,7 +2015,7 @@ export async function runCodexUninstall(): Promise<void> {
     console.log(ansis.green(i18n.t('codex:uninstallSuccess')))
   }
   catch (error: any) {
-    console.error(ansis.red(`Error during uninstall: ${error.message}`))
+    console.error(ansis.red(i18n.t('codex:errorDuringUninstall', { error: error.message })))
     throw error
   }
 }
@@ -2103,7 +2104,7 @@ export async function switchCodexProvider(providerId: string): Promise<boolean> 
     return true
   }
   catch (error) {
-    console.error(ansis.red(`Error switching provider: ${(error as Error).message}`))
+    console.error(ansis.red(i18n.t('codex:errorSwitchingProvider', { error: (error as Error).message })))
     return false
   }
 }
@@ -2163,7 +2164,7 @@ export async function switchToOfficialLogin(): Promise<boolean> {
     return true
   }
   catch (error) {
-    console.error(ansis.red(`Error switching to official login: ${(error as Error).message}`))
+    console.error(ansis.red(i18n.t('codex:errorSwitchingToOfficialLogin', { error: (error as Error).message })))
     return false
   }
 }
@@ -2233,7 +2234,7 @@ export async function switchToProvider(providerId: string): Promise<boolean> {
     return true
   }
   catch (error) {
-    console.error(ansis.red(`Error switching to provider: ${(error as Error).message}`))
+    console.error(ansis.red(i18n.t('codex:errorSwitchingProvider', { error: (error as Error).message })))
     return false
   }
 }

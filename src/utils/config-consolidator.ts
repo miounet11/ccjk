@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, unlinkSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
 import ansis from 'ansis'
@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR, ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE, SETTINGS_FILE } from '../constants'
 import { STATUS } from './banner'
+import { writeFileAtomic } from './fs-operations'
 
 /**
  * Config file location
@@ -329,7 +330,7 @@ export function writeConsolidatedConfig(config: any): boolean {
       mkdirSync(CLAUDE_DIR, { recursive: true })
     }
 
-    writeFileSync(SETTINGS_FILE, JSON.stringify(config, null, 2))
+    writeFileAtomic(SETTINGS_FILE, JSON.stringify(config, null, 2))
     return true
   }
   catch {

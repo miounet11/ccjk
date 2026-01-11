@@ -4,9 +4,10 @@ import type { ApiConfigResult, ClaudeEnvSettings, ProviderPreset, SimpleApiConfi
  * Most common mode: Just API key + base URL configuration
  * No CCR required - directly modifies Claude Code settings.json
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { writeFileAtomic } from '../fs-operations'
 import { getPresetById } from './presets'
 
 // Claude Code settings file path
@@ -32,11 +33,10 @@ function readSettings(): Record<string, any> {
  * Write Claude settings
  */
 function writeSettings(settings: Record<string, any>): void {
-  // writeFileSync and mkdirSync imported at top
   if (!existsSync(CLAUDE_DIR)) {
     mkdirSync(CLAUDE_DIR, { recursive: true })
   }
-  writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2))
+  writeFileAtomic(SETTINGS_FILE, JSON.stringify(settings, null, 2))
 }
 
 /**

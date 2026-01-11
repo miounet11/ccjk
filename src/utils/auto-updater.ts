@@ -104,7 +104,7 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
   const spinner = ora(i18n.t('updater:checkingVersion')).start()
 
   try {
-    const { installed, currentVersion, latestVersion, needsUpdate, isHomebrew } = await checkClaudeCodeVersion()
+    const { installed, currentVersion, latestVersion, needsUpdate, isHomebrew, installationSource, isBroken } = await checkClaudeCodeVersion()
     spinner.stop()
 
     if (!installed) {
@@ -125,6 +125,10 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
     // Show version info
     console.log(ansis.cyan(format(i18n.t('updater:currentVersion'), { version: currentVersion || '' })))
     console.log(ansis.cyan(format(i18n.t('updater:latestVersion'), { version: latestVersion })))
+
+    if (isBroken) {
+      console.log(ansis.yellow(i18n.t('updater:installationBroken')))
+    }
 
     // Handle confirmation based on skipPrompt mode
     if (!skipPrompt) {
@@ -158,7 +162,13 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
       }
       else {
         // npm or other installation - use claude update with sudo support for Linux non-root users
-        await execWithSudoIfNeeded('claude', ['update'])
+        // If installation is broken, we can't use 'claude update', so we fallback to npm install
+        if (isBroken && installationSource === 'npm') {
+          await execWithSudoIfNeeded('npm', ['install', '-g', '@anthropic-ai/claude-code'])
+        }
+        else {
+          await execWithSudoIfNeeded('claude', ['update'])
+        }
       }
       updateSpinner.succeed(format(i18n.t('updater:updateSuccess'), { tool: 'Claude Code' }))
       return true

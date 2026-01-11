@@ -132,7 +132,7 @@ describe('json-config utilities', () => {
 
       writeJsonConfig('/test/config.json', data)
 
-      expect(fsOps.writeFile).toHaveBeenCalledWith(
+      expect(fsOps.writeFileAtomic).toHaveBeenCalledWith(
         '/test/config.json',
         JSON.stringify(data, null, 2),
       )
@@ -143,7 +143,7 @@ describe('json-config utilities', () => {
 
       writeJsonConfig('/test/config.json', data, { pretty: false })
 
-      expect(fsOps.writeFile).toHaveBeenCalledWith(
+      expect(fsOps.writeFileAtomic).toHaveBeenCalledWith(
         '/test/config.json',
         JSON.stringify(data),
       )
@@ -177,7 +177,7 @@ describe('json-config utilities', () => {
       const result = updateJsonConfig('/test/config.json', { key: 'new' })
 
       expect(result).toEqual({ existing: 'value', key: 'new' })
-      expect(fsOps.writeFile).toHaveBeenCalled()
+      expect(fsOps.writeFileAtomic).toHaveBeenCalled()
     })
 
     it('should create new config when file does not exist', () => {
@@ -186,7 +186,7 @@ describe('json-config utilities', () => {
       const result = updateJsonConfig('/test/config.json', { key: 'value' })
 
       expect(result).toEqual({ key: 'value' })
-      expect(fsOps.writeFile).toHaveBeenCalled()
+      expect(fsOps.writeFileAtomic).toHaveBeenCalled()
     })
   })
 

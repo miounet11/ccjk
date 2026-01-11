@@ -131,6 +131,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
 }))
 
 // Mock json-config
@@ -221,14 +222,14 @@ describe('codex utilities - edge cases', () => {
 
     it('should handle MCP config write failures', async () => {
       const { configureCodexMcp } = await import('../../../../src/utils/code-tools/codex')
-      const { writeFile } = await import('../../../../src/utils/fs-operations')
+      const { writeFileAtomic } = await import('../../../../src/utils/fs-operations')
       const { selectMcpServices } = await import('../../../../src/utils/mcp-selector')
 
       // Mock service selection
       vi.mocked(selectMcpServices).mockResolvedValue(['claude-codebase'])
 
       // Mock successful write to fail
-      vi.mocked(writeFile).mockImplementation(() => {
+      vi.mocked(writeFileAtomic).mockImplementation(() => {
         throw new Error('Disk full')
       })
 

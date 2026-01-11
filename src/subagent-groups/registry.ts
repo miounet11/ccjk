@@ -6,9 +6,10 @@ import type {
   GroupSearchOptions,
   SubagentGroup,
 } from './types'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { CCJK_GROUPS_DIR } from '../constants'
+import { writeFileAtomic } from '../utils/fs-operations'
 
 const PREDEFINED_GROUPS: SubagentGroup[] = [
   // TypeScript Development Group
@@ -437,7 +438,7 @@ function saveRegistry(reg: GroupRegistry): void {
     enabled: Array.from(reg.enabledGroups),
     lastUpdated: reg.lastUpdated.toISOString(),
   }
-  writeFileSync(registryFile, JSON.stringify(data, null, 2))
+  writeFileAtomic(registryFile, JSON.stringify(data, null, 2))
 }
 
 /**

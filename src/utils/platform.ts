@@ -1,5 +1,5 @@
 import * as nodeFs from 'node:fs'
-import { platform } from 'node:os'
+import { homedir, platform } from 'node:os'
 import process from 'node:process'
 import { dirname } from 'pathe'
 import { exec } from 'tinyexec'
@@ -210,7 +210,8 @@ function normalizePath(path: string): string {
 }
 
 function isPathInsideHome(path: string): boolean {
-  const home = process.env.HOME
+  // Use homedir() for cross-platform compatibility (works on Windows with USERPROFILE)
+  const home = homedir()
   if (!home)
     return false
 
@@ -275,11 +276,12 @@ export async function commandExists(command: string): Promise<boolean> {
 
   // Final fallback: check common paths on Linux/Mac
   if (getPlatform() !== 'windows') {
+    const home = homedir()
     const commonPaths = [
       `/usr/local/bin/${command}`,
       `/usr/bin/${command}`,
       `/bin/${command}`,
-      `${process.env.HOME}/.local/bin/${command}`,
+      `${home}/.local/bin/${command}`,
     ]
 
     for (const path of commonPaths) {
@@ -388,11 +390,12 @@ export async function findCommandPath(command: string): Promise<string | null> {
   }
 
   // Check common paths
+  const home = homedir()
   const commonPaths = [
     `/usr/local/bin/${command}`,
     `/usr/bin/${command}`,
     `/bin/${command}`,
-    `${process.env.HOME}/.local/bin/${command}`,
+    `${home}/.local/bin/${command}`,
   ]
 
   for (const path of commonPaths) {

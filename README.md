@@ -102,6 +102,39 @@ claude
 
 ## ✨ Core Features
 
+### 🎯 Simplified 8-Category Menu (v2.0.12)
+
+Navigate CCJK features with our streamlined menu structure:
+
+| Category | Features |
+|----------|----------|
+| 🚀 Quick Start | Initialization, Updates, Health Check |
+| ⚙️ Config Center | API, Permissions, MCP, Context Management |
+| 🛠️ Tool Management | Multi-tool Support, Version Check |
+| 📦 Extension Market | Plugins, Skills, Workflows |
+| 🔍 Code Quality | Audit, Interview-Driven Development |
+| 👥 Team Collaboration | Team Features, Session Management |
+| 📊 Analytics | Usage Analysis, Config Scanning |
+| 🗑️ Uninstall & Cleanup | Uninstall Tools |
+
+### 📋 Context Management (NEW in v2.0.12)
+
+Intelligently manage project context and CLAUDE.md rules:
+
+- **Auto Detection** - Project type, framework, package manager
+- **Smart Recommendations** - Coding style, testing, security rules
+- **Context File Management** - Global/Project/Local levels
+- **Export Project Knowledge** - Generate complete knowledge base
+
+**Supported Frameworks:** Node.js, Python, Rust, Go, Java, .NET, Ruby, PHP
+
+```bash
+# Context management commands
+ccjk context detect        # Auto-detect project context
+ccjk context recommend     # Get smart recommendations
+ccjk context export        # Export project knowledge
+```
+
 ### 🆕 NEW in v2.0.9: Multi-Dimensional Cloud Sync System
 
 **Sync your configurations across devices and teams!**
@@ -277,9 +310,16 @@ npx ccjk init --provider minimax --api-key YOUR_KEY
 
 ## 🗺️ Roadmap
 
-### ✅ Recently Completed (v2.0.9)
+### ✅ Recently Completed (v2.0.12)
 
-#### ☁️ Multi-Dimensional Cloud Sync System
+#### 🎯 Simplified 8-Category Menu System
+- **Streamlined Navigation** - 8 intuitive categories for all features
+- **Context Management** - Auto-detect project type, framework, package manager
+- **Smart Recommendations** - AI-powered coding style, testing, security rules
+- **Knowledge Export** - Generate complete project knowledge base
+- **Status**: ✅ **COMPLETED** - Full i18n support, multi-framework detection
+
+#### ☁️ Multi-Dimensional Cloud Sync System (v2.0.9)
 - **Skills Cloud Sync** - Bidirectional sync with 4 conflict resolution strategies
 - **CLAUDE.md Sync** - Template marketplace with 9 project templates
 - **Agents Sync** - 6 pre-built agent templates with version management

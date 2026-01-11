@@ -7,9 +7,10 @@ import type {
   TranscriptCleanupOptions,
   TranscriptSaveOptions,
 } from './types'
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { writeFileAtomic } from '../fs-operations'
 
 /**
  * Default transcript directory
@@ -55,7 +56,7 @@ export function saveTranscript(state: SubagentState, options: TranscriptSaveOpti
   if (format === 'json' || format === 'both') {
     const jsonPath = join(outputDir, `${baseFilename}.json`)
     const jsonContent = generateJsonTranscript(state, includeMetadata, prettyPrint)
-    writeFileSync(jsonPath, jsonContent, 'utf-8')
+    writeFileAtomic(jsonPath, jsonContent, 'utf-8')
     primaryPath = jsonPath
   }
 
@@ -63,7 +64,7 @@ export function saveTranscript(state: SubagentState, options: TranscriptSaveOpti
   if (format === 'markdown' || format === 'both') {
     const mdPath = join(outputDir, `${baseFilename}.md`)
     const mdContent = generateMarkdownTranscript(state, includeMetadata)
-    writeFileSync(mdPath, mdContent, 'utf-8')
+    writeFileAtomic(mdPath, mdContent, 'utf-8')
     if (!primaryPath) {
       primaryPath = mdPath
     }

@@ -573,7 +573,7 @@ export class RecommendationEngine {
    *
    * Creates human-readable explanation for why a plugin is recommended.
    *
-   * @param plugin - Recommended plugin
+   * @param _plugin - Recommended plugin (unused, reserved for future use)
    * @param context - Project context
    * @param matchingTags - Matching tags
    * @param matchingCategories - Matching categories

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { readZcfConfig, updateZcfConfig } from '../../../../src/utils/ccjk-config'
 import { configureCodexApi, configureCodexMcp, runCodexWorkflowImportWithLanguageSelection, runCodexWorkflowSelection } from '../../../../src/utils/code-tools/codex'
 import { applyAiLanguageDirective } from '../../../../src/utils/config'
-import { exists, readFile, writeFile } from '../../../../src/utils/fs-operations'
+import { exists, readFile, writeFileAtomic } from '../../../../src/utils/fs-operations'
 import { resolveAiOutputLanguage, resolveTemplateLanguage } from '../../../../src/utils/prompts'
 
 // Mock i18n
@@ -64,6 +64,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
   ensureDir: vi.fn(),
   copyFile: vi.fn(),
   copyDir: vi.fn(),
@@ -100,7 +101,7 @@ describe('codex Language Selection', () => {
       // Should not prompt for API configuration
       expect(inquirer.prompt).not.toHaveBeenCalled()
       // Should not write any files in skip mode
-      expect(vi.mocked(writeFile)).not.toHaveBeenCalled()
+      expect(vi.mocked(writeFileAtomic)).not.toHaveBeenCalled()
     })
 
     it('should use custom API configuration when provided', async () => {
@@ -119,9 +120,9 @@ describe('codex Language Selection', () => {
       await configureCodexApi(options)
 
       // Assert
-      expect(vi.mocked(writeFile)).toHaveBeenCalledTimes(2)
+      expect(vi.mocked(writeFileAtomic)).toHaveBeenCalledTimes(2)
 
-      const { calls } = vi.mocked(writeFile).mock
+      const { calls } = vi.mocked(writeFileAtomic).mock
       const configCall = calls.find(call => (call[0] as string).includes('config.toml'))
       const authCall = calls.find(call => (call[0] as string).includes('auth.json'))
 
@@ -175,7 +176,7 @@ model_provider = "official"
       }
 
       const codexModule = await import('../../../../src/utils/code-tools/codex')
-      vi.mocked(writeFile).mockClear()
+      vi.mocked(writeFileAtomic).mockClear()
       vi.spyOn(codexModule, 'readCodexConfig').mockReturnValue({
         model: 'test-model',
         modelProvider: 'test-provider',
@@ -190,8 +191,8 @@ model_provider = "official"
       // Should not prompt for MCP configuration
       expect(inquirer.prompt).not.toHaveBeenCalled()
       // Should write MCP defaults in skip mode
-      expect(vi.mocked(writeFile)).toHaveBeenCalled()
-      const writeCall = vi.mocked(writeFile).mock.calls.find(call => call[0].includes('config.toml'))
+      expect(vi.mocked(writeFileAtomic)).toHaveBeenCalled()
+      const writeCall = vi.mocked(writeFileAtomic).mock.calls.find(call => call[0].includes('config.toml'))
       expect(writeCall?.[1]).toContain('[mcp_servers.context7]')
     })
 
@@ -203,7 +204,7 @@ model_provider = "official"
       }
 
       const codexModule = await import('../../../../src/utils/code-tools/codex')
-      vi.mocked(writeFile).mockClear()
+      vi.mocked(writeFileAtomic).mockClear()
       vi.spyOn(codexModule, 'readCodexConfig').mockReturnValue({
         model: 'test-model',
         modelProvider: 'test-provider',
@@ -231,7 +232,7 @@ model_provider = "official"
       }
 
       const codexModule = await import('../../../../src/utils/code-tools/codex')
-      vi.mocked(writeFile).mockClear()
+      vi.mocked(writeFileAtomic).mockClear()
       vi.spyOn(codexModule, 'readCodexConfig').mockReturnValue({
         model: 'test-model',
         modelProvider: 'test-provider',
@@ -246,7 +247,7 @@ model_provider = "official"
 
       // Assert
       expect(inquirer.prompt).not.toHaveBeenCalled()
-      const writeCall = vi.mocked(writeFile).mock.calls.find(call => call[0].includes('config.toml'))
+      const writeCall = vi.mocked(writeFileAtomic).mock.calls.find(call => call[0].includes('config.toml'))
       expect(writeCall?.[1]).toContain('[mcp_servers.context7]')
     })
 
@@ -258,7 +259,7 @@ model_provider = "official"
       }
 
       const codexModule = await import('../../../../src/utils/code-tools/codex')
-      vi.mocked(writeFile).mockClear()
+      vi.mocked(writeFileAtomic).mockClear()
       vi.spyOn(codexModule, 'readCodexConfig').mockReturnValue({
         model: 'test-model',
         modelProvider: 'test-provider',
@@ -350,7 +351,7 @@ model_provider = "official"
       expect(updateZcfConfig).toHaveBeenCalledWith({ templateLang: 'zh-CN' })
       expect(applyAiLanguageDirective).toHaveBeenCalledWith(mockAiOutputLang)
 
-      const agentsWriteCall = vi.mocked(writeFile).mock.calls.find(call => call[0]?.includes('AGENTS.md'))
+      const agentsWriteCall = vi.mocked(writeFileAtomic).mock.calls.find(call => call[0]?.includes('AGENTS.md'))
       expect(agentsWriteCall?.[1]).toContain('**Most Important:Always respond in Chinese-simplified**')
     })
 

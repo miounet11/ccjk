@@ -8,9 +8,10 @@
 
 import type { CacheStats, CloudPlugin, CloudPluginCache } from './types'
 import { Buffer } from 'node:buffer'
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { writeFileAtomic } from '../utils/fs-operations'
 
 // ============================================================================
 // Constants
@@ -140,22 +141,9 @@ export class LocalPluginCache {
         cache.totalPlugins = cache.plugins.length
       }
 
-      // Atomic write: write to temp file first, then rename
-      const tempFile = `${this.cacheFile}.tmp`
+      // Atomic write using shared utility
       const content = JSON.stringify(cache, null, 2)
-
-      writeFileSync(tempFile, content, 'utf-8')
-
-      // Rename is atomic on most file systems
-      if (existsSync(this.cacheFile)) {
-        unlinkSync(this.cacheFile)
-      }
-      writeFileSync(this.cacheFile, content, 'utf-8')
-
-      // Clean up temp file
-      if (existsSync(tempFile)) {
-        unlinkSync(tempFile)
-      }
+      writeFileAtomic(this.cacheFile, content, 'utf-8')
 
       this.cache = cache
     }
@@ -285,18 +273,8 @@ export class LocalPluginCache {
       const safeId = this.sanitizeFilename(pluginId)
       const contentPath = join(this.contentDir, `${safeId}.txt`)
 
-      // Atomic write
-      const tempPath = `${contentPath}.tmp`
-      writeFileSync(tempPath, content, 'utf-8')
-
-      if (existsSync(contentPath)) {
-        unlinkSync(contentPath)
-      }
-      writeFileSync(contentPath, content, 'utf-8')
-
-      if (existsSync(tempPath)) {
-        unlinkSync(tempPath)
-      }
+      // Atomic write using shared utility
+      writeFileAtomic(contentPath, content, 'utf-8')
 
       return contentPath
     }

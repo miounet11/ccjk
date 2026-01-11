@@ -22,6 +22,7 @@ vi.mocked(vi.doMock('../../../../src/utils/fs-operations', () => ({
   ensureDir: mockEnsureDir,
   copyDir: mockCopyDir,
   copyFile: mockCopyFile,
+  writeFileAtomic: vi.fn(),
 })))
 
 describe('codex backup mechanism', () => {

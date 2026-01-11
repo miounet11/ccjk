@@ -21,10 +21,11 @@ import type {
 } from '../../types/cloud-sync.js'
 import type { SkillMdFile } from '../../types/skill-md.js'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
 import process from 'node:process'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR, CCJK_SKILLS_DIR } from '../../constants.js'
+import { writeFileAtomic } from '../../utils/fs-operations'
 import { parseSkillMdFile } from '../../utils/skill-md/parser.js'
 
 // ============================================================================
@@ -74,7 +75,7 @@ export function saveSyncState(state: SyncStateStorage): void {
       mkdirSync(CCJK_CONFIG_DIR, { recursive: true })
     }
 
-    writeFileSync(SYNC_STATE_FILE, JSON.stringify(state, null, 2), 'utf-8')
+    writeFileAtomic(SYNC_STATE_FILE, JSON.stringify(state, null, 2), 'utf-8')
   }
   catch (error) {
     console.error('Failed to save sync state:', error)
@@ -194,7 +195,7 @@ export function saveLocalSkill(skillId: string, content: string): void {
   }
 
   const filePath = join(CCJK_SKILLS_DIR, `${skillId}.md`)
-  writeFileSync(filePath, content, 'utf-8')
+  writeFileAtomic(filePath, content, 'utf-8')
 }
 
 /**

@@ -1,8 +1,9 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
 import { i18n } from '../i18n'
+import { writeFileAtomic } from '../utils/fs-operations'
 
 const TEAM_DIR = '.ccjk/team'
 const CONFIG_FILE = join(TEAM_DIR, 'config.json')
@@ -31,7 +32,7 @@ export async function teamInit(): Promise<void> {
     sharedSettings: {},
   }
 
-  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2))
+  writeFileAtomic(CONFIG_FILE, JSON.stringify(config, null, 2))
   console.log(ansis.green(`✔ ${i18n.t('team:teamInitialized')}: ${name}`))
 }
 

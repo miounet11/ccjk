@@ -1,17 +1,25 @@
 import type { Stats } from 'node:fs'
+import { randomBytes } from 'node:crypto'
 import {
   copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmdirSync,
   rmSync,
   statSync,
   unlinkSync,
   writeFileSync,
 } from 'node:fs'
-import { dirname } from 'pathe'
+import {
+  mkdir,
+  rename,
+  unlink,
+  writeFile as writeFileAsync,
+} from 'node:fs/promises'
+import { dirname, join } from 'pathe'
 import { isWindows } from './platform'
 
 /**
@@ -75,6 +83,108 @@ export function writeFile(path: string, content: string, encoding: BufferEncodin
   catch (error) {
     throw new FileSystemError(
       `Failed to write file: ${path}`,
+      path,
+      error as Error,
+    )
+  }
+}
+
+/**
+ * Options for atomic file write
+ */
+export interface WriteFileAtomicOptions {
+  encoding?: BufferEncoding
+  mode?: number
+}
+
+/**
+ * Write content to file atomically (write to temp file, then rename)
+ * This prevents data corruption if the process is interrupted during write
+ * @param path - Target file path
+ * @param content - Content to write
+ * @param options - Write options (encoding, mode) or just encoding string
+ */
+export function writeFileAtomic(path: string, content: string, options: WriteFileAtomicOptions | BufferEncoding = 'utf-8'): void {
+  const dir = dirname(path)
+  ensureDir(dir)
+
+  // Normalize options
+  const opts: WriteFileAtomicOptions = typeof options === 'string'
+    ? { encoding: options }
+    : options
+  const encoding = opts.encoding ?? 'utf-8'
+
+  // Generate a unique temp file name in the same directory
+  const tempFileName = `.tmp_${randomBytes(8).toString('hex')}_${Date.now()}`
+  const tempPath = join(dir, tempFileName)
+
+  try {
+    // Write to temp file first (with mode if specified)
+    writeFileSync(tempPath, content, { encoding, mode: opts.mode })
+
+    // Atomically rename temp file to target path
+    renameSync(tempPath, path)
+  }
+  catch (error) {
+    // Clean up temp file if it exists
+    try {
+      if (existsSync(tempPath)) {
+        unlinkSync(tempPath)
+      }
+    }
+    catch {
+      // Ignore cleanup errors
+    }
+
+    throw new FileSystemError(
+      `Failed to write file atomically: ${path}`,
+      path,
+      error as Error,
+    )
+  }
+}
+
+/**
+ * Write content to file atomically (async version)
+ * This prevents data corruption if the process is interrupted during write
+ * @param path - Target file path
+ * @param content - Content to write
+ * @param options - Write options (encoding, mode) or just encoding string
+ */
+export async function writeFileAtomicAsync(path: string, content: string, options: WriteFileAtomicOptions | BufferEncoding = 'utf-8'): Promise<void> {
+  const dir = dirname(path)
+  await mkdir(dir, { recursive: true })
+
+  // Normalize options
+  const opts: WriteFileAtomicOptions = typeof options === 'string'
+    ? { encoding: options }
+    : options
+  const encoding = opts.encoding ?? 'utf-8'
+
+  // Generate a unique temp file name in the same directory
+  const tempFileName = `.tmp_${randomBytes(8).toString('hex')}_${Date.now()}`
+  const tempPath = join(dir, tempFileName)
+
+  try {
+    // Write to temp file first (with mode if specified)
+    await writeFileAsync(tempPath, content, { encoding, mode: opts.mode })
+
+    // Atomically rename temp file to target path
+    await rename(tempPath, path)
+  }
+  catch (error) {
+    // Clean up temp file if it exists
+    try {
+      if (existsSync(tempPath)) {
+        await unlink(tempPath)
+      }
+    }
+    catch {
+      // Ignore cleanup errors
+    }
+
+    throw new FileSystemError(
+      `Failed to write file atomically: ${path}`,
       path,
       error as Error,
     )
@@ -165,6 +275,18 @@ export function getStats(path: string): Stats {
 }
 
 /**
+ * Get file/directory stats, returns null if path doesn't exist or is a broken symlink
+ */
+export function getStatsSafe(path: string): Stats | null {
+  try {
+    return statSync(path)
+  }
+  catch {
+    return null
+  }
+}
+
+/**
  * Check if path is a directory
  */
 export function isDirectory(path: string): boolean {
@@ -228,7 +350,14 @@ export function copyDir(src: string, dest: string, options: CopyDirOptions = {})
   for (const entry of entries) {
     const srcPath = `${src}/${entry}`
     const destPath = `${dest}/${entry}`
-    const stats = getStats(srcPath)
+
+    // Use safe stats to handle broken symlinks gracefully
+    const stats = getStatsSafe(srcPath)
+
+    // Skip broken symlinks or inaccessible entries
+    if (!stats) {
+      continue
+    }
 
     // Apply filter if provided
     if (filter && !filter(srcPath, stats)) {

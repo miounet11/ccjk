@@ -3,11 +3,12 @@
  */
 
 import type { CloudPlugin, CloudPluginCache } from '../../src/cloud-plugins/types'
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'pathe'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CACHE_CONFIG, LocalPluginCache } from '../../src/cloud-plugins/cache'
+import * as fsOps from '../../src/utils/fs-operations'
 
 // Mock file system operations
 vi.mock('node:fs', async () => {
@@ -23,6 +24,11 @@ vi.mock('node:fs', async () => {
     statSync: vi.fn(actual.statSync),
   }
 })
+
+// Mock fs-operations for writeFileAtomic
+vi.mock('../../src/utils/fs-operations', () => ({
+  writeFileAtomic: vi.fn(),
+}))
 
 describe('localPluginCache', () => {
   let cache: LocalPluginCache
@@ -160,13 +166,13 @@ describe('localPluginCache', () => {
   describe('saveCache', () => {
     it('should save valid cache to disk', () => {
       const mockExistsSync = vi.mocked(existsSync)
-      const mockWriteFileSync = vi.mocked(writeFileSync)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
       const mockMkdirSync = vi.mocked(mkdirSync)
 
       // Mock successful directory creation
       mockExistsSync.mockReturnValue(false)
       mockMkdirSync.mockReturnValue(undefined)
-      mockWriteFileSync.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       const validCache: CloudPluginCache = {
         version: CACHE_CONFIG.VERSION,
@@ -180,7 +186,7 @@ describe('localPluginCache', () => {
       cache.saveCache(validCache)
 
       expect(mockMkdirSync).toHaveBeenCalled()
-      expect(mockWriteFileSync).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.stringContaining('metadata.json'),
         expect.stringContaining(CACHE_CONFIG.VERSION),
         'utf-8',
@@ -201,12 +207,12 @@ describe('localPluginCache', () => {
 
     it('should truncate plugins if exceeding max limit', () => {
       const mockExistsSync = vi.mocked(existsSync)
-      const mockWriteFileSync = vi.mocked(writeFileSync)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
       const mockMkdirSync = vi.mocked(mkdirSync)
 
       mockExistsSync.mockReturnValue(false)
       mockMkdirSync.mockReturnValue(undefined)
-      mockWriteFileSync.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       const plugins: CloudPlugin[] = Array.from({ length: CACHE_CONFIG.MAX_PLUGINS + 100 }, (_, i) => ({
         id: `plugin-${i}`,
@@ -234,20 +240,20 @@ describe('localPluginCache', () => {
 
       cache.saveCache(cacheWithTooManyPlugins)
 
-      expect(mockWriteFileSync).toHaveBeenCalled()
-      const savedContent = mockWriteFileSync.mock.calls[0][1] as string
+      expect(mockWriteFileAtomic).toHaveBeenCalled()
+      const savedContent = mockWriteFileAtomic.mock.calls[0][1] as string
       const savedCache = JSON.parse(savedContent)
       expect(savedCache.plugins.length).toBe(CACHE_CONFIG.MAX_PLUGINS)
     })
 
     it('should handle write errors', () => {
       const mockExistsSync = vi.mocked(existsSync)
-      const mockWriteFileSync = vi.mocked(writeFileSync)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
       const mockMkdirSync = vi.mocked(mkdirSync)
 
       mockExistsSync.mockReturnValue(false)
       mockMkdirSync.mockReturnValue(undefined)
-      mockWriteFileSync.mockImplementation(() => {
+      mockWriteFileAtomic.mockImplementation(() => {
         throw new Error('Disk full')
       })
 
@@ -363,12 +369,12 @@ describe('localPluginCache', () => {
   describe('updateCache', () => {
     it('should update cache with new plugins', () => {
       const mockExistsSync = vi.mocked(existsSync)
-      const mockWriteFileSync = vi.mocked(writeFileSync)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
       const mockMkdirSync = vi.mocked(mkdirSync)
 
       mockExistsSync.mockReturnValue(false)
       mockMkdirSync.mockReturnValue(undefined)
-      mockWriteFileSync.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       const plugins: CloudPlugin[] = [
         {
@@ -389,8 +395,8 @@ describe('localPluginCache', () => {
 
       cache.updateCache(plugins)
 
-      expect(mockWriteFileSync).toHaveBeenCalled()
-      const savedContent = mockWriteFileSync.mock.calls[0][1] as string
+      expect(mockWriteFileAtomic).toHaveBeenCalled()
+      const savedContent = mockWriteFileAtomic.mock.calls[0][1] as string
       const savedCache = JSON.parse(savedContent)
       expect(savedCache.plugins).toEqual(plugins)
       expect(savedCache.totalPlugins).toBe(1)
@@ -399,7 +405,7 @@ describe('localPluginCache', () => {
     it('should preserve createdAt timestamp on update', () => {
       const mockExistsSync = vi.mocked(existsSync)
       const mockReadFileSync = vi.mocked(readFileSync)
-      const mockWriteFileSync = vi.mocked(writeFileSync)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
       const mockMkdirSync = vi.mocked(mkdirSync)
       const mockUnlinkSync = vi.mocked(unlinkSync)
 
@@ -417,14 +423,14 @@ describe('localPluginCache', () => {
       mockExistsSync.mockReturnValue(true)
       mockReadFileSync.mockReturnValue(JSON.stringify(existingCache))
       mockMkdirSync.mockReturnValue(undefined)
-      mockWriteFileSync.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
       mockUnlinkSync.mockReturnValue(undefined)
 
       cache.loadCache()
       cache.updateCache([])
 
-      expect(mockWriteFileSync).toHaveBeenCalled()
-      const savedContent = mockWriteFileSync.mock.calls[0][1] as string
+      expect(mockWriteFileAtomic).toHaveBeenCalled()
+      const savedContent = mockWriteFileAtomic.mock.calls[0][1] as string
       const savedCache = JSON.parse(savedContent)
       expect(savedCache.createdAt).toBe(originalCreatedAt)
     })
@@ -516,17 +522,17 @@ describe('localPluginCache', () => {
   describe('cachePluginContent', () => {
     it('should cache plugin content', () => {
       const mockExistsSync = vi.mocked(existsSync)
-      const mockWriteFileSync = vi.mocked(writeFileSync)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
       const mockMkdirSync = vi.mocked(mkdirSync)
 
       mockExistsSync.mockReturnValue(false)
       mockMkdirSync.mockReturnValue(undefined)
-      mockWriteFileSync.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       const content = 'plugin code content'
       const result = cache.cachePluginContent('test-plugin', content)
 
-      expect(mockWriteFileSync).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.stringContaining('test-plugin.txt'),
         content,
         'utf-8',
@@ -536,17 +542,17 @@ describe('localPluginCache', () => {
 
     it('should sanitize plugin ID for filename', () => {
       const mockExistsSync = vi.mocked(existsSync)
-      const mockWriteFileSync = vi.mocked(writeFileSync)
+      const mockWriteFileAtomic = vi.mocked(fsOps.writeFileAtomic)
       const mockMkdirSync = vi.mocked(mkdirSync)
 
       mockExistsSync.mockReturnValue(false)
       mockMkdirSync.mockReturnValue(undefined)
-      mockWriteFileSync.mockReturnValue(undefined)
+      mockWriteFileAtomic.mockReturnValue(undefined)
 
       const content = 'plugin code'
       cache.cachePluginContent('test/plugin@1.0', content)
 
-      expect(mockWriteFileSync).toHaveBeenCalledWith(
+      expect(mockWriteFileAtomic).toHaveBeenCalledWith(
         expect.stringContaining('test_plugin_1.0.txt'),
         content,
         'utf-8',

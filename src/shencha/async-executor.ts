@@ -7,10 +7,11 @@ import type {
   ProjectContext,
   ScanResult,
 } from './types'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import { readFile as readFileAsync, writeFile as writeFileAsync } from 'node:fs/promises'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR } from '../constants'
+import { writeFileAtomic } from '../utils/fs-operations'
 import { LLMDecisionEngine } from './llm-decision'
 import { LLMFixer } from './llm-fixer'
 import { LLMScanner } from './llm-scanner'
@@ -238,7 +239,7 @@ Return JSON:
         this.config.reportDir,
         `report-${cycle.id}.json`,
       )
-      writeFileSync(reportPath, JSON.stringify(cycle.report, null, 2))
+      writeFileAtomic(reportPath, JSON.stringify(cycle.report, null, 2))
 
       cycle.status = 'completed'
       cycle.completedAt = new Date()

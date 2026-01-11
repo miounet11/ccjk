@@ -20,6 +20,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
   ensureDir: vi.fn(),
   copyFile: vi.fn(),
   copyDir: vi.fn(),
@@ -153,13 +154,13 @@ describe('codex - common templates usage', () => {
       const codex = await import('../../../../src/utils/code-tools/codex')
 
       let capturedWritePath: string | undefined
-      mockFsOperations.writeFile.mockImplementation((path: string) => {
+      mockFsOperations.writeFileAtomic.mockImplementation((path: string) => {
         capturedWritePath = path
       })
 
       await codex.runCodexSystemPromptSelection()
 
-      // Verify writeFile was called for AGENTS.md
+      // Verify writeFileAtomic was called for AGENTS.md
       expect(capturedWritePath).toBeDefined()
       expect(capturedWritePath).toContain('AGENTS.md')
     })

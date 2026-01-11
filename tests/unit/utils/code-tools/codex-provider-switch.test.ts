@@ -175,14 +175,14 @@ temp_env_key = "CLAUDE_API_API_KEY"
       mockFs.exists.mockReturnValue(true)
       mockFs.readFile.mockReturnValue(mockConfig)
       mockFs.ensureDir.mockReturnValue(undefined)
-      mockFs.writeFile.mockReturnValue(undefined)
+      mockFs.writeFileAtomic.mockReturnValue(undefined)
     })
 
     it('should successfully switch to existing provider', async () => {
       const result = await switchCodexProvider('claude-api')
 
       expect(result).toBe(true)
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
+      expect(mockFs.writeFileAtomic).toHaveBeenCalledWith(
         expect.stringContaining('config.toml'),
         expect.stringContaining('model_provider = "claude-api"'),
       )
@@ -192,7 +192,7 @@ temp_env_key = "CLAUDE_API_API_KEY"
       const result = await switchCodexProvider('non-existent')
 
       expect(result).toBe(false)
-      expect(mockFs.writeFile).not.toHaveBeenCalled()
+      expect(mockFs.writeFileAtomic).not.toHaveBeenCalled()
     })
 
     it('should fail when config file does not exist', async () => {
@@ -201,7 +201,7 @@ temp_env_key = "CLAUDE_API_API_KEY"
       const result = await switchCodexProvider('claude-api')
 
       expect(result).toBe(false)
-      expect(mockFs.writeFile).not.toHaveBeenCalled()
+      expect(mockFs.writeFileAtomic).not.toHaveBeenCalled()
     })
 
     it('should fail when no providers are configured', async () => {
@@ -210,7 +210,7 @@ temp_env_key = "CLAUDE_API_API_KEY"
       const result = await switchCodexProvider('claude-api')
 
       expect(result).toBe(false)
-      expect(mockFs.writeFile).not.toHaveBeenCalled()
+      expect(mockFs.writeFileAtomic).not.toHaveBeenCalled()
     })
 
     it('should handle provider names with special characters', async () => {
@@ -229,7 +229,7 @@ temp_env_key = "TEST_PROVIDER_123_API_KEY"
       const result = await switchCodexProvider('test-provider_123')
 
       expect(result).toBe(true)
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
+      expect(mockFs.writeFileAtomic).toHaveBeenCalledWith(
         expect.stringContaining('config.toml'),
         expect.stringContaining('model_provider = "test-provider_123"'),
       )

@@ -1,8 +1,9 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR, SETTINGS_FILE } from '../constants'
 import { STATUS } from './banner'
+import { writeFileAtomic } from './fs-operations'
 
 /**
  * Permission types
@@ -135,14 +136,14 @@ export function writePermissions(permissions: PermissionSet): boolean {
     }
 
     // Write to CCJK config
-    writeFileSync(PERMISSION_CONFIG_FILE, JSON.stringify(permissions, null, 2))
+    writeFileAtomic(PERMISSION_CONFIG_FILE, JSON.stringify(permissions, null, 2))
 
     // Also update Claude settings if it exists
     if (existsSync(SETTINGS_FILE)) {
       try {
         const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
         settings.permissions = permissions
-        writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2))
+        writeFileAtomic(SETTINGS_FILE, JSON.stringify(settings, null, 2))
       }
       catch {
         // Ignore Claude settings update failure

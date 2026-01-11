@@ -21,7 +21,7 @@ import {
 } from '../services/cloud/hooks-sync.js'
 import { displayBannerWithInfo } from '../utils/banner.js'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler.js'
-import { ensureDir, exists, readJsonFile, writeFile } from '../utils/fs-operations.js'
+import { ensureDir, exists, readJsonFile, writeFileAtomic } from '../utils/fs-operations.js'
 import { getGlobalRegistry } from '../utils/hooks/registry.js'
 
 // ============================================================================
@@ -177,7 +177,7 @@ async function syncHooks(): Promise<void> {
   try {
     // Load local hooks
     const localHooks = await loadLocalHooks()
-    console.log(ansis.dim(`  Local hooks: ${localHooks.length}`))
+    console.log(ansis.dim(`  ${i18n.t('hooksSync:labels.localHooks')}: ${localHooks.length}`))
 
     // Create cloud client
     const client = new CloudHooksSyncClient({
@@ -191,24 +191,24 @@ async function syncHooks(): Promise<void> {
     })
 
     if (result.success && result.data) {
-      console.log(ansis.green(`\n✅ Sync completed successfully`))
-      console.log(ansis.dim(`  Uploaded: ${result.data.uploaded}`))
-      console.log(ansis.dim(`  Downloaded: ${result.data.downloaded}`))
-      console.log(ansis.dim(`  Skipped: ${result.data.skipped}`))
+      console.log(ansis.green(`\n✅ ${i18n.t('hooksSync:actions.syncCompleted')}`))
+      console.log(ansis.dim(`  ${i18n.t('hooksSync:labels.uploaded')}: ${result.data.uploaded}`))
+      console.log(ansis.dim(`  ${i18n.t('hooksSync:labels.downloaded')}: ${result.data.downloaded}`))
+      console.log(ansis.dim(`  ${i18n.t('hooksSync:labels.skipped')}: ${result.data.skipped}`))
 
       if (result.data.failed > 0) {
-        console.log(ansis.yellow(`  Failed: ${result.data.failed}`))
+        console.log(ansis.yellow(`  ${i18n.t('hooksSync:labels.failed')}: ${result.data.failed}`))
       }
 
       // Save sync timestamp
       await saveLocalHooks(localHooks, result.data.timestamp)
     }
     else {
-      console.log(ansis.red(`\n❌ Sync failed: ${result.error || 'Unknown error'}`))
+      console.log(ansis.red(`\n❌ ${i18n.t('hooksSync:actions.syncError', { error: result.error || 'Unknown error' })}`))
     }
   }
   catch (error) {
-    console.log(ansis.red(`\n❌ Sync error: ${error instanceof Error ? error.message : String(error)}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('hooksSync:actions.syncError', { error: error instanceof Error ? error.message : String(error) })}`))
   }
 }
 
@@ -216,31 +216,31 @@ async function syncHooks(): Promise<void> {
  * Upload local hooks to cloud
  */
 async function uploadHooks(): Promise<void> {
-  console.log(ansis.cyan(`\n⏳ Uploading hooks to cloud...`))
+  console.log(ansis.cyan(`\n⏳ ${i18n.t('hooksSync:actions.uploading')}`))
 
   try {
     const localHooks = await loadLocalHooks()
 
     if (localHooks.length === 0) {
-      console.log(ansis.yellow(`\n⚠️  No local hooks found`))
+      console.log(ansis.yellow(`\n⚠️  ${i18n.t('hooksSync:errors.noHooksFound')}`))
       return
     }
 
-    console.log(ansis.dim(`  Found ${localHooks.length} local hooks`))
+    console.log(ansis.dim(`  ${i18n.t('hooksSync:labels.found')} ${localHooks.length} ${i18n.t('hooksSync:labels.localHooks').toLowerCase()}`))
 
     const client = new CloudHooksSyncClient()
     const result = await client.uploadHooks(localHooks)
 
     if (result.success && result.data) {
-      console.log(ansis.green(`\n✅ Upload completed`))
-      console.log(ansis.dim(`  Uploaded: ${result.data.uploaded}`))
+      console.log(ansis.green(`\n✅ ${i18n.t('hooksSync:actions.uploadCompleted')}`))
+      console.log(ansis.dim(`  ${i18n.t('hooksSync:labels.uploaded')}: ${result.data.uploaded}`))
     }
     else {
-      console.log(ansis.red(`\n❌ Upload failed: ${result.error || 'Unknown error'}`))
+      console.log(ansis.red(`\n❌ ${i18n.t('hooksSync:actions.uploadError', { error: result.error || 'Unknown error' })}`))
     }
   }
   catch (error) {
-    console.log(ansis.red(`\n❌ Upload error: ${error instanceof Error ? error.message : String(error)}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('hooksSync:actions.uploadError', { error: error instanceof Error ? error.message : String(error) })}`))
   }
 }
 
@@ -248,7 +248,7 @@ async function uploadHooks(): Promise<void> {
  * Download hooks from cloud
  */
 async function downloadHooks(options: HooksSyncOptions = {}): Promise<void> {
-  console.log(ansis.cyan(`\n⏳ Downloading hooks from cloud...`))
+  console.log(ansis.cyan(`\n⏳ ${i18n.t('hooksSync:actions.downloading')}`))
 
   try {
     const client = new CloudHooksSyncClient()
@@ -258,8 +258,8 @@ async function downloadHooks(options: HooksSyncOptions = {}): Promise<void> {
     })
 
     if (result.success && result.data) {
-      console.log(ansis.green(`\n✅ Download completed`))
-      console.log(ansis.dim(`  Downloaded: ${result.data.length} hooks`))
+      console.log(ansis.green(`\n✅ ${i18n.t('hooksSync:actions.downloadCompleted')}`))
+      console.log(ansis.dim(`  ${i18n.t('hooksSync:labels.downloaded')}: ${result.data.length}`))
 
       // Save downloaded hooks
       await saveLocalHooks(result.data)
@@ -270,11 +270,11 @@ async function downloadHooks(options: HooksSyncOptions = {}): Promise<void> {
       })
     }
     else {
-      console.log(ansis.red(`\n❌ Download failed: ${result.error || 'Unknown error'}`))
+      console.log(ansis.red(`\n❌ ${i18n.t('hooksSync:actions.downloadError', { error: result.error || 'Unknown error' })}`))
     }
   }
   catch (error) {
-    console.log(ansis.red(`\n❌ Download error: ${error instanceof Error ? error.message : String(error)}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('hooksSync:actions.downloadError', { error: error instanceof Error ? error.message : String(error) })}`))
   }
 }
 
@@ -286,13 +286,13 @@ async function downloadHooks(options: HooksSyncOptions = {}): Promise<void> {
  * List local hooks
  */
 async function listHooks(options: HooksSyncOptions = {}): Promise<void> {
-  console.log(ansis.cyan.bold(`\n📋 Local Hooks\n`))
+  console.log(ansis.cyan.bold(`\n📋 ${i18n.t('hooksSync:labels.localHooks')}\n`))
 
   try {
     const hooks = await loadLocalHooks()
 
     if (hooks.length === 0) {
-      console.log(ansis.yellow(`  No hooks found`))
+      console.log(ansis.yellow(`  ${i18n.t('hooksSync:errors.noHooksFound')}`))
       return
     }
 
@@ -322,10 +322,10 @@ async function listHooks(options: HooksSyncOptions = {}): Promise<void> {
       }
     }
 
-    console.log(ansis.dim(`\nTotal: ${filteredHooks.length} hooks`))
+    console.log(ansis.dim(`\n${i18n.t('hooksSync:labels.total')}: ${filteredHooks.length}`))
   }
   catch (error) {
-    console.log(ansis.red(`\n❌ Error: ${error instanceof Error ? error.message : String(error)}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('common:error')}: ${error instanceof Error ? error.message : String(error)}`))
   }
 }
 
@@ -338,7 +338,7 @@ async function toggleHook(hookId: string, enabled: boolean): Promise<void> {
     const hook = hooks.find(h => h.id === hookId)
 
     if (!hook) {
-      console.log(ansis.red(`\n❌ Hook not found: ${hookId}`))
+      console.log(ansis.red(`\n❌ ${i18n.t('hooksSync:errors.hookNotFound', { id: hookId })}`))
       return
     }
 
@@ -360,11 +360,11 @@ async function toggleHook(hookId: string, enabled: boolean): Promise<void> {
       }
     }
 
-    const status = enabled ? ansis.green('enabled') : ansis.red('disabled')
-    console.log(`\n✅ Hook ${status}: ${hook.name}`)
+    const status = enabled ? ansis.green(i18n.t('hooksSync:labels.enabled')) : ansis.red(i18n.t('hooksSync:labels.disabled'))
+    console.log(`\n✅ ${i18n.t('hooksSync:actions.hookToggled', { status, name: hook.name })}`)
   }
   catch (error) {
-    console.log(ansis.red(`\n❌ Error: ${error instanceof Error ? error.message : String(error)}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('common:error')}: ${error instanceof Error ? error.message : String(error)}`))
   }
 }
 
@@ -389,12 +389,12 @@ async function browseTemplates(lang: SupportedLang, options: HooksSyncOptions = 
       : templates
 
     if (filteredTemplates.length === 0) {
-      console.log(ansis.yellow(`  No templates found`))
+      console.log(ansis.yellow(`  ${i18n.t('hooksSync:errors.noTemplatesFound')}`))
       return
     }
 
     // Display categories
-    console.log(ansis.bold(`Categories:`))
+    console.log(ansis.bold(`${i18n.t('hooksSync:labels.categories')}:`))
     for (const cat of categories) {
       const count = templates.filter(t => t.category === cat.id).length
       const catName = cat.name[lang as keyof typeof cat.name] || cat.name.en
@@ -405,7 +405,7 @@ async function browseTemplates(lang: SupportedLang, options: HooksSyncOptions = 
     const { templateId } = await inquirer.prompt([{
       type: 'list',
       name: 'templateId',
-      message: 'Select a template to install:',
+      message: i18n.t('hooksSync:prompts.selectTemplate'),
       choices: filteredTemplates.map(t => ({
         name: `${t.name} - ${t.description}`,
         value: t.id,
@@ -424,14 +424,14 @@ async function browseTemplates(lang: SupportedLang, options: HooksSyncOptions = 
     // Show template details
     console.log(ansis.bold(`\n${template.name}`))
     console.log(ansis.dim(template.description))
-    console.log(ansis.bold(`\nCategory: `) + template.category)
-    console.log(ansis.bold(`Variables: `) + template.variables.join(', '))
+    console.log(ansis.bold(`\n${i18n.t('hooksSync:labels.category')}: `) + template.category)
+    console.log(ansis.bold(`${i18n.t('hooksSync:labels.variables')}: `) + template.variables.join(', '))
 
     // Confirm installation
     const { confirm } = await inquirer.prompt([{
       type: 'confirm',
       name: 'confirm',
-      message: 'Install this template?',
+      message: i18n.t('hooksSync:prompts.confirmInstall'),
       default: true,
     }])
 
@@ -443,7 +443,7 @@ async function browseTemplates(lang: SupportedLang, options: HooksSyncOptions = 
     await installTemplate(template)
   }
   catch (error) {
-    console.log(ansis.red(`\n❌ Error: ${error instanceof Error ? error.message : String(error)}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('common:error')}: ${error instanceof Error ? error.message : String(error)}`))
   }
 }
 
@@ -480,10 +480,10 @@ async function installTemplate(template: HookTemplate): Promise<void> {
     const localHook = convertFromCloudHook(cloudHook)
     registry.register(localHook)
 
-    console.log(ansis.green(`\n✅ Template installed: ${template.name}`))
+    console.log(ansis.green(`\n✅ ${i18n.t('hooksSync:actions.templateInstalled', { name: template.name })}`))
   }
   catch (error) {
-    console.log(ansis.red(`\n❌ Install error: ${error instanceof Error ? error.message : String(error)}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('hooksSync:actions.installError', { error: error instanceof Error ? error.message : String(error) })}`))
   }
 }
 
@@ -510,7 +510,7 @@ async function loadLocalHooks(): Promise<CloudHook[]> {
     return storage?.hooks || []
   }
   catch (error) {
-    console.error('Failed to load local hooks:', error)
+    console.error(i18n.t('hooksSync:errors.loadHooksFailed'), error)
     return []
   }
 }
@@ -531,10 +531,10 @@ async function saveLocalHooks(hooks: CloudHook[], lastSyncedAt?: string): Promis
     }
 
     // Write storage file
-    await writeFile(HOOKS_STORAGE_FILE, JSON.stringify(storage, null, 2))
+    await writeFileAtomic(HOOKS_STORAGE_FILE, JSON.stringify(storage, null, 2))
   }
   catch (error) {
-    console.error('Failed to save local hooks:', error)
+    console.error(i18n.t('hooksSync:errors.saveHooksFailed'), error)
     throw error
   }
 }
