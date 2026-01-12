@@ -102,22 +102,61 @@ claude
 
 ## ✨ Core Features
 
-### 🎯 Simplified 8-Category Menu (v2.0.12)
+### 🎯 Streamlined Menu System (v2.0.18)
 
-Navigate CCJK features with our streamlined menu structure:
+Navigate CCJK features with our optimized two-level menu structure:
+
+**Main Menu (Page 1 - Core Features)**
 
 | Category | Features |
 |----------|----------|
 | 🚀 Quick Start | Initialization, Updates, Health Check |
-| ⚙️ Config Center | API, Permissions, MCP, Context Management |
-| 🛠️ Tool Management | Multi-tool Support, Version Check |
-| 📦 Extension Market | Plugins, Skills, Workflows |
-| 🔍 Code Quality | Audit, Interview-Driven Development |
-| 👥 Team Collaboration | Team Features, Session Management |
-| 📊 Analytics | Usage Analysis, Config Scanning |
-| 🗑️ Uninstall & Cleanup | Uninstall Tools |
+| 🔔 Task Notifications | Desktop notifications when tasks complete |
+| 🧩 Extension Center | CCR, CCUsage, Cometix, Superpowers, MCP Market |
+| ⚙️ More Settings | MCP, Memory, Permissions, Context Management |
 
-### 📋 Context Management (NEW in v2.0.12)
+**Extension Center Submenu**
+
+| Tool | Description |
+|------|-------------|
+| 🔀 CCR | Claude Code Router - Multi-provider routing |
+| 📊 CCUsage | Usage analytics and cost tracking |
+| 🎨 Cometix | UI themes and customization |
+| ⚡ Superpowers | Enhanced Claude Code capabilities |
+| 🏪 MCP Market | Browse and install MCP services |
+
+**More Settings Submenu**
+
+| Feature | Description |
+|---------|-------------|
+| 🔌 MCP Config | Model Context Protocol setup |
+| 🧠 Memory Management | Context and memory settings |
+| 🔐 Permissions | File and command access control |
+| 📋 Context Management | Project context and rules |
+| 🔧 Workspace Diagnostics | Environment troubleshooting |
+
+### 🔧 Workspace Diagnostics (NEW in v2.0.18)
+
+Diagnose and fix Claude Code workspace issues with one command:
+
+```bash
+ccjk workspace    # Run full workspace diagnostics
+```
+
+**Diagnostic Checks:**
+- ✅ Write permission testing
+- ✅ Directory ownership verification
+- ✅ Trust directory status
+- ✅ Path issues (spaces, special characters, CJK paths)
+- ✅ Disk space availability
+- ✅ Container/remote environment detection
+
+**Auto-Fix Suggestions:**
+- Provides specific fix commands when issues are detected
+- One-click execution of repair operations
+- Guides users through proper Claude Code configuration
+
+### 📋 Context Management
 
 Intelligently manage project context and CLAUDE.md rules:
 
@@ -310,9 +349,16 @@ npx ccjk init --provider minimax --api-key YOUR_KEY
 
 ## 🗺️ Roadmap
 
-### ✅ Recently Completed (v2.0.12)
+### ✅ Recently Completed (v2.0.18)
 
-#### 🎯 Simplified 8-Category Menu System
+#### 🔧 Workspace Diagnostics & Streamlined Menu
+- **Workspace Diagnostics** - One-command environment troubleshooting
+- **Streamlined Menu** - Optimized two-level menu structure
+- **Extension Center** - Centralized access to CCR, CCUsage, Cometix, Superpowers
+- **Task Notifications** - Prominent placement for desktop notifications
+- **Status**: ✅ **COMPLETED** - Full i18n support
+
+#### 🎯 Simplified 8-Category Menu System (v2.0.12)
 - **Streamlined Navigation** - 8 intuitive categories for all features
 - **Context Management** - Auto-detect project type, framework, package manager
 - **Smart Recommendations** - AI-powered coding style, testing, security rules
