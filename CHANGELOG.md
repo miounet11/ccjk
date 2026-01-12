@@ -1,5 +1,53 @@
 # Changelog
 
+## 2.2.4
+
+### Installation Registry System / 安装源注册表系统
+
+#### New Features / 新功能
+- **Declarative Installation Registry**: New `installation-registry.ts` provides a unified, extensible system for managing all installation sources
+- **Improved curl installation support**: Full support for detecting and updating Claude Code installed via curl script (`~/.claude/local/claude`)
+- **Symlink resolution**: Now resolves symlinks to accurately detect the actual installation source
+
+- **声明式安装源注册表**: 新增 `installation-registry.ts`，提供统一、可扩展的安装源管理系统
+- **改进 curl 安装支持**: 完整支持检测和更新通过 curl 脚本安装的 Claude Code (`~/.claude/local/claude`)
+- **符号链接解析**: 现在会解析符号链接以准确检测实际安装源
+
+#### Bug Fixes / 问题修复
+- **Fix curl installation update**: `updateViaCurl()` now correctly re-runs the official curl installation script
+- **Fix installation source detection order**: Symlink resolution happens before path matching for accurate detection
+- **Fix homebrew-cask detection**: Improved detection for both Intel (`/usr/local/Caskroom`) and Apple Silicon (`/opt/homebrew/Caskroom`) paths
+
+- **修复 curl 安装更新**: `updateViaCurl()` 现在能正确重新运行官方 curl 安装脚本
+- **修复安装源检测顺序**: 符号链接解析在路径匹配之前进行，确保准确检测
+- **修复 homebrew-cask 检测**: 改进对 Intel (`/usr/local/Caskroom`) 和 Apple Silicon (`/opt/homebrew/Caskroom`) 路径的检测
+
+#### Supported Installation Sources / 支持的安装源
+| Source | Detection | Update Method |
+|--------|-----------|---------------|
+| `homebrew-cask` | Caskroom path | `brew upgrade --cask claude-code` |
+| `npm` | node_modules path | `npm update -g @anthropic-ai/claude-code` |
+| `curl` | `~/.claude/local/` path | Re-run curl install script |
+| `snap` | `/snap/` path | `snap refresh claude-code` |
+| `other` | Other paths | Manual update prompt |
+
+## 2.2.3
+
+### Linux curl Installation Update Fix / Linux curl 安装更新修复
+
+#### Bug Fixes / 问题修复
+- **Fix curl installation source detection**: `getClaudeCodeInstallationSource` now correctly identifies curl installations in `~/.local/bin/` and `~/.claude/`
+- **Add 'curl' as explicit installation source type**: Previously curl installations were incorrectly classified as 'other'
+- **Improve update logic for curl installations**: `updateClaudeCode` now has dedicated handling for curl-installed Claude Code
+- **Fix PATH fallback detection**: When `claude` is not in PATH, now checks common installation locations (`~/.local/bin/claude`, `~/.claude/bin/claude`, etc.)
+- **Support fnm and nvm path detection**: Added detection for npm installations via fnm_multishells and .nvm paths
+
+- **修复 curl 安装源检测**: `getClaudeCodeInstallationSource` 现在能正确识别 `~/.local/bin/` 和 `~/.claude/` 中的 curl 安装
+- **添加 'curl' 作为明确的安装源类型**: 之前 curl 安装被错误地归类为 'other'
+- **改进 curl 安装的更新逻辑**: `updateClaudeCode` 现在对 curl 安装的 Claude Code 有专门的处理
+- **修复 PATH 回退检测**: 当 `claude` 不在 PATH 中时，现在会检查常见安装位置
+- **支持 fnm 和 nvm 路径检测**: 添加了对通过 fnm_multishells 和 .nvm 路径安装的 npm 的检测
+
 ## 2.2.2
 
 ### Linux curl Installation Support / Linux curl 安装支持

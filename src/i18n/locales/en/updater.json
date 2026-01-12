@@ -22,5 +22,6 @@
   "updateSkipped": "Update skipped",
   "updateSuccess": "{tool} updated successfully!",
   "updateSummary": "Update Summary",
-  "updating": "Updating {tool}..."
+  "updating": "Updating {tool}...",
+  "curlReinstallRequired": "Cannot auto-update curl-installed Claude Code. Please run manually: curl -fsSL https://claude.ai/install.sh | sh"
 }

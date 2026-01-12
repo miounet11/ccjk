@@ -1,9 +1,16 @@
+import type { InstallationSourceType } from './installation-registry'
 import { exec } from 'node:child_process'
 import * as nodeFs from 'node:fs'
 import * as nodePath from 'node:path'
 import process from 'node:process'
 import { promisify } from 'node:util'
 import semver from 'semver'
+import {
+  detectSourceFromPath,
+  findInstallationByCommonPaths,
+  getCommonPathsForPlatform,
+
+} from './installation-registry'
 import { findCommandPath, getHomebrewCommandPaths, getPlatform } from './platform'
 
 const execAsync = promisify(exec)
@@ -70,60 +77,108 @@ export async function getLatestVersion(packageName: string, maxRetries = 3): Pro
 /**
  * Determine the installation source of Claude Code based on the actual command path
  *
+ * 🧠 重构版本：使用声明式安装源注册表系统
+ *
  * This function finds the actual `claude` command path and determines whether it
  * comes from a Homebrew cask installation or another source (npm, curl, etc.).
+ *
+ * 设计优势：
+ * - 新增安装源只需在 installation-registry.ts 中添加配置
+ * - 检测逻辑统一，不会遗漏任何已注册的安装源
+ * - 支持未来扩展（snap、flatpak、apt 等）
  *
  * @returns Installation source info including whether it's from Homebrew
  */
 export async function getClaudeCodeInstallationSource(): Promise<{
   isHomebrew: boolean
   commandPath: string | null
-  source: 'homebrew-cask' | 'npm' | 'other' | 'not-found'
+  source: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found'
 }> {
-  // Only check Homebrew on macOS
-  if (getPlatform() !== 'macos') {
-    const commandPath = await findCommandPath('claude')
-    return {
-      isHomebrew: false,
-      commandPath,
-      source: commandPath ? 'other' : 'not-found',
+  const platform = getPlatform()
+
+  // First try to find command in PATH
+  let commandPath = await findCommandPath('claude')
+
+  // If not found in PATH, use registry to check common installation locations
+  if (!commandPath) {
+    const commonPaths = getCommonPathsForPlatform(platform)
+
+    for (const path of commonPaths) {
+      if (nodeFs.existsSync(path)) {
+        // Check if it's a file (not directory)
+        try {
+          const stats = nodeFs.statSync(path)
+          if (stats.isFile()) {
+            commandPath = path
+            break
+          }
+        }
+        catch {
+          // Ignore stat errors
+        }
+      }
+    }
+
+    // If still not found, try the registry's smart search
+    if (!commandPath) {
+      const found = findInstallationByCommonPaths(platform)
+      if (found) {
+        commandPath = found.path
+      }
     }
   }
 
-  const commandPath = await findCommandPath('claude')
   if (!commandPath) {
     return { isHomebrew: false, commandPath: null, source: 'not-found' }
   }
 
-  // Check if the path is from Homebrew Caskroom
-  // Homebrew cask paths look like: /opt/homebrew/Caskroom/claude-code/2.0.56/claude
-  // or /usr/local/Caskroom/claude-code/*/claude
-  const isFromCaskroom = commandPath.includes('/Caskroom/claude-code/')
-
-  if (isFromCaskroom) {
-    return { isHomebrew: true, commandPath, source: 'homebrew-cask' }
-  }
-
-  // Check if it's a symlink to a Caskroom path
+  // Resolve symlinks to get the real path for accurate detection
+  let resolvedPath = commandPath
   try {
-    const { stdout: realPath } = await execAsync(`readlink -f "${commandPath}" 2>/dev/null || realpath "${commandPath}" 2>/dev/null || echo "${commandPath}"`)
-    const resolvedPath = realPath.trim()
-
-    if (resolvedPath.includes('/Caskroom/claude-code/')) {
-      return { isHomebrew: true, commandPath, source: 'homebrew-cask' }
-    }
+    const { stdout } = await execAsync(
+      `readlink -f "${commandPath}" 2>/dev/null || realpath "${commandPath}" 2>/dev/null || echo "${commandPath}"`,
+    )
+    resolvedPath = stdout.trim()
   }
   catch {
-    // Ignore symlink resolution errors
+    // Keep original path if resolution fails
   }
 
-  // Not from Homebrew cask - could be npm, curl installation, etc.
-  // Check if path suggests npm installation
-  if (commandPath.includes('/node_modules/') || commandPath.includes('/npm/') || commandPath.includes('/Cellar/node/')) {
-    return { isHomebrew: false, commandPath, source: 'npm' }
+  // Use the registry to detect source from path
+  const detectedSource = detectSourceFromPath(resolvedPath, platform)
+    || detectSourceFromPath(commandPath, platform)
+
+  if (detectedSource) {
+    // Map registry source type to legacy return type
+    const sourceType = mapSourceType(detectedSource.type)
+    return {
+      isHomebrew: detectedSource.type === 'homebrew-cask',
+      commandPath,
+      source: sourceType,
+    }
   }
 
+  // Fallback: return 'other' if no source matched
   return { isHomebrew: false, commandPath, source: 'other' }
+}
+
+/**
+ * Map InstallationSourceType to legacy source type for backward compatibility
+ */
+function mapSourceType(
+  type: InstallationSourceType,
+): 'homebrew-cask' | 'npm' | 'curl' | 'other' {
+  switch (type) {
+    case 'homebrew-cask':
+      return 'homebrew-cask'
+    case 'npm':
+    case 'npm-homebrew-node':
+      return 'npm'
+    case 'curl':
+      return 'curl'
+    default:
+      return 'other'
+  }
 }
 
 export interface ClaudeCodeInstallation {
@@ -754,7 +809,7 @@ export async function checkClaudeCodeVersion(): Promise<{
   needsUpdate: boolean
   isHomebrew: boolean
   commandPath: string | null
-  installationSource: 'homebrew-cask' | 'npm' | 'other' | 'not-found'
+  installationSource: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found'
   isBroken?: boolean
 }> {
   let currentVersion = await getInstalledVersion('claude')
@@ -768,20 +823,35 @@ export async function checkClaudeCodeVersion(): Promise<{
   // try to detect via detectAllClaudeCodeInstallations to find broken/hidden installs
   if (!currentVersion) {
     const installations = await detectAllClaudeCodeInstallations()
-    // Prefer npm/homebrew installs
+    // Prefer homebrew > npm > curl > other
     const bestInstall = installations.find(i => i.source === 'homebrew-cask')
       || installations.find(i => i.source === 'npm')
+      || installations.find(i => i.source === 'curl')
       || installations[0]
 
     if (bestInstall && bestInstall.version) {
       currentVersion = bestInstall.version
+      // Map installation source correctly
+      let mappedSource: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found'
+      switch (bestInstall.source) {
+        case 'homebrew-cask':
+          mappedSource = 'homebrew-cask'
+          break
+        case 'npm':
+        case 'npm-homebrew-node':
+          mappedSource = 'npm'
+          break
+        case 'curl':
+          mappedSource = 'curl'
+          break
+        default:
+          mappedSource = 'other'
+      }
       installationInfo = {
         isHomebrew: bestInstall.source === 'homebrew-cask',
         commandPath: bestInstall.path,
-        source: bestInstall.source === 'npm'
-          ? 'npm'
-          : bestInstall.source === 'homebrew-cask' ? 'homebrew-cask' : 'other',
-      } as any
+        source: mappedSource,
+      }
     }
   }
 

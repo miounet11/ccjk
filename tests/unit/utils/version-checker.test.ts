@@ -403,6 +403,8 @@ describe('version-checker', () => {
     it('should skip Homebrew detection on non-macOS platforms', async () => {
       mockGetPlatform.mockReturnValue('linux')
       mockFindCommandPath.mockResolvedValue('/usr/local/bin/claude')
+      // New implementation resolves symlinks on all platforms for accurate detection
+      mockExecAsync.mockResolvedValue({ stdout: '/usr/local/bin/claude\n', stderr: '' })
 
       const { getClaudeCodeInstallationSource } = await import('../../../src/utils/version-checker')
       const result = await getClaudeCodeInstallationSource()
@@ -412,8 +414,8 @@ describe('version-checker', () => {
         commandPath: '/usr/local/bin/claude',
         source: 'other',
       })
-      // Should not try to resolve symlinks on non-macOS
-      expect(mockExecAsync).not.toHaveBeenCalled()
+      // Symlink resolution is now done on all platforms for accurate source detection
+      expect(mockExecAsync).toHaveBeenCalled()
     })
 
     it('should handle symlink resolution errors gracefully', async () => {
@@ -672,8 +674,12 @@ describe('version-checker', () => {
       mockGetPlatform.mockReturnValue('macos')
       mockFindCommandPath.mockResolvedValue('/opt/homebrew/Caskroom/claude-code/2.0.0/claude')
       mockExecAsync
-        .mockResolvedValueOnce({ stdout: '2.0.0', stderr: '' }) // getInstalledVersion
-        .mockResolvedValueOnce({ stdout: JSON.stringify({ casks: [{ version: '2.1.0' }] }), stderr: '' }) // getHomebrewClaudeCodeVersion
+        // First call: symlink resolution in getClaudeCodeInstallationSource
+        .mockResolvedValueOnce({ stdout: '/opt/homebrew/Caskroom/claude-code/2.0.0/claude\n', stderr: '' })
+        // Second call: getInstalledVersion
+        .mockResolvedValueOnce({ stdout: '2.0.0', stderr: '' })
+        // Third call: getHomebrewClaudeCodeVersion
+        .mockResolvedValueOnce({ stdout: JSON.stringify({ casks: [{ version: '2.1.0' }] }), stderr: '' })
 
       const { checkClaudeCodeVersion } = await import('../../../src/utils/version-checker')
       const result = await checkClaudeCodeVersion()

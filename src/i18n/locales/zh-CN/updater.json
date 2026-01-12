@@ -22,5 +22,6 @@
   "updateSkipped": "跳过更新",
   "updateSuccess": "{tool} 更新成功！",
   "updateSummary": "更新摘要",
-  "updating": "正在更新 {tool}..."
+  "updating": "正在更新 {tool}...",
+  "curlReinstallRequired": "无法自动更新 curl 安装的 Claude Code。请手动运行: curl -fsSL https://claude.ai/install.sh | sh"
 }

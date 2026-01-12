@@ -161,10 +161,41 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
         }
       }
       else {
-        // npm or other installation - use claude update with sudo support for Linux non-root users
-        // If installation is broken, we can't use 'claude update', so we fallback to npm install
-        if (isBroken && installationSource === 'npm') {
-          await execWithSudoIfNeeded('npm', ['install', '-g', '@anthropic-ai/claude-code'])
+        // npm, curl, or other installation - use claude update with sudo support for Linux non-root users
+        // If installation is broken (command not in PATH), we can't use 'claude update'
+        if (isBroken) {
+          if (installationSource === 'npm') {
+            // npm installation - reinstall via npm
+            await execWithSudoIfNeeded('npm', ['install', '-g', '@anthropic-ai/claude-code'])
+          }
+          else if (installationSource === 'curl') {
+            // curl installation - try to use the detected path or reinstall
+            const { detectAllClaudeCodeInstallations } = await import('./version-checker')
+            const installations = await detectAllClaudeCodeInstallations()
+            const curlInstall = installations.find(i => i.source === 'curl' && i.version)
+
+            if (curlInstall?.path) {
+              // Use the full path to run update
+              await execWithSudoIfNeeded(curlInstall.path, ['update'])
+            }
+            else {
+              // Fallback: suggest manual reinstall via curl
+              throw new Error(i18n.t('updater:curlReinstallRequired'))
+            }
+          }
+          else {
+            // other installation - try to find any working installation
+            const { detectAllClaudeCodeInstallations } = await import('./version-checker')
+            const installations = await detectAllClaudeCodeInstallations()
+            const activeInstall = installations.find(i => i.version)
+
+            if (activeInstall?.path) {
+              await execWithSudoIfNeeded(activeInstall.path, ['update'])
+            }
+            else {
+              throw new Error(i18n.t('updater:curlReinstallRequired'))
+            }
+          }
         }
         else {
           await execWithSudoIfNeeded('claude', ['update'])
