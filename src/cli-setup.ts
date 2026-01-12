@@ -11,7 +11,7 @@ import { checkUpdates } from './commands/check-updates'
 import { registerCloudPluginsCommand } from './commands/cloud-plugins'
 import { commit } from './commands/commit'
 import { configSwitchCommand } from './commands/config-switch'
-import { doctor } from './commands/doctor'
+import { doctor, workspaceDiagnostics } from './commands/doctor'
 import { showFeatures } from './commands/features'
 import { init } from './commands/init'
 import { deepInterview, interview, listInterviewSessions, quickInterview, resumeInterview } from './commands/interview'
@@ -399,6 +399,15 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .action(async () => {
       await doctor()
     })
+
+  // CCJK Workspace command - Workspace diagnostics and permission fix
+  cli
+    .command('workspace [dir]', 'Diagnose and fix workspace file write permissions')
+    .alias('ws')
+    .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .action(await withLanguageResolution(async (dir) => {
+      await workspaceDiagnostics(dir)
+    }))
 
   // CCJK Versions command - Check versions
   cli

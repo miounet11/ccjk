@@ -1,4 +1,33 @@
 {
+  "oneClick.title": "🎯 CCJK - 一键配置 Claude Code",
+  "oneClick.setup": "⚡ 一键配置",
+  "oneClick.setupDesc": "自动完成所有配置（API + 工作流 + MCP）",
+  "oneClick.fix": "🔧 一键体检",
+  "oneClick.fixDesc": "诊断问题并自动修复",
+  "oneClick.update": "🔄 一键更新",
+  "oneClick.updateDesc": "更新所有组件到最新版本",
+  "oneClick.notify": "📱 任务通知",
+  "oneClick.notifyDesc": "配置任务完成推送通知",
+  "oneClick.more": "📦 更多功能",
+  "oneClick.moreDesc": "扩展插件 / 高级配置 / 系统设置",
+
+  "oneClick.running": "正在执行...",
+  "oneClick.setupComplete": "✅ 配置完成！现在可以使用 Claude Code 了",
+  "oneClick.fixComplete": "✅ 体检完成！",
+  "oneClick.updateComplete": "✅ 更新完成！",
+  "oneClick.noIssues": "没有发现问题，一切正常 👍",
+  "oneClick.issuesFound": "发现 {{count}} 个问题",
+  "oneClick.issuesFixed": "已自动修复 {{count}} 个问题",
+  "oneClick.manualFix": "有 {{count}} 个问题需要手动处理",
+
+  "moreMenu.title": "📦 更多功能",
+  "moreMenu.extensions": "🔌 扩展插件",
+  "moreMenu.extensionsDesc": "CCR / CCUsage / Cometix / Superpowers",
+  "moreMenu.config": "⚙️ 高级配置",
+  "moreMenu.configDesc": "API / MCP / 模型 / 记忆 / 权限",
+  "moreMenu.system": "🖥️ 系统设置",
+  "moreMenu.systemDesc": "语言 / 诊断 / 卸载",
+
   "menuSections.ccjkFeatures": "CCJK 功能",
   "menuSections.smartFeatures": "🎯 智能功能 (新)",
   "menuSections.recommendedPlugins": "推荐插件",
@@ -13,8 +42,11 @@
   "categorizedMenu.fullInitDesc": "一键配置所有功能",
   "categorizedMenu.importWorkflow": "导入工作流",
   "categorizedMenu.importWorkflowDesc": "添加新的工作流模板",
-  "categorizedMenu.configCenter": "配置中心",
+  "categorizedMenu.configCenter": "更多配置",
   "categorizedMenu.configCenterDesc": "API/MCP/模型/记忆/权限",
+  "categorizedMenu.moreConfig": "MCP/记忆/权限/上下文",
+  "categorizedMenu.extensionsHub": "扩展中心",
+  "categorizedMenu.extensionsHubDesc": "CCR/CCUsage/Cometix/Superpowers/MCP市场",
   "categorizedMenu.recommendedPlugins": "推荐插件",
   "categorizedMenu.recommendedPluginsDesc": "CCR/CCUsage/Cometix/Superpowers",
   "categorizedMenu.mcpMarket": "MCP 市场",
@@ -25,6 +57,8 @@
   "categorizedMenu.quickActionsDesc": "数字键快速执行常用操作",
   "categorizedMenu.diagnostics": "系统诊断",
   "categorizedMenu.diagnosticsDesc": "检查配置问题并修复",
+  "categorizedMenu.workspace": "工作环境",
+  "categorizedMenu.workspaceDesc": "诊断和修复文件写入权限问题",
 
   "configCenter.title": "⚙️ 配置中心",
   "configCenter.api": "API 配置",
@@ -232,5 +266,8 @@
   "newUser.plugin.ccusage": "CCusage - API 使用量统计工具",
   "newUser.plugin.cometix": "Cometix - 状态栏增强工具",
   "newUser.plugin.superpowers": "Superpowers - 技能扩展系统",
-  "newUser.pressEnter": "按 Enter 继续..."
+  "newUser.pressEnter": "按 Enter 继续...",
+
+  "extensionsHub.title": "🔌 扩展中心",
+  "extensionsHub.markets": "📦 市场"
 }

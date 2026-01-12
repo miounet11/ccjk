@@ -4,10 +4,14 @@
  */
 
 import { existsSync, readdirSync } from 'node:fs'
+import process from 'node:process'
 import ansis from 'ansis'
-import { join } from 'pathe'
+import inquirer from 'inquirer'
+import { join, resolve } from 'pathe'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
+import { i18n } from '../i18n'
 import { commandExists } from '../utils/platform'
+import { displayWorkspaceReport, runWorkspaceCheck, runWorkspaceWizard } from '../utils/workspace-guide'
 
 interface CheckResult {
   name: string
@@ -169,6 +173,8 @@ async function checkOutputStyles(): Promise<CheckResult> {
  * Main doctor command - runs health checks and displays results
  */
 export async function doctor(): Promise<void> {
+  const isZh = i18n.language === 'zh-CN'
+
   console.log('')
   console.log(ansis.bold.cyan('🔍 CCJK Health Check'))
   console.log(ansis.dim('─'.repeat(50)))
@@ -227,4 +233,26 @@ export async function doctor(): Promise<void> {
     console.log(ansis.green('✅ All checks passed - CCJK is properly configured!'))
   }
   console.log('')
+
+  // Ask if user wants to run workspace diagnostics
+  const { runWorkspace } = await inquirer.prompt<{ runWorkspace: boolean }>({
+    type: 'confirm',
+    name: 'runWorkspace',
+    message: isZh ? '是否检查当前工作目录的文件写入权限？' : 'Check file write permissions for current directory?',
+    default: false,
+  })
+
+  if (runWorkspace) {
+    console.log('')
+    const report = await runWorkspaceCheck(process.cwd())
+    displayWorkspaceReport(report)
+  }
+}
+
+/**
+ * Workspace diagnostics command - check and fix workspace issues
+ */
+export async function workspaceDiagnostics(targetDir?: string): Promise<void> {
+  const dir = targetDir ? resolve(targetDir) : process.cwd()
+  await runWorkspaceWizard(dir)
 }

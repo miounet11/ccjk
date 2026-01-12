@@ -41,6 +41,7 @@ const NAMESPACES = [
   'uninstall',
   'updater',
   'workflow',
+  'workspace', // Workspace diagnostics and guide
 ] as const
 
 // Ensure i18n is initialized - safety check for utility functions

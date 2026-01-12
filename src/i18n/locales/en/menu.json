@@ -1,4 +1,33 @@
 {
+  "oneClick.title": "🎯 CCJK - One-Click Claude Code Setup",
+  "oneClick.setup": "⚡ One-Click Setup",
+  "oneClick.setupDesc": "Auto-configure everything (API + Workflow + MCP)",
+  "oneClick.fix": "🔧 One-Click Checkup",
+  "oneClick.fixDesc": "Diagnose issues and auto-fix",
+  "oneClick.update": "🔄 One-Click Update",
+  "oneClick.updateDesc": "Update all components to latest",
+  "oneClick.notify": "📱 Task Notifications",
+  "oneClick.notifyDesc": "Configure task completion push notifications",
+  "oneClick.more": "📦 More Features",
+  "oneClick.moreDesc": "Extensions / Advanced Config / System Settings",
+
+  "oneClick.running": "Running...",
+  "oneClick.setupComplete": "✅ Setup complete! You can now use Claude Code",
+  "oneClick.fixComplete": "✅ Checkup complete!",
+  "oneClick.updateComplete": "✅ Update complete!",
+  "oneClick.noIssues": "No issues found, everything looks good 👍",
+  "oneClick.issuesFound": "Found {{count}} issue(s)",
+  "oneClick.issuesFixed": "Auto-fixed {{count}} issue(s)",
+  "oneClick.manualFix": "{{count}} issue(s) need manual attention",
+
+  "moreMenu.title": "📦 More Features",
+  "moreMenu.extensions": "🔌 Extensions",
+  "moreMenu.extensionsDesc": "CCR / CCUsage / Cometix / Superpowers",
+  "moreMenu.config": "⚙️ Advanced Config",
+  "moreMenu.configDesc": "API / MCP / Model / Memory / Permissions",
+  "moreMenu.system": "🖥️ System Settings",
+  "moreMenu.systemDesc": "Language / Diagnostics / Uninstall",
+
   "menuSections.ccjkFeatures": "CCJK Features",
   "menuSections.smartFeatures": "🎯 Smart Features (New)",
   "menuSections.recommendedPlugins": "Recommended Plugins",
@@ -13,8 +42,11 @@
   "categorizedMenu.fullInitDesc": "One-click setup for all features",
   "categorizedMenu.importWorkflow": "Import Workflow",
   "categorizedMenu.importWorkflowDesc": "Add new workflow templates",
-  "categorizedMenu.configCenter": "Config Center",
+  "categorizedMenu.configCenter": "More Config",
   "categorizedMenu.configCenterDesc": "API/MCP/Model/Memory/Permissions",
+  "categorizedMenu.moreConfig": "MCP/Memory/Permissions/Context",
+  "categorizedMenu.extensionsHub": "Extensions Hub",
+  "categorizedMenu.extensionsHubDesc": "CCR/CCUsage/Cometix/Superpowers/MCP Market",
   "categorizedMenu.recommendedPlugins": "Recommended Plugins",
   "categorizedMenu.recommendedPluginsDesc": "CCR/CCUsage/Cometix/Superpowers",
   "categorizedMenu.mcpMarket": "MCP Market",
@@ -25,6 +57,8 @@
   "categorizedMenu.quickActionsDesc": "Execute common actions with number keys",
   "categorizedMenu.diagnostics": "Diagnostics",
   "categorizedMenu.diagnosticsDesc": "Check and fix configuration issues",
+  "categorizedMenu.workspace": "Workspace",
+  "categorizedMenu.workspaceDesc": "Diagnose and fix file write permission issues",
 
   "configCenter.title": "⚙️ Config Center",
   "configCenter.api": "API Config",
@@ -232,5 +266,8 @@
   "newUser.plugin.ccusage": "CCusage - API usage analytics tool",
   "newUser.plugin.cometix": "Cometix - Statusline enhancement tool",
   "newUser.plugin.superpowers": "Superpowers - Skills extension system",
-  "newUser.pressEnter": "Press Enter to continue..."
+  "newUser.pressEnter": "Press Enter to continue...",
+
+  "extensionsHub.title": "🔌 Extensions Hub",
+  "extensionsHub.markets": "📦 Markets"
 }

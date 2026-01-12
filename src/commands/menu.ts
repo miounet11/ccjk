@@ -50,7 +50,7 @@ import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../
 import { checkUpdates } from './check-updates'
 import { configSwitchCommand } from './config-switch'
 import { showContextMenu } from './context-menu'
-import { doctor } from './doctor'
+import { doctor, workspaceDiagnostics } from './doctor'
 import { hooksSync } from './hooks-sync'
 import { init } from './init'
 import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from './mcp-market'
@@ -901,11 +901,14 @@ async function showConfigCenterMenu(): Promise<void> {
 }
 
 /**
- * Show the Recommended Plugins submenu
+ * Show the Extensions Hub submenu (combines plugins, MCP, marketplace)
  */
-async function showRecommendedPluginsMenu(): Promise<void> {
-  console.log(ansis.cyan(i18n.t('menu:pluginsMenu.title')))
+async function showExtensionsHubMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:extensionsHub.title')))
   console.log('')
+
+  // Recommended Plugins
+  console.log(`  ${i18n.t('menu:menuSections.recommendedPlugins')}`)
   console.log(
     `  ${ansis.cyan('1.')} ${i18n.t('menu:pluginsMenu.ccr')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.ccrDesc')}`)}`,
   )
@@ -918,6 +921,18 @@ async function showRecommendedPluginsMenu(): Promise<void> {
   console.log(
     `  ${ansis.cyan('4.')} ${i18n.t('menu:pluginsMenu.superpowers')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.superpowersDesc')}`)}`,
   )
+  console.log('')
+
+  // Markets
+  console.log(`  ${i18n.t('menu:extensionsHub.markets')}`)
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:categorizedMenu.mcpMarket')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.mcpMarketDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('6.')} ${i18n.t('menu:categorizedMenu.marketplace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.marketplaceDesc')}`)}`,
+  )
+  console.log('')
+
   console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
   console.log('')
 
@@ -926,7 +941,7 @@ async function showRecommendedPluginsMenu(): Promise<void> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '0']
+      const valid = ['1', '2', '3', '4', '5', '6', '0']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -948,65 +963,187 @@ async function showRecommendedPluginsMenu(): Promise<void> {
     case '4':
       await showSuperpowersMenu()
       break
+    case '5':
+      printSeparator()
+      await showMcpMarketMenu()
+      return
+    case '6':
+      printSeparator()
+      await showMarketplaceMenu()
+      return
+  }
+
+  printSeparator()
+}
+/**
+ * One-click checkup: diagnose and auto-fix issues
+ */
+async function oneClickCheckup(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:oneClick.running')))
+  console.log('')
+
+  // Run doctor diagnostics
+  await doctor()
+
+  // Run workspace diagnostics
+  await workspaceDiagnostics()
+
+  console.log('')
+  console.log(ansis.green(i18n.t('menu:oneClick.fixComplete')))
+}
+
+/**
+ * One-click update: update all components
+ */
+async function oneClickUpdate(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:oneClick.running')))
+  console.log('')
+
+  // Update Claude Code and workflows
+  await checkUpdates()
+
+  console.log('')
+  console.log(ansis.green(i18n.t('menu:oneClick.updateComplete')))
+}
+
+/**
+ * Show the "More Features" submenu
+ */
+async function showMoreFeaturesMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:moreMenu.title')))
+  console.log('')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:moreMenu.extensions')} ${ansis.gray(`- ${i18n.t('menu:moreMenu.extensionsDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:moreMenu.config')} ${ansis.gray(`- ${i18n.t('menu:moreMenu.configDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:moreMenu.system')} ${ansis.gray(`- ${i18n.t('menu:moreMenu.systemDesc')}`)}`,
+  )
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  switch (choice) {
+    case '1':
+      printSeparator()
+      await showExtensionsHubMenu()
+      break
+    case '2':
+      printSeparator()
+      await showConfigCenterMenu()
+      break
+    case '3':
+      printSeparator()
+      await showSystemSettingsMenu()
+      break
+  }
+}
+
+/**
+ * Show system settings submenu
+ */
+async function showSystemSettingsMenu(): Promise<void> {
+  console.log(ansis.cyan(i18n.t('menu:moreMenu.system')))
+  console.log('')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0]} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:menuOptions.switchCodeTool')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:categorizedMenu.diagnostics')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:categorizedMenu.workspace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.workspaceDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:menuOptions.uninstall')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.uninstall')}`)}`,
+  )
+  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '5', '0']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  switch (choice) {
+    case '1': {
+      const currentLang = i18n.language as SupportedLang
+      await changeScriptLanguageFeature(currentLang)
+      break
+    }
+    case '2':
+      await handleCodeToolSwitch('claude-code')
+      break
+    case '3':
+      await doctor()
+      break
+    case '4':
+      await workspaceDiagnostics()
+      break
+    case '5':
+      await uninstall()
+      break
   }
 
   printSeparator()
 }
 
 /**
- * Show the new categorized main menu (simplified 8-10 items)
+ * Show the new ONE-CLICK main menu (ultra-simplified 5 items)
+ * Design principle: Users click a few times, no learning curve
  */
 async function showCategorizedMenu(): Promise<MenuResult> {
-  console.log(ansis.cyan(i18n.t('menu:selectFunction')))
+  console.log(ansis.cyan(i18n.t('menu:oneClick.title')))
   console.log('')
 
-  // Quick Start section
-  console.log(`  ${i18n.t('menu:menuSections.quickStart')}`)
+  // Ultra-simplified menu - only 5 core options
   console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:categorizedMenu.fullInit')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.fullInitDesc')}`)}`,
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:oneClick.setup')} ${ansis.gray(`- ${i18n.t('menu:oneClick.setupDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:categorizedMenu.importWorkflow')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.importWorkflowDesc')}`)}`,
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:oneClick.fix')} ${ansis.gray(`- ${i18n.t('menu:oneClick.fixDesc')}`)}`,
   )
-  console.log('')
-
-  // Configuration section
-  console.log(`  ${i18n.t('menu:menuSections.configCenter')}`)
   console.log(
-    `  ${ansis.cyan('3.')} ${i18n.t('menu:categorizedMenu.configCenter')} → ${ansis.gray(i18n.t('menu:categorizedMenu.configCenterDesc'))}`,
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:oneClick.update')} ${ansis.gray(`- ${i18n.t('menu:oneClick.updateDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:oneClick.notify')} ${ansis.gray(`- ${i18n.t('menu:oneClick.notifyDesc')}`)}`,
   )
   console.log('')
-
-  // Extensions section
-  console.log(`  ${i18n.t('menu:menuSections.extensions')}`)
-  console.log(
-    `  ${ansis.cyan('4.')} ${i18n.t('menu:categorizedMenu.recommendedPlugins')} → ${ansis.gray(i18n.t('menu:categorizedMenu.recommendedPluginsDesc'))}`,
-  )
-  console.log(
-    `  ${ansis.cyan('5.')} ${i18n.t('menu:categorizedMenu.mcpMarket')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.mcpMarketDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('6.')} ${i18n.t('menu:categorizedMenu.marketplace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.marketplaceDesc')}`)}`,
-  )
-  console.log('')
-
-  // Smart Tools section
-  console.log(`  ${i18n.t('menu:menuSections.smartTools')}`)
-  console.log(
-    `  ${ansis.cyan('7.')} ${i18n.t('menu:categorizedMenu.quickActions')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.quickActionsDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('8.')} ${i18n.t('menu:categorizedMenu.diagnostics')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
-  )
-  console.log('')
-
-  // System settings (compact row)
   console.log(`  ${ansis.dim('─'.repeat(50))}`)
   console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:oneClick.more')} → ${ansis.gray(i18n.t('menu:oneClick.moreDesc'))}`,
+  )
+  console.log('')
+  console.log(
     `  ${ansis.cyan('0.')} ${i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0]}  `
-    + `${ansis.cyan('S.')} ${i18n.t('menu:menuOptions.switchCodeTool')}  `
-    + `${ansis.cyan('N.')} ${i18n.t('menu:menuOptions.cloudNotification').replace('📱 ', '')}  `
-    + `${ansis.cyan('+.')} ${i18n.t('menu:menuOptions.checkUpdates')}  `
     + `${ansis.red('Q.')} ${i18n.t('menu:menuOptions.exit')}`,
   )
   console.log('')
@@ -1016,7 +1153,7 @@ async function showCategorizedMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '0', 's', 'S', 'n', 'N', '+', '-', 'q', 'Q', 'h', 'H']
+      const valid = ['1', '2', '3', '4', '5', '0', 'q', 'Q']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -1029,65 +1166,34 @@ async function showCategorizedMenu(): Promise<MenuResult> {
   const normalized = choice.toLowerCase()
 
   switch (normalized) {
-    // Quick Start
+    // One-click setup
     case '1':
       await init({ skipBanner: true })
       break
+    // One-click checkup (diagnose + fix)
     case '2':
-      await update({ skipBanner: true })
+      await oneClickCheckup()
       break
-    // Configuration
+    // One-click update
     case '3':
-      printSeparator()
-      await showConfigCenterMenu()
-      return undefined
-    // Extensions
+      await oneClickUpdate()
+      break
+    // Task notifications
     case '4':
-      printSeparator()
-      await showRecommendedPluginsMenu()
-      return undefined
+      await notificationCommand()
+      break
+    // More features submenu
     case '5':
       printSeparator()
-      await showMcpMarketMenu()
+      await showMoreFeaturesMenu()
       return undefined
-    case '6':
-      printSeparator()
-      await showMarketplaceMenu()
-      return undefined
-    // Smart Tools
-    case '7':
-      printSeparator()
-      await showQuickActionsMenu()
-      return undefined
-    case '8':
-      await doctor()
-      break
-    // System settings
+    // Change language
     case '0': {
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)
       break
     }
-    case 's': {
-      const switched = await handleCodeToolSwitch('claude-code')
-      if (switched) {
-        return 'switch'
-      }
-      break
-    }
-    case 'n':
-      await notificationCommand()
-      break
-    case '+':
-      await checkUpdates()
-      break
-    case '-':
-      await uninstall()
-      break
-    case 'h':
-      printSeparator()
-      await showHooksSyncMenu()
-      return undefined
+    // Exit
     case 'q':
       console.log(ansis.cyan(i18n.t('common:goodbye')))
       return 'exit'
