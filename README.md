@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🏆 JinKu
+# 🏆 CCJK
 
-### Claude Code 增强工具集
+### JinKu - Claude Code 增强工具集
 
 <br/>
 

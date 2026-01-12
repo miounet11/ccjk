@@ -58,7 +58,7 @@ export function displayBanner(subtitle?: string): void {
 
 export function displayBannerWithInfo(subtitle?: string): void {
   displayBanner(subtitle)
-  console.log(ansis.gray(`  ${ansis.cyan('JinKu')} - Claude Code Enhancement Toolkit`))
+  console.log(ansis.gray(`  ${ansis.cyan('CCJK')} (JinKu) - Claude Code Enhancement Toolkit`))
   console.log(ansis.gray(`  ${ansis.cyan(homepage)}\n`))
 }
 

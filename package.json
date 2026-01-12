@@ -1,11 +1,11 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "2.0.19",
+  "version": "2.0.20",
   "packageManager": "pnpm@10.17.1",
-  "description": "JinKu - Claude Code Enhancement Toolkit",
+  "description": "CCJK (JinKu) - Claude Code Enhancement Toolkit",
   "author": {
-    "name": "JinKu Team"
+    "name": "CCJK Team"
   },
   "license": "MIT",
   "homepage": "https://github.com/miounet11/ccjk",
