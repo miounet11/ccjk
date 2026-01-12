@@ -1005,6 +1005,15 @@ export async function init(options: InitOptions = {}): Promise<void> {
           try {
             writeMcpConfig(mergedConfig)
             console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`))
+
+            // Check and display performance warning
+            const { checkMcpPerformance, formatPerformanceWarning } = await import('../utils/mcp-performance')
+            const serviceCount = Object.keys(newServers).length
+            const perfWarning = checkMcpPerformance(serviceCount)
+            if (perfWarning) {
+              console.log('')
+              console.log(formatPerformanceWarning(perfWarning, i18n.language as 'en' | 'zh-CN'))
+            }
           }
           catch (error) {
             console.error(ansis.red(`${i18n.t('errors:failedToWriteMcpConfig')} ${error}`))

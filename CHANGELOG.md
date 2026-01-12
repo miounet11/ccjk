@@ -1,5 +1,49 @@
 # Changelog
 
+## 2.1.0
+
+### Major Performance Optimization / 重大性能优化
+
+#### Performance / 性能
+- **50x faster startup**: Implement lazy command loading (2s → 0.04s)
+- **Lazy CLI architecture**: Commands loaded only when invoked
+- **Grouped help output**: Clear categorization (Core/Development/Cloud/System)
+
+- **启动速度提升 50 倍**: 实现命令懒加载 (2s → 0.04s)
+- **懒加载 CLI 架构**: 命令仅在调用时加载
+- **分组帮助输出**: 清晰分类 (Core/Development/Cloud/System)
+
+#### New MCP Management System / 新 MCP 管理系统
+- `ccjk mcp doctor` - MCP health check & performance diagnostics
+- `ccjk mcp profile` - Quick switch between MCP presets (minimal/development/testing/research/full)
+- `ccjk mcp release` - Release unused MCP services
+- `ccjk mcp monitor` - Real-time MCP resource monitoring
+- Three-tier MCP architecture: Core / OnDemand / Scenario
+
+- `ccjk mcp doctor` - MCP 健康检查与性能诊断
+- `ccjk mcp profile` - 快速切换 MCP 预设配置
+- `ccjk mcp release` - 释放不使用的 MCP 服务
+- `ccjk mcp monitor` - 实时监控 MCP 资源占用
+- 三层 MCP 架构: Core / OnDemand / Scenario
+
+#### Cleanup / 清理
+- Remove 13 obsolete documentation files (138KB)
+- Remove transitional cli-new.ts
+- Deprecate cli-setup.ts in favor of cli-lazy.ts
+
+- 删除 13 个过时文档文件 (138KB)
+- 删除过渡性 cli-new.ts
+- 废弃 cli-setup.ts，改用 cli-lazy.ts
+
+#### Architecture / 架构
+- Align with Claude Code official design philosophy
+- Implement on-demand loading for commands and MCP services
+- Clear separation of concerns with command grouping
+
+- 对标 Claude Code 官方设计理念
+- 实现命令和 MCP 服务的按需加载
+- 通过命令分组实现清晰的职责分离
+
 ## 3.5.0
 
 ### Minor Changes

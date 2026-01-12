@@ -369,3 +369,64 @@ export async function registerMarketplaceCommands(
       await infoCommand(packageName, options)
     }))
 }
+
+/**
+ * Marketplace menu - unified entry point for cloud plugins command
+ */
+export async function marketplaceMenu(action?: string, options?: MarketplaceOptions): Promise<void> {
+  const opts = options || {}
+
+  if (!action) {
+    // Show interactive menu
+    console.log(ansis.cyan('\n🛒 Marketplace Commands:\n'))
+    console.log('  ccjk cloud plugins search <query>  - Search packages')
+    console.log('  ccjk cloud plugins install <pkg>   - Install package')
+    console.log('  ccjk cloud plugins uninstall <pkg> - Uninstall package')
+    console.log('  ccjk cloud plugins update [pkg]    - Update packages')
+    console.log('  ccjk cloud plugins list            - List installed')
+    console.log('  ccjk cloud plugins info <pkg>      - Package details\n')
+    return
+  }
+
+  // Route to appropriate command
+  const args = action.split(' ')
+  const cmd = args[0]
+  const param = args.slice(1).join(' ')
+
+  switch (cmd) {
+    case 'search':
+      if (param)
+        await searchCommand(param, opts)
+      else
+        console.log(ansis.yellow('Usage: ccjk cloud plugins search <query>'))
+      break
+    case 'install':
+      if (param)
+        await installCommand(param, opts)
+      else
+        console.log(ansis.yellow('Usage: ccjk cloud plugins install <package>'))
+      break
+    case 'uninstall':
+      if (param)
+        await uninstallCommand(param, opts)
+      else
+        console.log(ansis.yellow('Usage: ccjk cloud plugins uninstall <package>'))
+      break
+    case 'update':
+      await updateCommand(param || undefined, opts)
+      break
+    case 'list':
+    case 'ls':
+      await listCommand(opts)
+      break
+    case 'info':
+      if (param)
+        await infoCommand(param, opts)
+      else
+        console.log(ansis.yellow('Usage: ccjk cloud plugins info <package>'))
+      break
+    default:
+      console.log(ansis.yellow(`Unknown action: ${cmd}`))
+      await marketplaceMenu(undefined, opts)
+  }
+}

@@ -1,3 +1,16 @@
+/**
+ * @deprecated 此文件已废弃，请使用 cli-lazy.ts
+ *
+ * 这个文件保留仅用于向后兼容和测试。
+ * 新的 CLI 架构使用 cli-lazy.ts，具有以下优势：
+ * - 命令懒加载，启动速度提升 10x
+ * - 统一的命令分组（cloud, system）
+ * - 更清晰的帮助输出
+ *
+ * 迁移指南：
+ * - setupCommands() -> setupCommandsLazy() from './cli-lazy'
+ * - 测试应逐步迁移到新架构
+ */
 import type { CAC } from 'cac'
 import type { CodeToolType, SupportedLang } from './constants'
 import process from 'node:process'
@@ -129,7 +142,7 @@ export function customizeHelp(sections: any[]): any[] {
   // Add custom header
   sections.unshift({
     title: '',
-    body: ansis.cyan.bold(`CCJK (JinKu) - Claude Code Enhancement Toolkit v${version}`),
+    body: ansis.cyan.bold(`CCJK - Claude Code Jailbreak Kit v${version}`),
   })
 
   // Add commands section with aliases
@@ -147,7 +160,7 @@ export function customizeHelp(sections: any[]): any[] {
       `  ${ansis.cyan('ccjk interview')} | ${ansis.cyan('iv')} ${i18n.t('cli:help.commandDescriptions.interviewDrivenDev')}`,
       `  ${ansis.cyan('ccjk quick')}        Express interview (~10 questions)`,
       `  ${ansis.cyan('ccjk deep')}         Deep dive interview (~40+ questions)`,
-      `  ${ansis.cyan('ccjk mcp')} <action> MCP Server marketplace (search, trending, install)`,
+      `  ${ansis.cyan('ccjk mcp')} <action> MCP Server marketplace & management`,
       `  ${ansis.cyan('ccjk workflows')} | ${ansis.cyan('wf')} Manage installed workflows`,
       `  ${ansis.cyan('ccjk skills-sync')} | ${ansis.cyan('ss')} Manage skills cloud synchronization`,
       `  ${ansis.cyan('ccjk doctor')}       Health check and diagnostics`,
@@ -234,10 +247,14 @@ export function customizeHelp(sections: any[]): any[] {
       `  ${ansis.cyan('npx ccjk commit --auto')}     ${ansis.gray(`# Auto-generate message`)}`,
       `  ${ansis.cyan('npx ccjk commit --dry-run')}  ${ansis.gray(`# Preview only`)}`,
       '',
-      ansis.gray(`  # MCP Server marketplace`),
+      ansis.gray(`  # MCP Server marketplace & management`),
       `  ${ansis.cyan('npx ccjk mcp search filesystem')}  ${ansis.gray(`# Search servers`)}`,
       `  ${ansis.cyan('npx ccjk mcp trending')}           ${ansis.gray(`# Show trending`)}`,
       `  ${ansis.cyan('npx ccjk mcp install GitHub')}     ${ansis.gray(`# Install server`)}`,
+      `  ${ansis.cyan('npx ccjk mcp profile list')}       ${ansis.gray(`# List profiles`)}`,
+      `  ${ansis.cyan('npx ccjk mcp profile use minimal')} ${ansis.gray(`# Switch profile`)}`,
+      `  ${ansis.cyan('npx ccjk mcp doctor')}             ${ansis.gray(`# Health check`)}`,
+      `  ${ansis.cyan('npx ccjk mcp release')}            ${ansis.gray(`# Release idle services`)}`,
       '',
       ansis.gray(`  # ${i18n.t('cli:help.exampleDescriptions.nonInteractiveModeCicd')}`),
       `  ${ansis.cyan('npx ccjk i --skip-prompt --api-type api_key --api-key "sk-ant-..."')}`,
@@ -552,10 +569,31 @@ export async function setupCommands(cli: CAC): Promise<void> {
 
   // MCP Market command
   cli
-    .command('mcp <action> [...args]', 'MCP Server marketplace (search, trending, install)')
+    .command('mcp <action> [...args]', 'MCP Server marketplace and management (search, trending, install, profile, doctor, release)')
     .option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+    .option('--verbose, -v', 'Show detailed output')
+    .option('--dry-run, -d', 'Preview changes without applying')
+    .option('--force, -f', 'Force operation without confirmation')
+    .option('--tier, -t <tier>', 'Filter by tier (core, ondemand, scenario)')
+    .option('--service, -s <service>', 'Target specific service')
     .action(await withLanguageResolution(async (action, args, options) => {
-      await mcpMarket(action, args, options)
+      // Handle new MCP management commands
+      if (action === 'profile') {
+        const { mcpProfile } = await import('./commands/mcp-profile')
+        await mcpProfile(args[0] || 'list', args.slice(1), options)
+      }
+      else if (action === 'doctor') {
+        const { mcpDoctor } = await import('./commands/mcp-doctor')
+        await mcpDoctor(options)
+      }
+      else if (action === 'release') {
+        const { mcpRelease } = await import('./utils/mcp-release')
+        await mcpRelease(options)
+      }
+      else {
+        // Original MCP market commands
+        await mcpMarket(action, args, options)
+      }
     }))
 
   // Marketplace command - Plugin/Extension marketplace
