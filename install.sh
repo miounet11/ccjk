@@ -43,7 +43,7 @@ print_banner() {
     echo -e "${CYAN}║${NC}  ${GREEN}██╔════╝██╔════╝     ██║██║ ██╔╝${NC}                             ${CYAN}║${NC}"
     echo -e "${CYAN}║${NC}  ${GREEN}██║     ██║          ██║█████╔╝${NC}   ${BOLD}Claude Code JinKu${NC}         ${CYAN}║${NC}"
     echo -e "${CYAN}║${NC}  ${GREEN}██║     ██║     ██   ██║██╔═██╗${NC}   ${MAGENTA}One-Click Installer${NC}       ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${GREEN}╚██████╗╚██████╗╚█████╔╝██║  ██╗${NC}   v2.2.1                     ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${GREEN}╚██████╗╚██████╗╚█████╔╝██║  ██╗${NC}   v2.2.2                     ${CYAN}║${NC}"
     echo -e "${CYAN}║${NC}   ${GREEN}╚═════╝ ╚═════╝ ╚════╝ ╚═╝  ╚═╝${NC}                             ${CYAN}║${NC}"
     echo -e "${CYAN}╠═══════════════════════════════════════════════════════════════╣${NC}"
     echo -e "${CYAN}║${NC}  ${YELLOW}Auto Environment Setup + China Mirror Support${NC}               ${CYAN}║${NC}"
@@ -188,31 +188,110 @@ detect_network() {
 }
 
 # ============================================================
+# Remove Old Node.js (for upgrade)
+# ============================================================
+
+remove_old_nodejs() {
+    log_info "Removing old Node.js installation..."
+
+    local use_sudo=""
+    if [ "$EUID" -ne 0 ]; then
+        use_sudo="sudo"
+    fi
+
+    case "$PKG_MANAGER" in
+        apt)
+            $use_sudo apt-get remove -y nodejs npm 2>/dev/null || true
+            $use_sudo apt-get autoremove -y 2>/dev/null || true
+            # Remove NodeSource list if exists
+            $use_sudo rm -f /etc/apt/sources.list.d/nodesource.list 2>/dev/null || true
+            ;;
+        dnf)
+            $use_sudo dnf remove -y nodejs npm 2>/dev/null || true
+            ;;
+        yum)
+            $use_sudo yum remove -y nodejs npm 2>/dev/null || true
+            ;;
+        pacman)
+            $use_sudo pacman -Rns --noconfirm nodejs npm 2>/dev/null || true
+            ;;
+        apk)
+            $use_sudo apk del nodejs npm 2>/dev/null || true
+            ;;
+        zypper)
+            $use_sudo zypper remove -y nodejs npm nodejs20 npm20 2>/dev/null || true
+            ;;
+        brew)
+            brew uninstall node 2>/dev/null || true
+            brew uninstall node@18 2>/dev/null || true
+            brew uninstall node@16 2>/dev/null || true
+            ;;
+    esac
+
+    # Also check for nvm installations
+    if [ -d "$HOME/.nvm" ]; then
+        log_info "Found nvm installation, will use nvm to upgrade..."
+    fi
+
+    # Clear npm cache
+    npm cache clean --force 2>/dev/null || true
+
+    log_success "Old Node.js removed"
+}
+
+# ============================================================
 # Install Node.js (Auto-detect and install)
 # ============================================================
 
 install_nodejs() {
     log_step "Step 2/4: Installing Node.js Environment"
 
+    local NEED_INSTALL=true
+    local NEED_UPGRADE=false
+
     # Check if Node.js is already installed with correct version
     if command -v node &> /dev/null; then
         NODE_VERSION=$(node -v)
         NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v//' | cut -d. -f1)
+        NODE_MINOR=$(echo "$NODE_VERSION" | sed 's/v//' | cut -d. -f2)
 
         if [ "$NODE_MAJOR" -ge 20 ]; then
-            log_success "Node.js $NODE_VERSION already installed"
+            log_success "Node.js $NODE_VERSION already installed ✓"
 
             # Check npm
             if command -v npm &> /dev/null; then
-                log_success "npm v$(npm -v) already installed"
+                log_success "npm v$(npm -v) already installed ✓"
                 return 0
             fi
+            NEED_INSTALL=true
+        elif [ "$NODE_MAJOR" -eq 18 ] && [ "$NODE_MINOR" -ge 20 ]; then
+            # Node 18.20+ is acceptable (some deps need >=18.20)
+            log_warning "Node.js $NODE_VERSION detected (v20+ recommended)"
+            echo ""
+            read -p "$(echo -e "${YELLOW}Upgrade to Node.js 20? [Y/n]: ${NC}")" -n 1 -r
+            echo ""
+            if [[ $REPLY =~ ^[Nn]$ ]]; then
+                log_info "Keeping Node.js $NODE_VERSION"
+                if command -v npm &> /dev/null; then
+                    return 0
+                fi
+            else
+                NEED_UPGRADE=true
+                NEED_INSTALL=true
+            fi
         else
-            log_warning "Node.js $NODE_VERSION is too old (need v20+)"
-            log_info "Upgrading Node.js..."
+            log_warning "Node.js $NODE_VERSION is too old (need v20+, minimum v18.20)"
+            log_info "Will upgrade Node.js automatically..."
+            NEED_UPGRADE=true
+            NEED_INSTALL=true
         fi
     else
         log_info "Node.js not found, installing..."
+    fi
+
+    # Remove old Node.js if upgrading
+    if [ "$NEED_UPGRADE" = true ]; then
+        remove_old_nodejs
     fi
 
     # Install based on OS and package manager
@@ -303,7 +382,7 @@ install_nodejs_linux() {
 
 install_nodejs_apt() {
     local sudo_cmd="$1"
-    log_info "Installing Node.js via apt (Ubuntu/Debian)..."
+    log_info "Installing Node.js 20 via apt (Ubuntu/Debian)..."
 
     # Update package list
     $sudo_cmd apt-get update -qq
@@ -311,17 +390,23 @@ install_nodejs_apt() {
     # Install prerequisites
     $sudo_cmd apt-get install -y -qq curl ca-certificates gnupg
 
-    # Add NodeSource repository for Node.js 20
-    if [ "$NETWORK_REGION" = "china" ]; then
-        # Use China mirror for NodeSource
-        log_info "Using China mirror for Node.js..."
-        curl -fsSL https://deb.nodesource.com/setup_20.x | $sudo_cmd -E bash -
-    else
-        curl -fsSL https://deb.nodesource.com/setup_20.x | $sudo_cmd -E bash -
-    fi
+    # Remove old NodeSource list if exists
+    $sudo_cmd rm -f /etc/apt/sources.list.d/nodesource.list 2>/dev/null || true
+    $sudo_cmd rm -f /etc/apt/keyrings/nodesource.gpg 2>/dev/null || true
 
-    # Install Node.js
-    $sudo_cmd apt-get install -y -qq nodejs
+    # Create keyrings directory
+    $sudo_cmd mkdir -p /etc/apt/keyrings
+
+    # Add NodeSource GPG key
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | $sudo_cmd gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+
+    # Add NodeSource repository for Node.js 20
+    NODE_MAJOR=20
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | $sudo_cmd tee /etc/apt/sources.list.d/nodesource.list
+
+    # Update and install
+    $sudo_cmd apt-get update -qq
+    $sudo_cmd apt-get install -y nodejs
 
     # Install build essentials for native modules
     $sudo_cmd apt-get install -y -qq build-essential git
@@ -329,22 +414,33 @@ install_nodejs_apt() {
 
 install_nodejs_dnf() {
     local sudo_cmd="$1"
-    log_info "Installing Node.js via dnf (Fedora/RHEL 8+)..."
+    log_info "Installing Node.js 20 via dnf (Fedora/RHEL 8+)..."
 
-    # Enable NodeSource repository
+    # Install prerequisites
     $sudo_cmd dnf install -y curl
+
+    # Remove old NodeSource repo if exists
+    $sudo_cmd rm -f /etc/yum.repos.d/nodesource*.repo 2>/dev/null || true
+
+    # Add NodeSource repository for Node.js 20
+    $sudo_cmd dnf install -y https://rpm.nodesource.com/pub_20.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm 2>/dev/null || \
     curl -fsSL https://rpm.nodesource.com/setup_20.x | $sudo_cmd bash -
 
     # Install Node.js
-    $sudo_cmd dnf install -y nodejs git gcc-c++ make
+    $sudo_cmd dnf install -y nodejs git gcc-c++ make --setopt=nodesource-nodejs.module_hotfixes=1
 }
 
 install_nodejs_yum() {
     local sudo_cmd="$1"
-    log_info "Installing Node.js via yum (CentOS/RHEL 7)..."
+    log_info "Installing Node.js 20 via yum (CentOS/RHEL 7)..."
 
-    # Enable NodeSource repository
+    # Install prerequisites
     $sudo_cmd yum install -y curl
+
+    # Remove old NodeSource repo if exists
+    $sudo_cmd rm -f /etc/yum.repos.d/nodesource*.repo 2>/dev/null || true
+
+    # Add NodeSource repository for Node.js 20
     curl -fsSL https://rpm.nodesource.com/setup_20.x | $sudo_cmd bash -
 
     # Install Node.js
@@ -353,50 +449,71 @@ install_nodejs_yum() {
 
 install_nodejs_pacman() {
     local sudo_cmd="$1"
-    log_info "Installing Node.js via pacman (Arch Linux)..."
+    log_info "Installing Node.js 20 via pacman (Arch Linux)..."
 
+    # Arch Linux repos usually have latest Node.js
     $sudo_cmd pacman -Sy --noconfirm nodejs npm git base-devel
 }
 
 install_nodejs_apk() {
     local sudo_cmd="$1"
-    log_info "Installing Node.js via apk (Alpine Linux)..."
+    log_info "Installing Node.js 20 via apk (Alpine Linux)..."
 
-    $sudo_cmd apk add --no-cache nodejs npm git python3 make g++
+    # Alpine 3.18+ has Node.js 20 in community repo
+    # For older Alpine, we need to use edge/community
+    $sudo_cmd apk add --no-cache nodejs npm git python3 make g++ || {
+        log_warning "Node.js 20 not in default repos, trying edge..."
+        echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" | $sudo_cmd tee -a /etc/apk/repositories
+        $sudo_cmd apk update
+        $sudo_cmd apk add --no-cache nodejs npm git python3 make g++
+    }
 }
 
 install_nodejs_zypper() {
     local sudo_cmd="$1"
-    log_info "Installing Node.js via zypper (openSUSE)..."
+    log_info "Installing Node.js 20 via zypper (openSUSE)..."
 
-    $sudo_cmd zypper install -y nodejs20 npm20 git gcc-c++ make
+    # Try nodejs20 first, fallback to nodejs
+    $sudo_cmd zypper install -y nodejs20 npm20 git gcc-c++ make 2>/dev/null || \
+    $sudo_cmd zypper install -y nodejs npm git gcc-c++ make
 }
 
 install_nodejs_nvm() {
-    log_info "Installing Node.js via nvm (fallback method)..."
+    log_info "Installing Node.js 20 via nvm (universal fallback)..."
 
     # Install nvm
-    export NVM_DIR="$HOME/.nvm"
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+    mkdir -p "$NVM_DIR"
+
+    local NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh"
 
     if [ "$NETWORK_REGION" = "china" ]; then
         # Use gitee mirror for nvm
-        curl -o- https://gitee.com/mirrors/nvm/raw/master/install.sh | bash
-    else
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        log_info "Using China mirror for nvm..."
+        NVM_INSTALL_URL="https://gitee.com/mirrors/nvm/raw/master/install.sh"
     fi
 
-    # Load nvm
+    # Download and install nvm
+    curl -o- "$NVM_INSTALL_URL" | bash
+
+    # Load nvm immediately
+    export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
     # Set mirror for China
     if [ "$NETWORK_REGION" = "china" ]; then
         export NVM_NODEJS_ORG_MIRROR=https://npmmirror.com/mirrors/node/
     fi
 
-    # Install Node.js 20
+    # Install Node.js 20 LTS
+    log_info "Installing Node.js 20 via nvm..."
     nvm install 20
     nvm use 20
     nvm alias default 20
+
+    # Verify
+    log_success "Node.js $(node -v) installed via nvm"
 }
 
 # ============================================================
