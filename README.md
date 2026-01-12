@@ -318,15 +318,53 @@ Doc Generation █████████████████████�
 
 ## 🚀 Quick Start
 
-### Requirements
+### ⚡ One-Click Installation (Recommended)
 
-| Dependency | Minimum | Recommended |
-|:-----------|:-------:|:-----------:|
-| Node.js | 18.0+ | 20.x LTS |
-| npm/pnpm | 8.0+ | pnpm 9.x |
-| Claude Code | 1.0+ | Latest |
+**Auto-installs Node.js, npm, git and CCJK — works on fresh systems!**
 
-### Installation
+<table>
+<tr>
+<td width="50%">
+
+**🌍 Global Users**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+```
+
+</td>
+<td width="50%">
+
+**🇨🇳 中国用户 (China Mirror)**
+
+```bash
+curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+```
+
+</td>
+</tr>
+</table>
+
+<details>
+<summary><b>📋 Supported Platforms</b></summary>
+
+| Platform | Package Manager | Status |
+|:---------|:----------------|:------:|
+| **Ubuntu/Debian** | apt | ✅ Full Support |
+| **CentOS/RHEL/Fedora** | dnf/yum | ✅ Full Support |
+| **Arch Linux** | pacman | ✅ Full Support |
+| **Alpine Linux** | apk | ✅ Full Support |
+| **openSUSE** | zypper | ✅ Full Support |
+| **macOS** | Homebrew | ✅ Full Support |
+| **Windows** | Manual | ⚠️ See below |
+
+**Windows Users:** Please install [Node.js](https://nodejs.org/) first, then run `npm install -g ccjk`
+
+</details>
+
+<br/>
+
+### 📦 Manual Installation
 
 <table>
 <tr>
@@ -354,13 +392,22 @@ pnpm add -g ccjk
 # npmmirror (recommended)
 npm install -g ccjk --registry https://registry.npmmirror.com
 
-# Taobao mirror
-npm install -g ccjk --registry https://registry.npm.taobao.org
+# Or use cnpm
+npm install -g cnpm --registry=https://registry.npmmirror.com
+cnpm install -g ccjk
 ```
 
 </td>
 </tr>
 </table>
+
+### Requirements
+
+| Dependency | Minimum | Recommended |
+|:-----------|:-------:|:-----------:|
+| Node.js | 18.0+ | 20.x LTS |
+| npm/pnpm | 8.0+ | pnpm 9.x |
+| Claude Code | 1.0+ | Latest |
 
 ### 30-Second Quick Experience
 

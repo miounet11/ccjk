@@ -1,32 +1,85 @@
 #!/bin/bash
 
-# CCJK - Claude Code JinKu
-# One-Click Installation Script
-# https://github.com/miounet11/ccjk
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║                                                                           ║
+# ║   CCJK - Claude Code JinKu                                                ║
+# ║   One-Click Installation Script with Auto Environment Setup               ║
+# ║                                                                           ║
+# ║   Supports: Ubuntu/Debian, CentOS/RHEL/Fedora, macOS, Alpine, Arch       ║
+# ║   Auto-installs: Node.js 20+, npm, git                                   ║
+# ║   China-friendly: Auto-detects network and uses mirrors                  ║
+# ║                                                                           ║
+# ║   Usage:                                                                  ║
+# ║     curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+# ║                                                                           ║
+# ║   中国用户 (China users):                                                  ║
+# ║     curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+# ║                                                                           ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
 
-# Colors for output
+set -e
+
+# ============================================================
+# Colors and Formatting
+# ============================================================
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+# ============================================================
 # Banner
-echo ""
-echo -e "${CYAN}╔═══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║${NC}   ${GREEN}██████╗ ██████╗     ██╗██╗  ██╗${NC}                         ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${GREEN}██╔════╝██╔════╝     ██║██║ ██╔╝${NC}                         ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${GREEN}██║     ██║          ██║█████╔╝${NC}   Claude Code JinKu     ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${GREEN}██║     ██║     ██   ██║██╔═██╗${NC}   One-Click Installer   ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${GREEN}╚██████╗╚██████╗╚█████╔╝██║  ██╗${NC}                         ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}   ${GREEN}╚═════╝ ╚═════╝ ╚════╝ ╚═╝  ╚═╝${NC}                         ${CYAN}║${NC}"
-echo -e "${CYAN}╚═══════════════════════════════════════════════════════════╝${NC}"
-echo ""
+# ============================================================
+
+print_banner() {
+    echo ""
+    echo -e "${CYAN}╔═══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC}   ${GREEN}██████╗ ██████╗     ██╗██╗  ██╗${NC}                             ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${GREEN}██╔════╝██╔════╝     ██║██║ ██╔╝${NC}                             ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${GREEN}██║     ██║          ██║█████╔╝${NC}   ${BOLD}Claude Code JinKu${NC}         ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${GREEN}██║     ██║     ██   ██║██╔═██╗${NC}   ${MAGENTA}One-Click Installer${NC}       ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${GREEN}╚██████╗╚██████╗╚█████╔╝██║  ██╗${NC}   v2.2.1                     ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}   ${GREEN}╚═════╝ ╚═════╝ ╚════╝ ╚═╝  ╚═╝${NC}                             ${CYAN}║${NC}"
+    echo -e "${CYAN}╠═══════════════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}║${NC}  ${YELLOW}Auto Environment Setup + China Mirror Support${NC}               ${CYAN}║${NC}"
+    echo -e "${CYAN}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+}
+
+print_banner
 
 # ============================================================
 # Helper Functions
 # ============================================================
+
+log_info() {
+    echo -e "${BLUE}ℹ${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}⚠${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}✗${NC} $1"
+}
+
+log_step() {
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${CYAN}  $1${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+}
 
 cleanup() {
     if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
@@ -36,10 +89,440 @@ cleanup() {
 
 trap cleanup EXIT
 
-get_npm_global_bin() {
-    npm prefix -g 2>/dev/null | tr -d '\n'
-    echo "/bin"
+# ============================================================
+# OS Detection
+# ============================================================
+
+detect_os() {
+    OS="unknown"
+    DISTRO="unknown"
+    PKG_MANAGER="unknown"
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        OS="macos"
+        DISTRO="macos"
+        PKG_MANAGER="brew"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux" ]]; then
+        OS="linux"
+
+        # Detect Linux distribution
+        if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            DISTRO="$ID"
+        elif [ -f /etc/redhat-release ]; then
+            DISTRO="rhel"
+        elif [ -f /etc/debian_version ]; then
+            DISTRO="debian"
+        fi
+
+        # Detect package manager
+        if command -v apt-get &> /dev/null; then
+            PKG_MANAGER="apt"
+        elif command -v dnf &> /dev/null; then
+            PKG_MANAGER="dnf"
+        elif command -v yum &> /dev/null; then
+            PKG_MANAGER="yum"
+        elif command -v pacman &> /dev/null; then
+            PKG_MANAGER="pacman"
+        elif command -v apk &> /dev/null; then
+            PKG_MANAGER="apk"
+        elif command -v zypper &> /dev/null; then
+            PKG_MANAGER="zypper"
+        fi
+    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        OS="windows"
+        DISTRO="windows"
+        PKG_MANAGER="none"
+    fi
+
+    log_info "Detected OS: ${BOLD}$OS${NC} ($DISTRO)"
+    log_info "Package Manager: ${BOLD}$PKG_MANAGER${NC}"
 }
+
+# ============================================================
+# Network Detection - Auto-detect China network
+# ============================================================
+
+NETWORK_REGION="international"
+NPM_REGISTRY="https://registry.npmjs.org"
+NODE_MIRROR=""
+
+detect_network() {
+    log_step "Step 1/4: Detecting Network Environment"
+
+    local github_ok=false
+    local china_ok=false
+
+    # Test GitHub (international) - 3 second timeout
+    log_info "Testing GitHub connectivity..."
+    if curl -s --connect-timeout 3 --max-time 5 "https://github.com" > /dev/null 2>&1; then
+        github_ok=true
+        log_success "GitHub accessible"
+    else
+        log_warning "GitHub slow or blocked"
+    fi
+
+    # Test npmmirror (China) - 3 second timeout
+    log_info "Testing China mirror connectivity..."
+    if curl -s --connect-timeout 3 --max-time 5 "https://registry.npmmirror.com" > /dev/null 2>&1; then
+        china_ok=true
+        log_success "China mirror accessible"
+    fi
+
+    # Determine region
+    if [ "$github_ok" = true ]; then
+        NETWORK_REGION="international"
+        NPM_REGISTRY="https://registry.npmjs.org"
+        NODE_MIRROR=""
+        log_success "Using ${BOLD}international${NC} sources"
+    elif [ "$china_ok" = true ]; then
+        NETWORK_REGION="china"
+        NPM_REGISTRY="https://registry.npmmirror.com"
+        NODE_MIRROR="https://npmmirror.com/mirrors/node/"
+        log_success "Using ${BOLD}China mirror${NC} sources (中国镜像)"
+    else
+        NETWORK_REGION="unknown"
+        NPM_REGISTRY="https://registry.npmmirror.com"
+        log_warning "Network detection inconclusive, will try all sources"
+    fi
+}
+
+# ============================================================
+# Install Node.js (Auto-detect and install)
+# ============================================================
+
+install_nodejs() {
+    log_step "Step 2/4: Installing Node.js Environment"
+
+    # Check if Node.js is already installed with correct version
+    if command -v node &> /dev/null; then
+        NODE_VERSION=$(node -v)
+        NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v//' | cut -d. -f1)
+
+        if [ "$NODE_MAJOR" -ge 20 ]; then
+            log_success "Node.js $NODE_VERSION already installed"
+
+            # Check npm
+            if command -v npm &> /dev/null; then
+                log_success "npm v$(npm -v) already installed"
+                return 0
+            fi
+        else
+            log_warning "Node.js $NODE_VERSION is too old (need v20+)"
+            log_info "Upgrading Node.js..."
+        fi
+    else
+        log_info "Node.js not found, installing..."
+    fi
+
+    # Install based on OS and package manager
+    case "$OS" in
+        macos)
+            install_nodejs_macos
+            ;;
+        linux)
+            install_nodejs_linux
+            ;;
+        windows)
+            log_error "Windows detected. Please install Node.js manually:"
+            echo -e "  ${CYAN}https://nodejs.org/en/download/${NC}"
+            echo -e "  Or use: ${GREEN}winget install OpenJS.NodeJS.LTS${NC}"
+            exit 1
+            ;;
+        *)
+            log_error "Unsupported OS: $OS"
+            exit 1
+            ;;
+    esac
+
+    # Verify installation
+    if command -v node &> /dev/null; then
+        log_success "Node.js $(node -v) installed successfully"
+    else
+        log_error "Node.js installation failed"
+        exit 1
+    fi
+
+    if command -v npm &> /dev/null; then
+        log_success "npm v$(npm -v) installed successfully"
+    else
+        log_error "npm installation failed"
+        exit 1
+    fi
+}
+
+install_nodejs_macos() {
+    # Check for Homebrew
+    if ! command -v brew &> /dev/null; then
+        log_info "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+        # Add Homebrew to PATH for Apple Silicon
+        if [[ $(uname -m) == "arm64" ]]; then
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+        fi
+    fi
+
+    log_info "Installing Node.js via Homebrew..."
+    brew install node@20 || brew upgrade node
+
+    # Link if needed
+    brew link --overwrite node@20 2>/dev/null || true
+}
+
+install_nodejs_linux() {
+    local use_sudo=""
+    if [ "$EUID" -ne 0 ]; then
+        use_sudo="sudo"
+    fi
+
+    case "$PKG_MANAGER" in
+        apt)
+            install_nodejs_apt "$use_sudo"
+            ;;
+        dnf)
+            install_nodejs_dnf "$use_sudo"
+            ;;
+        yum)
+            install_nodejs_yum "$use_sudo"
+            ;;
+        pacman)
+            install_nodejs_pacman "$use_sudo"
+            ;;
+        apk)
+            install_nodejs_apk "$use_sudo"
+            ;;
+        zypper)
+            install_nodejs_zypper "$use_sudo"
+            ;;
+        *)
+            install_nodejs_nvm
+            ;;
+    esac
+}
+
+install_nodejs_apt() {
+    local sudo_cmd="$1"
+    log_info "Installing Node.js via apt (Ubuntu/Debian)..."
+
+    # Update package list
+    $sudo_cmd apt-get update -qq
+
+    # Install prerequisites
+    $sudo_cmd apt-get install -y -qq curl ca-certificates gnupg
+
+    # Add NodeSource repository for Node.js 20
+    if [ "$NETWORK_REGION" = "china" ]; then
+        # Use China mirror for NodeSource
+        log_info "Using China mirror for Node.js..."
+        curl -fsSL https://deb.nodesource.com/setup_20.x | $sudo_cmd -E bash -
+    else
+        curl -fsSL https://deb.nodesource.com/setup_20.x | $sudo_cmd -E bash -
+    fi
+
+    # Install Node.js
+    $sudo_cmd apt-get install -y -qq nodejs
+
+    # Install build essentials for native modules
+    $sudo_cmd apt-get install -y -qq build-essential git
+}
+
+install_nodejs_dnf() {
+    local sudo_cmd="$1"
+    log_info "Installing Node.js via dnf (Fedora/RHEL 8+)..."
+
+    # Enable NodeSource repository
+    $sudo_cmd dnf install -y curl
+    curl -fsSL https://rpm.nodesource.com/setup_20.x | $sudo_cmd bash -
+
+    # Install Node.js
+    $sudo_cmd dnf install -y nodejs git gcc-c++ make
+}
+
+install_nodejs_yum() {
+    local sudo_cmd="$1"
+    log_info "Installing Node.js via yum (CentOS/RHEL 7)..."
+
+    # Enable NodeSource repository
+    $sudo_cmd yum install -y curl
+    curl -fsSL https://rpm.nodesource.com/setup_20.x | $sudo_cmd bash -
+
+    # Install Node.js
+    $sudo_cmd yum install -y nodejs git gcc-c++ make
+}
+
+install_nodejs_pacman() {
+    local sudo_cmd="$1"
+    log_info "Installing Node.js via pacman (Arch Linux)..."
+
+    $sudo_cmd pacman -Sy --noconfirm nodejs npm git base-devel
+}
+
+install_nodejs_apk() {
+    local sudo_cmd="$1"
+    log_info "Installing Node.js via apk (Alpine Linux)..."
+
+    $sudo_cmd apk add --no-cache nodejs npm git python3 make g++
+}
+
+install_nodejs_zypper() {
+    local sudo_cmd="$1"
+    log_info "Installing Node.js via zypper (openSUSE)..."
+
+    $sudo_cmd zypper install -y nodejs20 npm20 git gcc-c++ make
+}
+
+install_nodejs_nvm() {
+    log_info "Installing Node.js via nvm (fallback method)..."
+
+    # Install nvm
+    export NVM_DIR="$HOME/.nvm"
+
+    if [ "$NETWORK_REGION" = "china" ]; then
+        # Use gitee mirror for nvm
+        curl -o- https://gitee.com/mirrors/nvm/raw/master/install.sh | bash
+    else
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    fi
+
+    # Load nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+    # Set mirror for China
+    if [ "$NETWORK_REGION" = "china" ]; then
+        export NVM_NODEJS_ORG_MIRROR=https://npmmirror.com/mirrors/node/
+    fi
+
+    # Install Node.js 20
+    nvm install 20
+    nvm use 20
+    nvm alias default 20
+}
+
+# ============================================================
+# Install Git (if not present)
+# ============================================================
+
+install_git() {
+    if command -v git &> /dev/null; then
+        log_success "Git $(git --version | cut -d' ' -f3) already installed"
+        return 0
+    fi
+
+    log_info "Installing Git..."
+
+    local use_sudo=""
+    if [ "$EUID" -ne 0 ]; then
+        use_sudo="sudo"
+    fi
+
+    case "$PKG_MANAGER" in
+        apt)
+            $use_sudo apt-get install -y -qq git
+            ;;
+        dnf)
+            $use_sudo dnf install -y git
+            ;;
+        yum)
+            $use_sudo yum install -y git
+            ;;
+        pacman)
+            $use_sudo pacman -Sy --noconfirm git
+            ;;
+        apk)
+            $use_sudo apk add --no-cache git
+            ;;
+        zypper)
+            $use_sudo zypper install -y git
+            ;;
+        brew)
+            brew install git
+            ;;
+        *)
+            log_error "Cannot install git automatically. Please install manually."
+            exit 1
+            ;;
+    esac
+
+    log_success "Git installed successfully"
+}
+
+# ============================================================
+# Configure npm for China (if needed)
+# ============================================================
+
+configure_npm_registry() {
+    if [ "$NETWORK_REGION" = "china" ]; then
+        log_info "Configuring npm to use China mirror..."
+        npm config set registry "$NPM_REGISTRY"
+        log_success "npm registry set to: $NPM_REGISTRY"
+    fi
+}
+
+# ============================================================
+# Install CCJK
+# ============================================================
+
+install_ccjk() {
+    log_step "Step 3/4: Installing CCJK"
+
+    # Check if already installed
+    if command -v ccjk &> /dev/null; then
+        EXISTING_VERSION=$(ccjk --version 2>/dev/null || echo "unknown")
+        log_success "CCJK is already installed (version: $EXISTING_VERSION)"
+
+        echo ""
+        read -p "$(echo -e "${YELLOW}Do you want to reinstall/upgrade? [y/N]: ${NC}")" -n 1 -r
+        echo ""
+
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Skipping reinstall"
+            return 0
+        fi
+
+        log_info "Removing existing installation..."
+        npm uninstall -g ccjk 2>/dev/null || true
+    fi
+
+    # Configure npm registry
+    configure_npm_registry
+
+    # Install CCJK via npm
+    log_info "Installing CCJK from npm..."
+
+    if npm install -g ccjk --registry "$NPM_REGISTRY"; then
+        log_success "CCJK installed successfully via npm"
+        return 0
+    fi
+
+    # Fallback: try alternative registry
+    log_warning "Primary registry failed, trying alternative..."
+
+    if [ "$NETWORK_REGION" = "china" ]; then
+        # Try default npm registry
+        if npm install -g ccjk --registry "https://registry.npmjs.org"; then
+            log_success "CCJK installed via fallback registry"
+            return 0
+        fi
+    else
+        # Try China mirror
+        if npm install -g ccjk --registry "https://registry.npmmirror.com"; then
+            log_success "CCJK installed via China mirror"
+            return 0
+        fi
+    fi
+
+    log_error "Failed to install CCJK"
+    echo ""
+    echo -e "${YELLOW}Manual installation:${NC}"
+    echo -e "  ${GREEN}npm install -g ccjk${NC}"
+    echo ""
+    exit 1
+}
+
+# ============================================================
+# Configure PATH
+# ============================================================
 
 get_shell_rc() {
     if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/bin/zsh" ] || [ "$SHELL" = "/usr/bin/zsh" ]; then
@@ -55,522 +538,133 @@ get_shell_rc() {
     fi
 }
 
+get_npm_global_bin() {
+    npm prefix -g 2>/dev/null | tr -d '\n'
+    echo "/bin"
+}
+
 configure_path() {
-    local npm_bin="$1"
+    log_step "Step 4/4: Configuring Environment"
+
+    local npm_bin=$(get_npm_global_bin)
     local shell_rc=$(get_shell_rc)
 
-    # Check if already configured
+    # Check if ccjk is in PATH
+    if command -v ccjk &> /dev/null; then
+        log_success "CCJK is already in PATH"
+        return 0
+    fi
+
+    # Check if PATH already configured
     if grep -q "$npm_bin" "$shell_rc" 2>/dev/null; then
-        echo -e "${GREEN}✓ PATH already configured in $shell_rc${NC}"
+        log_success "PATH already configured in $shell_rc"
+        log_warning "You may need to restart your terminal or run: source $shell_rc"
         return 0
     fi
 
     # Add to shell rc
+    log_info "Adding npm global bin to PATH..."
     echo "" >> "$shell_rc"
     echo "# Added by CCJK installer" >> "$shell_rc"
     echo "export PATH=\"$npm_bin:\$PATH\"" >> "$shell_rc"
-    echo -e "${GREEN}✓ Added PATH to $shell_rc${NC}"
+
+    log_success "PATH configured in $shell_rc"
+
+    # Export for current session
+    export PATH="$npm_bin:$PATH"
 }
 
 # ============================================================
-# Quick check: Is CCJK already installed?
+# Print Success Message
 # ============================================================
 
-# Check in PATH first (fastest)
-if command -v ccjk &> /dev/null; then
-    EXISTING_VERSION=$(ccjk --version 2>/dev/null || echo "unknown")
-    echo -e "${GREEN}✓ CCJK is already installed and working!${NC}"
-    echo -e "${CYAN}Version:${NC} $EXISTING_VERSION"
+print_success() {
+    local shell_rc=$(get_shell_rc)
+    local npm_bin=$(get_npm_global_bin)
+
     echo ""
-    echo -e "${YELLOW}To reinstall:${NC}"
-    echo -e "  ${GREEN}npm uninstall -g ccjk${NC}"
-    echo -e "  Then run this script again."
+    echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║                                                               ║${NC}"
+    echo -e "${GREEN}║   ✓ CCJK Installation Complete!                              ║${NC}"
+    echo -e "${GREEN}║                                                               ║${NC}"
+    echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "${CYAN}To use CCJK now:${NC}"
-    echo -e "  ${GREEN}ccjk${NC}"
-    exit 0
-fi
-
-# Check common npm global bin locations
-check_npm_bin_locations() {
-    local locations=(
-        "/root/.npm-global/bin/ccjk"
-        "/usr/local/bin/ccjk"
-        "/usr/bin/ccjk"
-        "$HOME/.npm-global/bin/ccjk"
-        "$HOME/.local/bin/ccjk"
-    )
-
-    for loc in "${locations[@]}"; do
-        # Use -e to detect symlinks too (npm creates symlinks)
-        if [ -e "$loc" ] || [ -L "$loc" ]; then
-            echo "$loc"
-            return 0
-        fi
-    done
-
-    # Try npm prefix
-    if command -v npm &> /dev/null; then
-        local npm_bin="$(npm prefix -g 2>/dev/null)/bin/ccjk"
-        if [ -e "$npm_bin" ] || [ -L "$npm_bin" ]; then
-            echo "$npm_bin"
-            return 0
-        fi
-    fi
-
-    return 1
-}
-
-# Check if a symlink is broken (exists as link but target doesn't exist)
-is_broken_symlink() {
-    local path="$1"
-    # -L checks if it's a symlink, ! -e checks if target doesn't exist
-    [ -L "$path" ] && [ ! -e "$path" ]
-}
-
-# Clean up broken installation
-cleanup_broken_install() {
-    local bin_path="$1"
-    echo -e "${YELLOW}⚠ Detected broken installation at: $bin_path${NC}"
-    echo -e "${CYAN}  Cleaning up and reinstalling...${NC}"
-    echo ""
-
-    # Remove broken symlink
-    rm -f "$bin_path" 2>/dev/null
-
-    # Try to find and remove broken npm module
-    local npm_prefix=$(npm prefix -g 2>/dev/null)
-    if [ -n "$npm_prefix" ]; then
-        local module_path="$npm_prefix/lib/node_modules/ccjk"
-        if [ -d "$module_path" ] || [ -L "$module_path" ]; then
-            rm -rf "$module_path" 2>/dev/null
-        fi
-    fi
-
-    # Also try npm uninstall to be thorough
-    npm uninstall -g ccjk 2>/dev/null || true
-
-    echo -e "${GREEN}✓ Cleaned up broken installation${NC}"
-    echo ""
-}
-
-EXISTING_BIN=$(check_npm_bin_locations)
-if [ -n "$EXISTING_BIN" ]; then
-    # Check if it's a broken symlink
-    if is_broken_symlink "$EXISTING_BIN"; then
-        cleanup_broken_install "$EXISTING_BIN"
-        # Continue to fresh install below
-    else
-        # Valid installation, just needs PATH config
-        echo -e "${GREEN}✓ CCJK found at: $EXISTING_BIN${NC}"
-        echo -e "${YELLOW}But it's not in your PATH. Configuring...${NC}"
-        echo ""
-
-        NPM_BIN_DIR=$(dirname "$EXISTING_BIN")
-        configure_path "$NPM_BIN_DIR"
-
-        echo ""
-        echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-        echo -e "${GREEN}  ✓ PATH Configured!${NC}"
-        echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-        echo ""
-        echo -e "${CYAN}To use CCJK now, run:${NC}"
-        echo -e "  ${GREEN}source $(get_shell_rc) && ccjk${NC}"
-        echo ""
-        echo -e "${CYAN}Or run directly:${NC}"
-        echo -e "  ${GREEN}$EXISTING_BIN${NC}"
-        exit 0
-    fi
-fi
-
-# ============================================================
-# System Checks
-# ============================================================
-
-# Check if running as root
-if [ "$EUID" -eq 0 ]; then
-    echo -e "${YELLOW}Warning: Running as root is not recommended.${NC}"
-    echo ""
-fi
-
-# Detect OS
-OS="unknown"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    OS="macos"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    OS="linux"
-elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
-    OS="windows"
-fi
-
-echo -e "${BLUE}Detected OS:${NC} $OS"
-echo ""
-
-# Check for Node.js
-echo -e "${BLUE}Checking dependencies...${NC}"
-
-if ! command -v node &> /dev/null; then
-    echo -e "${RED}✗ Node.js is not installed${NC}"
-    echo ""
-    echo -e "${YELLOW}Please install Node.js 20 or higher:${NC}"
-    echo -e "  macOS: brew install node"
-    echo -e "  Linux: curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs"
-    echo -e "  Windows: https://nodejs.org/en/download/"
-    exit 1
-fi
-
-NODE_VERSION=$(node -v)
-NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v//' | cut -d. -f1)
-
-if [ "$NODE_MAJOR" -lt 20 ]; then
-    echo -e "${RED}✗ Node.js $NODE_VERSION is too old. Need v20+${NC}"
-    echo ""
-    echo -e "${YELLOW}Upgrade with: nvm install 20 && nvm use 20${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Node.js${NC} $NODE_VERSION"
-
-# Check for npm
-if ! command -v npm &> /dev/null; then
-    echo -e "${RED}✗ npm is not installed${NC}"
-    exit 1
-fi
-echo -e "${GREEN}✓ npm${NC} v$(npm -v)"
-
-# Check for git
-if ! command -v git &> /dev/null; then
-    echo -e "${RED}✗ Git is not installed${NC}"
-    echo -e "${YELLOW}Install: sudo apt-get install git${NC}"
-    exit 1
-fi
-echo -e "${GREEN}✓ Git${NC} $(git --version | cut -d' ' -f3)"
-
-echo ""
-
-# ============================================================
-# Clone Repository (with retry and mirror support)
-# ============================================================
-
-echo -e "${BLUE}Installing CCJK...${NC}"
-echo ""
-
-TEMP_DIR=$(mktemp -d)
-cd "$TEMP_DIR"
-
-# Git mirrors to try (multiple China-friendly options)
-GITHUB_URL="https://github.com/miounet11/ccjk.git"
-GITEE_URL="https://gitee.com/miounet11/ccjk.git"
-GHPROXY_URL="https://ghproxy.com/https://github.com/miounet11/ccjk.git"
-GITCLONE_URL="https://gitclone.com/github.com/miounet11/ccjk.git"
-KKGITHUB_URL="https://kkgithub.com/miounet11/ccjk.git"
-
-# NPM registries
-NPM_REGISTRY_DEFAULT="https://registry.npmjs.org"
-NPM_REGISTRY_CHINA="https://registry.npmmirror.com"
-
-# ============================================================
-# Network Detection - Auto-detect best source for user
-# ============================================================
-
-detect_network_region() {
-    echo -e "${CYAN}Detecting network environment...${NC}"
-
-    # Test connectivity to different endpoints (timeout 3s each)
-    local github_ok=false
-    local china_ok=false
-
-    # Test GitHub (international)
-    if curl -s --connect-timeout 3 --max-time 5 "https://github.com" > /dev/null 2>&1; then
-        github_ok=true
-    fi
-
-    # Test npmmirror (China)
-    if curl -s --connect-timeout 3 --max-time 5 "https://registry.npmmirror.com" > /dev/null 2>&1; then
-        china_ok=true
-    fi
-
-    # Determine region based on response times
-    if [ "$github_ok" = true ]; then
-        # GitHub accessible - likely international or good VPN
-        echo -e "${GREEN}✓ GitHub accessible - using international sources${NC}"
-        NETWORK_REGION="international"
-    elif [ "$china_ok" = true ]; then
-        # Only China mirror works - likely in China without VPN
-        echo -e "${GREEN}✓ China network detected - using mirror sources${NC}"
-        NETWORK_REGION="china"
-    else
-        # Both failed - try anyway with fallbacks
-        echo -e "${YELLOW}⚠ Network detection inconclusive - will try all sources${NC}"
-        NETWORK_REGION="unknown"
-    fi
-    echo ""
-}
-
-# Run network detection
-detect_network_region
-
-clone_repo() {
-    local url="$1"
-    local name="$2"
-    local timeout="${3:-60}"
-
-    echo -e "${CYAN}Trying $name...${NC}"
-
-    # Set git timeout
-    git config --global http.lowSpeedLimit 1000
-    git config --global http.lowSpeedTime 30
-
-    if timeout "$timeout" git clone --depth 1 "$url" ccjk 2>/dev/null; then
-        echo -e "${GREEN}✓ Cloned from $name${NC}"
-        return 0
-    else
-        echo -e "${YELLOW}✗ $name failed${NC}"
-        rm -rf ccjk 2>/dev/null || true
-        return 1
-    fi
-}
-
-npm_install_direct() {
-    local registry="$1"
-    local name="$2"
-
-    echo -e "${CYAN}Trying npm install from $name...${NC}"
-    if npm install -g ccjk --registry "$registry" 2>/dev/null; then
-        echo -e "${GREEN}✓ Installed from $name${NC}"
-        return 0
-    else
-        echo -e "${YELLOW}✗ $name failed${NC}"
-        return 1
-    fi
-}
-
-CLONE_SUCCESS=false
-NPM_DIRECT=false
-
-# Smart source selection based on detected region
-if [ "$NETWORK_REGION" = "china" ]; then
-    # China: Try China sources first
-    echo -e "${BLUE}Using China-optimized installation order...${NC}"
-    echo ""
-
-    # 1. Try npmmirror first (fastest and most reliable for China)
-    if npm_install_direct "$NPM_REGISTRY_CHINA" "npmmirror (China)"; then
-        CLONE_SUCCESS=true
-        NPM_DIRECT=true
-    fi
-
-    # 2. Try gitclone.com mirror
-    if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$GITCLONE_URL" "GitClone Mirror" 45; then
-            CLONE_SUCCESS=true
-        fi
-    fi
-
-    # 3. Try kkgithub mirror
-    if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$KKGITHUB_URL" "KKGitHub Mirror" 45; then
-            CLONE_SUCCESS=true
-        fi
-    fi
-
-    # 4. Try ghproxy mirror
-    if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$GHPROXY_URL" "GitHub Mirror (ghproxy)" 45; then
-            CLONE_SUCCESS=true
-        fi
-    fi
-
-    # 5. Try Gitee
-    if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$GITEE_URL" "Gitee Mirror" 45; then
-            CLONE_SUCCESS=true
-        fi
-    fi
-
-    # 6. Last resort: try GitHub directly
-    if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$GITHUB_URL" "GitHub (direct)" 30; then
-            CLONE_SUCCESS=true
-        fi
-    fi
-else
-    # International or unknown: Try GitHub first
-    echo -e "${BLUE}Using standard installation order...${NC}"
-    echo ""
-
-    # 1. Try GitHub first
-    if clone_repo "$GITHUB_URL" "GitHub" 60; then
-        CLONE_SUCCESS=true
-    fi
-
-    # 2. Try ghproxy mirror
-    if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$GHPROXY_URL" "GitHub Mirror (ghproxy)" 60; then
-            CLONE_SUCCESS=true
-        fi
-    fi
-
-    # 3. Try Gitee mirror
-    if [ "$CLONE_SUCCESS" = false ]; then
-        if clone_repo "$GITEE_URL" "Gitee Mirror" 60; then
-            CLONE_SUCCESS=true
-        fi
-    fi
-
-    # 4. Final fallback: try npm registry directly
-    if [ "$CLONE_SUCCESS" = false ]; then
-        echo -e "${YELLOW}Git clone failed. Trying npm install directly...${NC}"
-        if npm_install_direct "$NPM_REGISTRY_DEFAULT" "npm registry"; then
-            CLONE_SUCCESS=true
-            NPM_DIRECT=true
-        elif npm_install_direct "$NPM_REGISTRY_CHINA" "npmmirror (China)"; then
-            CLONE_SUCCESS=true
-            NPM_DIRECT=true
-        fi
-    fi
-fi
-
-# Ultimate fallback: if still failed, try npm as last resort
-if [ "$CLONE_SUCCESS" = false ]; then
-    echo -e "${YELLOW}All git sources failed. Final attempt with npm...${NC}"
-    if npm_install_direct "$NPM_REGISTRY_CHINA" "npmmirror (final attempt)"; then
-        CLONE_SUCCESS=true
-        NPM_DIRECT=true
-    fi
-fi
-
-if [ "$CLONE_SUCCESS" = false ]; then
-    echo ""
-    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${RED}Installation failed: Could not download CCJK${NC}"
-    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-    echo -e "${YELLOW}This is usually a network issue. Try:${NC}"
-    echo ""
-    echo -e "  1. ${CYAN}Check your internet connection${NC}"
-    echo -e "  2. ${CYAN}Use a VPN or proxy${NC}"
-    echo -e "  3. ${CYAN}Try again later${NC}"
-    echo ""
-    echo -e "${YELLOW}Manual installation / 手动安装:${NC}"
-    echo ""
-    echo -e "  ${GREEN}# International users:${NC}"
-    echo -e "  ${CYAN}git clone https://github.com/miounet11/ccjk.git${NC}"
-    echo -e "  ${CYAN}cd ccjk && npm install && npm run build && npm install -g .${NC}"
-    echo ""
-    echo -e "  ${GREEN}# 中国用户 (China users):${NC}"
-    echo -e "  ${CYAN}npm install -g ccjk --registry https://registry.npmmirror.com${NC}"
-    echo ""
-    exit 1
-fi
-
-# ============================================================
-# Build and Install (skip if installed via npm directly)
-# ============================================================
-
-if [ "$NPM_DIRECT" != "true" ]; then
-    cd ccjk
-
-    # Install pnpm if needed
-    if ! command -v pnpm &> /dev/null; then
-        echo -e "${CYAN}Installing pnpm...${NC}"
-        npm install -g pnpm 2>/dev/null || true
-    fi
-
-    # Install dependencies
-    echo -e "${CYAN}Installing dependencies...${NC}"
-    if command -v pnpm &> /dev/null; then
-        pnpm install --frozen-lockfile 2>/dev/null || pnpm install
-    else
-        npm install
-    fi
-
-    # Build
-    echo -e "${CYAN}Building...${NC}"
-    if command -v pnpm &> /dev/null; then
-        pnpm build
-    else
-        npm run build
-    fi
-
-    # Install globally
-    echo -e "${CYAN}Installing globally...${NC}"
-    npm uninstall -g ccjk 2>/dev/null || true
-    npm install -g .
-fi
-
-# ============================================================
-# Verify Installation
-# ============================================================
-
-echo ""
-NPM_GLOBAL_BIN=$(get_npm_global_bin)
-CCJK_BIN="$NPM_GLOBAL_BIN/ccjk"
-
-if [ -f "$CCJK_BIN" ]; then
-    echo -e "${GREEN}✓ CCJK installed at:${NC} $CCJK_BIN"
 
     # Get version
-    export PATH="$NPM_GLOBAL_BIN:$PATH"
-    CCJK_VERSION=$("$CCJK_BIN" --version 2>/dev/null || echo "installed")
-    echo -e "${GREEN}✓ Version:${NC} $CCJK_VERSION"
-else
-    # Check npm root
-    NPM_ROOT=$(npm root -g)
-    if [ -f "$NPM_ROOT/ccjk/bin/ccjk.mjs" ]; then
-        echo -e "${GREEN}✓ Package installed at:${NC} $NPM_ROOT/ccjk"
-        ln -sf "$NPM_ROOT/ccjk/bin/ccjk.mjs" "$NPM_GLOBAL_BIN/ccjk" 2>/dev/null || true
+    local version=""
+    if command -v ccjk &> /dev/null; then
+        version=$(ccjk --version 2>/dev/null || echo "")
+    elif [ -f "$npm_bin/ccjk" ]; then
+        export PATH="$npm_bin:$PATH"
+        version=$("$npm_bin/ccjk" --version 2>/dev/null || echo "")
     fi
-fi
+
+    if [ -n "$version" ]; then
+        echo -e "  ${CYAN}Version:${NC} $version"
+        echo ""
+    fi
+
+    echo -e "${BOLD}🚀 Quick Start:${NC}"
+    echo ""
+
+    if command -v ccjk &> /dev/null; then
+        echo -e "  ${GREEN}ccjk${NC}              - Launch interactive menu"
+    else
+        echo -e "  ${YELLOW}First, reload your shell:${NC}"
+        echo -e "  ${GREEN}source $shell_rc${NC}"
+        echo ""
+        echo -e "  ${YELLOW}Then run:${NC}"
+        echo -e "  ${GREEN}ccjk${NC}              - Launch interactive menu"
+    fi
+
+    echo -e "  ${GREEN}ccjk interview${NC}    - Interview-Driven Development"
+    echo -e "  ${GREEN}ccjk doctor${NC}       - Health check"
+    echo -e "  ${GREEN}ccjk context${NC}      - Context management (NEW!)"
+    echo ""
+
+    echo -e "${BOLD}📚 In Claude Code:${NC}"
+    echo ""
+    echo -e "  ${GREEN}/ccjk:${NC}            - See all available commands"
+    echo ""
+
+    echo -e "${BOLD}📖 Documentation:${NC}"
+    echo -e "  ${CYAN}https://github.com/miounet11/ccjk${NC}"
+    echo ""
+
+    if [ "$NETWORK_REGION" = "china" ]; then
+        echo -e "${YELLOW}💡 中国用户提示:${NC}"
+        echo -e "  npm 已配置为使用国内镜像 (npmmirror)"
+        echo -e "  如需恢复: ${GREEN}npm config set registry https://registry.npmjs.org${NC}"
+        echo ""
+    fi
+}
 
 # ============================================================
-# Configure PATH
+# Main Installation Flow
 # ============================================================
 
-echo ""
-if ! command -v ccjk &> /dev/null; then
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}⚠️  Configuring PATH...${NC}"
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
+main() {
+    # Detect OS
+    detect_os
 
-    configure_path "$NPM_GLOBAL_BIN"
-    SHELL_RC=$(get_shell_rc)
+    # Detect network region
+    detect_network
 
-    echo ""
-    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}  ✓ CCJK Installation Complete!${NC}"
-    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-    echo ""
-    echo -e "${CYAN}To start using CCJK, run ONE of these:${NC}"
-    echo ""
-    echo -e "  ${GREEN}source $SHELL_RC && ccjk${NC}"
-    echo ""
-    echo -e "  ${CYAN}Or run directly:${NC}"
-    echo -e "  ${GREEN}$NPM_GLOBAL_BIN/ccjk${NC}"
-    echo ""
-else
-    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}  ✓ CCJK Installation Complete!${NC}"
-    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-    echo ""
-    echo -e "${CYAN}To start using CCJK:${NC}"
-    echo -e "  ${GREEN}ccjk${NC}"
-    echo ""
-fi
+    # Install Node.js if needed
+    install_nodejs
 
-# ============================================================
-# Quick Start Guide
-# ============================================================
+    # Install Git if needed
+    install_git
 
-echo -e "${BLUE}Quick Start:${NC}"
-echo ""
-echo -e "  ${GREEN}ccjk${NC}              - Interactive menu"
-echo -e "  ${GREEN}ccjk interview${NC}    - Interview-Driven Development"
-echo -e "  ${GREEN}ccjk doctor${NC}       - Health check"
-echo ""
-echo -e "${BLUE}In Claude Code:${NC}"
-echo -e "  ${GREEN}/ccjk:${NC}            - See all commands"
-echo ""
-echo -e "${CYAN}Documentation:${NC} https://github.com/miounet11/ccjk"
-echo ""
+    # Install CCJK
+    install_ccjk
+
+    # Configure PATH
+    configure_path
+
+    # Print success message
+    print_success
+}
+
+# Run main
+main "$@"
