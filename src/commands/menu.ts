@@ -830,152 +830,6 @@ function printZcfSection(options: {
 }
 
 /**
- * Show the Config Center submenu
- */
-async function showConfigCenterMenu(): Promise<void> {
-  console.log(ansis.cyan(i18n.t('menu:configCenter.title')))
-  console.log('')
-  console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:configCenter.api')} ${ansis.gray(`- ${i18n.t('menu:configCenter.apiDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:configCenter.mcp')} ${ansis.gray(`- ${i18n.t('menu:configCenter.mcpDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('3.')} ${i18n.t('menu:configCenter.model')} ${ansis.gray(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('4.')} ${i18n.t('menu:configCenter.memory')} ${ansis.gray(`- ${i18n.t('menu:configCenter.memoryDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('5.')} ${i18n.t('menu:configCenter.permission')} ${ansis.gray(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('6.')} ${i18n.t('menu:configCenter.configSwitch')} ${ansis.gray(`- ${i18n.t('menu:configCenter.configSwitchDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('7.')} ${i18n.t('menu:configCenter.context')} ${ansis.gray(`- ${i18n.t('menu:configCenter.contextDesc')}`)}`,
-  )
-  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
-  console.log('')
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
-    name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
-  })
-
-  if (!choice || choice === '0') {
-    return
-  }
-
-  switch (choice) {
-    case '1':
-      await configureApiFeature()
-      break
-    case '2':
-      await configureMcpFeature()
-      break
-    case '3':
-      await configureDefaultModelFeature()
-      break
-    case '4':
-      await configureAiMemoryFeature()
-      break
-    case '5':
-      await configureEnvPermissionFeature()
-      break
-    case '6':
-      await showConfigSwitchMenu()
-      break
-    case '7':
-      await showContextMenu()
-      break
-  }
-
-  printSeparator()
-}
-
-/**
- * Show the Extensions Hub submenu (combines plugins, MCP, marketplace)
- */
-async function showExtensionsHubMenu(): Promise<void> {
-  console.log(ansis.cyan(i18n.t('menu:extensionsHub.title')))
-  console.log('')
-
-  // Recommended Plugins
-  console.log(`  ${i18n.t('menu:menuSections.recommendedPlugins')}`)
-  console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:pluginsMenu.ccr')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.ccrDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:pluginsMenu.ccusage')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.ccusageDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('3.')} ${i18n.t('menu:pluginsMenu.cometix')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.cometixDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('4.')} ${i18n.t('menu:pluginsMenu.superpowers')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.superpowersDesc')}`)}`,
-  )
-  console.log('')
-
-  // Markets
-  console.log(`  ${i18n.t('menu:extensionsHub.markets')}`)
-  console.log(
-    `  ${ansis.cyan('5.')} ${i18n.t('menu:categorizedMenu.mcpMarket')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.mcpMarketDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('6.')} ${i18n.t('menu:categorizedMenu.marketplace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.marketplaceDesc')}`)}`,
-  )
-  console.log('')
-
-  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
-  console.log('')
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
-    name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
-  })
-
-  if (!choice || choice === '0') {
-    return
-  }
-
-  switch (choice) {
-    case '1':
-      await runCcrMenuFeature()
-      break
-    case '2':
-      await runCcusageFeature()
-      break
-    case '3':
-      await runCometixMenuFeature()
-      break
-    case '4':
-      await showSuperpowersMenu()
-      break
-    case '5':
-      printSeparator()
-      await showMcpMarketMenu()
-      return
-    case '6':
-      printSeparator()
-      await showMarketplaceMenu()
-      return
-  }
-
-  printSeparator()
-}
-/**
  * One-click checkup: diagnose and auto-fix issues
  */
 async function oneClickCheckup(): Promise<void> {
@@ -1007,30 +861,88 @@ async function oneClickUpdate(): Promise<void> {
 }
 
 /**
- * Show the "More Features" submenu
+ * Show the "More Features" submenu - flattened to show all options directly
  */
 async function showMoreFeaturesMenu(): Promise<void> {
   console.log(ansis.cyan(i18n.t('menu:moreMenu.title')))
   console.log('')
+
+  // Extensions section
+  console.log(`  ${ansis.yellow(i18n.t('menu:moreMenu.extensions'))}`)
   console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:moreMenu.extensions')} ${ansis.gray(`- ${i18n.t('menu:moreMenu.extensionsDesc')}`)}`,
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:pluginsMenu.ccr')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.ccrDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:moreMenu.config')} ${ansis.gray(`- ${i18n.t('menu:moreMenu.configDesc')}`)}`,
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:pluginsMenu.ccusage')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.ccusageDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('3.')} ${i18n.t('menu:moreMenu.system')} ${ansis.gray(`- ${i18n.t('menu:moreMenu.systemDesc')}`)}`,
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:pluginsMenu.cometix')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.cometixDesc')}`)}`,
   )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:pluginsMenu.superpowers')} ${ansis.gray(`- ${i18n.t('menu:pluginsMenu.superpowersDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:categorizedMenu.mcpMarket')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.mcpMarketDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('6.')} ${i18n.t('menu:categorizedMenu.marketplace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.marketplaceDesc')}`)}`,
+  )
+  console.log('')
+
+  // Config section
+  console.log(`  ${ansis.yellow(i18n.t('menu:moreMenu.config'))}`)
+  console.log(
+    `  ${ansis.cyan('7.')} ${i18n.t('menu:configCenter.api')} ${ansis.gray(`- ${i18n.t('menu:configCenter.apiDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('8.')} ${i18n.t('menu:configCenter.mcp')} ${ansis.gray(`- ${i18n.t('menu:configCenter.mcpDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('9.')} ${i18n.t('menu:configCenter.model')} ${ansis.gray(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('10.')} ${i18n.t('menu:configCenter.memory')} ${ansis.gray(`- ${i18n.t('menu:configCenter.memoryDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('11.')} ${i18n.t('menu:configCenter.permission')} ${ansis.gray(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('12.')} ${i18n.t('menu:configCenter.configSwitch')} ${ansis.gray(`- ${i18n.t('menu:configCenter.configSwitchDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('13.')} ${i18n.t('menu:configCenter.context')} ${ansis.gray(`- ${i18n.t('menu:configCenter.contextDesc')}`)}`,
+  )
+  console.log('')
+
+  // System section
+  console.log(`  ${ansis.yellow(i18n.t('menu:moreMenu.system'))}`)
+  console.log(
+    `  ${ansis.cyan('14.')} ${i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0]} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('15.')} ${i18n.t('menu:menuOptions.switchCodeTool')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('16.')} ${i18n.t('menu:categorizedMenu.diagnostics')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('17.')} ${i18n.t('menu:categorizedMenu.workspace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.workspaceDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('18.')} ${i18n.t('menu:menuOptions.uninstall')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.uninstall')}`)}`,
+  )
+  console.log('')
+
   console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
   console.log('')
 
+  const validChoices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18']
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
+      return validChoices.includes(value) || i18n.t('common:invalidChoice')
     },
   })
 
@@ -1038,81 +950,69 @@ async function showMoreFeaturesMenu(): Promise<void> {
     return
   }
 
+  printSeparator()
+
   switch (choice) {
+    // Extensions
     case '1':
-      printSeparator()
-      await showExtensionsHubMenu()
+      await runCcrMenuFeature()
       break
     case '2':
-      printSeparator()
-      await showConfigCenterMenu()
+      await runCcusageFeature()
       break
     case '3':
-      printSeparator()
-      await showSystemSettingsMenu()
+      await runCometixMenuFeature()
       break
-  }
-}
-
-/**
- * Show system settings submenu
- */
-async function showSystemSettingsMenu(): Promise<void> {
-  console.log(ansis.cyan(i18n.t('menu:moreMenu.system')))
-  console.log('')
-  console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0]} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:menuOptions.switchCodeTool')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('3.')} ${i18n.t('menu:categorizedMenu.diagnostics')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('4.')} ${i18n.t('menu:categorizedMenu.workspace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.workspaceDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('5.')} ${i18n.t('menu:menuOptions.uninstall')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.uninstall')}`)}`,
-  )
-  console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
-  console.log('')
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
-    name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
-  })
-
-  if (!choice || choice === '0') {
-    return
-  }
-
-  switch (choice) {
-    case '1': {
+    case '4':
+      await showSuperpowersMenu()
+      break
+    case '5':
+      await showMcpMarketMenu()
+      break
+    case '6':
+      await showMarketplaceMenu()
+      break
+    // Config
+    case '7':
+      await configureApiFeature()
+      break
+    case '8':
+      await configureMcpFeature()
+      break
+    case '9':
+      await configureDefaultModelFeature()
+      break
+    case '10':
+      await configureAiMemoryFeature()
+      break
+    case '11':
+      await configureEnvPermissionFeature()
+      break
+    case '12':
+      await showConfigSwitchMenu()
+      break
+    case '13':
+      await showContextMenu()
+      break
+    // System
+    case '14': {
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)
       break
     }
-    case '2':
+    case '15':
       await handleCodeToolSwitch('claude-code')
       break
-    case '3':
+    case '16':
       await doctor()
       break
-    case '4':
+    case '17':
       await workspaceDiagnostics()
       break
-    case '5':
+    case '18':
       await uninstall()
       break
   }
-
-  printSeparator()
 }
 
 /**
