@@ -76,5 +76,8 @@
   "duplicateWarningContinue": "Acknowledged duplicate installation risk, continue",
   "versionMismatchWarning": "⚠️ Version mismatch: npm is {npmVersion}, Homebrew is {homebrewVersion}",
   "activatingHomebrew": "Activating Homebrew installation...",
-  "autoRemovingNpm": "Silent mode: Auto-removing npm installation and keeping Homebrew..."
+  "autoRemovingNpm": "Silent mode: Auto-removing npm installation and keeping Homebrew...",
+  "pathUpdateNeeded": "PATH configuration required",
+  "pathUpdateHint": "Add ~/.local/bin to your PATH to use claude command directly:",
+  "pathUpdatePermanent": "To make this permanent, add to your shell config:"
 }

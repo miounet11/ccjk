@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.2.2
+
+### Linux curl Installation Support / Linux curl 安装支持
+
+#### Bug Fixes / 问题修复
+- **Fix Linux curl installation detection**: `verifyInstallation` now correctly detects Claude Code installed via curl on Linux
+- **Add Linux-specific path detection**: Support for `~/.local/bin/claude`, `~/.claude/bin/claude`, `/usr/local/bin/claude`, `/usr/bin/claude`
+- **Add PATH configuration hints**: When `~/.local/bin` is not in PATH, display helpful configuration instructions
+
+- **修复 Linux curl 安装检测**: `verifyInstallation` 现在能正确检测通过 curl 在 Linux 上安装的 Claude Code
+- **添加 Linux 专用路径检测**: 支持 `~/.local/bin/claude`、`~/.claude/bin/claude`、`/usr/local/bin/claude`、`/usr/bin/claude`
+- **添加 PATH 配置提示**: 当 `~/.local/bin` 不在 PATH 中时，显示友好的配置指导
+
+#### i18n / 国际化
+- Add `pathUpdateNeeded`, `pathUpdateHint`, `pathUpdatePermanent` translation keys
+- 添加 `pathUpdateNeeded`、`pathUpdateHint`、`pathUpdatePermanent` 翻译键
+
 ## 2.2.1
 
 ### Release / 发布

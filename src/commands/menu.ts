@@ -6,7 +6,7 @@ import inquirer from 'inquirer'
 import { join } from 'pathe'
 import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
-import { displayBannerWithInfo, padToDisplayWidth } from '../utils/banner'
+import { displayBannerWithInfo } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { configureCodexApi, configureCodexMcp, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../utils/code-tools/codex'
 import { resolveCodeType } from '../utils/code-type-resolver'
@@ -1410,13 +1410,37 @@ async function isFirstTimeUser(): Promise<boolean> {
  * @returns User's choice: 'quick' for quick start, 'full' for full menu, 'help' for features
  */
 async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
+  const { version } = await import('../../package.json')
+
+  // Large, visually appealing welcome banner
   console.log('')
-  console.log(ansis.bold.cyan('╔══════════════════════════════════════════════════════════════╗'))
-  console.log(ansis.bold.cyan('║') + ansis.bold.white(padToDisplayWidth(`  ${i18n.t('menu:newUser.welcomeTitle')}`, 62)) + ansis.bold.cyan('║'))
-  console.log(`${ansis.bold.cyan('║')}                                                              ${ansis.bold.cyan('║')}`)
-  console.log(ansis.bold.cyan('║') + padToDisplayWidth(`  ${i18n.t('menu:newUser.welcomeDesc1')}`, 62) + ansis.bold.cyan('║'))
-  console.log(ansis.bold.cyan('║') + padToDisplayWidth(`  ${i18n.t('menu:newUser.welcomeDesc2')}`, 62) + ansis.bold.cyan('║'))
-  console.log(ansis.bold.cyan('╚══════════════════════════════════════════════════════════════╝'))
+  console.log(ansis.cyan.bold('╔════════════════════════════════════════════════════════════════════════╗'))
+  console.log(`${ansis.cyan.bold('║')}                                                                        ${ansis.cyan.bold('║')}`)
+  console.log(ansis.cyan.bold('║') + ansis.white.bold('     ██████╗  ██████╗      ██╗██╗  ██╗                                 ') + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.white.bold('    ██╔════╝ ██╔════╝      ██║██║ ██╔╝                                 ') + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.white.bold('    ██║      ██║           ██║█████╔╝                                  ') + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.white.bold('    ██║      ██║      ██   ██║██╔═██╗                                  ') + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.white.bold('    ╚██████╗ ╚██████╗ ╚█████╔╝██║  ██╗                                 ') + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.white.bold('     ╚═════╝  ╚═════╝  ╚════╝ ╚═╝  ╚═╝                                 ') + ansis.cyan.bold('║'))
+  console.log(`${ansis.cyan.bold('║')}                                                                        ${ansis.cyan.bold('║')}`)
+  console.log(ansis.cyan.bold('║') + ansis.gray(`                    Claude Code JinKu - v${version}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(`${ansis.cyan.bold('║')}                                                                        ${ansis.cyan.bold('║')}`)
+  console.log(ansis.cyan.bold('╠════════════════════════════════════════════════════════════════════════╣'))
+  console.log(`${ansis.cyan.bold('║')}                                                                        ${ansis.cyan.bold('║')}`)
+  console.log(ansis.cyan.bold('║') + ansis.yellow.bold(`   ${i18n.t('menu:newUser.welcomeTitle')}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(`${ansis.cyan.bold('║')}                                                                        ${ansis.cyan.bold('║')}`)
+  console.log(ansis.cyan.bold('║') + ansis.white(`   ${i18n.t('menu:newUser.welcomeDesc1')}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.white(`   ${i18n.t('menu:newUser.welcomeDesc2')}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(`${ansis.cyan.bold('║')}                                                                        ${ansis.cyan.bold('║')}`)
+  console.log(ansis.cyan.bold('╠════════════════════════════════════════════════════════════════════════╣'))
+  console.log(`${ansis.cyan.bold('║')}                                                                        ${ansis.cyan.bold('║')}`)
+  console.log(ansis.cyan.bold('║') + ansis.green(`   ${i18n.t('menu:newUser.highlights')}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.gray(`     • ${i18n.t('menu:newUser.highlight1')}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.gray(`     • ${i18n.t('menu:newUser.highlight2')}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.gray(`     • ${i18n.t('menu:newUser.highlight3')}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(ansis.cyan.bold('║') + ansis.gray(`     • ${i18n.t('menu:newUser.highlight4')}`.padEnd(72)) + ansis.cyan.bold('║'))
+  console.log(`${ansis.cyan.bold('║')}                                                                        ${ansis.cyan.bold('║')}`)
+  console.log(ansis.cyan.bold('╚════════════════════════════════════════════════════════════════════════╝'))
   console.log('')
 
   const { mode } = await inquirer.prompt<{ mode: 'quick' | 'full' | 'help' }>({
@@ -1425,7 +1449,7 @@ async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
     message: i18n.t('menu:newUser.selectPrompt'),
     choices: [
       {
-        name: ansis.green(i18n.t('menu:newUser.quickStart')) + ansis.dim(` - ${i18n.t('menu:newUser.quickStartDesc')}`),
+        name: ansis.green.bold(i18n.t('menu:newUser.quickStart')) + ansis.dim(` - ${i18n.t('menu:newUser.quickStartDesc')}`),
         value: 'quick',
       },
       {
@@ -1437,6 +1461,8 @@ async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
         value: 'help',
       },
     ],
+    loop: false,
+    pageSize: 10,
   })
 
   return mode

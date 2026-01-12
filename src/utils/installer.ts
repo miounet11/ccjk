@@ -2,6 +2,7 @@ import type { InstallMethod } from '../types/config'
 import type { CodeType } from './platform'
 import * as nodeFs from 'node:fs'
 import { homedir } from 'node:os'
+import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import ora from 'ora'
@@ -792,6 +793,33 @@ export async function verifyInstallation(codeType: CodeType): Promise<Verificati
     }
   }
 
+  // Step 4: Check Linux common paths (curl install typically uses ~/.local/bin)
+  if (getPlatform() === 'linux') {
+    const home = homedir()
+    const linuxPaths = [
+      `${home}/.local/bin/${command}`, // Standard XDG user bin (curl install default)
+      `${home}/.claude/bin/${command}`, // Claude-specific bin directory
+      `/usr/local/bin/${command}`, // System-wide installation
+      `/usr/bin/${command}`, // System package manager
+    ]
+
+    for (const path of linuxPaths) {
+      if (exists(path)) {
+        const version = await detectInstalledVersion(codeType)
+        // Check if ~/.local/bin is in PATH, if not suggest adding it
+        const needsPathUpdate = path.includes('.local/bin') && !process.env.PATH?.includes('.local/bin')
+        return {
+          success: true,
+          commandPath: path,
+          version,
+          needsSymlink: false,
+          symlinkCreated: false,
+          error: needsPathUpdate ? 'PATH_UPDATE_NEEDED' : undefined,
+        }
+      }
+    }
+  }
+
   return {
     success: false,
     commandPath: null,
@@ -918,8 +946,20 @@ export function displayVerificationResult(result: VerificationResult, codeType: 
       console.log(ansis.green(`✔ ${codeTypeName} ${i18n.t('installation:verificationSuccess')}`))
       console.log(ansis.gray(`  ${i18n.t('installation:symlinkCreated', { path: result.commandPath })}`))
     }
+    else if (result.commandPath) {
+      console.log(ansis.green(`✔ ${codeTypeName} ${i18n.t('installation:verificationSuccess')}`))
+      console.log(ansis.gray(`  ${i18n.t('installation:foundAtPath', { path: result.commandPath })}`))
+    }
     if (result.version) {
       console.log(ansis.gray(`  ${i18n.t('installation:detectedVersion', { version: result.version })}`))
+    }
+    // Show PATH update hint for Linux ~/.local/bin installations
+    if (result.error === 'PATH_UPDATE_NEEDED') {
+      console.log(ansis.yellow(`\n⚠ ${i18n.t('installation:pathUpdateNeeded')}`))
+      console.log(ansis.gray(`  ${i18n.t('installation:pathUpdateHint')}`))
+      console.log(ansis.cyan(`  export PATH="$HOME/.local/bin:$PATH"`))
+      console.log(ansis.gray(`  ${i18n.t('installation:pathUpdatePermanent')}`))
+      console.log(ansis.cyan(`  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`))
     }
   }
   else {
@@ -927,7 +967,7 @@ export function displayVerificationResult(result: VerificationResult, codeType: 
     if (result.commandPath) {
       console.log(ansis.gray(`  ${i18n.t('installation:foundAtPath', { path: result.commandPath })}`))
     }
-    if (result.error) {
+    if (result.error && result.error !== 'PATH_UPDATE_NEEDED') {
       console.log(ansis.gray(`  ${result.error}`))
     }
     if (result.needsSymlink && !result.symlinkCreated) {
