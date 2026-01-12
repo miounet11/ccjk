@@ -17,6 +17,8 @@
   "updateSuccess": "Superpowers 更新成功",
   "updateFailed": "Superpowers 更新失败",
   "checkingStatus": "正在检查 Superpowers 状态...",
+  "cliNotAvailable": "Claude CLI 不可用，将使用 Git 方式安装...",
+  "pluginCommandFailed": "插件命令执行失败，尝试使用 Git 方式安装...",
   "status.installed": "已安装",
   "status.notInstalled": "未安装",
   "status.version": "版本: {version}",

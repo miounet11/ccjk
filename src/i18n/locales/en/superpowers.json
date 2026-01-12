@@ -17,6 +17,8 @@
   "updateSuccess": "Superpowers updated successfully",
   "updateFailed": "Failed to update Superpowers",
   "checkingStatus": "Checking Superpowers status...",
+  "cliNotAvailable": "Claude CLI not available, using Git installation...",
+  "pluginCommandFailed": "Plugin command failed, trying Git installation...",
   "status.installed": "Installed",
   "status.notInstalled": "Not Installed",
   "status.version": "Version: {version}",

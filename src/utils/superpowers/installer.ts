@@ -87,7 +87,9 @@ export async function checkSuperpowersInstalled(): Promise<SuperpowersStatus> {
 }
 
 /**
- * Install Superpowers plugin via Claude Code's plugin system
+ * Install Superpowers plugin via Git clone
+ * Note: Claude Code's /plugin command is an internal slash command and cannot be called via CLI.
+ * Therefore, we use Git clone as the primary installation method.
  */
 export async function installSuperpowers(_options: SuperpowersInstallOptions): Promise<SuperpowersInstallResult> {
   try {
@@ -100,40 +102,10 @@ export async function installSuperpowers(_options: SuperpowersInstallOptions): P
       }
     }
 
-    // Install via Claude Code plugin marketplace
-    // First, add the marketplace
-    console.log(i18n.t('superpowers:addingMarketplace'))
-
-    try {
-      await execAsync('claude /plugin marketplace add obra/superpowers-marketplace', {
-        timeout: 60000,
-      })
-    }
-    catch {
-      // Marketplace might already be added, continue
-    }
-
-    // Then install the plugin
-    console.log(i18n.t('superpowers:installing'))
-
-    await execAsync('claude /plugin install superpowers@superpowers-marketplace', {
-      timeout: 120000,
-    })
-
-    // Verify installation
-    const newStatus = await checkSuperpowersInstalled()
-    if (newStatus.installed) {
-      return {
-        success: true,
-        message: i18n.t('superpowers:installSuccess'),
-      }
-    }
-
-    return {
-      success: false,
-      message: i18n.t('superpowers:installFailed'),
-      error: 'Installation completed but plugin not found',
-    }
+    // Install via Git clone (primary method)
+    // Note: "claude /plugin" is NOT a valid CLI command - /plugin is an internal slash command
+    // that only works inside Claude Code's interactive session
+    return installSuperpowersViaGit()
   }
   catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
@@ -146,7 +118,7 @@ export async function installSuperpowers(_options: SuperpowersInstallOptions): P
 }
 
 /**
- * Install Superpowers via git clone (fallback method)
+ * Install Superpowers via git clone (primary method)
  */
 export async function installSuperpowersViaGit(): Promise<SuperpowersInstallResult> {
   try {
@@ -200,19 +172,12 @@ export async function uninstallSuperpowers(): Promise<SuperpowersInstallResult> 
       }
     }
 
-    // Try to uninstall via Claude Code plugin system first
-    try {
-      await execAsync('claude /plugin uninstall superpowers', {
-        timeout: 60000,
-      })
-    }
-    catch {
-      // If plugin command fails, remove directory manually
-      const superpowersPath = getSuperpowersPath()
-      if (existsSync(superpowersPath)) {
-        const { rm } = await import('node:fs/promises')
-        await rm(superpowersPath, { recursive: true, force: true })
-      }
+    // Remove directory directly
+    // Note: "claude /plugin" is NOT a valid CLI command
+    const superpowersPath = getSuperpowersPath()
+    if (existsSync(superpowersPath)) {
+      const { rm } = await import('node:fs/promises')
+      await rm(superpowersPath, { recursive: true, force: true })
     }
 
     // Verify uninstallation
@@ -252,27 +217,16 @@ export async function updateSuperpowers(): Promise<SuperpowersInstallResult> {
       }
     }
 
-    // Try to update via Claude Code plugin system
-    try {
-      await execAsync('claude /plugin update superpowers', {
-        timeout: 120000,
-      })
-      return {
-        success: true,
-        message: i18n.t('superpowers:updateSuccess'),
-      }
-    }
-    catch {
-      // If plugin command fails, try git pull
-      const superpowersPath = getSuperpowersPath()
-      await execAsync('git pull', {
-        cwd: superpowersPath,
-        timeout: 60000,
-      })
-      return {
-        success: true,
-        message: i18n.t('superpowers:updateSuccess'),
-      }
+    // Update via git pull
+    // Note: "claude /plugin" is NOT a valid CLI command
+    const superpowersPath = getSuperpowersPath()
+    await execAsync('git pull', {
+      cwd: superpowersPath,
+      timeout: 60000,
+    })
+    return {
+      success: true,
+      message: i18n.t('superpowers:updateSuccess'),
     }
   }
   catch (error) {
