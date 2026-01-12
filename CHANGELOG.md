@@ -1,5 +1,43 @@
 # Changelog
 
+## 2.2.5
+
+### Agent Browser & Architecture Optimization / Agent Browser 与架构优化
+
+#### New Features / 新功能
+- **Agent Browser Integration**: Zero-config browser automation for AI agents
+  - `ccjk browser install` - One-click installation of Agent Browser (Rust CLI + Playwright)
+  - `ccjk browser status` - Check installation status
+  - `ccjk browser start/stop` - Manage browser sessions
+  - `/browser` skill - Full documentation for Claude Code integration
+- **MCP Performance Optimization System**:
+  - MCP tiered system (Core/OnDemand/Scenario)
+  - `/mcp doctor` - Health check and performance diagnostics
+  - `/mcp profile` - Quick switch between presets (minimal/development/testing/research/full)
+  - `/mcp release` - Release unused MCP services
+- **Postmortem Analysis Tool**: `ccjk postmortem` for incident analysis
+
+- **Agent Browser 集成**: 为 AI 代理提供零配置浏览器自动化
+  - `ccjk browser install` - 一键安装 Agent Browser (Rust CLI + Playwright)
+  - `ccjk browser status` - 检查安装状态
+  - `ccjk browser start/stop` - 管理浏览器会话
+  - `/browser` skill - Claude Code 集成完整文档
+- **MCP 性能优化系统**:
+  - MCP 分级系统 (Core/OnDemand/Scenario)
+  - `/mcp doctor` - 健康检查与性能诊断
+  - `/mcp profile` - 快速切换预设配置
+  - `/mcp release` - 释放不使用的 MCP 服务
+- **事后分析工具**: `ccjk postmortem` 用于事件分析
+
+#### Architecture Improvements / 架构改进
+- **Command System Refactoring**: Consolidated scattered commands into organized modules
+- **Removed Deprecated Features**: Cleaned up `shencha`, `features`, `tools` commands
+- **i18n Enhancement**: Added Agent Browser translations (zh-CN/en)
+
+- **命令系统重构**: 将分散的命令整合到有组织的模块中
+- **移除废弃功能**: 清理 `shencha`、`features`、`tools` 命令
+- **国际化增强**: 添加 Agent Browser 翻译 (中文/英文)
+
 ## 2.2.4
 
 ### Installation Registry System / 安装源注册表系统

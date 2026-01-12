@@ -189,6 +189,121 @@ export interface ClaudeCodeInstallation {
 }
 
 /**
+ * Check if a symlink is broken (points to non-existent target)
+ */
+function isSymlinkBroken(symlinkPath: string): boolean {
+  try {
+    // lstatSync doesn't follow symlinks, so it will succeed even for broken symlinks
+    const lstats = nodeFs.lstatSync(symlinkPath)
+    if (!lstats.isSymbolicLink()) {
+      return false // Not a symlink
+    }
+    // Try to access the target - this will fail for broken symlinks
+    nodeFs.statSync(symlinkPath)
+    return false // Symlink is valid
+  }
+  catch {
+    // If lstatSync succeeded but statSync failed, it's a broken symlink
+    try {
+      nodeFs.lstatSync(symlinkPath)
+      return true // Broken symlink
+    }
+    catch {
+      return false // File doesn't exist at all
+    }
+  }
+}
+
+/**
+ * Attempt to fix a broken npm global symlink for Claude Code
+ *
+ * This handles the common case where Node.js was upgraded via Homebrew
+ * and the global npm package symlinks are now pointing to old Node version paths.
+ *
+ * @returns Object with success status and message
+ */
+export async function fixBrokenNpmSymlink(): Promise<{ fixed: boolean, message: string }> {
+  const platform = getPlatform()
+  if (platform !== 'macos' && platform !== 'linux') {
+    return { fixed: false, message: 'Symlink fix only supported on macOS and Linux' }
+  }
+
+  // Common symlink locations
+  const symlinkPaths = [
+    '/opt/homebrew/bin/claude', // macOS Apple Silicon
+    '/usr/local/bin/claude', // macOS Intel / Linux
+  ]
+
+  // Find the npm global package location
+  const npmPackagePaths = [
+    '/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js',
+    '/usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js',
+    `${process.env.HOME}/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js`,
+  ]
+
+  // Find the actual package location
+  let packageCliPath: string | null = null
+  for (const path of npmPackagePaths) {
+    if (nodeFs.existsSync(path)) {
+      packageCliPath = path
+      break
+    }
+  }
+
+  if (!packageCliPath) {
+    return { fixed: false, message: 'Claude Code npm package not found' }
+  }
+
+  // Check each symlink location
+  for (const symlinkPath of symlinkPaths) {
+    if (isSymlinkBroken(symlinkPath)) {
+      try {
+        // Remove the broken symlink
+        nodeFs.unlinkSync(symlinkPath)
+        // Create new symlink pointing to the actual package
+        nodeFs.symlinkSync(packageCliPath, symlinkPath)
+        return {
+          fixed: true,
+          message: `Fixed broken symlink: ${symlinkPath} -> ${packageCliPath}`,
+        }
+      }
+      catch (error) {
+        return {
+          fixed: false,
+          message: `Failed to fix symlink: ${error instanceof Error ? error.message : String(error)}`,
+        }
+      }
+    }
+  }
+
+  // Check if symlink exists but command still doesn't work
+  const commandPath = await findCommandPath('claude')
+  if (!commandPath) {
+    // No symlink exists, try to create one
+    const binDir = nodeFs.existsSync('/opt/homebrew/bin') ? '/opt/homebrew/bin' : '/usr/local/bin'
+    const newSymlinkPath = nodePath.join(binDir, 'claude')
+
+    try {
+      if (!nodeFs.existsSync(newSymlinkPath)) {
+        nodeFs.symlinkSync(packageCliPath, newSymlinkPath)
+        return {
+          fixed: true,
+          message: `Created new symlink: ${newSymlinkPath} -> ${packageCliPath}`,
+        }
+      }
+    }
+    catch (error) {
+      return {
+        fixed: false,
+        message: `Failed to create symlink: ${error instanceof Error ? error.message : String(error)}`,
+      }
+    }
+  }
+
+  return { fixed: false, message: 'No broken symlinks found' }
+}
+
+/**
  * Detect all Claude Code installations on the system
  *
  * This function finds all possible Claude Code installations including:

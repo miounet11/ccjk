@@ -132,6 +132,18 @@ const COMMANDS: CommandDefinition[] = [
       }
     },
   },
+  {
+    name: 'help [topic]',
+    description: 'Show help and quick reference',
+    aliases: ['h', '?'],
+    tier: 'core',
+    loader: async () => {
+      const { help } = await import('./commands/help')
+      return async (_options, topic: unknown) => {
+        await help(topic as string | undefined)
+      }
+    },
+  },
 
   // ==================== Extended Commands ====================
   {
@@ -147,21 +159,97 @@ const COMMANDS: CommandDefinition[] = [
         const actionStr = action as string
         const argsArr = args as string[]
 
-        if (actionStr === 'profile') {
-          const { mcpProfile } = await import('./commands/mcp-profile')
-          await mcpProfile(argsArr[0] || 'list', argsArr.slice(1), options)
+        // 统一从 mcp.ts 导入
+        if (actionStr === 'status' || !actionStr) {
+          const { mcpStatus } = await import('./commands/mcp')
+          await mcpStatus(options)
         }
         else if (actionStr === 'doctor') {
-          const { mcpDoctor } = await import('./commands/mcp-doctor')
+          const { mcpDoctor } = await import('./commands/mcp')
           await mcpDoctor(options)
         }
+        else if (actionStr === 'profile') {
+          const { listProfiles, useProfile } = await import('./commands/mcp')
+          if (!argsArr[0] || argsArr[0] === 'list') {
+            await listProfiles(options)
+          }
+          else {
+            await useProfile(argsArr[0], options)
+          }
+        }
         else if (actionStr === 'release') {
-          const { mcpRelease } = await import('./utils/mcp-release')
+          const { mcpRelease } = await import('./commands/mcp')
           await mcpRelease(options)
         }
+        else if (actionStr === 'help') {
+          const { mcpHelp } = await import('./commands/mcp')
+          mcpHelp(options)
+        }
+        else if (actionStr === 'list') {
+          const { mcpList } = await import('./commands/mcp')
+          await mcpList(options)
+        }
+        else if (actionStr === 'search') {
+          const { mcpSearch } = await import('./commands/mcp')
+          await mcpSearch(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'install') {
+          const { mcpInstall } = await import('./commands/mcp')
+          await mcpInstall(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'uninstall') {
+          const { mcpUninstall } = await import('./commands/mcp')
+          await mcpUninstall(argsArr[0] || '', options)
+        }
         else {
-          const { mcpMarket } = await import('./commands/mcp-market')
-          await mcpMarket(actionStr, argsArr, options)
+          // 默认显示帮助
+          const { mcpHelp } = await import('./commands/mcp')
+          mcpHelp(options)
+        }
+      }
+    },
+  },
+  {
+    name: 'browser <action> [...args]',
+    description: 'Agent Browser management',
+    aliases: ['ab'],
+    tier: 'extended',
+    options: [
+      { flags: '--verbose, -v', description: 'Verbose output' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+
+        if (actionStr === 'install') {
+          const { installAgentBrowser } = await import('./tools/agent-browser/installer')
+          await installAgentBrowser(options)
+        }
+        else if (actionStr === 'uninstall') {
+          const { uninstallAgentBrowser } = await import('./tools/agent-browser/installer')
+          await uninstallAgentBrowser(options)
+        }
+        else if (actionStr === 'status') {
+          const { agentBrowserStatus } = await import('./tools/agent-browser/commands')
+          await agentBrowserStatus(options)
+        }
+        else if (actionStr === 'start') {
+          const { startBrowserSession } = await import('./tools/agent-browser/commands')
+          await startBrowserSession(argsArr[0], options)
+        }
+        else if (actionStr === 'stop') {
+          const { stopBrowserSession } = await import('./tools/agent-browser/commands')
+          await stopBrowserSession(options)
+        }
+        else if (actionStr === 'config') {
+          const { configureBrowser } = await import('./tools/agent-browser/commands')
+          await configureBrowser(options)
+        }
+        else {
+          // 默认显示帮助
+          const { agentBrowserHelp } = await import('./tools/agent-browser/commands')
+          agentBrowserHelp(options)
         }
       }
     },
@@ -378,52 +466,208 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
 
-  // ==================== Deprecated Commands ====================
+  // ==================== Postmortem System ====================
   {
-    name: 'shencha <action>',
-    description: '[DEPRECATED] Use "ccjk doctor" instead',
-    tier: 'deprecated',
-    deprecationMessage: '⚠️  shencha 命令已废弃，请使用 "ccjk doctor" 替代',
+    name: 'postmortem <action> [...args]',
+    description: '🔬 Postmortem Intelligence - Learn from historical bugs',
+    aliases: ['pm'],
+    tier: 'extended',
+    options: [
+      { flags: '--severity <level>', description: 'Filter by severity (critical/high/medium/low)' },
+      { flags: '--category <cat>', description: 'Filter by category' },
+      { flags: '--status <status>', description: 'Filter by status' },
+      { flags: '--staged', description: 'Check staged files only' },
+      { flags: '--ci', description: 'CI mode, exit with error on issues' },
+      { flags: '--since <tag>', description: 'Start version/commit' },
+      { flags: '--until <tag>', description: 'End version/commit' },
+      { flags: '--version <ver>', description: 'Associated version' },
+    ],
     loader: async () => {
-      const { shenchaScan, shenchaReport, shenchaFix } = await import('./commands/shencha')
-      return async (options, action: unknown) => {
-        console.warn('\n⚠️  shencha 命令已废弃，将在下个版本移除。请使用 "ccjk doctor" 替代。\n')
+      return async (options, action: unknown, args: unknown) => {
         const actionStr = action as string
-        if (actionStr === 'scan')
-          await shenchaScan(options)
-        else if (actionStr === 'report')
-          await shenchaReport(options)
-        else if (actionStr === 'fix')
-          await shenchaFix(options)
+        const argsArr = (args as string[]) || []
+        const { getPostmortemManager } = await import('./postmortem')
+        const manager = getPostmortemManager(process.cwd())
+
+        if (actionStr === 'init') {
+          const ora = (await import('ora')).default
+          const chalk = (await import('chalk')).default
+          const spinner = ora('Analyzing historical fix commits...').start()
+          try {
+            const result = await manager.init()
+            spinner.succeed(chalk.green('Postmortem system initialized'))
+            console.log(`\n   ${chalk.yellow('Reports generated:')} ${result.created}`)
+            console.log(`   ${chalk.yellow('Directory:')} ${result.directory}\n`)
+          }
+          catch (error) {
+            spinner.fail(chalk.red('Initialization failed'))
+            console.error(error)
+          }
+        }
+        else if (actionStr === 'generate' || actionStr === 'gen') {
+          const ora = (await import('ora')).default
+          const chalk = (await import('chalk')).default
+          const spinner = ora('Analyzing commits...').start()
+          try {
+            if (options.version) {
+              const summary = await manager.generateReleaseSummary({
+                version: options.version as string,
+                since: options.since as string,
+                until: options.until as string,
+              })
+              spinner.succeed(chalk.green('Release summary generated'))
+              console.log(`\n   ${chalk.yellow('Version:')} ${summary.version}`)
+              console.log(`   ${chalk.yellow('Fix commits:')} ${summary.fixCommitCount}`)
+              console.log(`   ${chalk.yellow('New postmortems:')} ${summary.newPostmortems.length}\n`)
+            }
+            else {
+              const result = await manager.init()
+              spinner.succeed(chalk.green('Postmortem generation complete'))
+              console.log(`\n   ${chalk.yellow('Reports:')} ${result.created}\n`)
+            }
+          }
+          catch (error) {
+            spinner.fail(chalk.red('Generation failed'))
+            console.error(error)
+          }
+        }
+        else if (actionStr === 'list' || actionStr === 'ls') {
+          const chalk = (await import('chalk')).default
+          let reports = manager.listReports()
+          if (options.severity)
+            reports = reports.filter(r => r.severity === options.severity)
+          if (options.category)
+            reports = reports.filter(r => r.category === options.category)
+          if (options.status)
+            reports = reports.filter(r => r.status === options.status)
+
+          if (reports.length === 0) {
+            console.log(chalk.yellow('\nNo postmortem reports found'))
+            console.log(chalk.gray('Run "ccjk postmortem init" to initialize\n'))
+            return
+          }
+
+          const severityEmoji: Record<string, string> = { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' }
+          console.log(chalk.cyan.bold('\n📋 Postmortem Reports'))
+          console.log(chalk.gray('─'.repeat(50)))
+          for (const r of reports) {
+            console.log(`\n${severityEmoji[r.severity] || '⚪'} ${chalk.bold(r.id)}: ${r.title}`)
+            console.log(`   ${chalk.gray('Category:')} ${r.category}  ${chalk.gray('Status:')} ${r.status}`)
+          }
+          console.log(chalk.gray(`\n─ Total: ${reports.length} reports ─\n`))
+        }
+        else if (actionStr === 'show') {
+          const chalk = (await import('chalk')).default
+          const id = argsArr[0]
+          if (!id) {
+            console.log(chalk.red('Please specify a postmortem ID'))
+            return
+          }
+          const report = manager.getReport(id)
+          if (!report) {
+            console.log(chalk.red(`Postmortem not found: ${id}`))
+            return
+          }
+          console.log(chalk.cyan.bold(`\n═══ ${report.id}: ${report.title} ═══\n`))
+          console.log(`${chalk.yellow('Severity:')} ${report.severity.toUpperCase()}`)
+          console.log(`${chalk.yellow('Category:')} ${report.category}`)
+          console.log(`${chalk.yellow('Status:')} ${report.status}`)
+          console.log(`\n${chalk.cyan('Description:')}\n${report.description}`)
+          console.log(`\n${chalk.cyan('Root Cause:')}\n${report.rootCause.map(c => `  • ${c}`).join('\n')}`)
+          console.log(`\n${chalk.cyan('Prevention:')}\n${report.preventionMeasures.map(m => `  • ${m}`).join('\n')}`)
+          console.log(`\n${chalk.cyan('AI Directives:')}\n${report.aiDirectives.map(d => `  • ${d}`).join('\n')}\n`)
+        }
+        else if (actionStr === 'check') {
+          const ora = (await import('ora')).default
+          const chalk = (await import('chalk')).default
+          const spinner = ora('Checking code...').start()
+          try {
+            const result = await manager.checkCode({
+              staged: options.staged as boolean,
+              files: argsArr.length > 0 ? argsArr : undefined,
+            })
+            spinner.stop()
+            console.log(chalk.cyan.bold('\n🔍 Postmortem Code Check'))
+            console.log(chalk.gray('─'.repeat(40)))
+            console.log(`   Files checked: ${result.filesChecked}`)
+            console.log(`   Issues found: ${result.issuesFound.length}`)
+            console.log(`\n   🔴 Critical: ${result.summary.critical}`)
+            console.log(`   🟠 High: ${result.summary.high}`)
+            console.log(`   🟡 Medium: ${result.summary.medium}`)
+            console.log(`   🟢 Low: ${result.summary.low}`)
+
+            if (result.issuesFound.length > 0) {
+              console.log(chalk.yellow('\n⚠️ Issues:'))
+              for (const issue of result.issuesFound.slice(0, 10)) {
+                console.log(`\n   ${issue.file}:${issue.line}`)
+                console.log(`   ${issue.message}`)
+              }
+            }
+
+            console.log(result.passed ? chalk.green('\n✅ Check passed\n') : chalk.red('\n❌ Check failed\n'))
+            if (!result.passed && options.ci)
+              process.exit(1)
+          }
+          catch (error) {
+            spinner.fail(chalk.red('Check failed'))
+            console.error(error)
+          }
+        }
+        else if (actionStr === 'sync') {
+          const ora = (await import('ora')).default
+          const chalk = (await import('chalk')).default
+          const spinner = ora('Syncing to CLAUDE.md...').start()
+          try {
+            const result = await manager.syncToClaudeMd()
+            spinner.succeed(chalk.green('Sync complete'))
+            console.log(`\n   ${chalk.yellow('Synced:')} ${result.synced} items`)
+            console.log(`   ${chalk.yellow('File:')} ${result.claudeMdPath}\n`)
+          }
+          catch (error) {
+            spinner.fail(chalk.red('Sync failed'))
+            console.error(error)
+          }
+        }
+        else if (actionStr === 'stats') {
+          const chalk = (await import('chalk')).default
+          const index = manager.loadIndex()
+          if (!index) {
+            console.log(chalk.yellow('\nNo statistics available'))
+            console.log(chalk.gray('Run "ccjk postmortem init" to initialize\n'))
+            return
+          }
+          console.log(chalk.cyan.bold('\n📊 Postmortem Statistics'))
+          console.log(chalk.gray('─'.repeat(40)))
+          console.log(`\n${chalk.yellow('Total:')} ${index.stats.total} reports`)
+          console.log(`\n${chalk.yellow('By Severity:')}`)
+          console.log(`   🔴 Critical: ${index.stats.bySeverity.critical}`)
+          console.log(`   🟠 High: ${index.stats.bySeverity.high}`)
+          console.log(`   🟡 Medium: ${index.stats.bySeverity.medium}`)
+          console.log(`   🟢 Low: ${index.stats.bySeverity.low}`)
+          console.log(`\n${chalk.yellow('By Status:')}`)
+          console.log(`   ⚡ Active: ${index.stats.byStatus.active}`)
+          console.log(`   ✅ Resolved: ${index.stats.byStatus.resolved}`)
+          console.log(`   👀 Monitoring: ${index.stats.byStatus.monitoring}`)
+          console.log(`   📦 Archived: ${index.stats.byStatus.archived}\n`)
+        }
+        else {
+          console.log('\n🔬 Postmortem Commands:')
+          console.log('  ccjk postmortem init          - Initialize system')
+          console.log('  ccjk postmortem generate      - Generate from commits')
+          console.log('  ccjk postmortem list          - List all reports')
+          console.log('  ccjk postmortem show <id>     - Show report details')
+          console.log('  ccjk postmortem check         - Check code for issues')
+          console.log('  ccjk postmortem sync          - Sync to CLAUDE.md')
+          console.log('  ccjk postmortem stats         - Show statistics\n')
+        }
       }
     },
   },
-  {
-    name: 'features',
-    description: '[DEPRECATED] Use "ccjk" menu instead',
-    tier: 'deprecated',
-    deprecationMessage: '⚠️  features 命令已废弃，请使用 "ccjk" 主菜单替代',
-    loader: async () => {
-      const { showFeatures } = await import('./commands/features')
-      return async () => {
-        console.warn('\n⚠️  features 命令已废弃，将在下个版本移除。请使用 "ccjk" 主菜单替代。\n')
-        await showFeatures()
-      }
-    },
-  },
-  {
-    name: 'tools [action] [target]',
-    description: '[DEPRECATED] Use "ccjk" menu instead',
-    tier: 'deprecated',
-    deprecationMessage: '⚠️  tools 命令已废弃，请使用 "ccjk" 主菜单替代',
-    loader: async () => {
-      const { toolsCommand } = await import('./commands/tools')
-      return async (options, action: unknown, target: unknown) => {
-        console.warn('\n⚠️  tools 命令已废弃，将在下个版本移除。请使用 "ccjk" 主菜单替代。\n')
-        await toolsCommand((action as string) || 'list', target as string, options)
-      }
-    },
-  },
+
+  // Deprecated commands removed in v2.x cleanup
+  // - shencha: replaced by 'ccjk doctor'
+  // - features: replaced by 'ccjk' menu
+  // - tools: replaced by 'ccjk' menu
 ]
 
 // ============================================================================
@@ -778,6 +1022,7 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
       `  ${cyan('ccjk init')}         ${gray('i')}     Initialize configuration`,
       `  ${cyan('ccjk update')}       ${gray('u')}     Update prompts & workflows`,
       `  ${cyan('ccjk doctor')}             Health check & diagnostics`,
+      `  ${cyan('ccjk help')}         ${gray('h')}     Help center & quick reference ${green('NEW')}`,
     ].join('\n'),
   })
 
@@ -786,9 +1031,11 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
     title: yellow('🛠️  Development'),
     body: [
       `  ${cyan('ccjk mcp')} <action>        MCP server management`,
+      `  ${cyan('ccjk browser')}      ${gray('ab')}    Agent Browser automation ${green('NEW')}`,
       `  ${cyan('ccjk interview')}    ${gray('iv')}    Interview-driven development`,
       `  ${cyan('ccjk commit')}             Smart git commit`,
       `  ${cyan('ccjk config-switch')} ${gray('cs')}   Switch configuration`,
+      `  ${cyan('ccjk postmortem')}   ${gray('pm')}    Postmortem intelligence`,
     ].join('\n'),
   })
 

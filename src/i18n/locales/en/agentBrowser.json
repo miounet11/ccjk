@@ -1,0 +1,79 @@
+{
+  "menuTitle": "🌐 Agent Browser - AI Browser Automation",
+  "menuOptions": {
+    "install": "Install agent-browser",
+    "status": "Check status",
+    "update": "Update to latest",
+    "sessions": "Manage sessions",
+    "quickTest": "Quick test",
+    "uninstall": "Uninstall",
+    "back": "Back"
+  },
+  "menuDescriptions": {
+    "install": "Install agent-browser CLI and Chromium",
+    "status": "Show installation and session status",
+    "update": "Update agent-browser to latest version",
+    "sessions": "List and manage browser sessions",
+    "quickTest": "Open a test page to verify installation",
+    "uninstall": "Remove agent-browser from system"
+  },
+  "installing": "Installing agent-browser...",
+  "installSuccess": "agent-browser installed successfully!",
+  "installFailed": "Failed to install agent-browser",
+  "installingBrowser": "Installing Chromium browser...",
+  "browserInstallSuccess": "Chromium browser installed successfully!",
+  "browserInstallFailed": "Failed to install Chromium browser",
+  "alreadyInstalled": "agent-browser is already installed (v{{version}})",
+  "notInstalled": "agent-browser is not installed",
+  "browserNotInstalled": "Chromium browser is not installed",
+  "installHint": "Run 'ccjk agent-browser' to install",
+  "browserInstallHint": "Run 'ccjk agent-browser' and select 'Install' to set up browser",
+  "updating": "Updating agent-browser from v{{from}} to v{{to}}...",
+  "updateSuccess": "Updated to v{{version}} successfully!",
+  "updateFailed": "Failed to update agent-browser",
+  "updateAvailable": "Update available: v{{version}}",
+  "upToDate": "agent-browser is up to date (v{{version}})",
+  "uninstalling": "Uninstalling agent-browser...",
+  "uninstallSuccess": "agent-browser uninstalled successfully!",
+  "uninstallFailed": "Failed to uninstall agent-browser",
+  "status": {
+    "title": "Agent Browser Status",
+    "installed": "Installed",
+    "notInstalled": "Not Installed",
+    "version": "Version",
+    "browser": "Browser",
+    "browserReady": "Ready",
+    "browserMissing": "Not installed",
+    "sessions": "Active Sessions"
+  },
+  "sessions": {
+    "title": "Browser Sessions",
+    "noSessions": "No active sessions",
+    "active": "active",
+    "closeAll": "Close all sessions",
+    "closed": "Closed {{count}} session(s)",
+    "closeFailed": "Failed to close {{count}} session(s)"
+  },
+  "quickTest": {
+    "running": "Running quick test...",
+    "opening": "Opening test page...",
+    "success": "Quick test passed! Browser automation is working.",
+    "failed": "Quick test failed"
+  },
+  "recommend": {
+    "title": "🌐 Recommended: Install Agent Browser",
+    "description": "agent-browser is a headless browser automation CLI optimized for AI agents.",
+    "features": [
+      "Fast Rust-based CLI for browser automation",
+      "Session isolation for multi-agent operations",
+      "Accessibility snapshots optimized for AI",
+      "Works with Claude Code for web tasks"
+    ],
+    "prompt": "Would you like to install agent-browser?",
+    "skipHint": "You can install it later with 'ccjk agent-browser'"
+  },
+  "skill": {
+    "installed": "Agent Browser skill is ready",
+    "notInstalled": "Install agent-browser to enable browser automation skill"
+  }
+}

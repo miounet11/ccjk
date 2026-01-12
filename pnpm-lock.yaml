@@ -54,9 +54,15 @@ catalogs:
     cac:
       specifier: ^6.7.14
       version: 6.7.14
+    chalk:
+      specifier: ^5.6.2
+      version: 5.6.2
     chokidar:
       specifier: ^4.0.3
       version: 4.0.3
+    commander:
+      specifier: ^14.0.2
+      version: 14.0.2
     dayjs:
       specifier: ^1.11.18
       version: 1.11.18
@@ -152,9 +158,15 @@ importers:
       cac:
         specifier: 'catalog:'
         version: 6.7.14
+      chalk:
+        specifier: 'catalog:'
+        version: 5.6.2
       chokidar:
         specifier: 'catalog:'
         version: 4.0.3
+      commander:
+        specifier: 'catalog:'
+        version: 14.0.2
       dayjs:
         specifier: 'catalog:'
         version: 1.11.18
@@ -2048,6 +2060,10 @@ packages:
 
   commander@14.0.1:
     resolution: {integrity: sha512-2JkV3gUZUVrbNA+1sjBOYLsMZ5cEEl8GTFP2a4AVz5hvasAMCQ1D2l2le/cX+pV4N6ZU17zjUahLpIXRrnWL8A==}
+    engines: {node: '>=20'}
+
+  commander@14.0.2:
+    resolution: {integrity: sha512-TywoWNNRbhoD0BXs1P3ZEScW8W5iKrnbithIl0YH+uCmBd0QpPOA8yc82DS3BIE5Ma6FnBVUsJ7wVUDz4dvOWQ==}
     engines: {node: '>=20'}
 
   comment-parser@1.4.1:
@@ -6427,6 +6443,8 @@ snapshots:
   commander@11.1.0: {}
 
   commander@14.0.1: {}
+
+  commander@14.0.2: {}
 
   comment-parser@1.4.1: {}
 

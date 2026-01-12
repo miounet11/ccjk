@@ -225,26 +225,29 @@
       "downloads": 8900
     },
     {
-      "id": "mcp-browser",
-      "name": "MCP Browser",
+      "id": "agent-browser",
+      "name": "Agent Browser",
       "description": {
-        "en": "Web browser automation with Playwright integration",
-        "zh-CN": "Web 浏览器自动化，集成 Playwright"
+        "en": "Zero-config headless browser automation for AI agents. Fast Rust CLI with Node.js fallback.",
+        "zh-CN": "零配置无头浏览器自动化，专为 AI 代理设计。快速 Rust CLI，Node.js 后备。"
       },
-      "category": "mcp-service",
-      "popularity": 80,
-      "rating": 4.6,
-      "ratingCount": 94,
-      "tags": ["browser", "automation", "playwright", "mcp"],
-      "installCommand": "npx ccjk mcp install browser",
+      "category": "cli-tool",
+      "popularity": 95,
+      "rating": 4.9,
+      "ratingCount": 156,
+      "tags": ["browser", "automation", "zero-config", "ai-native", "rust"],
+      "installCommand": "npm install -g agent-browser && agent-browser install",
       "compatibility": {
         "os": ["darwin", "linux", "win32"],
-        "codeTools": ["claude-code", "codex"]
+        "codeTools": ["claude-code", "codex", "cursor"]
       },
-      "version": "1.0.5",
-      "author": "Community",
-      "verified": false,
-      "downloads": 6700
+      "version": "1.0.0",
+      "author": "Vercel Labs",
+      "repository": "https://github.com/vercel-labs/agent-browser",
+      "verified": true,
+      "downloads": 12000,
+      "featured": true,
+      "replacesLegacy": ["mcp-browser", "playwright-mcp", "puppeteer-mcp"]
     },
     {
       "id": "security-audit-skill",

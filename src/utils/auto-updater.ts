@@ -4,7 +4,7 @@ import { exec } from 'tinyexec'
 import { ensureI18nInitialized, format, i18n } from '../i18n'
 import { shouldUseSudoForGlobalInstall } from './platform'
 import { promptBoolean } from './toggle-prompt'
-import { checkCcrVersion, checkClaudeCodeVersion, checkCometixLineVersion, handleDuplicateInstallations } from './version-checker'
+import { checkCcrVersion, checkClaudeCodeVersion, checkCometixLineVersion, fixBrokenNpmSymlink, handleDuplicateInstallations } from './version-checker'
 
 /**
  * Execute a command with sudo support for Linux non-root users.
@@ -128,6 +128,24 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
 
     if (isBroken) {
       console.log(ansis.yellow(i18n.t('updater:installationBroken')))
+      // Try to fix broken symlink first
+      const fixResult = await fixBrokenNpmSymlink()
+      if (fixResult.fixed) {
+        console.log(ansis.green(`✔ ${i18n.t('updater:symlinkFixed')}: ${fixResult.message}`))
+        // Re-check if the fix resolved the issue
+        const recheckResult = await checkClaudeCodeVersion()
+        if (!recheckResult.isBroken) {
+          console.log(ansis.green(i18n.t('updater:installationRepaired')))
+          // If no update needed after fix, we're done
+          if (!recheckResult.needsUpdate && !force) {
+            console.log(ansis.green(format(i18n.t('updater:claudeCodeUpToDate'), { version: recheckResult.currentVersion || '' })))
+            return true
+          }
+        }
+      }
+      else {
+        console.log(ansis.gray(`ℹ ${fixResult.message}`))
+      }
     }
 
     // Handle confirmation based on skipPrompt mode

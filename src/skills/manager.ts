@@ -11,7 +11,40 @@ import type {
 import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { join } from 'pathe'
 import { CCJK_SKILLS_DIR } from '../constants'
+import { browserSkill } from '../utils/agent-browser/skill'
 import { writeFileAtomic } from '../utils/fs-operations'
+
+// ============================================================================
+// Built-in Skills (内置技能)
+// ============================================================================
+
+/**
+ * Built-in skills that are always available
+ */
+const BUILTIN_SKILLS: CcjkSkill[] = [
+  browserSkill,
+]
+
+/**
+ * Get built-in skill by ID
+ */
+export function getBuiltinSkill(id: string): CcjkSkill | undefined {
+  return BUILTIN_SKILLS.find(s => s.id === id)
+}
+
+/**
+ * Get all built-in skills
+ */
+export function getBuiltinSkills(): CcjkSkill[] {
+  return [...BUILTIN_SKILLS]
+}
+
+/**
+ * Check if a skill is built-in
+ */
+export function isBuiltinSkill(id: string): boolean {
+  return BUILTIN_SKILLS.some(s => s.id === id)
+}
 
 // In-memory registry
 let registry: SkillRegistry | null = null
@@ -44,7 +77,15 @@ function loadRegistry(): SkillRegistry {
   const skills = new Map<string, CcjkSkill>()
   const categories = new Map<SkillCategory, string[]>()
 
-  // Scan skills directory
+  // Load built-in skills first
+  for (const skill of BUILTIN_SKILLS) {
+    skills.set(skill.id, skill)
+    const categorySkills = categories.get(skill.category) || []
+    categorySkills.push(skill.id)
+    categories.set(skill.category, categorySkills)
+  }
+
+  // Scan skills directory (user skills can override built-in)
   const files = readdirSync(CCJK_SKILLS_DIR).filter(f => f.endsWith('.json'))
 
   for (const file of files) {

@@ -9,27 +9,7 @@
 export { init } from './commands/init'
 export * from './constants'
 export * from './plugins'
-// Shencha exports (exclude ProjectContext to avoid conflict)
-export type {
-  AuditCycle,
-  AuditCycleStatus,
-  AuditReport,
-  EvaluatedIssue,
-  ExecutionPlan,
-  FileChange,
-  FixDecision,
-  FixPlan,
-  FixResult,
-  GeneratedFix,
-  Issue,
-  NewIssue,
-  Regression,
-  ScanResult,
-  ScanStrategy,
-  ScanTarget,
-  ShenChaConfig,
-  VerifyResult,
-} from './shencha/types'
+// Shencha module removed in v2.x cleanup (replaced by doctor command)
 // CCJK New Features
 export * from './skills'
 export * from './subagent-groups'
