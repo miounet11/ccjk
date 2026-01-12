@@ -67,17 +67,36 @@
 
 <br/>
 
-<!-- 一键启动 -->
+<!-- 一键安装 -->
+### ⚡ 一键安装（自动安装 Node.js）
+
+<table>
+<tr>
+<td align="center">
+
+**🇨🇳 中国用户（推荐）**
 ```bash
-npx ccjk
+curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
 ```
 
-<sup>⚡ 零配置 · 即装即用 · 30秒内完成部署</sup>
+</td>
+<td align="center">
+
+**🌍 国际用户**
+```bash
+curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+```
+
+</td>
+</tr>
+</table>
+
+<sub>已有 Node.js？直接运行: `npx ccjk` · `npm i -g ccjk`</sub>
 
 <br/>
 <br/>
 
-[🚀 快速入门](#-快速入门) · [🧠 核心架构](#-核心架构) · [📊 性能基准](#-性能基准) · [🌟 生态致谢](#-生态致谢)
+[📦 更多安装方式](#-快速入门) · [🧠 核心架构](#-核心架构) · [📊 性能基准](#-性能基准) · [🌟 生态致谢](#-生态致谢)
 
 </div>
 

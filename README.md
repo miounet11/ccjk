@@ -67,17 +67,36 @@
 
 <br/>
 
-<!-- One-Click Launch -->
+<!-- One-Click Installation -->
+### ⚡ One-Click Install (Auto-installs Node.js if needed)
+
+<table>
+<tr>
+<td align="center">
+
+**🌍 Global**
 ```bash
-npx ccjk
+curl -fsSL https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
 ```
 
-<sup>⚡ Zero Config · Instant Deploy · 30 Seconds to Production</sup>
+</td>
+<td align="center">
+
+**🇨🇳 中国镜像**
+```bash
+curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/miounet11/ccjk/main/install.sh | bash
+```
+
+</td>
+</tr>
+</table>
+
+<sub>Or if you have Node.js: `npx ccjk` · `npm i -g ccjk`</sub>
 
 <br/>
 <br/>
 
-[🚀 Quick Start](#-quick-start) · [🧠 Architecture](#-core-architecture) · [📊 Benchmarks](#-performance-benchmarks) · [🌟 Acknowledgments](#-ecosystem-acknowledgments)
+[📦 More Install Options](#-quick-start) · [🧠 Architecture](#-core-architecture) · [📊 Benchmarks](#-performance-benchmarks) · [🌟 Acknowledgments](#-ecosystem-acknowledgments)
 
 </div>
 
