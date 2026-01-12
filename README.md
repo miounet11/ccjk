@@ -123,7 +123,7 @@ In the realm of AI-assisted development, **Context Engineering** and **Cognitive
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│              CCJK Cognitive Enhancement Engine v2.0             │
+│              CCJK Cognitive Enhancement Engine v2.2             │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
 │  │  🧠 Skill    │  │  🤖 Agent   │  │  🔌 Integr. │              │
@@ -618,7 +618,7 @@ Want to contribute? [View Guidelines](CONTRIBUTING.md)
 
 ## 📜 License
 
-**MIT License** © 2025 [CCJK Contributors](https://github.com/miounet11/ccjk/graphs/contributors)
+**MIT License** © 2025-2026 [CCJK Contributors](https://github.com/miounet11/ccjk/graphs/contributors)
 
 <br/>
 

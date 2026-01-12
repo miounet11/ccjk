@@ -32,7 +32,7 @@ import { registerMarketplaceCommands } from './commands/marketplace'
 import { mcpMarket } from './commands/mcp-market'
 import { showMainMenu } from './commands/menu'
 import { notificationCommand } from './commands/notification'
-import { exportSession, listSessions, restoreSession, saveSession } from './commands/session'
+import { cleanupSession, exportSession, listSessions, restoreSession, saveSession, sessionStatus } from './commands/session'
 import { shenchaFix, shenchaReport, shenchaScan } from './commands/shencha'
 import { teamInit, teamShare, teamSync } from './commands/team'
 import { toolsCommand } from './commands/tools'
@@ -652,8 +652,10 @@ export async function setupCommands(cli: CAC): Promise<void> {
 
   // Session management command
   cli
-    .command('session <action> [id]', 'Manage sessions (save, list, restore, export)')
-    .action(async (action, id) => {
+    .command('session <action> [id]', 'Manage sessions (save, list, restore, export, cleanup, status)')
+    .option('--all, -a', 'Clean all targets without selection')
+    .option('--force, -f', 'Force cleanup without confirmation')
+    .action(async (action, id, options) => {
       if (action === 'save') {
         await saveSession()
       }
@@ -666,8 +668,14 @@ export async function setupCommands(cli: CAC): Promise<void> {
       else if (action === 'export') {
         await exportSession(id)
       }
+      else if (action === 'cleanup' || action === 'clean') {
+        await cleanupSession({ all: options.all, force: options.force })
+      }
+      else if (action === 'status') {
+        await sessionStatus()
+      }
       else {
-        console.error(`Unknown action: ${action}. Use: save, list, restore, or export`)
+        console.error(`Unknown action: ${action}. Use: save, list, restore, export, cleanup, or status`)
       }
     })
 

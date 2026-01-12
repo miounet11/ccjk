@@ -1,7 +1,24 @@
 import type { McpServerConfig, McpService } from '../types'
+import { execSync } from 'node:child_process'
 import { homedir } from 'node:os'
+import process from 'node:process'
+
 import { join } from 'pathe'
+
 import { ensureI18nInitialized, i18n } from '../i18n'
+
+/** Supported platform types for MCP services */
+export type McpPlatform = 'windows' | 'macos' | 'linux' | 'wsl' | 'termux'
+
+/** Platform compatibility requirements for MCP services */
+export interface McpPlatformRequirements {
+  /** List of supported platforms. If undefined, all platforms are supported */
+  platforms?: McpPlatform[]
+  /** Whether the service requires a GUI environment (e.g., browser automation) */
+  requiresGui?: boolean
+  /** Required system commands that must be available */
+  requiredCommands?: string[]
+}
 
 // Pure business configuration without any i18n text
 export interface McpServiceConfig {
@@ -9,6 +26,8 @@ export interface McpServiceConfig {
   requiresApiKey: boolean
   apiKeyEnvVar?: string
   config: McpServerConfig
+  /** Platform compatibility requirements. If undefined, service works on all platforms */
+  platformRequirements?: McpPlatformRequirements
 }
 
 /**
@@ -105,7 +124,7 @@ export function createPlaywrightMcpConfigs(
 }
 
 export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
-  // Documentation and Search Services
+  // Documentation and Search Services - Universal (no GUI required)
   {
     id: 'context7',
     requiresApiKey: false,
@@ -115,6 +134,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', '@upstash/context7-mcp@latest'],
       env: {},
     },
+    // Works on all platforms - no special requirements
   },
   {
     id: 'open-websearch',
@@ -129,6 +149,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
         ALLOWED_SEARCH_ENGINES: 'duckduckgo,bing,brave',
       },
     },
+    // Works on all platforms - no special requirements
   },
   {
     id: 'mcp-deepwiki',
@@ -139,6 +160,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', 'mcp-deepwiki@latest'],
       env: {},
     },
+    // Works on all platforms - no special requirements
   },
   // Development Workflow Services
   {
@@ -150,6 +172,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', '@pimzino/spec-workflow-mcp@latest'],
       env: {},
     },
+    // Works on all platforms - no special requirements
   },
   {
     id: 'serena',
@@ -160,12 +183,19 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['--from', 'git+https://github.com/oraios/serena', 'serena', 'start-mcp-server', '--context', 'ide-assistant', '--enable-web-dashboard', 'false'],
       env: {},
     },
+    platformRequirements: {
+      requiredCommands: ['uvx'], // Requires uv/uvx to be installed
+    },
   },
-  // Browser and Automation Services
+  // Browser and Automation Services - Require GUI environment
   {
     id: 'Playwright',
     requiresApiKey: false,
     config: createPlaywrightMcpConfig(), // Uses default profile with chromium browser
+    platformRequirements: {
+      platforms: ['macos', 'windows'], // GUI required - exclude headless Linux/WSL/Termux
+      requiresGui: true,
+    },
   },
   {
     id: 'puppeteer',
@@ -176,8 +206,12 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', '@anthropic-ai/mcp-server-puppeteer@latest'],
       env: {},
     },
+    platformRequirements: {
+      platforms: ['macos', 'windows'], // GUI required - exclude headless Linux/WSL/Termux
+      requiresGui: true,
+    },
   },
-  // Anthropic Official MCP Services
+  // Anthropic Official MCP Services - Universal
   {
     id: 'filesystem',
     requiresApiKey: false,
@@ -187,6 +221,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', '@anthropic-ai/mcp-server-filesystem@latest', '.'],
       env: {},
     },
+    // Works on all platforms - no special requirements
   },
   {
     id: 'memory',
@@ -197,6 +232,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', '@anthropic-ai/mcp-server-memory@latest'],
       env: {},
     },
+    // Works on all platforms - no special requirements
   },
   {
     id: 'sequential-thinking',
@@ -207,6 +243,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', '@anthropic-ai/mcp-server-sequential-thinking@latest'],
       env: {},
     },
+    // Works on all platforms - no special requirements
   },
   {
     id: 'fetch',
@@ -217,6 +254,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', '@anthropic-ai/mcp-server-fetch@latest'],
       env: {},
     },
+    // Works on all platforms - no special requirements
   },
   {
     id: 'sqlite',
@@ -227,6 +265,7 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       args: ['-y', '@anthropic-ai/mcp-server-sqlite@latest'],
       env: {},
     },
+    // Works on all platforms - no special requirements
   },
 ]
 
@@ -328,4 +367,161 @@ export async function getMcpServices(): Promise<McpService[]> {
 export async function getMcpService(id: string): Promise<McpService | undefined> {
   const services = await getMcpServices()
   return services.find(service => service.id === id)
+}
+
+/**
+ * Platform detection utilities for MCP service compatibility
+ * Note: Uses McpPlatform type defined above, with 'unknown' for unrecognized platforms
+ */
+export type Platform = McpPlatform | 'unknown'
+
+/**
+ * Detect current platform with detailed environment info
+ */
+export function detectPlatform(): { platform: Platform, hasGui: boolean, isHeadless: boolean } {
+  const platform = process.platform
+  const env = process.env
+
+  // Check for WSL (Windows Subsystem for Linux)
+  const isWsl = !!(env.WSL_DISTRO_NAME || env.WSLENV || (env.PATH && env.PATH.includes('/mnt/c/')))
+
+  // Check for Termux (Android terminal)
+  const isTermux = !!(env.TERMUX_VERSION || env.PREFIX?.includes('com.termux'))
+
+  // Check for headless/SSH environment
+  const isHeadless = !!(
+    env.SSH_CLIENT
+    || env.SSH_TTY
+    || env.SSH_CONNECTION
+    || (!env.DISPLAY && platform === 'linux')
+  )
+
+  // Determine if GUI is available
+  const hasGui = (() => {
+    if (platform === 'darwin')
+      return true // macOS always has GUI
+    if (platform === 'win32')
+      return !isHeadless // Windows has GUI unless SSH
+    if (isWsl || isTermux)
+      return false // WSL/Termux typically no GUI
+    if (platform === 'linux')
+      return !!env.DISPLAY || !!env.WAYLAND_DISPLAY // Linux needs X11/Wayland
+    return false
+  })()
+
+  // Determine platform type
+  let detectedPlatform: Platform
+  if (platform === 'darwin') {
+    detectedPlatform = 'macos'
+  }
+  else if (platform === 'win32') {
+    detectedPlatform = 'windows'
+  }
+  else if (isWsl) {
+    detectedPlatform = 'wsl'
+  }
+  else if (isTermux) {
+    detectedPlatform = 'termux'
+  }
+  else if (platform === 'linux') {
+    detectedPlatform = 'linux'
+  }
+  else {
+    detectedPlatform = 'unknown'
+  }
+
+  return {
+    platform: detectedPlatform,
+    hasGui,
+    isHeadless,
+  }
+}
+
+/**
+ * Check if a command is available in PATH
+ */
+export function isCommandAvailable(command: string): boolean {
+  try {
+    execSync(`which ${command}`, { stdio: 'ignore' })
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+/**
+ * Check if an MCP service is compatible with current platform
+ */
+export function isMcpServiceCompatible(serviceId: string): { compatible: boolean, reason?: string } {
+  const config = MCP_SERVICE_CONFIGS.find(c => c.id === serviceId)
+  if (!config) {
+    return { compatible: false, reason: 'Service not found' }
+  }
+
+  const requirements = config.platformRequirements
+  if (!requirements) {
+    return { compatible: true } // No requirements = universal
+  }
+
+  const { platform, hasGui } = detectPlatform()
+
+  // Check platform restriction
+  if (requirements.platforms && requirements.platforms.length > 0) {
+    // Skip check for unknown platform - allow service to try
+    if (platform !== 'unknown' && !requirements.platforms.includes(platform)) {
+      return {
+        compatible: false,
+        reason: `Not supported on ${platform}. Requires: ${requirements.platforms.join(', ')}`,
+      }
+    }
+  }
+
+  // Check GUI requirement
+  if (requirements.requiresGui && !hasGui) {
+    return {
+      compatible: false,
+      reason: 'Requires GUI environment (X11/Wayland/Desktop)',
+    }
+  }
+
+  // Check required commands
+  if (requirements.requiredCommands) {
+    for (const cmd of requirements.requiredCommands) {
+      if (!isCommandAvailable(cmd)) {
+        return {
+          compatible: false,
+          reason: `Required command not found: ${cmd}`,
+        }
+      }
+    }
+  }
+
+  return { compatible: true }
+}
+
+/**
+ * Get only platform-compatible MCP services
+ */
+export async function getCompatibleMcpServices(): Promise<McpService[]> {
+  const allServices = await getMcpServices()
+  return allServices.filter((service) => {
+    const { compatible } = isMcpServiceCompatible(service.id)
+    return compatible
+  })
+}
+
+/**
+ * Get MCP services with compatibility info
+ */
+export async function getMcpServicesWithCompatibility(): Promise<Array<McpService & { compatible: boolean, incompatibleReason?: string }>> {
+  const allServices = await getMcpServices()
+  return allServices.map((service) => {
+    const { compatible, reason } = isMcpServiceCompatible(service.id)
+    return {
+      ...service,
+      compatible,
+      incompatibleReason: reason,
+    }
+  })
 }

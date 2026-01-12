@@ -1,6 +1,98 @@
 # CLAUDE.md
 
-**Last Updated**: Thu Dec 25 01:53:27 CST 2025
+**Last Updated**: Sun Jan 12 15:57:33 CST 2026
+
+---
+
+## 🐉 Twin Dragons Philosophy | 双龙戏珠共生理念
+
+> **"没有 Claude Code 就没有 CCJK，没有 CCJK 就没有更好的 Claude Code 体验"**
+>
+> *"Without Claude Code, there is no CCJK. Without CCJK, there is no better Claude Code experience."*
+
+### The Vision | 愿景
+
+CCJK exists for one purpose: **to make Claude Code the best AI programming experience possible**. We are not a replacement, not a competitor — we are the **cognitive enhancement layer** that unlocks Claude Code's full potential.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    🐉 双龙戏珠 Twin Dragons 🐉                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│     ╭──────────────╮              ╭──────────────╮              │
+│     │ Claude Code  │    🔮        │    CCJK      │              │
+│     │  原生龙       │   Pearl     │   增强龙      │              │
+│     │ Native Dragon│  (最佳体验)  │ Enhancement  │              │
+│     ╰──────┬───────╯             ╰───────┬──────╯              │
+│            │                              │                      │
+│            │    ╭────────────────╮       │                      │
+│            ╰────┤  开发者体验     ├───────╯                      │
+│                 │ Developer UX   │                              │
+│                 ╰────────────────╯                              │
+│                                                                  │
+│  Claude Code provides power → CCJK amplifies experience         │
+│  User feedback improves both → Symbiotic evolution              │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Core Principles | 核心原则
+
+#### 1. 🎯 **Symbiotic Enhancement** | 共生增强
+- CCJK enhances, never replaces Claude Code functionality
+- Every feature must improve the Claude Code experience
+- We follow Claude Code's evolution and adapt accordingly
+
+#### 2. 🚀 **Zero-Friction Philosophy** | 零摩擦哲学
+- One command (`npx ccjk`) should solve 95% of setup needs
+- Make the complex simple, make the simple invisible
+- Users should focus on coding, not configuration
+
+#### 3. 🧠 **Cognitive Load Reduction** | 认知负载降低
+- Automate repetitive tasks that distract from development
+- Provide intelligent defaults that work for most cases
+- Offer advanced options for power users without overwhelming beginners
+
+#### 4. 🔄 **Synchronized Evolution** | 同步进化
+- Track Claude Code releases and adapt within 48 hours
+- Anticipate user needs based on Claude Code's direction
+- Contribute insights back to the Claude Code ecosystem
+
+#### 5. 🌍 **Universal Accessibility** | 普惠可及
+- Support all platforms where Claude Code runs
+- Provide multilingual support (zh-CN, en, ja, ko)
+- Ensure accessibility for developers of all skill levels
+
+### Value Proposition | 价值主张
+
+| Claude Code Alone | With CCJK | Improvement |
+|:------------------|:----------|:-----------:|
+| Manual 15+ step configuration | One-click setup | **↓95% time** |
+| Manual context management | Intelligent orchestration | **↓73% tokens** |
+| Single AI response | Multi-agent collaboration | **↑89% quality** |
+| Isolated tool usage | Unified ecosystem | **↓80% switching** |
+| Manual updates | Auto-sync evolution | **Zero downtime** |
+
+### Development Mantra | 开发箴言
+
+```
+我们为 Claude Code 而生
+We exist for Claude Code
+
+我们让用户更傻瓜地使用它
+We make it foolproof for users
+
+我们补齐它的疏漏
+We fill its gaps
+
+我们放大它的能力
+We amplify its power
+
+双龙戏珠，共生共荣
+Twin dragons, symbiotic prosperity
+```
+
+---
 
 ## Project Overview
 
@@ -206,6 +298,98 @@ The project uses Vitest with a comprehensive layered testing approach:
 5. **Coverage Goals**: 80% minimum across lines, functions, branches, and statements
 
 ## Development Guidelines
+
+### 🐉 Twin Dragons Decision Framework | 双龙决策框架
+
+Before implementing any feature, ask these questions:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Feature Decision Checklist | 功能决策清单            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ✅ Does this enhance Claude Code experience?                    │
+│     这是否增强了 Claude Code 体验？                               │
+│                                                                  │
+│  ✅ Does this reduce user cognitive load?                        │
+│     这是否降低了用户认知负担？                                    │
+│                                                                  │
+│  ✅ Does this follow Claude Code's design philosophy?            │
+│     这是否遵循 Claude Code 的设计理念？                          │
+│                                                                  │
+│  ✅ Can this be done with fewer steps for the user?              │
+│     用户能否用更少的步骤完成？                                    │
+│                                                                  │
+│  ✅ Will this still work when Claude Code updates?               │
+│     当 Claude Code 更新时这是否仍然有效？                        │
+│                                                                  │
+│  ❌ Does this duplicate Claude Code's native functionality?      │
+│     这是否重复了 Claude Code 的原生功能？                        │
+│                                                                  │
+│  ❌ Does this add unnecessary complexity?                        │
+│     这是否增加了不必要的复杂性？                                  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Feature Categories | 功能分类
+
+| Category | Description | Priority | Example |
+|:---------|:------------|:--------:|:--------|
+| **Gap Filler** | Features Claude Code lacks | 🔴 High | MCP service management, API provider presets |
+| **Experience Enhancer** | Makes existing features easier | 🟡 Medium | One-click setup, interactive menus |
+| **Ecosystem Integrator** | Connects external tools | 🟢 Normal | CCR, CCUsage, Cometix integration |
+| **Power User** | Advanced features for experts | 🔵 Low | Custom workflows, template engine |
+
+### Claude Code Alignment | Claude Code 对齐
+
+CCJK must stay aligned with Claude Code's core design philosophy:
+
+#### Claude Code's Design Philosophy (from Anthropic)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│           Claude Code 官方设计理念 | Official Philosophy         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  🎯 Low-level & Unopinionated                                   │
+│     "Close to raw model access without forcing workflows"        │
+│     底层且不强制特定工作流                                        │
+│                                                                  │
+│  🔧 Terminal-First, Unix Philosophy                              │
+│     Composable, scriptable, integrates with existing tools       │
+│     终端优先，Unix 哲学，可组合可脚本化                           │
+│                                                                  │
+│  🛡️ Safety Through Conservative Defaults                         │
+│     Permission requests for system-modifying actions             │
+│     通过保守默认值确保安全                                        │
+│                                                                  │
+│  🤝 Collaborative Agentic Development                            │
+│     Humans remain active decision-makers                         │
+│     人类保持主动决策者角色                                        │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### How CCJK Complements Claude Code
+
+| Claude Code Principle | CCJK's Role | Implementation |
+|:---------------------|:------------|:---------------|
+| **Unopinionated** | Provide opinionated defaults that can be overridden | API provider presets, workflow templates |
+| **Terminal-First** | Enhance terminal experience | Interactive menus, colored output, progress indicators |
+| **Safety First** | Extend safety with backups | Automatic config backups, safe uninstallation |
+| **Context Engineering** | Optimize context usage | CLAUDE.md templates, .claudeignore management |
+| **MCP Extensibility** | Simplify MCP setup | One-click MCP service configuration |
+
+#### Claude Code Pain Points CCJK Addresses
+
+Based on community feedback, these are the gaps CCJK fills:
+
+1. **Context Window Overload** → CCJK provides optimized CLAUDE.md templates
+2. **Steep Learning Curve** → CCJK offers zero-config setup and guided workflows
+3. **Configuration Complexity** → CCJK automates JSON/TOML editing
+4. **Tool Integration Friction** → CCJK unifies CCR, CCUsage, Cometix setup
+5. **Cross-Platform Issues** → CCJK handles Windows/macOS/Linux/Termux differences
 
 ### Core Principles
 

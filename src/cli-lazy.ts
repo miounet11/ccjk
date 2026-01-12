@@ -317,11 +317,15 @@ const COMMANDS: CommandDefinition[] = [
   },
   {
     name: 'session <action> [id]',
-    description: 'Manage sessions',
+    description: 'Manage sessions (save, list, restore, export, cleanup, status)',
     tier: 'extended',
+    options: [
+      { flags: '--all, -a', description: 'Clean all targets without selection' },
+      { flags: '--force, -f', description: 'Force cleanup without confirmation' },
+    ],
     loader: async () => {
-      const { saveSession, listSessions, restoreSession, exportSession } = await import('./commands/session')
-      return async (_options, action: unknown, id: unknown) => {
+      const { saveSession, listSessions, restoreSession, exportSession, cleanupSession, sessionStatus } = await import('./commands/session')
+      return async (options, action: unknown, id: unknown) => {
         const actionStr = action as string
         if (actionStr === 'save')
           await saveSession()
@@ -331,6 +335,12 @@ const COMMANDS: CommandDefinition[] = [
           await restoreSession(id as string)
         else if (actionStr === 'export')
           await exportSession(id as string)
+        else if (actionStr === 'cleanup' || actionStr === 'clean')
+          await cleanupSession({ all: options.all as boolean, force: options.force as boolean })
+        else if (actionStr === 'status')
+          await sessionStatus()
+        else
+          console.error(`Unknown action: ${actionStr}. Use: save, list, restore, export, cleanup, or status`)
       }
     },
   },

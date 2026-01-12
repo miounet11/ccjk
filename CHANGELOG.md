@@ -1,5 +1,60 @@
 # Changelog
 
+## 2.2.1
+
+### Release / 发布
+
+- Version bump for npm publish
+- All v2.2.0 features included
+
+- 版本号更新用于 npm 发布
+- 包含所有 v2.2.0 功能
+
+## 2.2.0
+
+### Twin Dragons Philosophy / 双龙戏珠共生理念
+
+#### New Philosophy Framework / 新理念框架
+- **Twin Dragons Philosophy**: Establish symbiotic relationship between CCJK and Claude Code
+- **Core Vision**: "Without Claude Code, there is no CCJK. Without CCJK, there is no better Claude Code experience."
+- **Five Core Principles**:
+  - 🎯 Symbiotic Enhancement (共生增强)
+  - 🚀 Zero-Friction Philosophy (零摩擦哲学)
+  - 🧠 Cognitive Load Reduction (认知负载降低)
+  - 🔄 Synchronized Evolution (同步进化)
+  - 🌍 Universal Accessibility (普惠可及)
+
+- **双龙戏珠理念**: 建立 CCJK 与 Claude Code 的共生关系
+- **核心愿景**: "没有 Claude Code 就没有 CCJK，没有 CCJK 就没有更好的 Claude Code 体验"
+- **五大核心原则**:
+  - 🎯 共生增强
+  - 🚀 零摩擦哲学
+  - 🧠 认知负载降低
+  - 🔄 同步进化
+  - 🌍 普惠可及
+
+#### Claude Code Alignment / Claude Code 对齐
+- Document Claude Code's official design philosophy in CLAUDE.md
+- Add feature decision checklist for development guidelines
+- Add feature priority matrix (Gap Filler → Power User)
+- Map Claude Code pain points to CCJK solutions
+
+- 在 CLAUDE.md 中记录 Claude Code 官方设计理念
+- 添加功能决策清单到开发指南
+- 添加功能优先级矩阵 (Gap Filler → Power User)
+- 映射 Claude Code 痛点与 CCJK 解决方案
+
+#### Documentation / 文档
+- Add comprehensive Claude Code design philosophy analysis
+- Add value proposition quantification table
+- Add development mantra (开发箴言)
+- Update CLAUDE.md with Twin Dragons ASCII art diagram
+
+- 添加全面的 Claude Code 设计理念分析
+- 添加价值主张量化表
+- 添加开发箴言
+- 更新 CLAUDE.md 添加双龙戏珠 ASCII 艺术图
+
 ## 2.1.0
 
 ### Major Performance Optimization / 重大性能优化

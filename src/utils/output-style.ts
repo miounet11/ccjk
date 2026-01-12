@@ -187,7 +187,7 @@ export async function configureOutputStyle(
         return {
           name: `${styleInfo?.name || style.id} - ${ansis.gray(styleInfo?.description || '')}`,
           value: style.id,
-          checked: true, // Default select all custom styles
+          checked: false, // Let user choose, not pre-selected
         }
       })),
       validate: async input => input.length > 0 || i18n.t('configuration:selectAtLeastOne'),
