@@ -46,7 +46,7 @@ export function displayBanner(subtitle?: string): void {
 ║                                                               ║
 ║   ██████╗  ██████╗      ██╗██╗  ██╗                           ║
 ║  ██╔════╝ ██╔════╝      ██║██║ ██╔╝                           ║
-║  ██║      ██║           ██║█████╔╝    ${ansis.white.bold('Claude Code JinKu')}       ║
+║  ██║      ██║           ██║█████╔╝    ${ansis.white.bold('JinKu')}                 ║
 ║  ██║      ██║      ██   ██║██╔═██╗    ${ansis.gray(`v${version}`)}${' '.repeat(Math.max(0, 17 - version.length))}║
 ║  ╚██████╗ ╚██████╗ ╚█████╔╝██║  ██╗                           ║
 ║   ╚═════╝  ╚═════╝  ╚════╝ ╚═╝  ╚═╝   ${ansis.gray(paddedSubtitle)} ║
@@ -58,7 +58,7 @@ export function displayBanner(subtitle?: string): void {
 
 export function displayBannerWithInfo(subtitle?: string): void {
   displayBanner(subtitle)
-  console.log(ansis.gray(`  ${ansis.cyan('ccjk')} - Advanced AI Development Assistant`))
+  console.log(ansis.gray(`  ${ansis.cyan('JinKu')} - Claude Code Enhancement Toolkit`))
   console.log(ansis.gray(`  ${ansis.cyan(homepage)}\n`))
 }
 

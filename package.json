@@ -3,9 +3,9 @@
   "type": "module",
   "version": "2.0.19",
   "packageManager": "pnpm@10.17.1",
-  "description": "Claude Code JinKu - Advanced AI-powered development assistant with skills, agents, and LLM-driven audit",
+  "description": "JinKu - Claude Code Enhancement Toolkit",
   "author": {
-    "name": "CCJK Team"
+    "name": "JinKu Team"
   },
   "license": "MIT",
   "homepage": "https://github.com/miounet11/ccjk",

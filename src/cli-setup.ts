@@ -129,7 +129,7 @@ export function customizeHelp(sections: any[]): any[] {
   // Add custom header
   sections.unshift({
     title: '',
-    body: ansis.cyan.bold(`CCJK - Claude Code Jailbreak Kit v${version}`),
+    body: ansis.cyan.bold(`JinKu - Claude Code Enhancement Toolkit v${version}`),
   })
 
   // Add commands section with aliases
@@ -267,7 +267,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // Default command - show menu
   cli
     .command('', 'Show interactive menu (default)')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'JinKu display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
     .option('--force, -f', 'Force overwrite existing configuration')
@@ -280,7 +280,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('init', 'Initialize Claude Code configuration')
     .alias('i')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'JinKu display language (zh-CN, en)')
     .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
     .option('--ai-output-lang, -a <lang>', 'AI output language')
     .option('--force, -f', 'Force overwrite existing configuration')
@@ -311,7 +311,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('update', 'Update Claude Code prompts only')
     .alias('u')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'JinKu display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
     .action(await withLanguageResolution(async (options) => {
@@ -321,7 +321,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // CCR command - Configure Claude Code Router
   cli
     .command('ccr', 'Configure Claude Code Router for model proxy')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'JinKu display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .action(await withLanguageResolution(async () => {
       await ccr()
@@ -330,7 +330,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // CCU command - Claude Code usage analysis
   cli
     .command('ccu [...args]', 'Run Claude Code usage analysis tool')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'JinKu display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .allowUnknownOptions()
     .action(await withLanguageResolution(async (args) => {
@@ -353,10 +353,10 @@ export async function setupCommands(cli: CAC): Promise<void> {
       })
     }))
 
-  // Uninstall command - Remove CCJK configurations and tools
+  // Uninstall command - Remove JinKu configurations and tools
   cli
-    .command('uninstall', 'Remove CCJK configurations and tools')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .command('uninstall', 'Remove JinKu configurations and tools')
+    .option('--lang, -l <lang>', 'JinKu display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
     .option('--mode, -m <mode>', 'Uninstall mode (complete/custom/interactive), default: interactive')
@@ -369,7 +369,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('check-updates', 'Check and update Claude Code and CCR to latest versions')
     .alias('check')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'JinKu display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
     .option('--skip-prompt, -s', 'Skip all interactive prompts (non-interactive mode)')
@@ -411,7 +411,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
 
   // CCJK Versions command - Check versions
   cli
-    .command('versions', 'Check Claude Code, CCJK, and plugin versions')
+    .command('versions', 'Check Claude Code, JinKu, and plugin versions')
     .alias('ver')
     .action(async () => {
       await checkAllVersions()
@@ -419,7 +419,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
 
   // CCJK Upgrade command - Upgrade all
   cli
-    .command('upgrade', 'Upgrade Claude Code and CCJK to latest versions')
+    .command('upgrade', 'Upgrade Claude Code and JinKu to latest versions')
     .action(async () => {
       await upgradeAll()
     })
