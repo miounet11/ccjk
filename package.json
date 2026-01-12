@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "packageManager": "pnpm@10.17.1",
   "description": "Claude Code JinKu - Advanced AI-powered development assistant with skills, agents, and LLM-driven audit",
   "author": {
@@ -100,7 +100,8 @@
     "build": "unbuild",
     "start": "node bin/ccjk.mjs",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "pnpm build",
+    "prepublishOnly": "node scripts/prepublish.mjs && pnpm build",
+    "postpublish": "node scripts/postpublish.mjs",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "vitest",

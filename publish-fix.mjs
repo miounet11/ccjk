@@ -15,24 +15,45 @@
 import { copyFileSync, readFileSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 
-// Simple YAML parser for pnpm-workspace.yaml (handles our specific format)
+// Simple YAML parser for pnpm-workspace.yaml (handles both flat and nested catalog structures)
 function parseWorkspaceYaml(content) {
   const catalogs = {}
   let currentCatalog = null
+  let isFlatStructure = false
   const lines = content.split('\n')
 
   for (const line of lines) {
-    // Match catalog name like "  build:" or "  runtime:"
-    const catalogMatch = line.match(/^ {2}(\w+):$/)
-    if (catalogMatch) {
-      currentCatalog = catalogMatch[1]
+    // Detect flat structure: "catalog:" at root level (no indentation)
+    if (line.match(/^catalog:\s*$/)) {
+      isFlatStructure = true
+      currentCatalog = 'default'
       catalogs[currentCatalog] = {}
       continue
     }
 
-    // Match package entry like "    dayjs: ^1.11.18" or "    '@types/node': ^22.18.6"
+    // Detect nested structure: "catalogs:" at root level
+    if (line.match(/^catalogs:\s*$/)) {
+      isFlatStructure = false
+      continue
+    }
+
+    // For nested structure, match catalog name like "  build:" or "  runtime:"
+    if (!isFlatStructure && line.match(/^ {2}(\w+):\s*$/)) {
+      const catalogMatch = line.match(/^ {2}(\w+):\s*$/)
+      if (catalogMatch) {
+        currentCatalog = catalogMatch[1]
+        catalogs[currentCatalog] = {}
+        continue
+      }
+    }
+
+    // Match package entry - handles both:
+    // - Flat structure (2 spaces): "  dayjs: ^1.11.18" or "  '@types/node': ^22.18.6"
+    // - Nested structure (4 spaces): "    dayjs: ^1.11.18"
     if (currentCatalog) {
-      const packageMatch = line.match(/^\s{4}['"]?(@?[\w\-/.]+)['"]?:\s*['"]?(\^?[\d.][\w.-]*)['"]?/)
+      const indent = isFlatStructure ? 2 : 4
+      const packageRegex = new RegExp(`^\\s{${indent}}['"]?(@?[\\w\\-/.]+)['"]?:\\s*['"]?(\\^?[\\d.][\\w.-]*)['"]?`)
+      const packageMatch = line.match(packageRegex)
       if (packageMatch) {
         const [, packageName, version] = packageMatch
         catalogs[currentCatalog][packageName] = version
@@ -61,7 +82,8 @@ function resolveCatalogReferences() {
     const resolved = {}
     for (const [name, version] of Object.entries(deps)) {
       if (typeof version === 'string' && version.startsWith('catalog:')) {
-        const catalogName = version.replace('catalog:', '')
+        // Handle both "catalog:" (empty = default) and "catalog:name"
+        const catalogName = version.replace('catalog:', '') || 'default'
         const catalog = catalogs[catalogName]
 
         if (catalog && catalog[name]) {
@@ -69,9 +91,21 @@ function resolveCatalogReferences() {
           console.log(`  ✅ ${name}: ${version} → ${catalog[name]}`)
         }
         else {
-          console.error(`  ❌ Could not resolve ${name}: ${version}`)
-          console.error(`     Available in catalog '${catalogName}':`, catalog ? Object.keys(catalog) : 'catalog not found')
-          resolved[name] = version // Keep original if not found
+          // Try to find in any catalog if specific catalog not found
+          let found = false
+          for (const [catName, catPackages] of Object.entries(catalogs)) {
+            if (catPackages[name]) {
+              resolved[name] = catPackages[name]
+              console.log(`  ✅ ${name}: ${version} → ${catPackages[name]} (found in '${catName}')`)
+              found = true
+              break
+            }
+          }
+          if (!found) {
+            console.error(`  ❌ Could not resolve ${name}: ${version}`)
+            console.error(`     Available catalogs:`, Object.keys(catalogs))
+            resolved[name] = version // Keep original if not found
+          }
         }
       }
       else {
