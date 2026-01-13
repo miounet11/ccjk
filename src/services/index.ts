@@ -64,3 +64,47 @@ export {
   syncAgents,
   uninstallAgent,
 } from './cloud/agents-sync'
+
+// Cloud Auto Bootstrap Service (Silent, Zero-Config)
+export {
+  autoBootstrap,
+  bootstrap,
+  checkUpgrade,
+  CLOUD_API_ENDPOINT,
+  CLOUD_CONFIG_DIR,
+  CLOUD_DASHBOARD_URL,
+  getCloudDashboardUrl,
+  getCloudState,
+  getOrCreateDeviceInfo,
+  isCloudDashboardEnabled,
+  saveCloudState,
+  sync,
+  updateCloudState,
+} from './cloud/auto-bootstrap'
+
+export type {
+  CloudState,
+  DeviceInfo,
+  HandshakeResponse,
+  SilentUpgradeResult,
+} from './cloud/auto-bootstrap'
+
+// Silent Updater Service (Auto-upgrade all tools)
+export {
+  autoUpgrade,
+  checkAllToolVersions,
+  checkAndUpgradeIfNeeded,
+  checkVersions,
+  performSilentUpgradeAll,
+  readUpgradeLog,
+  shouldCheckForUpgrades,
+  upgradeAll,
+} from './cloud/silent-updater'
+
+export type {
+  BatchUpgradeResult,
+  ToolVersionInfo,
+  UpgradableTool,
+  UpgradeLogEntry,
+  UpgradeResult,
+} from './cloud/silent-updater'

@@ -1096,8 +1096,41 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
  * 这是 CCJK 的主入口点，使用懒加载架构
  */
 export async function runLazyCli(): Promise<void> {
+  // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
+  // 在后台执行：设备注册、握手、自动同步、静默升级
+  bootstrapCloudServices()
+
   const cac = (await import('cac')).default
   const cli = cac('ccjk')
   await setupCommandsLazy(cli)
   cli.parse()
+}
+
+/**
+ * 云服务自动引导（后台静默执行）
+ *
+ * 功能：
+ * - 首次运行自动注册设备
+ * - 自动握手连接云服务
+ * - 后台静默升级检查（CCJK、Claude Code、CCR）
+ * - 自动同步配置和技能
+ *
+ * 全程静默，不打扰用户，不阻塞 CLI
+ */
+function bootstrapCloudServices(): void {
+  // 使用 setImmediate 确保不阻塞 CLI 启动
+  setImmediate(async () => {
+    try {
+      // 1. 云服务自动引导（设备注册、握手、同步）
+      const { autoBootstrap } = await import('./services/cloud/auto-bootstrap')
+      await autoBootstrap()
+
+      // 2. 静默自动升级（CCJK、Claude Code、CCR 等）
+      const { autoUpgrade } = await import('./services/cloud/silent-updater')
+      await autoUpgrade()
+    }
+    catch {
+      // 云服务错误静默处理，不影响用户使用
+    }
+  })
 }
