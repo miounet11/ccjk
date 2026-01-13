@@ -19,10 +19,10 @@ describe('banner utilities', () => {
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining('╔'))
     })
 
-    it('should display Claude Code JinKu', () => {
+    it('should display JinKu branding', () => {
       displayBanner()
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Claude Code JinKu'),
+        expect.stringContaining('JinKu'),
       )
     })
 

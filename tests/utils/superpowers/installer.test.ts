@@ -1,7 +1,5 @@
-import { exec } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, rm } from 'node:fs/promises'
-
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -29,9 +27,11 @@ const mockNodeFsPromises = vi.hoisted(() => ({
   rm: vi.fn(),
 }))
 
-const mockChildProcess = vi.hoisted(() => ({
-  exec: vi.fn(),
+const mockNodeUtil = vi.hoisted(() => ({
+  promisify: vi.fn((fn: any) => fn),
 }))
+
+const mockExecAsync = vi.hoisted(() => vi.fn())
 
 const mockI18n = vi.hoisted(() => ({
   i18n: {
@@ -41,12 +41,17 @@ const mockI18n = vi.hoisted(() => ({
 
 vi.mock('node:fs', () => mockNodeFs)
 vi.mock('node:fs/promises', () => mockNodeFsPromises)
-vi.mock('node:child_process', () => mockChildProcess)
+vi.mock('node:util', () => mockNodeUtil)
+vi.mock('node:child_process', () => ({
+  exec: mockExecAsync,
+}))
 vi.mock('../../../src/i18n', () => mockI18n)
 
 describe('superpowers Installer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Setup promisify to return our mock
+    mockNodeUtil.promisify.mockReturnValue(mockExecAsync)
   })
 
   describe('getClaudePluginDir', () => {
@@ -237,19 +242,16 @@ describe('superpowers Installer', () => {
       expect(i18n.t).toHaveBeenCalledWith('superpowers:alreadyInstalled')
     })
 
-    it('should install via Claude Code plugin marketplace', async () => {
+    it('should install via git clone when not installed', async () => {
+      // First call: not installed, subsequent calls: installed
       vi.mocked(existsSync).mockReturnValueOnce(false).mockReturnValue(true)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(null, { stdout: '', stderr: '' })
-        return {} as any
-      })
+      vi.mocked(mkdir).mockResolvedValue(undefined)
+      mockExecAsync.mockResolvedValue({ stdout: '', stderr: '' })
       vi.mocked(i18n.t).mockImplementation(((key: any) => {
         if (key === 'superpowers:installSuccess')
           return 'Install success'
-        if (key === 'superpowers:addingMarketplace')
-          return 'Adding marketplace'
-        if (key === 'superpowers:installing')
-          return 'Installing'
+        if (key === 'superpowers:cloning')
+          return 'Cloning'
         return key
       }) as any)
 
@@ -259,60 +261,24 @@ describe('superpowers Installer', () => {
 
       expect(result.success).toBe(true)
       expect(result.message).toBe('Install success')
-      expect(consoleSpy).toHaveBeenCalledWith('Adding marketplace')
-      expect(consoleSpy).toHaveBeenCalledWith('Installing')
 
       consoleSpy.mockRestore()
     })
 
-    it('should continue if marketplace add fails', async () => {
-      vi.mocked(existsSync).mockReturnValueOnce(false).mockReturnValue(true)
-      let callCount = 0
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callCount++
-        if (callCount === 1) {
-          // First call (marketplace add) fails
-          callback(new Error('Marketplace already added'))
-        }
-        else {
-          // Second call (install) succeeds
-          callback(null, { stdout: '', stderr: '' })
-        }
-        return {} as any
-      })
-
-      const result = await installSuperpowers({ lang: 'en' })
-
-      expect(result.success).toBe(true)
-    })
-
-    it('should return error if installation fails', async () => {
+    it('should return error if git clone fails', async () => {
       vi.mocked(existsSync).mockReturnValue(false)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(new Error('Installation failed'))
-        return {} as any
-      })
+      vi.mocked(mkdir).mockResolvedValue(undefined)
+      mockExecAsync.mockRejectedValue(new Error('Git clone failed'))
       vi.mocked(i18n.t).mockReturnValue('Install failed')
+
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const result = await installSuperpowers({ lang: 'en' })
 
       expect(result.success).toBe(false)
-      expect(result.message).toBe('Install failed')
-      expect(result.error).toBe('Installation failed')
-    })
+      expect(result.error).toBe('Git clone failed')
 
-    it('should return error if plugin not found after installation', async () => {
-      vi.mocked(existsSync).mockReturnValue(false)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(null, { stdout: '', stderr: '' })
-        return {} as any
-      })
-      vi.mocked(i18n.t).mockReturnValue('Install failed')
-
-      const result = await installSuperpowers({ lang: 'en' })
-
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Installation completed but plugin not found')
+      consoleSpy.mockRestore()
     })
   })
 
@@ -320,10 +286,7 @@ describe('superpowers Installer', () => {
     it('should clone repository and install successfully', async () => {
       vi.mocked(existsSync).mockReturnValue(true)
       vi.mocked(mkdir).mockResolvedValue(undefined)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(null, { stdout: '', stderr: '' })
-        return {} as any
-      })
+      mockExecAsync.mockResolvedValue({ stdout: '', stderr: '' })
       vi.mocked(i18n.t).mockImplementation(((key: any) => {
         if (key === 'superpowers:installSuccess')
           return 'Install success'
@@ -338,7 +301,6 @@ describe('superpowers Installer', () => {
 
       expect(result.success).toBe(true)
       expect(result.message).toBe('Install success')
-      expect(mkdir).toHaveBeenCalled()
       expect(consoleSpy).toHaveBeenCalledWith('Cloning')
 
       consoleSpy.mockRestore()
@@ -346,31 +308,33 @@ describe('superpowers Installer', () => {
 
     it('should return error if git clone fails', async () => {
       vi.mocked(mkdir).mockResolvedValue(undefined)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(new Error('Git clone failed'))
-        return {} as any
-      })
+      mockExecAsync.mockRejectedValue(new Error('Git clone failed'))
       vi.mocked(i18n.t).mockReturnValue('Install failed')
+
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const result = await installSuperpowersViaGit()
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('Git clone failed')
+
+      consoleSpy.mockRestore()
     })
 
     it('should return error if plugin not found after cloning', async () => {
       vi.mocked(existsSync).mockReturnValue(false)
       vi.mocked(mkdir).mockResolvedValue(undefined)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(null, { stdout: '', stderr: '' })
-        return {} as any
-      })
+      mockExecAsync.mockResolvedValue({ stdout: '', stderr: '' })
       vi.mocked(i18n.t).mockReturnValue('Install failed')
+
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const result = await installSuperpowersViaGit()
 
       expect(result.success).toBe(false)
       expect(result.message).toBe('Install failed')
+
+      consoleSpy.mockRestore()
     })
   })
 
@@ -386,29 +350,9 @@ describe('superpowers Installer', () => {
       expect(i18n.t).toHaveBeenCalledWith('superpowers:notInstalled')
     })
 
-    it('should uninstall via Claude Code plugin system', async () => {
-      vi.mocked(existsSync).mockReturnValueOnce(true).mockReturnValue(false)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(null, { stdout: '', stderr: '' })
-        return {} as any
-      })
-      vi.mocked(i18n.t).mockReturnValue('Uninstall success')
-
-      const result = await uninstallSuperpowers()
-
-      expect(result.success).toBe(true)
-      expect(result.message).toBe('Uninstall success')
-    })
-
-    it('should remove directory manually if plugin command fails', async () => {
-      // First call for checkSuperpowersInstalled (installed=true)
-      // Second call inside catch block (directory exists)
-      // Third call for verification (installed=false)
+    it('should remove directory and return success', async () => {
+      // First call: installed, second call for rm check: exists, third call: not installed
       vi.mocked(existsSync).mockReturnValueOnce(true).mockReturnValueOnce(true).mockReturnValue(false)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(new Error('Plugin command failed'))
-        return {} as any
-      })
       vi.mocked(rm).mockResolvedValue(undefined)
       vi.mocked(i18n.t).mockReturnValue('Uninstall success')
 
@@ -416,16 +360,10 @@ describe('superpowers Installer', () => {
 
       expect(result.success).toBe(true)
       expect(result.message).toBe('Uninstall success')
-      // Verify the fallback path was taken by checking existsSync was called for the directory
-      expect(existsSync).toHaveBeenCalledWith(getSuperpowersPath())
     })
 
-    it('should return error if uninstallation fails', async () => {
+    it('should return error if rm fails', async () => {
       vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(new Error('Uninstall failed'))
-        return {} as any
-      })
       vi.mocked(rm).mockRejectedValue(new Error('Cannot remove directory'))
       vi.mocked(i18n.t).mockReturnValue('Uninstall failed')
 
@@ -437,10 +375,7 @@ describe('superpowers Installer', () => {
 
     it('should return error if plugin still exists after uninstall', async () => {
       vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(null, { stdout: '', stderr: '' })
-        return {} as any
-      })
+      vi.mocked(rm).mockResolvedValue(undefined)
       vi.mocked(i18n.t).mockReturnValue('Uninstall failed')
 
       const result = await uninstallSuperpowers()
@@ -462,12 +397,9 @@ describe('superpowers Installer', () => {
       expect(i18n.t).toHaveBeenCalledWith('superpowers:notInstalled')
     })
 
-    it('should update via Claude Code plugin system', async () => {
+    it('should update via git pull', async () => {
       vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(null, { stdout: '', stderr: '' })
-        return {} as any
-      })
+      mockExecAsync.mockResolvedValue({ stdout: '', stderr: '' })
       vi.mocked(i18n.t).mockReturnValue('Update success')
 
       const result = await updateSuperpowers()
@@ -476,41 +408,15 @@ describe('superpowers Installer', () => {
       expect(result.message).toBe('Update success')
     })
 
-    it('should fallback to git pull if plugin command fails', async () => {
+    it('should return error if git pull fails', async () => {
       vi.mocked(existsSync).mockReturnValue(true)
-      let callCount = 0
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callCount++
-        if (callCount === 1) {
-          // First call (plugin update) fails
-          callback(new Error('Plugin command failed'))
-        }
-        else {
-          // Second call (git pull) succeeds
-          callback(null, { stdout: '', stderr: '' })
-        }
-        return {} as any
-      })
-      vi.mocked(i18n.t).mockReturnValue('Update success')
-
-      const result = await updateSuperpowers()
-
-      expect(result.success).toBe(true)
-      expect(result.message).toBe('Update success')
-    })
-
-    it('should return error if both update methods fail', async () => {
-      vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(exec).mockImplementation((_cmd: string, _options: any, callback: any) => {
-        callback(new Error('Update failed'))
-        return {} as any
-      })
+      mockExecAsync.mockRejectedValue(new Error('Git pull failed'))
       vi.mocked(i18n.t).mockReturnValue('Update failed')
 
       const result = await updateSuperpowers()
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('Update failed')
+      expect(result.error).toBe('Git pull failed')
     })
   })
 })

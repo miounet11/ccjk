@@ -35,6 +35,7 @@ catalog:
   inquirer: ^12.9.6
   inquirer-toggle: ^1.0.1
   lint-staged: ^16.2.0
+  nanoid: ^5.1.6
   ora: ^9.0.0
   pathe: ^2.0.3
   semver: ^7.7.2

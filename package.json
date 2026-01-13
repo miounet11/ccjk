@@ -136,6 +136,7 @@
     "i18next-fs-backend": "catalog:",
     "inquirer": "catalog:",
     "inquirer-toggle": "catalog:",
+    "nanoid": "catalog:",
     "ora": "catalog:",
     "pathe": "catalog:",
     "semver": "catalog:",
