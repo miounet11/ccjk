@@ -889,54 +889,45 @@ async function showMoreFeaturesMenu(): Promise<void> {
   )
   console.log('')
 
-  // Config section
+  // Config section (API/MCP/Model moved to main menu, keep other configs here)
   console.log(`  ${ansis.yellow(i18n.t('menu:moreMenu.config'))}`)
   console.log(
-    `  ${ansis.cyan('7.')} ${i18n.t('menu:configCenter.api')} ${ansis.gray(`- ${i18n.t('menu:configCenter.apiDesc')}`)}`,
+    `  ${ansis.cyan('7.')} ${i18n.t('menu:configCenter.memory')} ${ansis.gray(`- ${i18n.t('menu:configCenter.memoryDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('8.')} ${i18n.t('menu:configCenter.mcp')} ${ansis.gray(`- ${i18n.t('menu:configCenter.mcpDesc')}`)}`,
+    `  ${ansis.cyan('8.')} ${i18n.t('menu:configCenter.permission')} ${ansis.gray(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('9.')} ${i18n.t('menu:configCenter.model')} ${ansis.gray(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
+    `  ${ansis.cyan('9.')} ${i18n.t('menu:configCenter.configSwitch')} ${ansis.gray(`- ${i18n.t('menu:configCenter.configSwitchDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('10.')} ${i18n.t('menu:configCenter.memory')} ${ansis.gray(`- ${i18n.t('menu:configCenter.memoryDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('11.')} ${i18n.t('menu:configCenter.permission')} ${ansis.gray(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('12.')} ${i18n.t('menu:configCenter.configSwitch')} ${ansis.gray(`- ${i18n.t('menu:configCenter.configSwitchDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('13.')} ${i18n.t('menu:configCenter.context')} ${ansis.gray(`- ${i18n.t('menu:configCenter.contextDesc')}`)}`,
+    `  ${ansis.cyan('10.')} ${i18n.t('menu:configCenter.context')} ${ansis.gray(`- ${i18n.t('menu:configCenter.contextDesc')}`)}`,
   )
   console.log('')
 
   // System section
   console.log(`  ${ansis.yellow(i18n.t('menu:moreMenu.system'))}`)
   console.log(
-    `  ${ansis.cyan('14.')} ${i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0]} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
+    `  ${ansis.cyan('11.')} ${i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0]} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('15.')} ${i18n.t('menu:menuOptions.switchCodeTool')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
+    `  ${ansis.cyan('12.')} ${i18n.t('menu:menuOptions.switchCodeTool')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('16.')} ${i18n.t('menu:categorizedMenu.diagnostics')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
+    `  ${ansis.cyan('13.')} ${i18n.t('menu:categorizedMenu.diagnostics')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('17.')} ${i18n.t('menu:categorizedMenu.workspace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.workspaceDesc')}`)}`,
+    `  ${ansis.cyan('14.')} ${i18n.t('menu:categorizedMenu.workspace')} ${ansis.gray(`- ${i18n.t('menu:categorizedMenu.workspaceDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.cyan('18.')} ${i18n.t('menu:menuOptions.uninstall')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.uninstall')}`)}`,
+    `  ${ansis.cyan('15.')} ${i18n.t('menu:menuOptions.uninstall')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.uninstall')}`)}`,
   )
   console.log('')
 
   console.log(`  ${ansis.cyan('0.')} ${i18n.t('common:back')}`)
   console.log('')
 
-  const validChoices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18']
+  const validChoices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15']
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
@@ -972,58 +963,50 @@ async function showMoreFeaturesMenu(): Promise<void> {
     case '6':
       await showMarketplaceMenu()
       break
-    // Config
+    // Config (API/MCP/Model removed - now on main menu)
     case '7':
-      await configureApiFeature()
-      break
-    case '8':
-      await configureMcpFeature()
-      break
-    case '9':
-      await configureDefaultModelFeature()
-      break
-    case '10':
       await configureAiMemoryFeature()
       break
-    case '11':
+    case '8':
       await configureEnvPermissionFeature()
       break
-    case '12':
+    case '9':
       await showConfigSwitchMenu()
       break
-    case '13':
+    case '10':
       await showContextMenu()
       break
     // System
-    case '14': {
+    case '11': {
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)
       break
     }
-    case '15':
+    case '12':
       await handleCodeToolSwitch('claude-code')
       break
-    case '16':
+    case '13':
       await doctor()
       break
-    case '17':
+    case '14':
       await workspaceDiagnostics()
       break
-    case '18':
+    case '15':
       await uninstall()
       break
   }
 }
 
 /**
- * Show the new ONE-CLICK main menu (ultra-simplified 5 items)
- * Design principle: Users click a few times, no learning curve
+ * Show the new ONE-CLICK main menu (optimized layout)
+ * Design principle: Important settings on first screen, easy access
  */
 async function showCategorizedMenu(): Promise<MenuResult> {
   console.log(ansis.cyan(i18n.t('menu:oneClick.title')))
   console.log('')
 
-  // Ultra-simplified menu - only 5 core options
+  // Quick Start section
+  console.log(`  ${ansis.yellow(i18n.t('menu:menuSections.quickStart'))}`)
   console.log(
     `  ${ansis.cyan('1.')} ${i18n.t('menu:oneClick.setup')} ${ansis.gray(`- ${i18n.t('menu:oneClick.setupDesc')}`)}`,
   )
@@ -1037,9 +1020,24 @@ async function showCategorizedMenu(): Promise<MenuResult> {
     `  ${ansis.cyan('4.')} ${i18n.t('menu:oneClick.notify')} ${ansis.gray(`- ${i18n.t('menu:oneClick.notifyDesc')}`)}`,
   )
   console.log('')
+
+  // Important Settings section (NEW - moved from More Features)
+  console.log(`  ${ansis.yellow(i18n.t('menu:menuSections.configCenter'))}`)
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:configCenter.api')} ${ansis.gray(`- ${i18n.t('menu:configCenter.apiDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('6.')} ${i18n.t('menu:configCenter.mcp')} ${ansis.gray(`- ${i18n.t('menu:configCenter.mcpDesc')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('7.')} ${i18n.t('menu:configCenter.model')} ${ansis.gray(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
+  )
+  console.log('')
+
+  // More Features
   console.log(`  ${ansis.dim('─'.repeat(50))}`)
   console.log(
-    `  ${ansis.cyan('5.')} ${i18n.t('menu:oneClick.more')} → ${ansis.gray(i18n.t('menu:oneClick.moreDesc'))}`,
+    `  ${ansis.cyan('8.')} ${i18n.t('menu:oneClick.more')} → ${ansis.gray(i18n.t('menu:oneClick.moreDesc'))}`,
   )
   console.log('')
   console.log(
@@ -1053,7 +1051,7 @@ async function showCategorizedMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '0', 'q', 'Q']
+      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '0', 'q', 'Q']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -1082,8 +1080,20 @@ async function showCategorizedMenu(): Promise<MenuResult> {
     case '4':
       await notificationCommand()
       break
-    // More features submenu
+    // API Config (Important Setting)
     case '5':
+      await configureApiFeature()
+      break
+    // MCP Config (Important Setting)
+    case '6':
+      await configureMcpFeature()
+      break
+    // Default Model (Important Setting)
+    case '7':
+      await configureDefaultModelFeature()
+      break
+    // More features submenu
+    case '8':
       printSeparator()
       await showMoreFeaturesMenu()
       return undefined
