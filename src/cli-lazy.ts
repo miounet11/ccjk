@@ -385,9 +385,9 @@ const COMMANDS: CommandDefinition[] = [
     aliases: ['wf'],
     tier: 'extended',
     loader: async () => {
-      const { showWorkflows } = await import('./commands/workflows')
+      const { listWorkflowsQuick } = await import('./commands/workflows')
       return async () => {
-        await showWorkflows()
+        await listWorkflowsQuick()
       }
     },
   },

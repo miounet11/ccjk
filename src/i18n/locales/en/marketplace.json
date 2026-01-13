@@ -64,6 +64,11 @@
   "categories.mcp-service": "MCP Services",
   "categories.output-style": "Output Styles",
   "categories.bundle": "Bundles",
+  "categories.ai-tools": "AI Tools",
+  "categories.dev-tools": "Development Tools",
+  "categories.productivity": "Productivity Tools",
+  "categories.data-processing": "Data Processing",
+  "categories.integrations": "Integrations",
 
   "menu.title": "Marketplace",
   "menu.search": "Search packages",
@@ -80,5 +85,31 @@
   "errors.networkError": "Network error. Please check your connection.",
   "errors.registryError": "Failed to fetch registry",
   "errors.installError": "Installation error: {{error}}",
-  "errors.uninstallError": "Uninstallation error: {{error}}"
+  "errors.uninstallError": "Uninstallation error: {{error}}",
+
+  "skill.name": "MCP Marketplace",
+  "skill.description": "Discover, install and manage MCP plugins",
+  "skill.features.browse": "Browse Marketplace: Discover trending and recommended plugins",
+  "skill.features.search": "Search Plugins: Search by name, category, or tags",
+  "skill.features.install": "Install Management: One-click install, update, and uninstall",
+  "skill.features.security": "Security Scanning: Automatic security checks before installation",
+
+  "skill.commands.search": "Search plugins",
+  "skill.commands.trending": "Trending plugins",
+  "skill.commands.install": "Install plugin",
+  "skill.commands.update": "Update all plugins",
+  "skill.commands.list": "Installed list",
+  "skill.commands.info": "Plugin details",
+
+  "security.title": "Security Check",
+  "security.scanning": "Running security scan...",
+  "security.passed": "Security check passed",
+  "security.failed": "Security check failed",
+  "security.warnings": "Found {{count}} security warnings",
+  "security.dangerousPermissions": "Dangerous permissions",
+  "security.knownVulnerabilities": "Known vulnerabilities",
+  "security.suspiciousPatterns": "Suspicious code patterns",
+  "security.levels.verified": "Officially Verified",
+  "security.levels.community": "Community Reviewed",
+  "security.levels.unverified": "Unverified"
 }

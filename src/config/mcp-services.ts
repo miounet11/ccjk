@@ -197,65 +197,9 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       requiresGui: true,
     },
   },
-  {
-    id: 'puppeteer',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', '@anthropic-ai/mcp-server-puppeteer@latest'],
-      env: {},
-    },
-    platformRequirements: {
-      platforms: ['macos', 'windows'], // GUI required - exclude headless Linux/WSL/Termux
-      requiresGui: true,
-    },
-  },
   // Anthropic Official MCP Services - Universal
-  {
-    id: 'filesystem',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', '@anthropic-ai/mcp-server-filesystem@latest', '.'],
-      env: {},
-    },
-    // Works on all platforms - no special requirements
-  },
-  {
-    id: 'memory',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', '@anthropic-ai/mcp-server-memory@latest'],
-      env: {},
-    },
-    // Works on all platforms - no special requirements
-  },
-  {
-    id: 'sequential-thinking',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', '@anthropic-ai/mcp-server-sequential-thinking@latest'],
-      env: {},
-    },
-    // Works on all platforms - no special requirements
-  },
-  {
-    id: 'fetch',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', '@anthropic-ai/mcp-server-fetch@latest'],
-      env: {},
-    },
-    // Works on all platforms - no special requirements
-  },
+  // Note: Removed low-value services: filesystem (buggy), puppeteer (duplicate of Playwright),
+  //       memory (Claude has built-in memory), fetch (Claude has WebFetch), sequential-thinking (limited value)
   {
     id: 'sqlite',
     requiresApiKey: false,
@@ -310,32 +254,9 @@ export async function getMcpServices(): Promise<McpService[]> {
       name: i18n.t('mcp:services.playwright.name'),
       description: i18n.t('mcp:services.playwright.description'),
     },
-    {
-      id: 'puppeteer',
-      name: i18n.t('mcp:services.puppeteer.name'),
-      description: i18n.t('mcp:services.puppeteer.description'),
-    },
     // Anthropic Official MCP Services
-    {
-      id: 'filesystem',
-      name: i18n.t('mcp:services.filesystem.name'),
-      description: i18n.t('mcp:services.filesystem.description'),
-    },
-    {
-      id: 'memory',
-      name: i18n.t('mcp:services.memory.name'),
-      description: i18n.t('mcp:services.memory.description'),
-    },
-    {
-      id: 'sequential-thinking',
-      name: i18n.t('mcp:services.sequential-thinking.name'),
-      description: i18n.t('mcp:services.sequential-thinking.description'),
-    },
-    {
-      id: 'fetch',
-      name: i18n.t('mcp:services.fetch.name'),
-      description: i18n.t('mcp:services.fetch.description'),
-    },
+    // Note: Removed low-value services: filesystem (buggy), puppeteer (duplicate),
+    //       memory (Claude built-in), fetch (Claude WebFetch), sequential-thinking (limited value)
     {
       id: 'sqlite',
       name: i18n.t('mcp:services.sqlite.name'),

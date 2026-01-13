@@ -1,21 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { manageWorkflows, showWorkflows } from '../../src/commands/workflows'
+import {
+  controlWorkflowAction,
+  createWorkflow,
+  listWorkflowsQuick,
+  runWorkflowsCommand,
+  showWorkflowStatus,
+} from '../../src/commands/workflows'
 
-// Mock dependencies
-vi.mock('node:fs', () => ({
-  existsSync: vi.fn(),
-  readdirSync: vi.fn(),
-  readFileSync: vi.fn(),
-}))
-
-vi.mock('inquirer', () => ({
-  default: {
-    prompt: vi.fn(),
-  },
-}))
-
-vi.mock('../../src/commands/update', () => ({
-  update: vi.fn(),
+// Mock subagent-workflow module
+vi.mock('../../src/commands/subagent-workflow', () => ({
+  controlWorkflow: vi.fn(),
+  createNewWorkflow: vi.fn().mockResolvedValue('test-workflow-id'),
+  listAllWorkflows: vi.fn(),
+  showWorkflowDetails: vi.fn(),
 }))
 
 describe('workflows command', () => {
@@ -23,226 +20,128 @@ describe('workflows command', () => {
     vi.clearAllMocks()
   })
 
-  describe('showWorkflows', () => {
-    it('should display empty state when no workflows installed', async () => {
-      const { existsSync } = await import('node:fs')
-      vi.mocked(existsSync).mockReturnValue(false)
+  describe('listWorkflowsQuick', () => {
+    it('should call listAllWorkflows with correct options', async () => {
+      const { listAllWorkflows } = await import('../../src/commands/subagent-workflow')
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      await listWorkflowsQuick({ lang: 'zh-CN', format: 'json' })
 
-      await showWorkflows()
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const output = consoleSpy.mock.calls.map(call => call[0]).join('\n')
-      expect(output).toContain('工作流管理')
-      expect(output).toContain('未安装任何工作流')
-
-      consoleSpy.mockRestore()
-    })
-
-    it('should display installed workflows with metadata', async () => {
-      const { existsSync, readdirSync } = await import('node:fs')
-      vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(readdirSync).mockReturnValue([
-        { name: 'workflow.md', isDirectory: () => false } as any,
-        { name: 'feat.md', isDirectory: () => false } as any,
-        { name: 'git-commit.md', isDirectory: () => false } as any,
-      ])
-
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-      await showWorkflows()
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const output = consoleSpy.mock.calls.map(call => call[0]).join('\n')
-      expect(output).toContain('已安装工作流')
-      expect(output).toContain('/workflow')
-      expect(output).toContain('/feat')
-      expect(output).toContain('/git-commit')
-
-      consoleSpy.mockRestore()
-    })
-
-    it('should handle nested workflow directories', async () => {
-      const { existsSync, readdirSync } = await import('node:fs')
-      vi.mocked(existsSync).mockReturnValue(true)
-
-      // Mock directory structure with nested folders
-      vi.mocked(readdirSync).mockImplementation((path: any) => {
-        if (path.includes('git')) {
-          return [
-            { name: 'commit.md', isDirectory: () => false } as any,
-            { name: 'rollback.md', isDirectory: () => false } as any,
-          ]
-        }
-        return [
-          { name: 'git', isDirectory: () => true } as any,
-          { name: 'workflow.md', isDirectory: () => false } as any,
-        ]
+      expect(listAllWorkflows).toHaveBeenCalledWith({
+        lang: 'zh-CN',
+        format: 'json',
       })
-
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-      await showWorkflows()
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const output = consoleSpy.mock.calls.map(call => call[0]).join('\n')
-      expect(output).toContain('/git:commit')
-      expect(output).toContain('/git:rollback')
-
-      consoleSpy.mockRestore()
     })
 
-    it('should display workflow tags correctly', async () => {
-      const { existsSync, readdirSync } = await import('node:fs')
-      vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(readdirSync).mockReturnValue([
-        { name: 'workflow.md', isDirectory: () => false } as any,
-        { name: 'git-commit.md', isDirectory: () => false } as any,
-      ])
+    it('should work with default options', async () => {
+      const { listAllWorkflows } = await import('../../src/commands/subagent-workflow')
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      await listWorkflowsQuick()
 
-      await showWorkflows()
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const output = consoleSpy.mock.calls.map(call => call[0]).join('\n')
-      // workflow has '推荐' and '核心' tags
-      // git-commit has '热门' and 'Git' tags
-      expect(output).toMatch(/推荐|热门|核心|Git/)
-
-      consoleSpy.mockRestore()
-    })
-
-    it('should handle file system errors gracefully', async () => {
-      const { existsSync, readdirSync } = await import('node:fs')
-      vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(readdirSync).mockImplementation(() => {
-        throw new Error('Permission denied')
+      expect(listAllWorkflows).toHaveBeenCalledWith({
+        lang: undefined,
+        format: undefined,
       })
-
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-      await showWorkflows()
-
-      // Should not throw, should display empty state
-      expect(consoleSpy).toHaveBeenCalled()
-      const output = consoleSpy.mock.calls.map(call => call[0]).join('\n')
-      expect(output).toContain('工作流管理')
-
-      consoleSpy.mockRestore()
     })
   })
 
-  describe('manageWorkflows', () => {
-    it('should show workflows and return on back action', async () => {
-      const { existsSync } = await import('node:fs')
-      const inquirer = await import('inquirer')
+  describe('showWorkflowStatus', () => {
+    it('should call showWorkflowDetails with workflow ID', async () => {
+      const { showWorkflowDetails } = await import('../../src/commands/subagent-workflow')
 
-      vi.mocked(existsSync).mockReturnValue(false)
-      vi.mocked(inquirer.default.prompt).mockResolvedValue({ action: 'back' })
+      await showWorkflowStatus('test-id', { lang: 'en' })
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      expect(showWorkflowDetails).toHaveBeenCalledWith({
+        lang: 'en',
+        workflowId: 'test-id',
+        format: undefined,
+      })
+    })
+  })
 
-      await manageWorkflows()
+  describe('createWorkflow', () => {
+    it('should call createNewWorkflow and return workflow ID', async () => {
+      const { createNewWorkflow } = await import('../../src/commands/subagent-workflow')
 
-      expect(inquirer.default.prompt).toHaveBeenCalled()
-      expect(consoleSpy).toHaveBeenCalled()
+      const result = await createWorkflow({ lang: 'zh-CN' })
 
-      consoleSpy.mockRestore()
+      expect(createNewWorkflow).toHaveBeenCalledWith({
+        lang: 'zh-CN',
+        format: undefined,
+      })
+      expect(result).toBe('test-workflow-id')
+    })
+  })
+
+  describe('controlWorkflowAction', () => {
+    it('should call controlWorkflow', async () => {
+      const { controlWorkflow } = await import('../../src/commands/subagent-workflow')
+
+      await controlWorkflowAction('pause', 'test-id', { lang: 'en' })
+
+      expect(controlWorkflow).toHaveBeenCalled()
+    })
+  })
+
+  describe('runWorkflowsCommand', () => {
+    it('should handle list action', async () => {
+      const { listAllWorkflows } = await import('../../src/commands/subagent-workflow')
+
+      await runWorkflowsCommand('list', { format: 'table' })
+
+      expect(listAllWorkflows).toHaveBeenCalled()
     })
 
-    it('should call update command when update action selected', async () => {
-      const { existsSync } = await import('node:fs')
-      const inquirer = await import('inquirer')
-      const { update } = await import('../../src/commands/update')
+    it('should handle status action with workflowId', async () => {
+      const { showWorkflowDetails } = await import('../../src/commands/subagent-workflow')
 
-      vi.mocked(existsSync).mockReturnValue(false)
-      vi.mocked(inquirer.default.prompt).mockResolvedValue({ action: 'update' })
+      await runWorkflowsCommand('status', { workflowId: 'test-id' })
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-      await manageWorkflows()
-
-      expect(update).toHaveBeenCalled()
-
-      consoleSpy.mockRestore()
+      expect(showWorkflowDetails).toHaveBeenCalledWith({
+        lang: undefined,
+        workflowId: 'test-id',
+        format: undefined,
+      })
     })
 
-    it('should display workflow content when view action selected', async () => {
-      const { existsSync, readdirSync, readFileSync } = await import('node:fs')
-      const inquirer = await import('inquirer')
+    it('should not call showWorkflowDetails without workflowId', async () => {
+      const { showWorkflowDetails } = await import('../../src/commands/subagent-workflow')
 
-      vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(readdirSync).mockReturnValue([
-        { name: 'workflow.md', isDirectory: () => false } as any,
-      ])
-      vi.mocked(readFileSync).mockReturnValue('# Workflow Content\n\nThis is a test workflow.')
+      await runWorkflowsCommand('status', {})
 
-      vi.mocked(inquirer.default.prompt)
-        .mockResolvedValueOnce({ action: 'view' })
-        .mockResolvedValueOnce({ selected: '/home/user/.claude/commands/workflow.md' })
-
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-      await manageWorkflows()
-
-      expect(readFileSync).toHaveBeenCalled()
-      const output = consoleSpy.mock.calls.map(call => call[0]).join('\n')
-      expect(output).toContain('Workflow Content')
-
-      consoleSpy.mockRestore()
+      expect(showWorkflowDetails).not.toHaveBeenCalled()
     })
 
-    it('should truncate long workflow content', async () => {
-      const { existsSync, readdirSync, readFileSync } = await import('node:fs')
-      const inquirer = await import('inquirer')
+    it('should handle create action', async () => {
+      const { createNewWorkflow } = await import('../../src/commands/subagent-workflow')
 
-      const longContent = 'x'.repeat(2000)
-      vi.mocked(existsSync).mockReturnValue(true)
-      vi.mocked(readdirSync).mockReturnValue([
-        { name: 'workflow.md', isDirectory: () => false } as any,
-      ])
-      vi.mocked(readFileSync).mockReturnValue(longContent)
+      await runWorkflowsCommand('create', {})
 
-      vi.mocked(inquirer.default.prompt)
-        .mockResolvedValueOnce({ action: 'view' })
-        .mockResolvedValueOnce({ selected: '/home/user/.claude/commands/workflow.md' })
-
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-      await manageWorkflows()
-
-      const output = consoleSpy.mock.calls.map(call => call[0]).join('\n')
-      expect(output).toContain('内容已截断')
-
-      consoleSpy.mockRestore()
+      expect(createNewWorkflow).toHaveBeenCalled()
     })
 
-    it('should handle missing workflow file gracefully', async () => {
-      const { existsSync, readdirSync } = await import('node:fs')
-      const inquirer = await import('inquirer')
+    it('should handle pause action with workflowId', async () => {
+      const { controlWorkflow } = await import('../../src/commands/subagent-workflow')
 
-      vi.mocked(existsSync)
-        .mockReturnValueOnce(true) // commands dir exists
-        .mockReturnValueOnce(false) // selected file doesn't exist
+      await runWorkflowsCommand('pause', { workflowId: 'test-id' })
 
-      vi.mocked(readdirSync).mockReturnValue([
-        { name: 'workflow.md', isDirectory: () => false } as any,
-      ])
+      expect(controlWorkflow).toHaveBeenCalled()
+    })
 
-      vi.mocked(inquirer.default.prompt)
-        .mockResolvedValueOnce({ action: 'view' })
-        .mockResolvedValueOnce({ selected: '/home/user/.claude/commands/workflow.md' })
+    it('should handle resume action with workflowId', async () => {
+      const { controlWorkflow } = await import('../../src/commands/subagent-workflow')
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      await runWorkflowsCommand('resume', { workflowId: 'test-id' })
 
-      await manageWorkflows()
+      expect(controlWorkflow).toHaveBeenCalled()
+    })
 
-      // Should not throw error
-      expect(consoleSpy).toHaveBeenCalled()
+    it('should not call controlWorkflow without workflowId for pause/resume', async () => {
+      const { controlWorkflow } = await import('../../src/commands/subagent-workflow')
 
-      consoleSpy.mockRestore()
+      await runWorkflowsCommand('pause', {})
+      await runWorkflowsCommand('resume', {})
+
+      expect(controlWorkflow).not.toHaveBeenCalled()
     })
   })
 })

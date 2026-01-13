@@ -25,6 +25,7 @@ describe('mcp services configuration', () => {
     })
 
     it('should contain all existing MCP services', () => {
+      // Updated: Removed low-value services (filesystem, puppeteer, memory, sequential-thinking, fetch)
       const expectedServiceIds = [
         'context7',
         'open-websearch',
@@ -32,11 +33,6 @@ describe('mcp services configuration', () => {
         'spec-workflow',
         'serena',
         'Playwright',
-        'puppeteer',
-        'filesystem',
-        'memory',
-        'sequential-thinking',
-        'fetch',
         'sqlite',
       ]
 

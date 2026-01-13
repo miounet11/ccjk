@@ -41,6 +41,7 @@ const NAMESPACES = [
   'uninstall',
   'updater',
   'workflow',
+  'cloud-sync',
   'workspace', // Workspace diagnostics and guide
 ] as const
 

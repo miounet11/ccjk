@@ -58,11 +58,8 @@ export const MCP_SERVICE_TIERS: Record<string, McpTier> = {
   // On-demand services - medium frequency
   'mcp-deepwiki': 'ondemand',
   'Playwright': 'ondemand',
-  'puppeteer': 'ondemand',
-  'filesystem': 'ondemand',
-  'memory': 'ondemand',
-  'sequential-thinking': 'ondemand',
-  'fetch': 'ondemand',
+  // Removed: puppeteer (duplicate of Playwright), filesystem (buggy),
+  //          memory (Claude built-in), sequential-thinking (limited value), fetch (Claude WebFetch)
 
   // Scenario services - low frequency, specific use cases
   'sqlite': 'scenario',

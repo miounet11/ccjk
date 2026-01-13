@@ -64,6 +64,11 @@
   "categories.mcp-service": "MCP 服务",
   "categories.output-style": "输出样式",
   "categories.bundle": "套件",
+  "categories.ai-tools": "AI 工具",
+  "categories.dev-tools": "开发工具",
+  "categories.productivity": "效率工具",
+  "categories.data-processing": "数据处理",
+  "categories.integrations": "第三方集成",
 
   "menu.title": "插件市场",
   "menu.search": "搜索包",
@@ -80,5 +85,31 @@
   "errors.networkError": "网络错误，请检查网络连接。",
   "errors.registryError": "获取注册表失败",
   "errors.installError": "安装错误: {{error}}",
-  "errors.uninstallError": "卸载错误: {{error}}"
+  "errors.uninstallError": "卸载错误: {{error}}",
+
+  "skill.name": "MCP 插件市场",
+  "skill.description": "发现、安装和管理 MCP 插件",
+  "skill.features.browse": "浏览市场：发现热门和推荐插件",
+  "skill.features.search": "搜索插件：按名称、分类、标签搜索",
+  "skill.features.install": "安装管理：一键安装、更新、卸载",
+  "skill.features.security": "安全扫描：安装前自动安全检查",
+
+  "skill.commands.search": "搜索插件",
+  "skill.commands.trending": "热门插件",
+  "skill.commands.install": "安装插件",
+  "skill.commands.update": "更新所有插件",
+  "skill.commands.list": "已安装列表",
+  "skill.commands.info": "插件详情",
+
+  "security.title": "安全检查",
+  "security.scanning": "正在进行安全扫描...",
+  "security.passed": "安全检查通过",
+  "security.failed": "安全检查失败",
+  "security.warnings": "发现 {{count}} 个安全警告",
+  "security.dangerousPermissions": "危险权限",
+  "security.knownVulnerabilities": "已知漏洞",
+  "security.suspiciousPatterns": "可疑代码模式",
+  "security.levels.verified": "官方验证",
+  "security.levels.community": "社区审核",
+  "security.levels.unverified": "未验证"
 }

@@ -14,14 +14,15 @@ export * from './check-updates'
 
 export * from './claude-md'
 export * from './cloud-plugins'
+export * from './cloud-sync'
+
 // 工具命令
 export * from './commit'
-
 export * from './config-switch'
 export * from './context'
 export * from './doctor'
-export * from './help'
 
+export * from './help'
 export * from './hooks-sync'
 export * from './init'
 // 其他
@@ -34,6 +35,10 @@ export * from './mcp-market'
 export * from './mcp-profile'
 export * from './session'
 export * from './skills-sync'
-export * from './team'
 
+// Superpowers 集成命令
+export * from './subagent-workflow'
+
+export * from './team'
 export * from './update'
+export * from './workflows'

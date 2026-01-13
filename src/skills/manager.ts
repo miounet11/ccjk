@@ -10,9 +10,12 @@ import type {
 } from './types'
 import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { join } from 'pathe'
+import { cloudSyncSkill } from '../cloud-sync/skill'
 import { CCJK_SKILLS_DIR } from '../constants'
+import { marketplaceSkill } from '../mcp-marketplace/skill'
 import { browserSkill } from '../utils/agent-browser/skill'
 import { writeFileAtomic } from '../utils/fs-operations'
+import { workflowSkill } from '../workflow/skill'
 
 // ============================================================================
 // Built-in Skills (内置技能)
@@ -22,7 +25,10 @@ import { writeFileAtomic } from '../utils/fs-operations'
  * Built-in skills that are always available
  */
 const BUILTIN_SKILLS: CcjkSkill[] = [
+  cloudSyncSkill,
   browserSkill,
+  marketplaceSkill,
+  workflowSkill,
 ]
 
 /**
