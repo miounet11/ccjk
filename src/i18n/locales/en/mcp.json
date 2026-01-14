@@ -68,5 +68,60 @@
     "restartRequired": "Restart Claude Code for changes to take effect",
     "noServicesInstalled": "No MCP services installed",
     "installedServices": "Installed MCP services ({{tool}})"
+  },
+  "server": {
+    "starting": "Starting CCJK MCP server...",
+    "started": "✓ CCJK MCP server started",
+    "listening": "Listening on port: {{port}}",
+    "stdioMode": "Using stdio transport",
+    "httpMode": "Using HTTP transport",
+    "error": "MCP server error: {{error}}",
+    "invalidTransport": "Invalid transport mode: {{transport}}",
+    "portInUse": "Port {{port}} is already in use",
+    "initializeFailed": "Failed to initialize MCP server",
+    "toolNotFound": "Tool not found: {{name}}",
+    "toolExecutionError": "Tool execution error: {{error}}",
+    "invalidRequest": "Invalid request format",
+    "methodNotSupported": "Method not supported: {{method}}",
+    "serverInfo": "CCJK MCP Server v{{version}}",
+    "capabilities": "Server capabilities: {{capabilities}}",
+    "toolsAvailable": "Available tools: {{count}}",
+    "requestReceived": "Request received: {{method}}",
+    "responseTime": "Response time: {{time}}ms",
+    "debugMode": "Debug mode enabled"
+  },
+  "tools": {
+    "chat": {
+      "name": "CCJK Chat",
+      "description": "Send messages to Claude via CCJK with custom provider and model selection"
+    },
+    "providers": {
+      "name": "List Providers",
+      "description": "List all configured API providers"
+    },
+    "stats": {
+      "name": "Usage Statistics",
+      "description": "Get usage statistics (requires CCusage tool)"
+    },
+    "workflows": {
+      "name": "List Workflows",
+      "description": "List available workflows"
+    },
+    "mcpServices": {
+      "name": "List MCP Services",
+      "description": "List configured MCP services"
+    },
+    "config": {
+      "name": "Configuration Management",
+      "description": "Get or set CCJK configuration"
+    },
+    "init": {
+      "name": "Initialize Configuration",
+      "description": "Initialize or update Claude Code configuration"
+    },
+    "doctor": {
+      "name": "Health Check",
+      "description": "Run health check and diagnostics"
+    }
   }
 }

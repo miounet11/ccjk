@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ccjk": {
+      "command": "npx",
+      "args": ["ccjk", "serve", "--mcp", "--stdio"],
+      "description": "CCJK MCP Server - Provides CCJK functionality via MCP protocol",
+      "env": {
+        "CCJK_LANG": "en"
+      }
+    }
+  }
+}

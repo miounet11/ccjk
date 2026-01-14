@@ -1,3 +1,4 @@
+import type { CliOptions } from '../cli-lazy'
 import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
@@ -5,6 +6,7 @@ import { join } from 'node:path'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { getSessionManager } from '../session-manager'
 
 const SESSIONS_DIR = join(homedir(), '.ccjk', 'sessions')
 const CCJK_DIR = join(homedir(), '.ccjk')
@@ -61,33 +63,51 @@ export async function saveSession(): Promise<void> {
  */
 export async function listSessions(): Promise<void> {
   try {
-    if (!existsSync(SESSIONS_DIR)) {
-      console.log(ansis.yellow('No sessions found'))
-      return
-    }
-
-    const files = await readdir(SESSIONS_DIR)
-    const sessions = files.filter(f => f.endsWith('.json'))
+    const sessionManager = getSessionManager()
+    const sessions = await sessionManager.listSessions()
 
     if (sessions.length === 0) {
       console.log(ansis.yellow('No sessions found'))
+      console.log(ansis.gray(`\nCreate a new session with: ${ansis.cyan('ccjk session create')}`))
       return
     }
 
     console.log(ansis.cyan.bold('\n📋 Saved Sessions:\n'))
 
-    for (const file of sessions) {
-      const content = await readFile(join(SESSIONS_DIR, file), 'utf-8')
-      const metadata: SessionMetadata = JSON.parse(content)
-      const date = new Date(metadata.timestamp).toLocaleString()
+    // Sort by last accessed (most recent first)
+    const sortedSessions = [...sessions].sort((a, b) => {
+      const aTime = a.lastAccessedAt?.getTime() || a.createdAt.getTime()
+      const bTime = b.lastAccessedAt?.getTime() || b.createdAt.getTime()
+      return bTime - aTime
+    })
 
-      console.log(ansis.white(`  ${metadata.id}`))
-      console.log(ansis.gray(`    ${date}`))
-      if (metadata.description) {
-        console.log(ansis.gray(`    ${metadata.description}`))
+    for (const session of sortedSessions) {
+      const nameDisplay = session.name ? ansis.cyan(session.name) : ansis.gray('(unnamed)')
+      const idDisplay = ansis.gray(`[${session.id.substring(0, 8)}]`)
+
+      console.log(`  ${nameDisplay} ${idDisplay}`)
+
+      if (session.provider) {
+        console.log(ansis.gray(`    Provider: ${session.provider}`))
       }
+
+      const createdDate = session.createdAt.toLocaleString()
+      console.log(ansis.gray(`    Created: ${createdDate}`))
+
+      if (session.lastAccessedAt) {
+        const accessedDate = session.lastAccessedAt.toLocaleString()
+        console.log(ansis.gray(`    Last accessed: ${accessedDate}`))
+      }
+
+      if (session.history.length > 0) {
+        console.log(ansis.gray(`    History: ${session.history.length} entries`))
+      }
+
       console.log('')
     }
+
+    console.log(ansis.gray(`Total: ${sessions.length} session(s)`))
+    console.log(ansis.gray(`\nUse ${ansis.cyan('ccjk --resume <name|id>')} to resume a session`))
   }
   catch (error) {
     console.error(ansis.red('Failed to list sessions:'), error)
@@ -481,8 +501,188 @@ export async function sessionStatus(): Promise<void> {
     console.log(`${ansis.white.bold('Total'.padEnd(24))} ${ansis.cyan.bold(formatBytes(totalSize).padStart(10))} ${ansis.gray(String(totalFiles).padStart(8))}`)
     console.log('')
     console.log(ansis.gray(`Run ${ansis.cyan('ccjk session cleanup')} to free up space`))
+
+    // Show enhanced session statistics
+    const sessionManager = getSessionManager()
+    const stats = await sessionManager.getStatistics()
+
+    if (stats.totalSessions > 0) {
+      console.log(ansis.cyan.bold('\n📝 Session Statistics\n'))
+      console.log(ansis.white(`Total Sessions: ${ansis.yellow(String(stats.totalSessions))}`))
+      console.log(ansis.white(`Total History Entries: ${ansis.yellow(String(stats.totalHistoryEntries))}`))
+      if (stats.oldestSession) {
+        console.log(ansis.white(`Oldest Session: ${ansis.gray(stats.oldestSession.toLocaleString())}`))
+      }
+      if (stats.newestSession) {
+        console.log(ansis.white(`Newest Session: ${ansis.gray(stats.newestSession.toLocaleString())}`))
+      }
+      if (stats.mostRecentlyUsed) {
+        console.log(ansis.white(`Most Recently Used: ${ansis.gray(stats.mostRecentlyUsed.toLocaleString())}`))
+      }
+    }
   }
   catch (error) {
     console.error(ansis.red('Failed to get status:'), error)
+  }
+}
+
+/**
+ * Create a new session
+ */
+export async function createSessionCommand(options: CliOptions): Promise<void> {
+  try {
+    const sessionManager = getSessionManager()
+
+    // Prompt for session details if not provided
+    let name = options.name as string | undefined
+    let provider = options.provider as string | undefined
+    let apiKey = options.apiKey as string | undefined
+
+    if (!name) {
+      const { sessionName } = await inquirer.prompt<{ sessionName: string }>({
+        type: 'input',
+        name: 'sessionName',
+        message: 'Session name (optional):',
+      })
+      name = sessionName || undefined
+    }
+
+    if (!provider) {
+      const { providerChoice } = await inquirer.prompt<{ providerChoice: string }>({
+        type: 'list',
+        name: 'providerChoice',
+        message: 'Select API provider:',
+        choices: [
+          { name: 'Anthropic (Claude)', value: 'anthropic' },
+          { name: 'OpenAI', value: 'openai' },
+          { name: 'Azure OpenAI', value: 'azure' },
+          { name: 'Custom', value: 'custom' },
+          { name: 'Skip (use default)', value: '' },
+        ],
+      })
+      provider = providerChoice || undefined
+    }
+
+    if (provider && !apiKey) {
+      const { key } = await inquirer.prompt<{ key: string }>({
+        type: 'password',
+        name: 'key',
+        message: `Enter API key for ${provider} (optional):`,
+        mask: '*',
+      })
+      apiKey = key || undefined
+    }
+
+    const session = await sessionManager.createSession(name, provider, apiKey, {
+      codeType: options.codeType as any,
+    })
+
+    console.log(ansis.green(`\n✔ Session created successfully!`))
+    console.log(ansis.white(`  ID: ${ansis.cyan(session.id)}`))
+    if (session.name) {
+      console.log(ansis.white(`  Name: ${ansis.cyan(session.name)}`))
+    }
+    if (session.provider) {
+      console.log(ansis.white(`  Provider: ${ansis.cyan(session.provider)}`))
+    }
+    console.log(ansis.gray(`\nUse ${ansis.cyan(`ccjk --resume ${session.name || session.id}`)} to resume this session`))
+  }
+  catch (error) {
+    console.error(ansis.red('Failed to create session:'), error)
+  }
+}
+
+/**
+ * Rename a session
+ */
+export async function renameSessionCommand(sessionId: string, options: CliOptions): Promise<void> {
+  try {
+    const sessionManager = getSessionManager()
+
+    if (!sessionId) {
+      console.log(ansis.red('Please provide a session ID or name'))
+      return
+    }
+
+    let newName = options.name as string | undefined
+
+    if (!newName) {
+      const { name } = await inquirer.prompt<{ name: string }>({
+        type: 'input',
+        name: 'name',
+        message: 'Enter new session name:',
+        validate: (input: string) => input.trim().length > 0 || 'Name cannot be empty',
+      })
+      newName = name
+    }
+
+    const success = await sessionManager.renameSession(sessionId, newName!)
+
+    if (success) {
+      console.log(ansis.green(`✔ Session renamed to: ${ansis.cyan(newName!)}`))
+    }
+    else {
+      console.log(ansis.red(`Session not found: ${sessionId}`))
+    }
+  }
+  catch (error) {
+    console.error(ansis.red('Failed to rename session:'), error)
+  }
+}
+
+/**
+ * Delete a session
+ */
+export async function deleteSessionCommand(sessionId: string, options: CliOptions): Promise<void> {
+  try {
+    const sessionManager = getSessionManager()
+
+    if (!sessionId) {
+      console.log(ansis.red('Please provide a session ID or name'))
+      return
+    }
+
+    // Load session to show details
+    const session = await sessionManager.loadSession(sessionId)
+
+    if (!session) {
+      console.log(ansis.red(`Session not found: ${sessionId}`))
+      return
+    }
+
+    // Confirm deletion unless --force
+    if (!options.force) {
+      console.log(ansis.yellow('\n⚠️  You are about to delete:'))
+      console.log(ansis.white(`  ID: ${ansis.cyan(session.id)}`))
+      if (session.name) {
+        console.log(ansis.white(`  Name: ${ansis.cyan(session.name)}`))
+      }
+      console.log(ansis.white(`  Created: ${ansis.gray(session.createdAt.toLocaleString())}`))
+      console.log(ansis.white(`  History entries: ${ansis.gray(String(session.history.length))}`))
+
+      const { confirm } = await inquirer.prompt<{ confirm: boolean }>({
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Are you sure you want to delete this session?',
+        default: false,
+      })
+
+      if (!confirm) {
+        console.log(ansis.yellow('Deletion cancelled'))
+        return
+      }
+    }
+
+    const success = await sessionManager.deleteSession(sessionId)
+
+    if (success) {
+      console.log(ansis.green(`✔ Session deleted: ${sessionId}`))
+    }
+    else {
+      console.log(ansis.red(`Failed to delete session: ${sessionId}`))
+    }
+  }
+  catch (error) {
+    console.error(ansis.red('Failed to delete session:'), error)
   }
 }

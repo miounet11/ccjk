@@ -68,5 +68,60 @@
     "restartRequired": "重启 Claude Code 以使更改生效",
     "noServicesInstalled": "未安装任何 MCP 服务",
     "installedServices": "已安装的 MCP 服务 ({{tool}})"
+  },
+  "server": {
+    "starting": "正在启动 CCJK MCP 服务器...",
+    "started": "✓ CCJK MCP 服务器已启动",
+    "listening": "监听端口：{{port}}",
+    "stdioMode": "使用 stdio 传输模式",
+    "httpMode": "使用 HTTP 传输模式",
+    "error": "MCP 服务器错误：{{error}}",
+    "invalidTransport": "无效的传输模式：{{transport}}",
+    "portInUse": "端口 {{port}} 已被占用",
+    "initializeFailed": "初始化 MCP 服务器失败",
+    "toolNotFound": "未找到工具：{{name}}",
+    "toolExecutionError": "工具执行错误：{{error}}",
+    "invalidRequest": "无效的请求格式",
+    "methodNotSupported": "不支持的方法：{{method}}",
+    "serverInfo": "CCJK MCP 服务器 v{{version}}",
+    "capabilities": "服务器能力：{{capabilities}}",
+    "toolsAvailable": "可用工具：{{count}} 个",
+    "requestReceived": "收到请求：{{method}}",
+    "responseTime": "响应时间：{{time}}ms",
+    "debugMode": "调试模式已启用"
+  },
+  "tools": {
+    "chat": {
+      "name": "CCJK 对话",
+      "description": "通过 CCJK 向 Claude 发送消息，支持自定义提供商和模型选择"
+    },
+    "providers": {
+      "name": "列出提供商",
+      "description": "列出所有已配置的 API 提供商"
+    },
+    "stats": {
+      "name": "使用统计",
+      "description": "获取使用统计信息（需要 CCusage 工具）"
+    },
+    "workflows": {
+      "name": "工作流列表",
+      "description": "列出可用的工作流"
+    },
+    "mcpServices": {
+      "name": "MCP 服务列表",
+      "description": "列出已配置的 MCP 服务"
+    },
+    "config": {
+      "name": "配置管理",
+      "description": "获取或设置 CCJK 配置"
+    },
+    "init": {
+      "name": "初始化配置",
+      "description": "初始化或更新 Claude Code 配置"
+    },
+    "doctor": {
+      "name": "健康检查",
+      "description": "运行健康检查和诊断"
+    }
   }
 }

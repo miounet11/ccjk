@@ -23,6 +23,11 @@ export interface CliOptions {
   skipPrompt?: boolean
   codeType?: string
   allLang?: string
+  // Session management options
+  resume?: string
+  sessionName?: string
+  listSessions?: boolean
+  background?: boolean
   [key: string]: unknown
 }
 
@@ -125,10 +130,17 @@ const COMMANDS: CommandDefinition[] = [
     name: 'doctor',
     description: 'Run environment health check',
     tier: 'core',
+    options: [
+      { flags: '--check-providers', description: 'Check API provider health' },
+      { flags: '--code-type, -T <type>', description: 'Code tool type' },
+    ],
     loader: async () => {
       const { doctor } = await import('./commands/doctor')
-      return async () => {
-        await doctor()
+      return async (options: CliOptions) => {
+        await doctor({
+          checkProviders: options.checkProviders as boolean | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+        })
       }
     },
   },
@@ -146,6 +158,50 @@ const COMMANDS: CommandDefinition[] = [
   },
 
   // ==================== Extended Commands ====================
+  {
+    name: 'serve',
+    description: 'Start CCJK as MCP server',
+    tier: 'extended',
+    options: [
+      { flags: '--mcp', description: 'Enable MCP server mode' },
+      { flags: '--stdio', description: 'Use stdio transport (default)' },
+      { flags: '--http', description: 'Use HTTP transport' },
+      { flags: '--port <port>', description: 'HTTP server port (default: 3000)' },
+      { flags: '--host <host>', description: 'HTTP server host (default: localhost)' },
+      { flags: '--debug', description: 'Enable debug logging' },
+    ],
+    loader: async () => {
+      return async (options) => {
+        if (!options.mcp) {
+          console.error('Error: --mcp flag is required for serve command')
+          console.log('Usage: ccjk serve --mcp [--stdio|--http] [--port 3000]')
+          process.exit(1)
+        }
+
+        const { startMCPServer } = await import('./mcp/mcp-server')
+
+        const transport = options.http ? 'http' : 'stdio'
+        const port = options.port ? Number.parseInt(options.port as string, 10) : 3000
+        const host = options.host as string || 'localhost'
+        const debug = options.debug as boolean || false
+
+        console.error(`Starting CCJK MCP Server (${transport} mode)...`)
+
+        await startMCPServer({
+          transport,
+          port,
+          host,
+          debug,
+        })
+
+        // Keep process alive
+        if (transport === 'http') {
+          console.error(`MCP Server running on http://${host}:${port}`)
+          console.error('Press Ctrl+C to stop')
+        }
+      }
+    },
+  },
   {
     name: 'mcp <action> [...args]',
     description: 'MCP Server management',
@@ -267,7 +323,7 @@ const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       const { interview, quickInterview, deepInterview, listInterviewSessions, resumeInterview } = await import('./commands/interview')
-      return async (options, specFile: unknown) => {
+      return async (options: CliOptions, specFile: unknown) => {
         if (options.list) {
           await listInterviewSessions()
         }
@@ -275,13 +331,29 @@ const COMMANDS: CommandDefinition[] = [
           await resumeInterview()
         }
         else if (options.depth === 'quick') {
-          await quickInterview(specFile as string, options)
+          await quickInterview(specFile as string, {
+            specFile: specFile as string,
+            depth: 'quick',
+            resume: !!options.resume,
+            lang: options.lang,
+          })
         }
         else if (options.depth === 'deep') {
-          await deepInterview(specFile as string, options)
+          await deepInterview(specFile as string, {
+            specFile: specFile as string,
+            depth: 'deep',
+            resume: !!options.resume,
+            lang: options.lang,
+          })
         }
         else {
-          await interview({ specFile: specFile as string, ...options })
+          await interview({
+            specFile: specFile as string,
+            depth: options.depth as 'quick' | 'standard' | 'deep' | undefined,
+            template: options.template as string | undefined,
+            resume: !!options.resume,
+            lang: options.lang,
+          })
         }
       }
     },
@@ -307,6 +379,99 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'config [action] [...args]',
+    description: 'Manage CCJK configuration',
+    tier: 'extended',
+    options: [
+      { flags: '--format, -f <format>', description: 'Output format (table|json|yaml)' },
+      { flags: '--global, -g', description: 'Use global config' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+        const configOptions = { global: !!options.global, json: options.format === 'json' }
+
+        if (!actionStr || actionStr === 'list') {
+          const { listConfig } = await import('./commands/config')
+          await listConfig(configOptions)
+        }
+        else if (actionStr === 'get') {
+          const { getConfig } = await import('./commands/config')
+          await getConfig(argsArr[0] || '', configOptions)
+        }
+        else if (actionStr === 'set') {
+          const { setConfig } = await import('./commands/config')
+          await setConfig(argsArr[0] || '', argsArr[1] || '', configOptions)
+        }
+        else if (actionStr === 'unset') {
+          const { unsetConfig } = await import('./commands/config')
+          await unsetConfig(argsArr[0] || '', configOptions)
+        }
+        else if (actionStr === 'reset') {
+          const { resetConfig } = await import('./commands/config')
+          await resetConfig(configOptions)
+        }
+        else if (actionStr === 'edit') {
+          const { editConfig } = await import('./commands/config')
+          await editConfig(configOptions)
+        }
+        else if (actionStr === 'validate') {
+          const { validateConfig } = await import('./commands/config')
+          await validateConfig(configOptions)
+        }
+        else {
+          console.error(`Unknown config action: ${actionStr}`)
+          console.log('Available actions: list, get, set, unset, reset, edit, validate')
+        }
+      }
+    },
+  },
+  {
+    name: 'providers [action] [...args]',
+    description: 'Manage API providers',
+    tier: 'extended',
+    options: [
+      { flags: '--format, -f <format>', description: 'Output format (table|json)' },
+      { flags: '--code-type, -T <type>', description: 'Code tool type' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+
+        if (!actionStr || actionStr === 'list') {
+          const { listProviders } = await import('./commands/providers')
+          await listProviders(options)
+        }
+        else if (actionStr === 'add') {
+          const { addProvider } = await import('./commands/providers')
+          await addProvider(options)
+        }
+        else if (actionStr === 'remove') {
+          const { removeProvider } = await import('./commands/providers')
+          await removeProvider(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'edit') {
+          const { editProvider } = await import('./commands/providers')
+          await editProvider(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'test') {
+          const { testProvider } = await import('./commands/providers')
+          await testProvider(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'health') {
+          const { checkProviderHealth } = await import('./commands/providers')
+          await checkProviderHealth(options)
+        }
+        else {
+          console.error(`Unknown providers action: ${actionStr}`)
+          console.log('Available actions: list, add, remove, edit, test, health')
+        }
+      }
+    },
+  },
+  {
     name: 'ccr',
     description: 'Configure Claude Code Router',
     tier: 'extended',
@@ -318,6 +483,116 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'permissions [action] [...args]',
+    description: 'Manage CCJK permissions',
+    aliases: ['perm'],
+    tier: 'extended',
+    options: [
+      { flags: '--format, -f <format>', description: 'Output format (table|json|list)' },
+      { flags: '--verbose, -v', description: 'Verbose output' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+
+        if (!actionStr || actionStr === 'list') {
+          const { listPermissions } = await import('./commands/permissions')
+          await listPermissions(options)
+        }
+        else if (actionStr === 'check') {
+          const { checkPermission } = await import('./commands/permissions')
+          await checkPermission(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'grant') {
+          const { grantPermission } = await import('./commands/permissions')
+          await grantPermission(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'revoke') {
+          const { revokePermission } = await import('./commands/permissions')
+          await revokePermission(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'reset') {
+          const { resetPermissions } = await import('./commands/permissions')
+          await resetPermissions(options)
+        }
+        else if (actionStr === 'export') {
+          const { exportPermissions } = await import('./commands/permissions')
+          await exportPermissions(argsArr[0], options)
+        }
+        else if (actionStr === 'import') {
+          const { importPermissions } = await import('./commands/permissions')
+          await importPermissions(argsArr[0] || '', options)
+        }
+        else {
+          const { permissionsHelp } = await import('./commands/permissions')
+          permissionsHelp(options)
+        }
+      }
+    },
+  },
+  {
+    name: 'skills [action] [...args]',
+    description: 'Manage CCJK skills',
+    aliases: ['sk'],
+    tier: 'extended',
+    options: [
+      { flags: '--category, -c <category>', description: 'Filter by category' },
+      { flags: '--show-disabled', description: 'Show disabled skills' },
+      { flags: '--format, -f <format>', description: 'Output format (table|json|list)' },
+      { flags: '--batch', description: 'Batch create skills' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown, args: unknown) => {
+        // Initialize i18n before running any skills command
+        const { initI18n } = await import('./i18n/index.js')
+        await initI18n(options.lang || 'zh-CN')
+
+        const actionStr = action as string
+        const argsArr = args as string[]
+
+        if (!actionStr) {
+          // Interactive menu
+          const { skillsMenu } = await import('./commands/skills')
+          await skillsMenu(options)
+        }
+        else if (actionStr === 'list' || actionStr === 'ls') {
+          const { listSkills } = await import('./commands/skills')
+          await listSkills(options)
+        }
+        else if (actionStr === 'run') {
+          const { runSkill } = await import('./commands/skills')
+          await runSkill(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'info') {
+          const { showSkillInfo } = await import('./commands/skills')
+          await showSkillInfo(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'create') {
+          const { createSkill } = await import('./commands/skills')
+          await createSkill(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'enable') {
+          const { enableSkill } = await import('./commands/skills')
+          await enableSkill(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'disable') {
+          const { disableSkill } = await import('./commands/skills')
+          await disableSkill(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'delete' || actionStr === 'remove' || actionStr === 'rm') {
+          const { deleteSkill } = await import('./commands/skills')
+          await deleteSkill(argsArr[0] || '', options)
+        }
+        else {
+          // Try to run as skill name
+          const { runSkill } = await import('./commands/skills')
+          await runSkill(actionStr, options)
+        }
+      }
+    },
+  },
+  {
     name: 'ccu [...args]',
     description: 'Claude Code usage analysis',
     tier: 'extended',
@@ -325,6 +600,42 @@ const COMMANDS: CommandDefinition[] = [
       const { executeCcusage } = await import('./commands/ccu')
       return async (_options, args: unknown) => {
         await executeCcusage(args as string[])
+      }
+    },
+  },
+  {
+    name: 'stats [action]',
+    description: 'Usage statistics and analytics',
+    tier: 'extended',
+    options: [
+      { flags: '--period, -p <period>', description: 'Time period (1d, 7d, 30d, 90d, all)' },
+      { flags: '--format, -f <format>', description: 'Output format (table, json, csv)' },
+      { flags: '--export, -e <file>', description: 'Export to file' },
+      { flags: '--provider <provider>', description: 'Filter by provider' },
+      { flags: '--days <days>', description: 'Days to keep for cleanup action' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown) => {
+        const actionStr = action as string
+
+        if (actionStr === 'dates') {
+          const { listStatsDates } = await import('./commands/stats')
+          await listStatsDates()
+        }
+        else if (actionStr === 'storage') {
+          const { storageStats } = await import('./commands/stats')
+          await storageStats()
+        }
+        else if (actionStr === 'cleanup') {
+          const { cleanupStats } = await import('./commands/stats')
+          const days = options.days ? Number.parseInt(options.days as string, 10) : 90
+          await cleanupStats(days)
+        }
+        else {
+          // Default: show stats
+          const { stats } = await import('./commands/stats')
+          await stats(options)
+        }
       }
     },
   },
@@ -405,14 +716,19 @@ const COMMANDS: CommandDefinition[] = [
   },
   {
     name: 'session <action> [id]',
-    description: 'Manage sessions (save, list, restore, export, cleanup, status)',
+    description: 'Manage sessions (save, list, restore, export, cleanup, status, create, rename, delete)',
     tier: 'extended',
     options: [
       { flags: '--all, -a', description: 'Clean all targets without selection' },
       { flags: '--force, -f', description: 'Force cleanup without confirmation' },
+      { flags: '--name, -n <name>', description: 'Session name' },
+      { flags: '--provider, -p <provider>', description: 'API provider' },
+      { flags: '--api-key, -k <key>', description: 'API key' },
+      { flags: '--resume, -r <session>', description: 'Resume session by name or ID' },
+      { flags: '--background, -b', description: 'Run in background mode' },
     ],
     loader: async () => {
-      const { saveSession, listSessions, restoreSession, exportSession, cleanupSession, sessionStatus } = await import('./commands/session')
+      const { saveSession, listSessions, restoreSession, exportSession, cleanupSession, sessionStatus, createSessionCommand, renameSessionCommand, deleteSessionCommand } = await import('./commands/session')
       return async (options, action: unknown, id: unknown) => {
         const actionStr = action as string
         if (actionStr === 'save')
@@ -427,8 +743,14 @@ const COMMANDS: CommandDefinition[] = [
           await cleanupSession({ all: options.all as boolean, force: options.force as boolean })
         else if (actionStr === 'status')
           await sessionStatus()
+        else if (actionStr === 'create')
+          await createSessionCommand(options)
+        else if (actionStr === 'rename')
+          await renameSessionCommand(id as string, options)
+        else if (actionStr === 'delete')
+          await deleteSessionCommand(id as string, options)
         else
-          console.error(`Unknown action: ${actionStr}. Use: save, list, restore, export, cleanup, or status`)
+          console.error(`Unknown action: ${actionStr}. Use: save, list, restore, export, cleanup, status, create, rename, or delete`)
       }
     },
   },
@@ -710,6 +1032,44 @@ const COMMANDS: CommandDefinition[] = [
       }
     },
   },
+
+  // ==================== API Provider Management ====================
+  {
+    name: 'providers [action]',
+    description: 'Manage API providers',
+    tier: 'extended',
+    options: [
+      { flags: '--json', description: 'Output in JSON format' },
+    ],
+    loader: async () => {
+      const { providersCommand } = await import('./commands/providers')
+      return async (options, action: unknown) => {
+        await providersCommand(action as string, options)
+      }
+    },
+  },
+
+  // ==================== Configuration Management ====================
+  {
+    name: 'config [action] [key] [value]',
+    description: 'Manage configuration',
+    tier: 'extended',
+    options: [
+      { flags: '--json', description: 'Output in JSON format' },
+    ],
+    loader: async () => {
+      const { configCommand } = await import('./commands/config')
+      return async (options, action: unknown, key: unknown, value: unknown) => {
+        const args: string[] = []
+        if (key !== undefined)
+          args.push(key as string)
+        if (value !== undefined)
+          args.push(value as string)
+        await configCommand(action as string | undefined, args, options)
+      }
+    },
+  },
+
   // context 命令已在上面定义（第 435 行），使用 context-compression/commands/context.ts
   // shell hook 管理功能通过 'ccjk context hook install/uninstall' 子命令访问
 
@@ -1090,6 +1450,7 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
     body: [
       `  ${cyan('ccjk mcp')} <action>        MCP server management`,
       `  ${cyan('ccjk browser')}      ${gray('ab')}    Agent Browser automation ${green('NEW')}`,
+      `  ${cyan('ccjk skills')}       ${gray('sk')}    Manage CCJK skills ${green('NEW')}`,
       `  ${cyan('ccjk interview')}    ${gray('iv')}    Interview-driven development`,
       `  ${cyan('ccjk commit')}             Smart git commit`,
       `  ${cyan('ccjk config-switch')} ${gray('cs')}   Switch configuration`,

@@ -1,5 +1,7 @@
 import type { CodeToolType } from '../constants'
 import { CCJK_CLOUD_API_URL } from '../constants'
+import { LoadBalancer } from '../utils/load-balancer'
+import { ProviderHealthMonitor } from '../utils/provider-health'
 
 /**
  * API Provider Preset Configuration
@@ -100,6 +102,9 @@ export const LOCAL_PROVIDER_PRESETS: ApiProviderPreset[] = [
 let cloudProvidersCache: ApiProviderPreset[] | null = null
 let cloudProvidersCacheTime = 0
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+// Configuration manager integration
+let configManagerIntegrated = false
 
 /**
  * Cloud API response interface
@@ -297,7 +302,217 @@ export function clearProvidersCache(): void {
 }
 
 /**
+ * Integrate with configuration manager for automatic cache updates
+ * This should be called during application initialization
+ */
+export function integrateWithConfigManager(): void {
+  if (configManagerIntegrated) {
+    return
+  }
+
+  // Lazy import to avoid circular dependencies
+  import('../config-manager').then(({ getConfigManager }) => {
+    const manager = getConfigManager()
+
+    // Subscribe to provider updates from cloud sync
+    manager.on('providers-updated', (event: any) => {
+      if (event.current?.providers) {
+        cloudProvidersCache = event.current.providers
+        cloudProvidersCacheTime = Date.now()
+      }
+    })
+
+    configManagerIntegrated = true
+  }).catch(() => {
+    // Silently fail if config manager is not available
+  })
+}
+
+/**
  * Backward compatibility export
  * @deprecated Use LOCAL_PROVIDER_PRESETS or getApiProvidersAsync instead
  */
 export const API_PROVIDER_PRESETS = LOCAL_PROVIDER_PRESETS
+
+/**
+ * Backward compatibility alias for getApiProvidersAsync
+ * @deprecated Use getApiProvidersAsync instead
+ */
+export const getApiProviderPresets = getApiProvidersAsync
+
+// Global health monitor and load balancer instances
+let globalHealthMonitor: ProviderHealthMonitor | null = null
+let globalLoadBalancer: LoadBalancer | null = null
+
+/**
+ * Initialize health monitoring and load balancing
+ * @param providers - Providers to monitor
+ * @param autoStart - Whether to start monitoring automatically (default: true)
+ * @returns Health monitor and load balancer instances
+ */
+export function initializeHealthMonitoring(
+  providers: ApiProviderPreset[],
+  autoStart = true,
+): { healthMonitor: ProviderHealthMonitor, loadBalancer: LoadBalancer } {
+  // Create health monitor
+  globalHealthMonitor = new ProviderHealthMonitor()
+  globalHealthMonitor.setProviders(providers)
+
+  // Create load balancer with health monitor
+  globalLoadBalancer = new LoadBalancer({
+    strategy: 'weighted',
+    enableFailover: true,
+    maxFailoverAttempts: 3,
+    excludeUnhealthy: true,
+    preferHealthy: true,
+  })
+  globalLoadBalancer.setHealthMonitor(globalHealthMonitor)
+
+  // Start monitoring if requested
+  if (autoStart) {
+    globalHealthMonitor.startMonitoring().catch((error) => {
+      console.error('Failed to start health monitoring:', error)
+    })
+  }
+
+  return {
+    healthMonitor: globalHealthMonitor,
+    loadBalancer: globalLoadBalancer,
+  }
+}
+
+/**
+ * Get the global health monitor instance
+ * @returns Health monitor instance or null if not initialized
+ */
+export function getHealthMonitor(): ProviderHealthMonitor | null {
+  return globalHealthMonitor
+}
+
+/**
+ * Get the global load balancer instance
+ * @returns Load balancer instance or null if not initialized
+ */
+export function getLoadBalancer(): LoadBalancer | null {
+  return globalLoadBalancer
+}
+
+/**
+ * Get API providers with health-aware selection
+ * @param codeToolType - The code tool type to filter by
+ * @param useLoadBalancer - Whether to use load balancer for selection (default: false)
+ * @returns Array of API provider presets, optionally sorted by health
+ */
+export async function getHealthAwareProviders(
+  codeToolType?: CodeToolType,
+  useLoadBalancer = false,
+): Promise<ApiProviderPreset[]> {
+  const providers = await getApiProvidersAsync(codeToolType)
+
+  // If no health monitor or load balancer, return providers as-is
+  if (!globalHealthMonitor || !useLoadBalancer) {
+    return providers
+  }
+
+  // Return providers sorted by health
+  return globalHealthMonitor.getProvidersByHealth().filter((p) => {
+    if (!codeToolType) {
+      return true
+    }
+    return p.supportedCodeTools.includes(codeToolType)
+  })
+}
+
+/**
+ * Select best provider with automatic failover
+ * @param codeToolType - The code tool type to filter by
+ * @param currentProvider - Current provider (for failover scenarios)
+ * @returns Selected provider or null if none available
+ */
+export async function selectBestProvider(
+  codeToolType: CodeToolType,
+  currentProvider?: ApiProviderPreset,
+): Promise<ApiProviderPreset | null> {
+  const providers = await getApiProvidersAsync(codeToolType)
+
+  if (providers.length === 0) {
+    return null
+  }
+
+  // Initialize health monitoring if not already done
+  if (!globalHealthMonitor || !globalLoadBalancer) {
+    initializeHealthMonitoring(providers, true)
+  }
+
+  // If we have a current provider and it failed, perform failover
+  if (currentProvider && globalLoadBalancer) {
+    const failoverResult = globalLoadBalancer.failover(currentProvider, providers)
+    if (failoverResult) {
+      return failoverResult.provider
+    }
+  }
+
+  // Otherwise, select using load balancer
+  if (globalLoadBalancer) {
+    const result = globalLoadBalancer.selectProvider(providers)
+    return result ? result.provider : null
+  }
+
+  // Fallback to first provider
+  return providers[0]
+}
+
+/**
+ * Mark a provider as failed and trigger failover
+ * @param providerId - The provider ID that failed
+ * @param codeToolType - The code tool type
+ * @returns Next provider to try, or null if no alternatives
+ */
+export async function handleProviderFailure(
+  providerId: string,
+  codeToolType: CodeToolType,
+): Promise<ApiProviderPreset | null> {
+  const providers = await getApiProvidersAsync(codeToolType)
+  const failedProvider = providers.find(p => p.id === providerId)
+
+  if (!failedProvider) {
+    return null
+  }
+
+  // Mark as failed in load balancer
+  if (globalLoadBalancer) {
+    globalLoadBalancer.markProviderFailed(providerId)
+  }
+
+  // Select next provider
+  return selectBestProvider(codeToolType, failedProvider)
+}
+
+/**
+ * Get health status for all providers
+ * @returns Map of provider IDs to health data
+ */
+export function getProvidersHealthStatus(): Map<string, any> {
+  if (!globalHealthMonitor) {
+    return new Map()
+  }
+  return globalHealthMonitor.getAllHealthData()
+}
+
+/**
+ * Stop health monitoring
+ */
+export function stopHealthMonitoring(): void {
+  if (globalHealthMonitor) {
+    globalHealthMonitor.stopMonitoring()
+  }
+}
+
+/**
+ * Restart health monitoring
+ */
+export async function restartHealthMonitoring(): Promise<void> {
+  if (globalHealthMonitor) {
+    await globalHealthMonitor.startMonitoring()
+  }
+}

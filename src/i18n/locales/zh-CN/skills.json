@@ -1,140 +1,100 @@
 {
-  "title": "技能管理",
-  "description": "管理 CCJK 技能并支持自动激活",
-
-  "installed": "技能 '{{name}}' 安装成功",
-  "uninstalled": "技能 '{{name}}' 已卸载",
-  "activated": "技能 '{{name}}' 已激活",
-  "deactivated": "技能 '{{name}}' 已停用",
-  "notFound": "技能 '{{name}}' 未找到",
-  "alreadyInstalled": "技能 '{{name}}' 已安装",
-
-  "autoActivated": "自动激活技能：{{name}}",
-  "matchedTrigger": "匹配触发器：{{trigger}}",
-  "matchedCondition": "匹配条件：{{condition}}",
-  "confidence": "置信度：{{score}}%",
-
-  "list": {
-    "title": "可用技能",
-    "empty": "未安装任何技能",
-    "count": "共 {{count}} 个技能可用",
-    "enabled": "已启用",
-    "disabled": "已禁用",
-    "builtin": "内置",
-    "marketplace": "市场",
-    "local": "本地"
-  },
-
-  "categories": {
-    "dev": "开发",
-    "git": "Git 操作",
-    "review": "代码审查",
-    "testing": "测试",
-    "docs": "文档",
-    "devops": "DevOps",
-    "planning": "规划",
-    "debugging": "调试",
-    "custom": "自定义"
-  },
-
-  "difficulty": {
-    "beginner": "初级",
-    "intermediate": "中级",
-    "advanced": "高级"
-  },
-
   "menu": {
-    "title": "技能菜单",
-    "install": "安装技能",
-    "uninstall": "卸载技能",
-    "list": "列出技能",
-    "search": "搜索技能",
+    "title": "技能管理",
+    "prompt": "请选择操作",
+    "list": "列出所有技能",
+    "run": "运行技能",
+    "info": "查看技能信息",
+    "create": "创建新技能",
+    "batch": "批量操作",
     "enable": "启用技能",
     "disable": "禁用技能",
-    "info": "技能信息",
+    "delete": "删除技能",
     "back": "返回"
   },
-
-  "install": {
-    "prompt": "输入技能名称或路径：",
-    "installing": "正在安装技能 '{{name}}'...",
-    "success": "技能安装成功",
-    "failed": "技能安装失败",
-    "selectSource": "选择安装来源：",
-    "sources": {
-      "marketplace": "从市场安装",
-      "local": "从本地文件安装",
-      "url": "从 URL 安装"
-    }
+  "title": {
+    "list": "可用技能列表",
+    "run": "运行技能",
+    "info": "技能信息",
+    "create": "创建新技能"
   },
-
-  "validation": {
-    "valid": "技能验证通过",
-    "invalid": "技能验证失败",
-    "errors": "验证错误：",
-    "warnings": "验证警告：",
-    "missingField": "缺少必填字段：{{field}}",
-    "invalidCategory": "无效的类别：{{category}}",
-    "invalidPriority": "优先级必须在 1 到 10 之间",
-    "invalidTrigger": "触发器必须以 / 开头：{{trigger}}",
-    "emptyUseWhen": "建议至少设置一个 use_when 条件"
+  "message": {
+    "noSkills": "未找到任何技能",
+    "totalSkills": "共 {{count}} 个技能",
+    "skillExecuted": "技能执行成功",
+    "skillCreated": "技能创建成功：{{name}}",
+    "skillEnabled": "技能已启用：{{name}}",
+    "skillDisabled": "技能已禁用：{{name}}",
+    "skillDeleted": "技能已删除：{{name}}",
+    "alreadyEnabled": "技能已经是启用状态：{{name}}",
+    "alreadyDisabled": "技能已经是禁用状态：{{name}}",
+    "deleteCancelled": "删除操作已取消"
   },
-
-  "activation": {
-    "checking": "正在检查匹配的技能...",
-    "noMatch": "未找到匹配的技能",
-    "multipleMatches": "多个技能匹配，使用最高优先级",
-    "disabled": "技能自动激活已禁用",
-    "belowThreshold": "置信度低于激活阈值"
+  "hint": {
+    "createSkill": "提示：使用 'ccjk skills create' 创建新技能",
+    "listSkills": "提示：使用 'ccjk skills list' 查看所有可用技能",
+    "enableSkill": "提示：使用 'ccjk skills enable <名称>' 启用此技能",
+    "runSkill": "提示：使用 'ccjk skills run <名称>' 运行此技能",
+    "copyTemplate": "提示：模板已复制到剪贴板，可以直接粘贴使用"
   },
-
-  "builtinSkills": {
-    "interview": {
-      "name": "访谈",
-      "description": "访谈驱动开发工作流"
-    },
-    "gitCommit": {
-      "name": "Git 提交",
-      "description": "智能提交信息生成"
-    },
-    "gitWorktree": {
-      "name": "Git Worktree",
-      "description": "Git worktree 管理"
-    },
-    "brainstorming": {
-      "name": "头脑风暴",
-      "description": "交互式设计探索"
-    },
-    "writingPlans": {
-      "name": "编写计划",
-      "description": "创建实施计划"
-    },
-    "executingPlans": {
-      "name": "执行计划",
-      "description": "带检查点的计划执行"
-    },
-    "debugging": {
-      "name": "系统调试",
-      "description": "四阶段调试流程"
-    },
-    "verification": {
-      "name": "验证",
-      "description": "基于证据的完成验证"
-    },
-    "codeReview": {
-      "name": "代码审查",
-      "description": "代码审查工作流"
-    },
-    "tdd": {
-      "name": "TDD 工作流",
-      "description": "测试驱动开发"
-    }
+  "label": {
+    "triggers": "触发词",
+    "template": "模板内容",
+    "details": "详细信息",
+    "id": "ID",
+    "version": "版本",
+    "category": "类别",
+    "author": "作者",
+    "tags": "标签",
+    "agents": "关联代理",
+    "characters": "字符",
+    "path": "路径"
   },
-
-  "errors": {
-    "parseError": "解析技能文件失败：{{error}}",
-    "loadError": "加载技能失败：{{error}}",
-    "installError": "安装错误：{{error}}",
-    "activationError": "激活错误：{{error}}"
+  "error": {
+    "listFailed": "列出技能失败",
+    "skillNotFound": "未找到技能：{{name}}",
+    "runFailed": "运行技能失败",
+    "infoFailed": "获取技能信息失败",
+    "skillExists": "技能已存在：{{name}}",
+    "nameRequired": "技能名称不能为空",
+    "descriptionRequired": "描述不能为空",
+    "triggersRequired": "触发词不能为空",
+    "createFailed": "创建技能失败",
+    "enableFailed": "启用技能失败",
+    "disableFailed": "禁用技能失败",
+    "deleteFailed": "删除技能失败"
+  },
+  "warning": {
+    "skillDisabled": "技能已禁用：{{name}}"
+  },
+  "prompt": {
+    "skillName": "请输入技能名称",
+    "newSkillName": "请输入新技能名称",
+    "nameEn": "技能名称（英文）",
+    "nameZh": "技能名称（中文）",
+    "descriptionEn": "技能描述（英文）",
+    "descriptionZh": "技能描述（中文）",
+    "category": "选择类别",
+    "triggers": "触发词（用逗号分隔）",
+    "template": "技能模板内容",
+    "confirmDelete": "确认删除技能 {{name}}？(yes/no)"
+  },
+  "category": {
+    "git": "Git 操作",
+    "dev": "开发工具",
+    "testing": "测试",
+    "docs": "文档",
+    "review": "代码审查",
+    "seo": "SEO 优化",
+    "devops": "DevOps",
+    "custom": "自定义"
+  },
+  "batch": {
+    "title": "批量创建技能",
+    "prompt": "选择要创建的技能",
+    "noneSelected": "未选择任何技能",
+    "creating": "正在创建技能",
+    "created": "成功创建 {{count}} 个技能",
+    "failed": "失败 {{count}} 个"
   }
 }

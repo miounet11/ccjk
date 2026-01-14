@@ -31,11 +31,14 @@ const NAMESPACES = [
   'menu',
   'multi-config',
   'notification', // Task completion notifications
+  'permissions', // Permission system for API providers, models, and tools
   'plugins', // Cloud plugins management
+  'sandbox', // Sandbox mode for secure request/response handling
   'shencha',
   'skills', // Skills management system
   'skillsSync', // Skills cloud synchronization
   'smartGuide', // Smart Guide for quick actions
+  'stats', // Usage statistics
   'superpowers', // Superpowers plugin integration
   'team',
   'tools',
@@ -123,8 +126,8 @@ export async function initI18n(language: SupportedLang = 'zh-CN'): Promise<void>
         escapeValue: false, // Not needed for server-side usage
       },
 
-      // Disable key separator for flat keys, enable namespace separator
-      keySeparator: false,
+      // Enable key separator for nested keys, enable namespace separator
+      keySeparator: '.',
       nsSeparator: ':',
 
       // Debugging (disable for clean output)

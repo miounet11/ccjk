@@ -18,11 +18,12 @@ export * from './cloud-sync'
 
 // 工具命令
 export * from './commit'
+export * from './config'
 export * from './config-switch'
 export * from './context'
 export * from './doctor'
-
 export * from './help'
+
 export * from './hooks-sync'
 export * from './init'
 // 其他
@@ -33,8 +34,10 @@ export * from './mcp'
 export * from './mcp-doctor'
 export * from './mcp-market'
 export * from './mcp-profile'
+export * from './providers'
 export * from './session'
 export * from './skills-sync'
+export * from './stats'
 
 // Superpowers 集成命令
 export * from './subagent-workflow'

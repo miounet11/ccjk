@@ -3,14 +3,17 @@
  * Health check and diagnostic tool for Claude Code environment
  */
 
+import type { CodeToolType } from '../constants'
 import { existsSync, readdirSync } from 'node:fs'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join, resolve } from 'pathe'
+import { getApiProviderPresets } from '../config/api-providers'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
 import { commandExists } from '../utils/platform'
+import { ProviderHealthMonitor } from '../utils/provider-health'
 import { displayWorkspaceReport, runWorkspaceCheck, runWorkspaceWizard } from '../utils/workspace-guide'
 
 interface CheckResult {
@@ -170,9 +173,88 @@ async function checkOutputStyles(): Promise<CheckResult> {
 }
 
 /**
+ * Check API provider health
+ */
+async function checkProviders(codeType: CodeToolType = 'claude-code'): Promise<CheckResult> {
+  try {
+    const providers = await getApiProviderPresets(codeType)
+
+    if (providers.length === 0) {
+      return {
+        name: 'API Providers',
+        status: 'warning',
+        message: 'No providers available',
+      }
+    }
+
+    // Initialize health monitor
+    const monitor = new ProviderHealthMonitor({
+      timeout: 3000,
+      degradedLatencyThreshold: 1000,
+      unhealthyLatencyThreshold: 3000,
+    })
+
+    monitor.setProviders(providers)
+
+    // Check all providers (with timeout)
+    const results = await Promise.race([
+      Promise.all(
+        providers.map(async (provider) => {
+          const result = await monitor.checkHealth(provider)
+          return { provider, result }
+        }),
+      ),
+      new Promise<null>((resolve) => {
+        setTimeout(() => resolve(null), 5000)
+      }),
+    ])
+
+    if (!results) {
+      return {
+        name: 'API Providers',
+        status: 'warning',
+        message: 'Health check timeout',
+      }
+    }
+
+    const healthyCount = results.filter(r => r.result.success).length
+
+    if (healthyCount === 0) {
+      return {
+        name: 'API Providers',
+        status: 'error',
+        message: 'All providers unavailable',
+        fix: 'Check your network connection',
+      }
+    }
+
+    if (healthyCount < providers.length) {
+      return {
+        name: 'API Providers',
+        status: 'warning',
+        message: `${healthyCount}/${providers.length} providers healthy`,
+      }
+    }
+
+    return {
+      name: 'API Providers',
+      status: 'ok',
+      message: `${healthyCount} providers healthy`,
+    }
+  }
+  catch {
+    return {
+      name: 'API Providers',
+      status: 'warning',
+      message: 'Health check failed',
+    }
+  }
+}
+
+/**
  * Main doctor command - runs health checks and displays results
  */
-export async function doctor(): Promise<void> {
+export async function doctor(options: { checkProviders?: boolean, codeType?: CodeToolType } = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   console.log('')
@@ -189,6 +271,11 @@ export async function doctor(): Promise<void> {
     checkCcr,
     checkOutputStyles,
   ]
+
+  // Add provider check if requested
+  if (options.checkProviders) {
+    checks.push(() => checkProviders(options.codeType))
+  }
 
   let hasErrors = false
   let hasWarnings = false
@@ -233,6 +320,41 @@ export async function doctor(): Promise<void> {
     console.log(ansis.green('✅ All checks passed - CCJK is properly configured!'))
   }
   console.log('')
+
+  // Ask if user wants to check providers (if not already checked)
+  if (!options.checkProviders) {
+    const { checkProvidersNow } = await inquirer.prompt<{ checkProvidersNow: boolean }>({
+      type: 'confirm',
+      name: 'checkProvidersNow',
+      message: isZh ? '是否检查 API 供应商健康状态？' : 'Check API provider health status?',
+      default: false,
+    })
+
+    if (checkProvidersNow) {
+      console.log('')
+      console.log(ansis.dim(isZh ? '正在检查供应商...' : 'Checking providers...'))
+      const providerResult = await checkProviders(options.codeType)
+
+      const statusIcon = providerResult.status === 'ok'
+        ? ansis.green('✅')
+        : providerResult.status === 'warning'
+          ? ansis.yellow('⚠️')
+          : ansis.red('❌')
+
+      const statusColor = providerResult.status === 'ok'
+        ? ansis.green
+        : providerResult.status === 'warning'
+          ? ansis.yellow
+          : ansis.red
+
+      console.log(`${statusIcon} ${ansis.bold(providerResult.name)}: ${statusColor(providerResult.message)}`)
+
+      if (providerResult.fix) {
+        console.log(ansis.dim(`   💡 Fix: ${providerResult.fix}`))
+      }
+      console.log('')
+    }
+  }
 
   // Ask if user wants to run workspace diagnostics
   const { runWorkspace } = await inquirer.prompt<{ runWorkspace: boolean }>({

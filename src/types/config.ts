@@ -11,6 +11,14 @@ export interface StatusLineConfig {
   padding?: number
 }
 
+/**
+ * Permission configuration for CCJK
+ */
+export interface PermissionConfig {
+  allow?: string[]
+  deny?: string[]
+}
+
 export interface ClaudeSettings {
   /** Model configuration: opus, sonnet, sonnet[1m], or custom. Custom models should use env variables instead. */
   model?: 'opus' | 'sonnet' | 'sonnet[1m]' | 'custom'

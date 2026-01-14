@@ -1,0 +1,20 @@
+{
+  "title": "使用统计",
+  "totalRequests": "总请求数",
+  "successRate": "成功率",
+  "totalTokens": "总令牌数",
+  "input": "输入",
+  "output": "输出",
+  "estimatedCost": "预估成本",
+  "averageLatency": "平均延迟",
+  "providerDistribution": "提供商分布",
+  "noData": "暂无数据",
+  "period": {
+    "1d": "最近24小时",
+    "7d": "最近7天",
+    "30d": "最近30天",
+    "90d": "最近90天",
+    "all": "全部时间"
+  },
+  "exportSuccess": "统计数据导出成功"
+}
