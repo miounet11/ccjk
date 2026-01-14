@@ -48,3 +48,41 @@ ccjk-*.tgz
 
 # VitePress
 docs/.vitepress/cache/**
+
+# ========================================
+# Internal/Sensitive Files - DO NOT COMMIT
+# ========================================
+
+# Internal audit and planning documents
+AUDIT_*.md
+AUDIT_*.txt
+SUPERPOWERS_*.md
+EXTERNAL_TOOLS_*.md
+PLUGIN_MARKETPLACE_*.md
+IMPLEMENTATION_REPORT.md
+FINAL_DELIVERY_SUMMARY.md
+README_AUDIT.md
+README_START_HERE.md
+
+# Internal planning directory
+.ccjk/plan/
+
+# Internal API documentation (cloud services)
+docs/api/cloud-providers-api.md
+docs/docs/CLIENT_BINDING_API*.md
+docs/docs/API-REFERENCE.md
+docs/docs/DELIVERY.md
+
+# Internal development notes
+docs/jishu.md
+docs/v3_up.md
+docs/skills-cloud-optimization-design.md
+
+# Backup files
+*.backup
+package.json.backup
+package.json.publish
+
+# Cloud plugins internal
+src/cloud-plugins/IMPLEMENTATION_SUMMARY.md
+
