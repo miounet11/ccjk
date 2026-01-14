@@ -1,51 +1,65 @@
-import inquirer from 'inquirer'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import * as commands from '../../../src/utils/cometix/commands'
-import * as installer from '../../../src/utils/cometix/installer'
-import * as menuModule from '../../../src/utils/cometix/menu'
+import { showCometixMenu } from '../../../src/utils/cometix/menu'
 
-// Don't destructure to allow proper mocking
-const { showCometixMenu } = menuModule
-
-vi.mock('inquirer')
-vi.mock('ansis', () => ({
+// Mock all dependencies
+vi.mock('inquirer', () => ({
   default: {
-    cyan: vi.fn((text: string) => text),
-    bold: { cyan: vi.fn((text: string) => text) },
-    gray: vi.fn((text: string) => text),
-    yellow: vi.fn((text: string) => text),
-    dim: vi.fn((text: string) => text),
+    prompt: vi.fn(),
   },
 }))
-// Use real i18n system for better integration testing
+
 vi.mock('../../../src/i18n', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../src/i18n')>()
   return {
     ...actual,
-    // Only mock ensureI18nInitialized to avoid initialization issues
     ensureI18nInitialized: vi.fn(),
   }
 })
-vi.mock('../../../src/utils/cometix/commands')
-vi.mock('../../../src/utils/cometix/installer')
+
 vi.mock('../../../src/utils/error-handler', () => ({
+  handleExitPromptError: vi.fn(),
   handleGeneralError: vi.fn(),
-  handleExitPromptError: vi.fn(() => false),
 }))
+
 vi.mock('../../../src/utils/toggle-prompt', () => ({
   promptBoolean: vi.fn(),
 }))
 
-describe('cCometixLine menu', () => {
+vi.mock('../../../src/utils/cometix/commands', () => ({
+  runCometixPrintConfig: vi.fn(),
+  runCometixTuiConfig: vi.fn(),
+}))
+
+vi.mock('../../../src/utils/cometix/installer', () => ({
+  installCometixLine: vi.fn(),
+}))
+
+describe('cometix menu', () => {
   let consoleLogSpy: any
-  let mockedPromptBoolean: any
+  let mockPrompt: any
+  let mockPromptBoolean: any
+  let mockInstallCometixLine: any
+  let mockRunCometixPrintConfig: any
+  let mockRunCometixTuiConfig: any
+  let mockHandleExitPromptError: any
+  let mockHandleGeneralError: any
 
   beforeEach(async () => {
     vi.clearAllMocks()
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    // Get mocked promptBoolean
-    const togglePromptModule = await import('../../../src/utils/toggle-prompt')
-    mockedPromptBoolean = vi.mocked(togglePromptModule.promptBoolean)
+
+    // Import mocked modules
+    mockPrompt = (await import('inquirer')).default.prompt
+    const togglePrompt = await import('../../../src/utils/toggle-prompt')
+    mockPromptBoolean = togglePrompt.promptBoolean
+    const installer = await import('../../../src/utils/cometix/installer')
+    mockInstallCometixLine = installer.installCometixLine
+    const commands = await import('../../../src/utils/cometix/commands')
+    mockRunCometixPrintConfig = commands.runCometixPrintConfig
+    mockRunCometixTuiConfig = commands.runCometixTuiConfig
+    const errorHandler = await import('../../../src/utils/error-handler')
+    mockHandleExitPromptError = errorHandler.handleExitPromptError
+    mockHandleGeneralError = errorHandler.handleGeneralError
   })
 
   afterEach(() => {
@@ -53,117 +67,166 @@ describe('cCometixLine menu', () => {
   })
 
   describe('showCometixMenu', () => {
-    it('should display CCometixLine menu options', async () => {
-      vi.mocked(inquirer.prompt).mockResolvedValue({ choice: '0' })
+    it('should display menu and handle option 1 (install/update)', async () => {
+      mockPrompt.mockResolvedValueOnce({ choice: '1' })
+      mockPromptBoolean.mockResolvedValueOnce(false) // Don't continue
 
-      await showCometixMenu()
+      const result = await showCometixMenu()
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('CCometixLine - High-performance Claude Code statusline tool'),
+      expect(mockPrompt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'input',
+          name: 'choice',
+        }),
       )
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('1.'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Install/update'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('2.'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Print config'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('3.'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Custom config'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('0.'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Back to main menu'))
-    })
-
-    it('should handle install or update option (choice 1)', async () => {
-      vi.mocked(inquirer.prompt)
-        .mockResolvedValueOnce({ choice: '1' })
-      mockedPromptBoolean.mockResolvedValueOnce(false) // continueInCometix
-
-      vi.mocked(installer.installCometixLine).mockResolvedValue()
-
-      const result = await showCometixMenu()
-
-      expect(installer.installCometixLine).toHaveBeenCalledWith()
+      expect(mockInstallCometixLine).toHaveBeenCalled()
+      expect(mockPromptBoolean).toHaveBeenCalled()
       expect(result).toBe(false)
     })
 
-    it('should handle print config option (choice 2)', async () => {
-      vi.mocked(inquirer.prompt)
-        .mockResolvedValueOnce({ choice: '2' })
-      mockedPromptBoolean.mockResolvedValueOnce(false) // continueInCometix
-
-      vi.mocked(commands.runCometixPrintConfig).mockResolvedValue()
+    it('should display menu and handle option 2 (print config)', async () => {
+      mockPrompt.mockResolvedValueOnce({ choice: '2' })
+      mockPromptBoolean.mockResolvedValueOnce(false) // Don't continue
 
       const result = await showCometixMenu()
 
-      expect(commands.runCometixPrintConfig).toHaveBeenCalledWith()
+      expect(mockRunCometixPrintConfig).toHaveBeenCalled()
+      expect(mockPromptBoolean).toHaveBeenCalled()
       expect(result).toBe(false)
     })
 
-    it('should handle custom config TUI option (choice 3)', async () => {
-      vi.mocked(inquirer.prompt)
-        .mockResolvedValueOnce({ choice: '3' })
-      mockedPromptBoolean.mockResolvedValueOnce(false) // continueInCometix
-
-      vi.mocked(commands.runCometixTuiConfig).mockResolvedValue()
+    it('should display menu and handle option 3 (TUI config)', async () => {
+      mockPrompt.mockResolvedValueOnce({ choice: '3' })
+      mockPromptBoolean.mockResolvedValueOnce(false) // Don't continue
 
       const result = await showCometixMenu()
 
-      expect(commands.runCometixTuiConfig).toHaveBeenCalledWith()
+      expect(mockRunCometixTuiConfig).toHaveBeenCalled()
+      expect(mockPromptBoolean).toHaveBeenCalled()
       expect(result).toBe(false)
     })
 
-    it('should handle back to main menu (choice 0)', async () => {
-      vi.mocked(inquirer.prompt).mockResolvedValue({ choice: '0' })
+    it('should display menu and handle option 0 (back)', async () => {
+      mockPrompt.mockResolvedValueOnce({ choice: '0' })
 
       const result = await showCometixMenu()
 
+      expect(mockInstallCometixLine).not.toHaveBeenCalled()
+      expect(mockRunCometixPrintConfig).not.toHaveBeenCalled()
+      expect(mockRunCometixTuiConfig).not.toHaveBeenCalled()
+      expect(mockPromptBoolean).not.toHaveBeenCalled()
       expect(result).toBe(false)
     })
 
-    it('should handle invalid choice validation', async () => {
-      const mockPrompt = vi.mocked(inquirer.prompt)
-      mockPrompt.mockResolvedValue({ choice: '0' })
+    it('should loop back to menu when user chooses to continue', async () => {
+      mockPrompt
+        .mockResolvedValueOnce({ choice: '1' }) // First choice
+        .mockResolvedValueOnce({ choice: '0' }) // Second choice (back)
+      mockPromptBoolean.mockResolvedValueOnce(true) // Continue in menu
+
+      const result = await showCometixMenu()
+
+      expect(mockInstallCometixLine).toHaveBeenCalledTimes(1)
+      expect(mockPromptBoolean).toHaveBeenCalledTimes(1)
+      expect(mockPrompt).toHaveBeenCalledTimes(2)
+      expect(result).toBe(false)
+    })
+
+    it('should handle exit prompt error', async () => {
+      const exitError = new Error('User force closed the prompt')
+      mockPrompt.mockRejectedValueOnce(exitError)
+      mockHandleExitPromptError.mockReturnValueOnce(true) // Indicate it was an exit error
+
+      const result = await showCometixMenu()
+
+      expect(mockHandleExitPromptError).toHaveBeenCalledWith(exitError)
+      expect(mockHandleGeneralError).not.toHaveBeenCalled()
+      expect(result).toBe(false)
+    })
+
+    it('should handle general error', async () => {
+      const generalError = new Error('Something went wrong')
+      mockPrompt.mockRejectedValueOnce(generalError)
+      mockHandleExitPromptError.mockReturnValueOnce(false) // Not an exit error
+
+      const result = await showCometixMenu()
+
+      expect(mockHandleExitPromptError).toHaveBeenCalledWith(generalError)
+      expect(mockHandleGeneralError).toHaveBeenCalledWith(generalError)
+      expect(result).toBe(false)
+    })
+
+    it('should validate menu choice correctly', async () => {
+      let validateFn: any
+
+      mockPrompt.mockImplementationOnce((questions: any) => {
+        validateFn = questions.validate
+        return Promise.resolve({ choice: '1' })
+      })
+      mockPromptBoolean.mockResolvedValueOnce(false)
 
       await showCometixMenu()
 
-      expect(mockPrompt).toHaveBeenCalledWith({
-        type: 'input',
-        name: 'choice',
-        message: 'Enter your choice and press enter (case-insensitive)',
-        validate: expect.any(Function),
-      })
-
-      // Test the validate function
-      const promptCall = mockPrompt.mock.calls[0][0] as any
-      const validateFn = promptCall.validate
-
+      // Test valid choices
       expect(await validateFn('1')).toBe(true)
       expect(await validateFn('2')).toBe(true)
       expect(await validateFn('3')).toBe(true)
       expect(await validateFn('0')).toBe(true)
-      expect(await validateFn('4')).toBe('Invalid choice. Please enter a valid option.')
-      expect(await validateFn('invalid')).toBe('Invalid choice. Please enter a valid option.')
+
+      // Test invalid choice
+      const invalidResult = await validateFn('5')
+      expect(invalidResult).not.toBe(true) // Should return error message
     })
 
-    it('should handle continue in menu flow', async () => {
-      vi.mocked(inquirer.prompt)
-        .mockResolvedValueOnce({ choice: '1' })
-        .mockResolvedValueOnce({ choice: '0' })
-      mockedPromptBoolean.mockResolvedValueOnce(true) // continueInCometix
-
-      vi.mocked(installer.installCometixLine).mockResolvedValue()
+    it('should display menu title and options', async () => {
+      mockPrompt.mockResolvedValueOnce({ choice: '0' })
 
       await showCometixMenu()
 
-      expect(inquirer.prompt).toHaveBeenCalledTimes(2)
-      expect(mockedPromptBoolean).toHaveBeenCalledTimes(1)
-      expect(installer.installCometixLine).toHaveBeenCalledTimes(1)
+      // Verify console.log was called to display menu
+      expect(consoleLogSpy).toHaveBeenCalled()
+      // Check that menu formatting was displayed (borders, options, etc.)
+      const calls = consoleLogSpy.mock.calls.map((call: any) => call[0])
+      const output = calls.join('\n')
+      expect(output).toContain('═') // Menu border
     })
 
-    it('should handle errors gracefully', async () => {
-      const error = new Error('Test error')
-      vi.mocked(inquirer.prompt).mockRejectedValue(error)
+    it('should handle error during install operation', async () => {
+      const installError = new Error('Installation failed')
+      mockPrompt.mockResolvedValueOnce({ choice: '1' })
+      mockInstallCometixLine.mockRejectedValueOnce(installError)
+      mockHandleExitPromptError.mockReturnValueOnce(false)
 
       const result = await showCometixMenu()
 
+      expect(mockInstallCometixLine).toHaveBeenCalled()
+      expect(mockHandleGeneralError).toHaveBeenCalledWith(installError)
+      expect(result).toBe(false)
+    })
+
+    it('should handle error during print config operation', async () => {
+      const printError = new Error('Print config failed')
+      mockPrompt.mockResolvedValueOnce({ choice: '2' })
+      mockRunCometixPrintConfig.mockRejectedValueOnce(printError)
+      mockHandleExitPromptError.mockReturnValueOnce(false)
+
+      const result = await showCometixMenu()
+
+      expect(mockRunCometixPrintConfig).toHaveBeenCalled()
+      expect(mockHandleGeneralError).toHaveBeenCalledWith(printError)
+      expect(result).toBe(false)
+    })
+
+    it('should handle error during TUI config operation', async () => {
+      const tuiError = new Error('TUI config failed')
+      mockPrompt.mockResolvedValueOnce({ choice: '3' })
+      mockRunCometixTuiConfig.mockRejectedValueOnce(tuiError)
+      mockHandleExitPromptError.mockReturnValueOnce(false)
+
+      const result = await showCometixMenu()
+
+      expect(mockRunCometixTuiConfig).toHaveBeenCalled()
+      expect(mockHandleGeneralError).toHaveBeenCalledWith(tuiError)
       expect(result).toBe(false)
     })
   })

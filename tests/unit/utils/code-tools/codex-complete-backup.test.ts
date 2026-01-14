@@ -1,41 +1,47 @@
 import { join } from 'pathe'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-// Mock all external dependencies
-vi.mock('../../../../src/utils/fs-operations', () => ({
-  copyDir: vi.fn(),
-  ensureDir: vi.fn(),
-  exists: vi.fn(),
-  writeFileAtomic: vi.fn(),
-}))
-
-vi.mock('dayjs', () => ({
-  default: vi.fn(() => ({
-    format: vi.fn(() => '2024-01-01_12-00-00'),
-  })),
-}))
-
-const mockedFsOps = await import('../../../../src/utils/fs-operations')
-const mockedDayjs = (await import('dayjs')).default
-
-const mockedExists = vi.mocked(mockedFsOps.exists)
-const mockedCopyDir = vi.mocked(mockedFsOps.copyDir)
-const mockedEnsureDir = vi.mocked(mockedFsOps.ensureDir)
-
-// Import the functions to test after mocks are set up
-const { backupCodexComplete, CODEX_DIR } = await import('../../../../src/utils/code-tools/codex')
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('backupCodexComplete', () => {
+  let backupCodexComplete: typeof import('../../../../src/utils/code-tools/codex').backupCodexComplete
+  let CODEX_DIR: string
+  let mockedExists: ReturnType<typeof vi.fn>
+  let mockedCopyDir: ReturnType<typeof vi.fn>
+  let mockedEnsureDir: ReturnType<typeof vi.fn>
+  let mockedDayjsFormat: ReturnType<typeof vi.fn>
+
   const expectedTimestamp = '2024-01-01_12-00-00'
-  const expectedBackupDir = join(CODEX_DIR, 'backup', `backup_${expectedTimestamp}`)
 
-  beforeEach(() => {
-    vi.clearAllMocks()
+  beforeEach(async () => {
+    vi.resetModules()
 
-    // Setup dayjs mock to return consistent timestamp
-    vi.mocked(mockedDayjs).mockReturnValue({
-      format: vi.fn().mockReturnValue(expectedTimestamp),
-    } as any)
+    // Create mock functions
+    mockedExists = vi.fn()
+    mockedCopyDir = vi.fn()
+    mockedEnsureDir = vi.fn()
+    mockedDayjsFormat = vi.fn().mockReturnValue(expectedTimestamp)
+
+    // Mock fs-operations
+    vi.doMock('../../../../src/utils/fs-operations', () => ({
+      copyDir: mockedCopyDir,
+      copyFile: vi.fn(),
+      ensureDir: mockedEnsureDir,
+      exists: mockedExists,
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+      writeFileAtomic: vi.fn(),
+    }))
+
+    // Mock dayjs
+    vi.doMock('dayjs', () => ({
+      default: vi.fn(() => ({
+        format: mockedDayjsFormat,
+      })),
+    }))
+
+    // Import after mocks are set up
+    const codexModule = await import('../../../../src/utils/code-tools/codex')
+    backupCodexComplete = codexModule.backupCodexComplete
+    CODEX_DIR = codexModule.CODEX_DIR
   })
 
   afterEach(() => {
@@ -44,16 +50,18 @@ describe('backupCodexComplete', () => {
 
   it('should backup complete codex directory with timestamp', async () => {
     // Arrange
-    mockedExists.mockImplementation(() => true)
+    mockedExists.mockReturnValue(true)
     mockedCopyDir.mockImplementation(() => {})
     mockedEnsureDir.mockImplementation(() => {})
+
+    const expectedBackupDir = join(CODEX_DIR, 'backup', `backup_${expectedTimestamp}`)
 
     // Act
     const result = backupCodexComplete()
 
     // Assert - Test core behavior
     expect(mockedExists).toHaveBeenCalledWith(CODEX_DIR)
-    expect(mockedEnsureDir).toHaveBeenCalled() // createBackupDirectory calls ensureDir
+    expect(mockedEnsureDir).toHaveBeenCalled()
     expect(mockedCopyDir).toHaveBeenCalledWith(
       CODEX_DIR,
       expectedBackupDir,
@@ -66,7 +74,7 @@ describe('backupCodexComplete', () => {
 
   it('should exclude backup directory from backup using filter', async () => {
     // Arrange
-    mockedExists.mockImplementation(() => true)
+    mockedExists.mockReturnValue(true)
     mockedCopyDir.mockImplementation(() => {})
     mockedEnsureDir.mockImplementation(() => {})
 
@@ -88,9 +96,11 @@ describe('backupCodexComplete', () => {
 
   it('should return backup path on success', async () => {
     // Arrange
-    mockedExists.mockImplementation(() => true)
+    mockedExists.mockReturnValue(true)
     mockedCopyDir.mockImplementation(() => {})
     mockedEnsureDir.mockImplementation(() => {})
+
+    const expectedBackupDir = join(CODEX_DIR, 'backup', `backup_${expectedTimestamp}`)
 
     // Act
     const result = backupCodexComplete()
@@ -102,7 +112,7 @@ describe('backupCodexComplete', () => {
 
   it('should return null when codex directory not exists', async () => {
     // Arrange
-    mockedExists.mockImplementation(() => false)
+    mockedExists.mockReturnValue(false)
 
     // Act
     const result = backupCodexComplete()
@@ -115,19 +125,19 @@ describe('backupCodexComplete', () => {
 
   it('should handle backup creation errors gracefully', async () => {
     // Arrange
-    mockedExists.mockImplementation(() => true)
+    mockedExists.mockReturnValue(true)
     mockedEnsureDir.mockImplementation(() => {})
     mockedCopyDir.mockImplementation(() => {
       throw new Error('Permission denied')
     })
 
-    // Act & Assert - Should throw the error since backupCodexFiles doesn't catch it
+    // Act & Assert - backupCodexFiles doesn't catch errors, so it should throw
     expect(() => backupCodexComplete()).toThrow('Permission denied')
   })
 
   it('should handle directory creation errors gracefully', async () => {
     // Arrange
-    mockedExists.mockImplementation(() => true)
+    mockedExists.mockReturnValue(true)
     mockedEnsureDir.mockImplementation(() => {
       throw new Error('Disk full')
     })
@@ -139,16 +149,14 @@ describe('backupCodexComplete', () => {
 
   it('should use correct timestamp format', async () => {
     // Arrange
-    mockedExists.mockImplementation(() => true)
+    mockedExists.mockReturnValue(true)
     mockedCopyDir.mockImplementation(() => {})
     mockedEnsureDir.mockImplementation(() => {})
 
     // Act
     backupCodexComplete()
 
-    // Assert - Check dayjs format call
-    expect(vi.mocked(mockedDayjs)).toHaveBeenCalled()
-    const dayjsInstance = vi.mocked(mockedDayjs).mock.results[0].value
-    expect(dayjsInstance.format).toHaveBeenCalledWith('YYYY-MM-DD_HH-mm-ss')
+    // Assert - Check dayjs format was called with correct format
+    expect(mockedDayjsFormat).toHaveBeenCalledWith('YYYY-MM-DD_HH-mm-ss')
   })
 })

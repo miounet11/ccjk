@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "2.0.12",
+  "version": "2.4.1",
   "packageManager": "pnpm@10.17.1",
   "description": "Claude Code JinKu - Advanced AI-powered development assistant with skills, agents, and LLM-driven audit",
   "author": {
@@ -100,7 +100,8 @@
     "build": "unbuild",
     "start": "node bin/ccjk.mjs",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "pnpm build",
+    "prepublishOnly": "node scripts/prepublish.mjs && pnpm build",
+    "postpublish": "node scripts/postpublish.mjs",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "vitest",
@@ -120,11 +121,15 @@
     "docs:preview": "pnpm -F @ccjk/docs preview"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
     "@iarna/toml": "^2.2.5",
     "@types/semver": "^7.7.1",
+    "@types/tar": "^6.1.13",
     "ansis": "^4.1.0",
     "cac": "^6.7.14",
+    "chalk": "^5.6.2",
     "chokidar": "^4.0.3",
+    "commander": "^14.0.2",
     "dayjs": "^1.11.18",
     "find-up-simple": "^1.0.1",
     "fs-extra": "^11.3.2",
@@ -133,10 +138,12 @@
     "i18next-fs-backend": "^2.6.0",
     "inquirer": "^12.9.6",
     "inquirer-toggle": "^1.0.1",
+    "nanoid": "^5.1.6",
     "ora": "^9.0.0",
     "pathe": "^2.0.3",
     "semver": "^7.7.2",
     "smol-toml": "^1.4.2",
+    "tar": "^7.5.2",
     "tinyexec": "^1.0.1",
     "trash": "^10.0.0"
   },

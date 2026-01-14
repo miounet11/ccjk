@@ -160,5 +160,28 @@ describe('cCometixLine commands', () => {
       await expect(runCometixTuiConfig()).rejects.toThrow('ccline -c exited with code 1')
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to run TUI configuration'))
     })
+
+    it('should handle generic spawn error (not command not found)', async () => {
+      const mockSpawn = vi.mocked(spawn)
+      const mockChild = {
+        on: vi.fn((event, callback) => {
+          if (event === 'error') {
+            // Simulate a generic error that is NOT command not found
+            callback(new Error('Permission denied'))
+          }
+          return mockChild
+        }),
+      }
+
+      mockSpawn.mockReturnValue(mockChild as any)
+
+      await expect(runCometixTuiConfig()).rejects.toThrow('Permission denied')
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to run TUI configuration'),
+      )
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Permission denied'),
+      )
+    })
   })
 })

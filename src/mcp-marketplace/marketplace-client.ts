@@ -30,7 +30,7 @@ import { writeFileAtomic } from '../utils/fs-operations'
 // Constants
 // ============================================================================
 
-const DEFAULT_API_URL = 'https://api.ccjk.dev/v1/mcp-marketplace'
+const DEFAULT_API_URL = 'https://api.api.claudehome.cn/v1/mcp-marketplace'
 const REQUEST_TIMEOUT = 30000 // 30 seconds
 const MAX_RETRY_ATTEMPTS = 3
 const RETRY_DELAY = 1000 // 1 second
@@ -748,7 +748,7 @@ export const MOCK_MCP_PACKAGES: MCPPackage[] = [
     verificationStatus: 'verified',
     size: 102400,
     license: 'MIT',
-    homepage: 'https://ccjk.dev/mcp/git-tools',
+    homepage: 'https://api.claudehome.cn/mcp/git-tools',
     keywords: ['git', 'vcs', 'commit', 'branch'],
     publishedAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-10T00:00:00Z',

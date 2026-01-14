@@ -63,6 +63,24 @@ vi.mock('../../../src/utils/platform', () => ({
   isWindows: vi.fn().mockReturnValue(false),
 }))
 
+vi.mock('../../../src/i18n', () => ({
+  t: vi.fn((key: string) => key),
+  setLanguage: vi.fn(),
+  getCurrentLanguage: vi.fn().mockReturnValue('en'),
+  ensureI18nInitialized: vi.fn(),
+  initI18n: vi.fn().mockResolvedValue(undefined),
+  changeLanguage: vi.fn().mockResolvedValue(undefined),
+  getTranslation: vi.fn(() => (key: string) => key),
+  format: vi.fn((template: string) => template),
+  i18n: {
+    t: vi.fn((key: string) => key),
+    isInitialized: true,
+    language: 'en',
+    changeLanguage: vi.fn().mockResolvedValue(undefined),
+    loadNamespaces: vi.fn().mockResolvedValue(undefined),
+  },
+}))
+
 vi.mock('../../../src/config/workflows', () => ({
   WORKFLOW_CONFIG_BASE: [
     { id: 'workflow1', name: 'Workflow 1' },

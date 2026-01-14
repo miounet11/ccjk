@@ -27,7 +27,11 @@ vi.mock('../../../src/utils/json-config')
 vi.mock('../../../src/utils/ccjk-config')
 vi.mock('../../../src/utils/permission-cleaner')
 vi.mock('../../../src/utils/claude-config')
-vi.mock('../../../src/i18n')
+vi.mock('../../../src/i18n', () => ({
+  initI18n: vi.fn().mockResolvedValue(undefined),
+  ensureI18nInitialized: vi.fn().mockResolvedValue(undefined),
+  i18n: { t: vi.fn((key: string) => key) },
+}))
 vi.mock('dayjs')
 
 describe('config utilities', () => {

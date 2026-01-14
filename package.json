@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "2.3.2",
+  "version": "2.4.1",
   "packageManager": "pnpm@10.17.1",
   "description": "Claude Code JinKu - Advanced AI-powered development assistant with skills, agents, and LLM-driven audit",
   "author": {
@@ -121,8 +121,10 @@
     "docs:preview": "pnpm -F @ccjk/docs preview"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "catalog:",
     "@iarna/toml": "catalog:",
     "@types/semver": "catalog:",
+    "@types/tar": "catalog:",
     "ansis": "catalog:",
     "cac": "catalog:",
     "chalk": "catalog:",
@@ -141,6 +143,7 @@
     "pathe": "catalog:",
     "semver": "catalog:",
     "smol-toml": "catalog:",
+    "tar": "catalog:",
     "tinyexec": "catalog:",
     "trash": "catalog:"
   },

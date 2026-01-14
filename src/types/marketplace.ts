@@ -402,7 +402,7 @@ export interface PackageUpdateInfo {
  * @example
  * ```json
  * {
- *   "$schema": "https://ccjk.dev/schemas/package-manifest.json",
+ *   "$schema": "https://api.claudehome.cn/schemas/package-manifest.json",
  *   "name": "git-workflow-pro",
  *   "version": "1.2.0",
  *   "description": "Advanced git workflow automation",
@@ -570,7 +570,7 @@ export interface PackageRating {
  * ```typescript
  * const options: PackagePublishOptions = {
  *   packageDir: '/path/to/package',
- *   registryUrl: 'https://marketplace.ccjk.dev',
+ *   registryUrl: 'https://marketplace.api.claudehome.cn',
  *   authToken: 'your-auth-token',
  *   access: 'public'
  * }

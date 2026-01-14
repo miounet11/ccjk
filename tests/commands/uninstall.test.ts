@@ -5,7 +5,13 @@ import { promptBoolean } from '../../src/utils/toggle-prompt'
 
 // Mock dependencies
 vi.mock('inquirer')
-vi.mock('../../src/i18n')
+vi.mock('../../src/i18n', () => ({
+  initI18n: vi.fn().mockResolvedValue(undefined),
+  ensureI18nInitialized: vi.fn().mockResolvedValue(undefined),
+  i18n: {
+    t: vi.fn((key: string) => key),
+  },
+}))
 vi.mock('../../src/utils/uninstaller')
 vi.mock('../../src/utils/toggle-prompt', () => ({
   promptBoolean: vi.fn(),

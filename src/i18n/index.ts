@@ -21,6 +21,7 @@ const NAMESPACES = [
   'cometix',
   'codex',
   'configuration',
+  'context', // Context compression system
   'errors',
   'installation',
   'interview', // Interview-Driven Development

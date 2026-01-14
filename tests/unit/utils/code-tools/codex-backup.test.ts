@@ -1,42 +1,54 @@
 import { homedir } from 'node:os'
 import { join } from 'pathe'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-// Mock dependencies
-vi.mock('../../../../src/i18n')
-vi.mock('../../../../src/utils/fs-operations')
-vi.mock('dayjs', () => ({
-  default: () => ({
-    format: vi.fn(() => '2024-01-01_14-30-00'),
-  }),
-}))
-
-// Create mocks
-const mockExists = vi.fn()
-const mockEnsureDir = vi.fn()
-const mockCopyDir = vi.fn()
-const mockCopyFile = vi.fn()
-
-vi.mocked(vi.doMock('../../../../src/utils/fs-operations', () => ({
-  exists: mockExists,
-  ensureDir: mockEnsureDir,
-  copyDir: mockCopyDir,
-  copyFile: mockCopyFile,
-  writeFileAtomic: vi.fn(),
-})))
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('codex backup mechanism', () => {
   const CODEX_DIR = join(homedir(), '.codex')
   const BACKUP_BASE_DIR = join(CODEX_DIR, 'backup')
 
-  beforeEach(() => {
-    vi.clearAllMocks()
+  // Mock functions
+  let mockExists: ReturnType<typeof vi.fn>
+  let mockEnsureDir: ReturnType<typeof vi.fn>
+  let mockCopyDir: ReturnType<typeof vi.fn>
+  let mockCopyFile: ReturnType<typeof vi.fn>
 
-    // Reset default mock implementations
-    mockExists.mockReturnValue(true)
-    mockEnsureDir.mockImplementation(() => {}) // Don't throw by default
-    mockCopyDir.mockImplementation(() => {})
-    mockCopyFile.mockImplementation(() => {})
+  beforeEach(async () => {
+    vi.resetModules()
+
+    // Create mock functions
+    mockExists = vi.fn().mockReturnValue(true)
+    mockEnsureDir = vi.fn()
+    mockCopyDir = vi.fn()
+    mockCopyFile = vi.fn()
+
+    // Mock i18n
+    vi.doMock('../../../../src/i18n', () => ({
+      initI18n: vi.fn().mockResolvedValue(undefined),
+      ensureI18nInitialized: vi.fn().mockResolvedValue(undefined),
+      i18n: { t: vi.fn((key: string) => key), isInitialized: true },
+    }))
+
+    // Mock fs-operations
+    vi.doMock('../../../../src/utils/fs-operations', () => ({
+      exists: mockExists,
+      ensureDir: mockEnsureDir,
+      copyDir: mockCopyDir,
+      copyFile: mockCopyFile,
+      writeFileAtomic: vi.fn(),
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+    }))
+
+    // Mock dayjs
+    vi.doMock('dayjs', () => ({
+      default: () => ({
+        format: vi.fn(() => '2024-01-01_14-30-00'),
+      }),
+    }))
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   describe('backupCodexFiles', () => {
@@ -80,7 +92,7 @@ describe('codex backup mechanism', () => {
       mockExists.mockReturnValue(true)
       let filterFunction: ((path: string) => boolean) | undefined
 
-      mockCopyDir.mockImplementation((_src, _dest, options) => {
+      mockCopyDir.mockImplementation((_src: string, _dest: string, options?: { filter?: (path: string) => boolean }) => {
         filterFunction = options?.filter
       })
 
@@ -237,7 +249,7 @@ describe('codex backup mechanism', () => {
       const { backupCodexPrompts } = await import('../../../../src/utils/code-tools/codex')
       const result = backupCodexPrompts()
 
-      // Assert - Should return null when copy fails
+      // Assert - backupCodexPrompts has try-catch, so it should return null when copy fails
       expect(result).toBeNull()
     })
   })
@@ -249,7 +261,7 @@ describe('codex backup mechanism', () => {
 
       // Mock i18n properly before import with isInitialized: true
       const mockI18n = {
-        t: vi.fn((key: string, options?: any) => {
+        t: vi.fn((key: string, options?: { path?: string }) => {
           if (key === 'codex:backupSuccess' && options?.path) {
             return `✔ Backup created at ${options.path}`
           }
@@ -261,6 +273,23 @@ describe('codex backup mechanism', () => {
       vi.doMock('../../../../src/i18n', () => ({
         ensureI18nInitialized: vi.fn(),
         i18n: mockI18n,
+      }))
+
+      // Re-mock fs-operations for fresh import
+      vi.doMock('../../../../src/utils/fs-operations', () => ({
+        exists: vi.fn().mockReturnValue(true),
+        ensureDir: vi.fn(),
+        copyDir: vi.fn(),
+        copyFile: vi.fn(),
+        writeFileAtomic: vi.fn(),
+        readFile: vi.fn(),
+        writeFile: vi.fn(),
+      }))
+
+      vi.doMock('dayjs', () => ({
+        default: () => ({
+          format: vi.fn(() => '2024-01-01_14-30-00'),
+        }),
       }))
 
       // Act
@@ -283,6 +312,23 @@ describe('codex backup mechanism', () => {
           t: vi.fn(),
           isInitialized: false, // Mark as not initialized
         },
+      }))
+
+      // Re-mock fs-operations for fresh import
+      vi.doMock('../../../../src/utils/fs-operations', () => ({
+        exists: vi.fn().mockReturnValue(true),
+        ensureDir: vi.fn(),
+        copyDir: vi.fn(),
+        copyFile: vi.fn(),
+        writeFileAtomic: vi.fn(),
+        readFile: vi.fn(),
+        writeFile: vi.fn(),
+      }))
+
+      vi.doMock('dayjs', () => ({
+        default: () => ({
+          format: vi.fn(() => '2024-01-01_14-30-00'),
+        }),
       }))
 
       // Act

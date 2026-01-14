@@ -12,6 +12,15 @@
  * @module utils/marketplace
  */
 
+// Dependency resolver exports
+export {
+  detectCircularDependencies,
+  flattenDependencyTree,
+  getUniqueDependencies,
+  isVersionCompatible,
+  resolveDependencies,
+} from './dependency-resolver.js'
+
 // Installer exports
 export {
   checkForUpdates,

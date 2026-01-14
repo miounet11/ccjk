@@ -28,12 +28,16 @@ const mockI18nT = vi.fn((key: string, params?: Record<string, any>) => {
   }, key)
 })
 
-vi.mock('../../../src/i18n', () => ({
-  ensureI18nInitialized: mockEnsureI18nInitialized,
-  i18n: {
-    t: mockI18nT,
-  },
-}))
+vi.mock('../../../src/i18n', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/i18n')>()
+  return {
+    ...actual,
+    ensureI18nInitialized: mockEnsureI18nInitialized,
+    i18n: {
+      t: mockI18nT,
+    },
+  }
+})
 
 const mockSwitchToOfficialLogin = vi.fn()
 

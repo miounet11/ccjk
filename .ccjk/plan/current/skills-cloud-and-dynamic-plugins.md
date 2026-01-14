@@ -14,7 +14,7 @@
 ### Impact Scope
 - 前端：`src/commands/menu.ts`, `src/skills/`, `src/utils/skill-md/`
 - 后端：需要新增 API 服务
-- 云服务：`api.claudehome.cn` 或 `api.ccjk.dev`
+- 云服务：`api.claudehome.cn` 或 `api.api.claudehome.cn`
 
 ---
 

@@ -27,6 +27,7 @@
   "packageNotFound": "未找到包 '{{name}}'",
   "packageNotInstalled": "包 '{{name}}' 未安装",
   "packageHasDependents": "无法卸载 '{{name}}'，因为其他包依赖它：{{dependents}}",
+  "noDownloadUrl": "包 '{{name}}' 没有下载地址",
   "incompatibleTool": "警告：此包可能与 {{tool}} 不兼容。支持的工具：{{supported}}",
   "updateHint": "运行 'npx ccjk marketplace update <package>' 更新指定包",
   "updateCheckFailed": "检查更新失败",

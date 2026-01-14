@@ -37,6 +37,13 @@ vi.mock('../../../src/utils/platform', () => ({
   wrapCommandWithSudo,
 }))
 
+const mockAddCCometixLineConfig = vi.hoisted(() => vi.fn())
+const mockHasCCometixLineConfig = vi.hoisted(() => vi.fn())
+vi.mock('../../../src/utils/ccometixline-config', () => ({
+  addCCometixLineConfig: mockAddCCometixLineConfig,
+  hasCCometixLineConfig: mockHasCCometixLineConfig,
+}))
+
 describe('cCometixLine installer', () => {
   let consoleLogSpy: any
   let consoleErrorSpy: any
@@ -50,6 +57,8 @@ describe('cCometixLine installer', () => {
       args,
       usedSudo: false,
     }))
+    mockAddCCometixLineConfig.mockReset()
+    mockHasCCometixLineConfig.mockReset()
   })
 
   afterEach(() => {
@@ -183,6 +192,151 @@ describe('cCometixLine installer', () => {
       expect(wrapCommandWithSudo).toHaveBeenCalledWith('npm', ['install', '-g', '@cometix/ccline'])
       expect(mockExec).toHaveBeenCalledWith('sudo npm install -g @cometix/ccline', expect.any(Function))
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('sudo'))
+    })
+
+    it('should handle update failure when already installed', async () => {
+      const mockExec = vi.mocked(exec)
+      mockExec
+        .mockImplementationOnce((_command, callback: any) => {
+          // First call - check if installed (returns true)
+          callback(null, 'ccline@1.0.0', '')
+          return {} as any
+        })
+        .mockImplementationOnce((_command, callback: any) => {
+          // Second call - update fails
+          const error = new Error('Update failed')
+          callback(error, '', 'npm ERR! Update failed')
+          return {} as any
+        })
+
+      mockHasCCometixLineConfig.mockReturnValue(true)
+
+      await installCometixLine()
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('CCometixLine is already installed'))
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to install/update CCometixLine'))
+    })
+
+    it('should add config when not present after detecting already installed', async () => {
+      const mockExec = vi.mocked(exec)
+      mockExec
+        .mockImplementationOnce((_command, callback: any) => {
+          // First call - check if installed (returns true)
+          callback(null, 'ccline@1.0.0', '')
+          return {} as any
+        })
+        .mockImplementationOnce((_command, callback: any) => {
+          // Second call - update succeeds
+          callback(null, 'updated 1 package', '')
+          return {} as any
+        })
+
+      mockHasCCometixLineConfig.mockReturnValue(false)
+      mockAddCCometixLineConfig.mockReturnValue(true)
+
+      await installCometixLine()
+
+      expect(mockHasCCometixLineConfig).toHaveBeenCalled()
+      expect(mockAddCCometixLineConfig).toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('statusLine configured'))
+    })
+
+    it('should handle config addition failure when already installed', async () => {
+      const mockExec = vi.mocked(exec)
+      mockExec
+        .mockImplementationOnce((_command, callback: any) => {
+          // First call - check if installed (returns true)
+          callback(null, 'ccline@1.0.0', '')
+          return {} as any
+        })
+        .mockImplementationOnce((_command, callback: any) => {
+          // Second call - update succeeds
+          callback(null, 'updated 1 package', '')
+          return {} as any
+        })
+
+      mockHasCCometixLineConfig.mockReturnValue(false)
+      mockAddCCometixLineConfig.mockImplementation(() => {
+        throw new Error('Config write failed')
+      })
+
+      await installCometixLine()
+
+      expect(mockAddCCometixLineConfig).toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to configure statusLine'))
+    })
+
+    it('should skip config addition when already configured', async () => {
+      const mockExec = vi.mocked(exec)
+      mockExec
+        .mockImplementationOnce((_command, callback: any) => {
+          // First call - check if installed (returns true)
+          callback(null, 'ccline@1.0.0', '')
+          return {} as any
+        })
+        .mockImplementationOnce((_command, callback: any) => {
+          // Second call - update succeeds
+          callback(null, 'updated 1 package', '')
+          return {} as any
+        })
+
+      mockHasCCometixLineConfig.mockReturnValue(true)
+
+      await installCometixLine()
+
+      expect(mockHasCCometixLineConfig).toHaveBeenCalled()
+      expect(mockAddCCometixLineConfig).not.toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('statusLine already configured'))
+    })
+
+    it('should add config after fresh installation', async () => {
+      const mockExec = vi.mocked(exec)
+      mockExec
+        .mockImplementationOnce((_command, callback: any) => {
+          // First call - check if installed (returns false)
+          const error = new Error('Package not found')
+          callback(error, '', 'npm ERR! 404 Not Found')
+          return {} as any
+        })
+        .mockImplementationOnce((_command, callback: any) => {
+          // Second call - install succeeds
+          callback(null, 'added 1 package', '')
+          return {} as any
+        })
+
+      mockAddCCometixLineConfig.mockReturnValue(true)
+
+      await installCometixLine()
+
+      expect(mockAddCCometixLineConfig).toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('CCometixLine installed successfully'))
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('statusLine configured'))
+    })
+
+    it('should handle config addition failure after fresh installation', async () => {
+      const mockExec = vi.mocked(exec)
+      mockExec
+        .mockImplementationOnce((_command, callback: any) => {
+          // First call - check if installed (returns false)
+          const error = new Error('Package not found')
+          callback(error, '', 'npm ERR! 404 Not Found')
+          return {} as any
+        })
+        .mockImplementationOnce((_command, callback: any) => {
+          // Second call - install succeeds
+          callback(null, 'added 1 package', '')
+          return {} as any
+        })
+
+      mockAddCCometixLineConfig.mockImplementation(() => {
+        throw new Error('Config write failed')
+      })
+
+      await installCometixLine()
+
+      expect(mockAddCCometixLineConfig).toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to configure statusLine'))
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('manually add statusLine configuration'))
     })
   })
 })

@@ -26,7 +26,7 @@ import { writeFileAtomicAsync } from '../fs-operations.js'
  * Points to the official CCJK marketplace registry.
  * Can be overridden via configuration.
  */
-const DEFAULT_REGISTRY_URL = 'https://registry.ccjk.dev/v1'
+const DEFAULT_REGISTRY_URL = 'https://registry.api.claudehome.cn/v1'
 
 /**
  * Default cache configuration

@@ -47,7 +47,7 @@ export const CCJK_CLOUD_PLUGINS_CACHE_FILE = join(CCJK_CLOUD_PLUGINS_CACHE_DIR, 
 export const CCJK_CLOUD_PLUGINS_INSTALLED_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'installed')
 
 // Cloud API configuration
-export const CCJK_CLOUD_API_URL = 'https://api.ccjk.dev/v1'
+export const CCJK_CLOUD_API_URL = 'https://api.api.claudehome.cn/v1'
 export const CCJK_CLOUD_PLUGINS_API = `${CCJK_CLOUD_API_URL}/plugins`
 
 // Cloud plugins cache configuration

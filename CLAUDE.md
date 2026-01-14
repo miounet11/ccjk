@@ -490,6 +490,140 @@ graph TD
 - **Haiku**: Fast response for template processing and simple operations
 - **Inherit**: Cost-effective for DevOps tasks that don't require specialized models
 
+## 🔧 Tool Selection Strategy | 工具选择策略
+
+### Browser Automation Tool Priority | 浏览器自动化工具优先级
+
+> **核心原则**: Agent Browser 优先于 Playwright MCP
+
+当需要进行网页自动化、浏览器控制、UI 测试或网页抓取时，**必须优先使用 `agent-browser` CLI 工具**，而不是 Playwright MCP。
+
+#### Why Agent Browser First? | 为什么优先 Agent Browser？
+
+| 对比项 | Agent Browser (推荐) | Playwright MCP |
+|--------|---------------------|----------------|
+| **配置** | 零配置，开箱即用 | 需要 MCP JSON 配置 |
+| **内存** | 极小 (~10MB) | 重量级 (200-500MB) |
+| **速度** | 原生 Rust CLI | Node.js 开销 |
+| **AI 原生** | 基于引用 (@e1, @e2) | CSS 选择器 |
+| **Linux 兼容** | ✅ 完美支持 | ⚠️ 需要额外依赖 |
+| **学习曲线** | 5 分钟 | 数小时 |
+
+#### Tool Selection Rules | 工具选择规则
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              浏览器自动化工具选择决策树                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  需要浏览器自动化？                                               │
+│       │                                                          │
+│       ▼                                                          │
+│  ┌─────────────────┐                                            │
+│  │ 使用 agent-browser │  ← 默认选择（通过 Bash 调用）             │
+│  │ (CLI 工具)        │                                           │
+│  └─────────────────┘                                            │
+│       │                                                          │
+│       ▼                                                          │
+│  agent-browser 不可用或失败？                                     │
+│       │                                                          │
+│       ├── 是 → 回退到 Playwright MCP (mcp__Playwright__*)        │
+│       │                                                          │
+│       └── 否 → 继续使用 agent-browser                            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Agent Browser Quick Reference | 快速参考
+
+```bash
+# 核心工作流
+agent-browser open <url>           # 导航到 URL
+agent-browser snapshot -i          # 获取交互元素（带引用）
+agent-browser click @e1            # 通过引用点击
+agent-browser fill @e2 "text"      # 通过引用填充
+agent-browser screenshot page.png  # 截图
+agent-browser close                # 关闭浏览器
+
+# 等待操作
+agent-browser wait 2000            # 等待 2 秒
+agent-browser wait @e1             # 等待元素出现
+agent-browser wait --text "Success" # 等待文本出现
+
+# 获取信息
+agent-browser get text @e1         # 获取文本内容
+agent-browser get url              # 获取当前 URL
+agent-browser get title            # 获取页面标题
+```
+
+#### When to Use Playwright MCP | 何时使用 Playwright MCP
+
+仅在以下情况使用 Playwright MCP：
+1. `agent-browser` 命令不可用（未安装）
+2. 需要 Playwright 特有的高级功能（如网络拦截、多标签页复杂操作）
+3. 用户明确要求使用 Playwright
+
+#### Environment-Specific Guidance | 环境特定指导
+
+| 环境 | 首选工具 | 原因 |
+|------|----------|------|
+| **Linux (服务器/CI)** | `agent-browser` | 无 GUI 依赖，轻量级 |
+| **Linux (桌面)** | `agent-browser` | 更简单的依赖管理 |
+| **macOS** | `agent-browser` | 两者都可用，但 agent-browser 更轻量 |
+| **Windows** | `agent-browser` | 避免 Playwright 的 Windows 路径问题 |
+| **Termux** | `agent-browser` | 唯一可行的选择 |
+
+#### Browser Installation for China Users | 中国用户浏览器安装
+
+> **重要**: 中国用户下载 Playwright 浏览器时，默认 CDN 可能很慢或无法访问。使用国内镜像可大幅提升下载速度。
+
+**使用淘宝镜像安装浏览器**:
+
+```bash
+# 设置环境变量使用国内镜像
+export PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright
+
+# 然后安装浏览器
+npx playwright install chromium
+
+# 或者一行命令
+PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright npx playwright install chromium
+```
+
+**永久配置（推荐）**:
+
+```bash
+# 添加到 ~/.bashrc 或 ~/.zshrc
+echo 'export PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**可用的国内镜像**:
+
+| 镜像源 | 环境变量值 | 稳定性 |
+|--------|-----------|--------|
+| **淘宝镜像** (推荐) | `https://npmmirror.com/mirrors/playwright` | ⭐⭐⭐ |
+| **华为云镜像** | `https://repo.huaweicloud.com/playwright` | ⭐⭐ |
+
+**验证安装**:
+
+```bash
+# 检查浏览器是否安装成功
+agent-browser open https://example.com && agent-browser snapshot -i -c && agent-browser close
+```
+
+### Other Tool Preferences | 其他工具偏好
+
+| 任务类型 | 首选工具 | 备选工具 |
+|----------|----------|----------|
+| 文件搜索 | `Glob`, `Grep` | `Bash find/grep` |
+| 文件读写 | `Read`, `Write`, `Edit` | `Bash cat/echo` |
+| 代码执行 | `Bash` | - |
+| 网页搜索 | `WebSearch` | `mcp__exa` |
+| 文档查询 | `mcp__context7` | `WebFetch` |
+
+---
+
 ## AI Usage Guidelines
 
 ### Key Architecture Patterns

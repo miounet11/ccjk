@@ -30,10 +30,10 @@ export const DEVICE_CONFIG_FILE = join(CLOUD_CONFIG_DIR, 'device.json')
 export const CLOUD_STATE_FILE = join(CLOUD_CONFIG_DIR, 'state.json')
 
 /** 云服务 API 端点 */
-export const CLOUD_API_ENDPOINT = 'https://api.ccjk.dev/v1'
+export const CLOUD_API_ENDPOINT = 'https://api.api.claudehome.cn/v1'
 
 /** 云配置查看页面（预留，初期隐藏） */
-export const CLOUD_DASHBOARD_URL = 'https://cloud.ccjk.dev/dashboard'
+export const CLOUD_DASHBOARD_URL = 'https://cloud.api.claudehome.cn/dashboard'
 
 /** 自动同步间隔（毫秒）- 默认 30 分钟 */
 export const AUTO_SYNC_INTERVAL = 30 * 60 * 1000

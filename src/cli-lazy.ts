@@ -433,6 +433,25 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'context <action> [id]',
+    description: '🧠 Context Compression - Intelligent context management',
+    aliases: ['ctx'],
+    tier: 'extended',
+    options: [
+      { flags: '--session, -s <id>', description: 'Session ID to operate on' },
+      { flags: '--format, -f <format>', description: 'Output format (json, text)' },
+      { flags: '--verbose, -v', description: 'Verbose output' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown, id: unknown) => {
+        const actionStr = action as string
+        const idStr = id as string | undefined
+        const { contextCommand } = await import('./context-compression/commands/context')
+        await contextCommand(actionStr, idStr, options)
+      }
+    },
+  },
+  {
     name: 'api [action] [...args]',
     description: 'Configure API providers',
     tier: 'extended',
@@ -664,6 +683,36 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
 
+  // ==================== Context Compression System ====================
+  {
+    name: 'claude',
+    description: 'Transparent claude command wrapper with context compression',
+    tier: 'extended',
+    options: [
+      { flags: '--debug', description: 'Enable debug output' },
+      { flags: '--no-wrap', description: 'Disable wrapping (pass through)' },
+    ],
+    loader: async () => {
+      const { claudeWrapper } = await import('./commands/claude-wrapper')
+      return async (options) => {
+        // Extract all arguments after 'claude' from process.argv
+        const argv = process.argv
+        const claudeIndex = argv.findIndex(arg => arg === 'claude')
+
+        // Get all args after 'claude', filtering out our wrapper options
+        const rawArgs = claudeIndex >= 0 ? argv.slice(claudeIndex + 1) : []
+        const args = rawArgs.filter(arg => arg !== '--debug' && arg !== '--no-wrap')
+
+        await claudeWrapper(args, {
+          debug: options.debug as boolean,
+          noWrap: options.noWrap as boolean,
+        })
+      }
+    },
+  },
+  // context 命令已在上面定义（第 435 行），使用 context-compression/commands/context.ts
+  // shell hook 管理功能通过 'ccjk context hook install/uninstall' 子命令访问
+
   // Deprecated commands removed in v2.x cleanup
   // - shencha: replaced by 'ccjk doctor'
   // - features: replaced by 'ccjk' menu
@@ -766,19 +815,28 @@ export async function setupCommandsLazy(cli: CAC): Promise<void> {
       }
     }
 
-    // 通用选项
-    command.option('--lang, -l <lang>', 'Display language (zh-CN, en)')
-    command.option('--all-lang, -g <lang>', 'Set all language parameters')
+    // 通用选项（除了 claude 命令，它需要透传所有选项）
+    if (cmd.name !== 'claude') {
+      command.option('--lang, -l <lang>', 'Display language (zh-CN, en)')
+      command.option('--all-lang, -g <lang>', 'Set all language parameters')
+    }
+    else {
+      // claude 命令允许未知选项（透传给实际的 claude CLI）
+      command.allowUnknownOptions()
+    }
 
     // 注册动作（懒加载）
     command.action(async (...args: unknown[]) => {
       // 提取选项（最后一个参数）
       const options = args[args.length - 1] as CliOptions
 
-      // 解析语言
-      const langOptions = extractLanguageOptions(options)
-      const lang = await resolveLanguage(langOptions)
-      await initI18nLazy(lang)
+      // claude 命令跳过语言初始化（需要快速透传）
+      if (cmd.name !== 'claude') {
+        // 解析语言
+        const langOptions = extractLanguageOptions(options)
+        const lang = await resolveLanguage(langOptions)
+        await initI18nLazy(lang)
+      }
 
       // 显示废弃警告
       if (cmd.tier === 'deprecated' && cmd.deprecationMessage) {

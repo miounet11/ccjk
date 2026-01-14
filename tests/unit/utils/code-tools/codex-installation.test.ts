@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as platform from '../../../../src/utils/platform'
 
 // Mock dependencies
-vi.mock('../../i18n')
+vi.mock('../../../../src/i18n', () => ({
+  initI18n: vi.fn().mockResolvedValue(undefined),
+  ensureI18nInitialized: vi.fn().mockResolvedValue(undefined),
+  i18n: { t: vi.fn((key: string) => key) },
+}))
 
 const installerMock = vi.hoisted(() => ({
   installCodex: vi.fn(),

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ccjk.dev/schemas/agent-templates.json",
+  "$schema": "https://api.claudehome.cn/schemas/agent-templates.json",
   "version": "1.0.0",
   "templates": [
     {

@@ -237,7 +237,7 @@ const result = await mockClient.getPopularPlugins()
 - Integrates with marketplace types from `/src/types/marketplace.ts`
 
 ### API Endpoints
-- Base URL: `https://api.ccjk.dev/v1/plugins`
+- Base URL: `https://api.api.claudehome.cn/v1/plugins`
 - RESTful API design
 - JSON request/response format
 

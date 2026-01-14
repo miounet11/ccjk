@@ -34,7 +34,7 @@ import { createCloudClient } from './cloud-plugins'
 
 // Create a client instance
 const client = createCloudClient({
-  baseUrl: 'https://api.ccjk.dev/v1/plugins',
+  baseUrl: 'https://api.api.claudehome.cn/v1/plugins',
   apiKey: 'your-api-key',
   enableLogging: true
 })
@@ -96,7 +96,7 @@ new CloudRecommendationClient(options?: CloudClientOptions)
 ```
 
 **Options:**
-- `baseUrl?: string` - Base URL for the cloud API (default: `https://api.ccjk.dev/v1/plugins`)
+- `baseUrl?: string` - Base URL for the cloud API (default: `https://api.api.claudehome.cn/v1/plugins`)
 - `apiKey?: string` - API authentication key
 - `timeout?: number` - Request timeout in milliseconds (default: 30000)
 - `offlineMode?: boolean` - Enable offline mode (default: false)
@@ -460,7 +460,7 @@ describe('CloudRecommendationClient', () => {
 
 ## API Endpoint Reference
 
-Default base URL: `https://api.ccjk.dev/v1/plugins`
+Default base URL: `https://api.api.claudehome.cn/v1/plugins`
 
 - `POST /recommendations` - Get personalized recommendations
 - `GET /search` - Search plugins

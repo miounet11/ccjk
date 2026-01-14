@@ -27,6 +27,7 @@
   "packageNotFound": "Package '{{name}}' not found",
   "packageNotInstalled": "Package '{{name}}' is not installed",
   "packageHasDependents": "Cannot uninstall '{{name}}' because other packages depend on it: {{dependents}}",
+  "noDownloadUrl": "Package '{{name}}' does not have a download URL",
   "incompatibleTool": "Warning: This package may not be compatible with {{tool}}. Supported tools: {{supported}}",
   "updateHint": "Run 'npx ccjk marketplace update <package>' to update a specific package",
   "updateCheckFailed": "Failed to check for updates",

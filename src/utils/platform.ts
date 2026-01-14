@@ -432,6 +432,74 @@ export async function findCommandPath(command: string): Promise<string | null> {
 }
 
 /**
+ * Find the real binary path of a command, bypassing shell functions/aliases
+ * This is useful when a shell function wraps a command and we need the actual binary
+ * Returns null if command is not found
+ */
+export async function findRealCommandPath(command: string): Promise<string | null> {
+  const platform = getPlatform()
+
+  // On Unix-like systems, use 'type -P' to bypass shell functions
+  if (platform !== 'windows') {
+    try {
+      // Use bash -c to ensure we have access to 'type -P'
+      const res = await exec('bash', ['-c', `type -P ${command}`])
+      if (res.exitCode === 0 && res.stdout) {
+        const path = res.stdout.trim()
+        if (path && nodeFs.existsSync(path)) {
+          return path
+        }
+      }
+    }
+    catch {
+      // Continue to fallback
+    }
+  }
+
+  // Fallback: manually check common paths
+  const home = homedir()
+  const commonPaths = [
+    `/usr/local/bin/${command}`,
+    `/opt/homebrew/bin/${command}`,
+    `/usr/bin/${command}`,
+    `/bin/${command}`,
+    `${home}/.local/bin/${command}`,
+  ]
+
+  for (const path of commonPaths) {
+    if (nodeFs.existsSync(path)) {
+      return path
+    }
+  }
+
+  // Check Homebrew paths on macOS
+  if (platform === 'macos') {
+    const homebrewPaths = await getHomebrewCommandPaths(command)
+    for (const path of homebrewPaths) {
+      if (nodeFs.existsSync(path)) {
+        return path
+      }
+    }
+  }
+
+  // Check Termux paths
+  if (isTermux()) {
+    const termuxPrefix = getTermuxPrefix()
+    const termuxPaths = [
+      `${termuxPrefix}/bin/${command}`,
+      `${termuxPrefix}/usr/bin/${command}`,
+    ]
+    for (const path of termuxPaths) {
+      if (nodeFs.existsSync(path)) {
+        return path
+      }
+    }
+  }
+
+  return null
+}
+
+/**
  * Get recommended install methods for a code tool based on current platform
  * Returns methods in priority order (most recommended first)
  */

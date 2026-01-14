@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ccjk.dev/schemas/plugins-registry.json",
+  "$schema": "https://api.claudehome.cn/schemas/plugins-registry.json",
   "version": "1.0.0",
   "lastUpdated": "2026-01-11T00:00:00Z",
   "plugins": [

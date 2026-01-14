@@ -222,7 +222,7 @@ export interface CloudApiResponse<T = unknown> {
  * @example
  * ```typescript
  * const client = new CloudHooksSyncClient({
- *   baseUrl: 'https://api.ccjk.dev/v1/hooks',
+ *   baseUrl: 'https://api.api.claudehome.cn/v1/hooks',
  *   apiKey: 'your-api-key'
  * })
  *
@@ -248,7 +248,7 @@ export class CloudHooksSyncClient {
     timeout?: number
     enableLogging?: boolean
   } = {}) {
-    this.baseUrl = options.baseUrl || 'https://api.ccjk.dev/v1/hooks'
+    this.baseUrl = options.baseUrl || 'https://api.api.claudehome.cn/v1/hooks'
     this.apiKey = options.apiKey
     this.timeout = options.timeout || 30000
     this.enableLogging = options.enableLogging || false

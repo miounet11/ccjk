@@ -6,6 +6,13 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
+    // Run tests sequentially to avoid race conditions with file system operations
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
     exclude: [
       '**/node_modules/**',
       '**/dist/**',

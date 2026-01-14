@@ -17,6 +17,9 @@ const execAsync = promisify(exec)
 export interface SuperpowersInstallOptions {
   lang: SupportedLang
   skipPrompt?: boolean
+  enableCloudSync?: boolean
+  cloudProvider?: 'github-gist' | 'webdav' | 'local'
+  cloudCredentials?: Record<string, string>
 }
 
 export interface SuperpowersStatus {
@@ -91,7 +94,7 @@ export async function checkSuperpowersInstalled(): Promise<SuperpowersStatus> {
  * Note: Claude Code's /plugin command is an internal slash command and cannot be called via CLI.
  * Therefore, we use Git clone as the primary installation method.
  */
-export async function installSuperpowers(_options: SuperpowersInstallOptions): Promise<SuperpowersInstallResult> {
+export async function installSuperpowers(options: SuperpowersInstallOptions): Promise<SuperpowersInstallResult> {
   try {
     // Check if already installed
     const status = await checkSuperpowersInstalled()
@@ -105,7 +108,21 @@ export async function installSuperpowers(_options: SuperpowersInstallOptions): P
     // Install via Git clone (primary method)
     // Note: "claude /plugin" is NOT a valid CLI command - /plugin is an internal slash command
     // that only works inside Claude Code's interactive session
-    return installSuperpowersViaGit()
+    const result = await installSuperpowersViaGit()
+
+    // Configure cloud sync if requested
+    if (result.success && options.enableCloudSync && options.cloudProvider && options.cloudCredentials) {
+      try {
+        const { configureCloudSync } = await import('./cloud-sync')
+        await configureCloudSync(options.cloudProvider, options.cloudCredentials)
+        console.log(i18n.t('superpowers:cloudSync.configured'))
+      }
+      catch (error) {
+        console.warn(i18n.t('superpowers:cloudSync.configFailed'), error)
+      }
+    }
+
+    return result
   }
   catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)

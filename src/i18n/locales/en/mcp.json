@@ -42,7 +42,18 @@
     "searchKeywordRequired": "Search keyword required",
     "installNameRequired": "Server name required",
     "uninstallNameRequired": "Server name required for uninstall",
-    "unknownAction": "Unknown action: {{action}}"
+    "unknownAction": "Unknown action: {{action}}",
+    "apiUnavailable": "⚠ Marketplace API unavailable",
+    "usingLocalData": "Using local fallback data",
+    "moreResults": "Showing {{shown}} of {{total}} results. Use --limit to see more.",
+    "ratings": "ratings",
+    "noTrending": "No trending packages available",
+    "recommendedForYou": "📦 Recommended for You",
+    "basedOnInstalled": "Based on your {{count}} installed package(s)",
+    "noInstalledForRecommendations": "No installed packages found",
+    "installSomeFirst": "Install some packages first to get personalized recommendations",
+    "noRecommendations": "No recommendations available at this time",
+    "recommendationsFailed": "Failed to fetch recommendations"
   },
   "installer": {
     "serviceNotFound": "MCP service not found: {{id}}",

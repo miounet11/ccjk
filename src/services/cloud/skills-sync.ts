@@ -32,7 +32,7 @@ import { parseSkillMdFile } from '../../utils/skill-md/parser.js'
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = process.env.CCJK_CLOUD_API_URL || 'https://api.ccjk.dev/v1'
+const CLOUD_API_BASE_URL = process.env.CCJK_CLOUD_API_URL || 'https://api.api.claudehome.cn/v1'
 const SYNC_STATE_FILE = join(CCJK_CONFIG_DIR, 'skills-sync-state.json')
 const DEFAULT_TIMEOUT = 30000 // 30 seconds
 

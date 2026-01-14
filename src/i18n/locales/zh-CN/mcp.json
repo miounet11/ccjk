@@ -42,7 +42,18 @@
     "searchKeywordRequired": "需要搜索关键词",
     "installNameRequired": "需要服务器名称",
     "uninstallNameRequired": "卸载需要服务器名称",
-    "unknownAction": "未知操作：{{action}}"
+    "unknownAction": "未知操作：{{action}}",
+    "apiUnavailable": "⚠ 市场 API 不可用",
+    "usingLocalData": "使用本地备用数据",
+    "moreResults": "显示 {{shown}}/{{total}} 个结果。使用 --limit 查看更多。",
+    "ratings": "评分",
+    "noTrending": "暂无热门包",
+    "recommendedForYou": "📦 为您推荐",
+    "basedOnInstalled": "基于您已安装的 {{count}} 个包",
+    "noInstalledForRecommendations": "未找到已安装的包",
+    "installSomeFirst": "请先安装一些包以获取个性化推荐",
+    "noRecommendations": "暂无推荐",
+    "recommendationsFailed": "获取推荐失败"
   },
   "installer": {
     "serviceNotFound": "未找到 MCP 服务：{{id}}",
