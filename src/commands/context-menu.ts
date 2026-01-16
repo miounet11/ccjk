@@ -229,30 +229,22 @@ async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'z
   const recommendedIds = getRecommendedRules(context)
   const applicableRules = getApplicableRules(context.type)
 
-  // Show recommended rules
-  console.log(ansis.bold(isZh ? '推荐的规则：' : 'Recommended Rules:'))
-  for (const rule of applicableRules) {
-    const isRecommended = recommendedIds.includes(rule.id)
-    const icon = isRecommended ? ansis.green('★') : ansis.dim('○')
-    const name = isZh ? rule.nameZh : rule.name
-    const desc = isZh ? rule.descriptionZh : rule.description
-    console.log(`  ${icon} ${name} - ${ansis.dim(desc)}`)
-  }
-  console.log('')
-
-  // Ask user to confirm
-  const { confirm } = await inquirer.prompt<{ confirm: boolean }>([
+  // Let user select rules with recommended ones pre-selected
+  const { selectedRules } = await inquirer.prompt<{ selectedRules: string[] }>([
     {
-      type: 'confirm',
-      name: 'confirm',
-      message: isZh
-        ? '使用推荐规则生成 CLAUDE.md？'
-        : 'Generate CLAUDE.md with recommended rules?',
-      default: true,
+      type: 'checkbox',
+      name: 'selectedRules',
+      message: isZh ? '选择要应用的规则（推荐规则已预选）' : 'Select rules to apply (recommended rules pre-selected)',
+      choices: applicableRules.map(rule => ({
+        name: `${recommendedIds.includes(rule.id) ? ansis.green('★') : ' '} ${isZh ? rule.nameZh : rule.name} - ${ansis.dim(isZh ? rule.descriptionZh : rule.description)}`,
+        value: rule.id,
+        checked: recommendedIds.includes(rule.id),
+      })),
     },
   ])
 
-  if (!confirm) {
+  if (selectedRules.length === 0) {
+    console.log(ansis.yellow(isZh ? '未选择任何规则' : 'No rules selected'))
     return
   }
 
@@ -320,7 +312,7 @@ async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'z
     if (overwrite === 'merge') {
       const existingContent = readContextFile(targetFile.path)
       if (existingContent) {
-        const mergedContent = mergeContextContent(existingContent, recommendedIds, lang)
+        const mergedContent = mergeContextContent(existingContent, selectedRules, lang)
         const success = await writeContextFile(targetFile.path, mergedContent)
 
         if (success) {
@@ -335,7 +327,7 @@ async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'z
   }
 
   // Generate new content
-  const content = generateContextContent(context, recommendedIds, lang)
+  const content = generateContextContent(context, selectedRules, lang)
   const success = await writeContextFile(targetFile.path, content)
 
   if (success) {

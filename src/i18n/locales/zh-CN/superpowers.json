@@ -26,8 +26,15 @@
   "status.path": "路径: {path}",
   "menu.title": "Superpowers 管理",
   "menu.install": "安装 Superpowers",
+  "menu.installDesc": "安装 Superpowers 技能系统",
   "menu.uninstall": "卸载 Superpowers",
+  "menu.uninstallDesc": "从系统中移除 Superpowers",
   "menu.update": "更新 Superpowers",
+  "menu.updateDesc": "更新到最新版本",
+  "menu.checkStatus": "检查状态",
+  "menu.checkStatusDesc": "查看安装状态和版本",
+  "menu.viewSkills": "查看可用技能",
+  "menu.viewSkillsDesc": "浏览所有可用技能",
   "menu.status": "检查状态",
   "menu.skills": "查看可用技能",
   "menu.back": "返回主菜单",
@@ -102,5 +109,9 @@
   "prompts.confirmUpdate": "即将更新 Superpowers 到最新版本，是否继续？",
   "prompts.selectInstallMethod": "选择安装方式:",
   "prompts.installMethods.marketplace": "通过 Claude Code 市场安装（推荐）",
-  "prompts.installMethods.git": "通过 Git 克隆安装"
+  "prompts.installMethods.git": "通过 Git 克隆安装",
+  "install.selectMethod": "选择安装方式:",
+  "install.methodNpm": "通过 npm 安装（推荐）",
+  "install.methodGit": "通过 Git 克隆安装",
+  "uninstall.confirm": "确定要卸载 Superpowers 吗？"
 }

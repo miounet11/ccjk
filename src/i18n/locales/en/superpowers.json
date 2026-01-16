@@ -26,8 +26,15 @@
   "status.path": "Path: {path}",
   "menu.title": "Superpowers Management",
   "menu.install": "Install Superpowers",
+  "menu.installDesc": "Install the Superpowers skill system",
   "menu.uninstall": "Uninstall Superpowers",
+  "menu.uninstallDesc": "Remove Superpowers from your system",
   "menu.update": "Update Superpowers",
+  "menu.updateDesc": "Update to the latest version",
+  "menu.checkStatus": "Check Status",
+  "menu.checkStatusDesc": "View installation status and version",
+  "menu.viewSkills": "View Available Skills",
+  "menu.viewSkillsDesc": "Browse all available skills",
   "menu.status": "Check Status",
   "menu.skills": "View Available Skills",
   "menu.back": "Back to Main Menu",
@@ -102,5 +109,9 @@
   "prompts.confirmUpdate": "This will update Superpowers to the latest version. Continue?",
   "prompts.selectInstallMethod": "Select installation method:",
   "prompts.installMethods.marketplace": "Via Claude Code Marketplace (recommended)",
-  "prompts.installMethods.git": "Via Git Clone"
+  "prompts.installMethods.git": "Via Git Clone",
+  "install.selectMethod": "Select installation method:",
+  "install.methodNpm": "Via npm (recommended)",
+  "install.methodGit": "Via Git clone",
+  "uninstall.confirm": "Are you sure you want to uninstall Superpowers?"
 }
