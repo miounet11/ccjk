@@ -410,4 +410,118 @@ export class CloudPluginManager {
       this.cache.updateCache(result.data)
     }
   }
+
+  /**
+   * Get plugin info (alias for getPlugin with simplified return)
+   */
+  async getPluginInfo(id: string): Promise<CloudPlugin | null> {
+    const result = await this.getPlugin(id)
+    return result.success && result.data ? result.data : null
+  }
+
+  /**
+   * Get featured/popular plugins
+   */
+  async getFeaturedPlugins(limit = 10): Promise<CloudPlugin[]> {
+    const result = await this.getPopularPlugins(limit)
+    return result.success && result.data ? result.data : []
+  }
+
+  /**
+   * Update a single plugin
+   */
+  async updatePlugin(id: string): Promise<{
+    success: boolean
+    pluginId: string
+    updated: boolean
+    oldVersion?: string
+    newVersion?: string
+    error?: string
+  }> {
+    // Check if installed
+    if (!this.isPluginInstalled(id)) {
+      return {
+        success: false,
+        pluginId: id,
+        updated: false,
+        error: 'Plugin not installed',
+      }
+    }
+
+    // Get current version
+    const installDir = join(CCJK_CLOUD_PLUGINS_INSTALLED_DIR, id)
+    const metaPath = join(installDir, 'plugin.json')
+    let currentVersion = '0.0.0'
+
+    try {
+      const meta = JSON.parse(readFileSync(metaPath, 'utf-8'))
+      currentVersion = meta.version || '0.0.0'
+    }
+    catch {
+      // Ignore
+    }
+
+    // Check for updates
+    const cloudResult = await this.getPlugin(id)
+    if (!cloudResult.success || !cloudResult.data) {
+      return {
+        success: false,
+        pluginId: id,
+        updated: false,
+        error: cloudResult.error || 'Failed to fetch plugin info',
+      }
+    }
+
+    const cloudPlugin = cloudResult.data
+    if (cloudPlugin.version === currentVersion) {
+      return {
+        success: true,
+        pluginId: id,
+        updated: false,
+        oldVersion: currentVersion,
+        newVersion: currentVersion,
+      }
+    }
+
+    // Update
+    const installResult = await this.installPlugin(id, { force: true })
+    if (!installResult.success) {
+      return {
+        success: false,
+        pluginId: id,
+        updated: false,
+        error: installResult.error,
+      }
+    }
+
+    return {
+      success: true,
+      pluginId: id,
+      updated: true,
+      oldVersion: currentVersion,
+      newVersion: cloudPlugin.version,
+    }
+  }
+
+  /**
+   * Update all installed plugins
+   */
+  async updateAllPlugins(): Promise<Array<{
+    success: boolean
+    pluginId: string
+    updated: boolean
+    oldVersion?: string
+    newVersion?: string
+    error?: string
+  }>> {
+    const installed = this.getInstalledPlugins()
+    const results = []
+
+    for (const plugin of installed) {
+      const result = await this.updatePlugin(plugin.id)
+      results.push(result)
+    }
+
+    return results
+  }
 }

@@ -1257,6 +1257,19 @@ async function registerSpecialCommands(cli: CAC): Promise<void> {
       await marketplaceMenu(action, options)
     })
 
+  // ==================== Plugin 命令（接管 /plugin） ====================
+  // 这个命令用于处理 shell hook 拦截的 /plugin 命令
+  cli
+    .command('plugin [action] [...args]', 'Plugin marketplace (install/search/list)')
+    .option('--verbose, -v', 'Show verbose output')
+    .option('--force, -f', 'Force operation')
+    .option('--version, -V <version>', 'Specify plugin version')
+    .action(async (action, args, _options) => {
+      const { handlePluginCommand } = await import('./commands/plugin')
+      const allArgs = [action, ...(args || [])].filter(Boolean)
+      await handlePluginCommand(allArgs)
+    })
+
   // ==================== Interview 快捷方式（合并到主命令） ====================
   // quick 和 deep 作为 interview 的选项，不再单独注册
   // 保留向后兼容

@@ -65,14 +65,20 @@ export function generateHookScript(shellType: ShellType): string {
       return `
 # CCJK Context Compression Hook - DO NOT EDIT THIS BLOCK
 # This hook enables transparent context compression for claude commands
-# Native slash commands (/plugin, /doctor, etc.) are passed through directly
+# Native slash commands are handled by CCJK plugin system
 claude() {
   # Find the real claude command path (bypass this function)
   local real_claude
   real_claude=$(command -v claude 2>/dev/null)
 
-  # If first arg starts with '/', it's a native slash command - pass through directly
-  # Examples: /plugin, /doctor, /config, /permissions, /allowed-tools, etc.
+  # Handle /plugin command - use CCJK's plugin marketplace
+  if [[ "\$1" == "/plugin" ]]; then
+    shift  # Remove /plugin
+    ${ccjkPath} plugin "$@"
+    return $?
+  fi
+
+  # Other native slash commands (/doctor, /config, etc.) - pass through directly
   if [[ "\$1" == /* ]]; then
     "\$real_claude" "$@"
     return $?
@@ -97,12 +103,19 @@ claude() {
       return `
 # CCJK Context Compression Hook - DO NOT EDIT THIS BLOCK
 # This hook enables transparent context compression for claude commands
-# Native slash commands (/plugin, /doctor, etc.) are passed through directly
+# Native slash commands are handled by CCJK plugin system
 function claude
   # Find the real claude command path
   set real_claude (command -v claude 2>/dev/null)
 
-  # If first arg starts with '/', it's a native slash command - pass through directly
+  # Handle /plugin command - use CCJK's plugin marketplace
+  if test "\$argv[1]" = "/plugin"
+    set -e argv[1]  # Remove /plugin
+    ${ccjkPath} plugin \$argv
+    return \$status
+  end
+
+  # Other native slash commands (/doctor, /config, etc.) - pass through directly
   if string match -q '/*' -- \$argv[1]
     \$real_claude \$argv
     return \$status
