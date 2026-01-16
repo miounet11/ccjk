@@ -32,10 +32,20 @@ const PASSTHROUGH_ARGS = new Set([
 
 /**
  * Check if args should bypass wrapper entirely
+ * This includes:
+ * - Special CLI flags (--help, --version, etc.)
+ * - Native slash commands (/plugin, /doctor, /config, etc.)
  */
 function shouldPassthrough(args: string[]): boolean {
   if (args.length === 0)
     return false
+
+  // Check for native slash commands (e.g., /plugin, /doctor, /config)
+  // These must be passed directly to claude without any wrapping
+  if (args[0]?.startsWith('/')) {
+    return true
+  }
+
   return args.some(arg => PASSTHROUGH_ARGS.has(arg))
 }
 
