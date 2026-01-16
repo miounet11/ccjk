@@ -1,3 +1,9 @@
+/**
+ * CCJK Logger - MUD Style
+ *
+ * Structured logging with terminal green aesthetics
+ */
+
 import ansis from 'ansis'
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
@@ -34,10 +40,11 @@ class Logger {
     return `${coloredPrefix} ${message}${dataStr}`
   }
 
+  /** MUD-style color scheme for log levels */
   private colorize(level: LogLevel, text: string): string {
     switch (level) {
       case 'debug': return ansis.gray(text)
-      case 'info': return ansis.blue(text)
+      case 'info': return ansis.green(text) // MUD green for info
       case 'warn': return ansis.yellow(text)
       case 'error': return ansis.red(text)
     }

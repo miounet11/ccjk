@@ -63,7 +63,7 @@ export function listHooks(_lang: SupportedLang = 'en', verbose: boolean = false)
       const enabledIcon = hook.enabled !== false ? '✓' : '✗'
       const asyncIcon = hook.async ? '⚡' : '⏱'
 
-      console.log(`    ${ansis.gray(`[${i + 1}]`)} ${enabledIcon} ${asyncIcon} ${ansis.cyan(hook.command)}`)
+      console.log(`    ${ansis.gray(`[${i + 1}]`)} ${enabledIcon} ${asyncIcon} ${ansis.green(hook.command)}`)
 
       if (verbose) {
         if (hook.description) {
@@ -271,12 +271,12 @@ export async function hooksCommand(
       console.log('')
       console.log(COLORS.primary(i18n.t('hooks:helpTitle')))
       console.log('')
-      console.log(ansis.cyan('  ccjk hooks list') + ansis.gray(` - ${i18n.t('hooks:helpList')}`))
-      console.log(ansis.cyan('  ccjk hooks add <type> <command>') + ansis.gray(` - ${i18n.t('hooks:helpAdd')}`))
-      console.log(ansis.cyan('  ccjk hooks remove <type> <command>') + ansis.gray(` - ${i18n.t('hooks:helpRemove')}`))
-      console.log(ansis.cyan('  ccjk hooks clear [type]') + ansis.gray(` - ${i18n.t('hooks:helpClear')}`))
-      console.log(ansis.cyan('  ccjk hooks enable') + ansis.gray(` - ${i18n.t('hooks:helpEnable')}`))
-      console.log(ansis.cyan('  ccjk hooks disable') + ansis.gray(` - ${i18n.t('hooks:helpDisable')}`))
+      console.log(ansis.green('  ccjk hooks list') + ansis.gray(` - ${i18n.t('hooks:helpList')}`))
+      console.log(ansis.green('  ccjk hooks add <type> <command>') + ansis.gray(` - ${i18n.t('hooks:helpAdd')}`))
+      console.log(ansis.green('  ccjk hooks remove <type> <command>') + ansis.gray(` - ${i18n.t('hooks:helpRemove')}`))
+      console.log(ansis.green('  ccjk hooks clear [type]') + ansis.gray(` - ${i18n.t('hooks:helpClear')}`))
+      console.log(ansis.green('  ccjk hooks enable') + ansis.gray(` - ${i18n.t('hooks:helpEnable')}`))
+      console.log(ansis.green('  ccjk hooks disable') + ansis.gray(` - ${i18n.t('hooks:helpDisable')}`))
       console.log('')
       console.log(ansis.gray(`  ${i18n.t('hooks:hookTypes')}:`))
       console.log(ansis.gray(`    ${Object.values(HookType).join(', ')}`))

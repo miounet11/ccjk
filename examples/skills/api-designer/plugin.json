@@ -1,0 +1,21 @@
+{
+  "id": "api-designer",
+  "name": {
+    "en": "API Designer",
+    "zh-CN": "API 设计师"
+  },
+  "description": {
+    "en": "Design RESTful APIs following industry best practices with comprehensive rules for URL design, HTTP methods, status codes, error handling, pagination, versioning, and authentication",
+    "zh-CN": "遵循行业最佳实践设计 RESTful API，包含 URL 设计、HTTP 方法、状态码、错误处理、分页、版本控制和认证的全面规则"
+  },
+  "version": "1.0.0",
+  "author": {
+    "name": "CCJK Team",
+    "url": "https://github.com/anthropics/ccjk"
+  },
+  "category": "api",
+  "tags": ["api", "rest", "restful", "design", "http", "backend", "web-services"],
+  "permissions": ["file:read", "shell:execute"],
+  "formatVersion": "2.0",
+  "license": "MIT"
+}

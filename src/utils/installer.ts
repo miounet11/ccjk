@@ -957,9 +957,9 @@ export function displayVerificationResult(result: VerificationResult, codeType: 
     if (result.error === 'PATH_UPDATE_NEEDED') {
       console.log(ansis.yellow(`\n⚠ ${i18n.t('installation:pathUpdateNeeded')}`))
       console.log(ansis.gray(`  ${i18n.t('installation:pathUpdateHint')}`))
-      console.log(ansis.cyan(`  export PATH="$HOME/.local/bin:$PATH"`))
+      console.log(ansis.green(`  export PATH="$HOME/.local/bin:$PATH"`))
       console.log(ansis.gray(`  ${i18n.t('installation:pathUpdatePermanent')}`))
-      console.log(ansis.cyan(`  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`))
+      console.log(ansis.green(`  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`))
     }
   }
   else {

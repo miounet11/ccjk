@@ -191,11 +191,11 @@ function displayMultipleInstallations(
     const sourceDisplay = getSourceDisplayName(activeInstallation.source, i18n)
     const statusColor = activeInstallation.source === 'homebrew-cask' ? ansis.green : ansis.yellow
 
-    console.log(ansis.cyan.bold(`✅ ${i18n.t('installation:currentActiveInstallation')}:`))
+    console.log(ansis.green.bold(`✅ ${i18n.t('installation:currentActiveInstallation')}:`))
     console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${statusColor(sourceDisplay)}`))
     console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(activeInstallation.path)}`))
     if (activeInstallation.version) {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.cyan(activeInstallation.version)}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(activeInstallation.version)}`))
     }
     console.log('')
   }
@@ -208,14 +208,14 @@ function displayMultipleInstallations(
       console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${ansis.yellow(sourceDisplay)}`))
       console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(installation.path)}`))
       if (installation.version) {
-        console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.cyan(installation.version)}`))
+        console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(installation.version)}`))
       }
       console.log('')
     }
   }
 
   // Show recommendation
-  console.log(ansis.cyan(`💡 ${i18n.t('installation:recommendRemoveNpm')}`))
+  console.log(ansis.green(`💡 ${i18n.t('installation:recommendRemoveNpm')}`))
   console.log('')
 }
 
@@ -237,7 +237,7 @@ function displayDetailedInformation(
   i18n: { t: (key: string) => string },
 ): void {
   console.log('')
-  console.log(ansis.cyan.bold('📋 Detailed Installation Information'))
+  console.log(ansis.green.bold('📋 Detailed Installation Information'))
   console.log(ansis.gray('─'.repeat(60)))
   console.log('')
 
@@ -253,7 +253,7 @@ function displayDetailedInformation(
     console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(installation.path)}`))
 
     if (installation.version) {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.cyan(installation.version)}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(installation.version)}`))
     }
     else {
       console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.red('Unknown')}`))

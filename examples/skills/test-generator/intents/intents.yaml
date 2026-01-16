@@ -1,0 +1,40 @@
+id: intent:test-generator
+name:
+  en: Test Generator
+  zh-CN: 测试生成器
+patterns:
+  - '写.*测试'
+  - '生成.*测试'
+  - '创建.*test'
+  - 'write.*test'
+  - 'generate.*test'
+  - 'create.*test'
+  - 'add.*test'
+  - '添加.*测试'
+  - tdd
+  - unit test
+  - 单元测试
+  - test coverage
+  - 测试覆盖
+keywords:
+  - test
+  - 测试
+  - tdd
+  - unit
+  - 单元
+  - coverage
+  - 覆盖率
+  - mock
+  - 模拟
+  - vitest
+  - jest
+  - spec
+contextSignals:
+  - has_source_files
+  - has_test_config
+  - missing_tests
+priority: 90
+pluginId: test-generator
+skillId: generate-tests
+minConfidence: 0.7
+autoExecute: false

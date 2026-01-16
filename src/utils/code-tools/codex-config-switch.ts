@@ -22,7 +22,7 @@ export async function configureIncrementalManagement(): Promise<void> {
     return
   }
 
-  console.log(ansis.cyan(i18n.t('codex:incrementalManagementTitle')))
+  console.log(ansis.green(i18n.t('codex:incrementalManagementTitle')))
   console.log(ansis.gray(i18n.t('codex:currentProviderCount', { count: managementMode.providerCount })))
 
   if (managementMode.currentProvider) {
@@ -342,7 +342,7 @@ async function handleCopyProvider(providers: any[]): Promise<void> {
     return
   }
 
-  console.log(ansis.cyan(`\n${i18n.t('codex:copyingProvider', { name: provider.name })}`))
+  console.log(ansis.green(`\n${i18n.t('codex:copyingProvider', { name: provider.name })}`))
 
   // Read existing API key from auth.json
   const existingAuth = readJsonConfig<Record<string, string>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
@@ -498,7 +498,7 @@ async function handleDeleteProvider(providers: any[]): Promise<void> {
   if (result.success) {
     console.log(ansis.green(i18n.t('codex:providersDeleted', { count: selectedProviderIds.length })))
     if (result.newDefaultProvider) {
-      console.log(ansis.cyan(i18n.t('codex:newDefaultProvider', { provider: result.newDefaultProvider })))
+      console.log(ansis.green(i18n.t('codex:newDefaultProvider', { provider: result.newDefaultProvider })))
     }
     if (result.backupPath) {
       console.log(ansis.gray(i18n.t('common:backupCreated', { path: result.backupPath })))

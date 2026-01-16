@@ -27,9 +27,9 @@ async function showStatus(): Promise<void> {
   const status = await getAgentBrowserStatus()
   const sessions = await listSessions()
 
-  console.log(`\n${ansis.cyan('─'.repeat(50))}`)
+  console.log(`\n${ansis.green('─'.repeat(50))}`)
   console.log(ansis.bold.cyan(`  ${i18n.t('agentBrowser:status.title')}`))
-  console.log(`${ansis.cyan('─'.repeat(50))}\n`)
+  console.log(`${ansis.green('─'.repeat(50))}\n`)
 
   // Installation status
   const installIcon = status.isInstalled ? ansis.green('✔') : ansis.red('✖')
@@ -40,7 +40,7 @@ async function showStatus(): Promise<void> {
 
   // Version
   if (status.version) {
-    console.log(`     ${ansis.bold(i18n.t('agentBrowser:status.version'))}: ${ansis.cyan(status.version)}`)
+    console.log(`     ${ansis.bold(i18n.t('agentBrowser:status.version'))}: ${ansis.green(status.version)}`)
   }
 
   // Browser status
@@ -51,7 +51,7 @@ async function showStatus(): Promise<void> {
   console.log(`  ${browserIcon} ${ansis.bold(i18n.t('agentBrowser:status.browser'))}: ${browserText}`)
 
   // Sessions
-  console.log(`  ${ansis.cyan('○')} ${ansis.bold(i18n.t('agentBrowser:status.sessions'))}: ${sessions.length}`)
+  console.log(`  ${ansis.green('○')} ${ansis.bold(i18n.t('agentBrowser:status.sessions'))}: ${sessions.length}`)
 
   if (sessions.length > 0) {
     for (const session of sessions) {
@@ -69,9 +69,9 @@ async function showStatus(): Promise<void> {
 async function manageSessions(): Promise<void> {
   const sessions = await listSessions()
 
-  console.log(`\n${ansis.cyan('─'.repeat(50))}`)
+  console.log(`\n${ansis.green('─'.repeat(50))}`)
   console.log(ansis.bold.cyan(`  ${i18n.t('agentBrowser:sessions.title')}`))
-  console.log(`${ansis.cyan('─'.repeat(50))}\n`)
+  console.log(`${ansis.green('─'.repeat(50))}\n`)
 
   if (sessions.length === 0) {
     console.log(ansis.gray(`  ${i18n.t('agentBrowser:sessions.noSessions')}`))
@@ -109,7 +109,7 @@ async function manageSessions(): Promise<void> {
  * Run quick test
  */
 async function runQuickTest(): Promise<void> {
-  console.log(ansis.cyan(`\n🧪 ${i18n.t('agentBrowser:quickTest.running')}`))
+  console.log(ansis.green(`\n🧪 ${i18n.t('agentBrowser:quickTest.running')}`))
 
   const status = await getAgentBrowserStatus()
 
@@ -154,21 +154,21 @@ export async function showAgentBrowserMenu(): Promise<boolean> {
     ensureI18nInitialized()
 
     // Display menu title
-    console.log(`\n${ansis.cyan('═'.repeat(50))}`)
+    console.log(`\n${ansis.green('═'.repeat(50))}`)
     console.log(ansis.bold.cyan(`  ${i18n.t('agentBrowser:menuTitle')}`))
-    console.log(`${ansis.cyan('═'.repeat(50))}\n`)
+    console.log(`${ansis.green('═'.repeat(50))}\n`)
 
     // Get current status for context
     const status = await getAgentBrowserStatus()
 
     // Display menu options
-    console.log(`  ${ansis.cyan('1.')} ${i18n.t('agentBrowser:menuOptions.install')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.install')}`)}`)
-    console.log(`  ${ansis.cyan('2.')} ${i18n.t('agentBrowser:menuOptions.status')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.status')}`)}`)
+    console.log(`  ${ansis.green('1.')} ${i18n.t('agentBrowser:menuOptions.install')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.install')}`)}`)
+    console.log(`  ${ansis.green('2.')} ${i18n.t('agentBrowser:menuOptions.status')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.status')}`)}`)
 
     if (status.isInstalled) {
-      console.log(`  ${ansis.cyan('3.')} ${i18n.t('agentBrowser:menuOptions.update')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.update')}`)}`)
-      console.log(`  ${ansis.cyan('4.')} ${i18n.t('agentBrowser:menuOptions.sessions')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.sessions')}`)}`)
-      console.log(`  ${ansis.cyan('5.')} ${i18n.t('agentBrowser:menuOptions.quickTest')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.quickTest')}`)}`)
+      console.log(`  ${ansis.green('3.')} ${i18n.t('agentBrowser:menuOptions.update')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.update')}`)}`)
+      console.log(`  ${ansis.green('4.')} ${i18n.t('agentBrowser:menuOptions.sessions')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.sessions')}`)}`)
+      console.log(`  ${ansis.green('5.')} ${i18n.t('agentBrowser:menuOptions.quickTest')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.quickTest')}`)}`)
       console.log(`  ${ansis.red('6.')} ${i18n.t('agentBrowser:menuOptions.uninstall')} ${ansis.gray(`- ${i18n.t('agentBrowser:menuDescriptions.uninstall')}`)}`)
     }
 
@@ -268,9 +268,9 @@ export async function recommendAgentBrowser(): Promise<boolean> {
   }
 
   // Show recommendation
-  console.log(`\n${ansis.cyan('─'.repeat(50))}`)
+  console.log(`\n${ansis.green('─'.repeat(50))}`)
   console.log(ansis.bold.cyan(`  ${i18n.t('agentBrowser:recommend.title')}`))
-  console.log(`${ansis.cyan('─'.repeat(50))}\n`)
+  console.log(`${ansis.green('─'.repeat(50))}\n`)
 
   console.log(ansis.gray(`  ${i18n.t('agentBrowser:recommend.description')}\n`))
 

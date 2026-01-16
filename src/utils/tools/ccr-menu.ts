@@ -33,17 +33,17 @@ export async function showCcrMenu(): Promise<boolean> {
     ensureI18nInitialized()
 
     // Display CCR menu title
-    console.log(`\n${ansis.cyan('═'.repeat(50))}`)
+    console.log(`\n${ansis.green('═'.repeat(50))}`)
     console.log(ansis.bold.cyan(`  ${i18n.t('ccr:ccrMenuTitle')}`))
-    console.log(`${ansis.cyan('═'.repeat(50))}\n`)
+    console.log(`${ansis.green('═'.repeat(50))}\n`)
 
     // Display menu options
-    console.log(`  ${ansis.cyan('1.')} ${i18n.t('ccr:ccrMenuOptions.initCcr')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.initCcr')}`)}`)
-    console.log(`  ${ansis.cyan('2.')} ${i18n.t('ccr:ccrMenuOptions.startUi')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.startUi')}`)}`)
-    console.log(`  ${ansis.cyan('3.')} ${i18n.t('ccr:ccrMenuOptions.checkStatus')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.checkStatus')}`)}`)
-    console.log(`  ${ansis.cyan('4.')} ${i18n.t('ccr:ccrMenuOptions.restart')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.restart')}`)}`)
-    console.log(`  ${ansis.cyan('5.')} ${i18n.t('ccr:ccrMenuOptions.start')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.start')}`)}`)
-    console.log(`  ${ansis.cyan('6.')} ${i18n.t('ccr:ccrMenuOptions.stop')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.stop')}`)}`)
+    console.log(`  ${ansis.green('1.')} ${i18n.t('ccr:ccrMenuOptions.initCcr')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.initCcr')}`)}`)
+    console.log(`  ${ansis.green('2.')} ${i18n.t('ccr:ccrMenuOptions.startUi')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.startUi')}`)}`)
+    console.log(`  ${ansis.green('3.')} ${i18n.t('ccr:ccrMenuOptions.checkStatus')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.checkStatus')}`)}`)
+    console.log(`  ${ansis.green('4.')} ${i18n.t('ccr:ccrMenuOptions.restart')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.restart')}`)}`)
+    console.log(`  ${ansis.green('5.')} ${i18n.t('ccr:ccrMenuOptions.start')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.start')}`)}`)
+    console.log(`  ${ansis.green('6.')} ${i18n.t('ccr:ccrMenuOptions.stop')} ${ansis.gray(`- ${i18n.t('ccr:ccrMenuDescriptions.stop')}`)}`)
     console.log(`  ${ansis.yellow('0.')} ${i18n.t('ccr:ccrMenuOptions.back')}`)
     console.log('')
 
@@ -78,7 +78,7 @@ export async function showCcrMenu(): Promise<boolean> {
         // Start CCR UI - Check if CCR is configured first
         if (!isCcrConfigured()) {
           console.log(ansis.yellow(`\n⚠️  ${i18n.t('ccr:ccrNotConfigured')}`))
-          console.log(ansis.cyan(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
+          console.log(ansis.green(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
         }
         else {
           // Get CCR config to show API key
@@ -91,7 +91,7 @@ export async function showCcrMenu(): Promise<boolean> {
         // Check CCR Status - Check if CCR is configured first
         if (!isCcrConfigured()) {
           console.log(ansis.yellow(`\n⚠️  ${i18n.t('ccr:ccrNotConfigured')}`))
-          console.log(ansis.cyan(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
+          console.log(ansis.green(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
         }
         else {
           await runCcrStatus()
@@ -102,7 +102,7 @@ export async function showCcrMenu(): Promise<boolean> {
         // Restart CCR - Check if CCR is configured first
         if (!isCcrConfigured()) {
           console.log(ansis.yellow(`\n⚠️  ${i18n.t('ccr:ccrNotConfigured')}`))
-          console.log(ansis.cyan(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
+          console.log(ansis.green(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
         }
         else {
           await runCcrRestart()
@@ -113,7 +113,7 @@ export async function showCcrMenu(): Promise<boolean> {
         // Start CCR - Check if CCR is configured first
         if (!isCcrConfigured()) {
           console.log(ansis.yellow(`\n⚠️  ${i18n.t('ccr:ccrNotConfigured')}`))
-          console.log(ansis.cyan(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
+          console.log(ansis.green(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
         }
         else {
           await runCcrStart()
@@ -124,7 +124,7 @@ export async function showCcrMenu(): Promise<boolean> {
         // Stop CCR - Check if CCR is configured first
         if (!isCcrConfigured()) {
           console.log(ansis.yellow(`\n⚠️  ${i18n.t('ccr:ccrNotConfigured')}`))
-          console.log(ansis.cyan(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
+          console.log(ansis.green(`   ${i18n.t('ccr:pleaseInitFirst')}\n`))
         }
         else {
           await runCcrStop()

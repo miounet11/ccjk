@@ -242,7 +242,7 @@ export async function upgradeAllPlugins(): Promise<UpgradeResult[]> {
  * Check all versions and display summary
  */
 export async function checkAllVersions(): Promise<void> {
-  console.log(ansis.cyan('\n═══════════ Version Check ═══════════\n'))
+  console.log(ansis.green('\n═══════════ Version Check ═══════════\n'))
 
   // Check Claude Code
   const claudeCode = await checkClaudeCodeVersion()
@@ -283,7 +283,7 @@ export async function checkAllVersions(): Promise<void> {
  * Upgrade everything
  */
 export async function upgradeAll(): Promise<void> {
-  console.log(ansis.cyan('\n═══════════ Upgrading All ═══════════\n'))
+  console.log(ansis.green('\n═══════════ Upgrading All ═══════════\n'))
 
   // Upgrade Claude Code
   await upgradeClaudeCode()

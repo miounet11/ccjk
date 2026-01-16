@@ -569,6 +569,54 @@ const COMMANDS: CommandDefinition[] = [
       }
     },
   },
+  // ==================== Plugins-v2 Commands ====================
+  {
+    name: 'skill [action] [...args]',
+    description: 'Manage plugins-v2 skills (SKILL.md based)',
+    tier: 'extended',
+    options: [
+      { flags: '--force, -f', description: 'Force reinstall' },
+      { flags: '--json', description: 'Output as JSON' },
+    ],
+    loader: async () => {
+      const { handleSkillCommand } = await import('./commands/skill')
+      return async (options, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+        await handleSkillCommand([actionStr, ...argsArr], {
+          force: options.force as boolean,
+          json: options.json as boolean,
+        })
+      }
+    },
+  },
+  {
+    name: 'agent [action] [...args]',
+    description: 'Manage AI agents (Skills + MCP composition)',
+    aliases: ['ag'],
+    tier: 'extended',
+    options: [
+      { flags: '--template, -t <template>', description: 'Use agent template' },
+      { flags: '--skills, -s <skills>', description: 'Comma-separated skill IDs' },
+      { flags: '--mcp, -m <servers>', description: 'Comma-separated MCP servers' },
+      { flags: '--persona, -p <persona>', description: 'Custom persona' },
+      { flags: '--json', description: 'Output as JSON' },
+    ],
+    loader: async () => {
+      const { handleAgentCommand } = await import('./commands/agent')
+      return async (options, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+        await handleAgentCommand([actionStr, ...argsArr], {
+          template: options.template as string,
+          skills: options.skills ? (options.skills as string).split(',') : undefined,
+          mcp: options.mcp ? (options.mcp as string).split(',') : undefined,
+          persona: options.persona as string,
+          json: options.json as boolean,
+        })
+      }
+    },
+  },
   {
     name: 'ccu [...args]',
     description: 'Claude Code usage analysis',

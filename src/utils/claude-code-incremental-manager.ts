@@ -38,7 +38,7 @@ export async function configureIncrementalManagement(): Promise<void> {
   const profiles = Object.values(config.profiles)
   const currentProfile = config.currentProfileId ? config.profiles[config.currentProfileId] : null
 
-  console.log(ansis.cyan(i18n.t('multi-config:incrementalManagementTitle')))
+  console.log(ansis.green(i18n.t('multi-config:incrementalManagementTitle')))
   console.log(ansis.gray(i18n.t('multi-config:currentProfileCount', { count: profiles.length })))
 
   if (currentProfile) {
@@ -92,7 +92,7 @@ async function promptContinueAdding(): Promise<boolean> {
  * Handle adding a new Claude Code profile
  */
 async function handleAddProfile(): Promise<void> {
-  console.log(ansis.cyan(`\n${i18n.t('multi-config:addingNewProfile')}`))
+  console.log(ansis.green(`\n${i18n.t('multi-config:addingNewProfile')}`))
 
   // Step 1: Select API provider (custom or preset)
   const { getApiProviders } = await import('../config/api-providers')
@@ -358,7 +358,7 @@ async function handleEditProfile(profiles: ClaudeCodeProfile[]): Promise<void> {
     return
   }
 
-  console.log(ansis.cyan(`\n${i18n.t('multi-config:editingProfile', { name: selectedProfile.name })}`))
+  console.log(ansis.green(`\n${i18n.t('multi-config:editingProfile', { name: selectedProfile.name })}`))
 
   const answers = await inquirer.prompt<{
     profileName: string
@@ -509,7 +509,7 @@ async function handleCopyProfile(profiles: ClaudeCodeProfile[]): Promise<void> {
     return
   }
 
-  console.log(ansis.cyan(`\n${i18n.t('multi-config:copyingProfile', { name: selectedProfile.name })}`))
+  console.log(ansis.green(`\n${i18n.t('multi-config:copyingProfile', { name: selectedProfile.name })}`))
 
   // Prepare copied profile with -copy suffix
   const copiedName = `${selectedProfile.name}-copy`
@@ -713,7 +713,7 @@ async function handleDeleteProfile(profiles: ClaudeCodeProfile[]): Promise<void>
     if (result.newCurrentProfileId) {
       const newProfile = ClaudeCodeConfigManager.getProfileById(result.newCurrentProfileId)
       if (newProfile) {
-        console.log(ansis.cyan(i18n.t('multi-config:newDefaultProfile', { profile: newProfile.name })))
+        console.log(ansis.green(i18n.t('multi-config:newDefaultProfile', { profile: newProfile.name })))
         await ClaudeCodeConfigManager.applyProfileSettings(newProfile)
       }
     }

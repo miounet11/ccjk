@@ -36,7 +36,7 @@ export async function installCometixLine(): Promise<void> {
 
     // Update CCometixLine
     try {
-      console.log(ansis.blue(`${i18n.t('cometix:installingOrUpdating')}`))
+      console.log(ansis.green(`${i18n.t('cometix:installingOrUpdating')}`))
       await runInstallCommand()
       console.log(ansis.green(`✔ ${i18n.t('cometix:installUpdateSuccess')}`))
     }
@@ -55,13 +55,13 @@ export async function installCometixLine(): Promise<void> {
       }
     }
     else {
-      console.log(ansis.blue(`ℹ ${i18n.t('cometix:statusLineAlreadyConfigured') || 'Claude Code statusLine already configured'}`))
+      console.log(ansis.green(`ℹ ${i18n.t('cometix:statusLineAlreadyConfigured') || 'Claude Code statusLine already configured'}`))
     }
     return
   }
 
   try {
-    console.log(ansis.blue(`${i18n.t('cometix:installingCometix')}`))
+    console.log(ansis.green(`${i18n.t('cometix:installingCometix')}`))
     await runInstallCommand()
     console.log(ansis.green(`✔ ${i18n.t('cometix:cometixInstallSuccess')}`))
 
@@ -72,7 +72,7 @@ export async function installCometixLine(): Promise<void> {
     }
     catch (configError) {
       console.log(ansis.yellow(`⚠ ${i18n.t('cometix:statusLineConfigFailed') || 'Failed to configure statusLine'}: ${configError}`))
-      console.log(ansis.blue(`💡 ${i18n.t('cometix:statusLineManualConfig') || 'Please manually add statusLine configuration to Claude Code settings'}`))
+      console.log(ansis.green(`💡 ${i18n.t('cometix:statusLineManualConfig') || 'Please manually add statusLine configuration to Claude Code settings'}`))
     }
   }
   catch (error) {

@@ -135,7 +135,7 @@ export function generateWelcome(
   if (showRecommendations && !compact) {
     lines.push(leftText('', width))
     lines.push(leftText(ansis.bold('💡 Quick Start:'), width))
-    lines.push(leftText(`   Type ${ansis.cyan('/ccjk:status')} to see all capabilities`, width))
+    lines.push(leftText(`   Type ${ansis.green('/ccjk:status')} to see all capabilities`, width))
 
     if (scanResult.commands.length > 0) {
       const topCommand = scanResult.commands
@@ -143,7 +143,7 @@ export function generateWelcome(
         .sort((a, b) => b.priority - a.priority)[0]
 
       if (topCommand && topCommand.triggers?.[0]) {
-        lines.push(leftText(`   Try ${ansis.cyan(topCommand.triggers[0])} for ${topCommand.name}`, width))
+        lines.push(leftText(`   Try ${ansis.green(topCommand.triggers[0])} for ${topCommand.name}`, width))
       }
     }
   }

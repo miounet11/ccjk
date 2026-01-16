@@ -60,7 +60,7 @@ export class ConfigGuardian {
    */
   async check(autoRepair = false, verbose = false): Promise<GuardianStatus> {
     if (verbose) {
-      console.log(ansis.cyan('🛡️  Config Guardian: Checking configuration...'))
+      console.log(ansis.green('🛡️  Config Guardian: Checking configuration...'))
     }
 
     // Validate configuration
@@ -89,7 +89,7 @@ export class ConfigGuardian {
     // Auto-repair if enabled
     if (autoRepair) {
       if (verbose) {
-        console.log(ansis.cyan('\n🔧 Attempting automatic repair...'))
+        console.log(ansis.green('\n🔧 Attempting automatic repair...'))
       }
 
       const repair = await this.repairer.repair(validation, verbose)
@@ -153,7 +153,7 @@ export class ConfigGuardian {
    */
   async forceRepair(verbose = false): Promise<RepairResult> {
     if (verbose) {
-      console.log(ansis.cyan('🔧 Config Guardian: Force repairing all files...'))
+      console.log(ansis.green('🔧 Config Guardian: Force repairing all files...'))
     }
 
     // Create a validation result with all files marked as missing

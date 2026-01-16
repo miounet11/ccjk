@@ -33,7 +33,7 @@ export async function showContextMenu(): Promise<void> {
   const lang = i18n.language as 'en' | 'zh-CN'
   const isZh = lang === 'zh-CN'
 
-  console.log(ansis.cyan.bold(`\n📋 ${isZh ? '上下文管理' : 'Context Management'}\n`))
+  console.log(ansis.green.bold(`\n📋 ${isZh ? '上下文管理' : 'Context Management'}\n`))
 
   // Detect project context
   const context = detectProjectContext()
@@ -107,15 +107,15 @@ function displayProjectInfo(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): 
   console.log(ansis.bold(isZh ? '检测到的项目信息：' : 'Detected Project Info:'))
 
   const typeLabel = getProjectTypeLabel(context.type, lang)
-  console.log(`  ${isZh ? '类型' : 'Type'}: ${ansis.cyan(typeLabel)}`)
-  console.log(`  ${isZh ? '语言' : 'Language'}: ${ansis.cyan(context.language)}`)
+  console.log(`  ${isZh ? '类型' : 'Type'}: ${ansis.green(typeLabel)}`)
+  console.log(`  ${isZh ? '语言' : 'Language'}: ${ansis.green(context.language)}`)
 
   if (context.framework) {
-    console.log(`  ${isZh ? '框架' : 'Framework'}: ${ansis.cyan(context.framework)}`)
+    console.log(`  ${isZh ? '框架' : 'Framework'}: ${ansis.green(context.framework)}`)
   }
 
   if (context.packageManager) {
-    console.log(`  ${isZh ? '包管理器' : 'Package Manager'}: ${ansis.cyan(context.packageManager)}`)
+    console.log(`  ${isZh ? '包管理器' : 'Package Manager'}: ${ansis.green(context.packageManager)}`)
   }
 
   const features: string[] = []
@@ -170,7 +170,7 @@ async function viewContextFiles(lang: 'en' | 'zh-CN'): Promise<void> {
   const isZh = lang === 'zh-CN'
   const files = getContextFiles()
 
-  console.log(ansis.cyan.bold(`\n📁 ${isZh ? '上下文文件' : 'Context Files'}\n`))
+  console.log(ansis.green.bold(`\n📁 ${isZh ? '上下文文件' : 'Context Files'}\n`))
 
   for (const file of files) {
     displayContextFile(file, lang)
@@ -223,7 +223,7 @@ async function viewContextFiles(lang: 'en' | 'zh-CN'): Promise<void> {
 async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): Promise<void> {
   const isZh = lang === 'zh-CN'
 
-  console.log(ansis.cyan.bold(`\n✨ ${isZh ? '自动生成规则' : 'Auto-generate Rules'}\n`))
+  console.log(ansis.green.bold(`\n✨ ${isZh ? '自动生成规则' : 'Auto-generate Rules'}\n`))
 
   // Get recommended rules
   const recommendedIds = getRecommendedRules(context)
@@ -348,7 +348,7 @@ async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'z
 async function addRulesToContext(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): Promise<void> {
   const isZh = lang === 'zh-CN'
 
-  console.log(ansis.cyan.bold(`\n📝 ${isZh ? '添加规则' : 'Add Rules'}\n`))
+  console.log(ansis.green.bold(`\n📝 ${isZh ? '添加规则' : 'Add Rules'}\n`))
 
   const applicableRules = getApplicableRules(context.type)
 
@@ -467,7 +467,7 @@ async function addRulesToContext(context: ContextProjectInfo, lang: 'en' | 'zh-C
 async function browseRules(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): Promise<void> {
   const isZh = lang === 'zh-CN'
 
-  console.log(ansis.cyan.bold(`\n📖 ${isZh ? '可用规则' : 'Available Rules'}\n`))
+  console.log(ansis.green.bold(`\n📖 ${isZh ? '可用规则' : 'Available Rules'}\n`))
 
   const applicableRules = getApplicableRules(context.type)
 
@@ -495,7 +495,7 @@ async function browseRules(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): P
     for (const rule of rules) {
       const name = isZh ? rule.nameZh : rule.name
       const desc = isZh ? rule.descriptionZh : rule.description
-      console.log(`  ${ansis.cyan('•')} ${ansis.bold(name)}`)
+      console.log(`  ${ansis.green('•')} ${ansis.bold(name)}`)
       console.log(`    ${ansis.dim(desc)}`)
     }
   }

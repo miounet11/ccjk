@@ -56,7 +56,7 @@ export function listProviders(lang: SupportedLang = 'en'): void {
       const name = lang === 'zh-CN' ? preset.nameZh : preset.name
       const desc = lang === 'zh-CN' ? preset.descriptionZh : preset.description
       const keyIcon = preset.requiresApiKey ? '🔑' : '🆓'
-      console.log(`    ${keyIcon} ${ansis.cyan(preset.id.padEnd(15))} ${name}`)
+      console.log(`    ${keyIcon} ${ansis.green(preset.id.padEnd(15))} ${name}`)
       console.log(ansis.gray(`       ${desc}`))
     }
     console.log('')

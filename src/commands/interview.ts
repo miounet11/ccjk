@@ -48,15 +48,15 @@ export interface InterviewOptions {
 function displayInterviewBanner(compact: boolean = false): void {
   console.log('')
   if (compact) {
-    console.log(ansis.cyan.bold('  🎤 Interview-Driven Development'))
+    console.log(ansis.green.bold('  🎤 Interview-Driven Development'))
     console.log(ansis.gray('  "Interview first. Spec second. Code last."'))
   }
   else {
-    console.log(ansis.cyan('╔═══════════════════════════════════════════════════════════════╗'))
-    console.log(ansis.cyan('║') + ansis.bold.white('       🎤 Interview-Driven Development (IDD)                  ') + ansis.cyan('║'))
-    console.log(ansis.cyan('║') + ansis.gray('  "Interview first. Spec second. Code last."                  ') + ansis.cyan('║'))
-    console.log(ansis.cyan('║') + ansis.gray('  Based on Thariq (@trq212) workflow from Anthropic           ') + ansis.cyan('║'))
-    console.log(ansis.cyan('╚═══════════════════════════════════════════════════════════════╝'))
+    console.log(ansis.green('╔═══════════════════════════════════════════════════════════════╗'))
+    console.log(ansis.green('║') + ansis.bold.white('       🎤 Interview-Driven Development (IDD)                  ') + ansis.green('║'))
+    console.log(ansis.green('║') + ansis.gray('  "Interview first. Spec second. Code last."                  ') + ansis.green('║'))
+    console.log(ansis.green('║') + ansis.gray('  Based on Thariq (@trq212) workflow from Anthropic           ') + ansis.green('║'))
+    console.log(ansis.green('╚═══════════════════════════════════════════════════════════════╝'))
   }
   console.log('')
 }
@@ -124,7 +124,7 @@ function displayCategoryBreadcrumb(session: InterviewSession): void {
         return ansis.green(`${icon} ${p.name} ✓`)
       }
       if (p.isCurrent) {
-        return ansis.cyan.bold(`${icon} ${p.name} ◀`)
+        return ansis.green.bold(`${icon} ${p.name} ◀`)
       }
       return ansis.gray(`${icon} ${p.name}`)
     })
@@ -144,7 +144,7 @@ function displayQuestion(display: QuestionDisplay, lang: SupportedLang): void {
   console.log('')
   console.log(ansis.gray('─'.repeat(65)))
   console.log('')
-  console.log(ansis.cyan.bold(`  Q${display.questionNumber}`) + ansis.gray(` of ~${display.estimatedTotal}`) + ansis.gray(` │ `) + ansis.yellow(headerText))
+  console.log(ansis.green.bold(`  Q${display.questionNumber}`) + ansis.gray(` of ~${display.estimatedTotal}`) + ansis.gray(` │ `) + ansis.yellow(headerText))
   console.log('')
   console.log(ansis.white.bold(`  ${questionText}`))
   console.log('')
@@ -165,7 +165,7 @@ async function askQuestion(
       : opt.label
 
     return {
-      name: `${ansis.cyan(`${index + 1}.`)} ${label}\n     ${ansis.gray(opt.description)}`,
+      name: `${ansis.green(`${index + 1}.`)} ${label}\n     ${ansis.gray(opt.description)}`,
       value: opt.value,
       short: opt.label,
     }
@@ -173,7 +173,7 @@ async function askQuestion(
 
   // Add "Other" option
   choices.push({
-    name: `${ansis.cyan(`${choices.length + 1}.`)} ${ansis.italic('Type something else...')}`,
+    name: `${ansis.green(`${choices.length + 1}.`)} ${ansis.italic('Type something else...')}`,
     value: '__custom__',
     short: 'Custom',
   })
@@ -238,11 +238,11 @@ async function askQuestion(
  */
 async function selectTemplate(lang: SupportedLang): Promise<string | null> {
   console.log('')
-  console.log(ansis.cyan.bold('  📋 Select Interview Template'))
+  console.log(ansis.green.bold('  📋 Select Interview Template'))
   console.log('')
 
   const choices = INTERVIEW_TEMPLATES.map((template, index) => ({
-    name: `${ansis.cyan(`${index + 1}.`)} ${ansis.bold(template.name[lang])}\n     ${ansis.gray(template.description[lang])}\n     ${ansis.gray(`~${template.estimatedQuestions} questions, ${template.defaultDepth} depth`)}`,
+    name: `${ansis.green(`${index + 1}.`)} ${ansis.bold(template.name[lang])}\n     ${ansis.gray(template.description[lang])}\n     ${ansis.gray(`~${template.estimatedQuestions} questions, ${template.defaultDepth} depth`)}`,
     value: template.id,
     short: template.name[lang],
   }))
@@ -280,27 +280,27 @@ async function quickStartConfig(_lang: SupportedLang): Promise<{
   console.log('')
 
   // Show quick start options
-  console.log(ansis.cyan.bold('  How would you like to proceed?'))
+  console.log(ansis.green.bold('  How would you like to proceed?'))
   console.log('')
 
   const quickChoices = [
     {
-      name: `${ansis.cyan('1.')} ${ansis.green('⚡ Quick Start')} ${ansis.gray('(Recommended)')}\n     ${ansis.gray(`Use ${detectedType} template, ~${detectedTemplate?.estimatedQuestions || 25} questions → SPEC.md`)}`,
+      name: `${ansis.green('1.')} ${ansis.green('⚡ Quick Start')} ${ansis.gray('(Recommended)')}\n     ${ansis.gray(`Use ${detectedType} template, ~${detectedTemplate?.estimatedQuestions || 25} questions → SPEC.md`)}`,
       value: 'quick-start',
       short: 'Quick Start',
     },
     {
-      name: `${ansis.cyan('2.')} ${ansis.yellow('🔬 Deep Dive')}\n     ${ansis.gray('40+ comprehensive questions for complex features')}`,
+      name: `${ansis.green('2.')} ${ansis.yellow('🔬 Deep Dive')}\n     ${ansis.gray('40+ comprehensive questions for complex features')}`,
       value: 'deep',
       short: 'Deep Dive',
     },
     {
-      name: `${ansis.cyan('3.')} ${ansis.blue('⚙️  Custom Setup')}\n     ${ansis.gray('Choose template, depth, and output file')}`,
+      name: `${ansis.green('3.')} ${ansis.green('⚙️  Custom Setup')}\n     ${ansis.gray('Choose template, depth, and output file')}`,
       value: 'custom',
       short: 'Custom',
     },
     {
-      name: `${ansis.cyan('4.')} ${ansis.magenta('💨 Express Mode')}\n     ${ansis.gray('~10 essential questions only')}`,
+      name: `${ansis.green('4.')} ${ansis.magenta('💨 Express Mode')}\n     ${ansis.gray('~10 essential questions only')}`,
       value: 'express',
       short: 'Express',
     },
@@ -389,7 +389,7 @@ function displayCompletionSummary(session: InterviewSession, specFile: string): 
   console.log('')
   console.log(`  ${ansis.gray('Questions answered:')} ${ansis.white(String(session.questionsAsked))}`)
   console.log(`  ${ansis.gray('Duration:')}           ${ansis.white(`${duration} minutes`)}`)
-  console.log(`  ${ansis.gray('Spec file:')}          ${ansis.cyan(specFile)}`)
+  console.log(`  ${ansis.gray('Spec file:')}          ${ansis.green(specFile)}`)
   console.log('')
 
   // Show category summary
@@ -404,7 +404,7 @@ function displayCompletionSummary(session: InterviewSession, specFile: string): 
   console.log('')
   console.log(ansis.green('═'.repeat(65)))
   console.log('')
-  console.log(ansis.cyan('  Next steps:'))
+  console.log(ansis.green('  Next steps:'))
   console.log(ansis.gray(`    1. Review the spec: ${ansis.white(`cat ${specFile}`)}`))
   console.log(ansis.gray(`    2. Start planning:  ${ansis.white('/plan')}`))
   console.log(ansis.gray(`    3. Begin coding:    ${ansis.white('Use the spec as context')}`))
@@ -416,11 +416,11 @@ function displayCompletionSummary(session: InterviewSession, specFile: string): 
  */
 function listTemplates(lang: SupportedLang): void {
   console.log('')
-  console.log(ansis.cyan.bold('  Available Interview Templates:'))
+  console.log(ansis.green.bold('  Available Interview Templates:'))
   console.log('')
 
   for (const template of INTERVIEW_TEMPLATES) {
-    console.log(ansis.cyan(`  ${template.id}`))
+    console.log(ansis.green(`  ${template.id}`))
     console.log(`    ${ansis.white(template.name[lang])}`)
     console.log(`    ${ansis.gray(template.description[lang])}`)
     console.log(`    ${ansis.gray(`~${template.estimatedQuestions} questions, ${template.defaultDepth} depth`)}`)
@@ -484,17 +484,17 @@ export async function interview(options: InterviewOptions = {}): Promise<void> {
           message: ansis.gray('Interview depth:'),
           choices: [
             {
-              name: `${ansis.cyan('1.')} ⚡ Quick (~10 questions)`,
+              name: `${ansis.green('1.')} ⚡ Quick (~10 questions)`,
               value: 'quick' as InterviewDepth,
               short: 'Quick',
             },
             {
-              name: `${ansis.cyan('2.')} 📊 Standard (~25 questions) ${template.defaultDepth === 'standard' ? ansis.green('(Recommended)') : ''}`,
+              name: `${ansis.green('2.')} 📊 Standard (~25 questions) ${template.defaultDepth === 'standard' ? ansis.green('(Recommended)') : ''}`,
               value: 'standard' as InterviewDepth,
               short: 'Standard',
             },
             {
-              name: `${ansis.cyan('3.')} 🔬 Deep (~40+ questions) ${template.defaultDepth === 'deep' ? ansis.green('(Recommended)') : ''}`,
+              name: `${ansis.green('3.')} 🔬 Deep (~40+ questions) ${template.defaultDepth === 'deep' ? ansis.green('(Recommended)') : ''}`,
               value: 'deep' as InterviewDepth,
               short: 'Deep',
             },
@@ -537,10 +537,10 @@ export async function interview(options: InterviewOptions = {}): Promise<void> {
     console.log(ansis.gray('─'.repeat(50)))
     console.log(`  ${ansis.gray('Template:')} ${ansis.white(template.name[lang])}`)
     console.log(`  ${ansis.gray('Depth:')} ${ansis.white(depth)} ${ansis.gray(`(~${depth === 'quick' ? 10 : depth === 'standard' ? 25 : 40}+ questions)`)}`)
-    console.log(`  ${ansis.gray('Output:')} ${ansis.cyan(specFile)}`)
+    console.log(`  ${ansis.gray('Output:')} ${ansis.green(specFile)}`)
     console.log(ansis.gray('─'.repeat(50)))
     console.log('')
-    console.log(ansis.cyan('  Starting interview...'))
+    console.log(ansis.green('  Starting interview...'))
     console.log(ansis.gray('  Press Ctrl+C to pause | Enter to select | Type for custom'))
     console.log('')
 
@@ -616,7 +616,7 @@ export async function interview(options: InterviewOptions = {}): Promise<void> {
 
     // Generate spec
     console.log('')
-    console.log(ansis.cyan('  Generating specification...'))
+    console.log(ansis.green('  Generating specification...'))
 
     const specGenerator = createSpecGenerator(lang)
     const spec = await specGenerator.generateSpec(session)
@@ -695,7 +695,7 @@ export async function resumeInterview(sessionFile?: string, options: InterviewOp
         name: 'selectedSession',
         message: ansis.gray('Select a session to resume:'),
         choices: sessions.map((s, i) => ({
-          name: `${ansis.cyan(`${i + 1}.`)} ${ansis.white(s.name)}\n     ${ansis.gray(`Modified: ${s.modified.toLocaleString()}`)}`,
+          name: `${ansis.green(`${i + 1}.`)} ${ansis.white(s.name)}\n     ${ansis.gray(`Modified: ${s.modified.toLocaleString()}`)}`,
           value: s.path,
           short: s.name,
         })),
@@ -723,7 +723,7 @@ export async function resumeInterview(sessionFile?: string, options: InterviewOp
     // Display banner
     displayInterviewBanner()
 
-    console.log(ansis.cyan('  Resuming interview session...'))
+    console.log(ansis.green('  Resuming interview session...'))
     console.log(ansis.gray(`  Session ID: ${session.id}`))
     console.log(ansis.gray(`  Progress: ${session.questionsAsked} questions answered`))
     console.log('')
@@ -773,7 +773,7 @@ export async function resumeInterview(sessionFile?: string, options: InterviewOp
 
     // Generate spec
     console.log('')
-    console.log(ansis.cyan('  Generating specification...'))
+    console.log(ansis.green('  Generating specification...'))
 
     const specGenerator = createSpecGenerator(lang)
     const spec = await specGenerator.generateSpec(session)
@@ -825,7 +825,7 @@ export async function listInterviewSessions(): Promise<void> {
   const { homedir } = await import('node:os')
 
   console.log('')
-  console.log(ansis.cyan.bold('  Saved Interview Sessions:'))
+  console.log(ansis.green.bold('  Saved Interview Sessions:'))
   console.log('')
 
   // Search for session files in common locations
@@ -846,7 +846,7 @@ export async function listInterviewSessions(): Promise<void> {
         const fileStats = await stat(filePath)
         const modified = fileStats.mtime.toLocaleString()
 
-        console.log(`  ${ansis.cyan('•')} ${ansis.white(file)}`)
+        console.log(`  ${ansis.green('•')} ${ansis.white(file)}`)
         console.log(`    ${ansis.gray('Path:')} ${filePath}`)
         console.log(`    ${ansis.gray('Modified:')} ${modified}`)
         console.log('')

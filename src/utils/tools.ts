@@ -19,7 +19,7 @@ export async function runCcusageFeature(): Promise<void> {
   ensureI18nInitialized()
 
   console.log('')
-  console.log(ansis.cyan(i18n.t('menu:menuOptions.ccusage')))
+  console.log(ansis.green(i18n.t('menu:menuOptions.ccusage')))
   console.log(ansis.gray(`${i18n.t('tools:ccusageDescription')}`))
   console.log('')
 

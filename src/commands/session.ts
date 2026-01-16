@@ -68,11 +68,11 @@ export async function listSessions(): Promise<void> {
 
     if (sessions.length === 0) {
       console.log(ansis.yellow('No sessions found'))
-      console.log(ansis.gray(`\nCreate a new session with: ${ansis.cyan('ccjk session create')}`))
+      console.log(ansis.gray(`\nCreate a new session with: ${ansis.green('ccjk session create')}`))
       return
     }
 
-    console.log(ansis.cyan.bold('\n📋 Saved Sessions:\n'))
+    console.log(ansis.green.bold('\n📋 Saved Sessions:\n'))
 
     // Sort by last accessed (most recent first)
     const sortedSessions = [...sessions].sort((a, b) => {
@@ -82,7 +82,7 @@ export async function listSessions(): Promise<void> {
     })
 
     for (const session of sortedSessions) {
-      const nameDisplay = session.name ? ansis.cyan(session.name) : ansis.gray('(unnamed)')
+      const nameDisplay = session.name ? ansis.green(session.name) : ansis.gray('(unnamed)')
       const idDisplay = ansis.gray(`[${session.id.substring(0, 8)}]`)
 
       console.log(`  ${nameDisplay} ${idDisplay}`)
@@ -107,7 +107,7 @@ export async function listSessions(): Promise<void> {
     }
 
     console.log(ansis.gray(`Total: ${sessions.length} session(s)`))
-    console.log(ansis.gray(`\nUse ${ansis.cyan('ccjk --resume <name|id>')} to resume a session`))
+    console.log(ansis.gray(`\nUse ${ansis.green('ccjk --resume <name|id>')} to resume a session`))
   }
   catch (error) {
     console.error(ansis.red('Failed to list sessions:'), error)
@@ -372,7 +372,7 @@ async function analyzeCleanupTargets(): Promise<CleanupTarget[]> {
  */
 export async function cleanupSession(options: { all?: boolean, force?: boolean } = {}): Promise<void> {
   try {
-    console.log(ansis.cyan.bold('\n🧹 Session & Cache Cleanup\n'))
+    console.log(ansis.green.bold('\n🧹 Session & Cache Cleanup\n'))
 
     // Analyze targets
     console.log(ansis.gray('Analyzing cleanup targets...'))
@@ -400,7 +400,7 @@ export async function cleanupSession(options: { all?: boolean, force?: boolean }
     }
 
     console.log(ansis.white.bold('─'.repeat(50)))
-    console.log(`  ${ansis.cyan(formatBytes(totalSize).padStart(10))} ${ansis.gray(`${totalFiles} files`.padStart(12))}  ${ansis.white.bold('Total')}`)
+    console.log(`  ${ansis.green(formatBytes(totalSize).padStart(10))} ${ansis.gray(`${totalFiles} files`.padStart(12))}  ${ansis.white.bold('Total')}`)
     console.log('')
 
     // Confirm cleanup
@@ -473,7 +473,7 @@ export async function cleanupSession(options: { all?: boolean, force?: boolean }
  */
 export async function sessionStatus(): Promise<void> {
   try {
-    console.log(ansis.cyan.bold('\n📊 Session & Cache Status\n'))
+    console.log(ansis.green.bold('\n📊 Session & Cache Status\n'))
 
     const targets = await analyzeCleanupTargets()
 
@@ -498,16 +498,16 @@ export async function sessionStatus(): Promise<void> {
     }
 
     console.log(ansis.gray('─'.repeat(50)))
-    console.log(`${ansis.white.bold('Total'.padEnd(24))} ${ansis.cyan.bold(formatBytes(totalSize).padStart(10))} ${ansis.gray(String(totalFiles).padStart(8))}`)
+    console.log(`${ansis.white.bold('Total'.padEnd(24))} ${ansis.green.bold(formatBytes(totalSize).padStart(10))} ${ansis.gray(String(totalFiles).padStart(8))}`)
     console.log('')
-    console.log(ansis.gray(`Run ${ansis.cyan('ccjk session cleanup')} to free up space`))
+    console.log(ansis.gray(`Run ${ansis.green('ccjk session cleanup')} to free up space`))
 
     // Show enhanced session statistics
     const sessionManager = getSessionManager()
     const stats = await sessionManager.getStatistics()
 
     if (stats.totalSessions > 0) {
-      console.log(ansis.cyan.bold('\n📝 Session Statistics\n'))
+      console.log(ansis.green.bold('\n📝 Session Statistics\n'))
       console.log(ansis.white(`Total Sessions: ${ansis.yellow(String(stats.totalSessions))}`))
       console.log(ansis.white(`Total History Entries: ${ansis.yellow(String(stats.totalHistoryEntries))}`))
       if (stats.oldestSession) {
@@ -578,14 +578,14 @@ export async function createSessionCommand(options: CliOptions): Promise<void> {
     })
 
     console.log(ansis.green(`\n✔ Session created successfully!`))
-    console.log(ansis.white(`  ID: ${ansis.cyan(session.id)}`))
+    console.log(ansis.white(`  ID: ${ansis.green(session.id)}`))
     if (session.name) {
-      console.log(ansis.white(`  Name: ${ansis.cyan(session.name)}`))
+      console.log(ansis.white(`  Name: ${ansis.green(session.name)}`))
     }
     if (session.provider) {
-      console.log(ansis.white(`  Provider: ${ansis.cyan(session.provider)}`))
+      console.log(ansis.white(`  Provider: ${ansis.green(session.provider)}`))
     }
-    console.log(ansis.gray(`\nUse ${ansis.cyan(`ccjk --resume ${session.name || session.id}`)} to resume this session`))
+    console.log(ansis.gray(`\nUse ${ansis.green(`ccjk --resume ${session.name || session.id}`)} to resume this session`))
   }
   catch (error) {
     console.error(ansis.red('Failed to create session:'), error)
@@ -619,7 +619,7 @@ export async function renameSessionCommand(sessionId: string, options: CliOption
     const success = await sessionManager.renameSession(sessionId, newName!)
 
     if (success) {
-      console.log(ansis.green(`✔ Session renamed to: ${ansis.cyan(newName!)}`))
+      console.log(ansis.green(`✔ Session renamed to: ${ansis.green(newName!)}`))
     }
     else {
       console.log(ansis.red(`Session not found: ${sessionId}`))
@@ -653,9 +653,9 @@ export async function deleteSessionCommand(sessionId: string, options: CliOption
     // Confirm deletion unless --force
     if (!options.force) {
       console.log(ansis.yellow('\n⚠️  You are about to delete:'))
-      console.log(ansis.white(`  ID: ${ansis.cyan(session.id)}`))
+      console.log(ansis.white(`  ID: ${ansis.green(session.id)}`))
       if (session.name) {
-        console.log(ansis.white(`  Name: ${ansis.cyan(session.name)}`))
+        console.log(ansis.white(`  Name: ${ansis.green(session.name)}`))
       }
       console.log(ansis.white(`  Created: ${ansis.gray(session.createdAt.toLocaleString())}`))
       console.log(ansis.white(`  History entries: ${ansis.gray(String(session.history.length))}`))

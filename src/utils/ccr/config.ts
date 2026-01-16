@@ -46,7 +46,7 @@ export async function backupCcrConfig(): Promise<string | null> {
     const backupPath = join(CCR_BACKUP_DIR, backupFileName)
 
     // Copy the config file to backup
-    console.log(ansis.cyan(`${i18n.t('ccr:backupCcrConfig')}`))
+    console.log(ansis.green(`${i18n.t('ccr:backupCcrConfig')}`))
     copyFileSync(CCR_CONFIG_FILE, backupPath)
     console.log(ansis.green(`✔ ${i18n.t('ccr:ccrBackupSuccess').replace('{path}', backupPath)}`))
 
@@ -109,7 +109,7 @@ export async function selectCcrPreset(): Promise<ProviderPreset | 'skip' | null>
   ensureI18nInitialized()
 
   // Try to fetch online presets first
-  console.log(ansis.cyan(`${i18n.t('ccr:fetchingPresets')}`))
+  console.log(ansis.green(`${i18n.t('ccr:fetchingPresets')}`))
   const presets = await fetchProviderPresets()
 
   if (!presets || presets.length === 0) {
@@ -242,12 +242,12 @@ export async function restartAndCheckCcrStatus(): Promise<void> {
 
   try {
     // Restart CCR service
-    console.log(ansis.cyan(`${i18n.t('ccr:restartingCcr')}`))
+    console.log(ansis.green(`${i18n.t('ccr:restartingCcr')}`))
     await execAsync('ccr restart')
     console.log(ansis.green(`✔ ${i18n.t('ccr:ccrRestartSuccess')}`))
 
     // Check CCR status
-    console.log(ansis.cyan(`${i18n.t('ccr:checkingCcrStatus')}`))
+    console.log(ansis.green(`${i18n.t('ccr:checkingCcrStatus')}`))
     const { stdout } = await execAsync('ccr status')
     console.log(ansis.gray(stdout))
   }
@@ -264,8 +264,8 @@ export async function showConfigurationTips(apiKey?: string): Promise<void> {
   ensureI18nInitialized()
 
   console.log(ansis.bold.cyan(`\n📌 ${i18n.t('ccr:configTips')}:`))
-  console.log(ansis.blue(`  • ${i18n.t('ccr:advancedConfigTip')}`))
-  console.log(ansis.blue(`  • ${i18n.t('ccr:manualConfigTip')}`))
+  console.log(ansis.green(`  • ${i18n.t('ccr:advancedConfigTip')}`))
+  console.log(ansis.green(`  • ${i18n.t('ccr:manualConfigTip')}`))
   console.log(ansis.bold.yellow(`  • ${i18n.t('ccr:useClaudeCommand')}`))
 
   // Show API key for UI login
@@ -299,7 +299,7 @@ export async function setupCcrConfiguration(): Promise<boolean> {
     // Check for existing config
     const existingConfig = readCcrConfig()
     if (existingConfig) {
-      console.log(ansis.blue(`ℹ ${i18n.t('ccr:existingCcrConfig')}`))
+      console.log(ansis.green(`ℹ ${i18n.t('ccr:existingCcrConfig')}`))
       let shouldBackupAndReconfigure = false
       try {
         shouldBackupAndReconfigure = await promptBoolean({

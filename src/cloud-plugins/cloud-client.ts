@@ -23,7 +23,7 @@ export type { CloudPlugin, PluginCategory } from './types.js'
 // Constants
 // ============================================================================
 
-const DEFAULT_CLOUD_API_URL = 'https://api.api.claudehome.cn/v1/plugins'
+const DEFAULT_CLOUD_API_URL = 'https://api.claudehome.cn/api/v1/plugins'
 const REQUEST_TIMEOUT = 30000 // 30 seconds
 const MAX_RETRY_ATTEMPTS = 3
 const RETRY_DELAY = 1000 // 1 second
@@ -289,7 +289,8 @@ export class CloudRecommendationClient {
   ): Promise<CloudApiResponse<CloudPlugin[]>> {
     this.log('Searching plugins with params:', params)
 
-    return this.request<CloudPlugin[]>('/search', {
+    // API uses /plugins endpoint with query params for search (not /search)
+    return this.request<CloudPlugin[]>('', {
       method: 'GET',
       params,
     })

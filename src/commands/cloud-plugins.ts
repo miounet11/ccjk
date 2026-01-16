@@ -179,7 +179,7 @@ function getDescription(plugin: CloudPlugin): string {
 function formatPlugin(plugin: CloudPlugin, index?: number): string {
   const installed = INSTALLED_PLUGINS.has(plugin.id)
   const installedMark = installed ? ansis.green('✓') : ansis.gray('○')
-  const verifiedMark = plugin.verified === 'verified' ? ansis.blue('✓') : ''
+  const verifiedMark = plugin.verified === 'verified' ? ansis.green('✓') : ''
   const indexStr = index !== undefined ? ansis.green(`${index + 1}.`) : ''
 
   const lines = [
@@ -196,7 +196,7 @@ function formatPlugin(plugin: CloudPlugin, index?: number): string {
  */
 function displayPlugins(plugins: CloudPlugin[], title?: string): void {
   if (title) {
-    console.log(ansis.cyan.bold(`\n${title}\n`))
+    console.log(ansis.green.bold(`\n${title}\n`))
   }
 
   if (plugins.length === 0) {
@@ -214,7 +214,7 @@ function displayPlugins(plugins: CloudPlugin[], title?: string): void {
  * Display recommendations with reasoning
  */
 function displayRecommendations(result: RecommendationResult): void {
-  console.log(ansis.cyan.bold(`\n${i18n.t('plugins:recommendations.title')}\n`))
+  console.log(ansis.green.bold(`\n${i18n.t('plugins:recommendations.title')}\n`))
   console.log(ansis.gray(`${i18n.t('plugins:recommendations.reason')}: ${result.reason}`))
   console.log(ansis.gray(`${i18n.t('plugins:recommendations.confidence')}: ${Math.round(result.confidence * 100)}%\n`))
 
@@ -325,7 +325,7 @@ async function installCommand(id: string, options: CloudPluginsOptions): Promise
   }
 
   if (options.dryRun) {
-    console.log(ansis.cyan(i18n.t('plugins:install.dryRun')))
+    console.log(ansis.green(i18n.t('plugins:install.dryRun')))
     console.log(formatPlugin(plugin))
     return
   }
@@ -596,7 +596,7 @@ async function infoCommand(id: string, options: CloudPluginsOptions): Promise<vo
     }
 
     if (plugin.verified === 'verified') {
-      console.log(`${ansis.blue('✓')} ${i18n.t('plugins:info.verified')}`)
+      console.log(`${ansis.green('✓')} ${i18n.t('plugins:info.verified')}`)
     }
 
     console.log()
@@ -634,7 +634,7 @@ async function cacheCommand(_options: CloudPluginsOptions): Promise<void> {
     spinner.succeed(i18n.t('plugins:cache.cleared'))
   }
   else if (action === 'info') {
-    console.log(ansis.cyan.bold(`\n${i18n.t('plugins:cache.infoTitle')}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('plugins:cache.infoTitle')}\n`))
     console.log(`${i18n.t('plugins:cache.location')}: ~/.ccjk/cache/plugins`)
     console.log(`${i18n.t('plugins:cache.size')}: 12.5 MB`)
     console.log(`${i18n.t('plugins:cache.entries')}: 15`)
@@ -647,7 +647,7 @@ async function cacheCommand(_options: CloudPluginsOptions): Promise<void> {
  */
 async function showInteractiveMenu(): Promise<void> {
   while (true) {
-    console.log(ansis.cyan.bold(`\n${i18n.t('plugins:menu.title')}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('plugins:menu.title')}\n`))
 
     const { action } = await inquirer.prompt([{
       type: 'list',

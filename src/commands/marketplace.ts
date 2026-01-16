@@ -39,7 +39,7 @@ interface MarketplaceOptions {
  */
 async function searchCommand(query: string, _options: MarketplaceOptions): Promise<void> {
   try {
-    console.log(ansis.cyan(i18n.t('marketplace:searching', { query })))
+    console.log(ansis.green(i18n.t('marketplace:searching', { query })))
 
     const results = await searchPackages({ query })
 
@@ -60,7 +60,7 @@ async function searchCommand(query: string, _options: MarketplaceOptions): Promi
       console.log(`  ${ansis.gray(i18n.t('marketplace:packageInfo.category'))}: ${pkg.category}`)
 
       if (pkg.verified === 'verified') {
-        console.log(`  ${ansis.blue('✓')} ${i18n.t('marketplace:packageInfo.verified')}`)
+        console.log(`  ${ansis.green('✓')} ${i18n.t('marketplace:packageInfo.verified')}`)
       }
 
       console.log()
@@ -91,7 +91,7 @@ async function installCommand(packageName: string, options: MarketplaceOptions):
       throw new Error(`Package not found: ${packageName}`)
     }
 
-    console.log(ansis.cyan(i18n.t('marketplace:installing', { name: packageName })))
+    console.log(ansis.green(i18n.t('marketplace:installing', { name: packageName })))
 
     // Install the package
     const result = await installPackage(packageName, {
@@ -131,7 +131,7 @@ async function uninstallCommand(packageName: string, options: MarketplaceOptions
       throw new Error(`Package not installed: ${packageName}`)
     }
 
-    console.log(ansis.cyan(i18n.t('marketplace:uninstalling', { name: packageName })))
+    console.log(ansis.green(i18n.t('marketplace:uninstalling', { name: packageName })))
 
     // Uninstall the package
     const result = await uninstallPackage(packageName, {
@@ -163,7 +163,7 @@ async function updateCommand(packageName?: string, _options?: MarketplaceOptions
   try {
     if (packageName) {
       // Update specific package
-      console.log(ansis.cyan(i18n.t('marketplace:updating', { name: packageName })))
+      console.log(ansis.green(i18n.t('marketplace:updating', { name: packageName })))
 
       const result = await updatePackage(packageName)
 
@@ -180,7 +180,7 @@ async function updateCommand(packageName?: string, _options?: MarketplaceOptions
     }
     else {
       // Check for updates for all packages
-      console.log(ansis.cyan(i18n.t('marketplace:checkingUpdates')))
+      console.log(ansis.green(i18n.t('marketplace:checkingUpdates')))
 
       const updates = await checkForUpdates()
 
@@ -287,7 +287,7 @@ async function infoCommand(packageName: string, _options: MarketplaceOptions): P
     }
 
     if (pkg.verified === 'verified') {
-      console.log(`${ansis.blue('✓')} ${i18n.t('marketplace:packageInfo.verified')}`)
+      console.log(`${ansis.green('✓')} ${i18n.t('marketplace:packageInfo.verified')}`)
     }
 
     console.log()
@@ -378,7 +378,7 @@ export async function marketplaceMenu(action?: string, options?: MarketplaceOpti
 
   if (!action) {
     // Show interactive menu
-    console.log(ansis.cyan('\n🛒 Marketplace Commands:\n'))
+    console.log(ansis.green('\n🛒 Marketplace Commands:\n'))
     console.log('  ccjk cloud plugins search <query>  - Search packages')
     console.log('  ccjk cloud plugins install <pkg>   - Install package')
     console.log('  ccjk cloud plugins uninstall <pkg> - Uninstall package')

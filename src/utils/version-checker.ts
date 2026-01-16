@@ -658,7 +658,7 @@ async function performNpmRemovalAndActivateHomebrew(
     // After removing npm, help activate Homebrew if it's not already active
     if (homebrewInstallation && !homebrewInstallation.isActive) {
       console.log('')
-      console.log(ansis.cyan(`🔗 ${i18n.t('installation:activatingHomebrew')}`))
+      console.log(ansis.green(`🔗 ${i18n.t('installation:activatingHomebrew')}`))
 
       // Try to create symlink for Homebrew installation
       const { createHomebrewSymlink } = await import('./installer')
@@ -734,11 +734,11 @@ export async function handleDuplicateInstallations(skipPrompt: boolean = false):
     const isActive = homebrewInstallation.isActive
     const statusIcon = isActive ? '✅' : '⚠️'
     const statusColor = isActive ? ansis.green : ansis.yellow
-    console.log(ansis.cyan.bold(`🍺 Homebrew Cask ${i18n.t('installation:recommendedMethod')}:`))
+    console.log(ansis.green.bold(`🍺 Homebrew Cask ${i18n.t('installation:recommendedMethod')}:`))
     console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${statusColor(getSourceDisplayName(homebrewInstallation.source, i18n))}`))
     console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(homebrewInstallation.path)}`))
     if (homebrewInstallation.version) {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.cyan(homebrewInstallation.version)}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(homebrewInstallation.version)}`))
     }
     console.log(ansis.white(`   ${statusIcon} ${isActive ? i18n.t('installation:currentActiveInstallation') : i18n.t('installation:inactiveInstallations')}`))
     console.log('')
@@ -751,7 +751,7 @@ export async function handleDuplicateInstallations(skipPrompt: boolean = false):
     console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${ansis.yellow(getSourceDisplayName(npmInstallation.source, i18n))}`))
     console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(npmInstallation.path)}`))
     if (npmInstallation.version) {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.cyan(npmInstallation.version)}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(npmInstallation.version)}`))
 
       // Check for version mismatch
       if (homebrewInstallation?.version && npmInstallation.version !== homebrewInstallation.version) {
@@ -768,7 +768,7 @@ export async function handleDuplicateInstallations(skipPrompt: boolean = false):
   }
 
   // Show recommendation - always recommend removing npm
-  console.log(ansis.cyan(`💡 ${i18n.t('installation:recommendRemoveNpm')}`))
+  console.log(ansis.green(`💡 ${i18n.t('installation:recommendRemoveNpm')}`))
   console.log('')
 
   if (!npmInstallation) {
@@ -779,7 +779,7 @@ export async function handleDuplicateInstallations(skipPrompt: boolean = false):
 
   // If skipPrompt (-s flag), automatically remove npm and keep Homebrew
   if (skipPrompt) {
-    console.log(ansis.cyan(`🔄 ${i18n.t('installation:autoRemovingNpm')}`))
+    console.log(ansis.green(`🔄 ${i18n.t('installation:autoRemovingNpm')}`))
     return await performNpmRemovalAndActivateHomebrew(
       npmInstallation,
       homebrewInstallation,

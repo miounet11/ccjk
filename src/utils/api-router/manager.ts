@@ -49,9 +49,9 @@ export function displayCurrentStatus(lang: 'en' | 'zh-CN' = 'en'): void {
   const config = getCurrentConfig()
 
   console.log('')
-  console.log(ansis.cyan('═'.repeat(50)))
+  console.log(ansis.green('═'.repeat(50)))
   console.log(ansis.bold.cyan(lang === 'zh-CN' ? '  当前 API 配置' : '  Current API Configuration'))
-  console.log(ansis.cyan('═'.repeat(50)))
+  console.log(ansis.green('═'.repeat(50)))
   console.log('')
 
   if (mode === 'none') {
@@ -74,7 +74,7 @@ export function displayCurrentStatus(lang: 'en' | 'zh-CN' = 'en'): void {
     const providerName = preset
       ? (lang === 'zh-CN' ? preset.nameZh : preset.name)
       : provider
-    console.log(`  ${ansis.bold(lang === 'zh-CN' ? '提供商:' : 'Provider:')} ${ansis.cyan(providerName)}`)
+    console.log(`  ${ansis.bold(lang === 'zh-CN' ? '提供商:' : 'Provider:')} ${ansis.green(providerName)}`)
   }
 
   // Base URL (masked)
@@ -96,9 +96,9 @@ export function displayCurrentStatus(lang: 'en' | 'zh-CN' = 'en'): void {
  */
 export async function runConfigWizard(lang: 'en' | 'zh-CN' = 'en'): Promise<ApiConfigResult> {
   console.log('')
-  console.log(ansis.cyan('═'.repeat(50)))
+  console.log(ansis.green('═'.repeat(50)))
   console.log(ansis.bold.cyan(lang === 'zh-CN' ? '  API 配置向导' : '  API Configuration Wizard'))
-  console.log(ansis.cyan('═'.repeat(50)))
+  console.log(ansis.green('═'.repeat(50)))
   console.log('')
 
   // Step 1: Choose configuration mode
@@ -210,7 +210,7 @@ async function runQuickSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
 
   // Show provider instructions
   console.log('')
-  console.log(ansis.cyan(`📋 ${lang === 'zh-CN' ? preset.nameZh : preset.name}`))
+  console.log(ansis.green(`📋 ${lang === 'zh-CN' ? preset.nameZh : preset.name}`))
   if (preset.instructions) {
     console.log(ansis.gray(`   ${lang === 'zh-CN' ? preset.instructions.zh : preset.instructions.en}`))
   }
@@ -252,7 +252,7 @@ async function runQuickSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
  */
 async function runOfficialSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
   console.log('')
-  console.log(ansis.cyan(lang === 'zh-CN'
+  console.log(ansis.green(lang === 'zh-CN'
     ? '📋 官方 Anthropic API'
     : '📋 Official Anthropic API'))
   console.log(ansis.gray(lang === 'zh-CN'
@@ -293,7 +293,7 @@ async function runOfficialSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> 
  */
 async function runCustomSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
   console.log('')
-  console.log(ansis.cyan(lang === 'zh-CN'
+  console.log(ansis.green(lang === 'zh-CN'
     ? '📋 自定义 API 配置'
     : '📋 Custom API Configuration'))
   console.log('')
@@ -345,7 +345,7 @@ async function runCustomSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
  */
 async function runCcrSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
   console.log('')
-  console.log(ansis.cyan(lang === 'zh-CN'
+  console.log(ansis.green(lang === 'zh-CN'
     ? '📋 CCR 高级路由配置'
     : '📋 CCR Advanced Router Configuration'))
   console.log(ansis.gray(lang === 'zh-CN'
@@ -387,7 +387,7 @@ export async function testApiConnection(lang: 'en' | 'zh-CN' = 'en'): Promise<bo
     return false
   }
 
-  console.log(ansis.cyan(lang === 'zh-CN' ? '🔍 测试 API 连接...' : '🔍 Testing API connection...'))
+  console.log(ansis.green(lang === 'zh-CN' ? '🔍 测试 API 连接...' : '🔍 Testing API connection...'))
 
   try {
     // Simple fetch test to the base URL

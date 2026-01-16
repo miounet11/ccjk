@@ -142,7 +142,7 @@ export async function resolveAiOutputLanguage(
 
     // Interactive mode: ask for modification
     const currentLanguageLabel = getAiOutputLanguageLabel(savedConfig.aiOutputLang as AiOutputLanguage) || savedConfig.aiOutputLang
-    console.log(ansis.blue(`${i18n.t('language:currentConfigFound')}: ${currentLanguageLabel}`))
+    console.log(ansis.green(`${i18n.t('language:currentConfigFound')}: ${currentLanguageLabel}`))
 
     const shouldModify = await promptBoolean({
       message: i18n.t('language:modifyConfigPrompt'),
@@ -225,7 +225,7 @@ export async function resolveTemplateLanguage(
 
     // Interactive mode: ask for modification
     const currentLanguageLabel = LANG_LABELS[savedConfig.templateLang]
-    console.log(ansis.blue(`${i18n.t('language:currentTemplateLanguageFound')}: ${currentLanguageLabel}`))
+    console.log(ansis.green(`${i18n.t('language:currentTemplateLanguageFound')}: ${currentLanguageLabel}`))
 
     const shouldModify = await promptBoolean({
       message: i18n.t('language:modifyTemplateLanguagePrompt'),
@@ -304,7 +304,7 @@ export async function resolveSystemPromptStyle(
       }
 
       // Interactive mode: ask for modification
-      console.log(ansis.blue(`${i18n.t('language:currentSystemPromptFound')}: ${currentStyle.name}`))
+      console.log(ansis.green(`${i18n.t('language:currentSystemPromptFound')}: ${currentStyle.name}`))
 
       const shouldModify = await promptBoolean({
         message: i18n.t('language:modifySystemPromptPrompt'),

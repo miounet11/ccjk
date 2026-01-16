@@ -80,7 +80,7 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
     // Select AI output language
     const aiOutputLang = await resolveAiOutputLanguage(i18n.language as SupportedLang, options.aiOutputLang, zcfConfig, options.skipPrompt)
 
-    console.log(ansis.cyan(`\n${i18n.t('configuration:updatingPrompts')}\n`))
+    console.log(ansis.green(`\n${i18n.t('configuration:updatingPrompts')}\n`))
 
     // Execute prompt-only update with AI language
     await updatePromptOnly(aiOutputLang)

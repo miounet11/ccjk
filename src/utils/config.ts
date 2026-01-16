@@ -445,7 +445,7 @@ export async function promptApiConfigurationAction(): Promise<'modify-partial' |
   }
 
   // Display existing configuration
-  console.log(`\n${ansis.blue(`ℹ ${i18n.t('api:existingApiConfig')}`)}`)
+  console.log(`\n${ansis.green(`ℹ ${i18n.t('api:existingApiConfig')}`)}`)
   console.log(ansis.gray(`  ${i18n.t('api:apiConfigUrl')}: ${existingConfig.url || 'N/A'}`))
   console.log(ansis.gray(`  ${i18n.t('api:apiConfigKey')}: ${existingConfig.key ? `***${existingConfig.key.slice(-4)}` : 'N/A'}`))
   console.log(ansis.gray(`  ${i18n.t('api:apiConfigAuthType')}: ${existingConfig.authType || 'N/A'}\n`))

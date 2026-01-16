@@ -114,13 +114,13 @@ export async function ensureReady(): Promise<boolean> {
 
   if (!status.isInstalled) {
     console.log(ansis.yellow(`⚠ ${i18n.t('agentBrowser:notInstalled')}`))
-    console.log(ansis.cyan(`  ${i18n.t('agentBrowser:installHint')}`))
+    console.log(ansis.green(`  ${i18n.t('agentBrowser:installHint')}`))
     return false
   }
 
   if (!status.hasBrowser) {
     console.log(ansis.yellow(`⚠ ${i18n.t('agentBrowser:browserNotInstalled')}`))
-    console.log(ansis.cyan(`  ${i18n.t('agentBrowser:browserInstallHint')}`))
+    console.log(ansis.green(`  ${i18n.t('agentBrowser:browserInstallHint')}`))
     return false
   }
 

@@ -64,7 +64,7 @@ async function enableSandbox(options: SandboxOptions): Promise<void> {
   const manager = getGlobalSandboxManager()
   const lang = options.lang || 'en'
 
-  console.log(ansis.cyan(i18n.t('sandbox:enablingTitle', { lng: lang })))
+  console.log(ansis.green(i18n.t('sandbox:enablingTitle', { lng: lang })))
 
   // Get configuration from options or prompt
   const config = {
@@ -152,7 +152,7 @@ async function showStatus(options: SandboxOptions): Promise<void> {
   const lang = options.lang || 'en'
   const status = manager.getStatus()
 
-  console.log(ansis.cyan.bold(`\n${i18n.t('sandbox:statusTitle', { lng: lang })}`))
+  console.log(ansis.green.bold(`\n${i18n.t('sandbox:statusTitle', { lng: lang })}`))
   console.log(ansis.dim('─'.repeat(50)))
 
   // Status
@@ -220,12 +220,12 @@ async function showAuditLogs(options: SandboxOptions): Promise<void> {
     return
   }
 
-  console.log(ansis.cyan.bold(`\n${i18n.t('sandbox:auditLogsTitle', { lng: lang })}`))
+  console.log(ansis.green.bold(`\n${i18n.t('sandbox:auditLogsTitle', { lng: lang })}`))
   console.log(ansis.dim(`${i18n.t('sandbox:showing', { lng: lang })} ${logs.length} ${i18n.t('sandbox:entries', { lng: lang })}`))
   console.log(ansis.dim('─'.repeat(80)))
 
   for (const log of logs) {
-    const typeColor = log.type === 'error' ? ansis.red : log.type === 'request' ? ansis.blue : ansis.green
+    const typeColor = log.type === 'error' ? ansis.red : log.type === 'request' ? ansis.green : ansis.green
     const typeLabel = typeColor(log.type.toUpperCase().padEnd(8))
 
     console.log(`\n${typeLabel} ${ansis.dim(formatTimestamp(log.timestamp))}`)

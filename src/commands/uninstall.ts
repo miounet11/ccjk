@@ -96,7 +96,7 @@ export async function uninstall(options: UninstallOptions = {}): Promise<void> {
  * Show interactive uninstall menu
  */
 async function showInteractiveUninstall(uninstaller: ZcfUninstaller): Promise<void> {
-  console.log(ansis.cyan.bold(i18n.t('uninstall:title')))
+  console.log(ansis.green.bold(i18n.t('uninstall:title')))
   console.log('')
 
   // Main choice: complete vs custom
@@ -136,7 +136,7 @@ async function showInteractiveUninstall(uninstaller: ZcfUninstaller): Promise<vo
  */
 async function showCustomUninstallMenu(uninstaller: ZcfUninstaller): Promise<void> {
   console.log('')
-  console.log(ansis.cyan(i18n.t('uninstall:selectCustomItems')))
+  console.log(ansis.green(i18n.t('uninstall:selectCustomItems')))
 
   const { customItems } = await inquirer.prompt<{ customItems: UninstallItem[] }>({
     type: 'checkbox',
@@ -224,7 +224,7 @@ async function executeCompleteUninstall(uninstaller: ZcfUninstaller): Promise<vo
   }
 
   console.log('')
-  console.log(ansis.cyan(i18n.t('uninstall:processingComplete')))
+  console.log(ansis.green(i18n.t('uninstall:processingComplete')))
 
   const result = await uninstaller.completeUninstall()
   displayUninstallResult('complete', [result])
@@ -235,7 +235,7 @@ async function executeCompleteUninstall(uninstaller: ZcfUninstaller): Promise<vo
  */
 async function executeCustomUninstall(uninstaller: ZcfUninstaller, items: UninstallItem[]): Promise<void> {
   console.log('')
-  console.log(ansis.cyan(i18n.t('uninstall:executingCustom')))
+  console.log(ansis.green(i18n.t('uninstall:executingCustom')))
 
   // Show selected items
   console.log(ansis.gray(i18n.t('uninstall:selectedItems')))
@@ -255,7 +255,7 @@ async function executeCustomUninstall(uninstaller: ZcfUninstaller, items: Uninst
   }
 
   console.log('')
-  console.log(ansis.cyan(i18n.t('uninstall:processingCustom')))
+  console.log(ansis.green(i18n.t('uninstall:processingCustom')))
 
   const results = await uninstaller.customUninstall(items)
   displayUninstallResult('custom', results)
@@ -266,7 +266,7 @@ async function executeCustomUninstall(uninstaller: ZcfUninstaller, items: Uninst
  */
 function displayUninstallResult(mode: 'complete' | 'custom', results: any[]): void {
   console.log('')
-  console.log(ansis.cyan('─'.repeat(50)))
+  console.log(ansis.green('─'.repeat(50)))
 
   let totalSuccess = 0
   let totalErrors = 0
@@ -320,7 +320,7 @@ function displayUninstallResult(mode: 'complete' | 'custom', results: any[]): vo
 
   // Summary
   console.log('')
-  console.log(ansis.cyan('─'.repeat(50)))
+  console.log(ansis.green('─'.repeat(50)))
 
   if (mode === 'complete') {
     if (totalErrors === 0) {

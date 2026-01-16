@@ -20,7 +20,7 @@ export async function commit(options: CommitCommandOptions = {}): Promise<void> 
     return
   }
 
-  console.log(ansis.cyan('\n📝 Changes detected:'))
+  console.log(ansis.green('\n📝 Changes detected:'))
   if (status.staged.length > 0) {
     console.log(ansis.green(`  Staged: ${status.staged.length} files`))
     status.staged.forEach(f => console.log(ansis.gray(`    ${f}`)))
@@ -43,7 +43,7 @@ export async function commit(options: CommitCommandOptions = {}): Promise<void> 
   }
   else if (options.auto) {
     message = await generateCommitMessage(allFiles)
-    console.log(ansis.cyan('\n💬 Generated commit message:'))
+    console.log(ansis.green('\n💬 Generated commit message:'))
     console.log(ansis.white(message))
   }
   else {

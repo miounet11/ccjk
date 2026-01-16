@@ -16,7 +16,7 @@ export function handleExitPromptError(error: unknown): boolean {
 
   if (isExitError) {
     ensureI18nInitialized()
-    console.log(ansis.cyan(`\n${i18n.t('common:goodbye')}\n`))
+    console.log(ansis.green(`\n${i18n.t('common:goodbye')}\n`))
     process.exit(0)
   }
   return false

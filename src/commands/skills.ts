@@ -104,7 +104,7 @@ export async function listSkills(options: SkillsOptions = {}): Promise<void> {
         const statusIcon = skill.enabled ? ansis.green('✓') : ansis.dim('○')
         const name = skill.name[options.lang || 'en']
         const description = skill.description[options.lang || 'en']
-        const triggers = skill.triggers.map(t => ansis.cyan(t)).join(', ')
+        const triggers = skill.triggers.map(t => ansis.green(t)).join(', ')
 
         console.log(`  ${statusIcon} ${ansis.bold(name)} ${ansis.dim(`(${skill.id})`)}`)
         console.log(`    ${ansis.dim(description)}`)
@@ -229,7 +229,7 @@ export async function showSkillInfo(skillName: string, options: SkillsOptions = 
     console.log('')
     console.log(ansis.bold(`  ${i18n.t('skills:label.triggers')}:`))
     for (const trigger of skill.triggers) {
-      console.log(ansis.cyan(`    ${trigger}`))
+      console.log(ansis.green(`    ${trigger}`))
     }
 
     if (skill.tags && skill.tags.length > 0) {

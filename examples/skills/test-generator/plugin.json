@@ -1,0 +1,21 @@
+{
+  "id": "test-generator",
+  "name": {
+    "en": "Test Generator",
+    "zh-CN": "测试生成器"
+  },
+  "description": {
+    "en": "Analyze code and generate high-quality tests following Jest/Vitest best practices",
+    "zh-CN": "分析代码并遵循 Jest/Vitest 最佳实践生成高质量测试"
+  },
+  "version": "1.0.0",
+  "author": {
+    "name": "CCJK Team",
+    "url": "https://github.com/anthropics/ccjk"
+  },
+  "category": "testing",
+  "tags": ["test", "tdd", "vitest", "jest", "unit-test", "coverage", "mock"],
+  "permissions": ["file:read", "file:write", "shell:execute"],
+  "formatVersion": "2.0",
+  "license": "MIT"
+}

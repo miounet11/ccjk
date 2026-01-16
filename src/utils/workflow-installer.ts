@@ -130,7 +130,7 @@ async function installWorkflowWithDependencies(
   } as const
 
   const workflowName = WORKFLOW_OPTION_KEYS[config.id as keyof typeof WORKFLOW_OPTION_KEYS] || config.id
-  console.log(ansis.cyan(`\n📦 ${i18n.t('workflow:installingWorkflow')}: ${workflowName}...`))
+  console.log(ansis.green(`\n📦 ${i18n.t('workflow:installingWorkflow')}: ${workflowName}...`))
 
   // Install commands to new structure
   const commandsDir = join(CLAUDE_DIR, 'commands', 'ccjk')
@@ -230,7 +230,7 @@ async function installWorkflowWithDependencies(
 
 async function cleanupOldVersionFiles(): Promise<void> {
   ensureI18nInitialized()
-  console.log(ansis.cyan(`\n🧹 ${i18n.t('workflow:cleaningOldFiles')}...`))
+  console.log(ansis.green(`\n🧹 ${i18n.t('workflow:cleaningOldFiles')}...`))
 
   // Old command files to remove
   const oldCommandFiles = [

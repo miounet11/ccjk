@@ -304,7 +304,7 @@ async function handleSuperpowersInstallation(options: InitOptions): Promise<void
     }
     else {
       // Show interactive prompt with description
-      console.log(ansis.cyan(`\n${i18n.t('superpowers:title')}`))
+      console.log(ansis.green(`\n${i18n.t('superpowers:title')}`))
       console.log(ansis.gray(i18n.t('superpowers:description')))
       console.log(ansis.gray(i18n.t('superpowers:installPromptDescription')))
 
@@ -920,7 +920,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       if (shouldConfigureMcp) {
         // Show Windows-specific notice
         if (isWindows()) {
-          console.log(ansis.blue(`ℹ ${i18n.t('installation:windowsDetected')}`))
+          console.log(ansis.green(`ℹ ${i18n.t('installation:windowsDetected')}`))
         }
 
         // Use common MCP selector or skip-prompt services
@@ -1084,14 +1084,14 @@ export async function init(options: InitOptions = {}): Promise<void> {
     console.log(ansis.bold.green('║') + ansis.bold.white(padToDisplayWidth(`  ${i18n.t('configuration:setupCompleteTitle')}`, 62)) + ansis.bold.green('║'))
     console.log(ansis.bold.green('╠══════════════════════════════════════════════════════════════╣'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + ansis.cyan(padToDisplayWidth(`  ${i18n.t('configuration:nextSteps')}`, 62)) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + ansis.green(padToDisplayWidth(`  ${i18n.t('configuration:nextSteps')}`, 62)) + ansis.bold.green('║'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
     console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep1')}`, 62) + ansis.bold.green('║'))
     console.log(ansis.bold.green('║') + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail')}`, 62)) + ansis.bold.green('║'))
     console.log(ansis.bold.green('║') + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail2')}`, 62)) + ansis.bold.green('║'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
     console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep2')}`, 62) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + ansis.cyan(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep2Example')}`, 62)) + ansis.bold.green('║'))
+    console.log(ansis.bold.green('║') + ansis.green(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep2Example')}`, 62)) + ansis.bold.green('║'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
     console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep3')} `, 44) + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep3Command'), 18)) + ansis.bold.green('║'))
     console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep4')} `, 44) + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep4Command'), 18)) + ansis.bold.green('║'))

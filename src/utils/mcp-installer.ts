@@ -467,7 +467,7 @@ export async function displayInstalledMcpServices(tool?: CodeToolType): Promise<
     return
   }
 
-  console.log(ansis.cyan.bold(`\n${i18n.t('mcp:installer.installedServices', { tool: targetTool })}\n`))
+  console.log(ansis.green.bold(`\n${i18n.t('mcp:installer.installedServices', { tool: targetTool })}\n`))
 
   services.forEach((service, idx) => {
     console.log(`${ansis.green(`${idx + 1}.`)} ${ansis.bold(service.name)} ${ansis.dim(`[${service.id}]`)}`)

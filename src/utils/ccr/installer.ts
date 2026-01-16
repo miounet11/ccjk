@@ -97,7 +97,7 @@ export async function installCcr(): Promise<void> {
   }
 
   // Install the correct package
-  console.log(ansis.cyan(`📦 ${i18n.t('ccr:installingCcr')}`))
+  console.log(ansis.green(`📦 ${i18n.t('ccr:installingCcr')}`))
 
   try {
     const installArgs = ['install', '-g', '@musistudio/claude-code-router', '--force']

@@ -278,5 +278,5 @@ export async function updatePromptOnly(
   await configureOutputStyle()
 
   console.log(ansis.green(`✔ ${i18n.t('configuration:configSuccess')} ${CLAUDE_DIR}`))
-  console.log(`\n${ansis.cyan(i18n.t('common:complete'))}`)
+  console.log(`\n${ansis.green(i18n.t('common:complete'))}`)
 }

@@ -370,7 +370,7 @@ export function removeRedundantConfigs(configs: ConfigLocation[], keepPath: stri
 export function displayConfigScan(configs: ConfigLocation[]): void {
   const existingConfigs = configs.filter(c => c.exists)
 
-  console.log(ansis.cyan('\n═══════════ Config Files Detected ═══════════\n'))
+  console.log(ansis.green('\n═══════════ Config Files Detected ═══════════\n'))
 
   if (existingConfigs.length === 0) {
     console.log(STATUS.info('No config files found'))

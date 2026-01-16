@@ -57,8 +57,8 @@ export async function updateCcr(force = false, skipPrompt = false): Promise<bool
     }
 
     // Show version info
-    console.log(ansis.cyan(format(i18n.t('updater:currentVersion'), { version: currentVersion || '' })))
-    console.log(ansis.cyan(format(i18n.t('updater:latestVersion'), { version: latestVersion })))
+    console.log(ansis.green(format(i18n.t('updater:currentVersion'), { version: currentVersion || '' })))
+    console.log(ansis.green(format(i18n.t('updater:latestVersion'), { version: latestVersion })))
 
     // Handle confirmation based on skipPrompt mode
     if (!skipPrompt) {
@@ -75,7 +75,7 @@ export async function updateCcr(force = false, skipPrompt = false): Promise<bool
     }
     else {
       // Skip-prompt mode: Auto-update with notification
-      console.log(ansis.cyan(format(i18n.t('updater:autoUpdating'), { tool: 'CCR' })))
+      console.log(ansis.green(format(i18n.t('updater:autoUpdating'), { tool: 'CCR' })))
     }
 
     // Perform update
@@ -123,8 +123,8 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
     }
 
     // Show version info
-    console.log(ansis.cyan(format(i18n.t('updater:currentVersion'), { version: currentVersion || '' })))
-    console.log(ansis.cyan(format(i18n.t('updater:latestVersion'), { version: latestVersion })))
+    console.log(ansis.green(format(i18n.t('updater:currentVersion'), { version: currentVersion || '' })))
+    console.log(ansis.green(format(i18n.t('updater:latestVersion'), { version: latestVersion })))
 
     if (isBroken) {
       console.log(ansis.yellow(i18n.t('updater:installationBroken')))
@@ -163,7 +163,7 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
     }
     else {
       // Skip-prompt mode: Auto-update with notification
-      console.log(ansis.cyan(format(i18n.t('updater:autoUpdating'), { tool: 'Claude Code' })))
+      console.log(ansis.green(format(i18n.t('updater:autoUpdating'), { tool: 'Claude Code' })))
     }
 
     // Perform update using appropriate method based on installation type
@@ -259,8 +259,8 @@ export async function updateCometixLine(force = false, skipPrompt = false): Prom
     }
 
     // Show version info
-    console.log(ansis.cyan(format(i18n.t('updater:currentVersion'), { version: currentVersion || '' })))
-    console.log(ansis.cyan(format(i18n.t('updater:latestVersion'), { version: latestVersion })))
+    console.log(ansis.green(format(i18n.t('updater:currentVersion'), { version: currentVersion || '' })))
+    console.log(ansis.green(format(i18n.t('updater:latestVersion'), { version: latestVersion })))
 
     // Handle confirmation based on skipPrompt mode
     if (!skipPrompt) {
@@ -277,7 +277,7 @@ export async function updateCometixLine(force = false, skipPrompt = false): Prom
     }
     else {
       // Skip-prompt mode: Auto-update with notification
-      console.log(ansis.cyan(format(i18n.t('updater:autoUpdating'), { tool: 'CCometixLine' })))
+      console.log(ansis.green(format(i18n.t('updater:autoUpdating'), { tool: 'CCometixLine' })))
     }
 
     // Perform update

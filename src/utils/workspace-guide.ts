@@ -591,7 +591,7 @@ export async function runWorkspaceCheck(targetDir?: string): Promise<WorkspaceRe
  * Display workspace report
  */
 export function displayWorkspaceReport(report: WorkspaceReport): void {
-  console.log(ansis.cyan(`\n═══════════ ${t('workspace:title')} ═══════════\n`))
+  console.log(ansis.green(`\n═══════════ ${t('workspace:title')} ═══════════\n`))
   console.log(ansis.white.bold(`${t('workspace:currentDir')}: ${ansis.yellow(report.cwd)}\n`))
 
   // Display checks
@@ -709,7 +709,7 @@ export async function runWorkspaceWizard(targetDir?: string): Promise<void> {
 
   // Re-run check to verify
   console.log('')
-  console.log(ansis.cyan(t('workspace:wizard.verifying')))
+  console.log(ansis.green(t('workspace:wizard.verifying')))
   const newReport = await runWorkspaceCheck(targetDir)
 
   if (newReport.isValid) {

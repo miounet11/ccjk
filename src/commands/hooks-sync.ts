@@ -123,7 +123,7 @@ export async function hooksSync(options: HooksSyncOptions = {}): Promise<void> {
  */
 async function showHooksMenu(lang: SupportedLang): Promise<void> {
   while (true) {
-    console.log(ansis.cyan.bold(`\n${i18n.t('menu:hooksSync.title')}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('menu:hooksSync.title')}\n`))
 
     const { action } = await inquirer.prompt([{
       type: 'list',
@@ -172,7 +172,7 @@ async function showHooksMenu(lang: SupportedLang): Promise<void> {
  * Sync hooks bidirectionally
  */
 async function syncHooks(): Promise<void> {
-  console.log(ansis.cyan(`\n⏳ ${i18n.t('menu:hooksSync.syncNowDesc')}...`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('menu:hooksSync.syncNowDesc')}...`))
 
   try {
     // Load local hooks
@@ -216,7 +216,7 @@ async function syncHooks(): Promise<void> {
  * Upload local hooks to cloud
  */
 async function uploadHooks(): Promise<void> {
-  console.log(ansis.cyan(`\n⏳ ${i18n.t('hooksSync:actions.uploading')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('hooksSync:actions.uploading')}`))
 
   try {
     const localHooks = await loadLocalHooks()
@@ -248,7 +248,7 @@ async function uploadHooks(): Promise<void> {
  * Download hooks from cloud
  */
 async function downloadHooks(options: HooksSyncOptions = {}): Promise<void> {
-  console.log(ansis.cyan(`\n⏳ ${i18n.t('hooksSync:actions.downloading')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('hooksSync:actions.downloading')}`))
 
   try {
     const client = new CloudHooksSyncClient()
@@ -266,7 +266,7 @@ async function downloadHooks(options: HooksSyncOptions = {}): Promise<void> {
 
       // Display downloaded hooks
       result.data.forEach((hook) => {
-        console.log(`  ${ansis.cyan('•')} ${hook.name} ${ansis.dim(`(${hook.id})`)}`)
+        console.log(`  ${ansis.green('•')} ${hook.name} ${ansis.dim(`(${hook.id})`)}`)
       })
     }
     else {
@@ -286,7 +286,7 @@ async function downloadHooks(options: HooksSyncOptions = {}): Promise<void> {
  * List local hooks
  */
 async function listHooks(options: HooksSyncOptions = {}): Promise<void> {
-  console.log(ansis.cyan.bold(`\n📋 ${i18n.t('hooksSync:labels.localHooks')}\n`))
+  console.log(ansis.green.bold(`\n📋 ${i18n.t('hooksSync:labels.localHooks')}\n`))
 
   try {
     const hooks = await loadLocalHooks()
@@ -316,7 +316,7 @@ async function listHooks(options: HooksSyncOptions = {}): Promise<void> {
       console.log(ansis.bold(`\n${category}:`))
       for (const hook of categoryHooks) {
         const status = hook.enabled ? ansis.green('✓') : ansis.red('✗')
-        const privacy = hook.privacy === 'public' ? ansis.blue('🌐') : ansis.dim('🔒')
+        const privacy = hook.privacy === 'public' ? ansis.green('🌐') : ansis.dim('🔒')
         console.log(`  ${status} ${privacy} ${hook.name} ${ansis.dim(`(${hook.id})`)}`)
         console.log(`     ${ansis.dim(hook.metadata.description)}`)
       }
@@ -376,7 +376,7 @@ async function toggleHook(hookId: string, enabled: boolean): Promise<void> {
  * Browse and install hook templates
  */
 async function browseTemplates(lang: SupportedLang, options: HooksSyncOptions = {}): Promise<void> {
-  console.log(ansis.cyan.bold(`\n📚 ${i18n.t('menu:hooksSync.browseTemplates')}\n`))
+  console.log(ansis.green.bold(`\n📚 ${i18n.t('menu:hooksSync.browseTemplates')}\n`))
 
   try {
     // Load templates from local data file

@@ -106,7 +106,7 @@ function formatTemplate(template: AgentTemplate, index?: number): string {
  */
 function displayAgents(agents: (CloudAgent | InstalledAgent)[], title?: string): void {
   if (title) {
-    console.log(ansis.cyan.bold(`\n${title}\n`))
+    console.log(ansis.green.bold(`\n${title}\n`))
   }
 
   if (agents.length === 0) {
@@ -125,7 +125,7 @@ function displayAgents(agents: (CloudAgent | InstalledAgent)[], title?: string):
  */
 function displayTemplates(templates: AgentTemplate[], title?: string): void {
   if (title) {
-    console.log(ansis.cyan.bold(`\n${title}\n`))
+    console.log(ansis.green.bold(`\n${title}\n`))
   }
 
   if (templates.length === 0) {
@@ -335,7 +335,7 @@ async function syncCommand(options: AgentsSyncOptions): Promise<void> {
       }
 
       console.log()
-      console.log(ansis.blue(`${i18n.t('agents:sync.pulled')}: ${result.pulled.length}`))
+      console.log(ansis.green(`${i18n.t('agents:sync.pulled')}: ${result.pulled.length}`))
       if (result.pulled.length > 0) {
         result.pulled.forEach(id => console.log(`  - ${id}`))
       }
@@ -599,7 +599,7 @@ async function updateCommand(_options: AgentsSyncOptions): Promise<void> {
  */
 async function showInteractiveMenu(): Promise<void> {
   while (true) {
-    console.log(ansis.cyan.bold(`\n${i18n.t('agents:menu.title')}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('agents:menu.title')}\n`))
 
     const { action } = await inquirer.prompt([{
       type: 'list',

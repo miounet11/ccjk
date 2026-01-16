@@ -88,25 +88,25 @@ function displayProvider(provider: any, codeType: CodeToolType, verbose: boolean
   }
 
   if (config) {
-    console.log(`    ${ansis.cyan(isZh ? '接口地址' : 'Base URL')}: ${config.baseUrl}`)
+    console.log(`    ${ansis.green(isZh ? '接口地址' : 'Base URL')}: ${config.baseUrl}`)
 
     if (codeType === 'claude-code' && config.authType) {
-      console.log(`    ${ansis.cyan(isZh ? '认证方式' : 'Auth Type')}: ${config.authType}`)
+      console.log(`    ${ansis.green(isZh ? '认证方式' : 'Auth Type')}: ${config.authType}`)
     }
 
     if (codeType === 'codex' && config.wireApi) {
-      console.log(`    ${ansis.cyan(isZh ? '协议类型' : 'Wire API')}: ${config.wireApi}`)
+      console.log(`    ${ansis.green(isZh ? '协议类型' : 'Wire API')}: ${config.wireApi}`)
     }
 
     if (verbose) {
       if (config.defaultModels && config.defaultModels.length > 0) {
-        console.log(`    ${ansis.cyan(isZh ? '默认模型' : 'Default Models')}: ${config.defaultModels.join(', ')}`)
+        console.log(`    ${ansis.green(isZh ? '默认模型' : 'Default Models')}: ${config.defaultModels.join(', ')}`)
       }
       if (config.defaultModel) {
-        console.log(`    ${ansis.cyan(isZh ? '默认模型' : 'Default Model')}: ${config.defaultModel}`)
+        console.log(`    ${ansis.green(isZh ? '默认模型' : 'Default Model')}: ${config.defaultModel}`)
       }
       if (provider.website) {
-        console.log(`    ${ansis.cyan(isZh ? '官网' : 'Website')}: ${provider.website}`)
+        console.log(`    ${ansis.green(isZh ? '官网' : 'Website')}: ${provider.website}`)
       }
     }
   }
@@ -170,7 +170,7 @@ export async function checkProvidersHealth(options: ProvidersOptions = {}): Prom
       console.log(`${statusIcon} ${ansis.bold(provider.name)}`)
 
       if (result.success) {
-        console.log(`    ${ansis.cyan(isZh ? '延迟' : 'Latency')}: ${latencyColor(`${result.latency}ms`)}`)
+        console.log(`    ${ansis.green(isZh ? '延迟' : 'Latency')}: ${latencyColor(`${result.latency}ms`)}`)
         console.log(`    ${ansis.green(isZh ? '状态: 正常' : 'Status: Healthy')}`)
       }
       else {
@@ -267,9 +267,9 @@ export async function recommendProvider(options: ProvidersOptions = {}): Promise
     if (health) {
       console.log('')
       console.log(ansis.bold(isZh ? '性能指标' : 'Performance Metrics'))
-      console.log(`  ${ansis.cyan(isZh ? '延迟' : 'Latency')}: ${health.latency.toFixed(0)}ms`)
-      console.log(`  ${ansis.cyan(isZh ? '成功率' : 'Success Rate')}: ${(health.successRate * 100).toFixed(1)}%`)
-      console.log(`  ${ansis.cyan(isZh ? '状态' : 'Status')}: ${getStatusDisplay(health.status, isZh)}`)
+      console.log(`  ${ansis.green(isZh ? '延迟' : 'Latency')}: ${health.latency.toFixed(0)}ms`)
+      console.log(`  ${ansis.green(isZh ? '成功率' : 'Success Rate')}: ${(health.successRate * 100).toFixed(1)}%`)
+      console.log(`  ${ansis.green(isZh ? '状态' : 'Status')}: ${getStatusDisplay(health.status, isZh)}`)
     }
 
     // Show top 3 alternatives
@@ -347,9 +347,9 @@ export async function providersCommand(action: string, options: ProvidersOptions
       console.log('')
       console.log(ansis.bold.cyan(isZh ? '📦 供应商管理命令' : '📦 Provider Management Commands'))
       console.log('')
-      console.log(`  ${ansis.cyan('ccjk providers list')}        ${isZh ? '列出所有供应商' : 'List all providers'}`)
-      console.log(`  ${ansis.cyan('ccjk providers health')}      ${isZh ? '检查供应商健康状态' : 'Check provider health'}`)
-      console.log(`  ${ansis.cyan('ccjk providers recommend')}   ${isZh ? '推荐最佳供应商' : 'Recommend best provider'}`)
+      console.log(`  ${ansis.green('ccjk providers list')}        ${isZh ? '列出所有供应商' : 'List all providers'}`)
+      console.log(`  ${ansis.green('ccjk providers health')}      ${isZh ? '检查供应商健康状态' : 'Check provider health'}`)
+      console.log(`  ${ansis.green('ccjk providers recommend')}   ${isZh ? '推荐最佳供应商' : 'Recommend best provider'}`)
       console.log('')
       console.log(ansis.bold(isZh ? '选项' : 'Options'))
       console.log(`  ${ansis.green('--code-type, -T')} <type>   ${isZh ? '代码工具类型 (claude-code, codex)' : 'Code tool type (claude-code, codex)'}`)

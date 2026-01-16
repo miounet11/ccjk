@@ -120,7 +120,7 @@ async function detectCodexInstallMethod(): Promise<'npm' | 'homebrew' | 'unknown
  */
 async function executeCodexInstallation(isUpdate: boolean, skipMethodSelection: boolean = false): Promise<void> {
   if (isUpdate) {
-    console.log(ansis.cyan(i18n.t('codex:updatingCli')))
+    console.log(ansis.green(i18n.t('codex:updatingCli')))
 
     // Detect installation method for updates
     const installMethod = await detectCodexInstallMethod()
@@ -1906,8 +1906,8 @@ export async function runCodexUpdate(force = false, skipPrompt = false): Promise
     }
 
     // Show version info
-    console.log(ansis.cyan(format(i18n.t('codex:currentVersion'), { version: currentVersion || '' })))
-    console.log(ansis.cyan(format(i18n.t('codex:latestVersion'), { version: latestVersion })))
+    console.log(ansis.green(format(i18n.t('codex:currentVersion'), { version: currentVersion || '' })))
+    console.log(ansis.green(format(i18n.t('codex:latestVersion'), { version: latestVersion })))
 
     // Handle confirmation based on skipPrompt mode
     if (!skipPrompt) {
@@ -1924,7 +1924,7 @@ export async function runCodexUpdate(force = false, skipPrompt = false): Promise
     }
     else {
       // Skip-prompt mode: Auto-update with notification
-      console.log(ansis.cyan(i18n.t('codex:autoUpdating')))
+      console.log(ansis.green(i18n.t('codex:autoUpdating')))
     }
 
     // Perform update

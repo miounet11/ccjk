@@ -128,7 +128,7 @@ export async function installAgentBrowser(): Promise<boolean> {
     return true
   }
 
-  console.log(ansis.cyan(`📦 ${i18n.t('agentBrowser:installing')}`))
+  console.log(ansis.green(`📦 ${i18n.t('agentBrowser:installing')}`))
 
   try {
     const installArgs = ['install', '-g', 'agent-browser']
@@ -161,7 +161,7 @@ export async function installAgentBrowser(): Promise<boolean> {
 export async function installBrowser(withDeps = false): Promise<boolean> {
   ensureI18nInitialized()
 
-  console.log(ansis.cyan(`🌐 ${i18n.t('agentBrowser:installingBrowser')}`))
+  console.log(ansis.green(`🌐 ${i18n.t('agentBrowser:installingBrowser')}`))
 
   try {
     const command = withDeps ? 'agent-browser install --with-deps' : 'agent-browser install'
@@ -191,7 +191,7 @@ export async function updateAgentBrowser(): Promise<boolean> {
     return true
   }
 
-  console.log(ansis.cyan(`📦 ${i18n.t('agentBrowser:updating', { from: currentVersion, to: latestVersion })}`))
+  console.log(ansis.green(`📦 ${i18n.t('agentBrowser:updating', { from: currentVersion, to: latestVersion })}`))
 
   try {
     const installArgs = ['install', '-g', 'agent-browser@latest']
@@ -227,7 +227,7 @@ export async function uninstallAgentBrowser(): Promise<boolean> {
     return true
   }
 
-  console.log(ansis.cyan(`🗑️  ${i18n.t('agentBrowser:uninstalling')}`))
+  console.log(ansis.green(`🗑️  ${i18n.t('agentBrowser:uninstalling')}`))
 
   try {
     const uninstallArgs = ['uninstall', '-g', 'agent-browser']

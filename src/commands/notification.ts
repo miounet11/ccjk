@@ -293,7 +293,7 @@ async function selectChannels(): Promise<NotificationChannel[]> {
  */
 async function configureChannel(channel: NotificationChannel): Promise<void> {
   console.log('')
-  console.log(ansis.cyan(`配置 ${i18n.t(`notification:channels.${channel}`)}:`))
+  console.log(ansis.green(`配置 ${i18n.t(`notification:channels.${channel}`)}:`))
 
   switch (channel) {
     case 'feishu':
@@ -648,7 +648,7 @@ async function sendTestNotification(): Promise<void> {
   }
 
   console.log('')
-  console.log(ansis.cyan(i18n.t('notification:test.sending')))
+  console.log(ansis.green(i18n.t('notification:test.sending')))
 
   try {
     // Initialize cloud client
@@ -764,7 +764,7 @@ async function handleBind(code?: string): Promise<void> {
   }
 
   console.log('')
-  console.log(ansis.cyan(i18n.t('notification:cloud.binding')))
+  console.log(ansis.green(i18n.t('notification:cloud.binding')))
 
   try {
     const result = await bindDevice(bindingCode!)
@@ -885,7 +885,7 @@ async function showCloudStatus(): Promise<void> {
  */
 async function sendCloudTestNotification(): Promise<void> {
   console.log('')
-  console.log(ansis.cyan(i18n.t('notification:cloud.sendingTest')))
+  console.log(ansis.green(i18n.t('notification:cloud.sendingTest')))
 
   try {
     const result = await sendNotification({
@@ -1146,7 +1146,7 @@ async function testLocalNotification(): Promise<void> {
   const config = await loadLocalNotificationConfig()
 
   console.log('')
-  console.log(ansis.cyan(i18n.t('notification:local.testing')))
+  console.log(ansis.green(i18n.t('notification:local.testing')))
   console.log('')
 
   let hasAnyEnabled = false

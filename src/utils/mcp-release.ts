@@ -195,7 +195,7 @@ export async function mcpRelease(options: McpReleaseOptions = {}): Promise<void>
   console.log('')
 
   if (options.dryRun) {
-    console.log(ansis.blue(isZh ? '(模拟运行 - 不会实际修改配置)' : '(Dry run - no changes will be made)'))
+    console.log(ansis.green(isZh ? '(模拟运行 - 不会实际修改配置)' : '(Dry run - no changes will be made)'))
     return
   }
 

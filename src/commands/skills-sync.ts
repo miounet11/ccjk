@@ -304,9 +304,9 @@ export async function showSyncStatus(options: SkillsSyncOptions = {}): Promise<v
     if (conflicts > 0)
       console.log(ansis.red(`    ⚠ ${t('skillsSync:status.conflict')}: ${conflicts}`))
     if (localOnly > 0)
-      console.log(ansis.blue(`    ⊕ ${t('skillsSync:status.localOnly')}: ${localOnly}`))
+      console.log(ansis.green(`    ⊕ ${t('skillsSync:status.localOnly')}: ${localOnly}`))
     if (remoteOnly > 0)
-      console.log(ansis.blue(`    ⊖ ${t('skillsSync:status.remoteOnly')}: ${remoteOnly}`))
+      console.log(ansis.green(`    ⊖ ${t('skillsSync:status.remoteOnly')}: ${remoteOnly}`))
 
     console.log('')
   }
@@ -415,8 +415,8 @@ function displaySyncResult(result: any, lang?: SupportedLang): void {
   if (result.conflicts > 0) {
     console.log(ansis.yellow(`    ${t('skillsSync:result.conflicts')}: ${result.conflicts}`))
   }
-  console.log(ansis.blue(`    ${t('skillsSync:result.uploaded')}: ${result.uploaded}`))
-  console.log(ansis.blue(`    ${t('skillsSync:result.downloaded')}: ${result.downloaded}`))
+  console.log(ansis.green(`    ${t('skillsSync:result.uploaded')}: ${result.uploaded}`))
+  console.log(ansis.green(`    ${t('skillsSync:result.downloaded')}: ${result.downloaded}`))
   console.log(ansis.dim(`    ${t('skillsSync:result.skipped')}: ${result.skipped}`))
   console.log(ansis.dim(`    ${t('skillsSync:result.duration')}: ${(result.durationMs / 1000).toFixed(2)}s`))
 

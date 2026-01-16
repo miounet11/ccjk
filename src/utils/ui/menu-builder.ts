@@ -148,7 +148,7 @@ export class MenuBuilder {
           ? ansis.gray(`[${item.key}]`)
           : item.highlight
             ? ansis.yellow.bold(`[${item.key}]`)
-            : ansis.cyan.bold(`[${item.key}]`)
+            : ansis.green.bold(`[${item.key}]`)
 
         const iconPart = item.icon ? `${item.icon} ` : ''
         const labelPart = item.disabled
@@ -179,7 +179,7 @@ export class MenuBuilder {
       lines.push(`  ${systemItems.join('  ')}`)
     }
 
-    lines.push(ansis.cyan('═'.repeat(50)))
+    lines.push(ansis.green('═'.repeat(50)))
 
     return lines.join('\n')
   }

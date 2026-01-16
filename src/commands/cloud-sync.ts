@@ -135,7 +135,7 @@ export async function showSyncDashboard(_options: CloudSyncOptions = {}): Promis
 
   // Sync stats
   console.log(ansis.bold.cyan('│') + ansis.bold('  Sync Statistics:                                           ') + ansis.bold.cyan('│'))
-  console.log(`${ansis.bold.cyan('│')}  ${ansis.green('↑')} Pushed: ${String(state.stats?.pushed || 0).padEnd(6)} ${ansis.blue('↓')} Pulled: ${String(state.stats?.pulled || 0).padEnd(6)} ${ansis.yellow('⚠')} Conflicts: ${state.stats?.conflictsResolved || 0}  ${ansis.bold.cyan('│')}`)
+  console.log(`${ansis.bold.cyan('│')}  ${ansis.green('↑')} Pushed: ${String(state.stats?.pushed || 0).padEnd(6)} ${ansis.green('↓')} Pulled: ${String(state.stats?.pulled || 0).padEnd(6)} ${ansis.yellow('⚠')} Conflicts: ${state.stats?.conflictsResolved || 0}  ${ansis.bold.cyan('│')}`)
 
   // Conflicts
   const conflicts = getConflicts()

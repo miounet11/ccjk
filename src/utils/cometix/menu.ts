@@ -11,14 +11,14 @@ export async function showCometixMenu(): Promise<boolean> {
     ensureI18nInitialized()
 
     // Display CCometixLine menu title
-    console.log(`\n${ansis.cyan('═'.repeat(50))}`)
+    console.log(`\n${ansis.green('═'.repeat(50))}`)
     console.log(ansis.bold.cyan(`  ${i18n.t('cometix:cometixMenuTitle')}`))
-    console.log(`${ansis.cyan('═'.repeat(50))}\n`)
+    console.log(`${ansis.green('═'.repeat(50))}\n`)
 
     // Display menu options
-    console.log(`  ${ansis.cyan('1.')} ${i18n.t('cometix:cometixMenuOptions.installOrUpdate')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.installOrUpdate')}`)}`)
-    console.log(`  ${ansis.cyan('2.')} ${i18n.t('cometix:cometixMenuOptions.printConfig')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.printConfig')}`)}`)
-    console.log(`  ${ansis.cyan('3.')} ${i18n.t('cometix:cometixMenuOptions.customConfig')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.customConfig')}`)}`)
+    console.log(`  ${ansis.green('1.')} ${i18n.t('cometix:cometixMenuOptions.installOrUpdate')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.installOrUpdate')}`)}`)
+    console.log(`  ${ansis.green('2.')} ${i18n.t('cometix:cometixMenuOptions.printConfig')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.printConfig')}`)}`)
+    console.log(`  ${ansis.green('3.')} ${i18n.t('cometix:cometixMenuOptions.customConfig')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.customConfig')}`)}`)
     console.log(`  ${ansis.yellow('0.')} ${i18n.t('cometix:cometixMenuOptions.back')}`)
     console.log('')
 

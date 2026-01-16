@@ -113,7 +113,7 @@ export async function mcpDoctor(options: McpDoctorOptions = {}): Promise<void> {
   console.log(`  ${isZh ? '总计' : 'Total'}: ${ansis.bold(configuredServices.length.toString())} ${isZh ? '个服务' : 'services'}`)
   console.log(`  ${ansis.green('Core')}: ${configuredCore.length}/${coreServices.length}`)
   console.log(`  ${ansis.yellow('OnDemand')}: ${configuredOndemand.length}/${ondemandServices.length}`)
-  console.log(`  ${ansis.blue('Scenario')}: ${configuredScenario.length}/${scenarioServices.length}`)
+  console.log(`  ${ansis.green('Scenario')}: ${configuredScenario.length}/${scenarioServices.length}`)
   console.log('')
 
   // 2. Performance Warning
@@ -170,7 +170,7 @@ export async function mcpDoctor(options: McpDoctorOptions = {}): Promise<void> {
       const tierColor = {
         core: ansis.green,
         ondemand: ansis.yellow,
-        scenario: ansis.blue,
+        scenario: ansis.green,
       }
 
       console.log(`  ${statusIcon[health.status]} ${ansis.bold(serviceId)}`)
@@ -211,9 +211,9 @@ export async function mcpDoctor(options: McpDoctorOptions = {}): Promise<void> {
   // 6. Quick Actions
   console.log(ansis.bold(isZh ? '🚀 快速操作' : '🚀 Quick Actions'))
   console.log(ansis.dim('─'.repeat(40)))
-  console.log(`  ${ansis.cyan('ccjk mcp profile use minimal')} - ${isZh ? '切换到极简模式' : 'Switch to minimal mode'}`)
-  console.log(`  ${ansis.cyan('ccjk mcp profile list')} - ${isZh ? '查看所有预设' : 'View all profiles'}`)
-  console.log(`  ${ansis.cyan('ccjk mcp release')} - ${isZh ? '释放空闲服务' : 'Release idle services'}`)
+  console.log(`  ${ansis.green('ccjk mcp profile use minimal')} - ${isZh ? '切换到极简模式' : 'Switch to minimal mode'}`)
+  console.log(`  ${ansis.green('ccjk mcp profile list')} - ${isZh ? '查看所有预设' : 'View all profiles'}`)
+  console.log(`  ${ansis.green('ccjk mcp release')} - ${isZh ? '释放空闲服务' : 'Release idle services'}`)
   console.log('')
 
   // Summary

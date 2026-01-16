@@ -444,7 +444,7 @@ export async function runHealthCheck(): Promise<HealthReport> {
  * Display health report
  */
 export function displayHealthReport(report: HealthReport): void {
-  console.log(ansis.cyan('\n═══════════ CCJK Environment Health ═══════════\n'))
+  console.log(ansis.green('\n═══════════ CCJK Environment Health ═══════════\n'))
 
   // Display checks
   for (const check of report.checks) {
@@ -466,7 +466,7 @@ export function displayHealthReport(report: HealthReport): void {
 
   // Display score
   console.log('')
-  console.log(`Score: ${ansis.cyan(report.score.toString())}/100`)
+  console.log(`Score: ${ansis.green(report.score.toString())}/100`)
   console.log(renderProgressBar(report.score, 40))
 
   // Display recommendations
@@ -488,7 +488,7 @@ export async function runDoctor(fix = false): Promise<void> {
   displayHealthReport(report)
 
   if (fix && report.recommendations.length > 0) {
-    console.log(ansis.cyan('\n═══════════ Attempting Fixes ═══════════\n'))
+    console.log(ansis.green('\n═══════════ Attempting Fixes ═══════════\n'))
 
     for (const check of report.checks) {
       if (check.fixable && check.fixCommand && (check.status === 'fail' || check.status === 'warn')) {

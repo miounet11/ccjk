@@ -1,0 +1,21 @@
+{
+  "id": "react-best-practices",
+  "name": {
+    "en": "React Best Practices",
+    "zh-CN": "React 最佳实践"
+  },
+  "description": {
+    "en": "Analyze React/Next.js projects for best practices in component design, hooks usage, performance optimization, and state management",
+    "zh-CN": "分析 React/Next.js 项目的最佳实践，包括组件设计、Hooks 使用、性能优化和状态管理"
+  },
+  "version": "1.0.0",
+  "author": {
+    "name": "CCJK Team",
+    "url": "https://github.com/anthropics/ccjk"
+  },
+  "category": "frontend",
+  "tags": ["react", "nextjs", "hooks", "performance", "components", "best-practices"],
+  "permissions": ["fs:read", "shell:execute"],
+  "formatVersion": "2.0",
+  "license": "MIT"
+}

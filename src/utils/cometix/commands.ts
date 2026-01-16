@@ -10,7 +10,7 @@ export async function runCometixPrintConfig(): Promise<void> {
   ensureI18nInitialized()
 
   try {
-    console.log(ansis.blue(`${i18n.t('cometix:printingConfig')}`))
+    console.log(ansis.green(`${i18n.t('cometix:printingConfig')}`))
     const { stdout } = await execAsync(COMETIX_COMMANDS.PRINT_CONFIG)
     console.log(stdout)
   }
@@ -29,7 +29,7 @@ export async function runCometixTuiConfig(): Promise<void> {
   ensureI18nInitialized()
 
   return new Promise((resolve, reject) => {
-    console.log(ansis.blue(`${i18n.t('cometix:enteringTuiConfig')}`))
+    console.log(ansis.green(`${i18n.t('cometix:enteringTuiConfig')}`))
 
     // Use spawn with inherited stdio for proper TUI interaction
     const child = spawn(COMETIX_COMMAND_NAME, ['-c'], {

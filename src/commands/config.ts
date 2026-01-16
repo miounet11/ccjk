@@ -297,13 +297,13 @@ export async function setProvider(providerId: string, options: ConfigOptions = {
     console.log(ansis.green(isZh ? `✅ 已切换到供应商: ${provider.name}` : `✅ Switched to provider: ${provider.name}`))
     console.log('')
     console.log(ansis.bold(isZh ? '配置详情:' : 'Configuration details:'))
-    console.log(`  ${ansis.cyan(isZh ? '供应商' : 'Provider')}: ${provider.name}`)
-    console.log(`  ${ansis.cyan(isZh ? '接口地址' : 'Base URL')}: ${config.baseUrl}`)
+    console.log(`  ${ansis.green(isZh ? '供应商' : 'Provider')}: ${provider.name}`)
+    console.log(`  ${ansis.green(isZh ? '接口地址' : 'Base URL')}: ${config.baseUrl}`)
     if (config.model) {
-      console.log(`  ${ansis.cyan(isZh ? '主模型' : 'Primary Model')}: ${config.model}`)
+      console.log(`  ${ansis.green(isZh ? '主模型' : 'Primary Model')}: ${config.model}`)
     }
     if (config.fastModel) {
-      console.log(`  ${ansis.cyan(isZh ? '快速模型' : 'Fast Model')}: ${config.fastModel}`)
+      console.log(`  ${ansis.green(isZh ? '快速模型' : 'Fast Model')}: ${config.fastModel}`)
     }
     console.log('')
     console.log(ansis.dim(isZh ? '💡 提示: 请确保已设置正确的 API 密钥或认证令牌' : '💡 Tip: Make sure to set the correct API key or auth token'))
@@ -371,11 +371,11 @@ export async function configCommand(action: string, args: string[], options: Con
       console.log('')
       console.log(ansis.bold.cyan(isZh ? '⚙️  配置管理命令' : '⚙️  Configuration Management Commands'))
       console.log('')
-      console.log(`  ${ansis.cyan('ccjk config get <key>')}           ${isZh ? '获取配置项' : 'Get configuration value'}`)
-      console.log(`  ${ansis.cyan('ccjk config set <key> <value>')}  ${isZh ? '设置配置项' : 'Set configuration value'}`)
-      console.log(`  ${ansis.cyan('ccjk config list')}                ${isZh ? '列出所有配置' : 'List all configuration'}`)
-      console.log(`  ${ansis.cyan('ccjk config reset')}               ${isZh ? '重置配置' : 'Reset configuration'}`)
-      console.log(`  ${ansis.cyan('ccjk config provider <id>')}      ${isZh ? '切换供应商' : 'Switch provider'}`)
+      console.log(`  ${ansis.green('ccjk config get <key>')}           ${isZh ? '获取配置项' : 'Get configuration value'}`)
+      console.log(`  ${ansis.green('ccjk config set <key> <value>')}  ${isZh ? '设置配置项' : 'Set configuration value'}`)
+      console.log(`  ${ansis.green('ccjk config list')}                ${isZh ? '列出所有配置' : 'List all configuration'}`)
+      console.log(`  ${ansis.green('ccjk config reset')}               ${isZh ? '重置配置' : 'Reset configuration'}`)
+      console.log(`  ${ansis.green('ccjk config provider <id>')}      ${isZh ? '切换供应商' : 'Switch provider'}`)
       console.log('')
       console.log(ansis.bold(isZh ? '选项' : 'Options'))
       console.log(`  ${ansis.green('--code-type, -T')} <type>   ${isZh ? '代码工具类型 (claude-code, codex)' : 'Code tool type (claude-code, codex)'}`)
@@ -468,7 +468,7 @@ function displayValue(value: any, indent: number): void {
     console.log(`${prefix}${ansis.dim('null')}`)
   }
   else if (typeof value === 'boolean') {
-    console.log(`${prefix}${ansis.cyan(value.toString())}`)
+    console.log(`${prefix}${ansis.green(value.toString())}`)
   }
   else if (typeof value === 'number') {
     console.log(`${prefix}${ansis.yellow(value.toString())}`)
@@ -504,10 +504,10 @@ function displayConfigSection(title: string, data: any, _isZh: boolean): void {
   for (const [key, value] of Object.entries(data)) {
     if (value !== undefined) {
       if (Array.isArray(value)) {
-        console.log(`  ${ansis.cyan(key)}: ${value.join(', ')}`)
+        console.log(`  ${ansis.green(key)}: ${value.join(', ')}`)
       }
       else {
-        console.log(`  ${ansis.cyan(key)}: ${value}`)
+        console.log(`  ${ansis.green(key)}: ${value}`)
       }
     }
   }
@@ -560,7 +560,7 @@ export async function editConfig(_options: ConfigOptions = {}): Promise<void> {
 
   const editor = process.env.EDITOR || process.env.VISUAL || 'vi'
 
-  console.log(ansis.cyan(isZh ? `📝 正在打开配置文件: ${configPath}` : `📝 Opening config file: ${configPath}`))
+  console.log(ansis.green(isZh ? `📝 正在打开配置文件: ${configPath}` : `📝 Opening config file: ${configPath}`))
 
   const { spawn } = await import('node:child_process')
   const child = spawn(editor, [configPath], { stdio: 'inherit' })
@@ -578,7 +578,7 @@ export async function editConfig(_options: ConfigOptions = {}): Promise<void> {
 export async function validateConfig(_options: ConfigOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
-  console.log(ansis.cyan(isZh ? '🔍 正在验证配置...' : '🔍 Validating configuration...'))
+  console.log(ansis.green(isZh ? '🔍 正在验证配置...' : '🔍 Validating configuration...'))
   console.log('')
 
   const config = readClaudeConfig()

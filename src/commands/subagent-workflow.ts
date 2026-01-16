@@ -61,9 +61,9 @@ const PHASE_ICONS: Record<WorkflowPhase, string> = {
 
 const PHASE_COLORS: Record<WorkflowPhase, (text: string) => string> = {
   brainstorming: ansis.magenta,
-  planning: ansis.blue,
+  planning: ansis.green,
   implementation: ansis.yellow,
-  review: ansis.cyan,
+  review: ansis.green,
   finishing: ansis.green,
 }
 
@@ -129,8 +129,8 @@ export async function showWorkflowDashboard(_options: SubagentWorkflowOptions = 
   const stats = getSchedulerStats()
 
   // Stats row
-  console.log(`${ansis.bold.cyan('│')}  ${ansis.bold('Active:')} ${ansis.green(String(stats.activeWorkflows).padEnd(4))} ${ansis.bold('Queued:')} ${ansis.yellow(String(stats.queuedTasks).padEnd(4))} ${ansis.bold('Completed:')} ${ansis.blue(String(stats.completedTasks).padEnd(4))}    ${ansis.bold.cyan('│')}`)
-  console.log(`${ansis.bold.cyan('│')}  ${ansis.bold('Failed:')} ${ansis.red(String(stats.failedTasks).padEnd(4))} ${ansis.bold('Agents:')} ${ansis.cyan(String(stats.totalAgents).padEnd(4))} ${ansis.bold('Uptime:')} ${ansis.dim(formatDuration(stats.uptime).padEnd(8))}   ${ansis.bold.cyan('│')}`)
+  console.log(`${ansis.bold.cyan('│')}  ${ansis.bold('Active:')} ${ansis.green(String(stats.activeWorkflows).padEnd(4))} ${ansis.bold('Queued:')} ${ansis.yellow(String(stats.queuedTasks).padEnd(4))} ${ansis.bold('Completed:')} ${ansis.green(String(stats.completedTasks).padEnd(4))}    ${ansis.bold.cyan('│')}`)
+  console.log(`${ansis.bold.cyan('│')}  ${ansis.bold('Failed:')} ${ansis.red(String(stats.failedTasks).padEnd(4))} ${ansis.bold('Agents:')} ${ansis.green(String(stats.totalAgents).padEnd(4))} ${ansis.bold('Uptime:')} ${ansis.dim(formatDuration(stats.uptime).padEnd(8))}   ${ansis.bold.cyan('│')}`)
   console.log(ansis.bold.cyan('├─────────────────────────────────────────────────────────────┤'))
 
   // List active workflows

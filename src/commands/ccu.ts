@@ -9,7 +9,7 @@ export async function executeCcusage(args: string[] = []): Promise<void> {
     const command = 'npx'
     const commandArgs = ['ccusage@latest', ...(args || [])]
 
-    console.log(ansis.cyan(i18n.t('tools:runningCcusage')))
+    console.log(ansis.green(i18n.t('tools:runningCcusage')))
     console.log(ansis.gray(`$ npx ccusage@latest ${(args || []).join(' ')}`))
     console.log('')
 

@@ -94,7 +94,7 @@ export async function mcpSearch(keyword: string, options: McpMarketOptions = {})
       return
     }
 
-    console.log(ansis.cyan.bold(`\n${i18n.t('mcp:market.searchResults', { count: result.total, keyword })}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('mcp:market.searchResults', { count: result.total, keyword })}\n`))
 
     result.packages.forEach((pkg, idx) => {
       const lang = i18n.language as 'zh-CN' | 'en'
@@ -127,7 +127,7 @@ export async function mcpSearch(keyword: string, options: McpMarketOptions = {})
       return
     }
 
-    console.log(ansis.cyan.bold(`\n${i18n.t('mcp:market.searchResults', { count: results.length, keyword })}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('mcp:market.searchResults', { count: results.length, keyword })}\n`))
     results.forEach((server, idx) => {
       console.log(`${ansis.green(`${idx + 1}.`)} ${ansis.bold(server.name)} ${ansis.dim(`[${server.category}]`)}`)
       console.log(`   ${server.description}`)
@@ -151,7 +151,7 @@ export async function mcpTrending(options: McpMarketOptions = {}): Promise<void>
       return
     }
 
-    console.log(ansis.cyan.bold(`\n${i18n.t('mcp:market.trending')}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('mcp:market.trending')}\n`))
 
     trending.forEach((pkg, idx) => {
       const lang = i18n.language as 'zh-CN' | 'en'
@@ -168,7 +168,7 @@ export async function mcpTrending(options: McpMarketOptions = {}): Promise<void>
     console.log(ansis.yellow(`\n${i18n.t('mcp:market.apiUnavailable')}`))
     console.log(ansis.dim(i18n.t('mcp:market.usingLocalData')))
 
-    console.log(ansis.cyan.bold(`\n${i18n.t('mcp:market.trending')}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('mcp:market.trending')}\n`))
 
     const localServers = getLocalFallbackServices()
     const trending = localServers.slice(0, options.limit || 5)
@@ -206,7 +206,7 @@ export async function mcpRecommend(options: McpMarketOptions = {}): Promise<void
       return
     }
 
-    console.log(ansis.cyan.bold(`\n${i18n.t('mcp:market.recommendedForYou')}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('mcp:market.recommendedForYou')}\n`))
     console.log(ansis.dim(`${i18n.t('mcp:market.basedOnInstalled', { count: installedIds.length })}\n`))
 
     recommendations.forEach((pkg, idx) => {
@@ -263,7 +263,7 @@ export async function mcpInstall(serverName: string, options: McpMarketOptions =
       return
     }
 
-    console.log(ansis.cyan(`\n${i18n.t('mcp:market.installing', { name: server.name })}`))
+    console.log(ansis.green(`\n${i18n.t('mcp:market.installing', { name: server.name })}`))
     if (server.requiresApiKey) {
       console.log(ansis.dim(i18n.t('mcp:installer.requiresApiKey')))
     }
@@ -297,7 +297,7 @@ export async function mcpInstall(serverName: string, options: McpMarketOptions =
   }
   else {
     // External MCP server - show manual installation instructions
-    console.log(ansis.cyan(`\n${i18n.t('mcp:market.installing', { name: server.name })}`))
+    console.log(ansis.green(`\n${i18n.t('mcp:market.installing', { name: server.name })}`))
     console.log(ansis.dim(`Package: ${server.package}\n`))
 
     const { confirm } = await inquirer.prompt([{

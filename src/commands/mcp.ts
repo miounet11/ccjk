@@ -63,7 +63,7 @@ export async function mcpStatus(options: McpCommandOptions = {}): Promise<void> 
   console.log('')
   console.log(`${ansis.green('●')} ${isZh ? '核心服务' : 'Core'}: ${coreCount}`)
   console.log(`${ansis.yellow('●')} ${isZh ? '按需服务' : 'On-demand'}: ${ondemandCount}`)
-  console.log(`${ansis.blue('●')} ${isZh ? '场景服务' : 'Scenario'}: ${scenarioCount}`)
+  console.log(`${ansis.green('●')} ${isZh ? '场景服务' : 'Scenario'}: ${scenarioCount}`)
   console.log(`${ansis.dim('─')} ${isZh ? '总计' : 'Total'}: ${services.length}`)
 
   // 性能检查

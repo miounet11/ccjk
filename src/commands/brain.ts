@@ -196,16 +196,16 @@ export async function brainStatus(options: BrainCommandOptions = {}): Promise<vo
   console.log('')
 
   // Agent statistics
-  console.log(ansis.cyan(isZh ? '📊 Agent 统计' : '📊 Agent Statistics'))
+  console.log(ansis.green(isZh ? '📊 Agent 统计' : '📊 Agent Statistics'))
   console.log(`  ${ansis.green('●')} ${isZh ? '活跃' : 'Active'}: ${status.activeAgents}`)
-  console.log(`  ${ansis.blue('●')} ${isZh ? '空闲' : 'Idle'}: ${status.idleAgents}`)
+  console.log(`  ${ansis.green('●')} ${isZh ? '空闲' : 'Idle'}: ${status.idleAgents}`)
   console.log(`  ${ansis.yellow('●')} ${isZh ? '忙碌' : 'Busy'}: ${status.busyAgents}`)
   console.log(`  ${ansis.gray('●')} ${isZh ? '离线' : 'Offline'}: ${status.offlineAgents}`)
   console.log(`  ${ansis.dim('─')} ${isZh ? '总计' : 'Total'}: ${status.totalAgents}`)
 
   // Agent type distribution
   console.log('')
-  console.log(ansis.cyan(isZh ? '🎯 Agent 类型分布' : '🎯 Agent Type Distribution'))
+  console.log(ansis.green(isZh ? '🎯 Agent 类型分布' : '🎯 Agent Type Distribution'))
   const typeCount = {
     architect: agents.filter(a => a.type === 'architect').length,
     specialist: agents.filter(a => a.type === 'specialist').length,
@@ -213,14 +213,14 @@ export async function brainStatus(options: BrainCommandOptions = {}): Promise<vo
     devops: agents.filter(a => a.type === 'devops').length,
   }
   console.log(`  ${ansis.magenta('◆')} ${isZh ? '架构师' : 'Architect'}: ${typeCount.architect}`)
-  console.log(`  ${ansis.cyan('◆')} ${isZh ? '专家' : 'Specialist'}: ${typeCount.specialist}`)
+  console.log(`  ${ansis.green('◆')} ${isZh ? '专家' : 'Specialist'}: ${typeCount.specialist}`)
   console.log(`  ${ansis.green('◆')} ${isZh ? '工程师' : 'Engineer'}: ${typeCount.engineer}`)
-  console.log(`  ${ansis.blue('◆')} ${isZh ? 'DevOps' : 'DevOps'}: ${typeCount.devops}`)
+  console.log(`  ${ansis.green('◆')} ${isZh ? 'DevOps' : 'DevOps'}: ${typeCount.devops}`)
 
   // Performance metrics
   const totalTasks = agents.reduce((sum, a) => sum + (a.tasksCompleted || 0), 0)
   console.log('')
-  console.log(ansis.cyan(isZh ? '⚡ 性能指标' : '⚡ Performance Metrics'))
+  console.log(ansis.green(isZh ? '⚡ 性能指标' : '⚡ Performance Metrics'))
   console.log(`  ${isZh ? '已完成任务' : 'Tasks Completed'}: ${ansis.green(totalTasks.toString())}`)
   console.log(`  ${isZh ? '平均任务数' : 'Avg Tasks/Agent'}: ${ansis.green((totalTasks / agents.length).toFixed(1))}`)
 
@@ -264,13 +264,13 @@ export async function brainAgents(options: BrainCommandOptions = {}): Promise<vo
     if (typeAgents.length === 0)
       continue
 
-    console.log(ansis.cyan.bold(typeLabels[type as keyof typeof typeLabels]))
+    console.log(ansis.green.bold(typeLabels[type as keyof typeof typeLabels]))
     console.log('')
 
     for (const agent of typeAgents) {
       const statusIcon = {
         active: ansis.green('●'),
-        idle: ansis.blue('○'),
+        idle: ansis.green('○'),
         busy: ansis.yellow('◐'),
         offline: ansis.gray('○'),
       }[agent.status]
@@ -322,7 +322,7 @@ export async function brainRun(taskOptions?: TaskExecutionOptions, options: Brai
     task = taskInput
   }
 
-  console.log(ansis.cyan(isZh ? '📋 任务:' : '📋 Task:'), task)
+  console.log(ansis.green(isZh ? '📋 任务:' : '📋 Task:'), task)
   console.log('')
 
   // Get available agents
@@ -354,7 +354,7 @@ export async function brainRun(taskOptions?: TaskExecutionOptions, options: Brai
     selectedAgents = agentSelection
   }
 
-  console.log(ansis.cyan(isZh ? '🤖 已选择 Agent:' : '🤖 Selected Agents:'))
+  console.log(ansis.green(isZh ? '🤖 已选择 Agent:' : '🤖 Selected Agents:'))
   for (const agentId of selectedAgents) {
     const agent = agents.find(a => a.id === agentId)
     if (agent) {
@@ -371,7 +371,7 @@ export async function brainRun(taskOptions?: TaskExecutionOptions, options: Brai
   for (const agentId of selectedAgents) {
     const agent = agents.find(a => a.id === agentId)
     if (agent) {
-      console.log(`  ${ansis.blue('→')} ${agent.name}: ${isZh ? '处理中...' : 'Processing...'}`)
+      console.log(`  ${ansis.green('→')} ${agent.name}: ${isZh ? '处理中...' : 'Processing...'}`)
       // Simulate delay
       await new Promise(resolve => setTimeout(resolve, 500))
     }
@@ -402,7 +402,7 @@ export async function brainMonitor(options: BrainCommandOptions = {}): Promise<v
   const status = calculateSystemStatus(agents)
 
   // Display monitoring dashboard
-  console.log(ansis.cyan(isZh ? '🖥️  系统概览' : '🖥️  System Overview'))
+  console.log(ansis.green(isZh ? '🖥️  系统概览' : '🖥️  System Overview'))
   console.log('')
   console.log(`  ${isZh ? '总 Agent 数' : 'Total Agents'}: ${ansis.bold(status.totalAgents.toString())}`)
   console.log(`  ${isZh ? '活跃 Agent' : 'Active Agents'}: ${ansis.green(status.activeAgents.toString())}`)
@@ -410,7 +410,7 @@ export async function brainMonitor(options: BrainCommandOptions = {}): Promise<v
   console.log('')
 
   // Recent activity
-  console.log(ansis.cyan(isZh ? '📈 最近活动' : '📈 Recent Activity'))
+  console.log(ansis.green(isZh ? '📈 最近活动' : '📈 Recent Activity'))
   console.log('')
   const recentAgents = agents.filter(a => a.status === 'active' || a.status === 'busy').slice(0, 5)
   for (const agent of recentAgents) {
@@ -419,7 +419,7 @@ export async function brainMonitor(options: BrainCommandOptions = {}): Promise<v
   console.log('')
 
   // Performance chart (ASCII art)
-  console.log(ansis.cyan(isZh ? '📊 性能图表' : '📊 Performance Chart'))
+  console.log(ansis.green(isZh ? '📊 性能图表' : '📊 Performance Chart'))
   console.log('')
   const maxTasks = Math.max(...agents.map(a => a.tasksCompleted || 0))
   for (const agent of agents.slice(0, 5)) {

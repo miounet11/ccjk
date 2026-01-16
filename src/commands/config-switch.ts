@@ -101,7 +101,7 @@ async function listCodexProvidersWithDisplay(): Promise<void> {
   console.log()
 
   if (currentProvider && !isCommented) {
-    console.log(ansis.cyan(i18n.t('codex:currentProvider', { provider: currentProvider })))
+    console.log(ansis.green(i18n.t('codex:currentProvider', { provider: currentProvider })))
     console.log()
   }
 
@@ -111,7 +111,7 @@ async function listCodexProvidersWithDisplay(): Promise<void> {
     const current = isCurrent ? ansis.yellow(` (${i18n.t('common:current')})`) : ''
 
     console.log(`${status}${ansis.white(provider.name)}${current}`)
-    console.log(`    ${ansis.cyan(`ID: ${provider.id}`)} ${ansis.gray(`(${provider.baseUrl})`)}`)
+    console.log(`    ${ansis.green(`ID: ${provider.id}`)} ${ansis.gray(`(${provider.baseUrl})`)}`)
     if (provider.tempEnvKey) {
       console.log(`    ${ansis.gray(`Env: ${provider.tempEnvKey}`)}`)
     }
@@ -141,7 +141,7 @@ async function listClaudeCodeProfiles(): Promise<void> {
     const current = isCurrent ? ansis.yellow(i18n.t('common:current')) : ''
 
     console.log(`${status}${ansis.white(profile.name)}${current}`)
-    console.log(`    ${ansis.cyan(`ID: ${profile.id}`)} ${ansis.gray(`(${profile.authType})`)}`)
+    console.log(`    ${ansis.green(`ID: ${profile.id}`)} ${ansis.gray(`(${profile.authType})`)}`)
     console.log()
   })
 }
@@ -329,7 +329,7 @@ async function handleClaudeCodeInteractiveSwitch(): Promise<void> {
   catch (error: any) {
     // Handle user exit (Ctrl+C)
     if (error.name === 'ExitPromptError') {
-      console.log(ansis.cyan(`\n${i18n.t('common:goodbye')}`))
+      console.log(ansis.green(`\n${i18n.t('common:goodbye')}`))
       return
     }
     // Re-throw other errors
@@ -409,7 +409,7 @@ async function handleCodexInteractiveSwitch(): Promise<void> {
   catch (error: any) {
     // Handle user exit (Ctrl+C)
     if (error.name === 'ExitPromptError') {
-      console.log(ansis.cyan(`\n${i18n.t('common:goodbye')}`))
+      console.log(ansis.green(`\n${i18n.t('common:goodbye')}`))
       return
     }
     // Re-throw other errors

@@ -85,7 +85,7 @@ export async function claudeMdCommand(
 async function browseTemplates(): Promise<void> {
   const service = getClaudeMdSyncService()
 
-  console.log(ansis.cyan.bold(`\n📚 ${i18n.t('claudeMd:templates.title')}\n`))
+  console.log(ansis.green.bold(`\n📚 ${i18n.t('claudeMd:templates.title')}\n`))
 
   // Get categories
   const categories = await service.listCategories()
@@ -135,7 +135,7 @@ async function browseTemplates(): Promise<void> {
     return
   }
 
-  console.log(ansis.cyan.bold(`\n📄 ${template.name}\n`))
+  console.log(ansis.green.bold(`\n📄 ${template.name}\n`))
   console.log(ansis.gray(template.description))
   console.log(ansis.gray(`\n${i18n.t('claudeMd:templates.category')}: ${template.category}`))
   console.log(ansis.gray(`${i18n.t('claudeMd:templates.variables')}: ${template.variables.join(', ')}`))
@@ -217,7 +217,7 @@ async function applyTemplateCommand(templateId?: string): Promise<void> {
   }
 
   // Apply template
-  console.log(ansis.cyan(`\n⏳ ${i18n.t('claudeMd:templates.applying')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:templates.applying')}`))
 
   const result = await applyTemplate(templateId as string, projectPath, variables)
 
@@ -257,7 +257,7 @@ function getDefaultValue(variable: string): string {
  * Upload CLAUDE.md to cloud
  */
 async function uploadCommand(filePath?: string): Promise<void> {
-  console.log(ansis.cyan.bold(`\n☁️  ${i18n.t('claudeMd:cloud.uploadTitle')}\n`))
+  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.uploadTitle')}\n`))
 
   // Get file path
   if (!filePath) {
@@ -324,7 +324,7 @@ async function uploadCommand(filePath?: string): Promise<void> {
   ])
 
   // Upload
-  console.log(ansis.cyan(`\n⏳ ${i18n.t('claudeMd:cloud.uploading')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:cloud.uploading')}`))
 
   const result = await uploadClaudeMd(filePath as string, {
     name: answers.name,
@@ -348,7 +348,7 @@ async function uploadCommand(filePath?: string): Promise<void> {
 async function downloadCommand(configId?: string): Promise<void> {
   const service = getClaudeMdSyncService()
 
-  console.log(ansis.cyan.bold(`\n☁️  ${i18n.t('claudeMd:cloud.downloadTitle')}\n`))
+  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.downloadTitle')}\n`))
 
   // Get config ID if not provided
   if (!configId) {
@@ -384,7 +384,7 @@ async function downloadCommand(configId?: string): Promise<void> {
   ])
 
   // Download
-  console.log(ansis.cyan(`\n⏳ ${i18n.t('claudeMd:cloud.downloading')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:cloud.downloading')}`))
 
   const result = await downloadClaudeMd(configId as string, projectPath)
 
@@ -402,7 +402,7 @@ async function downloadCommand(configId?: string): Promise<void> {
 async function listCloudConfigs(): Promise<void> {
   const service = getClaudeMdSyncService()
 
-  console.log(ansis.cyan.bold(`\n☁️  ${i18n.t('claudeMd:cloud.listTitle')}\n`))
+  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.listTitle')}\n`))
 
   const configs = await service.listCloudConfigs()
 
@@ -412,7 +412,7 @@ async function listCloudConfigs(): Promise<void> {
   }
 
   for (const config of configs) {
-    console.log(ansis.cyan(`\n📄 ${config.name}`))
+    console.log(ansis.green(`\n📄 ${config.name}`))
     console.log(ansis.gray(`   ID: ${config.id}`))
     console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.type')}: ${config.projectType}`))
     console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.privacy')}: ${config.privacy}`))
@@ -431,7 +431,7 @@ async function listCloudConfigs(): Promise<void> {
 async function showVersionHistory(configId?: string): Promise<void> {
   const service = getClaudeMdSyncService()
 
-  console.log(ansis.cyan.bold(`\n📜 ${i18n.t('claudeMd:version.title')}\n`))
+  console.log(ansis.green.bold(`\n📜 ${i18n.t('claudeMd:version.title')}\n`))
 
   // Get config ID if not provided
   if (!configId) {
@@ -465,7 +465,7 @@ async function showVersionHistory(configId?: string): Promise<void> {
   }
 
   for (const version of versions) {
-    console.log(ansis.cyan(`\n📌 ${version.id}`))
+    console.log(ansis.green(`\n📌 ${version.id}`))
     console.log(ansis.gray(`   ${i18n.t('claudeMd:version.timestamp')}: ${version.timestamp}`))
     console.log(ansis.gray(`   ${i18n.t('claudeMd:version.message')}: ${version.message}`))
   }
@@ -477,7 +477,7 @@ async function showVersionHistory(configId?: string): Promise<void> {
 async function rollbackVersion(configId?: string, versionId?: string): Promise<void> {
   const service = getClaudeMdSyncService()
 
-  console.log(ansis.cyan.bold(`\n⏪ ${i18n.t('claudeMd:version.rollbackTitle')}\n`))
+  console.log(ansis.green.bold(`\n⏪ ${i18n.t('claudeMd:version.rollbackTitle')}\n`))
 
   // Get config ID if not provided
   if (!configId) {
@@ -541,7 +541,7 @@ async function rollbackVersion(configId?: string, versionId?: string): Promise<v
   }
 
   // Rollback
-  console.log(ansis.cyan(`\n⏳ ${i18n.t('claudeMd:version.rolling')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:version.rolling')}`))
 
   const result = await service.rollbackToVersion(configId as string, versionId as string)
 
@@ -561,7 +561,7 @@ async function rollbackVersion(configId?: string, versionId?: string): Promise<v
  * Show CLAUDE.md management menu
  */
 async function showClaudeMdMenu(): Promise<void> {
-  console.log(ansis.cyan.bold(`\n📝 ${i18n.t('claudeMd:menu.title')}\n`))
+  console.log(ansis.green.bold(`\n📝 ${i18n.t('claudeMd:menu.title')}\n`))
 
   const { action } = await inquirer.prompt([
     {

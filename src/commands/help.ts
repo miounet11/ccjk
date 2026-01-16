@@ -139,24 +139,24 @@ export async function help(topic?: string): Promise<void> {
 
 function showHelpMenu(): void {
   console.log('')
-  console.log(ansis.cyan.bold('📚 CCJK 帮助中心'))
+  console.log(ansis.green.bold('📚 CCJK 帮助中心'))
   console.log(ansis.gray('─'.repeat(50)))
   console.log('')
 
   console.log(ansis.yellow('快速入门:'))
-  console.log(`  ${ansis.cyan('ccjk help quick')}     ${ansis.gray('- 命令速查卡（推荐新手）')}`)
-  console.log(`  ${ansis.cyan('ccjk help tutorial')}  ${ansis.gray('- 新手入门教程')}`)
-  console.log(`  ${ansis.cyan('ccjk help examples')}  ${ansis.gray('- 常用示例')}`)
+  console.log(`  ${ansis.green('ccjk help quick')}     ${ansis.gray('- 命令速查卡（推荐新手）')}`)
+  console.log(`  ${ansis.green('ccjk help tutorial')}  ${ansis.gray('- 新手入门教程')}`)
+  console.log(`  ${ansis.green('ccjk help examples')}  ${ansis.gray('- 常用示例')}`)
   console.log('')
 
   console.log(ansis.yellow('专题帮助:'))
-  console.log(`  ${ansis.cyan('ccjk help mcp')}       ${ansis.gray('- MCP 服务器管理')}`)
-  console.log(`  ${ansis.cyan('ccjk help faq')}       ${ansis.gray('- 常见问题解答')}`)
+  console.log(`  ${ansis.green('ccjk help mcp')}       ${ansis.gray('- MCP 服务器管理')}`)
+  console.log(`  ${ansis.green('ccjk help faq')}       ${ansis.gray('- 常见问题解答')}`)
   console.log('')
 
   console.log(ansis.yellow('命令帮助:'))
-  console.log(`  ${ansis.cyan('ccjk help <command>')} ${ansis.gray('- 查看特定命令帮助')}`)
-  console.log(`  ${ansis.cyan('ccjk <command> -h')}   ${ansis.gray('- 查看命令选项')}`)
+  console.log(`  ${ansis.green('ccjk help <command>')} ${ansis.gray('- 查看特定命令帮助')}`)
+  console.log(`  ${ansis.green('ccjk <command> -h')}   ${ansis.gray('- 查看命令选项')}`)
   console.log('')
 
   console.log(ansis.gray('─'.repeat(50)))
@@ -170,7 +170,7 @@ function showHelpMenu(): void {
 
 function showQuickReference(): void {
   console.log('')
-  console.log(ansis.cyan.bold('⚡ CCJK 命令速查卡'))
+  console.log(ansis.green.bold('⚡ CCJK 命令速查卡'))
   console.log(ansis.gray('─'.repeat(60)))
   console.log('')
 
@@ -199,7 +199,7 @@ function showQuickReference(): void {
       console.log(ansis.yellow(cat.title))
       for (const cmd of commands) {
         const alias = cmd.alias ? ansis.gray(` (${cmd.alias})`) : ''
-        console.log(`  ${ansis.cyan(cmd.name.padEnd(25))}${alias} ${ansis.gray(cmd.description)}`)
+        console.log(`  ${ansis.green(cmd.name.padEnd(25))}${alias} ${ansis.gray(cmd.description)}`)
       }
       console.log('')
     }
@@ -217,7 +217,7 @@ function printCommandBox(commands: Array<{ cmd: string, desc: string }>): void {
   console.log(ansis.gray(`  ┌${'─'.repeat(boxWidth)}┐`))
   for (const { cmd, desc } of commands) {
     const paddedCmd = cmd.padEnd(maxCmdLen)
-    console.log(ansis.gray('  │ ') + ansis.cyan.bold(paddedCmd) + ansis.gray(' → ') + desc.padEnd(boxWidth - maxCmdLen - 5) + ansis.gray(' │'))
+    console.log(ansis.gray('  │ ') + ansis.green.bold(paddedCmd) + ansis.gray(' → ') + desc.padEnd(boxWidth - maxCmdLen - 5) + ansis.gray(' │'))
   }
   console.log(ansis.gray(`  └${'─'.repeat(boxWidth)}┘`))
 }
@@ -228,7 +228,7 @@ function printCommandBox(commands: Array<{ cmd: string, desc: string }>): void {
 
 function showMcpHelp(): void {
   console.log('')
-  console.log(ansis.cyan.bold('🔌 MCP 服务器管理帮助'))
+  console.log(ansis.green.bold('🔌 MCP 服务器管理帮助'))
   console.log(ansis.gray('─'.repeat(60)))
   console.log('')
 
@@ -238,9 +238,9 @@ function showMcpHelp(): void {
   console.log('')
 
   console.log(ansis.yellow('常用命令:'))
-  console.log(`  ${ansis.cyan('ccjk mcp doctor')}          ${ansis.gray('- 检查 MCP 健康状态')}`)
-  console.log(`  ${ansis.cyan('ccjk mcp profile <name>')}  ${ansis.gray('- 切换 MCP 配置预设')}`)
-  console.log(`  ${ansis.cyan('ccjk mcp release')}         ${ansis.gray('- 释放未使用的 MCP')}`)
+  console.log(`  ${ansis.green('ccjk mcp doctor')}          ${ansis.gray('- 检查 MCP 健康状态')}`)
+  console.log(`  ${ansis.green('ccjk mcp profile <name>')}  ${ansis.gray('- 切换 MCP 配置预设')}`)
+  console.log(`  ${ansis.green('ccjk mcp release')}         ${ansis.gray('- 释放未使用的 MCP')}`)
   console.log('')
 
   console.log(ansis.yellow('可用预设 (Profile):'))
@@ -269,46 +269,46 @@ function showMcpHelp(): void {
 
 function showExamples(): void {
   console.log('')
-  console.log(ansis.cyan.bold('📝 CCJK 常用示例'))
+  console.log(ansis.green.bold('📝 CCJK 常用示例'))
   console.log(ansis.gray('─'.repeat(60)))
   console.log('')
 
   console.log(ansis.yellow('🚀 首次使用:'))
   console.log(ansis.gray('  # 一键完成所有配置'))
-  console.log(`  ${ansis.cyan('ccjk init')}`)
+  console.log(`  ${ansis.green('ccjk init')}`)
   console.log('')
 
   console.log(ansis.yellow('🔧 日常维护:'))
   console.log(ansis.gray('  # 检查环境健康状态'))
-  console.log(`  ${ansis.cyan('ccjk doctor')}`)
+  console.log(`  ${ansis.green('ccjk doctor')}`)
   console.log('')
   console.log(ansis.gray('  # 更新到最新配置'))
-  console.log(`  ${ansis.cyan('ccjk update')}`)
+  console.log(`  ${ansis.green('ccjk update')}`)
   console.log('')
 
   console.log(ansis.yellow('⚡ MCP 性能优化:'))
   console.log(ansis.gray('  # 检查 MCP 状态'))
-  console.log(`  ${ansis.cyan('ccjk mcp doctor')}`)
+  console.log(`  ${ansis.green('ccjk mcp doctor')}`)
   console.log('')
   console.log(ansis.gray('  # 切换到最小配置（提升性能）'))
-  console.log(`  ${ansis.cyan('ccjk mcp profile minimal')}`)
+  console.log(`  ${ansis.green('ccjk mcp profile minimal')}`)
   console.log('')
   console.log(ansis.gray('  # 释放未使用的 MCP'))
-  console.log(`  ${ansis.cyan('ccjk mcp release')}`)
+  console.log(`  ${ansis.green('ccjk mcp release')}`)
   console.log('')
 
   console.log(ansis.yellow('💻 开发工作流:'))
   console.log(ansis.gray('  # 启动访谈驱动开发'))
-  console.log(`  ${ansis.cyan('ccjk interview')}`)
+  console.log(`  ${ansis.green('ccjk interview')}`)
   console.log('')
   console.log(ansis.gray('  # 智能 Git 提交'))
-  console.log(`  ${ansis.cyan('ccjk commit -a')}`)
+  console.log(`  ${ansis.green('ccjk commit -a')}`)
   console.log('')
 
   console.log(ansis.yellow('🔄 配置切换:'))
   console.log(ansis.gray('  # 切换工作/个人配置'))
-  console.log(`  ${ansis.cyan('ccjk config-switch work')}`)
-  console.log(`  ${ansis.cyan('ccjk config-switch personal')}`)
+  console.log(`  ${ansis.green('ccjk config-switch work')}`)
+  console.log(`  ${ansis.green('ccjk config-switch personal')}`)
   console.log('')
 
   console.log(ansis.gray('─'.repeat(60)))
@@ -321,32 +321,32 @@ function showExamples(): void {
 
 function showTutorial(): void {
   console.log('')
-  console.log(ansis.cyan.bold('🎓 CCJK 新手入门教程'))
+  console.log(ansis.green.bold('🎓 CCJK 新手入门教程'))
   console.log(ansis.gray('─'.repeat(60)))
   console.log('')
 
   console.log(ansis.yellow.bold('第 1 步: 初始化配置'))
   console.log(ansis.gray('  运行以下命令完成一键配置:'))
-  console.log(`  ${ansis.cyan.bold('ccjk init')}`)
+  console.log(`  ${ansis.green.bold('ccjk init')}`)
   console.log(ansis.gray('  这将自动配置 API、工作流和 MCP 服务。'))
   console.log('')
 
   console.log(ansis.yellow.bold('第 2 步: 验证安装'))
   console.log(ansis.gray('  运行健康检查确保一切正常:'))
-  console.log(`  ${ansis.cyan.bold('ccjk doctor')}`)
+  console.log(`  ${ansis.green.bold('ccjk doctor')}`)
   console.log(ansis.gray('  如果有问题，按照提示修复。'))
   console.log('')
 
   console.log(ansis.yellow.bold('第 3 步: 优化性能（推荐）'))
   console.log(ansis.gray('  检查并优化 MCP 配置:'))
-  console.log(`  ${ansis.cyan.bold('ccjk mcp doctor')}`)
+  console.log(`  ${ansis.green.bold('ccjk mcp doctor')}`)
   console.log(ansis.gray('  如果 MCP 过多，切换到最小配置:'))
-  console.log(`  ${ansis.cyan.bold('ccjk mcp profile minimal')}`)
+  console.log(`  ${ansis.green.bold('ccjk mcp profile minimal')}`)
   console.log('')
 
   console.log(ansis.yellow.bold('第 4 步: 开始使用'))
   console.log(ansis.gray('  打开交互式菜单探索更多功能:'))
-  console.log(`  ${ansis.cyan.bold('ccjk')}`)
+  console.log(`  ${ansis.green.bold('ccjk')}`)
   console.log('')
 
   console.log(ansis.green.bold('✅ 恭喜！你已经完成了基本设置。'))
@@ -366,7 +366,7 @@ function showTutorial(): void {
 
 function showFaq(): void {
   console.log('')
-  console.log(ansis.cyan.bold('❓ 常见问题解答 (FAQ)'))
+  console.log(ansis.green.bold('❓ 常见问题解答 (FAQ)'))
   console.log(ansis.gray('─'.repeat(60)))
   console.log('')
 
@@ -436,7 +436,7 @@ function showFaq(): void {
 
 function showCommandHelp(command: CommandInfo): void {
   console.log('')
-  console.log(ansis.cyan.bold(`📖 命令帮助: ${command.name}`))
+  console.log(ansis.green.bold(`📖 命令帮助: ${command.name}`))
   console.log(ansis.gray('─'.repeat(50)))
   console.log('')
 
@@ -453,7 +453,7 @@ function showCommandHelp(command: CommandInfo): void {
   if (command.examples && command.examples.length > 0) {
     console.log(ansis.yellow('示例:'))
     for (const example of command.examples) {
-      console.log(`  ${ansis.cyan(example)}`)
+      console.log(`  ${ansis.green(example)}`)
     }
     console.log('')
   }
@@ -473,7 +473,7 @@ function showCommandHelp(command: CommandInfo): void {
  */
 export function showContextHelp(context: string): void {
   console.log('')
-  console.log(ansis.cyan.bold(`💡 ${context} 帮助`))
+  console.log(ansis.green.bold(`💡 ${context} 帮助`))
   console.log(ansis.gray('─'.repeat(40)))
 
   switch (context) {
@@ -507,7 +507,7 @@ export function showContextHelp(context: string): void {
  */
 export function showWelcomeGuide(): void {
   console.log('')
-  console.log(ansis.cyan.bold('🎉 欢迎使用 CCJK!'))
+  console.log(ansis.green.bold('🎉 欢迎使用 CCJK!'))
   console.log(ansis.gray('─'.repeat(50)))
   console.log('')
   console.log(ansis.gray('CCJK 是 Claude Code 的增强工具包，帮助你:'))
@@ -516,9 +516,9 @@ export function showWelcomeGuide(): void {
   console.log(ansis.gray('  • 管理工作流和技能'))
   console.log('')
   console.log(ansis.yellow('快速开始:'))
-  console.log(`  ${ansis.cyan('ccjk init')}        ${ansis.gray('- 一键初始化')}`)
-  console.log(`  ${ansis.cyan('ccjk help quick')}  ${ansis.gray('- 查看命令速查卡')}`)
-  console.log(`  ${ansis.cyan('ccjk')}             ${ansis.gray('- 打开交互式菜单')}`)
+  console.log(`  ${ansis.green('ccjk init')}        ${ansis.gray('- 一键初始化')}`)
+  console.log(`  ${ansis.green('ccjk help quick')}  ${ansis.gray('- 查看命令速查卡')}`)
+  console.log(`  ${ansis.green('ccjk')}             ${ansis.gray('- 打开交互式菜单')}`)
   console.log('')
   console.log(ansis.gray('─'.repeat(50)))
   console.log('')

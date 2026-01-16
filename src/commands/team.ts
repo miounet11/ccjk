@@ -43,7 +43,7 @@ export async function teamShare(): Promise<void> {
   }
 
   const config = JSON.parse(readFileSync(CONFIG_FILE, 'utf-8')) as TeamConfig
-  console.log(ansis.cyan(i18n.t('team:shareConfig')))
+  console.log(ansis.green(i18n.t('team:shareConfig')))
   console.log(JSON.stringify(config, null, 2))
 }
 

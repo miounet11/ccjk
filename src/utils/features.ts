@@ -318,7 +318,7 @@ export async function configureDefaultModelFeature(): Promise<void> {
 
   if (existingModel) {
     // Display existing configuration
-    console.log(`\n${ansis.blue(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
+    console.log(`\n${ansis.green(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
     const modelDisplay
       = existingModel === 'default'
         ? i18n.t('configuration:defaultModelOption') || 'Default (Let Claude Code choose)'
@@ -483,7 +483,7 @@ export async function configureAiMemoryFeature(): Promise<void> {
   switch (option) {
     case 'viewGlobalClaudeMd': {
       if (existsSync(globalClaudeMdPath)) {
-        console.log(ansis.cyan.bold(`\n📄 ${isZh ? '全局 CLAUDE.md 内容' : 'Global CLAUDE.md Content'}:`))
+        console.log(ansis.green.bold(`\n📄 ${isZh ? '全局 CLAUDE.md 内容' : 'Global CLAUDE.md Content'}:`))
         console.log(ansis.dim('─'.repeat(60)))
         const content = readFileSync(globalClaudeMdPath, 'utf-8')
         console.log(content)
@@ -508,7 +508,7 @@ export async function configureAiMemoryFeature(): Promise<void> {
       }
 
       if (foundPath) {
-        console.log(ansis.cyan.bold(`\n📁 ${isZh ? '项目 CLAUDE.md 内容' : 'Project CLAUDE.md Content'}:`))
+        console.log(ansis.green.bold(`\n📁 ${isZh ? '项目 CLAUDE.md 内容' : 'Project CLAUDE.md Content'}:`))
         console.log(ansis.dim('─'.repeat(60)))
         const content = readFileSync(foundPath, 'utf-8')
         console.log(content)
@@ -527,7 +527,7 @@ export async function configureAiMemoryFeature(): Promise<void> {
     case 'viewPostmortem': {
       const postmortemDir = join(cwd, '.postmortem')
       if (existsSync(postmortemDir)) {
-        console.log(ansis.cyan.bold(`\n🔬 ${isZh ? 'Postmortem 报告' : 'Postmortem Reports'}:`))
+        console.log(ansis.green.bold(`\n🔬 ${isZh ? 'Postmortem 报告' : 'Postmortem Reports'}:`))
         console.log(ansis.dim('─'.repeat(60)))
 
         const { readdirSync } = await import('node:fs')
@@ -585,7 +585,7 @@ export async function configureAiMemoryFeature(): Promise<void> {
         console.log(ansis.green(`✅ ${isZh ? '已创建全局 CLAUDE.md' : 'Created global CLAUDE.md'}`))
       }
 
-      console.log(ansis.cyan(`\n📝 ${isZh ? '正在打开编辑器...' : 'Opening editor...'}`))
+      console.log(ansis.green(`\n📝 ${isZh ? '正在打开编辑器...' : 'Opening editor...'}`))
       console.log(ansis.gray(`${isZh ? '编辑器' : 'Editor'}: ${editor}`))
       console.log(ansis.gray(`${isZh ? '文件' : 'File'}: ${globalClaudeMdPath}`))
 
@@ -607,7 +607,7 @@ export async function configureAiMemoryFeature(): Promise<void> {
       if (existingLang) {
         console.log(
           `\n${
-            ansis.blue(`ℹ ${i18n.t('configuration:existingLanguageConfig') || 'Existing AI output language configuration'}`)}`,
+            ansis.green(`ℹ ${i18n.t('configuration:existingLanguageConfig') || 'Existing AI output language configuration'}`)}`,
         )
         console.log(ansis.gray(`  ${i18n.t('configuration:currentLanguage') || 'Current language'}: ${existingLang}\n`))
 
@@ -681,7 +681,7 @@ export async function configureCodexDefaultModelFeature(): Promise<void> {
 
   if (currentModel) {
     // Display existing configuration
-    console.log(`\n${ansis.blue(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
+    console.log(`\n${ansis.green(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
     const modelDisplay = currentModel === 'gpt-5-codex'
       ? 'GPT-5-Codex'
       : currentModel === 'gpt-5'
@@ -784,7 +784,7 @@ export async function configureCodexAiMemoryFeature(): Promise<void> {
     if (existingLang) {
       console.log(
         `\n${
-          ansis.blue(`ℹ ${i18n.t('configuration:existingLanguageConfig') || 'Existing AI output language configuration'}`)
+          ansis.green(`ℹ ${i18n.t('configuration:existingLanguageConfig') || 'Existing AI output language configuration'}`)
         }`,
       )
       console.log(ansis.gray(`  ${i18n.t('configuration:currentLanguage') || 'Current language'}: ${existingLang}\n`))
@@ -1000,7 +1000,7 @@ export async function configureEnvPermissionFeature(): Promise<void> {
         console.log(ansis.green(`✅ ${i18n.t('configuration:permissionsImportSuccess') || 'Permissions imported'}`))
         break
       case 'open':
-        console.log(ansis.cyan(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'))
+        console.log(ansis.green(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'))
         await openSettingsJson()
         break
     }

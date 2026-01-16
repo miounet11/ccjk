@@ -7,7 +7,7 @@ const execAsync = promisify(exec)
 
 export async function runCcrUi(apiKey?: string): Promise<void> {
   ensureI18nInitialized()
-  console.log(ansis.cyan(`\n🖥️  ${i18n.t('ccr:startingCcrUi')}`))
+  console.log(ansis.green(`\n🖥️  ${i18n.t('ccr:startingCcrUi')}`))
 
   // Show API key tip if available
   if (apiKey) {
@@ -31,7 +31,7 @@ export async function runCcrUi(apiKey?: string): Promise<void> {
 
 export async function runCcrStatus(): Promise<void> {
   ensureI18nInitialized()
-  console.log(ansis.cyan(`\n📊 ${i18n.t('ccr:checkingCcrStatus')}`))
+  console.log(ansis.green(`\n📊 ${i18n.t('ccr:checkingCcrStatus')}`))
 
   try {
     const { stdout, stderr } = await execAsync('ccr status')
@@ -50,7 +50,7 @@ export async function runCcrStatus(): Promise<void> {
 
 export async function runCcrRestart(): Promise<void> {
   ensureI18nInitialized()
-  console.log(ansis.cyan(`\n🔄 ${i18n.t('ccr:restartingCcr')}`))
+  console.log(ansis.green(`\n🔄 ${i18n.t('ccr:restartingCcr')}`))
 
   try {
     const { stdout, stderr } = await execAsync('ccr restart')
@@ -68,7 +68,7 @@ export async function runCcrRestart(): Promise<void> {
 
 export async function runCcrStart(): Promise<void> {
   ensureI18nInitialized()
-  console.log(ansis.cyan(`\n▶️  ${i18n.t('ccr:startingCcr')}`))
+  console.log(ansis.green(`\n▶️  ${i18n.t('ccr:startingCcr')}`))
 
   try {
     const { stdout, stderr } = await execAsync('ccr start')
@@ -98,7 +98,7 @@ export async function runCcrStart(): Promise<void> {
 
 export async function runCcrStop(): Promise<void> {
   ensureI18nInitialized()
-  console.log(ansis.cyan(`\n⏹️  ${i18n.t('ccr:stoppingCcr')}`))
+  console.log(ansis.green(`\n⏹️  ${i18n.t('ccr:stoppingCcr')}`))
 
   try {
     const { stdout, stderr } = await execAsync('ccr stop')

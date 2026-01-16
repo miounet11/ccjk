@@ -285,7 +285,7 @@ export function displayPermissions(): void {
   const permissions = readPermissions()
   const templateId = getCurrentTemplateId()
 
-  console.log(ansis.cyan('\n═══════════ Claude Code Permissions ═══════════\n'))
+  console.log(ansis.green('\n═══════════ Claude Code Permissions ═══════════\n'))
 
   // Trusted directories
   console.log(ansis.white.bold('Trusted Directories:'))
@@ -330,7 +330,7 @@ export function displayPermissions(): void {
   // Current template
   if (templateId) {
     const template = PERMISSION_TEMPLATES.find(t => t.id === templateId)
-    console.log(ansis.gray(`Template: ${ansis.cyan(template?.name || templateId)}`))
+    console.log(ansis.gray(`Template: ${ansis.green(template?.name || templateId)}`))
   }
   else {
     console.log(ansis.gray('Template: custom'))

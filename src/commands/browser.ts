@@ -332,7 +332,7 @@ function getArgValue(args: string[], flag: string): string | undefined {
 
 function printHelp(): void {
   console.log(`
-${ansis.cyan.bold('🌐 CCJK Browser - Zero-Config Web Automation')}
+${ansis.green.bold('🌐 CCJK Browser - Zero-Config Web Automation')}
 
 Powered by agent-browser (https://github.com/anthropics/agent-browser)
 

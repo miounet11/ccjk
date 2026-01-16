@@ -170,7 +170,7 @@ async function listPlugins(options: PluginCommandOptions): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
   const manager = getCloudPluginManager()
 
-  console.log(ansis.cyan.bold(`\n📦 ${isZh ? '已安装的插件' : 'Installed Plugins'}\n`))
+  console.log(ansis.green.bold(`\n📦 ${isZh ? '已安装的插件' : 'Installed Plugins'}\n`))
 
   const installed = manager.getInstalledPlugins()
 
@@ -199,7 +199,7 @@ async function installPlugin(pluginId: string, options: PluginCommandOptions): P
   const isZh = i18n.language === 'zh-CN'
   const manager = getCloudPluginManager()
 
-  console.log(ansis.cyan(`\n⏳ ${isZh ? '正在获取插件信息...' : 'Fetching plugin info...'}`))
+  console.log(ansis.green(`\n⏳ ${isZh ? '正在获取插件信息...' : 'Fetching plugin info...'}`))
 
   // Get plugin info
   const pluginInfo = await manager.getPluginInfo(pluginId)
@@ -213,7 +213,7 @@ async function installPlugin(pluginId: string, options: PluginCommandOptions): P
     if (searchResult.success && searchResult.data && searchResult.data.length > 0) {
       console.log(ansis.yellow(`\n${isZh ? '您是否在找:' : 'Did you mean:'}`))
       for (const p of searchResult.data) {
-        console.log(`  - ${ansis.cyan(p.id)} - ${getPluginName(p)}`)
+        console.log(`  - ${ansis.green(p.id)} - ${getPluginName(p)}`)
       }
     }
     process.exit(1)
@@ -228,7 +228,7 @@ async function installPlugin(pluginId: string, options: PluginCommandOptions): P
   }
 
   // Show plugin info
-  console.log(ansis.cyan.bold(`\n📦 ${getPluginName(pluginInfo)}`))
+  console.log(ansis.green.bold(`\n📦 ${getPluginName(pluginInfo)}`))
   console.log(ansis.gray(`   ${getPluginDescription(pluginInfo)}`))
   console.log(ansis.gray(`   ${isZh ? '版本' : 'Version'}: ${pluginInfo.version}`))
   if (pluginInfo.author) {
@@ -237,7 +237,7 @@ async function installPlugin(pluginId: string, options: PluginCommandOptions): P
   console.log('')
 
   // Install
-  console.log(ansis.cyan(`⏳ ${isZh ? '正在安装...' : 'Installing...'}`))
+  console.log(ansis.green(`⏳ ${isZh ? '正在安装...' : 'Installing...'}`))
 
   const result = await manager.installPlugin(pluginId, {
     force: options.force,
@@ -272,7 +272,7 @@ async function uninstallPlugin(pluginId: string): Promise<void> {
     return
   }
 
-  console.log(ansis.cyan(`\n⏳ ${isZh ? '正在卸载...' : 'Uninstalling...'}`))
+  console.log(ansis.green(`\n⏳ ${isZh ? '正在卸载...' : 'Uninstalling...'}`))
 
   const result = await manager.uninstallPlugin(pluginId)
 
@@ -292,7 +292,7 @@ async function searchPlugins(query: string, options: PluginCommandOptions): Prom
   const isZh = i18n.language === 'zh-CN'
   const manager = getCloudPluginManager()
 
-  console.log(ansis.cyan(`\n🔍 ${isZh ? '搜索' : 'Searching'}: "${query}"\n`))
+  console.log(ansis.green(`\n🔍 ${isZh ? '搜索' : 'Searching'}: "${query}"\n`))
 
   const result = await manager.searchPlugins({ query, pageSize: 20 })
 
@@ -343,7 +343,7 @@ async function showPluginInfo(pluginId: string): Promise<void> {
 
   const installed = manager.isPluginInstalled(pluginId)
 
-  console.log(ansis.cyan.bold(`\n📦 ${getPluginName(plugin)}`))
+  console.log(ansis.green.bold(`\n📦 ${getPluginName(plugin)}`))
   console.log(ansis.dim('─'.repeat(50)))
   console.log(`${ansis.bold(isZh ? '描述' : 'Description')}: ${getPluginDescription(plugin)}`)
   console.log(`${ansis.bold('ID')}: ${plugin.id}`)
@@ -386,7 +386,7 @@ async function updatePlugins(pluginId: string | undefined): Promise<void> {
 
   if (pluginId) {
     // Update specific plugin
-    console.log(ansis.cyan(`\n⏳ ${isZh ? '正在更新' : 'Updating'} ${pluginId}...`))
+    console.log(ansis.green(`\n⏳ ${isZh ? '正在更新' : 'Updating'} ${pluginId}...`))
 
     const result = await manager.updatePlugin(pluginId)
 
@@ -405,7 +405,7 @@ async function updatePlugins(pluginId: string | undefined): Promise<void> {
   }
   else {
     // Update all plugins
-    console.log(ansis.cyan(`\n⏳ ${isZh ? '正在检查更新...' : 'Checking for updates...'}`))
+    console.log(ansis.green(`\n⏳ ${isZh ? '正在检查更新...' : 'Checking for updates...'}`))
 
     const results = await manager.updateAllPlugins()
 
@@ -433,7 +433,7 @@ async function listCategories(): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
   const manager = getCloudPluginManager()
 
-  console.log(ansis.cyan.bold(`\n📂 ${isZh ? '插件分类' : 'Plugin Categories'}\n`))
+  console.log(ansis.green.bold(`\n📂 ${isZh ? '插件分类' : 'Plugin Categories'}\n`))
 
   const result = await manager.getCategories()
 
@@ -455,7 +455,7 @@ async function showFeaturedPlugins(): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
   const manager = getCloudPluginManager()
 
-  console.log(ansis.cyan.bold(`\n⭐ ${isZh ? '精选插件' : 'Featured Plugins'}\n`))
+  console.log(ansis.green.bold(`\n⭐ ${isZh ? '精选插件' : 'Featured Plugins'}\n`))
 
   const featured = await manager.getFeaturedPlugins()
 
@@ -482,22 +482,22 @@ async function showFeaturedPlugins(): Promise<void> {
 function showHelp(): void {
   const isZh = i18n.language === 'zh-CN'
 
-  console.log(ansis.cyan.bold(`\n📦 ${isZh ? 'CCJK 插件管理' : 'CCJK Plugin Manager'}\n`))
+  console.log(ansis.green.bold(`\n📦 ${isZh ? 'CCJK 插件管理' : 'CCJK Plugin Manager'}\n`))
   console.log(ansis.dim('─'.repeat(50)))
   console.log('')
   console.log(ansis.bold(isZh ? '用法:' : 'Usage:'))
   console.log('  /plugin <command> [options]')
   console.log('')
   console.log(ansis.bold(isZh ? '命令:' : 'Commands:'))
-  console.log(`  ${ansis.cyan('list')}              ${isZh ? '列出已安装的插件' : 'List installed plugins'}`)
-  console.log(`  ${ansis.cyan('install')} <id>      ${isZh ? '安装插件' : 'Install a plugin'}`)
-  console.log(`  ${ansis.cyan('uninstall')} <id>    ${isZh ? '卸载插件' : 'Uninstall a plugin'}`)
-  console.log(`  ${ansis.cyan('search')} <query>    ${isZh ? '搜索插件' : 'Search for plugins'}`)
-  console.log(`  ${ansis.cyan('info')} <id>         ${isZh ? '显示插件详情' : 'Show plugin details'}`)
-  console.log(`  ${ansis.cyan('update')} [id]       ${isZh ? '更新插件' : 'Update plugin(s)'}`)
-  console.log(`  ${ansis.cyan('categories')}        ${isZh ? '列出插件分类' : 'List plugin categories'}`)
-  console.log(`  ${ansis.cyan('featured')}          ${isZh ? '显示精选插件' : 'Show featured plugins'}`)
-  console.log(`  ${ansis.cyan('help')}              ${isZh ? '显示帮助' : 'Show this help'}`)
+  console.log(`  ${ansis.green('list')}              ${isZh ? '列出已安装的插件' : 'List installed plugins'}`)
+  console.log(`  ${ansis.green('install')} <id>      ${isZh ? '安装插件' : 'Install a plugin'}`)
+  console.log(`  ${ansis.green('uninstall')} <id>    ${isZh ? '卸载插件' : 'Uninstall a plugin'}`)
+  console.log(`  ${ansis.green('search')} <query>    ${isZh ? '搜索插件' : 'Search for plugins'}`)
+  console.log(`  ${ansis.green('info')} <id>         ${isZh ? '显示插件详情' : 'Show plugin details'}`)
+  console.log(`  ${ansis.green('update')} [id]       ${isZh ? '更新插件' : 'Update plugin(s)'}`)
+  console.log(`  ${ansis.green('categories')}        ${isZh ? '列出插件分类' : 'List plugin categories'}`)
+  console.log(`  ${ansis.green('featured')}          ${isZh ? '显示精选插件' : 'Show featured plugins'}`)
+  console.log(`  ${ansis.green('help')}              ${isZh ? '显示帮助' : 'Show this help'}`)
   console.log('')
   console.log(ansis.bold(isZh ? '示例:' : 'Examples:'))
   console.log(`  /plugin search git          ${ansis.gray(isZh ? '# 搜索 git 相关插件' : '# Search for git plugins')}`)
