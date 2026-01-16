@@ -428,21 +428,38 @@ export async function promptCustomModels(
   return { primaryModel, haikuModel, sonnetModel, opusModel }
 }
 
-// Configure AI memory
+// Configure AI memory - View and manage Claude's memory (CLAUDE.md, Postmortem, etc.)
 export async function configureAiMemoryFeature(): Promise<void> {
   ensureI18nInitialized()
+  const isZh = i18n.language === 'zh-CN'
 
   const { option } = await inquirer.prompt<{ option: string }>({
     type: 'list',
     name: 'option',
-    message: i18n.t('configuration:selectMemoryOption') || 'Select configuration option',
+    message: isZh ? '选择 AI 记忆管理选项' : 'Select AI memory management option',
     choices: addNumbersToChoices([
       {
-        name: i18n.t('configuration:configureAiLanguage') || 'Configure AI output language',
+        name: isZh ? '📄 查看全局 CLAUDE.md（系统提示）' : '📄 View global CLAUDE.md (system prompt)',
+        value: 'viewGlobalClaudeMd',
+      },
+      {
+        name: isZh ? '📁 查看项目 CLAUDE.md' : '📁 View project CLAUDE.md',
+        value: 'viewProjectClaudeMd',
+      },
+      {
+        name: isZh ? '🔬 查看 Postmortem（历史 Bug 经验）' : '🔬 View Postmortem (bug lessons learned)',
+        value: 'viewPostmortem',
+      },
+      {
+        name: isZh ? '✏️ 编辑全局 CLAUDE.md' : '✏️ Edit global CLAUDE.md',
+        value: 'editGlobalClaudeMd',
+      },
+      {
+        name: isZh ? '🌐 配置 AI 输出语言' : '🌐 Configure AI output language',
         value: 'language',
       },
       {
-        name: i18n.t('configuration:configureOutputStyle') || 'Configure global AI output style',
+        name: isZh ? '🎨 配置输出风格' : '🎨 Configure output style',
         value: 'outputStyle',
       },
     ]),
@@ -452,39 +469,173 @@ export async function configureAiMemoryFeature(): Promise<void> {
     return
   }
 
-  if (option === 'language') {
-    const zcfConfig = readZcfConfig()
-    const existingLang = zcfConfig?.aiOutputLang
+  const { readFileSync, existsSync, writeFileSync } = await import('node:fs')
+  const { homedir } = await import('node:os')
+  const { join } = await import('pathe')
+  const { execSync } = await import('node:child_process')
+  const nodeProcess = await import('node:process')
+  const cwd = nodeProcess.default.cwd()
 
-    // Show existing language configuration if any
-    if (existingLang) {
-      console.log(
-        `\n${
-          ansis.blue(`ℹ ${i18n.t('configuration:existingLanguageConfig') || 'Existing AI output language configuration'}`)}`,
-      )
-      console.log(ansis.gray(`  ${i18n.t('configuration:currentLanguage') || 'Current language'}: ${existingLang}\n`))
+  const globalClaudeMdPath = join(homedir(), '.claude', 'CLAUDE.md')
+  const projectClaudeMdPath = join(cwd, 'CLAUDE.md')
+  const localClaudeMdPath = join(cwd, '.claude', 'CLAUDE.md')
 
-      const modify = await promptBoolean({
-        message: i18n.t('configuration:modifyLanguage') || 'Modify AI output language?',
-        defaultValue: false,
-      })
-
-      if (!modify) {
-        console.log(ansis.green(`✔ ${i18n.t('configuration:keepLanguage') || 'Keeping existing language configuration'}`))
-        return
+  switch (option) {
+    case 'viewGlobalClaudeMd': {
+      if (existsSync(globalClaudeMdPath)) {
+        console.log(ansis.cyan.bold(`\n📄 ${isZh ? '全局 CLAUDE.md 内容' : 'Global CLAUDE.md Content'}:`))
+        console.log(ansis.dim('─'.repeat(60)))
+        const content = readFileSync(globalClaudeMdPath, 'utf-8')
+        console.log(content)
+        console.log(ansis.dim('─'.repeat(60)))
+        console.log(ansis.gray(`${isZh ? '路径' : 'Path'}: ${globalClaudeMdPath}`))
       }
+      else {
+        console.log(ansis.yellow(`\n⚠️ ${isZh ? '全局 CLAUDE.md 不存在' : 'Global CLAUDE.md does not exist'}`))
+        console.log(ansis.gray(`${isZh ? '预期路径' : 'Expected path'}: ${globalClaudeMdPath}`))
+      }
+      break
     }
 
-    // Ask user to select language (don't use resolveAiOutputLanguage to avoid auto-skip)
-    const { selectAiOutputLanguage } = await import('./prompts')
-    const aiOutputLang = await selectAiOutputLanguage()
+    case 'viewProjectClaudeMd': {
+      // Check both project root and .claude directory
+      let foundPath: string | null = null
+      if (existsSync(projectClaudeMdPath)) {
+        foundPath = projectClaudeMdPath
+      }
+      else if (existsSync(localClaudeMdPath)) {
+        foundPath = localClaudeMdPath
+      }
 
-    applyAiLanguageDirective(aiOutputLang)
-    updateZcfConfig({ aiOutputLang })
-    console.log(ansis.green(`✔ ${i18n.t('configuration:aiLanguageConfigured') || 'AI output language configured'}`))
-  }
-  else if (option === 'outputStyle') {
-    await configureOutputStyle()
+      if (foundPath) {
+        console.log(ansis.cyan.bold(`\n📁 ${isZh ? '项目 CLAUDE.md 内容' : 'Project CLAUDE.md Content'}:`))
+        console.log(ansis.dim('─'.repeat(60)))
+        const content = readFileSync(foundPath, 'utf-8')
+        console.log(content)
+        console.log(ansis.dim('─'.repeat(60)))
+        console.log(ansis.gray(`${isZh ? '路径' : 'Path'}: ${foundPath}`))
+      }
+      else {
+        console.log(ansis.yellow(`\n⚠️ ${isZh ? '项目 CLAUDE.md 不存在' : 'Project CLAUDE.md does not exist'}`))
+        console.log(ansis.gray(`${isZh ? '已检查路径' : 'Checked paths'}:`))
+        console.log(ansis.gray(`  - ${projectClaudeMdPath}`))
+        console.log(ansis.gray(`  - ${localClaudeMdPath}`))
+      }
+      break
+    }
+
+    case 'viewPostmortem': {
+      const postmortemDir = join(cwd, '.postmortem')
+      if (existsSync(postmortemDir)) {
+        console.log(ansis.cyan.bold(`\n🔬 ${isZh ? 'Postmortem 报告' : 'Postmortem Reports'}:`))
+        console.log(ansis.dim('─'.repeat(60)))
+
+        const { readdirSync } = await import('node:fs')
+        const files = readdirSync(postmortemDir).filter(f => f.endsWith('.md'))
+
+        if (files.length === 0) {
+          console.log(ansis.yellow(isZh ? '暂无 Postmortem 报告' : 'No postmortem reports yet'))
+        }
+        else {
+          console.log(ansis.green(`${isZh ? '找到' : 'Found'} ${files.length} ${isZh ? '个报告' : 'reports'}:\n`))
+
+          // Let user select a report to view
+          const { selectedFile } = await inquirer.prompt<{ selectedFile: string }>({
+            type: 'list',
+            name: 'selectedFile',
+            message: isZh ? '选择要查看的报告' : 'Select a report to view',
+            choices: [
+              ...files.map(f => ({ name: f, value: f })),
+              { name: isZh ? '返回' : 'Back', value: 'back' },
+            ],
+          })
+
+          if (selectedFile !== 'back') {
+            const reportPath = join(postmortemDir, selectedFile)
+            const content = readFileSync(reportPath, 'utf-8')
+            console.log(ansis.dim('─'.repeat(60)))
+            console.log(content)
+            console.log(ansis.dim('─'.repeat(60)))
+          }
+        }
+
+        console.log(ansis.gray(`\n${isZh ? '目录' : 'Directory'}: ${postmortemDir}`))
+        console.log(ansis.gray(`💡 ${isZh ? '运行 `ccjk postmortem init` 从历史 fix commits 生成报告' : 'Run `ccjk postmortem init` to generate reports from fix commits'}`))
+      }
+      else {
+        console.log(ansis.yellow(`\n⚠️ ${isZh ? 'Postmortem 目录不存在' : 'Postmortem directory does not exist'}`))
+        console.log(ansis.gray(`💡 ${isZh ? '运行 `ccjk postmortem init` 初始化 Postmortem 系统' : 'Run `ccjk postmortem init` to initialize the Postmortem system'}`))
+      }
+      break
+    }
+
+    case 'editGlobalClaudeMd': {
+      // Determine editor
+      const editor = nodeProcess.default.env.EDITOR || nodeProcess.default.env.VISUAL || 'vi'
+
+      if (!existsSync(globalClaudeMdPath)) {
+        // Create directory if needed
+        const claudeDir = join(homedir(), '.claude')
+        const { mkdirSync } = await import('node:fs')
+        if (!existsSync(claudeDir)) {
+          mkdirSync(claudeDir, { recursive: true })
+        }
+        // Create empty file
+        writeFileSync(globalClaudeMdPath, `# Claude Global Memory\n\n<!-- Add your global instructions here -->\n`)
+        console.log(ansis.green(`✅ ${isZh ? '已创建全局 CLAUDE.md' : 'Created global CLAUDE.md'}`))
+      }
+
+      console.log(ansis.cyan(`\n📝 ${isZh ? '正在打开编辑器...' : 'Opening editor...'}`))
+      console.log(ansis.gray(`${isZh ? '编辑器' : 'Editor'}: ${editor}`))
+      console.log(ansis.gray(`${isZh ? '文件' : 'File'}: ${globalClaudeMdPath}`))
+
+      try {
+        execSync(`${editor} "${globalClaudeMdPath}"`, { stdio: 'inherit' })
+        console.log(ansis.green(`\n✅ ${isZh ? '编辑完成' : 'Edit complete'}`))
+      }
+      catch {
+        console.log(ansis.yellow(`\n⚠️ ${isZh ? '编辑器退出' : 'Editor exited'}`))
+      }
+      break
+    }
+
+    case 'language': {
+      const zcfConfig = readZcfConfig()
+      const existingLang = zcfConfig?.aiOutputLang
+
+      // Show existing language configuration if any
+      if (existingLang) {
+        console.log(
+          `\n${
+            ansis.blue(`ℹ ${i18n.t('configuration:existingLanguageConfig') || 'Existing AI output language configuration'}`)}`,
+        )
+        console.log(ansis.gray(`  ${i18n.t('configuration:currentLanguage') || 'Current language'}: ${existingLang}\n`))
+
+        const modify = await promptBoolean({
+          message: i18n.t('configuration:modifyLanguage') || 'Modify AI output language?',
+          defaultValue: false,
+        })
+
+        if (!modify) {
+          console.log(ansis.green(`✔ ${i18n.t('configuration:keepLanguage') || 'Keeping existing language configuration'}`))
+          return
+        }
+      }
+
+      // Ask user to select language (don't use resolveAiOutputLanguage to avoid auto-skip)
+      const { selectAiOutputLanguage } = await import('./prompts')
+      const aiOutputLang = await selectAiOutputLanguage()
+
+      applyAiLanguageDirective(aiOutputLang)
+      updateZcfConfig({ aiOutputLang })
+      console.log(ansis.green(`✔ ${i18n.t('configuration:aiLanguageConfigured') || 'AI output language configured'}`))
+      break
+    }
+
+    case 'outputStyle': {
+      await configureOutputStyle()
+      break
+    }
   }
 }
 
