@@ -434,40 +434,17 @@ const COMMANDS: CommandDefinition[] = [
     options: [
       { flags: '--format, -f <format>', description: 'Output format (table|json)' },
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
+      { flags: '--verbose, -v', description: 'Verbose output' },
     ],
     loader: async () => {
-      return async (options, action: unknown, args: unknown) => {
+      return async (options, action: unknown) => {
         const actionStr = action as string
-        const argsArr = args as string[]
-
-        if (!actionStr || actionStr === 'list') {
-          const { listProviders } = await import('./commands/providers')
-          await listProviders(options)
-        }
-        else if (actionStr === 'add') {
-          const { addProvider } = await import('./commands/providers')
-          await addProvider(options)
-        }
-        else if (actionStr === 'remove') {
-          const { removeProvider } = await import('./commands/providers')
-          await removeProvider(argsArr[0] || '', options)
-        }
-        else if (actionStr === 'edit') {
-          const { editProvider } = await import('./commands/providers')
-          await editProvider(argsArr[0] || '', options)
-        }
-        else if (actionStr === 'test') {
-          const { testProvider } = await import('./commands/providers')
-          await testProvider(argsArr[0] || '', options)
-        }
-        else if (actionStr === 'health') {
-          const { checkProviderHealth } = await import('./commands/providers')
-          await checkProviderHealth(options)
-        }
-        else {
-          console.error(`Unknown providers action: ${actionStr}`)
-          console.log('Available actions: list, add, remove, edit, test, health')
-        }
+        const { providersCommand } = await import('./commands/providers')
+        await providersCommand(actionStr || 'list', {
+          lang: options.lang,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          verbose: options.verbose as boolean | undefined,
+        })
       }
     },
   },
@@ -1033,22 +1010,6 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
 
-  // ==================== API Provider Management ====================
-  {
-    name: 'providers [action]',
-    description: 'Manage API providers',
-    tier: 'extended',
-    options: [
-      { flags: '--json', description: 'Output in JSON format' },
-    ],
-    loader: async () => {
-      const { providersCommand } = await import('./commands/providers')
-      return async (options, action: unknown) => {
-        await providersCommand(action as string, options)
-      }
-    },
-  },
-
   // ==================== Configuration Management ====================
   {
     name: 'config [action] [key] [value]',
@@ -1065,7 +1026,12 @@ const COMMANDS: CommandDefinition[] = [
           args.push(key as string)
         if (value !== undefined)
           args.push(value as string)
-        await configCommand(action as string | undefined, args, options)
+        await configCommand((action as string) || 'list', args, {
+          lang: options.lang,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          global: options.global as boolean | undefined,
+          json: options.json as boolean | undefined,
+        })
       }
     },
   },

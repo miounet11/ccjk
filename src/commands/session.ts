@@ -76,8 +76,8 @@ export async function listSessions(): Promise<void> {
 
     // Sort by last accessed (most recent first)
     const sortedSessions = [...sessions].sort((a, b) => {
-      const aTime = a.lastAccessedAt?.getTime() || a.createdAt.getTime()
-      const bTime = b.lastAccessedAt?.getTime() || b.createdAt.getTime()
+      const aTime = a.lastUsedAt?.getTime() || a.createdAt.getTime()
+      const bTime = b.lastUsedAt?.getTime() || b.createdAt.getTime()
       return bTime - aTime
     })
 
@@ -94,8 +94,8 @@ export async function listSessions(): Promise<void> {
       const createdDate = session.createdAt.toLocaleString()
       console.log(ansis.gray(`    Created: ${createdDate}`))
 
-      if (session.lastAccessedAt) {
-        const accessedDate = session.lastAccessedAt.toLocaleString()
+      if (session.lastUsedAt) {
+        const accessedDate = session.lastUsedAt.toLocaleString()
         console.log(ansis.gray(`    Last accessed: ${accessedDate}`))
       }
 

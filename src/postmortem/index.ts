@@ -7,10 +7,22 @@
  * 2. 自动同步到 CLAUDE.md 指导 AI 开发
  * 3. Pre-release 检查防止重复犯错
  * 4. Post-release 分析持续学习
+ * 5. 启动时自动加载（MiroThinker 策略）
  */
 
 // Analyzer
 export { PostmortemAnalyzer } from './analyzer'
+
+// Auto-Loader (启动时自动加载)
+export {
+  autoLoadPostmortem,
+  generatePostmortemContext,
+  hasPostmortemInClaudeMd,
+  isPostmortemInitialized,
+  type PostmortemAutoLoadConfig,
+  type PostmortemLoadResult,
+  quickLoadPostmortem,
+} from './auto-loader'
 
 // Manager
 export { getPostmortemManager, PostmortemManager } from './manager'

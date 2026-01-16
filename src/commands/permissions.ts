@@ -5,12 +5,12 @@
  */
 
 import type { CliOptions } from '../cli-lazy'
-import type { PermissionLevel } from '../permissions/permission-manager'
+import type { Permission, PermissionType } from '../permissions/permission-manager'
 import process from 'node:process'
 import chalk from 'chalk'
-import { PermissionManager } from '../permissions/permission-manager'
+import { getPermissionManager } from '../permissions/permission-manager'
 
-const permissionManager = PermissionManager.getInstance()
+const permissionManager = getPermissionManager()
 
 /**
  * List all permissions
@@ -19,7 +19,7 @@ export async function listPermissions(options: CliOptions): Promise<void> {
   const format = (options.format as string) || 'table'
   const verbose = options.verbose as boolean || false
 
-  const permissions = permissionManager.getAllPermissions()
+  const permissions = permissionManager.listPermissions()
 
   if (format === 'json') {
     console.log(JSON.stringify(permissions, null, 2))
@@ -35,28 +35,28 @@ export async function listPermissions(options: CliOptions): Promise<void> {
 
   if (format === 'list') {
     for (const perm of permissions) {
-      const levelColor = getLevelColor(perm.level)
-      console.log(`${chalk.cyan(perm.resource)}: ${levelColor(perm.level)}`)
-      if (verbose && perm.metadata) {
-        console.log(chalk.gray(`  Metadata: ${JSON.stringify(perm.metadata)}`))
+      const typeColor = getTypeColor(perm.type)
+      console.log(`${chalk.cyan(perm.pattern)}: ${typeColor(perm.type)}`)
+      if (verbose && perm.description) {
+        console.log(chalk.gray(`  Description: ${perm.description}`))
       }
     }
   }
   else {
     // Table format
-    console.log(chalk.bold('Resource'.padEnd(40)) + chalk.bold('Level'.padEnd(15)) + chalk.bold('Granted At'))
+    console.log(chalk.bold('Pattern'.padEnd(40)) + chalk.bold('Type'.padEnd(15)) + chalk.bold('Scope'))
     console.log('─'.repeat(70))
 
     for (const perm of permissions) {
-      const levelColor = getLevelColor(perm.level)
-      const resource = perm.resource.padEnd(40)
-      const level = levelColor(perm.level.padEnd(15))
-      const grantedAt = new Date(perm.grantedAt).toLocaleString()
+      const typeColor = getTypeColor(perm.type)
+      const pattern = perm.pattern.padEnd(40)
+      const type = typeColor(perm.type.padEnd(15))
+      const scope = perm.scope
 
-      console.log(`${resource}${level}${grantedAt}`)
+      console.log(`${pattern}${type}${scope}`)
 
-      if (verbose && perm.metadata) {
-        console.log(chalk.gray(`  Metadata: ${JSON.stringify(perm.metadata)}`))
+      if (verbose && perm.description) {
+        console.log(chalk.gray(`  Description: ${perm.description}`))
       }
     }
   }
@@ -74,26 +74,24 @@ export async function checkPermission(resource: string, options: CliOptions): Pr
     process.exit(1)
   }
 
+  const action = (options.action as string) || 'read'
   const verbose = options.verbose as boolean || false
 
   console.log(chalk.bold(`\n🔍 Checking permission for: ${chalk.cyan(resource)}\n`))
 
-  const hasPermission = await permissionManager.checkPermission(resource, 'read')
-  const permission = permissionManager.getPermission(resource)
+  const result = permissionManager.checkPermission(action, resource)
 
-  if (hasPermission) {
+  if (result.allowed) {
     console.log(chalk.green('✓ Permission granted'))
-    if (permission) {
-      const levelColor = getLevelColor(permission.level)
-      console.log(`  Level: ${levelColor(permission.level)}`)
-      console.log(`  Granted at: ${new Date(permission.grantedAt).toLocaleString()}`)
-      if (verbose && permission.metadata) {
-        console.log(`  Metadata: ${JSON.stringify(permission.metadata, null, 2)}`)
-      }
+    console.log(`  Reason: ${result.reason}`)
+    if (verbose && result.matchedRule) {
+      console.log(`  Matched rule: ${result.matchedRule.pattern}`)
+      console.log(`  Rule type: ${result.matchedRule.type}`)
     }
   }
   else {
     console.log(chalk.red('✗ Permission denied'))
+    console.log(`  Reason: ${result.reason}`)
     console.log(chalk.yellow('  Use "ccjk permissions grant" to grant permission'))
   }
 
@@ -112,10 +110,14 @@ export async function grantPermission(resource: string, _options: CliOptions): P
 
   console.log(chalk.bold(`\n✓ Granting permission for: ${chalk.cyan(resource)}\n`))
 
-  await permissionManager.grantPermission(resource, 'full', {
-    grantedBy: 'cli',
-    grantedAt: new Date().toISOString(),
-  })
+  const permission: Permission = {
+    type: 'allow',
+    pattern: resource,
+    scope: 'global',
+    description: 'Granted via CLI',
+  }
+
+  permissionManager.addPermission(permission)
 
   console.log(chalk.green('Permission granted successfully!'))
   console.log()
@@ -133,9 +135,14 @@ export async function revokePermission(resource: string, _options: CliOptions): 
 
   console.log(chalk.bold(`\n✗ Revoking permission for: ${chalk.cyan(resource)}\n`))
 
-  await permissionManager.revokePermission(resource)
+  const removed = permissionManager.removePermission(resource)
 
-  console.log(chalk.green('Permission revoked successfully!'))
+  if (removed > 0) {
+    console.log(chalk.green(`Permission revoked successfully! (${removed} rule(s) removed)`))
+  }
+  else {
+    console.log(chalk.yellow('No matching permission found.'))
+  }
   console.log()
 }
 
@@ -163,7 +170,7 @@ export async function resetPermissions(_options: CliOptions): Promise<void> {
     return
   }
 
-  await permissionManager.clearAllPermissions()
+  permissionManager.clearPermissions()
 
   console.log(chalk.green('All permissions have been reset!'))
   console.log()
@@ -180,10 +187,11 @@ export async function exportPermissions(filePath: string | undefined, _options: 
 
   console.log(chalk.bold(`\n📤 Exporting permissions to: ${chalk.cyan(outputPath)}\n`))
 
-  const permissions = permissionManager.getAllPermissions()
+  const permissions = permissionManager.exportPermissions()
   await fs.writeFile(outputPath, JSON.stringify(permissions, null, 2), 'utf-8')
 
-  console.log(chalk.green(`Exported ${permissions.length} permissions successfully!`))
+  const totalCount = permissions.allow.length + permissions.deny.length
+  console.log(chalk.green(`Exported ${totalCount} permissions successfully!`))
   console.log()
 }
 
@@ -203,21 +211,18 @@ export async function importPermissions(filePath: string, _options: CliOptions):
 
   try {
     const content = await fs.readFile(filePath, 'utf-8')
-    const permissions = JSON.parse(content)
+    const config = JSON.parse(content)
 
-    if (!Array.isArray(permissions)) {
-      throw new TypeError('Invalid permissions file format')
+    // Validate format
+    if (!config.allow && !config.deny) {
+      throw new TypeError('Invalid permissions file format. Expected { allow: [], deny: [] }')
     }
 
-    // Clear existing permissions
-    await permissionManager.clearAllPermissions()
+    // Import permissions (replace existing)
+    permissionManager.importPermissions(config, false)
 
-    // Import new permissions
-    for (const perm of permissions) {
-      await permissionManager.grantPermission(perm.resource, perm.level, perm.metadata)
-    }
-
-    console.log(chalk.green(`Imported ${permissions.length} permissions successfully!`))
+    const totalCount = (config.allow?.length || 0) + (config.deny?.length || 0)
+    console.log(chalk.green(`Imported ${totalCount} permissions successfully!`))
   }
   catch (error) {
     console.error(chalk.red('Error importing permissions:'), error)
@@ -247,29 +252,26 @@ export function permissionsHelp(_options: CliOptions): void {
 
   console.log(chalk.bold('Options:'))
   console.log('  --format, -f      Output format (table|json|list)')
-  console.log('  --verbose, -v     Verbose output\n')
+  console.log('  --verbose, -v     Verbose output')
+  console.log('  --action, -a      Action to check (read|write|admin)\n')
 
   console.log(chalk.bold('Examples:'))
   console.log('  ccjk permissions list')
-  console.log('  ccjk permissions check file:///path/to/file')
-  console.log('  ccjk permissions grant mcp://server-name')
+  console.log('  ccjk permissions check "Provider(302ai):*"')
+  console.log('  ccjk permissions grant "Provider(302ai):*"')
   console.log('  ccjk permissions export permissions.json')
   console.log('  ccjk permissions import permissions.json\n')
 }
 
 /**
- * Get color for permission level
+ * Get color for permission type
  */
-function getLevelColor(level: PermissionLevel): (text: string) => string {
-  switch (level) {
-    case 'none':
-      return chalk.red
-    case 'read':
-      return chalk.yellow
-    case 'write':
-      return chalk.blue
-    case 'full':
+function getTypeColor(type: PermissionType): (text: string) => string {
+  switch (type) {
+    case 'allow':
       return chalk.green
+    case 'deny':
+      return chalk.red
     default:
       return chalk.gray
   }

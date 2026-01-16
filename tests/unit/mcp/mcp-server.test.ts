@@ -1,4 +1,3 @@
-import type { Server } from 'node:http'
 import type { MCPServer } from '../../../src/mcp/mcp-server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -40,41 +39,9 @@ vi.spyOn(console, 'error').mockImplementation(mockConsole.error)
 
 describe('mCP Server', () => {
   let mcpServer: MCPServer
-  let _mockStdin: any
-  let _mockStdout: any
-  let _mockHttpServer: Server
 
   beforeEach(async () => {
     vi.clearAllMocks()
-
-    // Mock stdin/stdout for stdio transport
-    _mockStdin = {
-      on: vi.fn(),
-      once: vi.fn(),
-      removeListener: vi.fn(),
-      setEncoding: vi.fn(),
-      resume: vi.fn(),
-      pause: vi.fn(),
-    }
-
-    _mockStdout = {
-      write: vi.fn(),
-      on: vi.fn(),
-    }
-
-    // Mock HTTP server
-    _mockHttpServer = {
-      listen: vi.fn((portNum: number, callback: () => void) => {
-        callback()
-        return _mockHttpServer
-      }),
-      close: vi.fn((callback?: () => void) => {
-        if (callback)
-          callback()
-        return mockHttpServer
-      }),
-      on: vi.fn(),
-    } as any
 
     // Import MCPServer after mocks are set up
     const { MCPServer: MCPServerClass } = await import('../../../src/mcp/mcp-server')
@@ -177,12 +144,6 @@ describe('mCP Server', () => {
 
       await server.start()
 
-      const _request = {
-        jsonrpc: '2.0' as const,
-        id: 1,
-        method: 'tools/list',
-      }
-
       // Verify tools are registered
       expect(server).toBeDefined()
     })
@@ -192,18 +153,6 @@ describe('mCP Server', () => {
       const server = new MCPServerClass({ transport: 'stdio' })
 
       await server.start()
-
-      const _request = {
-        jsonrpc: '2.0' as const,
-        id: 1,
-        method: 'tools/call',
-        params: {
-          name: 'ccjk_chat',
-          arguments: {
-            message: 'Hello',
-          },
-        },
-      }
 
       // Verify tool execution is handled
       expect(server).toBeDefined()
@@ -215,16 +164,6 @@ describe('mCP Server', () => {
 
       await server.start()
 
-      const _request = {
-        jsonrpc: '2.0' as const,
-        id: 1,
-        method: 'tools/call',
-        params: {
-          name: 'nonexistent_tool',
-          arguments: {},
-        },
-      }
-
       // Verify error handling
       expect(mockConsole.error).toBeDefined()
     })
@@ -234,18 +173,6 @@ describe('mCP Server', () => {
       const server = new MCPServerClass({ transport: 'stdio' })
 
       await server.start()
-
-      const _request = {
-        jsonrpc: '2.0' as const,
-        id: 1,
-        method: 'tools/call',
-        params: {
-          name: 'ccjk_chat',
-          arguments: {
-            // Missing required arguments
-          },
-        },
-      }
 
       // Verify error handling
       expect(server).toBeDefined()
@@ -316,8 +243,6 @@ describe('mCP Server', () => {
 
       await server.start()
 
-      const _malformedRequest = 'not valid json'
-
       // Verify error handling
       expect(server).toBeDefined()
     })
@@ -327,12 +252,6 @@ describe('mCP Server', () => {
       const server = new MCPServerClass({ transport: 'stdio' })
 
       await server.start()
-
-      const _request = {
-        jsonrpc: '2.0' as const,
-        id: 1,
-        // Missing method
-      }
 
       // Verify error handling
       expect(server).toBeDefined()
@@ -381,20 +300,6 @@ describe('mCP Server', () => {
 
       await server.start()
 
-      const _request = {
-        jsonrpc: '2.0' as const,
-        id: 1,
-        method: 'initialize',
-        params: {
-          protocolVersion: '2024-11-05',
-          capabilities: {},
-          clientInfo: {
-            name: 'test-client',
-            version: '1.0.0',
-          },
-        },
-      }
-
       // Verify initialize is handled
       expect(server).toBeDefined()
     })
@@ -405,11 +310,6 @@ describe('mCP Server', () => {
 
       await server.start()
 
-      const _notification = {
-        jsonrpc: '2.0' as const,
-        method: 'notifications/initialized',
-      }
-
       // Verify notifications are handled
       expect(server).toBeDefined()
     })
@@ -419,12 +319,6 @@ describe('mCP Server', () => {
       const server = new MCPServerClass({ transport: 'stdio' })
 
       await server.start()
-
-      const _request = {
-        jsonrpc: '2.0' as const,
-        id: 1,
-        method: 'unsupported_method',
-      }
 
       // Verify error response format
       expect(server).toBeDefined()

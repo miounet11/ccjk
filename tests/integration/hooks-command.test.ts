@@ -48,7 +48,6 @@ vi.mock('../../src/i18n', () => ({
 
 describe('hooks Command Integration', () => {
   const testConfigDir = join(process.cwd(), 'test-hooks-integration')
-  const _testConfigPath = join(testConfigDir, 'hooks-config.json')
 
   beforeEach(() => {
     // Create test config directory

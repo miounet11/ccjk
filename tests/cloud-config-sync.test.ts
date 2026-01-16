@@ -239,7 +239,7 @@ describe('cloudConfigSync', () => {
 
     // Mock a slow response
     vi.mocked(fetch).mockImplementationOnce(
-      () => new Promise(resolve => setTimeout(resolve, 500)),
+      () => new Promise<Response>(resolve => setTimeout(() => resolve({} as Response), 500)),
     )
 
     await expect(slowSync.forceSync()).rejects.toThrow()

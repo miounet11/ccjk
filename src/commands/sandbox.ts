@@ -100,9 +100,12 @@ async function enableSandbox(options: SandboxOptions): Promise<void> {
         name: 'maxRequestsPerMinute',
         message: i18n.t('sandbox:maxRequestsPrompt', { lng: lang }),
         default: 60,
-        validate: (value: number) => value > 0 || i18n.t('sandbox:invalidNumber', { lng: lang }),
+        validate: (value: unknown) => {
+          const num = Number(value)
+          return num > 0 || i18n.t('sandbox:invalidNumber', { lng: lang })
+        },
       },
-    ])
+    ] as const)
 
     Object.assign(config, answers)
   }
@@ -381,6 +384,6 @@ export async function sandbox(options: SandboxOptions = {}): Promise<void> {
     if (handleExitPromptError(error)) {
       return
     }
-    handleGeneralError(error, 'sandbox command')
+    handleGeneralError(error)
   }
 }

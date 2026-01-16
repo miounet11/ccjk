@@ -73,7 +73,7 @@ export async function stats(options: StatsOptions = {}): Promise<void> {
 /**
  * Calculate statistics from records
  */
-function calculateStats(records: any[]): { totalRequests: number, successfulRequests: number, successRate: number, totalInputTokens: number, totalOutputTokens: number, avgLatency: number, providerBreakdown: Record<string, number> } {
+function calculateStats(records: any[]): { totalRequests: number, successfulRequests: number, failedRequests: number, successRate: number, totalInputTokens: number, totalOutputTokens: number, totalTokens: number, totalCost: number, averageLatency: number, providerCounts: Record<string, number>, modelCounts: Record<string, number> } {
   const totalRequests = records.length
   const successfulRequests = records.filter(r => r.success).length
   const successRate = totalRequests > 0 ? (successfulRequests / totalRequests) * 100 : 0

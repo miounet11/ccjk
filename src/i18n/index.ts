@@ -33,6 +33,7 @@ const NAMESPACES = [
   'notification', // Task completion notifications
   'permissions', // Permission system for API providers, models, and tools
   'plugins', // Cloud plugins management
+  'registry', // Version checking, China detection, and multiple installations
   'sandbox', // Sandbox mode for secure request/response handling
   'shencha',
   'skills', // Skills management system

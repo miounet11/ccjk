@@ -69,6 +69,21 @@ export type {
   StaticKnowledge,
 } from './layered-memory'
 
+// MiroThinker Context Compressor (去肉留骨策略)
+export {
+  compressConversation,
+  createMiroThinkerCompressor,
+  generateCompressionReport,
+  MiroThinkerCompressor,
+} from './miro-thinker'
+
+export type {
+  CompressedConversation,
+  ConversationMessage,
+  MessageRole,
+  MiroThinkerConfig,
+} from './miro-thinker'
+
 // Multi-Head Compressor (mHC-Inspired)
 export {
   createMultiHeadCompressor,

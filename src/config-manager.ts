@@ -159,8 +159,9 @@ interface ManagedConfig {
  * ```
  */
 export class ConfigManager extends EventEmitter {
-  private options: Required<Omit<ConfigManagerOptions, 'cloudApiKey' | 'configPaths'>> & {
+  private options: Required<Omit<ConfigManagerOptions, 'cloudApiKey' | 'cloudApiEndpoint' | 'configPaths'>> & {
     cloudApiKey?: string
+    cloudApiEndpoint?: string
     configPaths?: string[]
   }
 
@@ -510,7 +511,7 @@ export class ConfigManager extends EventEmitter {
     })
 
     // Listen for errors
-    this.fileWatcher.on('error', (_error: Error): void => {
+    this.fileWatcher.on('error', (error: Error): void => {
       this.emit('error', error)
     })
 

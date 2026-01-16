@@ -19,6 +19,17 @@ import { EventEmitter } from 'node:events'
 import { CCJK_CLOUD_API_URL } from './constants'
 
 /**
+ * Cloud API response structure
+ */
+interface CloudApiResponse<T = unknown> {
+  success: boolean
+  data?: T
+  error?: {
+    message?: string
+  }
+}
+
+/**
  * Cloud sync event types
  */
 export type CloudSyncEventType = 'sync-started' | 'sync-completed' | 'sync-failed' | 'config-updated'
@@ -435,7 +446,7 @@ export class CloudConfigSync extends EventEmitter {
       throw new Error(`Cloud API returned ${response.status}: ${response.statusText}`)
     }
 
-    const result = await response.json()
+    const result = await response.json() as CloudApiResponse
 
     if (!result.success) {
       throw new Error(result.error?.message || 'Cloud API returned error')
@@ -521,7 +532,7 @@ export async function fetchCloudProviders(
       return []
     }
 
-    const result = await response.json()
+    const result = await response.json() as CloudApiResponse<ApiProviderPreset[]>
     if (result.success && Array.isArray(result.data)) {
       return result.data.map((p: ApiProviderPreset) => ({ ...p, isCloud: true }))
     }

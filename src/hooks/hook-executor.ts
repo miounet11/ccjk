@@ -121,6 +121,19 @@ export class HookExecutor {
   }
 
   /**
+   * Execute a hook asynchronously without waiting for completion
+   * Used for hooks that should run in the background
+   * @param hook - Hook configuration to execute
+   * @param context - Context data to pass to the hook
+   */
+  executeAsync(hook: Hook, context: HookContext): void {
+    // Execute in background without awaiting
+    this.execute(hook, context).catch((error) => {
+      console.error('[HookExecutor] Async hook execution failed:', error)
+    })
+  }
+
+  /**
    * Validate and normalize timeout value
    * @param timeout - Timeout value to validate
    * @returns Validated timeout value

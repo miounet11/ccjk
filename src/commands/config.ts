@@ -393,6 +393,13 @@ export async function configCommand(action: string, args: string[], options: Con
 // Helper functions
 
 /**
+ * Get Claude configuration file path
+ */
+function getClaudeConfigPath(): string {
+  return SETTINGS_FILE
+}
+
+/**
  * Read Claude configuration
  */
 function readClaudeConfig(): any | null {

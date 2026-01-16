@@ -90,13 +90,13 @@ export async function exampleUsage(): Promise<void> {
   // Update configuration programmatically
   await manager.updateConfig({
     settings: {
-      model: 'claude-opus-4-20250514',
+      model: 'opus',
       maxTokens: 8192,
     },
   }, 'cli')
 
   // Subscribe to changes
-  const _unsubscribe = manager.subscribe((event) => {
+  manager.subscribe((event) => {
     console.log('Configuration changed!')
     console.log('Source:', event.source)
     console.log('Changed keys:', event.changedKeys)
@@ -108,7 +108,8 @@ export async function exampleUsage(): Promise<void> {
     }
   })
 
-  // Later, unsubscribe
+  // Note: subscribe() returns an unsubscribe function that can be called later
+  // const unsubscribe = manager.subscribe(...)
   // unsubscribe()
 
   // Force reload from disk and cloud

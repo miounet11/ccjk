@@ -77,13 +77,13 @@ describe('configManager', () => {
     })
 
     await manager.updateConfig({
-      settings: { model: 'claude-opus-4-20250514' },
+      settings: { model: 'claude-sonnet-4-20250514' as any },
     }, 'cli')
 
     const event = await updatePromise
 
     expect(event.source).toBe('cli')
-    expect(event.current.settings.model).toBe('claude-opus-4-20250514')
+    expect(event.current.settings.model).toBe('claude-sonnet-4-20250514')
   })
 
   it('should merge partial updates', async () => {
@@ -235,7 +235,7 @@ describe('configManager', () => {
     expect(config1).not.toBe(config2)
 
     // Modifying one should not affect the other
-    config1.settings.model = 'modified'
+    ;(config1.settings as any).model = 'modified'
     expect(config2.settings.model).not.toBe('modified')
   })
 
@@ -344,7 +344,7 @@ describe('configManager - Global Instance', () => {
     await manager3.dispose()
   })
 
-  it('should create independent instances', () => {
+  it('should create independent instances', async () => {
     const { createConfigManager } = await import('../src/config-manager')
 
     const manager1 = createConfigManager()
