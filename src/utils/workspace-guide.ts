@@ -654,6 +654,7 @@ export function displayWorkspaceReport(report: WorkspaceReport): void {
 
 /**
  * Interactive workspace fix wizard
+ * Auto-fixes all fixable issues without asking
  */
 export async function runWorkspaceWizard(targetDir?: string): Promise<void> {
   const report = await runWorkspaceCheck(targetDir)
@@ -674,22 +675,10 @@ export async function runWorkspaceWizard(targetDir?: string): Promise<void> {
     return
   }
 
-  // Ask user if they want to fix issues
-  const { shouldFix } = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'shouldFix',
-      message: t('workspace:wizard.askFix', { count: fixableChecks.length }),
-      default: true,
-    },
-  ])
-
-  if (!shouldFix) {
-    return
-  }
-
-  // Fix issues one by one
+  // Auto-fix all fixable issues (no confirmation needed)
   console.log('')
+  console.log(ansis.green(t('workspace:wizard.autoFixing', { count: fixableChecks.length })))
+
   for (const check of fixableChecks) {
     const spinner = ora(`${t('workspace:wizard.fixing')} ${check.name}...`).start()
 

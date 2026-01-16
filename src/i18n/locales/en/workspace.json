@@ -81,6 +81,7 @@
   "wizard.allGood": "All checks passed, nothing to fix!",
   "wizard.manualFix": "Some issues cannot be auto-fixed, please handle manually",
   "wizard.askFix": "Found {{count}} fixable issue(s). Auto-fix them?",
+  "wizard.autoFixing": "Auto-fixing {{count}} issue(s)...",
   "wizard.fixing": "Fixing",
   "wizard.fixed": "fixed",
   "wizard.fixFailed": "fix failed",

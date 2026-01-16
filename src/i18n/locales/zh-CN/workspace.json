@@ -81,6 +81,7 @@
   "wizard.allGood": "所有检查通过，无需修复！",
   "wizard.manualFix": "存在无法自动修复的问题，请手动处理",
   "wizard.askFix": "发现 {{count}} 个可修复的问题，是否自动修复？",
+  "wizard.autoFixing": "正在自动修复 {{count}} 个问题...",
   "wizard.fixing": "正在修复",
   "wizard.fixed": "已修复",
   "wizard.fixFailed": "修复失败",
