@@ -130,6 +130,41 @@ Every developer using Claude Code faces the same problems:
 
 ## ✨ Killer Features
 
+### 🆕 What's New in v2.6.0
+
+<table>
+<tr>
+<td width="33%" align="center">
+<h4>🎯 Zero-Config</h4>
+<sub>Auto-detects your project and configures everything. Just run <code>npx ccjk</code> and start coding.</sub>
+</td>
+<td width="33%" align="center">
+<h4>🌐 Smart Registry</h4>
+<sub>Auto-detects China mirrors, caches versions, ensures fastest downloads worldwide.</sub>
+</td>
+<td width="33%" align="center">
+<h4>🔍 Capability Discovery</h4>
+<sub>Scans your project and suggests optimal AI workflows based on your tech stack.</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" align="center">
+<h4>🛡️ Config Guardian</h4>
+<sub>Auto-validates and repairs configurations. Never break your setup again.</sub>
+</td>
+<td width="33%" align="center">
+<h4>🚀 Startup Orchestrator</h4>
+<sub>Modular initialization with hooks. Customize your startup sequence.</sub>
+</td>
+<td width="33%" align="center">
+<h4>🔀 Tool Router</h4>
+<sub>Intelligent conflict resolution and priority management for multiple AI tools.</sub>
+</td>
+</tr>
+</table>
+
+<br/>
+
 ### 🧠 Intelligent Skill System
 
 **Your AI assistant that actually remembers and learns.**
@@ -401,6 +436,17 @@ ccjk interview          # Interview-driven development
 ccjk mcp <action>       # MCP server management
 ccjk browser <action>   # Agent Browser automation
 ccjk postmortem <action># Learn from historical bugs
+ccjk skills <action>    # Manage AI skills
+ccjk hooks <action>     # Configure lifecycle hooks
+```
+
+### Configuration Commands
+
+```bash
+ccjk config <action>    # Configuration management
+ccjk providers <action> # API provider management
+ccjk permissions        # Permission management
+ccjk sandbox <action>   # Sandbox environment control
 ```
 
 ### System Commands
@@ -410,6 +456,8 @@ ccjk system setup       # First-time setup
 ccjk system upgrade     # Upgrade all components
 ccjk system versions    # Check versions
 ccjk check-updates      # Check for updates
+ccjk stats              # Usage statistics
+ccjk session <action>   # Session management
 ```
 
 <br/>

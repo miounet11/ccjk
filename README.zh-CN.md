@@ -130,6 +130,41 @@ npx ccjk
 
 ## ✨ 核心功能
 
+### 🆕 v2.6.0 新功能
+
+<table>
+<tr>
+<td width="33%" align="center">
+<h4>🎯 零配置启动</h4>
+<sub>自动检测项目类型并配置一切。只需运行 <code>npx ccjk</code> 即可开始编码。</sub>
+</td>
+<td width="33%" align="center">
+<h4>🌐 智能镜像</h4>
+<sub>自动检测中国镜像，缓存版本信息，确保全球最快下载速度。</sub>
+</td>
+<td width="33%" align="center">
+<h4>🔍 能力发现</h4>
+<sub>扫描项目并根据技术栈推荐最优 AI 工作流。</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" align="center">
+<h4>🛡️ 配置守护</h4>
+<sub>自动验证和修复配置。再也不会搞坏你的设置。</sub>
+</td>
+<td width="33%" align="center">
+<h4>🚀 启动编排器</h4>
+<sub>模块化初始化，支持钩子。自定义你的启动流程。</sub>
+</td>
+<td width="33%" align="center">
+<h4>🔀 工具路由</h4>
+<sub>智能冲突解决和优先级管理，多 AI 工具协同无忧。</sub>
+</td>
+</tr>
+</table>
+
+<br/>
+
 ### 🧠 智能技能系统
 
 **真正能记住和学习的 AI 助手。**
@@ -401,6 +436,17 @@ ccjk interview          # 访谈驱动开发
 ccjk mcp <action>       # MCP 服务器管理
 ccjk browser <action>   # Agent Browser 自动化
 ccjk postmortem <action># 从历史 Bug 中学习
+ccjk skills <action>    # 管理 AI 技能
+ccjk hooks <action>     # 配置生命周期钩子
+```
+
+### 配置命令
+
+```bash
+ccjk config <action>    # 配置管理
+ccjk providers <action> # API 提供商管理
+ccjk permissions        # 权限管理
+ccjk sandbox <action>   # 沙箱环境控制
 ```
 
 ### 系统命令
@@ -410,6 +456,8 @@ ccjk system setup       # 首次配置
 ccjk system upgrade     # 升级所有组件
 ccjk system versions    # 检查版本
 ccjk check-updates      # 检查更新
+ccjk stats              # 使用统计
+ccjk session <action>   # 会话管理
 ```
 
 <br/>
