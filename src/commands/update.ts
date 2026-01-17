@@ -1,11 +1,18 @@
 import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
+import { existsSync } from 'node:fs'
 import ansis from 'ansis'
 import { version } from '../../package.json'
-import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias } from '../constants'
+import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
 import { displayBanner } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { runCodexUpdate } from '../utils/code-tools/codex'
+import {
+  displayMigrationResult,
+  migrateSettingsForTokenRetrieval,
+  needsMigration,
+  promptMigration,
+} from '../utils/config-migration'
 import { updatePromptOnly } from '../utils/config-operations'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { resolveAiOutputLanguage } from '../utils/prompts'
@@ -79,6 +86,24 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
 
     // Select AI output language
     const aiOutputLang = await resolveAiOutputLanguage(i18n.language as SupportedLang, options.aiOutputLang, zcfConfig, options.skipPrompt)
+
+    // Check for problematic config and offer migration
+    if (existsSync(SETTINGS_FILE) && needsMigration()) {
+      if (options.skipPrompt) {
+        // Auto-migrate in non-interactive mode
+        console.log(ansis.yellow('\n⚠️  Problematic configuration detected. Auto-fixing...\n'))
+        const result = migrateSettingsForTokenRetrieval()
+        displayMigrationResult(result)
+      }
+      else {
+        // Interactive migration prompt
+        const shouldMigrate = await promptMigration()
+        if (shouldMigrate) {
+          const result = migrateSettingsForTokenRetrieval()
+          displayMigrationResult(result)
+        }
+      }
+    }
 
     console.log(ansis.green(`\n${i18n.t('configuration:updatingPrompts')}\n`))
 

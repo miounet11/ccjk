@@ -38,6 +38,12 @@ import {
   promptApiConfigurationAction,
   switchToOfficialLogin,
 } from '../utils/config'
+import {
+  displayMigrationResult,
+  migrateSettingsForTokenRetrieval,
+  needsMigration,
+  promptMigration,
+} from '../utils/config-migration'
 import { configureApiCompletely, modifyApiConfigPartially } from '../utils/config-operations'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { getInstallationStatus, installClaudeCode } from '../utils/installer'
@@ -615,6 +621,25 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     // Step 5: Handle existing config
     ensureClaudeDir()
+
+    // Step 5.1: Check for problematic config and offer migration
+    if (existsSync(SETTINGS_FILE) && needsMigration()) {
+      if (options.skipPrompt) {
+        // Auto-migrate in non-interactive mode
+        console.log(ansis.yellow('\n⚠️  Problematic configuration detected. Auto-fixing...\n'))
+        const result = migrateSettingsForTokenRetrieval()
+        displayMigrationResult(result)
+      }
+      else {
+        // Interactive migration prompt
+        const shouldMigrate = await promptMigration()
+        if (shouldMigrate) {
+          const result = migrateSettingsForTokenRetrieval()
+          displayMigrationResult(result)
+        }
+      }
+    }
+
     let action = 'new' // default action for new installation
 
     if (existsSync(SETTINGS_FILE) && !options.force) {
