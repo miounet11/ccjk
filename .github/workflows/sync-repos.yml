@@ -1,0 +1,41 @@
+# 双仓库同步工作流
+# 自动将私有仓库的更新同步到公开仓库（排除敏感目录）
+
+name: Sync to Public Repo
+
+on:
+  push:
+    branches:
+      - main
+      - v4-dev
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout private repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove sensitive directories
+        run: |
+          # 删除私有目录
+          rm -rf src/brain
+          rm -rf src/cloud-plugins
+          rm -rf src/cloud-sync
+          rm -rf src/mcp-marketplace
+          rm -rf .claude/plan
+          rm -rf .bmad-core
+
+      - name: Push to public repo
+        env:
+          PUBLIC_REPO_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
+        run: |
+          git config user.name "miounet11"
+          git config user.email "9248293@gmail.com"
+          git remote add public https://${PUBLIC_REPO_TOKEN}@github.com/miounet11/ccjk.git
+          git add -A
+          git commit -m "Sync from private repo (public version)" || echo "No changes to commit"
+          git push public HEAD:v4-dev --force

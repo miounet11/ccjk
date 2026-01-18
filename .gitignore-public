@@ -1,0 +1,63 @@
+# CCJK 公开仓库 .gitignore
+# 用于公开仓库，排除私有和敏感内容
+
+# 私有核心目录
+src/brain/
+src/cloud-plugins/
+src/cloud-sync/
+src/mcp-marketplace/
+.claude/plan/
+.bmad-core/
+
+# 敏感配置
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+secrets/
+
+# 开发计划和内部文档
+docs/internal/
+docs/roadmap/
+INTERNAL.md
+ROADMAP.md
+
+# 私有测试
+tests/private/
+tests/integration/private/
+
+# 临时文件
+*.tmp
+*.bak
+.DS_Store
+node_modules/
+dist/
+.turbo/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# 构建产物
+build/
+out/
+.next/
+.nuxt/
+.output/
