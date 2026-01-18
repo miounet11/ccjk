@@ -28,6 +28,8 @@ import type {
   PluginPackage,
   PluginSource,
   ScriptDefinition,
+  ScriptResult,
+  SkillDocument,
   UpdateInfo,
 } from '../types'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -265,7 +267,7 @@ export class PluginManager {
   /**
    * Install from cloud registry
    */
-  private async installFromCloud(url: string, options: InstallOptions = {}): Promise<InstallResult> {
+  private async installFromCloud(_url: string, _options: InstallOptions = {}): Promise<InstallResult> {
     // TODO: Implement cloud installation
     // This will integrate with existing cloud-plugins system
     return { success: false, pluginId: '', error: 'Cloud installation not yet implemented in v2' }
@@ -274,7 +276,7 @@ export class PluginManager {
   /**
    * Install from NPM
    */
-  private async installFromNpm(packageName: string, options: InstallOptions = {}): Promise<InstallResult> {
+  private async installFromNpm(packageName: string, _options: InstallOptions = {}): Promise<InstallResult> {
     const targetDir = join(PLUGINS_DIR, packageName.replace(/\//g, '-'))
 
     try {
@@ -371,7 +373,7 @@ export class PluginManager {
   /**
    * Generate manifest from SKILL.md
    */
-  private generateManifestFromSkill(skill: ReturnType<typeof getSkillParser>['parse'], dirPath: string): PluginManifest {
+  private generateManifestFromSkill(skill: SkillDocument, dirPath: string): PluginManifest {
     const dirName = dirPath.split('/').pop() || 'unknown'
 
     return {
@@ -428,7 +430,7 @@ export class PluginManager {
   /**
    * Load intents from directory
    */
-  private loadIntents(dirPath: string, pluginId: string): PluginPackage['intents'] {
+  private loadIntents(dirPath: string, _pluginId: string): PluginPackage['intents'] {
     const intentsPath = join(dirPath, 'intents', 'intents.yaml')
 
     if (!existsSync(intentsPath))
@@ -653,7 +655,7 @@ export class PluginManager {
     pluginId: string,
     scriptName: string,
     options: { args?: string[], cwd?: string } = {},
-  ): Promise<ReturnType<typeof getScriptRunner>['execute']> {
+  ): Promise<ScriptResult> {
     const plugin = this.plugins.get(pluginId)
     if (!plugin) {
       throw new Error(`Plugin not found: ${pluginId}`)

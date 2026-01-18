@@ -22,5 +22,10 @@
   "invalidCodeType": "无效的代码类型：\"{value}\"。可用的类型：{validOptions}。使用默认值：{defaultValue}。",
   "invalidProvider": "无效的提供商：{provider}。可用的提供商：{validProviders}",
   "generalError": "错误",
-  "stackTrace": "堆栈跟踪"
+  "stackTrace": "堆栈跟踪",
+  "taskFailed": "任务失败：{{task}}",
+  "taskFailedContinuing": "任务失败但继续执行：{{task}}",
+  "groupFailed": "任务组失败：{{group}}",
+  "retryingTask": "正在重试（第 {{attempt}}/{{maxRetries}} 次），{{delay}}毫秒后...",
+  "taskTimeout": "任务超时，已超过 {{timeout}}毫秒"
 }

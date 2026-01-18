@@ -46,7 +46,6 @@ const CONTEXT_WEIGHT = 0.3
 export class IntentEngine {
   private rules: Map<string, IntentRule> = new Map()
   private contextCache: Map<string, { value: boolean, timestamp: number }> = new Map()
-  private cacheTTL = 5000 // 5 seconds
 
   constructor() {
     // Initialize with empty rules, will be populated by plugin manager
@@ -410,23 +409,6 @@ export class IntentEngine {
    */
   clearCache(): void {
     this.contextCache.clear()
-  }
-
-  /**
-   * Get cached value or compute
-   */
-  private async getCachedOrCompute<T>(
-    key: string,
-    compute: () => Promise<T>,
-  ): Promise<T> {
-    const cached = this.contextCache.get(key)
-    if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      return cached.value as T
-    }
-
-    const value = await compute()
-    this.contextCache.set(key, { value: value as boolean, timestamp: Date.now() })
-    return value
   }
 }
 

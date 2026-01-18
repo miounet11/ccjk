@@ -83,6 +83,8 @@
   "pluginsMenu.ccusageDesc": "API usage analytics tool",
   "pluginsMenu.cometix": "Cometix",
   "pluginsMenu.cometixDesc": "High-performance statusline tool",
+  "pluginsMenu.ccm": "CCM",
+  "pluginsMenu.ccmDesc": "Real-time session monitoring (macOS only)",
   "pluginsMenu.superpowers": "Superpowers",
   "pluginsMenu.superpowersDesc": "Skills extension system",
 

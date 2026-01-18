@@ -59,5 +59,17 @@
   "configSuccess": "API configured successfully! Provider: {provider}",
   "configFailed": "API configuration failed: {error}",
   "setupUsage": "Usage: ccjk api setup <provider> <api-key>",
-  "setupExample": "Example: ccjk api setup deepseek sk-xxx"
+  "setupExample": "Example: ccjk api setup deepseek sk-xxx",
+  "configureApiNote": "Configure your API authentication to use Claude Code. You can skip this and configure manually later.",
+  "apiConfiguration": "API Configuration",
+  "selectAuthMethod": "Select authentication method",
+  "ccrProxyDesc": "Use Claude Code Router as a proxy",
+  "skipApiDesc": "Skip and configure manually later",
+  "enterCcrHost": "Enter CCR proxy host",
+  "enterCcrPort": "Enter CCR proxy port",
+  "ccrHostRequired": "CCR host is required",
+  "ccrPortInvalid": "Port must be between 1 and 65535",
+  "selectProvider": "Select API provider",
+  "authTokenRequired": "Auth token is required",
+  "apiKeyRequired": "API key is required"
 }

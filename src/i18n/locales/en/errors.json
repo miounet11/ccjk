@@ -22,5 +22,10 @@
   "invalidCodeType": "Invalid code type: \"{value}\". Valid options are: {validOptions}. Using default: {defaultValue}.",
   "invalidProvider": "Invalid provider: {provider}. Available providers: {validProviders}",
   "generalError": "Error",
-  "stackTrace": "Stack"
+  "stackTrace": "Stack",
+  "taskFailed": "Task failed: {{task}}",
+  "taskFailedContinuing": "Task failed but continuing: {{task}}",
+  "groupFailed": "Task group failed: {{group}}",
+  "retryingTask": "Retrying (attempt {{attempt}}/{{maxRetries}}) in {{delay}}ms...",
+  "taskTimeout": "Task timed out after {{timeout}}ms"
 }

@@ -1,0 +1,48 @@
+{
+  "platformWarning": "⚠️  Claude Code Monitor is macOS only. Skipping installation.",
+  "macOSOnly": "❌ Claude Code Monitor requires macOS",
+  "supported": "✅ Claude Code Monitor is supported on this platform",
+  "alreadyInstalled": "✅ Claude Code Monitor is already installed",
+  "alreadyConfigured": "✅ Claude Code Monitor hooks are already configured",
+  "installing": "📦 Installing Claude Code Monitor...",
+  "installSuccess": "✅ Claude Code Monitor installed successfully",
+  "installError": "❌ Failed to install Claude Code Monitor:",
+  "installPrompt": "Install Claude Code Monitor for real-time session monitoring?",
+  "settingUpHooks": "🔧 Setting up Claude Code Monitor hooks...",
+  "setupSuccess": "✅ Claude Code Monitor hooks configured successfully",
+  "setupError": "❌ Failed to setup Claude Code Monitor hooks:",
+  "launching": "🚀 Launching Claude Code Monitor...",
+  "launchError": "❌ Failed to launch Claude Code Monitor:",
+  "clearingSessions": "🧹 Clearing all sessions...",
+  "clearSuccess": "✅ All sessions cleared",
+  "clearError": "❌ Failed to clear sessions:",
+  "listError": "❌ Failed to list sessions:",
+  "statusError": "❌ Failed to get status:",
+  "statusHeader": "📊 Active Claude Code Sessions",
+  "noActiveSessions": "ℹ️  No active sessions",
+  "totalSessions": "Total: {{count}} session(s)",
+  "activeSessions": "📊 Active Sessions: {{count}}",
+  "uninstalling": "🗑️  Uninstalling Claude Code Monitor...",
+  "uninstallSuccess": "✅ Claude Code Monitor uninstalled successfully",
+  "uninstallError": "❌ Failed to uninstall Claude Code Monitor:",
+  "updateAvailable": "🔄 CCM update available: {{currentVersion}} → {{latestVersion}}",
+  "selectAction": "Select CCM action:",
+  "actions": {
+    "launch": "🚀 Launch Monitor",
+    "setup": "🔧 Setup Hooks",
+    "clear": "🧹 Clear Sessions",
+    "status": "📊 Show Status",
+    "uninstall": "🗑️  Uninstall CCM"
+  },
+  "menu": {
+    "title": "Claude Code Monitor",
+    "description": "Real-time session monitoring (macOS only)",
+    "notSupported": "Not supported on this platform"
+  },
+  "terminal": {
+    "iterm2": "iTerm2 (Full support)",
+    "terminal": "Terminal.app (Full support)",
+    "ghostty": "Ghostty (Limited support)",
+    "other": "Other terminals (Monitoring only, no focus)"
+  }
+}

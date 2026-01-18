@@ -83,6 +83,8 @@
   "pluginsMenu.ccusageDesc": "API 用量分析工具",
   "pluginsMenu.cometix": "Cometix",
   "pluginsMenu.cometixDesc": "高性能状态栏工具",
+  "pluginsMenu.ccm": "CCM",
+  "pluginsMenu.ccmDesc": "实时会话监控（仅 macOS）",
   "pluginsMenu.superpowers": "Superpowers",
   "pluginsMenu.superpowersDesc": "技能扩展系统",
 

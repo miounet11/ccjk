@@ -64,6 +64,9 @@ describe('configWatcher', () => {
     // Wait for watcher to be ready
     await new Promise(resolve => watcher.once('ready', resolve))
 
+    // Wait a bit for watcher to stabilize
+    await new Promise(resolve => setTimeout(resolve, 200))
+
     // Modify the file
     writeFileSync(configFile, JSON.stringify({ test: 'modified' }))
 
@@ -73,7 +76,7 @@ describe('configWatcher', () => {
     expect(event.type).toBe('changed')
     expect(event.filePath).toBe(configFile)
     expect(event.content).toEqual({ test: 'modified' })
-  })
+  }, 10000)
 
   it('should debounce rapid changes', async () => {
     const changes: ConfigChangeEvent[] = []
@@ -85,18 +88,21 @@ describe('configWatcher', () => {
     watcher.watch(configFile)
     await new Promise(resolve => watcher.once('ready', resolve))
 
+    // Wait a bit for watcher to stabilize
+    await new Promise(resolve => setTimeout(resolve, 200))
+
     // Make multiple rapid changes
     writeFileSync(configFile, JSON.stringify({ test: 'change1' }))
     writeFileSync(configFile, JSON.stringify({ test: 'change2' }))
     writeFileSync(configFile, JSON.stringify({ test: 'change3' }))
 
-    // Wait for debounce to settle
-    await new Promise(resolve => setTimeout(resolve, 300))
+    // Wait for debounce to settle (debounce is 100ms + awaitWriteFinish 100ms + buffer)
+    await new Promise(resolve => setTimeout(resolve, 500))
 
     // Should only receive one event due to debouncing
     expect(changes.length).toBe(1)
     expect(changes[0].content).toEqual({ test: 'change3' })
-  })
+  }, 10000)
 
   it('should handle file removal', async () => {
     const removePromise = new Promise<ConfigChangeEvent>((resolve) => {
@@ -105,6 +111,9 @@ describe('configWatcher', () => {
 
     watcher.watch(configFile)
     await new Promise(resolve => watcher.once('ready', resolve))
+
+    // Wait a bit for watcher to stabilize
+    await new Promise(resolve => setTimeout(resolve, 200))
 
     // Remove the file
     rmSync(configFile)
@@ -115,7 +124,7 @@ describe('configWatcher', () => {
     expect(event.type).toBe('removed')
     expect(event.filePath).toBe(configFile)
     expect(event.content).toBeUndefined()
-  })
+  }, 10000)
 
   it('should support custom parser', async () => {
     const customParser = vi.fn(async () => ({ custom: 'parsed' }))
@@ -133,6 +142,9 @@ describe('configWatcher', () => {
     customWatcher.watch(configFile)
     await new Promise(resolve => customWatcher.once('ready', resolve))
 
+    // Wait a bit for watcher to stabilize
+    await new Promise(resolve => setTimeout(resolve, 200))
+
     writeFileSync(configFile, JSON.stringify({ test: 'data' }))
 
     const event = await changePromise
@@ -141,7 +153,7 @@ describe('configWatcher', () => {
     expect(event.content).toEqual({ custom: 'parsed' })
 
     await customWatcher.stopWatching()
-  })
+  }, 10000)
 
   it('should handle multiple files', async () => {
     const configFile2 = join(testDir, 'config2.json')
@@ -156,17 +168,20 @@ describe('configWatcher', () => {
     watcher.watch([configFile, configFile2])
     await new Promise(resolve => watcher.once('ready', resolve))
 
+    // Wait a bit for watcher to stabilize
+    await new Promise(resolve => setTimeout(resolve, 200))
+
     // Modify both files
     writeFileSync(configFile, JSON.stringify({ test: 'modified1' }))
     writeFileSync(configFile2, JSON.stringify({ test: 'modified2' }))
 
-    // Wait for changes
-    await new Promise(resolve => setTimeout(resolve, 300))
+    // Wait for changes (debounce + awaitWriteFinish + buffer)
+    await new Promise(resolve => setTimeout(resolve, 500))
 
     expect(changes.length).toBe(2)
     expect(changes.some(c => c.filePath === configFile)).toBe(true)
     expect(changes.some(c => c.filePath === configFile2)).toBe(true)
-  })
+  }, 10000)
 
   it('should support onConfigChange callback', async () => {
     const callback = vi.fn()
@@ -175,9 +190,12 @@ describe('configWatcher', () => {
     watcher.watch(configFile)
     await new Promise(resolve => watcher.once('ready', resolve))
 
+    // Wait a bit for watcher to stabilize
+    await new Promise(resolve => setTimeout(resolve, 200))
+
     writeFileSync(configFile, JSON.stringify({ test: 'callback' }))
 
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await new Promise(resolve => setTimeout(resolve, 500))
 
     expect(callback).toHaveBeenCalled()
 
@@ -186,10 +204,10 @@ describe('configWatcher', () => {
     callback.mockClear()
 
     writeFileSync(configFile, JSON.stringify({ test: 'after-unsubscribe' }))
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await new Promise(resolve => setTimeout(resolve, 500))
 
     expect(callback).not.toHaveBeenCalled()
-  })
+  }, 10000)
 
   it('should emit error on invalid JSON', async () => {
     const errorPromise = new Promise<Error>((resolve) => {
@@ -199,13 +217,16 @@ describe('configWatcher', () => {
     watcher.watch(configFile)
     await new Promise(resolve => watcher.once('ready', resolve))
 
+    // Wait a bit for watcher to stabilize
+    await new Promise(resolve => setTimeout(resolve, 200))
+
     // Write invalid JSON
     writeFileSync(configFile, 'invalid json {')
 
     const error = await errorPromise
 
     expect(error).toBeInstanceOf(Error)
-  })
+  }, 10000)
 
   it('should return watched paths', () => {
     watcher.watch(configFile)

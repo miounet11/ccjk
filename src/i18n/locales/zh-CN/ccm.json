@@ -1,0 +1,48 @@
+{
+  "platformWarning": "⚠️  Claude Code Monitor 仅支持 macOS。跳过安装。",
+  "macOSOnly": "❌ Claude Code Monitor 需要 macOS 系统",
+  "supported": "✅ 当前平台支持 Claude Code Monitor",
+  "alreadyInstalled": "✅ Claude Code Monitor 已安装",
+  "alreadyConfigured": "✅ Claude Code Monitor 钩子已配置",
+  "installing": "📦 正在安装 Claude Code Monitor...",
+  "installSuccess": "✅ Claude Code Monitor 安装成功",
+  "installError": "❌ 安装 Claude Code Monitor 失败：",
+  "installPrompt": "安装 Claude Code Monitor 以实时监控会话？",
+  "settingUpHooks": "🔧 正在配置 Claude Code Monitor 钩子...",
+  "setupSuccess": "✅ Claude Code Monitor 钩子配置成功",
+  "setupError": "❌ 配置 Claude Code Monitor 钩子失败：",
+  "launching": "🚀 正在启动 Claude Code Monitor...",
+  "launchError": "❌ 启动 Claude Code Monitor 失败：",
+  "clearingSessions": "🧹 正在清除所有会话...",
+  "clearSuccess": "✅ 所有会话已清除",
+  "clearError": "❌ 清除会话失败：",
+  "listError": "❌ 列出会话失败：",
+  "statusError": "❌ 获取状态失败：",
+  "statusHeader": "📊 活跃的 Claude Code 会话",
+  "noActiveSessions": "ℹ️  没有活跃会话",
+  "totalSessions": "总计：{{count}} 个会话",
+  "activeSessions": "📊 活跃会话：{{count}}",
+  "uninstalling": "🗑️  正在卸载 Claude Code Monitor...",
+  "uninstallSuccess": "✅ Claude Code Monitor 卸载成功",
+  "uninstallError": "❌ 卸载 Claude Code Monitor 失败：",
+  "updateAvailable": "🔄 CCM 有可用更新：{{currentVersion}} → {{latestVersion}}",
+  "selectAction": "选择 CCM 操作：",
+  "actions": {
+    "launch": "🚀 启动监控器",
+    "setup": "🔧 配置钩子",
+    "clear": "🧹 清除会话",
+    "status": "📊 显示状态",
+    "uninstall": "🗑️  卸载 CCM"
+  },
+  "menu": {
+    "title": "Claude Code Monitor",
+    "description": "实时会话监控（仅 macOS）",
+    "notSupported": "当前平台不支持"
+  },
+  "terminal": {
+    "iterm2": "iTerm2（完全支持）",
+    "terminal": "Terminal.app（完全支持）",
+    "ghostty": "Ghostty（有限支持）",
+    "other": "其他终端（仅监控，无焦点切换）"
+  }
+}

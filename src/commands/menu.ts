@@ -120,24 +120,24 @@ async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
 }
 
 async function showSuperpowersMenu(): Promise<void> {
-  console.log(ansis.green(i18n.t('superpowers:menu.title')))
+  console.log(ansis.green(i18n.t('menu:superpowers.title')))
   console.log('  -------- Superpowers --------')
   console.log(
-    `  ${ansis.green('1.')} ${i18n.t('superpowers:menu.install')} ${ansis.gray(`- ${i18n.t('superpowers:menu.installDesc')}`)}`,
+    `  ${ansis.green('1.')} ${i18n.t('menu:superpowers.install')} ${ansis.gray(`- ${i18n.t('menu:superpowers.installDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.green('2.')} ${i18n.t('superpowers:menu.uninstall')} ${ansis.gray(`- ${i18n.t('superpowers:menu.uninstallDesc')}`)}`,
+    `  ${ansis.green('2.')} ${i18n.t('menu:superpowers.uninstall')} ${ansis.gray(`- ${i18n.t('menu:superpowers.uninstallDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.green('3.')} ${i18n.t('superpowers:menu.update')} ${ansis.gray(`- ${i18n.t('superpowers:menu.updateDesc')}`)}`,
+    `  ${ansis.green('3.')} ${i18n.t('menu:superpowers.update')} ${ansis.gray(`- ${i18n.t('menu:superpowers.updateDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.green('4.')} ${i18n.t('superpowers:menu.checkStatus')} ${ansis.gray(`- ${i18n.t('superpowers:menu.checkStatusDesc')}`)}`,
+    `  ${ansis.green('4.')} ${i18n.t('menu:superpowers.status')} ${ansis.gray(`- ${i18n.t('menu:superpowers.statusDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.green('5.')} ${i18n.t('superpowers:menu.viewSkills')} ${ansis.gray(`- ${i18n.t('superpowers:menu.viewSkillsDesc')}`)}`,
+    `  ${ansis.green('5.')} ${i18n.t('menu:superpowers.skills')} ${ansis.gray(`- ${i18n.t('menu:superpowers.skillsDesc')}`)}`,
   )
-  console.log(`  ${ansis.green('0.')} ${i18n.t('superpowers:menu.back')}`)
+  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`)
   console.log('')
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
@@ -150,28 +150,34 @@ async function showSuperpowersMenu(): Promise<void> {
     },
   })
 
-  if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
+  if (!choice || choice === '0') {
     return
   }
 
   switch (choice) {
     case '1': {
       // Install Superpowers
+      const status = await checkSuperpowersInstalled()
+      if (status.installed) {
+        console.log(ansis.yellow(i18n.t('superpowers:alreadyInstalled')))
+        break
+      }
+
+      // Ask installation method
       const { method } = await inquirer.prompt<{ method: string }>({
         type: 'list',
         name: 'method',
-        message: i18n.t('superpowers:install.selectMethod'),
-        choices: addNumbersToChoices([
-          { name: i18n.t('superpowers:install.methodNpm'), value: 'npm' },
-          { name: i18n.t('superpowers:install.methodGit'), value: 'git' },
-        ]),
+        message: i18n.t('superpowers:selectInstallMethod'),
+        choices: [
+          { name: i18n.t('superpowers:installMethod.npm'), value: 'npm' },
+          { name: i18n.t('superpowers:installMethod.git'), value: 'git' },
+        ],
       })
 
       if (method === 'npm') {
         await installSuperpowers({ lang: i18n.language as SupportedLang })
       }
-      else if (method === 'git') {
+      else {
         await installSuperpowersViaGit()
       }
       break
@@ -184,19 +190,7 @@ async function showSuperpowersMenu(): Promise<void> {
         break
       }
 
-      const { confirm } = await inquirer.prompt<{ confirm: boolean }>({
-        type: 'confirm',
-        name: 'confirm',
-        message: i18n.t('superpowers:uninstall.confirm'),
-        default: false,
-      })
-
-      if (confirm) {
-        await uninstallSuperpowers()
-      }
-      else {
-        console.log(ansis.yellow(i18n.t('common:cancelled')))
-      }
+      await uninstallSuperpowers()
       break
     }
     case '3': {
@@ -246,6 +240,134 @@ async function showSuperpowersMenu(): Promise<void> {
       return
     default:
       return
+  }
+
+  printSeparator()
+}
+
+async function showCCMMenu(): Promise<void> {
+  const { isCCMSupported, isCCMInstalled, installCCM, getCCMSupportMessage } = await import('../utils/ccm')
+
+  // Check platform support
+  if (!isCCMSupported()) {
+    console.log(ansis.yellow(`\n${getCCMSupportMessage()}`))
+    return
+  }
+
+  console.log(ansis.green(i18n.t('ccm.menu.title')))
+  console.log('  -------- Claude Code Monitor --------')
+  console.log(
+    `  ${ansis.green('1.')} ${i18n.t('ccm.actions.launch')} ${ansis.gray(`- ${i18n.t('ccm.menu.description')}`)}`,
+  )
+  console.log(
+    `  ${ansis.green('2.')} ${i18n.t('ccm.actions.setup')} ${ansis.gray(`- Configure hooks`)}`,
+  )
+  console.log(
+    `  ${ansis.green('3.')} ${i18n.t('ccm.actions.status')} ${ansis.gray(`- View active sessions`)}`,
+  )
+  console.log(
+    `  ${ansis.green('4.')} ${i18n.t('ccm.actions.clear')} ${ansis.gray(`- Clear all sessions`)}`,
+  )
+
+  const isInstalled = await isCCMInstalled()
+  if (!isInstalled) {
+    console.log(
+      `  ${ansis.green('5.')} ${ansis.yellow(i18n.t('common:install'))} ${ansis.gray(`- Install CCM`)}`,
+    )
+  }
+  else {
+    console.log(
+      `  ${ansis.green('5.')} ${i18n.t('ccm.actions.uninstall')} ${ansis.gray(`- Uninstall CCM`)}`,
+    )
+  }
+
+  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`)
+  console.log('')
+
+  const validChoices = ['1', '2', '3', '4', '5', '0']
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      return validChoices.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  try {
+    const { launchCCM, setupCCMHooks, showCCMStatus, clearCCMSessions, uninstallCCM } = await import('../utils/ccm')
+
+    switch (choice) {
+      case '1': {
+        // Launch CCM
+        if (!isInstalled) {
+          console.log(ansis.yellow(i18n.t('ccm.installPrompt')))
+          const shouldInstall = await promptBoolean({
+            message: i18n.t('common:install'),
+            defaultValue: true,
+          })
+          if (shouldInstall) {
+            await installCCM()
+          }
+          else {
+            break
+          }
+        }
+        await launchCCM()
+        break
+      }
+      case '2': {
+        // Setup hooks
+        if (!isInstalled) {
+          console.log(ansis.yellow(i18n.t('ccm.installPrompt')))
+          break
+        }
+        await setupCCMHooks()
+        break
+      }
+      case '3': {
+        // Show status
+        if (!isInstalled) {
+          console.log(ansis.yellow(i18n.t('ccm.installPrompt')))
+          break
+        }
+        await showCCMStatus()
+        break
+      }
+      case '4': {
+        // Clear sessions
+        if (!isInstalled) {
+          console.log(ansis.yellow(i18n.t('ccm.installPrompt')))
+          break
+        }
+        await clearCCMSessions()
+        break
+      }
+      case '5': {
+        // Install or uninstall
+        if (!isInstalled) {
+          await installCCM()
+        }
+        else {
+          const shouldUninstall = await promptBoolean({
+            message: i18n.t('ccm.uninstalling'),
+            defaultValue: false,
+          })
+          if (shouldUninstall) {
+            await uninstallCCM()
+          }
+        }
+        break
+      }
+    }
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`Error: ${errorMessage}`))
   }
 
   printSeparator()
@@ -887,55 +1009,58 @@ async function showMoreFeaturesMenu(): Promise<void> {
       `  ${ansis.white('3.')} ${ansis.white(i18n.t('menu:pluginsMenu.cometix'))} ${ansis.dim(`- ${i18n.t('menu:pluginsMenu.cometixDesc')}`)}`,
     )
     console.log(
-      `  ${ansis.white('4.')} ${ansis.white(i18n.t('menu:pluginsMenu.superpowers'))} ${ansis.dim(`- ${i18n.t('menu:pluginsMenu.superpowersDesc')}`)}`,
+      `  ${ansis.white('4.')} ${ansis.white(i18n.t('menu:pluginsMenu.ccm'))} ${ansis.dim(`- ${i18n.t('menu:pluginsMenu.ccmDesc')}`)}`,
     )
     console.log(
-      `  ${ansis.white('5.')} ${ansis.white(i18n.t('menu:categorizedMenu.mcpMarket'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.mcpMarketDesc')}`)}`,
+      `  ${ansis.white('5.')} ${ansis.white(i18n.t('menu:pluginsMenu.superpowers'))} ${ansis.dim(`- ${i18n.t('menu:pluginsMenu.superpowersDesc')}`)}`,
     )
     console.log(
-      `  ${ansis.white('6.')} ${ansis.white(i18n.t('menu:categorizedMenu.marketplace'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.marketplaceDesc')}`)}`,
+      `  ${ansis.white('6.')} ${ansis.white(i18n.t('menu:categorizedMenu.mcpMarket'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.mcpMarketDesc')}`)}`,
+    )
+    console.log(
+      `  ${ansis.white('7.')} ${ansis.white(i18n.t('menu:categorizedMenu.marketplace'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.marketplaceDesc')}`)}`,
     )
     console.log('')
 
     // Config section
     console.log(`  ${ansis.green.bold(i18n.t('menu:moreMenu.config'))}`)
     console.log(
-      `  ${ansis.white('7.')} ${ansis.white(i18n.t('menu:configCenter.memory'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.memoryDesc')}`)}`,
+      `  ${ansis.white('8.')} ${ansis.white(i18n.t('menu:configCenter.memory'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.memoryDesc')}`)}`,
     )
     console.log(
-      `  ${ansis.white('8.')} ${ansis.white(i18n.t('menu:configCenter.permission'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
+      `  ${ansis.white('9.')} ${ansis.white(i18n.t('menu:configCenter.permission'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
     )
     console.log(
-      `  ${ansis.white('9.')} ${ansis.white(i18n.t('menu:configCenter.configSwitch'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.configSwitchDesc')}`)}`,
+      `  ${ansis.white('10.')} ${ansis.white(i18n.t('menu:configCenter.configSwitch'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.configSwitchDesc')}`)}`,
     )
     console.log(
-      `  ${ansis.white('10.')} ${ansis.white(i18n.t('menu:configCenter.context'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.contextDesc')}`)}`,
+      `  ${ansis.white('11.')} ${ansis.white(i18n.t('menu:configCenter.context'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.contextDesc')}`)}`,
     )
     console.log('')
 
     // System section
     console.log(`  ${ansis.green.bold(i18n.t('menu:moreMenu.system'))}`)
     console.log(
-      `  ${ansis.white('11.')} ${ansis.white(i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0])} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
+      `  ${ansis.white('12.')} ${ansis.white(i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0])} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
     )
     console.log(
-      `  ${ansis.white('12.')} ${ansis.white(i18n.t('menu:menuOptions.switchCodeTool'))} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
+      `  ${ansis.white('13.')} ${ansis.white(i18n.t('menu:menuOptions.switchCodeTool'))} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
     )
     console.log(
-      `  ${ansis.white('13.')} ${ansis.white(i18n.t('menu:categorizedMenu.diagnostics'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
+      `  ${ansis.white('14.')} ${ansis.white(i18n.t('menu:categorizedMenu.diagnostics'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
     )
     console.log(
-      `  ${ansis.white('14.')} ${ansis.white(i18n.t('menu:categorizedMenu.workspace'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.workspaceDesc')}`)}`,
+      `  ${ansis.white('15.')} ${ansis.white(i18n.t('menu:categorizedMenu.workspace'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.workspaceDesc')}`)}`,
     )
     console.log(
-      `  ${ansis.white('15.')} ${ansis.white(i18n.t('menu:menuOptions.uninstall'))} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.uninstall')}`)}`,
+      `  ${ansis.white('16.')} ${ansis.white(i18n.t('menu:menuOptions.uninstall'))} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.uninstall')}`)}`,
     )
     console.log('')
 
     console.log(`  ${ansis.green('0.')} ${ansis.green(i18n.t('common:back'))}`)
     console.log('')
 
-    const validChoices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15']
+    const validChoices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16']
     const { choice } = await inquirer.prompt<{ choice: string }>({
       type: 'input',
       name: 'choice',
@@ -964,43 +1089,46 @@ async function showMoreFeaturesMenu(): Promise<void> {
         await runCometixMenuFeature()
         break
       case '4':
-        await showSuperpowersMenu()
+        await showCCMMenu()
         break
       case '5':
-        await showMcpMarketMenu()
+        await showSuperpowersMenu()
         break
       case '6':
+        await showMcpMarketMenu()
+        break
+      case '7':
         await showMarketplaceMenu()
         break
       // Config
-      case '7':
+      case '8':
         await configureAiMemoryFeature()
         break
-      case '8':
+      case '9':
         await configureEnvPermissionFeature()
         break
-      case '9':
+      case '10':
         await showConfigSwitchMenu()
         break
-      case '10':
+      case '11':
         await showContextMenu()
         break
       // System
-      case '11': {
+      case '12': {
         const currentLang = i18n.language as SupportedLang
         await changeScriptLanguageFeature(currentLang)
         break
       }
-      case '12':
+      case '13':
         await handleCodeToolSwitch('claude-code')
         break
-      case '13':
+      case '14':
         await doctor()
         break
-      case '14':
+      case '15':
         await workspaceDiagnostics()
         break
-      case '15':
+      case '16':
         await uninstall()
         break
     }

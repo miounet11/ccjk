@@ -20,6 +20,7 @@ import type {
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { env } from 'node:process'
 import { dirname, join } from 'pathe'
 
 // ============================================================================
@@ -257,7 +258,7 @@ export class ScriptRunner {
       try {
         const result = await this.spawn('bash', args, {
           cwd: options.cwd,
-          env: { ...process.env, ...options.env },
+          env: { ...env, ...options.env } as Record<string, string>,
           timeout,
           stdin: options.stdin,
           captureOutput: options.captureOutput ?? true,
@@ -291,7 +292,7 @@ export class ScriptRunner {
 
       const result = await this.spawn(interpreter[0], args, {
         cwd: options.cwd,
-        env: { ...process.env, ...options.env },
+        env: { ...env, ...options.env } as Record<string, string>,
         timeout,
         stdin: options.stdin,
         captureOutput: options.captureOutput ?? true,
@@ -381,34 +382,34 @@ export class ScriptRunner {
     script: ScriptDefinition,
     options: ScriptExecutionOptions,
   ): Record<string, string> {
-    const env: Record<string, string> = {}
+    const envVars: Record<string, string> = {}
 
     // Copy allowed environment variables
     if (this.hasPermission('env:read')) {
       // Copy safe env vars
       const safeVars = ['PATH', 'HOME', 'USER', 'SHELL', 'LANG', 'LC_ALL', 'TERM', 'NODE_ENV']
       for (const key of safeVars) {
-        if (process.env[key]) {
-          env[key] = process.env[key]!
+        if (env[key]) {
+          envVars[key] = env[key]!
         }
       }
     }
 
     // Add script-defined env vars
     if (script.env) {
-      Object.assign(env, script.env)
+      Object.assign(envVars, script.env)
     }
 
     // Add option-defined env vars
     if (options.env) {
-      Object.assign(env, options.env)
+      Object.assign(envVars, options.env)
     }
 
     // Add CCJK-specific vars
-    env.CCJK_PLUGIN = 'true'
-    env.CCJK_VERSION = '2.0'
+    envVars.CCJK_PLUGIN = 'true'
+    envVars.CCJK_VERSION = '2.0'
 
-    return env
+    return envVars
   }
 
   /**

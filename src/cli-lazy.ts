@@ -460,6 +460,24 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'ccm [action]',
+    description: 'Manage Claude Code Monitor (macOS only)',
+    aliases: ['monitor'],
+    tier: 'extended',
+    options: [
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      const { ccm } = await import('./commands/ccm')
+      return async (options, action: unknown) => {
+        await ccm({
+          lang: options.lang as 'zh-CN' | 'en' | undefined,
+          action: action as 'launch' | 'watch' | 'setup' | 'clear' | 'list' | 'status' | undefined,
+        })
+      }
+    },
+  },
+  {
     name: 'permissions [action] [...args]',
     description: 'Manage CCJK permissions',
     aliases: ['perm'],

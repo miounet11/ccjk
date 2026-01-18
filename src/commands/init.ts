@@ -282,6 +282,63 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
 }
 
 /**
+ * Handle CCM (Claude Code Monitor) installation
+ * @param options - Init options
+ */
+async function handleCCMInstallation(options: InitOptions): Promise<void> {
+  try {
+    // Import CCM utilities
+    const { isCCMSupported, isCCMInstalled, installCCM, getCCMSupportMessage } = await import('../utils/ccm')
+
+    // Check platform support
+    if (!isCCMSupported()) {
+      if (!options.skipPrompt) {
+        console.log(ansis.yellow(`\nℹ ${getCCMSupportMessage()}`))
+      }
+      return
+    }
+
+    // Check if already installed
+    const isInstalled = await isCCMInstalled()
+    if (isInstalled) {
+      console.log(ansis.green(`✔ ${i18n.t('ccm.alreadyInstalled')}`))
+      return
+    }
+
+    // Determine if we should install
+    let shouldInstall = false
+
+    if (options.skipPrompt) {
+      // In skip-prompt mode, default to true for macOS
+      shouldInstall = true
+    }
+    else {
+      // Show interactive prompt
+      console.log(ansis.green(`\n${i18n.t('ccm.menu.title')}`))
+      console.log(ansis.gray(i18n.t('ccm.menu.description')))
+
+      shouldInstall = await promptBoolean({
+        message: i18n.t('ccm.installPrompt'),
+        defaultValue: true,
+      })
+    }
+
+    if (!shouldInstall) {
+      console.log(ansis.yellow(i18n.t('common:skip')))
+      return
+    }
+
+    // Install CCM
+    await installCCM({ silent: options.skipPrompt })
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${i18n.t('ccm.installError')} ${errorMessage}`))
+    // Don't throw - CCM is optional
+  }
+}
+
+/**
  * Handle Superpowers installation
  * @param options - Init options
  */
@@ -1080,6 +1137,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
     if (!options.skipPrompt || options.installSuperpowers) {
       await handleSuperpowersInstallation(options)
     }
+
+    // Step 11.55: CCM (Claude Code Monitor) installation (macOS only)
+    await handleCCMInstallation(options)
 
     // Step 11.6: Smart Guide injection (auto-enable for better UX)
     try {

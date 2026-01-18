@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
+    "jsx": "react",
     "lib": [
       "ES2022",
       "ES2022.Error"
