@@ -1,88 +1,63 @@
-node_modules
-dist
-.DS_Store
-*.log
-*.local
-.env
-.env.*
-!.env.example
-package-lock.json
-yarn.lock
-test.mjs
+# CCJK 公开仓库 .gitignore
+# 用于公开仓库，排除私有和敏感内容
 
-# Test coverage reports
-coverage
-.nyc_output
-*.lcov
-.coverage
+# 私有核心目录
+src/brain/
+src/cloud-plugins/
+src/cloud-sync/
+src/mcp-marketplace/
+.claude/plan/
+.bmad-core/
+
+# 敏感配置
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+secrets/
+
+# 开发计划和内部文档
+docs/internal/
+docs/roadmap/
+INTERNAL.md
+ROADMAP.md
+
+# 私有测试
+tests/private/
+tests/integration/private/
+
+# 临时文件
+*.tmp
+*.bak
+.DS_Store
+node_modules/
+dist/
+.turbo/
+.cache/
 
 # IDE
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-.idea
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Test artifacts
-*.test.tmp
-*.spec.tmp
-test-results
-junit.xml
+# 日志
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Vitest
-.vitest-result.json
+# 测试覆盖率
+coverage/
+.nyc_output/
 
-# Test temporary output files
-*-output.txt
-
-# NPM integration test artifacts
-tmp-npm-test/
-*_test.log
-zh_test.log
-en_test.log
-zh_output.txt
-en_output.txt
-release_*_test.log
-test-*.js
-zcf-*.tgz
-ccjk-*.tgz
-
-# VitePress
-docs/.vitepress/cache/**
-
-# ========================================
-# Internal/Sensitive Files - DO NOT COMMIT
-# ========================================
-
-# Internal audit and planning documents
-AUDIT_*.md
-AUDIT_*.txt
-SUPERPOWERS_*.md
-EXTERNAL_TOOLS_*.md
-PLUGIN_MARKETPLACE_*.md
-IMPLEMENTATION_REPORT.md
-FINAL_DELIVERY_SUMMARY.md
-README_AUDIT.md
-README_START_HERE.md
-
-# Internal planning directory
-.ccjk/plan/
-
-# Internal API documentation (cloud services)
-docs/api/cloud-providers-api.md
-docs/docs/CLIENT_BINDING_API*.md
-docs/docs/API-REFERENCE.md
-docs/docs/DELIVERY.md
-
-# Internal development notes
-docs/jishu.md
-docs/v3_up.md
-docs/skills-cloud-optimization-design.md
-
-# Backup files
-*.backup
-package.json.backup
-package.json.publish
-
-# Cloud plugins internal
-src/cloud-plugins/IMPLEMENTATION_SUMMARY.md
-
+# 构建产物
+build/
+out/
+.next/
+.nuxt/
+.output/
