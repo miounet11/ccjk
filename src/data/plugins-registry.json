@@ -1,0 +1,463 @@
+{
+  "$schema": "https://api.claudehome.cn/schemas/plugins-registry.json",
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-11T00:00:00Z",
+  "plugins": [
+    {
+      "id": "mcp-filesystem",
+      "name": "MCP Filesystem",
+      "description": {
+        "en": "Secure file system access for Claude with read/write capabilities",
+        "zh-CN": "为 Claude 提供安全的文件系统访问，支持读写操作"
+      },
+      "category": "mcp-service",
+      "popularity": 95,
+      "rating": 4.8,
+      "ratingCount": 156,
+      "tags": ["filesystem", "files", "mcp", "essential"],
+      "installCommand": "npx ccjk mcp install filesystem",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.2.0",
+      "author": "Anthropic",
+      "verified": true,
+      "downloads": 12500
+    },
+    {
+      "id": "mcp-github",
+      "name": "MCP GitHub",
+      "description": {
+        "en": "GitHub integration for repository management, issues, and pull requests",
+        "zh-CN": "GitHub 集成，支持仓库管理、问题和拉取请求"
+      },
+      "category": "mcp-service",
+      "popularity": 88,
+      "rating": 4.7,
+      "ratingCount": 132,
+      "tags": ["github", "git", "version-control", "mcp"],
+      "installCommand": "npx ccjk mcp install github",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.1.5",
+      "author": "Anthropic",
+      "verified": true,
+      "downloads": 9800
+    },
+    {
+      "id": "mcp-postgres",
+      "name": "MCP PostgreSQL",
+      "description": {
+        "en": "PostgreSQL database integration for schema inspection and queries",
+        "zh-CN": "PostgreSQL 数据库集成，支持模式检查和查询"
+      },
+      "category": "mcp-service",
+      "popularity": 75,
+      "rating": 4.6,
+      "ratingCount": 89,
+      "tags": ["database", "postgresql", "sql", "mcp"],
+      "installCommand": "npx ccjk mcp install postgres",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.0.8",
+      "author": "Anthropic",
+      "verified": true,
+      "downloads": 6200
+    },
+    {
+      "id": "git-workflow-pro",
+      "name": "Git Workflow Pro",
+      "description": {
+        "en": "Advanced git workflow automation with smart commits and branch management",
+        "zh-CN": "高级 Git 工作流自动化，支持智能提交和分支管理"
+      },
+      "category": "workflow",
+      "popularity": 92,
+      "rating": 4.9,
+      "ratingCount": 203,
+      "tags": ["git", "workflow", "automation", "commits"],
+      "installCommand": "npx ccjk workflow install git-pro",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "2.1.0",
+      "author": "CCJK Team",
+      "repository": "https://github.com/ccjk/git-workflow-pro",
+      "verified": true,
+      "downloads": 15600
+    },
+    {
+      "id": "tdd-workflow",
+      "name": "TDD Workflow",
+      "description": {
+        "en": "Test-Driven Development workflow with automated test generation",
+        "zh-CN": "测试驱动开发工作流，支持自动化测试生成"
+      },
+      "category": "workflow",
+      "popularity": 85,
+      "rating": 4.7,
+      "ratingCount": 167,
+      "tags": ["tdd", "testing", "workflow", "quality"],
+      "installCommand": "npx ccjk workflow install tdd",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.5.2",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 11200
+    },
+    {
+      "id": "code-review-skill",
+      "name": "Code Review Expert",
+      "description": {
+        "en": "Deep two-stage code review with security and performance analysis",
+        "zh-CN": "深度两阶段代码审查，包含安全和性能分析"
+      },
+      "category": "skill",
+      "popularity": 90,
+      "rating": 4.8,
+      "ratingCount": 178,
+      "tags": ["code-review", "quality", "security", "skill"],
+      "installCommand": "npx ccjk skill install code-review",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.3.0",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 13400
+    },
+    {
+      "id": "debug-assistant",
+      "name": "Debug Assistant",
+      "description": {
+        "en": "Systematic debugging workflow with root cause analysis",
+        "zh-CN": "系统化调试工作流，支持根因分析"
+      },
+      "category": "skill",
+      "popularity": 87,
+      "rating": 4.7,
+      "ratingCount": 145,
+      "tags": ["debugging", "troubleshooting", "skill", "analysis"],
+      "installCommand": "npx ccjk skill install debug",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.2.1",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 9900
+    },
+    {
+      "id": "mcp-slack",
+      "name": "MCP Slack",
+      "description": {
+        "en": "Slack integration for sending messages and managing channels",
+        "zh-CN": "Slack 集成，支持发送消息和管理频道"
+      },
+      "category": "mcp-service",
+      "popularity": 70,
+      "rating": 4.5,
+      "ratingCount": 76,
+      "tags": ["slack", "communication", "mcp", "notifications"],
+      "installCommand": "npx ccjk mcp install slack",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.0.3",
+      "author": "Community",
+      "verified": false,
+      "downloads": 4500
+    },
+    {
+      "id": "api-design-agent",
+      "name": "API Design Architect",
+      "description": {
+        "en": "RESTful API design with OpenAPI specification generation",
+        "zh-CN": "RESTful API 设计，支持 OpenAPI 规范生成"
+      },
+      "category": "agent",
+      "popularity": 78,
+      "rating": 4.6,
+      "ratingCount": 98,
+      "tags": ["api", "design", "openapi", "agent"],
+      "installCommand": "npx ccjk agent install api-design",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.1.0",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 7800
+    },
+    {
+      "id": "docker-workflow",
+      "name": "Docker Workflow",
+      "description": {
+        "en": "Container management and Dockerfile optimization workflow",
+        "zh-CN": "容器管理和 Dockerfile 优化工作流"
+      },
+      "category": "workflow",
+      "popularity": 82,
+      "rating": 4.7,
+      "ratingCount": 112,
+      "tags": ["docker", "containers", "devops", "workflow"],
+      "installCommand": "npx ccjk workflow install docker",
+      "compatibility": {
+        "os": ["darwin", "linux"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.4.0",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 8900
+    },
+    {
+      "id": "agent-browser",
+      "name": "Agent Browser",
+      "description": {
+        "en": "Zero-config headless browser automation for AI agents. Fast Rust CLI with Node.js fallback.",
+        "zh-CN": "零配置无头浏览器自动化，专为 AI 代理设计。快速 Rust CLI，Node.js 后备。"
+      },
+      "category": "cli-tool",
+      "popularity": 95,
+      "rating": 4.9,
+      "ratingCount": 156,
+      "tags": ["browser", "automation", "zero-config", "ai-native", "rust"],
+      "installCommand": "npm install -g agent-browser && agent-browser install",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex", "cursor"]
+      },
+      "version": "1.0.0",
+      "author": "Vercel Labs",
+      "repository": "https://github.com/vercel-labs/agent-browser",
+      "verified": true,
+      "downloads": 12000,
+      "featured": true,
+      "replacesLegacy": ["mcp-browser", "playwright-mcp", "puppeteer-mcp"]
+    },
+    {
+      "id": "security-audit-skill",
+      "name": "Security Audit Expert",
+      "description": {
+        "en": "Comprehensive security audit with vulnerability detection",
+        "zh-CN": "全面的安全审计，支持漏洞检测"
+      },
+      "category": "skill",
+      "popularity": 84,
+      "rating": 4.8,
+      "ratingCount": 128,
+      "tags": ["security", "audit", "vulnerability", "skill"],
+      "installCommand": "npx ccjk skill install security-audit",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.2.3",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 10100
+    },
+    {
+      "id": "performance-optimizer",
+      "name": "Performance Optimizer",
+      "description": {
+        "en": "Code performance analysis and optimization recommendations",
+        "zh-CN": "代码性能分析和优化建议"
+      },
+      "category": "skill",
+      "popularity": 79,
+      "rating": 4.6,
+      "ratingCount": 103,
+      "tags": ["performance", "optimization", "profiling", "skill"],
+      "installCommand": "npx ccjk skill install performance",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.1.8",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 8200
+    },
+    {
+      "id": "docs-generator",
+      "name": "Documentation Generator",
+      "description": {
+        "en": "Automated documentation generation with multiple format support",
+        "zh-CN": "自动化文档生成，支持多种格式"
+      },
+      "category": "skill",
+      "popularity": 76,
+      "rating": 4.5,
+      "ratingCount": 87,
+      "tags": ["documentation", "generator", "markdown", "skill"],
+      "installCommand": "npx ccjk skill install docs-gen",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.0.9",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 7100
+    },
+    {
+      "id": "mcp-mongodb",
+      "name": "MCP MongoDB",
+      "description": {
+        "en": "MongoDB database integration for document operations",
+        "zh-CN": "MongoDB 数据库集成，支持文档操作"
+      },
+      "category": "mcp-service",
+      "popularity": 72,
+      "rating": 4.5,
+      "ratingCount": 68,
+      "tags": ["database", "mongodb", "nosql", "mcp"],
+      "installCommand": "npx ccjk mcp install mongodb",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.0.4",
+      "author": "Community",
+      "verified": false,
+      "downloads": 5300
+    },
+    {
+      "id": "ci-cd-workflow",
+      "name": "CI/CD Pipeline",
+      "description": {
+        "en": "Continuous integration and deployment workflow automation",
+        "zh-CN": "持续集成和部署工作流自动化"
+      },
+      "category": "workflow",
+      "popularity": 81,
+      "rating": 4.7,
+      "ratingCount": 119,
+      "tags": ["ci-cd", "devops", "automation", "workflow"],
+      "installCommand": "npx ccjk workflow install ci-cd",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.3.5",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 9400
+    },
+    {
+      "id": "refactoring-assistant",
+      "name": "Refactoring Assistant",
+      "description": {
+        "en": "Intelligent code refactoring with pattern detection",
+        "zh-CN": "智能代码重构，支持模式检测"
+      },
+      "category": "skill",
+      "popularity": 83,
+      "rating": 4.7,
+      "ratingCount": 134,
+      "tags": ["refactoring", "code-quality", "patterns", "skill"],
+      "installCommand": "npx ccjk skill install refactor",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.2.7",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 10800
+    },
+    {
+      "id": "mcp-aws",
+      "name": "MCP AWS",
+      "description": {
+        "en": "AWS cloud services integration for resource management",
+        "zh-CN": "AWS 云服务集成，支持资源管理"
+      },
+      "category": "mcp-service",
+      "popularity": 77,
+      "rating": 4.6,
+      "ratingCount": 85,
+      "tags": ["aws", "cloud", "infrastructure", "mcp"],
+      "installCommand": "npx ccjk mcp install aws",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.1.2",
+      "author": "Community",
+      "verified": false,
+      "downloads": 6400
+    },
+    {
+      "id": "microservices-agent",
+      "name": "Microservices Architect",
+      "description": {
+        "en": "Microservices architecture design and implementation guidance",
+        "zh-CN": "微服务架构设计和实施指导"
+      },
+      "category": "agent",
+      "popularity": 74,
+      "rating": 4.6,
+      "ratingCount": 91,
+      "tags": ["microservices", "architecture", "design", "agent"],
+      "installCommand": "npx ccjk agent install microservices",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.0.6",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 7200
+    },
+    {
+      "id": "nekomata-style",
+      "name": "Nekomata Output Style",
+      "description": {
+        "en": "Cute anime-style output formatting with cat girl personality",
+        "zh-CN": "可爱的动漫风格输出格式，猫娘人格"
+      },
+      "category": "output-style",
+      "popularity": 68,
+      "rating": 4.9,
+      "ratingCount": 215,
+      "tags": ["output-style", "personality", "anime", "fun"],
+      "installCommand": "npx ccjk style install nekomata",
+      "compatibility": {
+        "os": ["darwin", "linux", "win32"],
+        "codeTools": ["claude-code", "codex"]
+      },
+      "version": "1.0.0",
+      "author": "CCJK Team",
+      "verified": true,
+      "downloads": 8600
+    }
+  ],
+  "metadata": {
+    "totalPlugins": 20,
+    "categories": {
+      "mcp-service": 7,
+      "workflow": 5,
+      "skill": 6,
+      "agent": 2,
+      "output-style": 1
+    },
+    "verifiedCount": 15,
+    "communityCount": 5
+  }
+}

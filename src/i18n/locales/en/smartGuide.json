@@ -1,0 +1,49 @@
+{
+  "enabled": "Smart Assistant enabled - Type numbers (1-8) in Claude Code for quick actions",
+  "skipped": "Smart Assistant setup skipped",
+  "disabled": "Smart Assistant disabled",
+  "title": "🎯 Smart Assistant",
+  "description": "Execute actions by typing numbers in Claude Code",
+  "status": "Status",
+  "statusEnabled": "Enabled",
+  "statusDisabled": "Disabled",
+  "enable": "Enable Smart Assistant",
+  "update": "Update Smart Assistant",
+  "disable": "Disable Smart Assistant",
+  "viewCard": "View Skills Reference Card",
+  "enableSuccess": "Smart Assistant enabled",
+  "enableFailed": "Failed to enable Smart Assistant",
+  "disableSuccess": "Smart Assistant disabled",
+  "disableFailed": "Failed to disable Smart Assistant",
+  "notEnabled": "Smart Assistant is not enabled",
+  "quickActions": {
+    "title": "🚀 Quick Actions",
+    "prompt": "Type number (1-8) or describe your task...",
+    "back": "Enter number (1-8) or 0 to go back:",
+    "executing": "Executing",
+    "command": "Command",
+    "tip": "Tip: In Claude Code, type \"{{command}}\" or just \"{{number}}\" to execute this action"
+  },
+  "actions": {
+    "smartCommit": "Smart Commit",
+    "smartCommitDesc": "Auto-generate commit message",
+    "codeReview": "Code Review",
+    "codeReviewDesc": "Deep two-stage code review",
+    "writeTests": "Write Tests",
+    "writeTestsDesc": "TDD workflow",
+    "planFeature": "Plan Feature",
+    "planFeatureDesc": "6-step development workflow",
+    "debugIssue": "Debug Issue",
+    "debugIssueDesc": "Systematic debugging",
+    "brainstorm": "Brainstorm",
+    "brainstormDesc": "Explore ideas and solutions",
+    "verifyCode": "Verify Code",
+    "verifyCodeDesc": "Quality verification",
+    "writeDocs": "Write Docs",
+    "writeDocsDesc": "Generate documentation"
+  },
+  "referenceCard": {
+    "title": "CCJK Skills Reference",
+    "tip": "Tip: Just type a number, Claude will execute automatically"
+  }
+}

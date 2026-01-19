@@ -1,0 +1,18 @@
+{
+  "name": "@ccjk/docs",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vitepress dev --port 3366",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "dependencies": {
+    "@iconify-json/carbon": "catalog:",
+    "@unocss/reset": "catalog:",
+    "unocss": "catalog:",
+    "vitepress": "catalog:",
+    "vue": "catalog:"
+  }
+}

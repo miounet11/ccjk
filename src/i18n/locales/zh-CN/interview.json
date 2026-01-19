@@ -1,0 +1,104 @@
+{
+  "banner": {
+    "title": "访谈驱动开发 (IDD)",
+    "subtitle": "先访谈，再规格，最后编码。",
+    "credit": "基于 Anthropic Thariq (@trq212) 的工作流"
+  },
+  "templates": {
+    "title": "可用访谈模板：",
+    "usage": "用法：ccjk interview --template <模板ID> [SPEC.md]",
+    "webapp": {
+      "name": "Web应用",
+      "description": "标准Web应用访谈模板"
+    },
+    "api": {
+      "name": "API服务",
+      "description": "后端API/微服务访谈模板"
+    },
+    "saas": {
+      "name": "SaaS产品",
+      "description": "包含所有类别的完整SaaS产品访谈"
+    },
+    "ecommerce": {
+      "name": "电商平台",
+      "description": "在线商店访谈模板"
+    },
+    "quick": {
+      "name": "快速验证",
+      "description": "用于快速项目验证的快速访谈"
+    }
+  },
+  "depth": {
+    "title": "访谈深度：",
+    "quick": "快速（约10个问题）",
+    "quickDesc": "快速验证，表层决策",
+    "standard": "标准（约25个问题）",
+    "standardDesc": "覆盖所有主要领域",
+    "deep": "深入（40+个问题）",
+    "deepDesc": "复杂功能的全面探索",
+    "recommended": "（推荐）"
+  },
+  "specFile": {
+    "prompt": "规格文件路径（保存规格的位置）：",
+    "required": "请输入文件路径",
+    "extension": "文件应以 .md 为扩展名"
+  },
+  "confirm": {
+    "title": "访谈配置：",
+    "template": "模板：",
+    "depth": "深度：",
+    "output": "输出：",
+    "start": "开始访谈？"
+  },
+  "progress": {
+    "starting": "开始访谈...",
+    "pauseHint": "随时按 Ctrl+C 暂停并保存进度。",
+    "question": "第 {{current}} 题，共约 {{total}} 题",
+    "selectOne": "选择一项：",
+    "selectMultiple": "选择所有适用项（空格选择，回车确认）：",
+    "customInput": "输入您的自定义答案：",
+    "typeOther": "输入其他内容..."
+  },
+  "pause": {
+    "title": "访谈已暂停。",
+    "saveProgress": "保存进度以便稍后继续？",
+    "sessionSaved": "会话已保存至：{{path}}",
+    "resumeHint": "继续访谈：ccjk interview --resume {{path}}"
+  },
+  "resume": {
+    "loading": "正在恢复访谈会话...",
+    "sessionId": "会话ID：{{id}}",
+    "progress": "进度：已回答 {{count}} 个问题",
+    "sessionNotFound": "会话文件未找到：{{path}}",
+    "loadFailed": "加载会话文件失败。",
+    "resumeFailed": "恢复会话失败。"
+  },
+  "complete": {
+    "title": "访谈完成！",
+    "questionsAnswered": "已回答问题：",
+    "duration": "用时：",
+    "specFile": "规格文件：",
+    "categorySummary": "类别摘要：",
+    "nextSteps": "下一步：",
+    "step1": "查看规格：cat {{path}}",
+    "step2": "开始规划：/plan",
+    "step3": "开始编码：使用规格作为上下文"
+  },
+  "generate": {
+    "generating": "正在生成规格..."
+  },
+  "cancelled": "访谈已取消。",
+  "templateNotFound": "模板未找到：{{id}}",
+  "availableTemplates": "可用模板：",
+  "categories": {
+    "projectFoundation": "项目基础",
+    "targetAudience": "目标受众",
+    "technicalImplementation": "技术实现",
+    "featuresScope": "功能与范围",
+    "uiUx": "UI和UX",
+    "concerns": "关注点",
+    "tradeoffs": "权衡",
+    "businessLogic": "业务逻辑",
+    "securityCompliance": "安全与合规"
+  }
+}

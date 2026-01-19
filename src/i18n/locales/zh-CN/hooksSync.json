@@ -1,0 +1,133 @@
+{
+  "banner": {
+    "title": "Hooks 云同步",
+    "description": "管理和同步自动化钩子到云端"
+  },
+  "menu": {
+    "title": "Hooks 同步菜单",
+    "choices": {
+      "sync": "从云端同步钩子",
+      "list": "列出所有钩子",
+      "enable": "启用钩子",
+      "disable": "禁用钩子",
+      "templates": "浏览钩子模板",
+      "upload": "上传本地钩子到云端",
+      "download": "从云端下载钩子",
+      "back": "返回主菜单"
+    }
+  },
+  "actions": {
+    "syncing": "正在从云端同步钩子...",
+    "syncSuccess": "成功同步 {{count}} 个钩子",
+    "syncError": "同步钩子失败: {{error}}",
+    "syncCompleted": "同步完成",
+    "listing": "正在加载钩子...",
+    "enabling": "正在启用钩子...",
+    "enableSuccess": "钩子 '{{name}}' 已成功启用",
+    "enableError": "启用钩子失败: {{error}}",
+    "disabling": "正在禁用钩子...",
+    "disableSuccess": "钩子 '{{name}}' 已成功禁用",
+    "disableError": "禁用钩子失败: {{error}}",
+    "uploading": "正在上传钩子到云端...",
+    "uploadSuccess": "钩子上传成功",
+    "uploadCompleted": "上传完成",
+    "uploadError": "上传钩子失败: {{error}}",
+    "downloading": "正在从云端下载钩子...",
+    "downloadSuccess": "钩子下载成功",
+    "downloadCompleted": "下载完成",
+    "downloadError": "下载钩子失败: {{error}}",
+    "hookEnabled": "钩子已启用",
+    "hookDisabled": "钩子已禁用",
+    "hookToggled": "钩子{{status}}: {{name}}",
+    "templateInstalled": "模板已安装: {{name}}",
+    "installError": "安装错误: {{error}}"
+  },
+  "prompts": {
+    "selectHook": "选择一个钩子:",
+    "selectTemplate": "选择要安装的模板:",
+    "selectCategory": "选择分类:",
+    "selectPrivacy": "选择隐私级别:",
+    "enterHookName": "输入钩子名称:",
+    "enterDescription": "输入描述:",
+    "confirmUpload": "上传此钩子到云端?",
+    "confirmDownload": "下载并安装此钩子?",
+    "confirmEnable": "启用此钩子?",
+    "confirmDisable": "禁用此钩子?",
+    "confirmInstall": "安装此模板?"
+  },
+  "labels": {
+    "hookId": "钩子 ID",
+    "name": "名称",
+    "description": "描述",
+    "type": "类型",
+    "category": "分类",
+    "categories": "分类",
+    "privacy": "隐私",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "lastSynced": "最后同步",
+    "createdAt": "创建时间",
+    "updatedAt": "更新时间",
+    "uploaded": "已上传",
+    "downloaded": "已下载",
+    "skipped": "已跳过",
+    "failed": "失败",
+    "total": "总计",
+    "found": "找到",
+    "localHooks": "本地钩子",
+    "variables": "变量"
+  },
+  "categories": {
+    "git": "Git 自动化",
+    "build": "构建与部署",
+    "testing": "测试",
+    "linting": "代码质量",
+    "security": "安全",
+    "documentation": "文档",
+    "notification": "通知",
+    "custom": "自定义"
+  },
+  "privacy": {
+    "private": "私有 (仅自己)",
+    "team": "团队 (组织内)",
+    "public": "公开 (所有人)"
+  },
+  "hookTypes": {
+    "pre-commit": "提交前",
+    "post-commit": "提交后",
+    "pre-push": "推送前",
+    "post-merge": "合并后",
+    "pre-rebase": "变基前"
+  },
+  "templates": {
+    "title": "钩子模板",
+    "description": "浏览和安装预配置的钩子模板",
+    "noTemplates": "没有可用的模板",
+    "installing": "正在安装模板...",
+    "installSuccess": "模板安装成功",
+    "installError": "安装模板失败: {{error}}"
+  },
+  "errors": {
+    "noHooks": "未找到钩子",
+    "noHooksFound": "未找到钩子",
+    "noTemplatesFound": "未找到模板",
+    "hookNotFound": "未找到钩子: {{id}}",
+    "invalidHookId": "无效的钩子 ID",
+    "syncFailed": "同步钩子失败",
+    "uploadFailed": "上传钩子失败",
+    "downloadFailed": "下载钩子失败",
+    "enableFailed": "启用钩子失败",
+    "disableFailed": "禁用钩子失败",
+    "loadHooksFailed": "加载本地钩子失败:",
+    "saveHooksFailed": "保存本地钩子失败:",
+    "networkError": "网络错误: {{error}}",
+    "authError": "认证错误。请检查您的凭据。",
+    "permissionError": "权限被拒绝。您无权访问此钩子。"
+  },
+  "info": {
+    "noLocalHooks": "未找到本地钩子。从云端同步以开始使用。",
+    "syncRecommended": "建议定期同步钩子以保持最新状态。",
+    "cloudStorageInfo": "钩子安全地存储在云端,并在您的设备间同步。",
+    "privacyInfo": "私有钩子仅对您可见。团队钩子与您的组织共享。"
+  }
+}

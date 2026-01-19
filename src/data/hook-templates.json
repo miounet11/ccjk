@@ -1,0 +1,685 @@
+{
+  "templates": [
+    {
+      "id": "auto-format-on-save",
+      "name": "Auto Format on Save",
+      "category": "code-quality",
+      "description": "Automatically format code files when they are saved",
+      "hook": {
+        "name": "Auto Format on Save",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "file_change",
+          "pattern": "**/*.{js,ts,jsx,tsx,vue,css,scss,json,md}"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npx prettier --write {{file}}",
+              "workingDir": "{{projectRoot}}"
+            }
+          }
+        ],
+        "privacy": "private",
+        "enabled": true
+      },
+      "variables": ["file", "projectRoot"]
+    },
+    {
+      "id": "pre-commit-lint-check",
+      "name": "Pre-commit Lint Check",
+      "category": "git",
+      "description": "Run linting checks before committing code",
+      "hook": {
+        "name": "Pre-commit Lint Check",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "pre-tool-use"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npm run lint",
+              "workingDir": "{{projectRoot}}",
+              "failOnError": true
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "tool",
+            "operator": "eq",
+            "value": "git"
+          },
+          {
+            "field": "command",
+            "operator": "contains",
+            "value": "commit"
+          }
+        ],
+        "privacy": "private",
+        "enabled": true
+      },
+      "variables": ["projectRoot"]
+    },
+    {
+      "id": "auto-generate-tests",
+      "name": "Auto Generate Tests",
+      "category": "testing",
+      "description": "Automatically generate test files for new source files",
+      "hook": {
+        "name": "Auto Generate Tests",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "file_change",
+          "pattern": "src/**/*.{js,ts,jsx,tsx}"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npx jest --init {{file}}",
+              "workingDir": "{{projectRoot}}"
+            }
+          },
+          {
+            "type": "notify",
+            "config": {
+              "title": "Test Generated",
+              "message": "Test file created for {{file}}",
+              "type": "success"
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "fileExists",
+            "operator": "ne",
+            "value": "{{testFile}}"
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["file", "projectRoot", "testFile"]
+    },
+    {
+      "id": "documentation-update",
+      "name": "Documentation Update",
+      "category": "documentation",
+      "description": "Update documentation when code changes",
+      "hook": {
+        "name": "Documentation Update",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "file_change",
+          "pattern": "src/**/*.{js,ts}"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npx typedoc --out docs {{file}}",
+              "workingDir": "{{projectRoot}}"
+            }
+          },
+          {
+            "type": "notify",
+            "config": {
+              "title": "Documentation Updated",
+              "message": "API documentation regenerated",
+              "type": "info"
+            }
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["file", "projectRoot"]
+    },
+    {
+      "id": "dependency-check",
+      "name": "Dependency Security Check",
+      "category": "security",
+      "description": "Check for security vulnerabilities in dependencies",
+      "hook": {
+        "name": "Dependency Security Check",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "file_change",
+          "pattern": "{package.json,package-lock.json,pnpm-lock.yaml,yarn.lock}"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npm audit --audit-level=moderate",
+              "workingDir": "{{projectRoot}}",
+              "continueOnError": true
+            }
+          },
+          {
+            "type": "notify",
+            "config": {
+              "title": "Security Audit Complete",
+              "message": "Dependency security check finished",
+              "type": "info"
+            }
+          }
+        ],
+        "privacy": "private",
+        "enabled": true
+      },
+      "variables": ["projectRoot"]
+    },
+    {
+      "id": "security-scan",
+      "name": "Code Security Scan",
+      "category": "security",
+      "description": "Scan code for security vulnerabilities",
+      "hook": {
+        "name": "Code Security Scan",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "schedule",
+          "schedule": "0 0 * * *"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npx eslint --ext .js,.ts --plugin security .",
+              "workingDir": "{{projectRoot}}",
+              "continueOnError": true
+            }
+          },
+          {
+            "type": "call_api",
+            "config": {
+              "url": "{{webhookUrl}}",
+              "method": "POST",
+              "body": {
+                "type": "security-scan",
+                "status": "{{status}}",
+                "timestamp": "{{timestamp}}"
+              }
+            }
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["projectRoot", "webhookUrl", "status", "timestamp"]
+    },
+    {
+      "id": "build-on-push",
+      "name": "Build on Git Push",
+      "category": "git",
+      "description": "Automatically build project when pushing to git",
+      "hook": {
+        "name": "Build on Git Push",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "pre-tool-use"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npm run build",
+              "workingDir": "{{projectRoot}}",
+              "failOnError": true
+            }
+          },
+          {
+            "type": "notify",
+            "config": {
+              "title": "Build Complete",
+              "message": "Project built successfully before push",
+              "type": "success"
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "tool",
+            "operator": "eq",
+            "value": "git"
+          },
+          {
+            "field": "command",
+            "operator": "contains",
+            "value": "push"
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["projectRoot"]
+    },
+    {
+      "id": "test-before-commit",
+      "name": "Test Before Commit",
+      "category": "testing",
+      "description": "Run tests before committing code",
+      "hook": {
+        "name": "Test Before Commit",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "pre-tool-use"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npm test",
+              "workingDir": "{{projectRoot}}",
+              "failOnError": true
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "tool",
+            "operator": "eq",
+            "value": "git"
+          },
+          {
+            "field": "command",
+            "operator": "contains",
+            "value": "commit"
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["projectRoot"]
+    },
+    {
+      "id": "changelog-update",
+      "name": "Changelog Update",
+      "category": "documentation",
+      "description": "Update changelog when version changes",
+      "hook": {
+        "name": "Changelog Update",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "file_change",
+          "pattern": "package.json"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "npx conventional-changelog -p angular -i CHANGELOG.md -s",
+              "workingDir": "{{projectRoot}}"
+            }
+          },
+          {
+            "type": "notify",
+            "config": {
+              "title": "Changelog Updated",
+              "message": "CHANGELOG.md has been updated",
+              "type": "info"
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "versionChanged",
+            "operator": "eq",
+            "value": "true"
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["projectRoot"]
+    },
+    {
+      "id": "notify-on-error",
+      "name": "Notify on Error",
+      "category": "notification",
+      "description": "Send notification when an error occurs",
+      "hook": {
+        "name": "Notify on Error",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "error"
+        },
+        "actions": [
+          {
+            "type": "notify",
+            "config": {
+              "title": "Error Occurred",
+              "message": "{{errorMessage}}",
+              "type": "error",
+              "priority": "high"
+            }
+          },
+          {
+            "type": "call_api",
+            "config": {
+              "url": "{{webhookUrl}}",
+              "method": "POST",
+              "body": {
+                "type": "error",
+                "message": "{{errorMessage}}",
+                "stack": "{{errorStack}}",
+                "timestamp": "{{timestamp}}"
+              }
+            }
+          }
+        ],
+        "privacy": "private",
+        "enabled": true
+      },
+      "variables": ["errorMessage", "errorStack", "timestamp", "webhookUrl"]
+    },
+    {
+      "id": "task-complete-notification",
+      "name": "Task Complete Notification",
+      "category": "notification",
+      "description": "Send notification when a task completes",
+      "hook": {
+        "name": "Task Complete Notification",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "task-complete"
+        },
+        "actions": [
+          {
+            "type": "notify",
+            "config": {
+              "title": "Task Complete",
+              "message": "{{taskDescription}} completed in {{duration}}ms",
+              "type": "success"
+            }
+          }
+        ],
+        "privacy": "private",
+        "enabled": true
+      },
+      "variables": ["taskDescription", "duration"]
+    },
+    {
+      "id": "workflow-start-log",
+      "name": "Workflow Start Logger",
+      "category": "logging",
+      "description": "Log when a workflow starts",
+      "hook": {
+        "name": "Workflow Start Logger",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "workflow-start"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "echo '[{{timestamp}}] Workflow {{workflowId}} started' >> workflow.log",
+              "workingDir": "{{projectRoot}}"
+            }
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["workflowId", "timestamp", "projectRoot"]
+    },
+    {
+      "id": "backup-on-change",
+      "name": "Backup on File Change",
+      "category": "backup",
+      "description": "Create backup when important files change",
+      "hook": {
+        "name": "Backup on File Change",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "file_change",
+          "pattern": "{.env,.env.local,config/*.json}"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "cp {{file}} {{file}}.backup.{{timestamp}}",
+              "workingDir": "{{projectRoot}}"
+            }
+          },
+          {
+            "type": "notify",
+            "config": {
+              "title": "Backup Created",
+              "message": "Backup created for {{file}}",
+              "type": "info"
+            }
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["file", "timestamp", "projectRoot"]
+    },
+    {
+      "id": "code-review-reminder",
+      "name": "Code Review Reminder",
+      "category": "collaboration",
+      "description": "Remind to request code review before pushing",
+      "hook": {
+        "name": "Code Review Reminder",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "pre-tool-use"
+        },
+        "actions": [
+          {
+            "type": "notify",
+            "config": {
+              "title": "Code Review Reminder",
+              "message": "Don't forget to request code review!",
+              "type": "info"
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "tool",
+            "operator": "eq",
+            "value": "git"
+          },
+          {
+            "field": "command",
+            "operator": "contains",
+            "value": "push"
+          },
+          {
+            "field": "branch",
+            "operator": "ne",
+            "value": "main"
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["branch"]
+    },
+    {
+      "id": "performance-monitor",
+      "name": "Performance Monitor",
+      "category": "monitoring",
+      "description": "Monitor and log performance metrics",
+      "hook": {
+        "name": "Performance Monitor",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "task-complete"
+        },
+        "actions": [
+          {
+            "type": "transform",
+            "config": {
+              "input": "{{taskDuration}}",
+              "transform": "log-performance",
+              "output": "performance.log"
+            }
+          },
+          {
+            "type": "call_api",
+            "config": {
+              "url": "{{metricsUrl}}",
+              "method": "POST",
+              "body": {
+                "task": "{{taskId}}",
+                "duration": "{{taskDuration}}",
+                "timestamp": "{{timestamp}}"
+              }
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "taskDuration",
+            "operator": "gt",
+            "value": "1000"
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": ["taskId", "taskDuration", "timestamp", "metricsUrl"]
+    }
+  ],
+  "categories": [
+    {
+      "id": "code-quality",
+      "name": {
+        "en": "Code Quality",
+        "zh-CN": "代码质量"
+      },
+      "description": {
+        "en": "Hooks for maintaining code quality and formatting",
+        "zh-CN": "用于维护代码质量和格式化的钩子"
+      },
+      "icon": "✨"
+    },
+    {
+      "id": "git",
+      "name": {
+        "en": "Git Workflow",
+        "zh-CN": "Git 工作流"
+      },
+      "description": {
+        "en": "Hooks for Git operations and version control",
+        "zh-CN": "用于 Git 操作和版本控制的钩子"
+      },
+      "icon": "🔀"
+    },
+    {
+      "id": "testing",
+      "name": {
+        "en": "Testing",
+        "zh-CN": "测试"
+      },
+      "description": {
+        "en": "Hooks for automated testing workflows",
+        "zh-CN": "用于自动化测试工作流的钩子"
+      },
+      "icon": "🧪"
+    },
+    {
+      "id": "documentation",
+      "name": {
+        "en": "Documentation",
+        "zh-CN": "文档"
+      },
+      "description": {
+        "en": "Hooks for documentation generation and updates",
+        "zh-CN": "用于文档生成和更新的钩子"
+      },
+      "icon": "📚"
+    },
+    {
+      "id": "security",
+      "name": {
+        "en": "Security",
+        "zh-CN": "安全"
+      },
+      "description": {
+        "en": "Hooks for security scanning and vulnerability checks",
+        "zh-CN": "用于安全扫描和漏洞检查的钩子"
+      },
+      "icon": "🔒"
+    },
+    {
+      "id": "notification",
+      "name": {
+        "en": "Notifications",
+        "zh-CN": "通知"
+      },
+      "description": {
+        "en": "Hooks for sending notifications and alerts",
+        "zh-CN": "用于发送通知和警报的钩子"
+      },
+      "icon": "🔔"
+    },
+    {
+      "id": "logging",
+      "name": {
+        "en": "Logging",
+        "zh-CN": "日志"
+      },
+      "description": {
+        "en": "Hooks for logging and audit trails",
+        "zh-CN": "用于日志记录和审计跟踪的钩子"
+      },
+      "icon": "📝"
+    },
+    {
+      "id": "backup",
+      "name": {
+        "en": "Backup",
+        "zh-CN": "备份"
+      },
+      "description": {
+        "en": "Hooks for automated backups",
+        "zh-CN": "用于自动备份的钩子"
+      },
+      "icon": "💾"
+    },
+    {
+      "id": "collaboration",
+      "name": {
+        "en": "Collaboration",
+        "zh-CN": "协作"
+      },
+      "description": {
+        "en": "Hooks for team collaboration workflows",
+        "zh-CN": "用于团队协作工作流的钩子"
+      },
+      "icon": "👥"
+    },
+    {
+      "id": "monitoring",
+      "name": {
+        "en": "Monitoring",
+        "zh-CN": "监控"
+      },
+      "description": {
+        "en": "Hooks for performance and system monitoring",
+        "zh-CN": "用于性能和系统监控的钩子"
+      },
+      "icon": "📊"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "menuTitle": "🌐 Agent Browser - AI 浏览器自动化",
+  "menuOptions": {
+    "install": "安装 agent-browser",
+    "status": "查看状态",
+    "update": "更新到最新版",
+    "sessions": "管理会话",
+    "quickTest": "快速测试",
+    "uninstall": "卸载",
+    "back": "返回"
+  },
+  "menuDescriptions": {
+    "install": "安装 agent-browser CLI 和 Chromium 浏览器",
+    "status": "显示安装状态和会话信息",
+    "update": "更新 agent-browser 到最新版本",
+    "sessions": "列出和管理浏览器会话",
+    "quickTest": "打开测试页面验证安装",
+    "uninstall": "从系统中移除 agent-browser"
+  },
+  "installing": "正在安装 agent-browser...",
+  "installSuccess": "agent-browser 安装成功！",
+  "installFailed": "安装 agent-browser 失败",
+  "installingBrowser": "正在安装 Chromium 浏览器...",
+  "browserInstallSuccess": "Chromium 浏览器安装成功！",
+  "browserInstallFailed": "安装 Chromium 浏览器失败",
+  "alreadyInstalled": "agent-browser 已安装 (v{{version}})",
+  "notInstalled": "agent-browser 未安装",
+  "browserNotInstalled": "Chromium 浏览器未安装",
+  "installHint": "运行 'ccjk agent-browser' 进行安装",
+  "browserInstallHint": "运行 'ccjk agent-browser' 并选择 '安装' 来设置浏览器",
+  "updating": "正在从 v{{from}} 更新到 v{{to}}...",
+  "updateSuccess": "已成功更新到 v{{version}}！",
+  "updateFailed": "更新 agent-browser 失败",
+  "updateAvailable": "有可用更新: v{{version}}",
+  "upToDate": "agent-browser 已是最新版本 (v{{version}})",
+  "uninstalling": "正在卸载 agent-browser...",
+  "uninstallSuccess": "agent-browser 卸载成功！",
+  "uninstallFailed": "卸载 agent-browser 失败",
+  "status": {
+    "title": "Agent Browser 状态",
+    "installed": "已安装",
+    "notInstalled": "未安装",
+    "version": "版本",
+    "browser": "浏览器",
+    "browserReady": "就绪",
+    "browserMissing": "未安装",
+    "sessions": "活跃会话"
+  },
+  "sessions": {
+    "title": "浏览器会话",
+    "noSessions": "没有活跃会话",
+    "active": "活跃",
+    "closeAll": "关闭所有会话",
+    "closed": "已关闭 {{count}} 个会话",
+    "closeFailed": "关闭 {{count}} 个会话失败"
+  },
+  "quickTest": {
+    "running": "正在运行快速测试...",
+    "opening": "正在打开测试页面...",
+    "success": "快速测试通过！浏览器自动化工作正常。",
+    "failed": "快速测试失败"
+  },
+  "recommend": {
+    "title": "🌐 推荐安装: Agent Browser",
+    "description": "agent-browser 是专为 AI Agent 优化的无头浏览器自动化 CLI 工具。",
+    "features": [
+      "基于 Rust 的快速浏览器自动化 CLI",
+      "会话隔离支持多 Agent 并发操作",
+      "为 AI 优化的可访问性快照",
+      "与 Claude Code 配合完成网页任务"
+    ],
+    "prompt": "是否要安装 agent-browser？",
+    "skipHint": "稍后可以通过 'ccjk agent-browser' 安装"
+  },
+  "skill": {
+    "installed": "Agent Browser 技能已就绪",
+    "notInstalled": "安装 agent-browser 以启用浏览器自动化技能"
+  }
+}

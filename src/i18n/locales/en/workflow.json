@@ -1,0 +1,39 @@
+{
+  "cleaningOldFiles": "Cleaning up old version files",
+  "failedToInstallAgent": "Failed to install agent",
+  "failedToInstallCommand": "Failed to install command",
+  "installedAgent": "Installed agent",
+  "installedCommand": "Installed command",
+  "installingWorkflow": "Installing workflow",
+  "removedOldFile": "Removed old file",
+  "selectWorkflowType": "Select workflows to install",
+  "workflowInstallError": "workflow installation had errors",
+  "workflowInstallSuccess": "workflow installed successfully",
+
+  "category.planning": "📋 Planning & Design",
+  "category.development": "⚡ Development",
+  "category.versionControl": "🔧 Version Control",
+  "category.quality": "✅ Quality Assurance",
+
+  "tags.recommended": "Recommended",
+  "tags.popular": "Popular",
+  "tags.new": "New",
+  "tags.essential": "Essential",
+  "tags.professional": "Pro",
+
+  "workflowOption.interviewWorkflow": "🌟 Interview-Driven Dev",
+  "workflowStats.interviewWorkflow": "12.5K+ users | Requirements accuracy ↑85%",
+  "workflowDescription.interviewWorkflow": "40+ deep questions to surface hidden assumptions, generate complete specs",
+
+  "workflowOption.essentialTools": "🎯 Feature Planning Suite",
+  "workflowStats.essentialTools": "8.2K+ users | Dev efficiency ↑40%",
+  "workflowDescription.essentialTools": "Project init + Smart planning + UI/UX design all-in-one toolchain",
+
+  "workflowOption.gitWorkflow": "📦 Git Smart Workflow",
+  "workflowStats.gitWorkflow": "15.3K+ users | Commit compliance 100%",
+  "workflowDescription.gitWorkflow": "Smart commit + Safe rollback + Branch cleanup + Worktree management",
+
+  "workflowOption.sixStepsWorkflow": "📝 Six-Step Structured Dev",
+  "workflowStats.sixStepsWorkflow": "5.8K+ users | Code quality ↑35%",
+  "workflowDescription.sixStepsWorkflow": "Research→Ideate→Plan→Execute→Optimize→Review complete dev cycle"
+}

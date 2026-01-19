@@ -1,0 +1,182 @@
+# Post-Release Postmortem Analysis
+# 在发布后自动分析 fix commits 并生成 Postmortem 报告
+#
+# 使用方法:
+# 1. 将此文件复制到你的项目 .github/workflows/ 目录
+# 2. 确保项目已安装 ccjk
+# 3. 配置 GITHUB_TOKEN 权限允许推送
+
+name: Post-Release Postmortem Analysis
+
+on:
+  release:
+    types: [published]
+
+  # 也可以手动触发
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 版本号 (例如 v2.3.0)
+        required: true
+      since:
+        description: 起始版本/标签 (例如 v2.2.0)
+        required: false
+
+jobs:
+  generate-postmortem:
+    name: 📝 Generate Postmortem
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: 📥 Install dependencies
+        run: pnpm install
+
+      - name: 🔍 Determine version info
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            # 获取上一个 release 作为 since
+            SINCE=$(git describe --tags --abbrev=0 ${VERSION}^ 2>/dev/null || echo "")
+          else
+            VERSION="${{ github.event.inputs.version }}"
+            SINCE="${{ github.event.inputs.since }}"
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "since=${SINCE}" >> $GITHUB_OUTPUT
+
+          echo "📦 Version: ${VERSION}"
+          echo "📦 Since: ${SINCE}"
+
+      - name: 📝 Generate Postmortem Report
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SINCE="${{ steps.version.outputs.since }}"
+
+          echo "🔬 Analyzing fix commits..."
+
+          if [ -n "$SINCE" ]; then
+            npx ccjk postmortem generate --version "$VERSION" --since "$SINCE"
+          else
+            npx ccjk postmortem generate --version "$VERSION"
+          fi
+
+      - name: 📊 Show Statistics
+        run: |
+          npx ccjk postmortem stats
+
+      - name: 🔄 Sync to CLAUDE.md
+        run: |
+          npx ccjk postmortem sync
+
+      - name: 📤 Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 检查是否有变更
+          if git diff --quiet ./postmortem/ CLAUDE.md 2>/dev/null; then
+            echo "📭 No changes to commit"
+          else
+            git add ./postmortem/ CLAUDE.md
+            git commit -m "docs(postmortem): add analysis for ${{ steps.version.outputs.version }}
+
+            - Analyzed fix commits since ${{ steps.version.outputs.since }}
+            - Generated new postmortem reports
+            - Synced to CLAUDE.md
+
+            [skip ci]"
+
+            git push
+            echo "✅ Changes committed and pushed"
+          fi
+
+      - name: 📋 Create Summary
+        run: |
+          echo "## 🔬 Postmortem Analysis Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Since:** ${{ steps.version.outputs.since }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          npx ccjk postmortem stats >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # 可选：创建 PR 而不是直接推送
+  create-pr:
+    name: 📝 Create PR (Alternative)
+    runs-on: ubuntu-latest
+    if: false # 默认禁用，如需使用请改为 true
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: 📥 Install dependencies
+        run: pnpm install
+
+      - name: 📝 Generate Postmortem
+        run: |
+          npx ccjk postmortem generate --version "${{ github.event.release.tag_name }}"
+          npx ccjk postmortem sync
+
+      - name: 📤 Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'docs(postmortem): add analysis for ${{ github.event.release.tag_name }}'
+          title: '📝 Postmortem Analysis for ${{ github.event.release.tag_name }}'
+          body: |
+            ## 🔬 Postmortem Analysis
+
+            This PR contains the postmortem analysis for release **${{ github.event.release.tag_name }}**.
+
+            ### Changes
+            - New postmortem reports in `./postmortem/`
+            - Updated `CLAUDE.md` with latest warnings
+
+            ### Review
+            Please review the generated reports and merge if they look correct.
+
+            ---
+            *Auto-generated by CCJK Postmortem System*
+          branch: postmortem/${{ github.event.release.tag_name }}
+          delete-branch: true

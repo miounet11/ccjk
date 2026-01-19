@@ -1,0 +1,21 @@
+{
+  "id": "typescript-expert",
+  "name": {
+    "en": "TypeScript Expert",
+    "zh-CN": "TypeScript 专家"
+  },
+  "description": {
+    "en": "TypeScript best practices, type definitions, generics, and code quality guidelines",
+    "zh-CN": "TypeScript 最佳实践、类型定义、泛型和代码质量指南"
+  },
+  "version": "1.0.0",
+  "author": {
+    "name": "CCJK Team",
+    "url": "https://github.com/anthropics/ccjk"
+  },
+  "category": "development",
+  "tags": ["typescript", "types", "generics", "best-practices", "code-quality"],
+  "permissions": ["fs:read", "shell:execute"],
+  "formatVersion": "2.0",
+  "license": "MIT"
+}

@@ -1,0 +1,100 @@
+{
+  "menu": {
+    "title": "技能管理",
+    "prompt": "请选择操作",
+    "list": "列出所有技能",
+    "run": "运行技能",
+    "info": "查看技能信息",
+    "create": "创建新技能",
+    "batch": "批量操作",
+    "enable": "启用技能",
+    "disable": "禁用技能",
+    "delete": "删除技能",
+    "back": "返回"
+  },
+  "title": {
+    "list": "可用技能列表",
+    "run": "运行技能",
+    "info": "技能信息",
+    "create": "创建新技能"
+  },
+  "message": {
+    "noSkills": "未找到任何技能",
+    "totalSkills": "共 {{count}} 个技能",
+    "skillExecuted": "技能执行成功",
+    "skillCreated": "技能创建成功：{{name}}",
+    "skillEnabled": "技能已启用：{{name}}",
+    "skillDisabled": "技能已禁用：{{name}}",
+    "skillDeleted": "技能已删除：{{name}}",
+    "alreadyEnabled": "技能已经是启用状态：{{name}}",
+    "alreadyDisabled": "技能已经是禁用状态：{{name}}",
+    "deleteCancelled": "删除操作已取消"
+  },
+  "hint": {
+    "createSkill": "提示：使用 'ccjk skills create' 创建新技能",
+    "listSkills": "提示：使用 'ccjk skills list' 查看所有可用技能",
+    "enableSkill": "提示：使用 'ccjk skills enable <名称>' 启用此技能",
+    "runSkill": "提示：使用 'ccjk skills run <名称>' 运行此技能",
+    "copyTemplate": "提示：模板已复制到剪贴板，可以直接粘贴使用"
+  },
+  "label": {
+    "triggers": "触发词",
+    "template": "模板内容",
+    "details": "详细信息",
+    "id": "ID",
+    "version": "版本",
+    "category": "类别",
+    "author": "作者",
+    "tags": "标签",
+    "agents": "关联代理",
+    "characters": "字符",
+    "path": "路径"
+  },
+  "error": {
+    "listFailed": "列出技能失败",
+    "skillNotFound": "未找到技能：{{name}}",
+    "runFailed": "运行技能失败",
+    "infoFailed": "获取技能信息失败",
+    "skillExists": "技能已存在：{{name}}",
+    "nameRequired": "技能名称不能为空",
+    "descriptionRequired": "描述不能为空",
+    "triggersRequired": "触发词不能为空",
+    "createFailed": "创建技能失败",
+    "enableFailed": "启用技能失败",
+    "disableFailed": "禁用技能失败",
+    "deleteFailed": "删除技能失败"
+  },
+  "warning": {
+    "skillDisabled": "技能已禁用：{{name}}"
+  },
+  "prompt": {
+    "skillName": "请输入技能名称",
+    "newSkillName": "请输入新技能名称",
+    "nameEn": "技能名称（英文）",
+    "nameZh": "技能名称（中文）",
+    "descriptionEn": "技能描述（英文）",
+    "descriptionZh": "技能描述（中文）",
+    "category": "选择类别",
+    "triggers": "触发词（用逗号分隔）",
+    "template": "技能模板内容",
+    "confirmDelete": "确认删除技能 {{name}}？(yes/no)"
+  },
+  "category": {
+    "git": "Git 操作",
+    "dev": "开发工具",
+    "testing": "测试",
+    "docs": "文档",
+    "review": "代码审查",
+    "seo": "SEO 优化",
+    "devops": "DevOps",
+    "custom": "自定义"
+  },
+  "batch": {
+    "title": "批量创建技能",
+    "prompt": "选择要创建的技能",
+    "noneSelected": "未选择任何技能",
+    "creating": "正在创建技能",
+    "created": "成功创建 {{count}} 个技能",
+    "failed": "失败 {{count}} 个"
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "title": "Cloud Plugins",
+  "description": "Manage cloud-based plugins",
+  "command": {
+    "description": "Manage cloud-based plugins (list, search, install, recommend)",
+    "list": "List available plugins",
+    "search": "Search plugins by keyword",
+    "install": "Install a plugin",
+    "uninstall": "Uninstall a plugin",
+    "update": "Update installed plugins",
+    "recommend": "Get personalized plugin recommendations",
+    "info": "Show plugin details",
+    "cache": "Manage plugin cache"
+  },
+  "options": {
+    "category": "Filter by category",
+    "limit": "Maximum number of results",
+    "json": "Output in JSON format",
+    "force": "Force operation without confirmation",
+    "dryRun": "Show what would be done without making changes",
+    "path": "Project path to analyze"
+  },
+  "menu": {
+    "search": "Search Plugins",
+    "recommend": "Get Recommendations",
+    "installed": "Installed Plugins",
+    "update": "Update Plugins",
+    "cache": "Manage Cache",
+    "upload": "Upload Plugin"
+  },
+  "prompts": {
+    "searchQuery": "Enter search query",
+    "selectPlugin": "Select a plugin",
+    "confirmInstall": "Install this plugin?",
+    "confirmUninstall": "Uninstall this plugin?",
+    "selectCategory": "Select category"
+  },
+  "status": {
+    "searching": "Searching plugins...",
+    "fetching": "Fetching recommendations...",
+    "installing": "Installing plugin...",
+    "uninstalling": "Uninstalling plugin...",
+    "updating": "Updating plugins...",
+    "cacheClearing": "Clearing cache..."
+  },
+  "success": {
+    "installed": "Plugin installed successfully",
+    "uninstalled": "Plugin uninstalled successfully",
+    "updated": "Plugins updated successfully",
+    "cacheCleared": "Cache cleared successfully"
+  },
+  "errors": {
+    "notFound": "Plugin not found",
+    "installFailed": "Failed to install plugin",
+    "networkError": "Network error, using cached data",
+    "noRecommendations": "No recommendations available",
+    "searchQueryRequired": "Search query is required. Usage: ccjk plugins search <query>",
+    "pluginIdRequired": "Plugin ID is required"
+  },
+  "info": {
+    "name": "Name",
+    "version": "Version",
+    "author": "Author",
+    "category": "Category",
+    "downloads": "Downloads",
+    "rating": "Rating",
+    "description": "Description",
+    "tags": "Tags",
+    "dependencies": "Dependencies",
+    "size": "Size"
+  },
+  "recommendation": {
+    "title": "Recommended Plugins",
+    "reason": "Recommendation Reason",
+    "confidence": "Confidence",
+    "basedOn": "Based on",
+    "projectType": "Project Type",
+    "noPluginsNeeded": "Your project is well configured!",
+    "score": "Relevance Score",
+    "matchingTags": "Matching Tags",
+    "matchingCategories": "Matching Categories",
+    "source": "Source",
+    "cloudSource": "Cloud Recommendations",
+    "localSource": "Local Cache",
+    "hybridSource": "Hybrid (Cloud + Local)",
+    "analyzing": "Analyzing project...",
+    "detectingFrameworks": "Detecting frameworks and tools...",
+    "calculatingScores": "Calculating relevance scores...",
+    "totalEvaluated": "Total plugins evaluated",
+    "recommendedFor": "Recommended for {{projectType}} projects",
+    "matchesCategory": "Matches {{category}} category",
+    "relevantTags": "Relevant tags: {{tags}}",
+    "worksWith": "Works with {{frameworks}}",
+    "generalPurpose": "General purpose plugin for your project",
+    "alreadyInstalled": "Already installed",
+    "notInstalled": "Not installed"
+  },
+  "categories": {
+    "dev": "Development",
+    "seo": "SEO",
+    "devops": "DevOps",
+    "testing": "Testing",
+    "docs": "Documentation",
+    "ai": "AI",
+    "security": "Security",
+    "performance": "Performance",
+    "custom": "Custom"
+  },
+  "cache": {
+    "stats": "Cache Statistics",
+    "totalPlugins": "Total Plugins",
+    "cacheSize": "Cache Size",
+    "lastUpdated": "Last Updated",
+    "expiresAt": "Expires At",
+    "clear": "Clear Cache",
+    "refresh": "Refresh Cache"
+  }
+}

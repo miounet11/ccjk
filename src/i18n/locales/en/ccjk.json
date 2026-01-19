@@ -1,0 +1,276 @@
+{
+  "menu": {
+    "title": "CCJK - Claude Code JinKu",
+    "subtitle": "AI-Powered Development Assistant",
+    "sections": {
+      "quickActions": "Quick Actions",
+      "configuration": "Configuration",
+      "tools": "Tools",
+      "system": "System"
+    },
+    "items": {
+      "fullSetup": "Full Setup",
+      "fullSetupDesc": "Complete CCJK configuration",
+      "updateWorkflows": "Update Workflows",
+      "updateWorkflowsDesc": "Install/update workflow templates",
+      "smartConfig": "Smart Config",
+      "smartConfigDesc": "Auto-configure for project",
+      "apiSettings": "API Settings",
+      "apiSettingsDesc": "Configure API keys and auth",
+      "mcpServices": "MCP Services",
+      "mcpServicesDesc": "Manage MCP server integrations",
+      "personality": "AI Personality",
+      "personalityDesc": "Set output style and language",
+      "permissions": "Permissions",
+      "permissionsDesc": "Manage Claude Code permissions",
+      "ccrRouter": "CCR Router",
+      "ccrRouterDesc": "Claude Code Router proxy",
+      "agentGroups": "Agent Groups",
+      "agentGroupsDesc": "Manage subagent groups",
+      "skills": "Skills",
+      "skillsDesc": "Manage skills library",
+      "configScan": "Config Scan",
+      "configScanDesc": "Find and consolidate configs",
+      "doctor": "Doctor",
+      "doctorDesc": "Run health check",
+      "versions": "Versions",
+      "versionsDesc": "Check for updates",
+      "upgradeAll": "Upgrade All",
+      "upgradeAllDesc": "Upgrade CCJK and Claude Code"
+    },
+    "footer": {
+      "language": "Language",
+      "help": "Help",
+      "quit": "Quit"
+    }
+  },
+  "skills": {
+    "title": "Skills Management",
+    "list": "List all skills",
+    "add": "Add skill",
+    "remove": "Remove skill",
+    "enable": "Enable skill",
+    "disable": "Disable skill",
+    "batch": "Batch create skills",
+    "export": "Export skills",
+    "import": "Import skills",
+    "categories": {
+      "git": "Git Operations",
+      "dev": "Development",
+      "seo": "SEO Optimization",
+      "devops": "DevOps",
+      "custom": "Custom"
+    }
+  },
+  "groups": {
+    "title": "Subagent Groups",
+    "list": "List all groups",
+    "enable": "Enable group",
+    "disable": "Disable group",
+    "create": "Create custom group",
+    "show": "Show group details",
+    "categories": {
+      "language": "Language-specific",
+      "siteType": "Site Type",
+      "seo": "SEO",
+      "devops": "DevOps",
+      "custom": "Custom"
+    }
+  },
+  "plugins": {
+    "title": "Plugin Management",
+    "list": "List plugins",
+    "install": "Install plugin",
+    "uninstall": "Uninstall plugin",
+    "enable": "Enable plugin",
+    "disable": "Disable plugin",
+    "update": "Update plugins"
+  },
+  "shencha": {
+    "title": "ShenCha Audit",
+    "init": "Initialize ShenCha",
+    "start": "Start audit cycle",
+    "run": "Run single audit",
+    "status": "Check status",
+    "report": "View reports",
+    "stop": "Stop current audit"
+  },
+  "health": {
+    "title": "Environment Health",
+    "checking": "Running health check...",
+    "claudeCode": "Claude Code",
+    "ccjk": "CCJK",
+    "nodejs": "Node.js",
+    "npm": "npm",
+    "git": "Git",
+    "api": "API Connectivity",
+    "config": "Config Files",
+    "permissions": "Permissions",
+    "disk": "Disk Space",
+    "score": "Score",
+    "recommendations": "Recommendations"
+  },
+  "permissions": {
+    "title": "Claude Code Permissions",
+    "trustedDirs": "Trusted Directories",
+    "operations": "Pre-authorized Operations",
+    "template": "Template",
+    "templates": {
+      "development": "Development",
+      "readonly": "Read Only",
+      "fullTrust": "Full Trust",
+      "restricted": "Restricted"
+    },
+    "types": {
+      "fileRead": "File Read",
+      "fileWrite": "File Write",
+      "fileDelete": "File Delete",
+      "gitOps": "Git Operations",
+      "npmCmds": "npm Commands",
+      "nodeExec": "Node Execution",
+      "sysCmds": "System Commands",
+      "network": "Network Access",
+      "mcpServer": "MCP Server"
+    }
+  },
+  "upgrade": {
+    "title": "Version Check",
+    "checking": "Checking versions...",
+    "upToDate": "up to date",
+    "updateAvailable": "update available",
+    "upgrading": "Upgrading...",
+    "upgraded": "Upgraded successfully",
+    "failed": "Upgrade failed"
+  },
+  "config": {
+    "title": "Config Files Detected",
+    "primary": "primary",
+    "legacy": "legacy",
+    "project": "project",
+    "conflicts": "Conflicts found",
+    "consolidate": "Consolidate",
+    "viewDetails": "View Details"
+  },
+  "common": {
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "yes": "Yes",
+    "no": "No",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "select": "Select",
+    "returnToMenu": "Return to menu?"
+  },
+  "tools": {
+    "title": "AI Coding Tools",
+    "subtitle": "Manage multiple AI coding assistants",
+    "scan": "Scan installed tools",
+    "install": "Install tool",
+    "configure": "Configure tool",
+    "switch": "Switch active tool",
+    "sync": "Sync configurations",
+    "status": {
+      "installed": "Installed",
+      "notInstalled": "Not installed",
+      "configured": "Configured",
+      "notConfigured": "Not configured"
+    },
+    "categories": {
+      "cli": "CLI Tools",
+      "extension": "IDE Extensions",
+      "editor": "AI Editors"
+    },
+    "list": {
+      "claudeCode": {
+        "name": "Claude Code",
+        "description": "Anthropic official CLI for Claude AI"
+      },
+      "codex": {
+        "name": "Codex",
+        "description": "OpenAI Codex CLI tool"
+      },
+      "aider": {
+        "name": "Aider",
+        "description": "AI pair programming in terminal"
+      },
+      "continue": {
+        "name": "Continue",
+        "description": "Open-source AI code assistant"
+      },
+      "cline": {
+        "name": "Cline",
+        "description": "Autonomous coding agent for VS Code"
+      },
+      "cursor": {
+        "name": "Cursor CLI",
+        "description": "AI-first code editor CLI"
+      }
+    },
+    "actions": {
+      "installAll": "Install all recommended",
+      "configureAll": "Configure all installed",
+      "syncApiKeys": "Sync API keys across tools",
+      "syncSkills": "Sync skills to all tools"
+    }
+  },
+  "apiRouter": {
+    "title": "API Configuration",
+    "subtitle": "Configure API providers for Claude Code",
+    "currentConfig": "Current API Configuration",
+    "noApiConfigured": "No API configured",
+    "modes": {
+      "official": "Official Anthropic",
+      "simple": "Simple Mode (API Proxy)",
+      "ccr": "CCR Advanced Router"
+    },
+    "wizard": {
+      "title": "API Configuration Wizard",
+      "selectMode": "Select configuration mode",
+      "quickSetup": "Quick Setup (Recommended) - Choose preset provider",
+      "officialApi": "Official Anthropic API - Direct connection",
+      "customConfig": "Custom Configuration - Manual API URL and key",
+      "ccrAdvanced": "CCR Advanced Router - Full Claude Code Router setup"
+    },
+    "providers": {
+      "title": "Available API Providers",
+      "recommended": "Recommended",
+      "chinese": "Chinese Providers",
+      "free": "Free Tier",
+      "local": "Local",
+      "viewAll": "View all providers..."
+    },
+    "setup": {
+      "success": "API configured successfully!",
+      "failed": "API configuration failed",
+      "provider": "Provider",
+      "defaultModel": "Default model",
+      "enterApiKey": "Enter API key",
+      "enterBaseUrl": "Enter API Base URL",
+      "apiKeyRequired": "API key is required",
+      "urlRequired": "URL is required",
+      "urlMustStartHttp": "URL must start with http:// or https://"
+    },
+    "test": {
+      "testing": "Testing API connection...",
+      "success": "API connection successful",
+      "failed": "API connection failed"
+    },
+    "categories": {
+      "official": "Official",
+      "openai-compatible": "OpenAI Compatible",
+      "chinese": "Chinese Providers",
+      "free": "Free Tier",
+      "local": "Local"
+    }
+  }
+}

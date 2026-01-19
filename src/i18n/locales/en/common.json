@@ -1,0 +1,21 @@
+{
+  "multiSelectHint": " (Space to select, a to select all, i to invert, Enter to confirm)",
+  "skip": "Skip",
+  "emptyToSkip": " (press Enter with empty content to skip)",
+  "cancelled": "Operation cancelled",
+  "error": "Error",
+  "complete": "🎉 Setup complete! Use 'claude' command to start.",
+  "none": "None",
+  "enterChoice": "Enter your choice and press enter (case-insensitive)",
+  "invalidChoice": "Invalid choice. Please enter a valid option.",
+  "goodbye": "👋 Thanks for using CCJK! Goodbye!",
+  "returnToMenu": "Return to main menu?",
+  "back": "Back",
+  "operationFailed": "Operation failed",
+  "backupCreated": "📁 Configuration backup created: {{path}}",
+  "current": "current",
+  "claudeCode": "Claude Code",
+  "codex": "Codex",
+  "yes": "Yes",
+  "pressEnterToContinue": "Press Enter to continue..."
+}

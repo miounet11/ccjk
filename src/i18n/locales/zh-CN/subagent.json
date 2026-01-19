@@ -1,0 +1,69 @@
+{
+  "subagent": {
+    "title": "子代理管理",
+    "description": "使用 fork/inherit 模式管理 Claude Code 子代理",
+    "created": "子代理已创建：{{name}}",
+    "completed": "子代理已完成：{{name}}",
+    "failed": "子代理失败：{{name}}",
+    "timeout": "子代理超时：{{name}}",
+    "cancelled": "子代理已取消：{{name}}",
+    "notFound": "未找到子代理：{{id}}",
+    "alreadyExists": "子代理已存在：{{id}}",
+    "maxConcurrentReached": "已达到最大并发子代理数限制 ({{max}})。活跃数：{{active}}",
+    "invalidConfig": "无效的子代理配置",
+    "invalidId": "子代理配置必须有有效的 id",
+    "invalidName": "子代理配置必须有有效的 name",
+    "invalidMode": "子代理模式必须是 \"fork\" 或 \"inherit\"",
+    "invalidTimeout": "子代理超时时间必须是正数",
+    "alreadyFinished": "子代理 {{id}} 已完成，状态：{{status}}",
+    "cannotCancel": "无法取消状态为 {{status}} 的子代理 {{id}}",
+    "mode": {
+      "fork": "Fork（隔离上下文）",
+      "inherit": "Inherit（继承父上下文）"
+    },
+    "status": {
+      "pending": "等待中",
+      "running": "运行中",
+      "completed": "已完成",
+      "failed": "失败",
+      "timeout": "超时",
+      "cancelled": "已取消"
+    },
+    "transcript": {
+      "saved": "记录已保存：{{path}}",
+      "saveFailed": "保存记录失败：{{error}}",
+      "loaded": "记录已加载：{{id}}",
+      "loadFailed": "加载记录失败：{{error}}",
+      "notFound": "未找到记录：{{path}}",
+      "cleanupComplete": "已清理 {{count}} 个旧记录",
+      "cleanupFailed": "清理记录失败：{{error}}",
+      "type": {
+        "user": "用户",
+        "assistant": "助手",
+        "tool": "工具",
+        "system": "系统",
+        "error": "错误"
+      }
+    },
+    "stats": {
+      "total": "总子代理数：{{count}}",
+      "active": "活跃：{{count}}",
+      "pending": "等待中：{{count}}",
+      "running": "运行中：{{count}}",
+      "completed": "已完成：{{count}}",
+      "failed": "失败：{{count}}",
+      "timeout": "超时：{{count}}",
+      "cancelled": "已取消：{{count}}",
+      "transcripts": "记录数：{{count}}",
+      "transcriptSize": "总大小：{{size}} 字节",
+      "oldestTranscript": "最早：{{date}}",
+      "newestTranscript": "最新：{{date}}"
+    },
+    "manager": {
+      "initialized": "SubagentManager 已初始化",
+      "cleared": "已清理 {{count}} 个已完成的子代理",
+      "clearedAll": "已清理所有子代理",
+      "removed": "已移除子代理：{{id}}"
+    }
+  }
+}

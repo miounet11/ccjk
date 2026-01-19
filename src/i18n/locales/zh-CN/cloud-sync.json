@@ -1,0 +1,147 @@
+{
+  "title": "云同步管理",
+  "description": "跨设备同步配置、技能和工作流",
+
+  "status": {
+    "title": "同步状态",
+    "lastSync": "上次同步",
+    "pendingChanges": "待同步更改",
+    "connected": "已连接",
+    "disconnected": "未连接",
+    "syncing": "同步中...",
+    "upToDate": "已是最新",
+    "hasChanges": "有 {{count}} 项更改待同步",
+    "noChanges": "无待同步更改",
+    "never": "从未同步"
+  },
+
+  "push": {
+    "title": "推送更改",
+    "pushing": "正在推送更改...",
+    "success": "成功推送 {{count}} 项更改",
+    "failed": "推送失败：{{error}}",
+    "noChanges": "没有需要推送的更改",
+    "confirmOverwrite": "远程有更新的更改，确定要覆盖吗？"
+  },
+
+  "pull": {
+    "title": "拉取更改",
+    "pulling": "正在拉取更改...",
+    "success": "成功拉取 {{count}} 项更改",
+    "failed": "拉取失败：{{error}}",
+    "noChanges": "远程没有新的更改",
+    "conflicts": "发现 {{count}} 个冲突，请解决后再继续"
+  },
+
+  "config": {
+    "title": "配置云存储",
+    "selectProvider": "选择云存储提供商",
+    "github": {
+      "name": "GitHub Gist",
+      "description": "使用 GitHub Gist 存储（推荐）",
+      "tokenPrompt": "请输入 GitHub 个人访问令牌（需要 gist 权限）",
+      "tokenHelp": "在 GitHub Settings > Developer settings > Personal access tokens 创建",
+      "success": "GitHub Gist 配置成功",
+      "failed": "GitHub Gist 配置失败：{{error}}"
+    },
+    "webdav": {
+      "name": "WebDAV",
+      "description": "使用 WebDAV 服务器（坚果云、Nextcloud 等）",
+      "urlPrompt": "请输入 WebDAV 服务器地址",
+      "usernamePrompt": "请输入用户名",
+      "passwordPrompt": "请输入密码或应用专用密码",
+      "success": "WebDAV 配置成功",
+      "failed": "WebDAV 配置失败：{{error}}"
+    },
+    "local": {
+      "name": "本地文件夹",
+      "description": "使用本地文件夹（配合 Dropbox、OneDrive 等）",
+      "pathPrompt": "请输入同步文件夹路径",
+      "success": "本地文件夹配置成功",
+      "failed": "本地文件夹配置失败：{{error}}"
+    },
+    "testConnection": "测试连接...",
+    "connectionSuccess": "连接成功",
+    "connectionFailed": "连接失败：{{error}}"
+  },
+
+  "backup": {
+    "title": "备份管理",
+    "create": {
+      "title": "创建备份",
+      "namePrompt": "请输入备份名称（可选）",
+      "creating": "正在创建备份...",
+      "success": "备份创建成功：{{name}}",
+      "failed": "备份创建失败：{{error}}"
+    },
+    "list": {
+      "title": "备份列表",
+      "empty": "没有可用的备份",
+      "item": "{{name}} - {{date}} ({{size}})"
+    },
+    "restore": {
+      "title": "恢复备份",
+      "selectBackup": "选择要恢复的备份",
+      "confirm": "确定要恢复到此备份吗？当前配置将被覆盖。",
+      "restoring": "正在恢复备份...",
+      "success": "备份恢复成功",
+      "failed": "备份恢复失败：{{error}}"
+    },
+    "delete": {
+      "title": "删除备份",
+      "confirm": "确定要删除此备份吗？此操作不可撤销。",
+      "success": "备份已删除",
+      "failed": "删除备份失败：{{error}}"
+    }
+  },
+
+  "conflicts": {
+    "title": "冲突管理",
+    "noConflicts": "没有冲突",
+    "found": "发现 {{count}} 个冲突",
+    "item": {
+      "file": "文件：{{path}}",
+      "localVersion": "本地版本",
+      "remoteVersion": "远程版本",
+      "localTime": "本地修改时间：{{time}}",
+      "remoteTime": "远程修改时间：{{time}}"
+    },
+    "resolve": {
+      "title": "解决冲突",
+      "keepLocal": "保留本地版本",
+      "keepRemote": "保留远程版本",
+      "merge": "手动合并",
+      "success": "冲突已解决",
+      "failed": "解决冲突失败：{{error}}"
+    }
+  },
+
+  "syncItems": {
+    "config": "配置",
+    "skills": "技能",
+    "workflows": "工作流",
+    "all": "全部"
+  },
+
+  "errors": {
+    "notConfigured": "云同步尚未配置，请先运行 /sync config",
+    "networkError": "网络错误：{{error}}",
+    "authError": "认证失败，请检查凭据",
+    "permissionError": "权限不足：{{error}}",
+    "storageError": "存储错误：{{error}}",
+    "encryptionError": "加密/解密错误：{{error}}",
+    "invalidBackup": "无效的备份文件",
+    "backupNotFound": "找不到指定的备份"
+  },
+
+  "commands": {
+    "status": "查看同步状态",
+    "push": "推送本地更改",
+    "pull": "拉取远程更改",
+    "config": "配置云存储",
+    "backup": "备份管理",
+    "conflicts": "查看冲突",
+    "resolve": "解决冲突",
+    "reset": "重置同步状态"
+  }
+}
