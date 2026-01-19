@@ -41,12 +41,42 @@ npx ccjk  # Just one line, get started now
 
 ---
 
+## 🎲 Preface
+
+**This is not an ordinary CLI tool.**
+
+When AI coding assistants still make you repeat context, CCJK has already given Claude Code permanent memory.
+
+When others are still manually configuring 15+ steps, CCJK completes everything with one command.
+
+**This is Claude Code's cognitive enhancement engine, and your secret weapon for 10x efficiency.**
+
+---
+
+<p align="center">
+  <a href="#核心理念"><img src="https://img.shields.io/badge/🔮_Smart_Skills-6+_Built--in-purple?style=for-the-badge" alt="Smart Skills"></a>
+  <a href="#multi-agent-collaboration"><img src="https://img.shields.io/badge/🤖_Multi--Agent-13+_Agents-red?style=for-the-badge" alt="Multi-Agent"></a>
+  <a href="#ecosystem-integration"><img src="https://img.shields.io/badge/🔌_Ecosystem-One--Click_Setup-green?style=for-the-badge" alt="Ecosystem"></a>
+  <a href="#real-performance-data"><img src="https://img.shields.io/badge/⚡_Performance-73%25_Savings-orange?style=for-the-badge" alt="Performance"></a>
+  <a href="#smart-notifications"><img src="https://img.shields.io/badge/🔔_Notifications-Multi--Channel-yellow?style=for-the-badge" alt="Notifications"></a>
+</p>
+
+<p align="center">
+  <a href="ccjk/docs/zh-CN/features/skills.md"><img src="https://img.shields.io/badge/📚_完整文档-中文-blue?style=for-the-badge" alt="中文文档"></a>
+  <a href="ccjk/docs/en/getting-started/index.md"><img src="https://img.shields.io/badge/📖_Full_Docs-English-blue?style=for-the-badge" alt="English Docs"></a>
+  <a href="https://t.me/ccjk_community"><img src="https://img.shields.io/badge/💬_Community-Telegram-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
+</p>
+
+---
+
 <div align="center">
 
 **Choose Your Journey:**
 
 [⚡ 30-Second Start](#30-second-quick-start) ·
 [🎯 Why CCJK](#why-ccjk) ·
+[🐉 Twin Dragons](#twin-dragons-philosophy) ·
+[🧭 Dao·Fa·Shu·Qi](#daofashuqi) ·
 [✨ Core Features](#core-features) ·
 [📊 Real Data](#real-performance-data) ·
 [🚀 Full Guide](#complete-guide)
@@ -200,6 +230,161 @@ AI-generated code goes straight to production, then production explodes.
 > — Zhang Wei, Senior Engineer at Fortune 500 Company
 
 [See More User Stories](#developer-community) →
+
+</div>
+
+---
+
+<div align="center">
+
+**If CCJK helped you, please give us a ⭐ Star!**
+
+<sub>Your Star is our motivation to keep improving ❤️</sub>
+
+<br/>
+
+<a href="https://github.com/miounet11/ccjk/stargazers">
+  <img src="https://img.shields.io/github/stars/miounet11/ccjk?style=social" alt="GitHub Stars" />
+</a>
+
+</div>
+
+---
+
+## 🐉 Twin Dragons Philosophy
+
+<div align="center">
+
+> **"Without Claude Code, there is no CCJK. Without CCJK, there is no better Claude Code experience."**
+
+</div>
+
+<br/>
+
+CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer** that unlocks Claude Code's full potential.
+
+<table>
+<tr>
+<td width="50%">
+
+### 🎯 Core Philosophy
+
+**Symbiotic Relationship**:
+- Claude Code provides power → CCJK amplifies experience
+- User feedback improves both → Symbiotic evolution
+- Twin dragons, complementary prosperity
+
+**Design Principles**:
+- Never break Claude Code's native functionality
+- Always enhance, never replace
+- Seamless integration, invisible enhancement
+
+</td>
+<td width="50%">
+
+### 📈 Value Proposition
+
+| Claude Code Native | CCJK Enhanced | Improvement |
+|:------------------|:----------|:-----------:|
+| Manual 15+ step config | One-click setup | ↓95% |
+| Repeat context management | Smart orchestration | ↓73% |
+| Single AI response | Multi-agent collaboration | ↑89% |
+| Isolated tool usage | Unified ecosystem | ↓80% |
+| Manual updates | Auto-sync evolution | ↓100% |
+
+</td>
+</tr>
+</table>
+
+[Deep Dive into Twin Dragons Philosophy](docs/philosophy.md) →
+
+---
+
+## 🧭 Dao·Fa·Shu·Qi
+
+<div align="center">
+
+### Ancient Wisdom Meets Modern AI
+
+</div>
+
+<table>
+<tr>
+<td width="25%" align="center">
+
+### 道 (Dao)
+**Core Principles**
+
+<br/>
+
+- **If AI can do it, don't do it manually**
+- **Ask AI for everything**
+- **Context is the first principle**
+
+<br/>
+
+<sub>The philosophical foundation</sub>
+
+</td>
+<td width="25%" align="center">
+
+### 法 (Fa)
+**Methodology**
+
+<br/>
+
+- **One-sentence goal + non-goals**
+- **Copy, don't reinvent**
+- **Interface first, implementation later**
+
+<br/>
+
+<sub>The systematic approach</sub>
+
+</td>
+<td width="25%" align="center">
+
+### 术 (Shu)
+**Techniques**
+
+<br/>
+
+- **Clearly state: what can/cannot change**
+- **Debug: expected vs actual + minimal reproduction**
+- **Switch conversations when code grows**
+
+<br/>
+
+<sub>The practical tactics</sub>
+
+</td>
+<td width="25%" align="center">
+
+### 器 (Qi)
+**Tools**
+
+<br/>
+
+- 🔮 Smart Skills System
+- 🤖 13+ AI Agents
+- 🔌 Ecosystem Integration
+- ⚡ Performance Optimization
+
+<br/>
+
+<sub>The concrete implementation</sub>
+
+</td>
+</tr>
+</table>
+
+<br/>
+
+<div align="center">
+
+> **"道生一，一生二，二生三，三生万物"**
+>
+> *From principles to methodology, from techniques to tools, CCJK embodies the complete path of AI-assisted development.*
 
 </div>
 
@@ -423,6 +608,14 @@ Unified Report
 
 ---
 
+<div align="center">
+
+**⭐ If you find CCJK useful, please give us a Star! Your support is our greatest motivation.**
+
+</div>
+
+---
+
 ## 🐉 Twin Dragons Philosophy
 
 <div align="center">
@@ -478,41 +671,37 @@ CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer**
 <td align="center" width="25%">
 
 ### 📈 This Week
-
 <img src="https://img.shields.io/badge/+1,234-New_Users-00D4AA?style=for-the-badge&labelColor=1a1a2e" />
-
-<br/><sub>Growing strong</sub>
 
 </td>
 <td align="center" width="25%">
 
 ### ⭐ GitHub Stars
-
 <img src="https://img.shields.io/github/stars/miounet11/ccjk?style=for-the-badge&color=FFE66D&labelColor=1a1a2e" />
-
-<br/><sub>Thank you for trusting us</sub>
 
 </td>
 <td align="center" width="25%">
 
 ### 🚀 Daily Active
-
 <img src="https://img.shields.io/badge/8,500+-Active_Users-FF6B6B?style=for-the-badge&labelColor=1a1a2e" />
-
-<br/><sub>High engagement community</sub>
 
 </td>
 <td align="center" width="25%">
 
-### 💬 Discord Members
-
+### 💬 Community
 <img src="https://img.shields.io/badge/2,300+-Members-9B59B6?style=for-the-badge&labelColor=1a1a2e" />
-
-<br/><sub>Real-time support</sub>
 
 </td>
 </tr>
 </table>
+
+<br/>
+
+<div align="center">
+
+**⭐ If you find CCJK useful, please give us a Star! Your support is our greatest motivation.**
+
+</div>
 
 <br/>
 
@@ -591,6 +780,20 @@ CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer**
 - 🎯 Smart Recommendation Engine (Auto-discover optimization opportunities)
 
 [View Complete Roadmap](docs/roadmap.md) →
+
+</div>
+
+---
+
+<div align="center">
+
+**⭐ Star us on GitHub to stay updated with new features!**
+
+<br/>
+
+<a href="https://github.com/miounet11/ccjk/stargazers">
+  <img src="https://img.shields.io/github/stars/miounet11/ccjk?style=social" alt="GitHub Stars" />
+</a>
 
 </div>
 
@@ -710,9 +913,9 @@ Completely free and open source (MIT License). We're sustained by community cont
 
 <br/>
 
-**If CCJK helped you, please give us a ⭐ Star!**
+**🌟 If CCJK helped you, please give us a ⭐ Star!**
 
-<sub>Your star is our motivation to keep improving ❤️</sub>
+<sub>Your Star is our motivation to keep improving ❤️</sub>
 
 <br/>
 
@@ -724,7 +927,7 @@ Completely free and open source (MIT License). We're sustained by community cont
 
 ---
 
-### 📞 Contact Us
+### 📞 Contact & Support
 
 <table>
 <tr>
@@ -733,6 +936,13 @@ Completely free and open source (MIT License). We're sustained by community cont
 **💬 Discord**
 
 [Join Community](https://discord.gg/...)
+
+</td>
+<td align="center">
+
+**📱 Telegram**
+
+[Join Group](https://t.me/ccjk_community)
 
 </td>
 <td align="center">
@@ -761,13 +971,49 @@ Completely free and open source (MIT License). We're sustained by community cont
 
 ---
 
+<br/>
+
+<div align="center">
+
+### 💝 Support CCJK Development
+
+If CCJK saves you time and money, consider supporting us:
+
+<br/>
+
+<a href="https://github.com/sponsors/miounet11">
+  <img src="https://img.shields.io/badge/Sponsor-GitHub_Sponsors-EA4AAA?style=for-the-badge&logo=github" alt="GitHub Sponsors" />
+</a>
+&nbsp;&nbsp;
+<a href="https://www.buymeacoffee.com/ccjk">
+  <img src="https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee" />
+</a>
+
+<br/><br/>
+
+<sub>Every contribution helps us maintain and improve CCJK for the community ❤️</sub>
+
+</div>
+
+<br/>
+
+---
+
 ### 📄 License
 
 MIT © [CCJK Contributors](https://github.com/miounet11/ccjk/graphs/contributors)
 
 ---
 
+<div align="center">
+
 <sub>Made with ❤️ by the CCJK community</sub>
+
+<br/><br/>
+
+**⭐ Don't forget to star this repo if you find it useful! ⭐**
+
+</div>
 
 </div>
 
