@@ -1,8 +1,26 @@
+# Dependencies
 node_modules/
 dist/
 *.log
 .DS_Store
 coverage/
+*.tsbuildinfo
+
+# Environment
 .env
 .env.local
-*.tsbuildinfo
+
+# Development & AI Configurations (Private)
+.ccjk/
+.claude/
+.serena/
+.bmad-core/
+.clinerules
+
+# IDE
+.vscode/
+.idea/
+
+# Backup
+*.backup
+*.bak
