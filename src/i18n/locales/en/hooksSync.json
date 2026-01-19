@@ -1,0 +1,133 @@
+{
+  "banner": {
+    "title": "Hooks Cloud Sync",
+    "description": "Manage and synchronize automation hooks with the cloud"
+  },
+  "menu": {
+    "title": "Hooks Sync Menu",
+    "choices": {
+      "sync": "Sync hooks from cloud",
+      "list": "List all hooks",
+      "enable": "Enable a hook",
+      "disable": "Disable a hook",
+      "templates": "Browse hook templates",
+      "upload": "Upload local hook to cloud",
+      "download": "Download hook from cloud",
+      "back": "Back to main menu"
+    }
+  },
+  "actions": {
+    "syncing": "Syncing hooks from cloud...",
+    "syncSuccess": "Successfully synced {{count}} hooks",
+    "syncError": "Failed to sync hooks: {{error}}",
+    "syncCompleted": "Sync completed",
+    "listing": "Loading hooks...",
+    "enabling": "Enabling hook...",
+    "enableSuccess": "Hook '{{name}}' enabled successfully",
+    "enableError": "Failed to enable hook: {{error}}",
+    "disabling": "Disabling hook...",
+    "disableSuccess": "Hook '{{name}}' disabled successfully",
+    "disableError": "Failed to disable hook: {{error}}",
+    "uploading": "Uploading hooks to cloud...",
+    "uploadSuccess": "Hook uploaded successfully",
+    "uploadCompleted": "Upload completed",
+    "uploadError": "Failed to upload hook: {{error}}",
+    "downloading": "Downloading hooks from cloud...",
+    "downloadSuccess": "Hook downloaded successfully",
+    "downloadCompleted": "Download completed",
+    "downloadError": "Failed to download hook: {{error}}",
+    "hookEnabled": "Hook enabled",
+    "hookDisabled": "Hook disabled",
+    "hookToggled": "Hook {{status}}: {{name}}",
+    "templateInstalled": "Template installed: {{name}}",
+    "installError": "Install error: {{error}}"
+  },
+  "prompts": {
+    "selectHook": "Select a hook:",
+    "selectTemplate": "Select a template to install:",
+    "selectCategory": "Select a category:",
+    "selectPrivacy": "Select privacy level:",
+    "enterHookName": "Enter hook name:",
+    "enterDescription": "Enter description:",
+    "confirmUpload": "Upload this hook to cloud?",
+    "confirmDownload": "Download and install this hook?",
+    "confirmEnable": "Enable this hook?",
+    "confirmDisable": "Disable this hook?",
+    "confirmInstall": "Install this template?"
+  },
+  "labels": {
+    "hookId": "Hook ID",
+    "name": "Name",
+    "description": "Description",
+    "type": "Type",
+    "category": "Category",
+    "categories": "Categories",
+    "privacy": "Privacy",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "lastSynced": "Last Synced",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "uploaded": "Uploaded",
+    "downloaded": "Downloaded",
+    "skipped": "Skipped",
+    "failed": "Failed",
+    "total": "Total",
+    "found": "Found",
+    "localHooks": "Local Hooks",
+    "variables": "Variables"
+  },
+  "categories": {
+    "git": "Git Automation",
+    "build": "Build & Deploy",
+    "testing": "Testing",
+    "linting": "Code Quality",
+    "security": "Security",
+    "documentation": "Documentation",
+    "notification": "Notifications",
+    "custom": "Custom"
+  },
+  "privacy": {
+    "private": "Private (only you)",
+    "team": "Team (your organization)",
+    "public": "Public (everyone)"
+  },
+  "hookTypes": {
+    "pre-commit": "Pre-commit",
+    "post-commit": "Post-commit",
+    "pre-push": "Pre-push",
+    "post-merge": "Post-merge",
+    "pre-rebase": "Pre-rebase"
+  },
+  "templates": {
+    "title": "Hook Templates",
+    "description": "Browse and install pre-configured hook templates",
+    "noTemplates": "No templates available",
+    "installing": "Installing template...",
+    "installSuccess": "Template installed successfully",
+    "installError": "Failed to install template: {{error}}"
+  },
+  "errors": {
+    "noHooks": "No hooks found",
+    "noHooksFound": "No hooks found",
+    "noTemplatesFound": "No templates found",
+    "hookNotFound": "Hook not found: {{id}}",
+    "invalidHookId": "Invalid hook ID",
+    "syncFailed": "Failed to sync hooks",
+    "uploadFailed": "Failed to upload hook",
+    "downloadFailed": "Failed to download hook",
+    "enableFailed": "Failed to enable hook",
+    "disableFailed": "Failed to disable hook",
+    "loadHooksFailed": "Failed to load local hooks:",
+    "saveHooksFailed": "Failed to save local hooks:",
+    "networkError": "Network error: {{error}}",
+    "authError": "Authentication error. Please check your credentials.",
+    "permissionError": "Permission denied. You don't have access to this hook."
+  },
+  "info": {
+    "noLocalHooks": "No local hooks found. Sync from cloud to get started.",
+    "syncRecommended": "It's recommended to sync hooks regularly to stay up to date.",
+    "cloudStorageInfo": "Hooks are stored securely in the cloud and synced across your devices.",
+    "privacyInfo": "Private hooks are only visible to you. Team hooks are shared with your organization."
+  }
+}

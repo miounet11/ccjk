@@ -1,0 +1,14 @@
+{
+  "scanning": "正在扫描代码库...",
+  "analyzing": "正在分析代码质量...",
+  "fixing": "正在应用修复...",
+  "reportGenerated": "报告已生成：{{path}}",
+  "scanComplete": "扫描完成",
+  "fixesApplied": "已应用 {{count}} 个修复",
+  "noIssuesFound": "未发现问题",
+  "errorScanning": "扫描时出错：{{error}}",
+  "errorAnalyzing": "分析时出错：{{error}}",
+  "errorFixing": "应用修复时出错：{{error}}",
+  "errorGeneratingReport": "生成报告时出错：{{error}}",
+  "successMessage": "ShenCha 分析成功完成"
+}

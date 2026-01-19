@@ -1,0 +1,21 @@
+{
+  "id": "security-audit",
+  "name": {
+    "en": "Security Audit",
+    "zh-CN": "安全审计"
+  },
+  "description": {
+    "en": "Comprehensive security audit for code vulnerabilities including XSS, SQL injection, CSRF, authentication, and dependency security",
+    "zh-CN": "全面的代码安全审计，包括 XSS、SQL 注入、CSRF、认证授权和依赖安全检查"
+  },
+  "version": "1.0.0",
+  "author": {
+    "name": "CCJK Team",
+    "url": "https://github.com/anthropics/ccjk"
+  },
+  "category": "security",
+  "tags": ["security", "audit", "xss", "sql-injection", "csrf", "authentication", "vulnerability"],
+  "permissions": ["file:read", "shell:execute"],
+  "formatVersion": "2.0",
+  "license": "MIT"
+}

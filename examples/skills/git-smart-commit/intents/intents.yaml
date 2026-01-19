@@ -1,0 +1,26 @@
+id: intent:git-smart-commit
+name:
+  en: Smart Commit
+  zh-CN: 智能提交
+patterns:
+  - '提交.*代码'
+  - '提交.*更改'
+  - 'commit.*changes'
+  - '写.*commit'
+  - '生成.*提交信息'
+  - 'generate.*commit'
+  - 'smart.*commit'
+keywords:
+  - commit
+  - 提交
+  - git
+  - message
+  - 信息
+contextSignals:
+  - git_is_repo
+  - git_has_staged
+priority: 95
+pluginId: git-smart-commit
+skillId: smart-commit
+minConfidence: 0.7
+autoExecute: false

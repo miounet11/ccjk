@@ -1,0 +1,66 @@
+{
+  "id": "code-reviewer",
+  "name": {
+    "en": "Code Reviewer",
+    "zh-CN": "代码审查"
+  },
+  "description": {
+    "en": "Perform intelligent code reviews based on best practices for security, quality, performance, and maintainability",
+    "zh-CN": "基于安全、质量、性能和可维护性最佳实践进行智能代码审查"
+  },
+  "version": "1.0.0",
+  "author": {
+    "name": "CCJK Team",
+    "url": "https://github.com/anthropics/ccjk"
+  },
+  "category": "code-quality",
+  "tags": [
+    "code-review",
+    "security",
+    "performance",
+    "quality",
+    "best-practices",
+    "lint",
+    "audit"
+  ],
+  "permissions": [
+    "git:read",
+    "file:read",
+    "shell:execute"
+  ],
+  "formatVersion": "2.0",
+  "license": "MIT",
+  "keywords": {
+    "en": [
+      "review",
+      "audit",
+      "check",
+      "inspect",
+      "analyze",
+      "security",
+      "performance",
+      "quality"
+    ],
+    "zh-CN": [
+      "审查",
+      "审计",
+      "检查",
+      "检视",
+      "分析",
+      "安全",
+      "性能",
+      "质量"
+    ]
+  },
+  "config": {
+    "defaultSeverity": "medium",
+    "categories": [
+      "security",
+      "quality",
+      "performance",
+      "maintainability",
+      "style"
+    ],
+    "maxDiffLines": 500
+  }
+}

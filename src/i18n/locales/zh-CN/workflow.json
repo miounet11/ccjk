@@ -1,0 +1,39 @@
+{
+  "cleaningOldFiles": "清理旧版本文件",
+  "failedToInstallAgent": "安装代理失败",
+  "failedToInstallCommand": "安装命令失败",
+  "installedAgent": "已安装代理",
+  "installedCommand": "已安装命令",
+  "installingWorkflow": "正在安装工作流",
+  "removedOldFile": "已删除旧文件",
+  "selectWorkflowType": "选择要安装的工作流",
+  "workflowInstallError": "工作流安装出错",
+  "workflowInstallSuccess": "工作流安装成功",
+
+  "category.planning": "📋 规划与设计",
+  "category.development": "⚡ 开发与编码",
+  "category.versionControl": "🔧 版本控制",
+  "category.quality": "✅ 质量保证",
+
+  "tags.recommended": "推荐",
+  "tags.popular": "热门",
+  "tags.new": "新",
+  "tags.essential": "必备",
+  "tags.professional": "专业",
+
+  "workflowOption.interviewWorkflow": "🌟 访谈驱动开发",
+  "workflowStats.interviewWorkflow": "12.5K+ 用户 | 需求准确率 ↑85%",
+  "workflowDescription.interviewWorkflow": "40+ 深度问题发现隐藏假设，生成完整规格说明书",
+
+  "workflowOption.essentialTools": "🎯 功能规划套件",
+  "workflowStats.essentialTools": "8.2K+ 用户 | 开发效率 ↑40%",
+  "workflowDescription.essentialTools": "项目初始化 + 智能规划 + UI/UX 设计一站式工具链",
+
+  "workflowOption.gitWorkflow": "📦 Git 智能工作流",
+  "workflowStats.gitWorkflow": "15.3K+ 用户 | 提交规范率 100%",
+  "workflowDescription.gitWorkflow": "智能提交 + 安全回滚 + 分支清理 + 工作树管理",
+
+  "workflowOption.sixStepsWorkflow": "📝 六步结构化开发",
+  "workflowStats.sixStepsWorkflow": "5.8K+ 用户 | 代码质量 ↑35%",
+  "workflowDescription.sixStepsWorkflow": "研究→构思→计划→执行→优化→评审 完整开发闭环"
+}

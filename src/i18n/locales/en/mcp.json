@@ -1,0 +1,127 @@
+{
+  "configureMcp": "Configure MCP services?",
+  "mcpBackupSuccess": "Original MCP config backed up",
+  "mcpConfigSuccess": "MCP services configured",
+  "selectMcpServices": "Select MCP services to install",
+  "services.context7.description": "Query latest library documentation and code examples",
+  "services.context7.name": "Context7 Docs",
+  "services.open-websearch.description": "Web search using DuckDuckGo, Bing, and Brave search engines",
+  "services.open-websearch.name": "Open Web Search",
+  "services.mcp-deepwiki.description": "Query GitHub repository documentation and examples",
+  "services.mcp-deepwiki.name": "DeepWiki",
+  "services.spec-workflow.description": "Structured feature development workflow, systematic approach from requirements to implementation",
+  "services.spec-workflow.name": "Spec Workflow",
+  "services.serena.name": "Serena Assistant",
+  "services.serena.description": "Semantic code retrieval and editing akin to an IDE; extracts symbol-level entities and leverages relations to greatly improve token efficiency with coding agents",
+  "services.agent-browser.description": "Anthropic official browser automation for web interaction and testing",
+  "services.agent-browser.name": "Agent Browser",
+  "services.filesystem.name": "Filesystem Operations",
+  "services.filesystem.description": "Read, write, and manage files and directories on the local filesystem",
+  "services.memory.name": "Knowledge Graph Memory",
+  "services.memory.description": "Persistent memory using knowledge graph for storing and retrieving information across sessions",
+  "services.sequential-thinking.name": "Sequential Thinking",
+  "services.sequential-thinking.description": "Dynamic problem-solving through sequential thought process with revision capabilities",
+  "services.fetch.name": "HTTP Fetch",
+  "services.fetch.description": "Fetch and process content from URLs, converting HTML to markdown for analysis",
+  "services.sqlite.name": "SQLite Database",
+  "services.sqlite.description": "Query and manage SQLite databases with full SQL support",
+  "apiKeyApprovalFailed": "Failed to manage API key approval status",
+  "apiKeyPrompt": "Enter API Key",
+  "primaryApiKeySetFailed": "Failed to set primaryApiKey",
+  "market": {
+    "noResults": "No servers found for: {{keyword}}",
+    "searchResults": "Found {{count}} server(s) for: {{keyword}}",
+    "trending": "🔥 Trending MCP Servers",
+    "installing": "Installing {{name}}...",
+    "confirmInstall": "Add to Claude Code config?",
+    "confirmUninstall": "Remove {{name}} from config?",
+    "cancelled": "Operation cancelled",
+    "installSuccess": "✓ {{name}} installed successfully",
+    "manualConfig": "Note: Manual configuration may be required",
+    "serverNotFound": "Server not found: {{name}}",
+    "searchKeywordRequired": "Search keyword required",
+    "installNameRequired": "Server name required",
+    "uninstallNameRequired": "Server name required for uninstall",
+    "unknownAction": "Unknown action: {{action}}",
+    "apiUnavailable": "⚠ Marketplace API unavailable",
+    "usingLocalData": "Using local fallback data",
+    "moreResults": "Showing {{shown}} of {{total}} results. Use --limit to see more.",
+    "ratings": "ratings",
+    "noTrending": "No trending packages available",
+    "recommendedForYou": "📦 Recommended for You",
+    "basedOnInstalled": "Based on your {{count}} installed package(s)",
+    "noInstalledForRecommendations": "No installed packages found",
+    "installSomeFirst": "Install some packages first to get personalized recommendations",
+    "noRecommendations": "No recommendations available at this time",
+    "recommendationsFailed": "Failed to fetch recommendations"
+  },
+  "installer": {
+    "serviceNotFound": "MCP service not found: {{id}}",
+    "apiKeyRequired": "API key is required for this service",
+    "requiresApiKey": "This service requires an API key",
+    "noConfig": "No MCP configuration found",
+    "serviceNotInstalled": "Service not installed: {{id}}",
+    "alreadyInstalled": "{{name}} is already installed",
+    "installFailed": "Failed to install {{name}}",
+    "uninstallSuccess": "✓ {{name}} uninstalled successfully",
+    "uninstallFailed": "Failed to uninstall {{name}}",
+    "restartRequired": "Restart Claude Code for changes to take effect",
+    "noServicesInstalled": "No MCP services installed",
+    "installedServices": "Installed MCP services ({{tool}})"
+  },
+  "server": {
+    "starting": "Starting CCJK MCP server...",
+    "started": "✓ CCJK MCP server started",
+    "listening": "Listening on port: {{port}}",
+    "stdioMode": "Using stdio transport",
+    "httpMode": "Using HTTP transport",
+    "error": "MCP server error: {{error}}",
+    "invalidTransport": "Invalid transport mode: {{transport}}",
+    "portInUse": "Port {{port}} is already in use",
+    "initializeFailed": "Failed to initialize MCP server",
+    "toolNotFound": "Tool not found: {{name}}",
+    "toolExecutionError": "Tool execution error: {{error}}",
+    "invalidRequest": "Invalid request format",
+    "methodNotSupported": "Method not supported: {{method}}",
+    "serverInfo": "CCJK MCP Server v{{version}}",
+    "capabilities": "Server capabilities: {{capabilities}}",
+    "toolsAvailable": "Available tools: {{count}}",
+    "requestReceived": "Request received: {{method}}",
+    "responseTime": "Response time: {{time}}ms",
+    "debugMode": "Debug mode enabled"
+  },
+  "tools": {
+    "chat": {
+      "name": "CCJK Chat",
+      "description": "Send messages to Claude via CCJK with custom provider and model selection"
+    },
+    "providers": {
+      "name": "List Providers",
+      "description": "List all configured API providers"
+    },
+    "stats": {
+      "name": "Usage Statistics",
+      "description": "Get usage statistics (requires CCusage tool)"
+    },
+    "workflows": {
+      "name": "List Workflows",
+      "description": "List available workflows"
+    },
+    "mcpServices": {
+      "name": "List MCP Services",
+      "description": "List configured MCP services"
+    },
+    "config": {
+      "name": "Configuration Management",
+      "description": "Get or set CCJK configuration"
+    },
+    "init": {
+      "name": "Initialize Configuration",
+      "description": "Initialize or update Claude Code configuration"
+    },
+    "doctor": {
+      "name": "Health Check",
+      "description": "Run health check and diagnostics"
+    }
+  }
+}

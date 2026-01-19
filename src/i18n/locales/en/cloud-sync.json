@@ -1,0 +1,147 @@
+{
+  "title": "Cloud Sync Management",
+  "description": "Cross-device synchronization for configurations, skills, and workflows",
+
+  "status": {
+    "title": "Sync Status",
+    "lastSync": "Last Sync",
+    "pendingChanges": "Pending Changes",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "syncing": "Syncing...",
+    "upToDate": "Up to date",
+    "hasChanges": "{{count}} changes pending sync",
+    "noChanges": "No pending changes",
+    "never": "Never synced"
+  },
+
+  "push": {
+    "title": "Push Changes",
+    "pushing": "Pushing changes...",
+    "success": "Successfully pushed {{count}} changes",
+    "failed": "Push failed: {{error}}",
+    "noChanges": "No changes to push",
+    "confirmOverwrite": "Remote has newer changes. Are you sure you want to overwrite?"
+  },
+
+  "pull": {
+    "title": "Pull Changes",
+    "pulling": "Pulling changes...",
+    "success": "Successfully pulled {{count}} changes",
+    "failed": "Pull failed: {{error}}",
+    "noChanges": "No new changes from remote",
+    "conflicts": "Found {{count}} conflicts. Please resolve before continuing."
+  },
+
+  "config": {
+    "title": "Configure Cloud Storage",
+    "selectProvider": "Select cloud storage provider",
+    "github": {
+      "name": "GitHub Gist",
+      "description": "Use GitHub Gist for storage (Recommended)",
+      "tokenPrompt": "Enter your GitHub personal access token (requires gist scope)",
+      "tokenHelp": "Create at GitHub Settings > Developer settings > Personal access tokens",
+      "success": "GitHub Gist configured successfully",
+      "failed": "GitHub Gist configuration failed: {{error}}"
+    },
+    "webdav": {
+      "name": "WebDAV",
+      "description": "Use WebDAV server (Nutstore, Nextcloud, etc.)",
+      "urlPrompt": "Enter WebDAV server URL",
+      "usernamePrompt": "Enter username",
+      "passwordPrompt": "Enter password or app-specific password",
+      "success": "WebDAV configured successfully",
+      "failed": "WebDAV configuration failed: {{error}}"
+    },
+    "local": {
+      "name": "Local Folder",
+      "description": "Use local folder (with Dropbox, OneDrive, etc.)",
+      "pathPrompt": "Enter sync folder path",
+      "success": "Local folder configured successfully",
+      "failed": "Local folder configuration failed: {{error}}"
+    },
+    "testConnection": "Testing connection...",
+    "connectionSuccess": "Connection successful",
+    "connectionFailed": "Connection failed: {{error}}"
+  },
+
+  "backup": {
+    "title": "Backup Management",
+    "create": {
+      "title": "Create Backup",
+      "namePrompt": "Enter backup name (optional)",
+      "creating": "Creating backup...",
+      "success": "Backup created successfully: {{name}}",
+      "failed": "Backup creation failed: {{error}}"
+    },
+    "list": {
+      "title": "Backup List",
+      "empty": "No backups available",
+      "item": "{{name}} - {{date}} ({{size}})"
+    },
+    "restore": {
+      "title": "Restore Backup",
+      "selectBackup": "Select backup to restore",
+      "confirm": "Are you sure you want to restore this backup? Current configuration will be overwritten.",
+      "restoring": "Restoring backup...",
+      "success": "Backup restored successfully",
+      "failed": "Backup restoration failed: {{error}}"
+    },
+    "delete": {
+      "title": "Delete Backup",
+      "confirm": "Are you sure you want to delete this backup? This action cannot be undone.",
+      "success": "Backup deleted",
+      "failed": "Backup deletion failed: {{error}}"
+    }
+  },
+
+  "conflicts": {
+    "title": "Conflict Management",
+    "noConflicts": "No conflicts",
+    "found": "Found {{count}} conflicts",
+    "item": {
+      "file": "File: {{path}}",
+      "localVersion": "Local Version",
+      "remoteVersion": "Remote Version",
+      "localTime": "Local modified: {{time}}",
+      "remoteTime": "Remote modified: {{time}}"
+    },
+    "resolve": {
+      "title": "Resolve Conflict",
+      "keepLocal": "Keep local version",
+      "keepRemote": "Keep remote version",
+      "merge": "Manual merge",
+      "success": "Conflict resolved",
+      "failed": "Conflict resolution failed: {{error}}"
+    }
+  },
+
+  "syncItems": {
+    "config": "Configuration",
+    "skills": "Skills",
+    "workflows": "Workflows",
+    "all": "All"
+  },
+
+  "errors": {
+    "notConfigured": "Cloud sync not configured. Please run /sync config first.",
+    "networkError": "Network error: {{error}}",
+    "authError": "Authentication failed. Please check your credentials.",
+    "permissionError": "Permission denied: {{error}}",
+    "storageError": "Storage error: {{error}}",
+    "encryptionError": "Encryption/decryption error: {{error}}",
+    "invalidBackup": "Invalid backup file",
+    "backupNotFound": "Specified backup not found"
+  },
+
+  "commands": {
+    "status": "View sync status",
+    "push": "Push local changes",
+    "pull": "Pull remote changes",
+    "config": "Configure cloud storage",
+    "backup": "Backup management",
+    "conflicts": "View conflicts",
+    "resolve": "Resolve conflicts",
+    "reset": "Reset sync state"
+  }
+}
