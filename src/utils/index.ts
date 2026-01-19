@@ -38,7 +38,7 @@ export * as async from './async';
 export * as error from './error';
 
 // Logger utilities
-export * as logger from './logger';
+export * as loggerUtils from './logger';
 
 /**
  * Re-export commonly used utilities for convenience
