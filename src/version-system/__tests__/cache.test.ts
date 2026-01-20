@@ -4,6 +4,8 @@
 
 import type { VersionInfo } from '../types'
 import { VersionCache } from '../cache'
+import { vi } from 'vitest'
+
 
 describe('versionCache', () => {
   let cache: VersionCache

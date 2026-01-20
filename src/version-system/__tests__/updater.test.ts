@@ -5,20 +5,22 @@
 import type { UpdateStatus } from '../types'
 import { promises as fs } from 'node:fs'
 import { VersionUpdater } from '../updater'
+import { vi } from 'vitest'
+
 
 // Mock child_process and fs
-jest.mock('child_process', () => ({
-  exec: jest.fn(),
+vi.mock('child_process', () => ({
+  exec: vi.fn(),
 }))
 
-jest.mock('fs', () => ({
+vi.mock('fs', () => ({
   promises: {
-    mkdir: jest.fn(),
-    copyFile: jest.fn(),
-    writeFile: jest.fn(),
-    readFile: jest.fn(),
-    readdir: jest.fn(),
-    unlink: jest.fn(),
+    mkdir: vi.fn(),
+    copyFile: vi.fn(),
+    writeFile: vi.fn(),
+    readFile: vi.fn(),
+    readdir: vi.fn(),
+    unlink: vi.fn(),
   },
 }))
 
@@ -27,7 +29,7 @@ describe('versionUpdater', () => {
 
   beforeEach(() => {
     updater = new VersionUpdater()
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('update Commands', () => {
@@ -138,9 +140,9 @@ describe('versionUpdater', () => {
         }
       });
 
-      (fs.mkdir as jest.Mock).mockResolvedValue(undefined);
-      (fs.copyFile as jest.Mock).mockResolvedValue(undefined);
-      (fs.writeFile as jest.Mock).mockResolvedValue(undefined)
+      (fs.mkdir as vi.Mock).mockResolvedValue(undefined);
+      (fs.copyFile as vi.Mock).mockResolvedValue(undefined);
+      (fs.writeFile as vi.Mock).mockResolvedValue(undefined)
 
       await updater.update('test-tool', '1.0.0', { backup: true })
 
@@ -150,7 +152,7 @@ describe('versionUpdater', () => {
     })
 
     it('should list available backups', async () => {
-      (fs.readdir as jest.Mock).mockResolvedValue([
+      (fs.readdir as vi.Mock).mockResolvedValue([
         'test-tool-2024-01-01.backup',
         'test-tool-2024-01-02.backup',
         'other-tool-2024-01-01.backup',
@@ -163,7 +165,7 @@ describe('versionUpdater', () => {
     })
 
     it('should clean old backups', async () => {
-      (fs.readdir as jest.Mock).mockResolvedValue([
+      (fs.readdir as vi.Mock).mockResolvedValue([
         'test-tool-2024-01-01.backup',
         'test-tool-2024-01-02.backup',
         'test-tool-2024-01-03.backup',
@@ -172,7 +174,7 @@ describe('versionUpdater', () => {
         'test-tool-2024-01-06.backup',
       ]);
 
-      (fs.unlink as jest.Mock).mockResolvedValue(undefined)
+      (fs.unlink as vi.Mock).mockResolvedValue(undefined)
 
       const deleted = await updater.cleanBackups('test-tool', 3)
 

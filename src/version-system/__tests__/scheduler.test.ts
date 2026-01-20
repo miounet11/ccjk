@@ -7,6 +7,8 @@ import { VersionCache } from '../cache'
 import { VersionChecker } from '../checker'
 import { VersionScheduler } from '../scheduler'
 import { VersionUpdater } from '../updater'
+import { vi } from 'vitest'
+
 
 describe('versionScheduler', () => {
   let scheduler: VersionScheduler
@@ -162,7 +164,7 @@ describe('versionScheduler', () => {
 
   describe('event Emission', () => {
     it('should emit check-started event', (done) => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.0.0',
@@ -182,7 +184,7 @@ describe('versionScheduler', () => {
     })
 
     it('should emit check-completed event', (done) => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.0.0',
@@ -202,7 +204,7 @@ describe('versionScheduler', () => {
     })
 
     it('should emit update-available event', (done) => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.1.0',
@@ -222,7 +224,7 @@ describe('versionScheduler', () => {
     })
 
     it('should emit check-failed event on error', (done) => {
-      jest.spyOn(checker, 'checkVersion').mockRejectedValue(new Error('Check failed'))
+      vi.spyOn(checker, 'checkVersion').mockRejectedValue(new Error('Check failed'))
 
       scheduler.on('check-failed', (event: UpdateEvent) => {
         expect(event.type).toBe('check-failed')
@@ -238,7 +240,7 @@ describe('versionScheduler', () => {
 
   describe('auto-Update', () => {
     it('should auto-update when enabled and update available', (done) => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.1.0',
@@ -247,7 +249,7 @@ describe('versionScheduler', () => {
         installed: true,
       })
 
-      jest.spyOn(updater, 'update').mockResolvedValue()
+      vi.spyOn(updater, 'update').mockResolvedValue()
 
       scheduler.on('update-started', (event: UpdateEvent) => {
         expect(event.type).toBe('update-started')
@@ -260,7 +262,7 @@ describe('versionScheduler', () => {
     })
 
     it('should not auto-update when disabled', (done) => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.1.0',
@@ -269,7 +271,7 @@ describe('versionScheduler', () => {
         installed: true,
       })
 
-      const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue()
+      const updateSpy = vi.spyOn(updater, 'update').mockResolvedValue()
 
       scheduler.on('update-available', () => {
         setTimeout(() => {
@@ -283,7 +285,7 @@ describe('versionScheduler', () => {
     })
 
     it('should emit update-completed on successful auto-update', (done) => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.1.0',
@@ -292,7 +294,7 @@ describe('versionScheduler', () => {
         installed: true,
       })
 
-      jest.spyOn(updater, 'update').mockResolvedValue()
+      vi.spyOn(updater, 'update').mockResolvedValue()
 
       scheduler.on('update-completed', (event: UpdateEvent) => {
         expect(event.type).toBe('update-completed')
@@ -305,7 +307,7 @@ describe('versionScheduler', () => {
     })
 
     it('should emit update-failed on failed auto-update', (done) => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.1.0',
@@ -314,7 +316,7 @@ describe('versionScheduler', () => {
         installed: true,
       })
 
-      jest.spyOn(updater, 'update').mockRejectedValue(new Error('Update failed'))
+      vi.spyOn(updater, 'update').mockRejectedValue(new Error('Update failed'))
 
       scheduler.on('update-failed', (event: UpdateEvent) => {
         expect(event.type).toBe('update-failed')
@@ -329,7 +331,7 @@ describe('versionScheduler', () => {
 
   describe('manual Triggers', () => {
     it('should trigger immediate check', async () => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.0.0',
@@ -347,7 +349,7 @@ describe('versionScheduler', () => {
     })
 
     it('should trigger all checks', async () => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.0.0',
@@ -397,7 +399,7 @@ describe('versionScheduler', () => {
     })
 
     it('should update last check time after check', async () => {
-      jest.spyOn(checker, 'checkVersion').mockResolvedValue({
+      vi.spyOn(checker, 'checkVersion').mockResolvedValue({
         tool: 'test-tool',
         currentVersion: '1.0.0',
         latestVersion: '1.0.0',

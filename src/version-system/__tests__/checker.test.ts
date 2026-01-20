@@ -5,10 +5,12 @@
 import type { VersionInfo } from '../types'
 import { VersionCache } from '../cache'
 import { VersionChecker } from '../checker'
+import { vi } from 'vitest'
+
 
 // Mock child_process
-jest.mock('child_process', () => ({
-  exec: jest.fn(),
+vi.mock('child_process', () => ({
+  exec: vi.fn(),
 }))
 
 describe('versionChecker', () => {
@@ -18,7 +20,7 @@ describe('versionChecker', () => {
   beforeEach(() => {
     cache = new VersionCache()
     checker = new VersionChecker(cache)
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('version Comparison', () => {
@@ -74,7 +76,7 @@ describe('versionChecker', () => {
       cache.set('test-tool', versionInfo)
 
       // Mock the check to avoid actual network calls
-      jest.spyOn(checker as any, 'performCheck').mockResolvedValue(versionInfo)
+      vi.spyOn(checker as any, 'performCheck').mockResolvedValue(versionInfo)
 
       await checker.checkVersion('test-tool', { force: true })
 
@@ -135,7 +137,7 @@ describe('versionChecker', () => {
       cache.set('tool2', versionInfo)
 
       // Mock check for uncached tool
-      jest.spyOn(checker as any, 'performCheck').mockResolvedValue(versionInfo)
+      vi.spyOn(checker as any, 'performCheck').mockResolvedValue(versionInfo)
 
       const result = await checker.batchCheck(['tool1', 'tool2', 'tool3'])
 
@@ -250,7 +252,7 @@ describe('versionChecker', () => {
       }
 
       let checkCount = 0
-      jest.spyOn(checker as any, 'performCheck').mockImplementation(async () => {
+      vi.spyOn(checker as any, 'performCheck').mockImplementation(async () => {
         checkCount++
         await new Promise(resolve => setTimeout(resolve, 100))
         return versionInfo
@@ -288,7 +290,7 @@ describe('versionChecker', () => {
     })
 
     it('should handle timeout errors', async () => {
-      jest.spyOn(checker as any, 'performCheck').mockImplementation(async () => {
+      vi.spyOn(checker as any, 'performCheck').mockImplementation(async () => {
         await new Promise(resolve => setTimeout(resolve, 200))
         throw new Error('Timeout')
       })

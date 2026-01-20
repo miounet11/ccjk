@@ -4,6 +4,8 @@
 
 import type { VersionInfo } from '../types'
 import { createVersionService, VersionService } from '../service'
+import { vi } from 'vitest'
+
 
 describe('versionService Integration', () => {
   let service: VersionService
@@ -144,7 +146,7 @@ describe('versionService Integration', () => {
         networkRequests: 3,
       }
 
-      jest.spyOn(service.checker, 'batchCheck').mockResolvedValue(mockResult)
+      vi.spyOn(service.checker, 'batchCheck').mockResolvedValue(mockResult)
 
       const result = await service.batchCheckVersions(['tool1', 'tool2', 'tool3'])
       expect(result.tools).toHaveLength(3)
@@ -183,7 +185,7 @@ describe('versionService Integration', () => {
         networkRequests: 2,
       }
 
-      jest.spyOn(service.checker, 'batchCheck').mockResolvedValue(mockResult)
+      vi.spyOn(service.checker, 'batchCheck').mockResolvedValue(mockResult)
 
       const toolsWithUpdates = await service.getToolsWithUpdates([
         'tool1',
@@ -196,8 +198,8 @@ describe('versionService Integration', () => {
     })
 
     it('should update all tools with available updates', async () => {
-      jest.spyOn(service, 'getToolsWithUpdates').mockResolvedValue(['tool1', 'tool2'])
-      jest.spyOn(service.updater, 'update').mockResolvedValue()
+      vi.spyOn(service, 'getToolsWithUpdates').mockResolvedValue(['tool1', 'tool2'])
+      vi.spyOn(service.updater, 'update').mockResolvedValue()
 
       const results = await service.updateAllTools(['tool1', 'tool2', 'tool3'])
 
@@ -244,7 +246,7 @@ describe('versionService Integration', () => {
         installed: true,
       }
 
-      jest.spyOn(service.checker, 'checkVersion').mockResolvedValue(mockVersionInfo)
+      vi.spyOn(service.checker, 'checkVersion').mockResolvedValue(mockVersionInfo)
 
       service.scheduleCheck('test-tool', 10000)
       await service.triggerCheck('test-tool')
@@ -321,14 +323,14 @@ describe('versionService Integration', () => {
     })
 
     it('should list backups', async () => {
-      jest.spyOn(service.updater, 'listBackups').mockResolvedValue([])
+      vi.spyOn(service.updater, 'listBackups').mockResolvedValue([])
 
       const backups = await service.listBackups('test-tool')
       expect(Array.isArray(backups)).toBe(true)
     })
 
     it('should clean old backups', async () => {
-      jest.spyOn(service.updater, 'cleanBackups').mockResolvedValue(3)
+      vi.spyOn(service.updater, 'cleanBackups').mockResolvedValue(3)
 
       const deleted = await service.cleanBackups('test-tool', 5)
       expect(deleted).toBe(3)
@@ -342,21 +344,21 @@ describe('versionService Integration', () => {
     })
 
     it('should check if tool is installed', async () => {
-      jest.spyOn(service.checker, 'isInstalled').mockResolvedValue(true)
+      vi.spyOn(service.checker, 'isInstalled').mockResolvedValue(true)
 
       const installed = await service.isInstalled('test-tool')
       expect(installed).toBe(true)
     })
 
     it('should get current version', async () => {
-      jest.spyOn(service.checker, 'getCurrentVersion').mockResolvedValue('1.0.0')
+      vi.spyOn(service.checker, 'getCurrentVersion').mockResolvedValue('1.0.0')
 
       const version = await service.getCurrentVersion('test-tool')
       expect(version).toBe('1.0.0')
     })
 
     it('should get latest version', async () => {
-      jest.spyOn(service.checker, 'getLatestVersion').mockResolvedValue('1.1.0')
+      vi.spyOn(service.checker, 'getLatestVersion').mockResolvedValue('1.1.0')
 
       const version = await service.getLatestVersion('test-tool')
       expect(version).toBe('1.1.0')
@@ -374,7 +376,7 @@ describe('versionService Integration', () => {
         installed: true,
       }
 
-      jest.spyOn(service.checker, 'checkVersion').mockResolvedValue(mockVersionInfo)
+      vi.spyOn(service.checker, 'checkVersion').mockResolvedValue(mockVersionInfo)
 
       service.on('check-started', (event) => {
         expect(event.type).toBe('check-started')
@@ -395,7 +397,7 @@ describe('versionService Integration', () => {
         installed: true,
       }
 
-      jest.spyOn(service.checker, 'checkVersion').mockResolvedValue(mockVersionInfo)
+      vi.spyOn(service.checker, 'checkVersion').mockResolvedValue(mockVersionInfo)
 
       service.on('update-available', (event) => {
         expect(event.type).toBe('update-available')
@@ -442,7 +444,7 @@ describe('versionService Integration', () => {
   describe('retry Logic', () => {
     it('should retry failed operations', async () => {
       let attempts = 0
-      const mockOperation = jest.fn().mockImplementation(async () => {
+      const mockOperation = vi.fn().mockImplementation(async () => {
         attempts++
         if (attempts < 3) {
           throw new Error('Temporary failure')
@@ -464,7 +466,7 @@ describe('versionService Integration', () => {
     })
 
     it('should fail after max retries', async () => {
-      const mockOperation = jest.fn().mockRejectedValue(new Error('Permanent failure'))
+      const mockOperation = vi.fn().mockRejectedValue(new Error('Permanent failure'))
 
       await expect(
         (service as any).retryOperation(mockOperation, 3, 10),
@@ -510,7 +512,7 @@ describe('versionService Integration', () => {
       jest
         .spyOn(service as any, 'retryOperation')
         .mockResolvedValue(mockVersionInfo)
-      jest.spyOn(service.updater, 'update').mockResolvedValue()
+      vi.spyOn(service.updater, 'update').mockResolvedValue()
 
       await service.updateTool('test-tool')
 
