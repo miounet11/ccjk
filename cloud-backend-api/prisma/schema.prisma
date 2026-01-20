@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  deviceKey     String   @unique @map("device_key")
+  createdAt     DateTime @default(now()) @map("created_at")
+  lastHeartbeat DateTime? @map("last_heartbeat")
+  devices       Device[]
+  tasks         Task[]
+  emailConfigs  EmailConfig[]
+
+  @@map("users")
+}
+
+model Device {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  deviceKey    String   @unique @map("device_key")
+  deviceName   String?  @map("device_name")
+  osType       String?  @map("os_type")
+  osVersion    String?  @map("os_version")
+  ccjkVersion  String?  @map("ccjk_version")
+  status       String   @default("offline")
+  lastHeartbeat DateTime? @map("last_heartbeat")
+  config       Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("devices")
+}
+
+model Task {
+  id            String    @id @default(uuid())
+  userId        Int       @map("user_id")
+  deviceKey     String    @map("device_key")
+  type          String    @default("sequential")
+  commands      String[]
+  status        String    @default("pending")
+  priority      Int       @default(5)
+  timeout       Int       @default(300000)
+  exitCode      Int?      @map("exit_code")
+  stdout        String?   @db.Text
+  stderr        String?   @db.Text
+  errorMessage  String?   @map("error_message")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  startedAt     DateTime? @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([deviceKey, status])
+  @@map("tasks")
+}
+
+model EmailConfig {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  deviceKey    String   @unique @map("device_key")
+  emailAddress String   @map("email_address")
+  smtpHost     String?  @map("smtp_host")
+  smtpPort     Int?     @map("smtp_port")
+  smtpUser     String?  @map("smtp_user")
+  smtpPassword String?  @map("smtp_password")
+  lastCheck    DateTime? @map("last_check")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_configs")
+}
