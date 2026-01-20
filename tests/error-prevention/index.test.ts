@@ -6,7 +6,7 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { join } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { ErrorPreventionMiddleware, getMiddleware, resetMiddleware } from '../../src/error-prevention/middleware'
+import { getMiddleware, resetMiddleware } from '../../src/error-prevention/middleware'
 import { SmartBashTool } from '../../src/error-prevention/smart-bash-tool'
 import { SmartPathResolver } from '../../src/error-prevention/smart-path-resolver'
 import { SmartWriteTool } from '../../src/error-prevention/smart-write-tool'

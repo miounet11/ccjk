@@ -3,22 +3,22 @@
  * Enables seamless integration from supplier documentation and websites
  */
 
-import { OneClickSetupConfig, DeepLinkConfig } from '../types';
-import { OneClickSetup } from './one-click-setup';
+import type { DeepLinkConfig } from '../types'
+import { OneClickSetup } from './one-click-setup'
 
 export interface DeepLinkHandler {
-  protocol: string;
-  handler: (url: string) => Promise<void>;
+  protocol: string
+  handler: (url: string) => Promise<void>
 }
 
 export class DeepLinking {
-  private oneClickSetup: OneClickSetup;
-  private handlers: Map<string, DeepLinkHandler>;
+  private oneClickSetup: OneClickSetup
+  private handlers: Map<string, DeepLinkHandler>
 
   constructor() {
-    this.oneClickSetup = new OneClickSetup();
-    this.handlers = new Map();
-    this.registerDefaultHandlers();
+    this.oneClickSetup = new OneClickSetup()
+    this.handlers = new Map()
+    this.registerDefaultHandlers()
   }
 
   /**
@@ -29,49 +29,50 @@ export class DeepLinking {
     this.registerHandler({
       protocol: 'ccjk://setup',
       handler: async (url: string) => {
-        const result = await this.oneClickSetup.setupFromUrl(url);
+        const result = await this.oneClickSetup.setupFromUrl(url)
         if (result.success) {
-          console.log('✅ Setup completed successfully!');
-          console.log(`⏱️  Setup time: ${result.setupTime}ms`);
-        } else {
-          console.error('❌ Setup failed:', result.error);
+          console.log('✅ Setup completed successfully!')
+          console.log(`⏱️  Setup time: ${result.setupTime}ms`)
+        }
+        else {
+          console.error('❌ Setup failed:', result.error)
         }
       },
-    });
+    })
 
     // Switch provider handler
     this.registerHandler({
       protocol: 'ccjk://switch',
       handler: async (url: string) => {
-        const config = this.parseDeepLink(url);
+        const config = this.parseDeepLink(url)
         if (config) {
-          console.log(`🔄 Switching to ${config.params.provider}...`);
-          const result = await this.oneClickSetup.executeSetup(config.params);
+          console.log(`🔄 Switching to ${config.params.provider}...`)
+          const result = await this.oneClickSetup.executeSetup(config.params)
           if (result.success) {
-            console.log('✅ Provider switched successfully!');
+            console.log('✅ Provider switched successfully!')
           }
         }
       },
-    });
+    })
 
     // Configure handler
     this.registerHandler({
       protocol: 'ccjk://configure',
       handler: async (url: string) => {
-        const config = this.parseDeepLink(url);
+        const config = this.parseDeepLink(url)
         if (config) {
-          console.log(`⚙️  Configuring ${config.params.provider}...`);
+          console.log(`⚙️  Configuring ${config.params.provider}...`)
           // Open configuration UI
         }
       },
-    });
+    })
   }
 
   /**
    * Register a custom protocol handler
    */
   registerHandler(handler: DeepLinkHandler): void {
-    this.handlers.set(handler.protocol, handler);
+    this.handlers.set(handler.protocol, handler)
   }
 
   /**
@@ -79,9 +80,9 @@ export class DeepLinking {
    */
   parseDeepLink(url: string): DeepLinkConfig | null {
     try {
-      const urlObj = new URL(url.replace('ccjk://', 'https://ccjk.dev/'));
-      const action = urlObj.pathname.replace('/', '') as 'setup' | 'switch' | 'configure';
-      const params = urlObj.searchParams;
+      const urlObj = new URL(url.replace('ccjk://', 'https://ccjk.dev/'))
+      const action = urlObj.pathname.replace('/', '') as 'setup' | 'switch' | 'configure'
+      const params = urlObj.searchParams
 
       const config: DeepLinkConfig = {
         protocol: url.startsWith('ccjk://') ? 'ccjk' : 'https',
@@ -97,12 +98,13 @@ export class DeepLinking {
         returnUrl: params.get('returnUrl') || undefined,
         successCallback: params.get('onSuccess') || undefined,
         errorCallback: params.get('onError') || undefined,
-      };
+      }
 
-      return config;
-    } catch (error) {
-      console.error('Failed to parse deep link:', error);
-      return null;
+      return config
+    }
+    catch (error) {
+      console.error('Failed to parse deep link:', error)
+      return null
     }
   }
 
@@ -112,34 +114,43 @@ export class DeepLinking {
   generateDeepLink(config: DeepLinkConfig): string {
     const base = config.protocol === 'ccjk'
       ? `ccjk://${config.action}`
-      : `https://ccjk.dev/${config.action}`;
+      : `https://ccjk.dev/${config.action}`
 
-    const params = new URLSearchParams();
+    const params = new URLSearchParams()
 
-    params.set('provider', config.params.provider);
-    if (config.params.apiKey) params.set('key', config.params.apiKey);
-    if (config.params.model) params.set('model', config.params.model);
-    if (config.params.referralSource) params.set('ref', config.params.referralSource);
-    if (config.params.referralCode) params.set('refCode', config.params.referralCode);
-    if (config.params.autoComplete) params.set('auto', 'true');
-    if (config.returnUrl) params.set('returnUrl', config.returnUrl);
-    if (config.successCallback) params.set('onSuccess', config.successCallback);
-    if (config.errorCallback) params.set('onError', config.errorCallback);
+    params.set('provider', config.params.provider)
+    if (config.params.apiKey)
+      params.set('key', config.params.apiKey)
+    if (config.params.model)
+      params.set('model', config.params.model)
+    if (config.params.referralSource)
+      params.set('ref', config.params.referralSource)
+    if (config.params.referralCode)
+      params.set('refCode', config.params.referralCode)
+    if (config.params.autoComplete)
+      params.set('auto', 'true')
+    if (config.returnUrl)
+      params.set('returnUrl', config.returnUrl)
+    if (config.successCallback)
+      params.set('onSuccess', config.successCallback)
+    if (config.errorCallback)
+      params.set('onError', config.errorCallback)
 
-    return `${base}?${params.toString()}`;
+    return `${base}?${params.toString()}`
   }
 
   /**
    * Handle deep link
    */
   async handleDeepLink(url: string): Promise<void> {
-    const protocol = url.split('?')[0];
-    const handler = this.handlers.get(protocol);
+    const protocol = url.split('?')[0]
+    const handler = this.handlers.get(protocol)
 
     if (handler) {
-      await handler.handler(url);
-    } else {
-      console.warn(`No handler registered for protocol: ${protocol}`);
+      await handler.handler(url)
+    }
+    else {
+      console.warn(`No handler registered for protocol: ${protocol}`)
     }
   }
 
@@ -147,9 +158,9 @@ export class DeepLinking {
    * Generate documentation snippet for suppliers
    */
   generateDocSnippet(providerId: string, options?: {
-    includeApiKey?: boolean;
-    customMessage?: string;
-    style?: 'button' | 'link' | 'banner';
+    includeApiKey?: boolean
+    customMessage?: string
+    style?: 'button' | 'link' | 'banner'
   }): string {
     const config: DeepLinkConfig = {
       protocol: 'https',
@@ -159,19 +170,19 @@ export class DeepLinking {
         referralSource: `${providerId}-docs`,
         autoComplete: !options?.includeApiKey,
       },
-    };
+    }
 
-    const url = this.generateDeepLink(config);
-    const message = options?.customMessage || `Setup CCJK with ${providerId}`;
+    const url = this.generateDeepLink(config)
+    const message = options?.customMessage || `Setup CCJK with ${providerId}`
 
     switch (options?.style) {
       case 'banner':
-        return this.generateBannerSnippet(url, message, providerId);
+        return this.generateBannerSnippet(url, message, providerId)
       case 'link':
-        return this.generateLinkSnippet(url, message);
+        return this.generateLinkSnippet(url, message)
       case 'button':
       default:
-        return this.generateButtonSnippet(url, message);
+        return this.generateButtonSnippet(url, message)
     }
   }
 
@@ -193,7 +204,7 @@ export class DeepLinking {
 ">
   ${message} →
 </a>
-    `.trim();
+    `.trim()
   }
 
   /**
@@ -205,7 +216,7 @@ export class DeepLinking {
 <a href="${url}" style="color: #667eea; text-decoration: underline;">
   ${message}
 </a>
-    `.trim();
+    `.trim()
   }
 
   /**
@@ -244,7 +255,7 @@ export class DeepLinking {
     ${message} →
   </a>
 </div>
-    `.trim();
+    `.trim()
   }
 
   /**
@@ -258,7 +269,7 @@ export class DeepLinking {
         provider: providerId,
         referralSource: `${providerId}-integration`,
       },
-    });
+    })
 
     return `
 # CCJK Integration Guide for ${providerId}
@@ -329,16 +340,16 @@ ccjk://setup?provider=${providerId}&ref=${providerId}-app
 ## Support
 
 For integration support, visit: https://ccjk.dev/docs/integration
-    `.trim();
+    `.trim()
   }
 
   /**
    * Generate QR code URL for mobile setup
    */
   generateQRCodeUrl(config: DeepLinkConfig): string {
-    const deepLink = this.generateDeepLink(config);
+    const deepLink = this.generateDeepLink(config)
     // Use a QR code generation service
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(deepLink)}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(deepLink)}`
   }
 
   /**
@@ -352,10 +363,10 @@ For integration support, visit: https://ccjk.dev/docs/integration
         provider: providerId,
         referralSource: `${providerId}-mobile`,
       },
-    };
+    }
 
-    const qrUrl = this.generateQRCodeUrl(config);
-    const setupUrl = this.generateDeepLink(config);
+    const qrUrl = this.generateQRCodeUrl(config)
+    const setupUrl = this.generateDeepLink(config)
 
     return `
 <!DOCTYPE html>
@@ -476,7 +487,7 @@ For integration support, visit: https://ccjk.dev/docs/integration
   </div>
 </body>
 </html>
-    `.trim();
+    `.trim()
   }
 }
 
@@ -484,14 +495,14 @@ For integration support, visit: https://ccjk.dev/docs/integration
  * Create a deep linking instance
  */
 export function createDeepLinking(): DeepLinking {
-  return new DeepLinking();
+  return new DeepLinking()
 }
 
 /**
  * Quick helper to generate setup link
  */
 export function generateSetupLink(providerId: string, referralSource?: string): string {
-  const deepLinking = createDeepLinking();
+  const deepLinking = createDeepLinking()
   return deepLinking.generateDeepLink({
     protocol: 'https',
     action: 'setup',
@@ -499,5 +510,5 @@ export function generateSetupLink(providerId: string, referralSource?: string): 
       provider: providerId,
       referralSource: referralSource || `${providerId}-quick`,
     },
-  });
+  })
 }

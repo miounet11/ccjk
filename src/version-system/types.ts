@@ -7,21 +7,21 @@
  */
 export interface VersionInfo {
   /** Tool name */
-  tool: string;
+  tool: string
   /** Current installed version */
-  currentVersion?: string;
+  currentVersion?: string
   /** Latest available version */
-  latestVersion?: string;
+  latestVersion?: string
   /** Whether an update is available */
-  updateAvailable: boolean;
+  updateAvailable: boolean
   /** Last check timestamp */
-  lastChecked: Date;
+  lastChecked: Date
   /** Whether the tool is installed */
-  installed: boolean;
+  installed: boolean
   /** Release notes URL */
-  releaseNotesUrl?: string;
+  releaseNotesUrl?: string
   /** Download URL */
-  downloadUrl?: string;
+  downloadUrl?: string
 }
 
 /**
@@ -29,19 +29,19 @@ export interface VersionInfo {
  */
 export interface UpdateStatus {
   /** Tool name */
-  tool: string;
+  tool: string
   /** Update status */
-  status: 'idle' | 'checking' | 'downloading' | 'installing' | 'completed' | 'failed';
+  status: 'idle' | 'checking' | 'downloading' | 'installing' | 'completed' | 'failed'
   /** Progress percentage (0-100) */
-  progress: number;
+  progress: number
   /** Status message */
-  message?: string;
+  message?: string
   /** Error if failed */
-  error?: string;
+  error?: string
   /** Start time */
-  startTime?: Date;
+  startTime?: Date
   /** End time */
-  endTime?: Date;
+  endTime?: Date
 }
 
 /**
@@ -49,11 +49,11 @@ export interface UpdateStatus {
  */
 export interface VersionCacheEntry {
   /** Version information */
-  versionInfo: VersionInfo;
+  versionInfo: VersionInfo
   /** Cache timestamp */
-  cachedAt: Date;
+  cachedAt: Date
   /** Time-to-live in milliseconds */
-  ttl: number;
+  ttl: number
 }
 
 /**
@@ -61,13 +61,13 @@ export interface VersionCacheEntry {
  */
 export interface VersionCheckOptions {
   /** Force check even if cached */
-  force?: boolean;
+  force?: boolean
   /** Cache TTL in milliseconds (default: 1 hour) */
-  cacheTtl?: number;
+  cacheTtl?: number
   /** Timeout in milliseconds */
-  timeout?: number;
+  timeout?: number
   /** Include pre-release versions */
-  includePrerelease?: boolean;
+  includePrerelease?: boolean
 }
 
 /**
@@ -75,15 +75,15 @@ export interface VersionCheckOptions {
  */
 export interface UpdateOptions {
   /** Specific version to update to */
-  version?: string;
+  version?: string
   /** Force update even if already up-to-date */
-  force?: boolean;
+  force?: boolean
   /** Backup before updating */
-  backup?: boolean;
+  backup?: boolean
   /** Timeout in milliseconds */
-  timeout?: number;
+  timeout?: number
   /** Progress callback */
-  onProgress?: (status: UpdateStatus) => void;
+  onProgress?: (status: UpdateStatus) => void
 }
 
 /**
@@ -91,17 +91,17 @@ export interface UpdateOptions {
  */
 export interface ScheduleConfig {
   /** Tool name */
-  tool: string;
+  tool: string
   /** Check interval in milliseconds */
-  interval: number;
+  interval: number
   /** Whether schedule is enabled */
-  enabled: boolean;
+  enabled: boolean
   /** Last check time */
-  lastCheck?: Date;
+  lastCheck?: Date
   /** Next check time */
-  nextCheck?: Date;
+  nextCheck?: Date
   /** Auto-update if available */
-  autoUpdate?: boolean;
+  autoUpdate?: boolean
 }
 
 /**
@@ -109,19 +109,19 @@ export interface ScheduleConfig {
  */
 export interface VersionServiceConfig {
   /** Default cache TTL in milliseconds */
-  defaultCacheTtl?: number;
+  defaultCacheTtl?: number
   /** Maximum cache size */
-  maxCacheSize?: number;
+  maxCacheSize?: number
   /** Enable batch checking */
-  enableBatchChecking?: boolean;
+  enableBatchChecking?: boolean
   /** Batch check interval in milliseconds */
-  batchCheckInterval?: number;
+  batchCheckInterval?: number
   /** Network timeout in milliseconds */
-  networkTimeout?: number;
+  networkTimeout?: number
   /** Retry attempts on failure */
-  retryAttempts?: number;
+  retryAttempts?: number
   /** Retry delay in milliseconds */
-  retryDelay?: number;
+  retryDelay?: number
 }
 
 /**
@@ -129,17 +129,17 @@ export interface VersionServiceConfig {
  */
 export interface BatchCheckResult {
   /** Tools checked */
-  tools: string[];
+  tools: string[]
   /** Version information for each tool */
-  results: Map<string, VersionInfo>;
+  results: Map<string, VersionInfo>
   /** Errors encountered */
-  errors: Map<string, Error>;
+  errors: Map<string, Error>
   /** Total time taken in milliseconds */
-  duration: number;
+  duration: number
   /** Number of cache hits */
-  cacheHits: number;
+  cacheHits: number
   /** Number of network requests */
-  networkRequests: number;
+  networkRequests: number
 }
 
 /**
@@ -147,55 +147,55 @@ export interface BatchCheckResult {
  */
 export interface VersionServiceStats {
   /** Total version checks */
-  totalChecks: number;
+  totalChecks: number
   /** Cache hits */
-  cacheHits: number;
+  cacheHits: number
   /** Cache misses */
-  cacheMisses: number;
+  cacheMisses: number
   /** Network requests */
-  networkRequests: number;
+  networkRequests: number
   /** Failed checks */
-  failedChecks: number;
+  failedChecks: number
   /** Average check time in milliseconds */
-  averageCheckTime: number;
+  averageCheckTime: number
   /** Total updates performed */
-  totalUpdates: number;
+  totalUpdates: number
   /** Successful updates */
-  successfulUpdates: number;
+  successfulUpdates: number
   /** Failed updates */
-  failedUpdates: number;
+  failedUpdates: number
 }
 
 /**
  * Version comparison result
  */
-export type VersionComparison = 'greater' | 'equal' | 'less' | 'invalid';
+export type VersionComparison = 'greater' | 'equal' | 'less' | 'invalid'
 
 /**
  * Update event types
  */
-export type UpdateEventType =
-  | 'check-started'
-  | 'check-completed'
-  | 'check-failed'
-  | 'update-available'
-  | 'update-started'
-  | 'update-progress'
-  | 'update-completed'
-  | 'update-failed';
+export type UpdateEventType
+  = | 'check-started'
+    | 'check-completed'
+    | 'check-failed'
+    | 'update-available'
+    | 'update-started'
+    | 'update-progress'
+    | 'update-completed'
+    | 'update-failed'
 
 /**
  * Update event
  */
 export interface UpdateEvent {
   /** Event type */
-  type: UpdateEventType;
+  type: UpdateEventType
   /** Tool name */
-  tool: string;
+  tool: string
   /** Event data */
-  data?: any;
+  data?: any
   /** Timestamp */
-  timestamp: Date;
+  timestamp: Date
 }
 
 /**
@@ -203,15 +203,15 @@ export interface UpdateEvent {
  */
 export interface IVersionSource {
   /** Get latest version for a tool */
-  getLatestVersion(tool: string, options?: VersionCheckOptions): Promise<string>;
+  getLatestVersion: (tool: string, options?: VersionCheckOptions) => Promise<string>
   /** Get current installed version */
-  getCurrentVersion(tool: string): Promise<string | undefined>;
+  getCurrentVersion: (tool: string) => Promise<string | undefined>
   /** Check if tool is installed */
-  isInstalled(tool: string): Promise<boolean>;
+  isInstalled: (tool: string) => Promise<boolean>
   /** Get release notes URL */
-  getReleaseNotesUrl(tool: string, version: string): Promise<string | undefined>;
+  getReleaseNotesUrl: (tool: string, version: string) => Promise<string | undefined>
   /** Get download URL */
-  getDownloadUrl(tool: string, version: string): Promise<string | undefined>;
+  getDownloadUrl: (tool: string, version: string) => Promise<string | undefined>
 }
 
 /**
@@ -219,9 +219,9 @@ export interface IVersionSource {
  */
 export interface IVersionUpdater {
   /** Update tool to specific version */
-  update(tool: string, version: string, options?: UpdateOptions): Promise<void>;
+  update: (tool: string, version: string, options?: UpdateOptions) => Promise<void>
   /** Check if update is possible */
-  canUpdate(tool: string): Promise<boolean>;
+  canUpdate: (tool: string) => Promise<boolean>
   /** Get update command */
-  getUpdateCommand(tool: string, version?: string): string;
+  getUpdateCommand: (tool: string, version?: string) => string
 }

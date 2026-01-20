@@ -3,18 +3,19 @@
  * Provides utilities for file system operations
  */
 
-import { promises as fs } from 'fs';
-import * as path from 'path';
+import { promises as fs } from 'node:fs'
+import * as path from 'node:path'
 
 /**
  * Check if a file or directory exists
  */
 export async function exists(filePath: string): Promise<boolean> {
   try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
+    await fs.access(filePath)
+    return true
+  }
+  catch {
+    return false
   }
 }
 
@@ -23,10 +24,11 @@ export async function exists(filePath: string): Promise<boolean> {
  */
 export async function isFile(filePath: string): Promise<boolean> {
   try {
-    const stats = await fs.stat(filePath);
-    return stats.isFile();
-  } catch {
-    return false;
+    const stats = await fs.stat(filePath)
+    return stats.isFile()
+  }
+  catch {
+    return false
   }
 }
 
@@ -35,10 +37,11 @@ export async function isFile(filePath: string): Promise<boolean> {
  */
 export async function isDirectory(filePath: string): Promise<boolean> {
   try {
-    const stats = await fs.stat(filePath);
-    return stats.isDirectory();
-  } catch {
-    return false;
+    const stats = await fs.stat(filePath)
+    return stats.isDirectory()
+  }
+  catch {
+    return false
   }
 }
 
@@ -46,7 +49,7 @@ export async function isDirectory(filePath: string): Promise<boolean> {
  * Create directory recursively
  */
 export async function ensureDir(dirPath: string): Promise<void> {
-  await fs.mkdir(dirPath, { recursive: true });
+  await fs.mkdir(dirPath, { recursive: true })
 }
 
 /**
@@ -54,9 +57,9 @@ export async function ensureDir(dirPath: string): Promise<void> {
  */
 export async function readFile(
   filePath: string,
-  encoding: BufferEncoding = 'utf-8'
+  encoding: BufferEncoding = 'utf-8',
 ): Promise<string> {
-  return fs.readFile(filePath, encoding);
+  return fs.readFile(filePath, encoding)
 }
 
 /**
@@ -65,10 +68,10 @@ export async function readFile(
 export async function writeFile(
   filePath: string,
   content: string,
-  encoding: BufferEncoding = 'utf-8'
+  encoding: BufferEncoding = 'utf-8',
 ): Promise<void> {
-  await ensureDir(path.dirname(filePath));
-  await fs.writeFile(filePath, content, encoding);
+  await ensureDir(path.dirname(filePath))
+  await fs.writeFile(filePath, content, encoding)
 }
 
 /**
@@ -77,18 +80,18 @@ export async function writeFile(
 export async function appendFile(
   filePath: string,
   content: string,
-  encoding: BufferEncoding = 'utf-8'
+  encoding: BufferEncoding = 'utf-8',
 ): Promise<void> {
-  await ensureDir(path.dirname(filePath));
-  await fs.appendFile(filePath, content, encoding);
+  await ensureDir(path.dirname(filePath))
+  await fs.appendFile(filePath, content, encoding)
 }
 
 /**
  * Read JSON file
  */
 export async function readJSON<T = any>(filePath: string): Promise<T> {
-  const content = await readFile(filePath);
-  return JSON.parse(content);
+  const content = await readFile(filePath)
+  return JSON.parse(content)
 }
 
 /**
@@ -97,26 +100,26 @@ export async function readJSON<T = any>(filePath: string): Promise<T> {
 export async function writeJSON(
   filePath: string,
   data: any,
-  pretty: boolean = true
+  pretty: boolean = true,
 ): Promise<void> {
-  const content = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
-  await writeFile(filePath, content);
+  const content = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data)
+  await writeFile(filePath, content)
 }
 
 /**
  * Copy file
  */
 export async function copyFile(src: string, dest: string): Promise<void> {
-  await ensureDir(path.dirname(dest));
-  await fs.copyFile(src, dest);
+  await ensureDir(path.dirname(dest))
+  await fs.copyFile(src, dest)
 }
 
 /**
  * Move/rename file
  */
 export async function moveFile(src: string, dest: string): Promise<void> {
-  await ensureDir(path.dirname(dest));
-  await fs.rename(src, dest);
+  await ensureDir(path.dirname(dest))
+  await fs.rename(src, dest)
 }
 
 /**
@@ -124,10 +127,11 @@ export async function moveFile(src: string, dest: string): Promise<void> {
  */
 export async function deleteFile(filePath: string): Promise<void> {
   try {
-    await fs.unlink(filePath);
-  } catch (error) {
+    await fs.unlink(filePath)
+  }
+  catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      throw error;
+      throw error
     }
   }
 }
@@ -137,10 +141,11 @@ export async function deleteFile(filePath: string): Promise<void> {
  */
 export async function deleteDir(dirPath: string): Promise<void> {
   try {
-    await fs.rm(dirPath, { recursive: true, force: true });
-  } catch (error) {
+    await fs.rm(dirPath, { recursive: true, force: true })
+  }
+  catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      throw error;
+      throw error
     }
   }
 }
@@ -150,63 +155,64 @@ export async function deleteDir(dirPath: string): Promise<void> {
  */
 export async function listFiles(
   dirPath: string,
-  recursive: boolean = false
+  recursive: boolean = false,
 ): Promise<string[]> {
-  const entries = await fs.readdir(dirPath, { withFileTypes: true });
-  const files: string[] = [];
+  const entries = await fs.readdir(dirPath, { withFileTypes: true })
+  const files: string[] = []
 
   for (const entry of entries) {
-    const fullPath = path.join(dirPath, entry.name);
+    const fullPath = path.join(dirPath, entry.name)
 
     if (entry.isFile()) {
-      files.push(fullPath);
-    } else if (entry.isDirectory() && recursive) {
-      const subFiles = await listFiles(fullPath, true);
-      files.push(...subFiles);
+      files.push(fullPath)
+    }
+    else if (entry.isDirectory() && recursive) {
+      const subFiles = await listFiles(fullPath, true)
+      files.push(...subFiles)
     }
   }
 
-  return files;
+  return files
 }
 
 /**
  * List directories in directory
  */
 export async function listDirs(dirPath: string): Promise<string[]> {
-  const entries = await fs.readdir(dirPath, { withFileTypes: true });
-  const dirs: string[] = [];
+  const entries = await fs.readdir(dirPath, { withFileTypes: true })
+  const dirs: string[] = []
 
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      dirs.push(path.join(dirPath, entry.name));
+      dirs.push(path.join(dirPath, entry.name))
     }
   }
 
-  return dirs;
+  return dirs
 }
 
 /**
  * Get file size in bytes
  */
 export async function getFileSize(filePath: string): Promise<number> {
-  const stats = await fs.stat(filePath);
-  return stats.size;
+  const stats = await fs.stat(filePath)
+  return stats.size
 }
 
 /**
  * Get file modification time
  */
 export async function getModifiedTime(filePath: string): Promise<Date> {
-  const stats = await fs.stat(filePath);
-  return stats.mtime;
+  const stats = await fs.stat(filePath)
+  return stats.mtime
 }
 
 /**
  * Get file creation time
  */
 export async function getCreatedTime(filePath: string): Promise<Date> {
-  const stats = await fs.stat(filePath);
-  return stats.birthtime;
+  const stats = await fs.stat(filePath)
+  return stats.birthtime
 }
 
 /**
@@ -214,10 +220,11 @@ export async function getCreatedTime(filePath: string): Promise<Date> {
  */
 export async function isReadable(filePath: string): Promise<boolean> {
   try {
-    await fs.access(filePath, fs.constants.R_OK);
-    return true;
-  } catch {
-    return false;
+    await fs.access(filePath, fs.constants.R_OK)
+    return true
+  }
+  catch {
+    return false
   }
 }
 
@@ -226,10 +233,11 @@ export async function isReadable(filePath: string): Promise<boolean> {
  */
 export async function isWritable(filePath: string): Promise<boolean> {
   try {
-    await fs.access(filePath, fs.constants.W_OK);
-    return true;
-  } catch {
-    return false;
+    await fs.access(filePath, fs.constants.W_OK)
+    return true
+  }
+  catch {
+    return false
   }
 }
 
@@ -238,10 +246,11 @@ export async function isWritable(filePath: string): Promise<boolean> {
  */
 export async function isExecutable(filePath: string): Promise<boolean> {
   try {
-    await fs.access(filePath, fs.constants.X_OK);
-    return true;
-  } catch {
-    return false;
+    await fs.access(filePath, fs.constants.X_OK)
+    return true
+  }
+  catch {
+    return false
   }
 }
 
@@ -251,47 +260,49 @@ export async function isExecutable(filePath: string): Promise<boolean> {
 export async function findFiles(
   dirPath: string,
   pattern: RegExp | string,
-  recursive: boolean = true
+  recursive: boolean = true,
 ): Promise<string[]> {
-  const allFiles = await listFiles(dirPath, recursive);
-  const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+  const allFiles = await listFiles(dirPath, recursive)
+  const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern
 
-  return allFiles.filter((file) => regex.test(file));
+  return allFiles.filter(file => regex.test(file))
 }
 
 /**
  * Get directory size (total size of all files)
  */
 export async function getDirSize(dirPath: string): Promise<number> {
-  const files = await listFiles(dirPath, true);
-  let totalSize = 0;
+  const files = await listFiles(dirPath, true)
+  let totalSize = 0
 
   for (const file of files) {
     try {
-      totalSize += await getFileSize(file);
-    } catch {
+      totalSize += await getFileSize(file)
+    }
+    catch {
       // Skip files that can't be accessed
     }
   }
 
-  return totalSize;
+  return totalSize
 }
 
 /**
  * Copy directory recursively
  */
 export async function copyDir(src: string, dest: string): Promise<void> {
-  await ensureDir(dest);
-  const entries = await fs.readdir(src, { withFileTypes: true });
+  await ensureDir(dest)
+  const entries = await fs.readdir(src, { withFileTypes: true })
 
   for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
 
     if (entry.isDirectory()) {
-      await copyDir(srcPath, destPath);
-    } else {
-      await copyFile(srcPath, destPath);
+      await copyDir(srcPath, destPath)
+    }
+    else {
+      await copyFile(srcPath, destPath)
     }
   }
 }
@@ -301,19 +312,20 @@ export async function copyDir(src: string, dest: string): Promise<void> {
  */
 export async function emptyDir(dirPath: string): Promise<void> {
   if (!(await exists(dirPath))) {
-    return;
+    return
   }
 
-  const entries = await fs.readdir(dirPath);
+  const entries = await fs.readdir(dirPath)
 
   for (const entry of entries) {
-    const fullPath = path.join(dirPath, entry);
-    const stat = await fs.stat(fullPath);
+    const fullPath = path.join(dirPath, entry)
+    const stat = await fs.stat(fullPath)
 
     if (stat.isDirectory()) {
-      await deleteDir(fullPath);
-    } else {
-      await deleteFile(fullPath);
+      await deleteDir(fullPath)
+    }
+    else {
+      await deleteFile(fullPath)
     }
   }
 }

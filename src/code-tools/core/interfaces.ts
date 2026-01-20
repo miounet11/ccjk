@@ -2,12 +2,12 @@
  * Core interfaces for the code tool abstraction layer
  */
 
-import {
-  ToolConfig,
-  InstallStatus,
+import type {
   ExecutionResult,
+  InstallStatus,
+  ToolConfig,
   ToolMetadata,
-} from './types';
+} from './types'
 
 /**
  * Base interface that all code tools must implement
@@ -16,62 +16,62 @@ export interface ICodeTool {
   /**
    * Get tool metadata
    */
-  getMetadata(): ToolMetadata;
+  getMetadata: () => ToolMetadata
 
   /**
    * Check if the tool is installed
    */
-  isInstalled(): Promise<InstallStatus>;
+  isInstalled: () => Promise<InstallStatus>
 
   /**
    * Install the tool
    */
-  install(): Promise<ExecutionResult>;
+  install: () => Promise<ExecutionResult>
 
   /**
    * Uninstall the tool
    */
-  uninstall(): Promise<ExecutionResult>;
+  uninstall: () => Promise<ExecutionResult>
 
   /**
    * Get current configuration
    */
-  getConfig(): Promise<ToolConfig>;
+  getConfig: () => Promise<ToolConfig>
 
   /**
    * Update configuration
    * @param updates Partial configuration to update
    */
-  updateConfig(updates: Partial<ToolConfig>): Promise<void>;
+  updateConfig: (updates: Partial<ToolConfig>) => Promise<void>
 
   /**
    * Configure the tool with full config
    * @param config Complete configuration
    */
-  configure(config: ToolConfig): Promise<void>;
+  configure: (config: ToolConfig) => Promise<void>
 
   /**
    * Validate configuration
    * @param config Configuration to validate
    */
-  validateConfig(config: Partial<ToolConfig>): Promise<boolean>;
+  validateConfig: (config: Partial<ToolConfig>) => Promise<boolean>
 
   /**
    * Execute a command with the tool
    * @param command Command to execute
    * @param args Command arguments
    */
-  execute(command: string, args?: string[]): Promise<ExecutionResult>;
+  execute: (command: string, args?: string[]) => Promise<ExecutionResult>
 
   /**
    * Get tool version
    */
-  getVersion(): Promise<string | undefined>;
+  getVersion: () => Promise<string | undefined>
 
   /**
    * Reset tool to default configuration
    */
-  reset(): Promise<void>;
+  reset: () => Promise<void>
 }
 
 /**
@@ -82,18 +82,18 @@ export interface IChatTool extends ICodeTool {
    * Start a chat session
    * @param prompt Initial prompt
    */
-  chat(prompt: string): Promise<ExecutionResult>;
+  chat: (prompt: string) => Promise<ExecutionResult>
 
   /**
    * Continue a chat session
    * @param message Message to send
    */
-  continueChat(message: string): Promise<ExecutionResult>;
+  continueChat: (message: string) => Promise<ExecutionResult>
 
   /**
    * End chat session
    */
-  endChat(): Promise<void>;
+  endChat: () => Promise<void>
 }
 
 /**
@@ -105,14 +105,14 @@ export interface IFileEditTool extends ICodeTool {
    * @param filePath Path to file
    * @param instructions Edit instructions
    */
-  editFile(filePath: string, instructions: string): Promise<ExecutionResult>;
+  editFile: (filePath: string, instructions: string) => Promise<ExecutionResult>
 
   /**
    * Edit multiple files
    * @param files Array of file paths
    * @param instructions Edit instructions
    */
-  editFiles(files: string[], instructions: string): Promise<ExecutionResult>;
+  editFiles: (files: string[], instructions: string) => Promise<ExecutionResult>
 }
 
 /**
@@ -124,5 +124,5 @@ export interface ICodeGenTool extends ICodeTool {
    * @param prompt Generation prompt
    * @param outputPath Optional output path
    */
-  generateCode(prompt: string, outputPath?: string): Promise<ExecutionResult>;
+  generateCode: (prompt: string, outputPath?: string) => Promise<ExecutionResult>
 }

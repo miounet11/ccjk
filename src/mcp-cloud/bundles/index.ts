@@ -2,4 +2,4 @@
  * Bundles Module Exports
  */
 
-export * from './service-bundles';
+export * from './service-bundles'

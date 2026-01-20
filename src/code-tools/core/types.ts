@@ -7,19 +7,19 @@
  */
 export interface ToolConfig {
   /** Tool name */
-  name: string;
+  name: string
   /** Tool version */
-  version?: string;
+  version?: string
   /** Installation path */
-  installPath?: string;
+  installPath?: string
   /** API key or authentication token */
-  apiKey?: string;
+  apiKey?: string
   /** Model to use (e.g., claude-opus-4, gpt-4) */
-  model?: string;
+  model?: string
   /** Additional tool-specific settings */
-  settings?: Record<string, any>;
+  settings?: Record<string, any>
   /** Environment variables */
-  env?: Record<string, string>;
+  env?: Record<string, string>
 }
 
 /**
@@ -27,13 +27,13 @@ export interface ToolConfig {
  */
 export interface InstallStatus {
   /** Whether the tool is installed */
-  installed: boolean;
+  installed: boolean
   /** Installation path if installed */
-  path?: string;
+  path?: string
   /** Version if installed */
-  version?: string;
+  version?: string
   /** Error message if check failed */
-  error?: string;
+  error?: string
 }
 
 /**
@@ -41,13 +41,13 @@ export interface InstallStatus {
  */
 export interface ExecutionResult {
   /** Whether execution was successful */
-  success: boolean;
+  success: boolean
   /** Output from the tool */
-  output?: string;
+  output?: string
   /** Error message if failed */
-  error?: string;
+  error?: string
   /** Exit code */
-  exitCode?: number;
+  exitCode?: number
 }
 
 /**
@@ -55,19 +55,19 @@ export interface ExecutionResult {
  */
 export interface ToolCapabilities {
   /** Supports chat/conversation mode */
-  supportsChat: boolean;
+  supportsChat: boolean
   /** Supports file editing */
-  supportsFileEdit: boolean;
+  supportsFileEdit: boolean
   /** Supports code generation */
-  supportsCodeGen: boolean;
+  supportsCodeGen: boolean
   /** Supports code review */
-  supportsReview: boolean;
+  supportsReview: boolean
   /** Supports testing */
-  supportsTesting: boolean;
+  supportsTesting: boolean
   /** Supports debugging */
-  supportsDebugging: boolean;
+  supportsDebugging: boolean
   /** Custom capabilities */
-  custom?: Record<string, boolean>;
+  custom?: Record<string, boolean>
 }
 
 /**
@@ -75,17 +75,17 @@ export interface ToolCapabilities {
  */
 export interface ToolMetadata {
   /** Tool name */
-  name: string;
+  name: string
   /** Display name */
-  displayName: string;
+  displayName: string
   /** Tool description */
-  description: string;
+  description: string
   /** Tool version */
-  version: string;
+  version: string
   /** Tool homepage URL */
-  homepage?: string;
+  homepage?: string
   /** Tool documentation URL */
-  documentation?: string;
+  documentation?: string
   /** Tool capabilities */
-  capabilities: ToolCapabilities;
+  capabilities: ToolCapabilities
 }

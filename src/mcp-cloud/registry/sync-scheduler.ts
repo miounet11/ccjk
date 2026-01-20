@@ -3,16 +3,16 @@
  * Manages automatic synchronization with cloud
  */
 
-import { CloudMCPRegistry } from './cloud-registry';
+import type { CloudMCPRegistry } from './cloud-registry'
 
 export class SyncScheduler {
-  private registry: CloudMCPRegistry;
-  private intervalId: NodeJS.Timeout | null = null;
-  private syncInterval: number;
+  private registry: CloudMCPRegistry
+  private intervalId: NodeJS.Timeout | null = null
+  private syncInterval: number
 
   constructor(registry: CloudMCPRegistry, syncInterval: number = 3600000) {
-    this.registry = registry;
-    this.syncInterval = syncInterval; // Default: 1 hour
+    this.registry = registry
+    this.syncInterval = syncInterval // Default: 1 hour
   }
 
   /**
@@ -20,16 +20,17 @@ export class SyncScheduler {
    */
   start(): void {
     if (this.intervalId) {
-      return; // Already running
+      return // Already running
     }
 
     this.intervalId = setInterval(async () => {
       try {
-        await this.registry.syncFromCloud();
-      } catch (error) {
-        console.error('Auto-sync failed:', error);
+        await this.registry.syncFromCloud()
       }
-    }, this.syncInterval);
+      catch (error) {
+        console.error('Auto-sync failed:', error)
+      }
+    }, this.syncInterval)
   }
 
   /**
@@ -37,8 +38,8 @@ export class SyncScheduler {
    */
   stop(): void {
     if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
+      clearInterval(this.intervalId)
+      this.intervalId = null
     }
   }
 
@@ -46,12 +47,12 @@ export class SyncScheduler {
    * Set sync interval
    */
   setInterval(interval: number): void {
-    this.syncInterval = interval;
+    this.syncInterval = interval
 
     // Restart if running
     if (this.intervalId) {
-      this.stop();
-      this.start();
+      this.stop()
+      this.start()
     }
   }
 
@@ -59,13 +60,13 @@ export class SyncScheduler {
    * Get sync interval
    */
   getInterval(): number {
-    return this.syncInterval;
+    return this.syncInterval
   }
 
   /**
    * Check if running
    */
   isRunning(): boolean {
-    return this.intervalId !== null;
+    return this.intervalId !== null
   }
 }

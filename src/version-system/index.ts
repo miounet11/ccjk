@@ -23,29 +23,29 @@
  * ```
  */
 
-// Core service
-export { VersionService, createVersionService } from './service';
-
 // Components
-export { VersionCache } from './cache';
-export { VersionChecker } from './checker';
-export { VersionUpdater } from './updater';
-export { VersionScheduler } from './scheduler';
+export { VersionCache } from './cache'
 
+export { VersionChecker } from './checker'
+export { VersionScheduler } from './scheduler'
+// Core service
+export { createVersionService, VersionService } from './service'
 // Types
 export type {
-  VersionInfo,
+  BatchCheckResult,
+  IVersionSource,
+  IVersionUpdater,
+  ScheduleConfig,
+  UpdateEvent,
+  UpdateEventType,
+  UpdateOptions,
   UpdateStatus,
   VersionCacheEntry,
   VersionCheckOptions,
-  UpdateOptions,
-  ScheduleConfig,
+  VersionComparison,
+  VersionInfo,
   VersionServiceConfig,
   VersionServiceStats,
-  BatchCheckResult,
-  UpdateEvent,
-  UpdateEventType,
-  VersionComparison,
-  IVersionSource,
-  IVersionUpdater,
-} from './types';
+} from './types'
+
+export { VersionUpdater } from './updater'

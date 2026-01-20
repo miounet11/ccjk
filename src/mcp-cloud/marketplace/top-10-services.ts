@@ -3,7 +3,7 @@
  * Curated list of the best MCP services for developers
  */
 
-import { MCPService } from '../types';
+import type { MCPService } from '../types'
 
 /**
  * Get the top 10 recommended MCP services
@@ -397,7 +397,7 @@ export function getTop10Services(): MCPService[] {
       lastUpdated: '2026-01-16T00:00:00Z',
       verified: true,
     },
-  ];
+  ]
 }
 
 /**
@@ -496,5 +496,5 @@ npm install -g @modelcontextprotocol/server-fetch
 ❌ Rate limiting considerations
 `,
     // Add more detailed descriptions for other services...
-  };
+  }
 }

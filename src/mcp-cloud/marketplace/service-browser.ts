@@ -3,19 +3,19 @@
  * Browse and explore available MCP services
  */
 
-import {
+import type { CloudMCPRegistry } from '../registry/cloud-registry'
+import type {
+  MarketplaceState,
   MCPService,
   SearchFilters,
-  MarketplaceState,
-} from '../types';
-import { CloudMCPRegistry } from '../registry/cloud-registry';
+} from '../types'
 
 export class ServiceBrowser {
-  private registry: CloudMCPRegistry;
-  private state: MarketplaceState;
+  private registry: CloudMCPRegistry
+  private state: MarketplaceState
 
   constructor(registry: CloudMCPRegistry) {
-    this.registry = registry;
+    this.registry = registry
     this.state = {
       services: [],
       trending: [],
@@ -23,14 +23,14 @@ export class ServiceBrowser {
       categories: [],
       tags: [],
       lastUpdated: '',
-    };
+    }
   }
 
   /**
    * Initialize browser
    */
   async initialize(): Promise<void> {
-    await this.refreshState();
+    await this.refreshState()
   }
 
   /**
@@ -42,9 +42,9 @@ export class ServiceBrowser {
       this.registry.getTrending(10),
       this.registry.getCategories(),
       this.registry.getTags(),
-    ]);
+    ])
 
-    const featured = services.filter((s) => s.featured);
+    const featured = services.filter(s => s.featured)
 
     this.state = {
       services,
@@ -53,104 +53,104 @@ export class ServiceBrowser {
       categories,
       tags,
       lastUpdated: new Date().toISOString(),
-    };
+    }
   }
 
   /**
    * Browse all services
    */
   async browseAll(filters?: SearchFilters): Promise<MCPService[]> {
-    let services = this.state.services;
+    let services = this.state.services
 
     if (filters) {
-      services = await this.registry.searchServices('', filters);
+      services = await this.registry.searchServices('', filters)
     }
 
-    return services;
+    return services
   }
 
   /**
    * Browse by category
    */
   async browseByCategory(category: string): Promise<MCPService[]> {
-    return await this.registry.getByCategory(category);
+    return await this.registry.getByCategory(category)
   }
 
   /**
    * Browse trending
    */
   async browseTrending(limit: number = 10): Promise<MCPService[]> {
-    return await this.registry.getTrending(limit);
+    return await this.registry.getTrending(limit)
   }
 
   /**
    * Browse featured
    */
   browseFeatured(): MCPService[] {
-    return this.state.featured;
+    return this.state.featured
   }
 
   /**
    * Get service details
    */
   async getServiceDetails(id: string) {
-    return await this.registry.getService(id);
+    return await this.registry.getService(id)
   }
 
   /**
    * Get categories
    */
   getCategories(): string[] {
-    return this.state.categories;
+    return this.state.categories
   }
 
   /**
    * Get tags
    */
   getTags(): string[] {
-    return this.state.tags;
+    return this.state.tags
   }
 
   /**
    * Get marketplace state
    */
   getState(): MarketplaceState {
-    return { ...this.state };
+    return { ...this.state }
   }
 
   /**
    * Get service count
    */
   getServiceCount(): number {
-    return this.state.services.length;
+    return this.state.services.length
   }
 
   /**
    * Get services by tags
    */
   async getByTags(tags: string[]): Promise<MCPService[]> {
-    return this.state.services.filter((service) =>
-      tags.some((tag) => service.tags.includes(tag))
-    );
+    return this.state.services.filter(service =>
+      tags.some(tag => service.tags.includes(tag)),
+    )
   }
 
   /**
    * Get verified services
    */
   getVerified(): MCPService[] {
-    return this.state.services.filter((s) => s.verified);
+    return this.state.services.filter(s => s.verified)
   }
 
   /**
    * Get new services (last 30 days)
    */
   getNewServices(): MCPService[] {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
     return this.state.services.filter(
-      (service) => new Date(service.lastUpdated) > thirtyDaysAgo
-    );
+      service => new Date(service.lastUpdated) > thirtyDaysAgo,
+    )
   }
 
   /**
@@ -159,7 +159,7 @@ export class ServiceBrowser {
   getPopular(limit: number = 10): MCPService[] {
     return [...this.state.services]
       .sort((a, b) => b.downloads - a.downloads)
-      .slice(0, limit);
+      .slice(0, limit)
   }
 
   /**
@@ -168,6 +168,6 @@ export class ServiceBrowser {
   getTopRated(limit: number = 10): MCPService[] {
     return [...this.state.services]
       .sort((a, b) => b.rating - a.rating)
-      .slice(0, limit);
+      .slice(0, limit)
   }
 }

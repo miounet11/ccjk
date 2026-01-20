@@ -3,26 +3,26 @@
  * Enables users to configure CCJK with a single click from supplier websites
  */
 
-import { ProviderSetup, ProviderCredentials } from '../../api-providers/core/provider-interface';
-import { ProviderFactory } from '../../api-providers/core/provider-factory';
-import { providerRegistry } from '../../api-providers/core/provider-registry';
-import { OneClickSetupConfig, SetupSuccessResponse, ReferralTracking } from '../types';
-import { ReferralTracker } from '../partnership/referral-tracking';
+import type { ProviderCredentials, ProviderSetup } from '../../api-providers/core/provider-interface'
+import type { OneClickSetupConfig, SetupSuccessResponse } from '../types'
+import { ProviderFactory } from '../../api-providers/core/provider-factory'
+import { providerRegistry } from '../../api-providers/core/provider-registry'
+import { ReferralTracker } from '../partnership/referral-tracking'
 
 export interface OneClickSetupResult {
-  success: boolean;
-  setup?: ProviderSetup;
-  error?: string;
-  warnings?: string[];
-  setupTime: number;
-  referralId?: string;
+  success: boolean
+  setup?: ProviderSetup
+  error?: string
+  warnings?: string[]
+  setupTime: number
+  referralId?: string
 }
 
 export class OneClickSetup {
-  private referralTracker: ReferralTracker;
+  private referralTracker: ReferralTracker
 
   constructor() {
-    this.referralTracker = new ReferralTracker();
+    this.referralTracker = new ReferralTracker()
   }
 
   /**
@@ -31,17 +31,18 @@ export class OneClickSetup {
    */
   parseSetupUrl(url: string): OneClickSetupConfig | null {
     try {
-      let urlObj: URL;
+      let urlObj: URL
 
       // Handle custom protocol (ccjk://setup?...)
       if (url.startsWith('ccjk://')) {
-        const httpUrl = url.replace('ccjk://', 'https://ccjk.dev/');
-        urlObj = new URL(httpUrl);
-      } else {
-        urlObj = new URL(url);
+        const httpUrl = url.replace('ccjk://', 'https://ccjk.dev/')
+        urlObj = new URL(httpUrl)
+      }
+      else {
+        urlObj = new URL(url)
       }
 
-      const params = urlObj.searchParams;
+      const params = urlObj.searchParams
 
       const config: OneClickSetupConfig = {
         provider: params.get('provider') || '',
@@ -51,30 +52,31 @@ export class OneClickSetup {
         referralCode: params.get('refCode') || undefined,
         autoComplete: params.get('auto') === 'true',
         skipValidation: params.get('skipValidation') === 'true',
-      };
+      }
 
       // Parse custom fields (any param starting with 'field_')
-      const customFields: Record<string, string> = {};
+      const customFields: Record<string, string> = {}
       params.forEach((value, key) => {
         if (key.startsWith('field_')) {
-          const fieldName = key.replace('field_', '');
-          customFields[fieldName] = value;
+          const fieldName = key.replace('field_', '')
+          customFields[fieldName] = value
         }
-      });
+      })
 
       if (Object.keys(customFields).length > 0) {
-        config.customFields = customFields;
+        config.customFields = customFields
       }
 
       // Validate required fields
       if (!config.provider) {
-        return null;
+        return null
       }
 
-      return config;
-    } catch (error) {
-      console.error('Failed to parse setup URL:', error);
-      return null;
+      return config
+    }
+    catch (error) {
+      console.error('Failed to parse setup URL:', error)
+      return null
     }
   }
 
@@ -82,33 +84,39 @@ export class OneClickSetup {
    * Generate one-click setup URL for suppliers
    */
   generateSetupUrl(config: OneClickSetupConfig, protocol: 'ccjk' | 'https' = 'https'): string {
-    const baseUrl = protocol === 'ccjk' ? 'ccjk://setup' : 'https://ccjk.dev/setup';
-    const params = new URLSearchParams();
+    const baseUrl = protocol === 'ccjk' ? 'ccjk://setup' : 'https://ccjk.dev/setup'
+    const params = new URLSearchParams()
 
-    params.set('provider', config.provider);
-    if (config.apiKey) params.set('key', config.apiKey);
-    if (config.model) params.set('model', config.model);
-    if (config.referralSource) params.set('ref', config.referralSource);
-    if (config.referralCode) params.set('refCode', config.referralCode);
-    if (config.autoComplete) params.set('auto', 'true');
-    if (config.skipValidation) params.set('skipValidation', 'true');
+    params.set('provider', config.provider)
+    if (config.apiKey)
+      params.set('key', config.apiKey)
+    if (config.model)
+      params.set('model', config.model)
+    if (config.referralSource)
+      params.set('ref', config.referralSource)
+    if (config.referralCode)
+      params.set('refCode', config.referralCode)
+    if (config.autoComplete)
+      params.set('auto', 'true')
+    if (config.skipValidation)
+      params.set('skipValidation', 'true')
 
     // Add custom fields
     if (config.customFields) {
       Object.entries(config.customFields).forEach(([key, value]) => {
-        params.set(`field_${key}`, value);
-      });
+        params.set(`field_${key}`, value)
+      })
     }
 
-    return `${baseUrl}?${params.toString()}`;
+    return `${baseUrl}?${params.toString()}`
   }
 
   /**
    * Execute one-click setup
    */
   async executeSetup(config: OneClickSetupConfig): Promise<OneClickSetupResult> {
-    const startTime = Date.now();
-    const warnings: string[] = [];
+    const startTime = Date.now()
+    const warnings: string[] = []
 
     try {
       // Validate provider exists
@@ -117,30 +125,30 @@ export class OneClickSetup {
           success: false,
           error: `Provider not found: ${config.provider}`,
           setupTime: Date.now() - startTime,
-        };
+        }
       }
 
       // Track referral if present
-      let referralId: string | undefined;
+      let referralId: string | undefined
       if (config.referralSource) {
         referralId = await this.referralTracker.trackReferral({
           supplierId: config.provider,
           source: config.referralSource,
           referralCode: config.referralCode,
-        });
+        })
       }
 
       // Prepare credentials
       const credentials: ProviderCredentials = {
         apiKey: config.apiKey,
         customFields: config.customFields,
-      };
+      }
 
       // Validate credentials unless skipped
       if (!config.skipValidation && config.apiKey) {
-        const provider = providerRegistry.getProvider(config.provider);
+        const provider = providerRegistry.getProvider(config.provider)
         if (provider) {
-          const validation = await provider.validateCredentials(credentials);
+          const validation = await provider.validateCredentials(credentials)
           if (!validation.valid) {
             return {
               success: false,
@@ -148,10 +156,10 @@ export class OneClickSetup {
               warnings: validation.warnings,
               setupTime: Date.now() - startTime,
               referralId,
-            };
+            }
           }
           if (validation.warnings) {
-            warnings.push(...validation.warnings);
+            warnings.push(...validation.warnings)
           }
         }
       }
@@ -160,20 +168,20 @@ export class OneClickSetup {
       const setup = await ProviderFactory.createSetup(
         config.provider,
         config.apiKey || '',
-        config.customFields
-      );
+        config.customFields,
+      )
 
       // Apply model if specified
       if (config.model) {
-        setup.model = config.model;
+        setup.model = config.model
       }
 
       // Mark referral as converted
       if (referralId) {
-        await this.referralTracker.markConverted(referralId);
+        await this.referralTracker.markConverted(referralId)
       }
 
-      const setupTime = Date.now() - startTime;
+      const setupTime = Date.now() - startTime
 
       return {
         success: true,
@@ -181,14 +189,15 @@ export class OneClickSetup {
         warnings: warnings.length > 0 ? warnings : undefined,
         setupTime,
         referralId,
-      };
-    } catch (error) {
+      }
+    }
+    catch (error) {
       return {
         success: false,
         error: (error as Error).message,
         warnings,
         setupTime: Date.now() - startTime,
-      };
+      }
     }
   }
 
@@ -196,29 +205,29 @@ export class OneClickSetup {
    * Quick setup from URL
    */
   async setupFromUrl(url: string): Promise<OneClickSetupResult> {
-    const config = this.parseSetupUrl(url);
+    const config = this.parseSetupUrl(url)
     if (!config) {
       return {
         success: false,
         error: 'Invalid setup URL',
         setupTime: 0,
-      };
+      }
     }
 
-    return this.executeSetup(config);
+    return this.executeSetup(config)
   }
 
   /**
    * Generate setup button HTML for suppliers
    */
   generateSetupButton(config: OneClickSetupConfig, options?: {
-    buttonText?: string;
-    buttonStyle?: string;
-    openInNewTab?: boolean;
+    buttonText?: string
+    buttonStyle?: string
+    openInNewTab?: boolean
   }): string {
-    const url = this.generateSetupUrl(config, 'https');
-    const buttonText = options?.buttonText || `Setup CCJK with ${config.provider}`;
-    const target = options?.openInNewTab ? '_blank' : '_self';
+    const url = this.generateSetupUrl(config, 'https')
+    const buttonText = options?.buttonText || `Setup CCJK with ${config.provider}`
+    const target = options?.openInNewTab ? '_blank' : '_self'
     const style = options?.buttonStyle || `
       display: inline-block;
       padding: 12px 24px;
@@ -230,7 +239,7 @@ export class OneClickSetup {
       font-size: 16px;
       transition: transform 0.2s, box-shadow 0.2s;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    `.replace(/\s+/g, ' ').trim();
+    `.replace(/\s+/g, ' ').trim()
 
     return `
 <a href="${url}"
@@ -240,16 +249,16 @@ export class OneClickSetup {
    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
   ${buttonText}
 </a>
-    `.trim();
+    `.trim()
   }
 
   /**
    * Generate setup widget for embedding
    */
   generateSetupWidget(config: OneClickSetupConfig): string {
-    const url = this.generateSetupUrl(config, 'https');
-    const provider = providerRegistry.getProvider(config.provider);
-    const providerName = provider?.getConfig().name || config.provider;
+    const url = this.generateSetupUrl(config, 'https')
+    const provider = providerRegistry.getProvider(config.provider)
+    const providerName = provider?.getConfig().name || config.provider
 
     return `
 <div class="ccjk-setup-widget" style="
@@ -344,14 +353,14 @@ export class OneClickSetup {
     Powered by CCJK
   </p>
 </div>
-    `.trim();
+    `.trim()
   }
 
   /**
    * Create success response with celebration
    */
   createSuccessResponse(setup: ProviderSetup, setupTime: number): SetupSuccessResponse {
-    const providerName = setup.provider.name;
+    const providerName = setup.provider.name
 
     return {
       success: true,
@@ -395,7 +404,7 @@ for await (const chunk of stream) {
         },
       ],
       celebrationAnimation: setupTime < 10000 ? '🚀 Lightning fast setup!' : '✨ Setup complete!',
-    };
+    }
   }
 }
 
@@ -403,13 +412,13 @@ for await (const chunk of stream) {
  * Create a one-click setup instance
  */
 export function createOneClickSetup(): OneClickSetup {
-  return new OneClickSetup();
+  return new OneClickSetup()
 }
 
 /**
  * Quick helper for URL-based setup
  */
 export async function setupFromUrl(url: string): Promise<OneClickSetupResult> {
-  const setup = createOneClickSetup();
-  return setup.setupFromUrl(url);
+  const setup = createOneClickSetup()
+  return setup.setupFromUrl(url)
 }

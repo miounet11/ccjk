@@ -33,15 +33,15 @@ export enum CompressionAlgorithm {
  */
 export interface ContextData {
   /** Unique identifier for this context */
-  id: string;
+  id: string
   /** Context content */
-  content: string;
+  content: string
   /** Context metadata */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any>
   /** Timestamp when context was created */
-  timestamp: number;
+  timestamp: number
   /** Original token count */
-  tokenCount?: number;
+  tokenCount?: number
 }
 
 /**
@@ -49,23 +49,23 @@ export interface ContextData {
  */
 export interface CompressedContext {
   /** Original context ID */
-  id: string;
+  id: string
   /** Compressed content */
-  compressed: string;
+  compressed: string
   /** Compression algorithm used */
-  algorithm: CompressionAlgorithm;
+  algorithm: CompressionAlgorithm
   /** Compression strategy used */
-  strategy: CompressionStrategy;
+  strategy: CompressionStrategy
   /** Original size in tokens */
-  originalTokens: number;
+  originalTokens: number
   /** Compressed size in tokens */
-  compressedTokens: number;
+  compressedTokens: number
   /** Compression ratio (0-1, where 0.8 = 80% reduction) */
-  compressionRatio: number;
+  compressionRatio: number
   /** Metadata preserved from original */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any>
   /** Timestamp of compression */
-  compressedAt: number;
+  compressedAt: number
 }
 
 /**
@@ -73,15 +73,15 @@ export interface CompressedContext {
  */
 export interface DecompressedContext {
   /** Original context ID */
-  id: string;
+  id: string
   /** Decompressed content */
-  content: string;
+  content: string
   /** Metadata */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any>
   /** Whether decompression was successful */
-  success: boolean;
+  success: boolean
   /** Error message if decompression failed */
-  error?: string;
+  error?: string
 }
 
 /**
@@ -89,29 +89,29 @@ export interface DecompressedContext {
  */
 export interface CompressionStats {
   /** Total contexts processed */
-  totalContexts: number;
+  totalContexts: number
   /** Total original tokens */
-  totalOriginalTokens: number;
+  totalOriginalTokens: number
   /** Total compressed tokens */
-  totalCompressedTokens: number;
+  totalCompressedTokens: number
   /** Average compression ratio */
-  averageCompressionRatio: number;
+  averageCompressionRatio: number
   /** Total tokens saved */
-  tokensSaved: number;
+  tokensSaved: number
   /** Compression by algorithm */
   byAlgorithm: Record<CompressionAlgorithm, {
-    count: number;
-    originalTokens: number;
-    compressedTokens: number;
-    ratio: number;
-  }>;
+    count: number
+    originalTokens: number
+    compressedTokens: number
+    ratio: number
+  }>
   /** Compression by strategy */
   byStrategy: Record<CompressionStrategy, {
-    count: number;
-    originalTokens: number;
-    compressedTokens: number;
-    ratio: number;
-  }>;
+    count: number
+    originalTokens: number
+    compressedTokens: number
+    ratio: number
+  }>
 }
 
 /**
@@ -119,15 +119,15 @@ export interface CompressionStats {
  */
 export interface CacheEntry {
   /** Context ID */
-  id: string;
+  id: string
   /** Compressed context */
-  context: CompressedContext;
+  context: CompressedContext
   /** Last access timestamp */
-  lastAccess: number;
+  lastAccess: number
   /** Access count */
-  accessCount: number;
+  accessCount: number
   /** Size in bytes */
-  size: number;
+  size: number
 }
 
 /**
@@ -135,17 +135,17 @@ export interface CacheEntry {
  */
 export interface CacheStats {
   /** Total entries in cache */
-  totalEntries: number;
+  totalEntries: number
   /** Total size in bytes */
-  totalSize: number;
+  totalSize: number
   /** Cache hits */
-  hits: number;
+  hits: number
   /** Cache misses */
-  misses: number;
+  misses: number
   /** Hit rate (0-1) */
-  hitRate: number;
+  hitRate: number
   /** Evictions count */
-  evictions: number;
+  evictions: number
 }
 
 /**
@@ -153,19 +153,19 @@ export interface CacheStats {
  */
 export interface ContextManagerConfig {
   /** Default compression strategy */
-  defaultStrategy: CompressionStrategy;
+  defaultStrategy: CompressionStrategy
   /** Default compression algorithm */
-  defaultAlgorithm: CompressionAlgorithm;
+  defaultAlgorithm: CompressionAlgorithm
   /** Enable caching */
-  enableCache: boolean;
+  enableCache: boolean
   /** Maximum cache size in bytes */
-  maxCacheSize: number;
+  maxCacheSize: number
   /** Maximum cache entries */
-  maxCacheEntries: number;
+  maxCacheEntries: number
   /** Enable analytics */
-  enableAnalytics: boolean;
+  enableAnalytics: boolean
   /** Token counting function */
-  tokenCounter?: (text: string) => number;
+  tokenCounter?: (text: string) => number
 }
 
 /**
@@ -173,13 +173,13 @@ export interface ContextManagerConfig {
  */
 export interface CompressionOptions {
   /** Compression strategy to use */
-  strategy?: CompressionStrategy;
+  strategy?: CompressionStrategy
   /** Compression algorithm to use */
-  algorithm?: CompressionAlgorithm;
+  algorithm?: CompressionAlgorithm
   /** Whether to cache the result */
-  cache?: boolean;
+  cache?: boolean
   /** Custom metadata to attach */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any>
 }
 
 /**
@@ -187,22 +187,22 @@ export interface CompressionOptions {
  */
 export interface TokenAnalytics {
   /** Total tokens processed */
-  totalTokens: number;
+  totalTokens: number
   /** Tokens saved through compression */
-  tokensSaved: number;
+  tokensSaved: number
   /** Current savings rate (0-1) */
-  savingsRate: number;
+  savingsRate: number
   /** Compression statistics */
-  compressionStats: CompressionStats;
+  compressionStats: CompressionStats
   /** Cache statistics */
-  cacheStats: CacheStats;
+  cacheStats: CacheStats
   /** Performance metrics */
   performance: {
     /** Average compression time in ms */
-    avgCompressionTime: number;
+    avgCompressionTime: number
     /** Average decompression time in ms */
-    avgDecompressionTime: number;
+    avgDecompressionTime: number
     /** Total operations */
-    totalOperations: number;
-  };
+    totalOperations: number
+  }
 }

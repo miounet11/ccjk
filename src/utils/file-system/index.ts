@@ -3,4 +3,4 @@
  * File and directory operations
  */
 
-export * from './operations';
+export * from './operations'

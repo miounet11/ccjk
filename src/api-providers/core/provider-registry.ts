@@ -3,28 +3,28 @@
  * Central registry for all API providers
  */
 
-import { IProvider, ProviderMetadata } from './provider-interface';
+import type { IProvider, ProviderMetadata } from './provider-interface'
 
 export class ProviderRegistry {
-  private static instance: ProviderRegistry;
-  private providers: Map<string, IProvider> = new Map();
-  private metadata: Map<string, ProviderMetadata> = new Map();
+  private static instance: ProviderRegistry
+  private providers: Map<string, IProvider> = new Map()
+  private metadata: Map<string, ProviderMetadata> = new Map()
 
   private constructor() {}
 
   static getInstance(): ProviderRegistry {
     if (!ProviderRegistry.instance) {
-      ProviderRegistry.instance = new ProviderRegistry();
+      ProviderRegistry.instance = new ProviderRegistry()
     }
-    return ProviderRegistry.instance;
+    return ProviderRegistry.instance
   }
 
   /**
    * Register a provider
    */
   register(provider: IProvider, metadata?: Partial<ProviderMetadata>): void {
-    const config = provider.getConfig();
-    this.providers.set(config.id, provider);
+    const config = provider.getConfig()
+    this.providers.set(config.id, provider)
 
     // Store metadata
     const fullMetadata: ProviderMetadata = {
@@ -35,36 +35,36 @@ export class ProviderRegistry {
       popular: metadata?.popular ?? false,
       setupTime: metadata?.setupTime ?? '1 minute',
       difficulty: metadata?.difficulty ?? 'easy',
-    };
-    this.metadata.set(config.id, fullMetadata);
+    }
+    this.metadata.set(config.id, fullMetadata)
   }
 
   /**
    * Get a provider by ID
    */
   getProvider(id: string): IProvider | undefined {
-    return this.providers.get(id);
+    return this.providers.get(id)
   }
 
   /**
    * Get all registered providers
    */
   getAllProviders(): IProvider[] {
-    return Array.from(this.providers.values());
+    return Array.from(this.providers.values())
   }
 
   /**
    * Get provider metadata
    */
   getMetadata(id: string): ProviderMetadata | undefined {
-    return this.metadata.get(id);
+    return this.metadata.get(id)
   }
 
   /**
    * Get all provider metadata
    */
   getAllMetadata(): ProviderMetadata[] {
-    return Array.from(this.metadata.values());
+    return Array.from(this.metadata.values())
   }
 
   /**
@@ -73,44 +73,44 @@ export class ProviderRegistry {
   getPopularProviders(): ProviderMetadata[] {
     return this.getAllMetadata()
       .filter(m => m.popular)
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => a.name.localeCompare(b.name))
   }
 
   /**
    * Search providers by name or description
    */
   searchProviders(query: string): ProviderMetadata[] {
-    const lowerQuery = query.toLowerCase();
+    const lowerQuery = query.toLowerCase()
     return this.getAllMetadata().filter(
       m =>
-        m.name.toLowerCase().includes(lowerQuery) ||
-        m.description.toLowerCase().includes(lowerQuery)
-    );
+        m.name.toLowerCase().includes(lowerQuery)
+        || m.description.toLowerCase().includes(lowerQuery),
+    )
   }
 
   /**
    * Check if provider exists
    */
   hasProvider(id: string): boolean {
-    return this.providers.has(id);
+    return this.providers.has(id)
   }
 
   /**
    * Unregister a provider (for testing)
    */
   unregister(id: string): void {
-    this.providers.delete(id);
-    this.metadata.delete(id);
+    this.providers.delete(id)
+    this.metadata.delete(id)
   }
 
   /**
    * Clear all providers (for testing)
    */
   clear(): void {
-    this.providers.clear();
-    this.metadata.clear();
+    this.providers.clear()
+    this.metadata.clear()
   }
 }
 
 // Export singleton instance
-export const providerRegistry = ProviderRegistry.getInstance();
+export const providerRegistry = ProviderRegistry.getInstance()

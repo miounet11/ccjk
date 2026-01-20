@@ -3,7 +3,7 @@
  * 解决: Bash command failures, Exit code 1
  */
 
-import type { BashOptions, BashResult, ErrorAnalysis, ErrorType } from './types'
+import type { BashOptions, BashResult, ErrorAnalysis } from './types'
 import { existsSync } from 'node:fs'
 import { chmod, mkdir } from 'node:fs/promises'
 import { exec } from 'tinyexec'

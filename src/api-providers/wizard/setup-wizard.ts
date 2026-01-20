@@ -3,35 +3,35 @@
  * Simplifies API configuration to just 2 steps
  */
 
-import { IProvider, ProviderSetup, ProviderCredentials } from '../core/provider-interface';
-import { providerRegistry } from '../core/provider-registry';
-import { ProviderFactory } from '../core/provider-factory';
+import type { ProviderCredentials, ProviderSetup } from '../core/provider-interface'
+import { ProviderFactory } from '../core/provider-factory'
+import { providerRegistry } from '../core/provider-registry'
 
 export interface WizardStep {
-  step: number;
-  title: string;
-  description: string;
-  fields: WizardField[];
+  step: number
+  title: string
+  description: string
+  fields: WizardField[]
 }
 
 export interface WizardField {
-  name: string;
-  label: string;
-  type: 'text' | 'password' | 'select' | 'number';
-  required: boolean;
-  options?: Array<{ value: string; label: string; description?: string }>;
-  placeholder?: string;
-  helpText?: string;
-  defaultValue?: string;
+  name: string
+  label: string
+  type: 'text' | 'password' | 'select' | 'number'
+  required: boolean
+  options?: Array<{ value: string, label: string, description?: string }>
+  placeholder?: string
+  helpText?: string
+  defaultValue?: string
 }
 
 export interface WizardState {
-  currentStep: number;
-  providerId?: string;
-  credentials: ProviderCredentials;
-  model?: string;
-  errors: string[];
-  warnings: string[];
+  currentStep: number
+  providerId?: string
+  credentials: ProviderCredentials
+  model?: string
+  errors: string[]
+  warnings: string[]
 }
 
 export class SetupWizard {
@@ -40,15 +40,15 @@ export class SetupWizard {
     credentials: {},
     errors: [],
     warnings: [],
-  };
+  }
 
   /**
    * Get Step 1: Provider Selection
    */
   getStep1(): WizardStep {
-    const providers = providerRegistry.getAllMetadata();
-    const popularProviders = providers.filter(p => p.popular);
-    const otherProviders = providers.filter(p => !p.popular);
+    const providers = providerRegistry.getAllMetadata()
+    const popularProviders = providers.filter(p => p.popular)
+    const otherProviders = providers.filter(p => !p.popular)
 
     const options = [
       ...popularProviders.map(p => ({
@@ -62,7 +62,7 @@ export class SetupWizard {
         label: `${p.icon || ''} ${p.name}`,
         description: `${p.description} (Setup: ${p.setupTime})`,
       })),
-    ];
+    ]
 
     return {
       step: 1,
@@ -78,20 +78,20 @@ export class SetupWizard {
           helpText: 'Choose based on your preference and region. All providers support Claude-like models.',
         },
       ],
-    };
+    }
   }
 
   /**
    * Get Step 2: API Configuration
    */
   getStep2(providerId: string): WizardStep {
-    const provider = providerRegistry.getProvider(providerId);
+    const provider = providerRegistry.getProvider(providerId)
     if (!provider) {
-      throw new Error(`Provider not found: ${providerId}`);
+      throw new Error(`Provider not found: ${providerId}`)
     }
 
-    const config = provider.getConfig();
-    const fields: WizardField[] = [];
+    const config = provider.getConfig()
+    const fields: WizardField[] = []
 
     // Add API Key field if required
     if (config.requiresApiKey) {
@@ -102,12 +102,12 @@ export class SetupWizard {
         required: true,
         placeholder: 'Paste your API key here',
         helpText: provider.getSetupInstructions().join(' → '),
-      });
+      })
     }
 
     // Add custom fields
     if (config.customFields) {
-      config.customFields.forEach(field => {
+      config.customFields.forEach((field) => {
         const wizardField: WizardField = {
           name: field.key,
           label: field.label,
@@ -116,17 +116,17 @@ export class SetupWizard {
           placeholder: field.placeholder,
           helpText: field.helpText,
           defaultValue: field.defaultValue,
-        };
+        }
 
         if (field.type === 'select' && field.options) {
           wizardField.options = field.options.map(opt => ({
             value: opt,
             label: opt,
-          }));
+          }))
         }
 
-        fields.push(wizardField);
-      });
+        fields.push(wizardField)
+      })
     }
 
     // Add model selection (optional, with default)
@@ -142,7 +142,7 @@ export class SetupWizard {
         })),
         defaultValue: config.defaultModel,
         helpText: `Default: ${config.defaultModel}. You can change this later.`,
-      });
+      })
     }
 
     return {
@@ -150,7 +150,7 @@ export class SetupWizard {
       title: 'Enter Your API Key',
       description: `Just paste your ${config.name} API key and you're done!`,
       fields,
-    };
+    }
   }
 
   /**
@@ -158,14 +158,14 @@ export class SetupWizard {
    */
   setProvider(providerId: string): void {
     if (!providerRegistry.hasProvider(providerId)) {
-      this.state.errors.push(`Provider not found: ${providerId}`);
-      return;
+      this.state.errors.push(`Provider not found: ${providerId}`)
+      return
     }
 
-    this.state.providerId = providerId;
-    this.state.currentStep = 2;
-    this.state.errors = [];
-    this.state.warnings = [];
+    this.state.providerId = providerId
+    this.state.currentStep = 2
+    this.state.errors = []
+    this.state.warnings = []
   }
 
   /**
@@ -173,32 +173,32 @@ export class SetupWizard {
    */
   async setCredentials(data: Record<string, string>): Promise<void> {
     if (!this.state.providerId) {
-      this.state.errors.push('Please select a provider first');
-      return;
+      this.state.errors.push('Please select a provider first')
+      return
     }
 
-    const provider = providerRegistry.getProvider(this.state.providerId);
+    const provider = providerRegistry.getProvider(this.state.providerId)
     if (!provider) {
-      this.state.errors.push('Provider not found');
-      return;
+      this.state.errors.push('Provider not found')
+      return
     }
 
     // Extract API key and custom fields
-    const { apiKey, model, ...customFields } = data;
+    const { apiKey, model, ...customFields } = data
 
     this.state.credentials = {
       apiKey,
       customFields: Object.keys(customFields).length > 0 ? customFields : undefined,
-    };
+    }
 
     if (model) {
-      this.state.model = model;
+      this.state.model = model
     }
 
     // Validate credentials
-    const validation = await provider.validateCredentials(this.state.credentials);
-    this.state.errors = validation.errors || [];
-    this.state.warnings = validation.warnings || [];
+    const validation = await provider.validateCredentials(this.state.credentials)
+    this.state.errors = validation.errors || []
+    this.state.warnings = validation.warnings || []
   }
 
   /**
@@ -206,49 +206,49 @@ export class SetupWizard {
    */
   async complete(): Promise<ProviderSetup> {
     if (!this.state.providerId) {
-      throw new Error('Provider not selected');
+      throw new Error('Provider not selected')
     }
 
     if (this.state.errors.length > 0) {
-      throw new Error(`Configuration errors: ${this.state.errors.join(', ')}`);
+      throw new Error(`Configuration errors: ${this.state.errors.join(', ')}`)
     }
 
     const setup = await ProviderFactory.createSetup(
       this.state.providerId,
       this.state.credentials.apiKey!,
-      this.state.credentials.customFields
-    );
+      this.state.credentials.customFields,
+    )
 
     if (this.state.model) {
-      setup.model = this.state.model;
+      setup.model = this.state.model
     }
 
-    return setup;
+    return setup
   }
 
   /**
    * Test connection before completing
    */
   async testConnection(): Promise<{
-    success: boolean;
-    message: string;
-    suggestions?: string[];
+    success: boolean
+    message: string
+    suggestions?: string[]
   }> {
     if (!this.state.providerId) {
       return {
         success: false,
         message: 'Provider not selected',
-      };
+      }
     }
 
-    return ProviderFactory.testConnection(this.state.providerId, this.state.credentials);
+    return ProviderFactory.testConnection(this.state.providerId, this.state.credentials)
   }
 
   /**
    * Get current state
    */
   getState(): WizardState {
-    return { ...this.state };
+    return { ...this.state }
   }
 
   /**
@@ -260,29 +260,29 @@ export class SetupWizard {
       credentials: {},
       errors: [],
       warnings: [],
-    };
+    }
   }
 
   /**
    * Get progress percentage
    */
   getProgress(): number {
-    return (this.state.currentStep / 2) * 100;
+    return (this.state.currentStep / 2) * 100
   }
 
   /**
    * Quick setup with provider ID and API key only
    */
   async quickSetup(providerId: string, apiKey: string): Promise<ProviderSetup> {
-    this.reset();
-    this.setProvider(providerId);
-    await this.setCredentials({ apiKey });
+    this.reset()
+    this.setProvider(providerId)
+    await this.setCredentials({ apiKey })
 
     if (this.state.errors.length > 0) {
-      throw new Error(this.state.errors.join(', '));
+      throw new Error(this.state.errors.join(', '))
     }
 
-    return this.complete();
+    return this.complete()
   }
 }
 
@@ -290,5 +290,5 @@ export class SetupWizard {
  * Create a new wizard instance
  */
 export function createWizard(): SetupWizard {
-  return new SetupWizard();
+  return new SetupWizard()
 }

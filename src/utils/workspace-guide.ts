@@ -7,7 +7,6 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { homedir, platform, userInfo } from 'node:os'
 import process from 'node:process'
 import ansis from 'ansis'
-import inquirer from 'inquirer'
 import ora from 'ora'
 import { dirname, join, resolve } from 'pathe'
 import { exec } from 'tinyexec'

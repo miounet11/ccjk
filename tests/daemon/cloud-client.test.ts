@@ -7,13 +7,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CloudClient } from '../../src/daemon/cloud-client'
 
 // Mock fetch
-global.fetch = vi.fn()
+globalThis.fetch = vi.fn()
 
 describe('cloudClient', () => {
   let client: CloudClient
 
   beforeEach(() => {
-    vi.mocked(global.fetch).mockReset()
+    vi.mocked(globalThis.fetch).mockReset()
     client = new CloudClient({
       deviceToken: 'test-token-12345',
       debug: false,
@@ -27,7 +27,7 @@ describe('cloudClient', () => {
 
   describe('device Registration', () => {
     it('should register device successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -55,7 +55,7 @@ describe('cloudClient', () => {
     })
 
     it('should handle registration failure', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: false,
         json: async () => ({
           success: false,
@@ -75,14 +75,14 @@ describe('cloudClient', () => {
     })
 
     it('should use default API URL', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: { device: { id: 'device-123' } } }),
       } as Response)
 
       await client.register()
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://api.claudehome.cn/api/control/devices/register',
         expect.any(Object),
       )
@@ -94,14 +94,14 @@ describe('cloudClient', () => {
         apiUrl: 'https://custom.api.com/control',
       })
 
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: { device: { id: 'device-123' } } }),
       } as Response)
 
       await customClient.register()
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://custom.api.com/control/devices/register',
         expect.any(Object),
       )
@@ -110,7 +110,7 @@ describe('cloudClient', () => {
 
   describe('heartbeat', () => {
     it('should send heartbeat successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -129,28 +129,28 @@ describe('cloudClient', () => {
       client.addTask('task-1')
       client.addTask('task-2')
 
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
 
       await client.heartbeat('busy')
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           method: 'POST',
         }),
       )
 
-      const callArgs = vi.mocked(global.fetch).mock.calls[0]
+      const callArgs = vi.mocked(globalThis.fetch).mock.calls[0]
       const body = JSON.parse(callArgs[1].body)
       expect(body.currentTasks).toContain('task-1')
       expect(body.currentTasks).toContain('task-2')
     })
 
     it('should return pending tasks from heartbeat', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -177,7 +177,7 @@ describe('cloudClient', () => {
 
   describe('task Pulling', () => {
     it('should pull pending tasks', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -203,7 +203,7 @@ describe('cloudClient', () => {
     })
 
     it('should return empty array on failure', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: false,
         json: async () => ({
           success: false,
@@ -219,7 +219,7 @@ describe('cloudClient', () => {
 
   describe('result Reporting', () => {
     it('should report command result successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -245,7 +245,7 @@ describe('cloudClient', () => {
     })
 
     it('should keep task on failed report', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: false,
         json: async () => ({
           success: false,
@@ -289,7 +289,7 @@ describe('cloudClient', () => {
 
   describe('heartbeat Loop', () => {
     it('should start heartbeat loop', async () => {
-      vi.mocked(global.fetch).mockResolvedValue({
+      vi.mocked(globalThis.fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
           success: true,
@@ -300,18 +300,13 @@ describe('cloudClient', () => {
         }),
       } as Response)
 
-      let callbackCount = 0
-      const onTasks = () => {
-        callbackCount++
-      }
-
       // Create client with short heartbeat interval for testing
       const testClient = new CloudClient({
         deviceToken: 'test-token',
         heartbeatInterval: 50, // 50ms for quick testing
       })
 
-      testClient.startHeartbeat(onTasks)
+      testClient.startHeartbeat()
 
       // Wait for heartbeat to fire
       await new Promise(resolve => setTimeout(resolve, 150))
@@ -320,11 +315,11 @@ describe('cloudClient', () => {
 
       // Callback is only called when there are pending tasks
       // But we can verify heartbeat was called by checking fetch
-      expect(global.fetch).toHaveBeenCalled()
+      expect(globalThis.fetch).toHaveBeenCalled()
     })
 
     it('should stop heartbeat loop', async () => {
-      vi.mocked(global.fetch).mockResolvedValue({
+      vi.mocked(globalThis.fetch).mockResolvedValue({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
@@ -342,7 +337,7 @@ describe('cloudClient', () => {
 
   describe('offline Status', () => {
     it('should send offline and stop heartbeat', async () => {
-      vi.mocked(global.fetch).mockResolvedValue({
+      vi.mocked(globalThis.fetch).mockResolvedValue({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
@@ -353,7 +348,7 @@ describe('cloudClient', () => {
       await client.goOffline()
 
       // Verify offline was sent
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           method: 'POST',

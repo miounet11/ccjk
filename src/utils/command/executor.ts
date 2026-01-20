@@ -3,26 +3,27 @@
  * Provides utilities for executing shell commands
  */
 
-import { exec, spawn, ExecOptions, SpawnOptions } from 'child_process';
-import { promisify } from 'util';
+import type { ExecOptions, SpawnOptions } from 'node:child_process'
+import { exec, spawn } from 'node:child_process'
+import { promisify } from 'node:util'
 
-const execAsync = promisify(exec);
+const execAsync = promisify(exec)
 
 export interface CommandResult {
-  success: boolean;
-  stdout: string;
-  stderr: string;
-  exitCode: number;
-  error?: string;
+  success: boolean
+  stdout: string
+  stderr: string
+  exitCode: number
+  error?: string
 }
 
 export interface CommandOptions {
-  cwd?: string;
-  env?: Record<string, string>;
-  timeout?: number;
-  shell?: string | boolean;
-  encoding?: BufferEncoding;
-  maxBuffer?: number;
+  cwd?: string
+  env?: Record<string, string>
+  timeout?: number
+  shell?: string | boolean
+  encoding?: BufferEncoding
+  maxBuffer?: number
 }
 
 /**
@@ -31,10 +32,10 @@ export interface CommandOptions {
 export async function executeCommand(
   command: string,
   args: string[] = [],
-  options: CommandOptions = {}
+  options: CommandOptions = {},
 ): Promise<CommandResult> {
   try {
-    const fullCommand = buildCommand(command, args);
+    const fullCommand = buildCommand(command, args)
     const execOptions: ExecOptions = {
       cwd: options.cwd,
       env: { ...process.env, ...options.env },
@@ -42,24 +43,25 @@ export async function executeCommand(
       shell: options.shell,
       encoding: options.encoding || 'utf8',
       maxBuffer: options.maxBuffer || 1024 * 1024 * 10, // 10MB default
-    };
+    }
 
-    const { stdout, stderr } = await execAsync(fullCommand, execOptions);
+    const { stdout, stderr } = await execAsync(fullCommand, execOptions)
 
     return {
       success: true,
       stdout: stdout.toString().trim(),
       stderr: stderr.toString().trim(),
       exitCode: 0,
-    };
-  } catch (error: any) {
+    }
+  }
+  catch (error: any) {
     return {
       success: false,
       stdout: error.stdout?.toString().trim() || '',
       stderr: error.stderr?.toString().trim() || '',
       exitCode: error.code || 1,
       error: error.message,
-    };
+    }
   }
 }
 
@@ -70,37 +72,37 @@ export function executeCommandStream(
   command: string,
   args: string[] = [],
   options: CommandOptions & {
-    onStdout?: (data: string) => void;
-    onStderr?: (data: string) => void;
-  } = {}
+    onStdout?: (data: string) => void
+    onStderr?: (data: string) => void
+  } = {},
 ): Promise<CommandResult> {
   return new Promise((resolve) => {
     const spawnOptions: SpawnOptions = {
       cwd: options.cwd,
       env: { ...process.env, ...options.env },
       shell: options.shell !== false,
-    };
+    }
 
-    const child = spawn(command, args, spawnOptions);
+    const child = spawn(command, args, spawnOptions)
 
-    let stdout = '';
-    let stderr = '';
+    let stdout = ''
+    let stderr = ''
 
     child.stdout?.on('data', (data) => {
-      const text = data.toString();
-      stdout += text;
+      const text = data.toString()
+      stdout += text
       if (options.onStdout) {
-        options.onStdout(text);
+        options.onStdout(text)
       }
-    });
+    })
 
     child.stderr?.on('data', (data) => {
-      const text = data.toString();
-      stderr += text;
+      const text = data.toString()
+      stderr += text
       if (options.onStderr) {
-        options.onStderr(text);
+        options.onStderr(text)
       }
-    });
+    })
 
     child.on('close', (code) => {
       resolve({
@@ -109,8 +111,8 @@ export function executeCommandStream(
         stderr: stderr.trim(),
         exitCode: code || 0,
         error: code !== 0 ? `Command exited with code ${code}` : undefined,
-      });
-    });
+      })
+    })
 
     child.on('error', (error) => {
       resolve({
@@ -119,31 +121,31 @@ export function executeCommandStream(
         stderr: stderr.trim(),
         exitCode: 1,
         error: error.message,
-      });
-    });
+      })
+    })
 
     // Handle timeout
     if (options.timeout) {
       setTimeout(() => {
-        child.kill();
+        child.kill()
         resolve({
           success: false,
           stdout: stdout.trim(),
           stderr: stderr.trim(),
           exitCode: 1,
           error: `Command timed out after ${options.timeout}ms`,
-        });
-      }, options.timeout);
+        })
+      }, options.timeout)
     }
-  });
+  })
 }
 
 /**
  * Build command string from command and arguments
  */
 export function buildCommand(command: string, args: string[]): string {
-  const escapedArgs = args.map(escapeArgument);
-  return [command, ...escapedArgs].join(' ');
+  const escapedArgs = args.map(escapeArgument)
+  return [command, ...escapedArgs].join(' ')
 }
 
 /**
@@ -153,24 +155,25 @@ export function escapeArgument(arg: string): string {
   // If argument contains spaces or special characters, wrap in quotes
   if (/[\s"'`$&|;<>(){}[\]\\]/.test(arg)) {
     // Escape existing quotes
-    const escaped = arg.replace(/"/g, '\\"');
-    return `"${escaped}"`;
+    const escaped = arg.replace(/"/g, '\\"')
+    return `"${escaped}"`
   }
-  return arg;
+  return arg
 }
 
 /**
  * Check if a command exists in PATH
  */
 export async function commandExists(command: string): Promise<boolean> {
-  const isWindows = process.platform === 'win32';
-  const checkCommand = isWindows ? 'where' : 'which';
+  const isWindows = process.platform === 'win32'
+  const checkCommand = isWindows ? 'where' : 'which'
 
   try {
-    const result = await executeCommand(checkCommand, [command]);
-    return result.success;
-  } catch {
-    return false;
+    const result = await executeCommand(checkCommand, [command])
+    return result.success
+  }
+  catch {
+    return false
   }
 }
 
@@ -178,18 +181,19 @@ export async function commandExists(command: string): Promise<boolean> {
  * Get command path
  */
 export async function getCommandPath(command: string): Promise<string | null> {
-  const isWindows = process.platform === 'win32';
-  const checkCommand = isWindows ? 'where' : 'which';
+  const isWindows = process.platform === 'win32'
+  const checkCommand = isWindows ? 'where' : 'which'
 
   try {
-    const result = await executeCommand(checkCommand, [command]);
+    const result = await executeCommand(checkCommand, [command])
     if (result.success) {
       // Return first line (in case of multiple matches)
-      return result.stdout.split('\n')[0].trim();
+      return result.stdout.split('\n')[0].trim()
     }
-    return null;
-  } catch {
-    return null;
+    return null
+  }
+  catch {
+    return null
   }
 }
 
@@ -202,16 +206,16 @@ export function parseVersion(output: string): string | null {
     /version\s+v?(\d+\.\d+\.\d+)/i,
     /v?(\d+\.\d+\.\d+)/,
     /(\d+\.\d+\.\d+)/,
-  ];
+  ]
 
   for (const pattern of patterns) {
-    const match = output.match(pattern);
+    const match = output.match(pattern)
     if (match) {
-      return match[1];
+      return match[1]
     }
   }
 
-  return null;
+  return null
 }
 
 /**
@@ -219,16 +223,17 @@ export function parseVersion(output: string): string | null {
  */
 export async function getCommandVersion(
   command: string,
-  versionFlag: string = '--version'
+  versionFlag: string = '--version',
 ): Promise<string | null> {
   try {
-    const result = await executeCommand(command, [versionFlag]);
+    const result = await executeCommand(command, [versionFlag])
     if (result.success) {
-      return parseVersion(result.stdout || result.stderr);
+      return parseVersion(result.stdout || result.stderr)
     }
-    return null;
-  } catch {
-    return null;
+    return null
+  }
+  catch {
+    return null
   }
 }
 
@@ -236,36 +241,36 @@ export async function getCommandVersion(
  * Execute multiple commands in sequence
  */
 export async function executeCommandSequence(
-  commands: Array<{ command: string; args?: string[]; options?: CommandOptions }>
+  commands: Array<{ command: string, args?: string[], options?: CommandOptions }>,
 ): Promise<CommandResult[]> {
-  const results: CommandResult[] = [];
+  const results: CommandResult[] = []
 
   for (const cmd of commands) {
     const result = await executeCommand(
       cmd.command,
       cmd.args || [],
-      cmd.options || {}
-    );
-    results.push(result);
+      cmd.options || {},
+    )
+    results.push(result)
 
     // Stop on first failure
     if (!result.success) {
-      break;
+      break
     }
   }
 
-  return results;
+  return results
 }
 
 /**
  * Execute multiple commands in parallel
  */
 export async function executeCommandParallel(
-  commands: Array<{ command: string; args?: string[]; options?: CommandOptions }>
+  commands: Array<{ command: string, args?: string[], options?: CommandOptions }>,
 ): Promise<CommandResult[]> {
-  const promises = commands.map((cmd) =>
-    executeCommand(cmd.command, cmd.args || [], cmd.options || {})
-  );
+  const promises = commands.map(cmd =>
+    executeCommand(cmd.command, cmd.args || [], cmd.options || {}),
+  )
 
-  return Promise.all(promises);
+  return Promise.all(promises)
 }

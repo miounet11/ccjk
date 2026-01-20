@@ -4,31 +4,31 @@
  */
 
 // Core exports
-export * from './core/provider-interface';
-export * from './core/provider-registry';
-export * from './core/provider-factory';
+// Registry instance
+import { providerRegistry } from './core/provider-registry'
+import { Provider302AI } from './providers/302ai'
+import { ProviderAnthropic } from './providers/anthropic'
+import { ProviderCustom } from './providers/custom'
+import { ProviderGLM } from './providers/glm'
+import { ProviderKimi } from './providers/kimi'
+import { ProviderMiniMax } from './providers/minimax'
+
+export * from './core/provider-factory'
+export * from './core/provider-interface'
+export * from './core/provider-registry'
 
 // Provider implementations
-export { Provider302AI } from './providers/302ai';
-export { ProviderGLM } from './providers/glm';
-export { ProviderMiniMax } from './providers/minimax';
-export { ProviderKimi } from './providers/kimi';
-export { ProviderAnthropic } from './providers/anthropic';
-export { ProviderCustom } from './providers/custom';
+export { Provider302AI } from './providers/302ai'
+export { ProviderAnthropic } from './providers/anthropic'
+export { ProviderCustom } from './providers/custom'
+export { ProviderGLM } from './providers/glm'
+export { ProviderKimi } from './providers/kimi'
+export { ProviderMiniMax } from './providers/minimax'
 
+export * from './wizard/quick-switch'
+export { createQuickSwitch } from './wizard/quick-switch'
 // Wizard exports
-export * from './wizard/setup-wizard';
-export * from './wizard/quick-switch';
-export * from './wizard/validation';
-
-// Registry instance
-import { providerRegistry } from './core/provider-registry';
-import { Provider302AI } from './providers/302ai';
-import { ProviderGLM } from './providers/glm';
-import { ProviderMiniMax } from './providers/minimax';
-import { ProviderKimi } from './providers/kimi';
-import { ProviderAnthropic } from './providers/anthropic';
-import { ProviderCustom } from './providers/custom';
+export * from './wizard/setup-wizard'
 
 /**
  * Initialize all providers
@@ -39,42 +39,42 @@ export function initializeProviders(): void {
     popular: true,
     setupTime: '30 seconds',
     difficulty: 'easy',
-  });
+  })
 
   providerRegistry.register(new ProviderGLM(), {
     popular: true,
     setupTime: '1 minute',
     difficulty: 'easy',
-  });
+  })
 
   providerRegistry.register(new ProviderKimi(), {
     popular: true,
     setupTime: '1 minute',
     difficulty: 'easy',
-  });
+  })
 
   // Register other providers
   providerRegistry.register(new ProviderMiniMax(), {
     popular: false,
     setupTime: '2 minutes',
     difficulty: 'medium',
-  });
+  })
 
   providerRegistry.register(new ProviderAnthropic(), {
     popular: false,
     setupTime: '1 minute',
     difficulty: 'easy',
-  });
+  })
 
   providerRegistry.register(new ProviderCustom(), {
     popular: false,
     setupTime: '3 minutes',
     difficulty: 'hard',
-  });
+  })
 }
 
 // Auto-initialize on import
-initializeProviders();
+initializeProviders()
 
 /**
  * Quick Setup Function
@@ -87,8 +87,8 @@ initializeProviders();
  * // Done! Ready to use
  * ```
  */
-export { createWizard } from './wizard/setup-wizard';
-export { createQuickSwitch } from './wizard/quick-switch';
+export { createWizard } from './wizard/setup-wizard'
+export * from './wizard/validation'
 
 /**
  * Usage Examples:

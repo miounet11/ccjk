@@ -3,4 +3,4 @@
  * Array manipulation and transformation
  */
 
-export * from './operations';
+export * from './operations'

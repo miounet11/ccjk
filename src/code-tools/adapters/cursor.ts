@@ -2,10 +2,9 @@
  * Cursor adapter
  */
 
-import { BaseCodeTool } from '../core/base-tool';
-import { ToolMetadata } from '../core/types';
-import { IChatTool, IFileEditTool, ICodeGenTool } from '../core/interfaces';
-import { ExecutionResult } from '../core/types';
+import type { IChatTool, ICodeGenTool, IFileEditTool } from '../core/interfaces'
+import type { ExecutionResult, ToolMetadata } from '../core/types'
+import { BaseCodeTool } from '../core/base-tool'
 
 /**
  * Cursor tool adapter
@@ -27,66 +26,66 @@ export class CursorTool extends BaseCodeTool implements IChatTool, IFileEditTool
         supportsTesting: true,
         supportsDebugging: true,
       },
-    };
+    }
   }
 
   protected getInstallCheckCommand(): string {
-    return 'cursor --version';
+    return 'cursor --version'
   }
 
   protected getInstallCommand(): string {
     // Cursor is typically installed as a desktop app
-    return 'echo "Please download Cursor from https://cursor.sh"';
+    return 'echo "Please download Cursor from https://cursor.sh"'
   }
 
   protected getUninstallCommand(): string {
-    return 'echo "Please uninstall Cursor manually"';
+    return 'echo "Please uninstall Cursor manually"'
   }
 
   /**
    * Start a chat session
    */
   async chat(prompt: string): Promise<ExecutionResult> {
-    return this.execute('cursor', ['chat', prompt]);
+    return this.execute('cursor', ['chat', prompt])
   }
 
   /**
    * Continue a chat session
    */
   async continueChat(message: string): Promise<ExecutionResult> {
-    return this.execute('cursor', ['chat', message]);
+    return this.execute('cursor', ['chat', message])
   }
 
   /**
    * End chat session
    */
   async endChat(): Promise<void> {
-    await this.execute('cursor', ['exit']);
+    await this.execute('cursor', ['exit'])
   }
 
   /**
    * Edit a file
    */
   async editFile(filePath: string, instructions: string): Promise<ExecutionResult> {
-    return this.execute('cursor', ['edit', filePath, '--instructions', instructions]);
+    return this.execute('cursor', ['edit', filePath, '--instructions', instructions])
   }
 
   /**
    * Edit multiple files
    */
   async editFiles(files: string[], instructions: string): Promise<ExecutionResult> {
-    const fileArgs = files.flatMap(f => ['--file', f]);
-    return this.execute('cursor', ['edit', ...fileArgs, '--instructions', instructions]);
+    const fileArgs = files.flatMap(f => ['--file', f])
+    return this.execute('cursor', ['edit', ...fileArgs, '--instructions', instructions])
   }
 
   /**
    * Generate code
    */
   async generateCode(prompt: string, outputPath?: string): Promise<ExecutionResult> {
-    const args = ['generate', prompt];
+    const args = ['generate', prompt]
     if (outputPath) {
-      args.push('--output', outputPath);
+      args.push('--output', outputPath)
     }
-    return this.execute('cursor', args);
+    return this.execute('cursor', args)
   }
 }

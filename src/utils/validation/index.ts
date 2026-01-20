@@ -3,4 +3,4 @@
  * Type checking and validation functions
  */
 
-export * from './validators';
+export * from './validators'

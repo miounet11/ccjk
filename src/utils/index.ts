@@ -7,172 +7,172 @@
  * developer experience.
  */
 
-// Configuration utilities
-export * as config from './config';
-
-// Platform utilities
-export * as platform from './platform';
-
-// Command execution utilities
-export * as command from './command';
-
-// File system utilities
-export * as fs from './file-system';
-
-// Validation utilities
-export * as validation from './validation';
-
-// String utilities
-export * as string from './string';
-
-// Object utilities
-export * as object from './object';
-
 // Array utilities
-export * as array from './array';
+export * as array from './array'
+
+// Array
+export {
+  chunk,
+  difference,
+  flatten as flattenArray,
+  intersection,
+  partition,
+  shuffle,
+  union,
+  unique,
+} from './array/operations'
 
 // Async utilities
-export * as async from './async';
+export * as async from './async'
+
+// Async
+export {
+  debounce,
+  Mutex,
+  parallelLimit,
+  retry,
+  Semaphore,
+  sequence,
+  sleep,
+  throttle,
+  timeout,
+  waitFor,
+} from './async/helpers'
+
+// Command execution utilities
+export * as command from './command'
+
+// Command
+export {
+  commandExists,
+  executeCommand,
+  executeCommandStream,
+  getCommandPath,
+  getCommandVersion,
+} from './command/executor'
+
+// Configuration utilities
+export * as config from './config'
+
+// Config
+export { ConfigManager, createConfigManager } from './config/manager'
+
+export { ConfigValidator, createValidator, validators } from './config/validator'
 
 // Error utilities
-export * as error from './error';
+export * as error from './error'
 
-// Logger utilities
-export * as loggerUtils from './logger';
+// Error
+export {
+  BaseError,
+  ConfigurationError,
+  formatError,
+  getErrorMessage,
+  InternalError,
+  NotFoundError,
+  TimeoutError,
+  tryCatch,
+  tryCatchAsync,
+  UnauthorizedError,
+  ValidationError,
+  wrapError,
+} from './error/errors'
 
 /**
  * Re-export commonly used utilities for convenience
  */
 
-// Config
-export { ConfigManager, createConfigManager } from './config/manager';
-export { ConfigValidator, createValidator, validators } from './config/validator';
-
-// Platform
-export {
-  getPlatform,
-  getArchitecture,
-  isMacOS,
-  isLinux,
-  isWindows,
-  isUnix,
-  getPlatformInfo,
-} from './platform/detection';
-export {
-  getHomeDir,
-  getConfigDir,
-  getDataDir,
-  getCacheDir,
-  getTempDir,
-} from './platform/paths';
-
-// Command
-export {
-  executeCommand,
-  executeCommandStream,
-  commandExists,
-  getCommandPath,
-  getCommandVersion,
-} from './command/executor';
-
+// File system utilities
+export * as fs from './file-system'
 // File System
 export {
-  exists,
-  isFile,
-  isDirectory,
-  ensureDir,
-  readFile,
-  writeFile,
-  readJSON,
-  writeJSON,
   copyFile,
-  moveFile,
-  deleteFile,
   deleteDir,
-  listFiles,
+  deleteFile,
+  ensureDir,
+  exists,
+  isDirectory,
+  isFile,
   listDirs,
-} from './file-system/operations';
+  listFiles,
+  moveFile,
+  readFile,
+  readJSON,
+  writeFile,
+  writeJSON,
+} from './file-system/operations'
 
-// Validation
-export {
-  isDefined,
-  isString,
-  isNumber,
-  isBoolean,
-  isObject,
-  isArray,
-  isEmail,
-  isURL,
-  assertDefined,
-  assert,
-} from './validation/validators';
+// Logger utilities
+export * as loggerUtils from './logger'
+// Logger
+export { createLogger, Logger, logger } from './logger/logger'
 
-// String
-export {
-  capitalize,
-  camelCase,
-  pascalCase,
-  snakeCase,
-  kebabCase,
-  truncate,
-  slugify,
-  template,
-} from './string/formatters';
+// Object utilities
+export * as object from './object'
 
 // Object
 export {
   deepClone,
   deepMerge,
-  get,
-  set,
-  has,
-  pick,
-  omit,
   flatten,
+  get,
+  has,
+  omit,
+  pick,
+  set,
   unflatten,
-} from './object/operations';
+} from './object/operations'
 
-// Array
+// Platform utilities
+export * as platform from './platform'
+
+// Platform
 export {
-  unique,
-  flatten as flattenArray,
-  chunk,
-  shuffle,
-  partition,
-  intersection,
-  union,
-  difference,
-} from './array/operations';
+  getArchitecture,
+  getPlatform,
+  getPlatformInfo,
+  isLinux,
+  isMacOS,
+  isUnix,
+  isWindows,
+} from './platform/detection'
 
-// Async
 export {
-  sleep,
-  retry,
-  timeout,
-  debounce,
-  throttle,
-  parallelLimit,
-  sequence,
-  waitFor,
-  Mutex,
-  Semaphore,
-} from './async/helpers';
+  getCacheDir,
+  getConfigDir,
+  getDataDir,
+  getHomeDir,
+  getTempDir,
+} from './platform/paths'
 
-// Error
+// String utilities
+export * as string from './string'
+
+// String
 export {
-  BaseError,
-  ValidationError,
-  NotFoundError,
-  UnauthorizedError,
-  TimeoutError,
-  InternalError,
-  ConfigurationError,
-  getErrorMessage,
-  formatError,
-  wrapError,
-  tryCatch,
-  tryCatchAsync,
-} from './error/errors';
+  camelCase,
+  capitalize,
+  kebabCase,
+  pascalCase,
+  slugify,
+  snakeCase,
+  template,
+  truncate,
+} from './string/formatters'
 
-// Logger
-export { Logger, createLogger, logger } from './logger/logger';
+// Validation utilities
+export * as validation from './validation'
+
+// Validation
+export {
+  assert,
+  assertDefined,
+  isArray,
+  isBoolean,
+  isDefined,
+  isEmail,
+  isNumber,
+  isObject,
+  isString,
+  isURL,
+} from './validation/validators'

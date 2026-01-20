@@ -3,14 +3,13 @@
  * For custom OpenAI-compatible API endpoints
  */
 
-import {
+import type {
   IProvider,
   ProviderConfig,
   ProviderCredentials,
-  ValidationResult,
   ProviderSetup,
-  CustomField,
-} from '../core/provider-interface';
+  ValidationResult,
+} from '../core/provider-interface'
 
 export class ProviderCustom implements IProvider {
   private config: ProviderConfig = {
@@ -57,80 +56,83 @@ export class ProviderCustom implements IProvider {
       },
     ],
     icon: '⚙️',
-  };
+  }
 
   getConfig(): ProviderConfig {
-    return this.config;
+    return this.config
   }
 
   async validateCredentials(credentials: ProviderCredentials): Promise<ValidationResult> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const suggestions: string[] = []
 
     if (!credentials.apiKey) {
-      errors.push('API Key is required');
-      return { valid: false, errors };
+      errors.push('API Key is required')
+      return { valid: false, errors }
     }
 
     if (!credentials.customFields?.baseUrl) {
-      errors.push('API Base URL is required');
-      suggestions.push('Enter the base URL for your API endpoint');
-      return { valid: false, errors, suggestions };
+      errors.push('API Base URL is required')
+      suggestions.push('Enter the base URL for your API endpoint')
+      return { valid: false, errors, suggestions }
     }
 
     if (!credentials.customFields?.model) {
-      errors.push('Model name is required');
-      suggestions.push('Enter the model identifier you want to use');
-      return { valid: false, errors, suggestions };
+      errors.push('Model name is required')
+      suggestions.push('Enter the model identifier you want to use')
+      return { valid: false, errors, suggestions }
     }
 
     // Validate URL format
     try {
-      new URL(credentials.customFields.baseUrl);
-    } catch {
-      errors.push('Invalid URL format');
-      suggestions.push('URL should start with http:// or https://');
-      return { valid: false, errors, suggestions };
+      new URL(credentials.customFields.baseUrl)
+    }
+    catch {
+      errors.push('Invalid URL format')
+      suggestions.push('URL should start with http:// or https://')
+      return { valid: false, errors, suggestions }
     }
 
     // Check if URL ends with /v1 or similar
     if (!credentials.customFields.baseUrl.match(/\/v\d+$/)) {
-      warnings.push('API URL typically ends with /v1 or similar version path');
+      warnings.push('API URL typically ends with /v1 or similar version path')
     }
 
-    const authType = credentials.customFields?.authType || 'Bearer Token';
+    const authType = credentials.customFields?.authType || 'Bearer Token'
     if (authType === 'Custom Header' && !credentials.customFields?.customHeader) {
-      errors.push('Custom header name is required when using Custom Header auth');
-      return { valid: false, errors, suggestions };
+      errors.push('Custom header name is required when using Custom Header auth')
+      return { valid: false, errors, suggestions }
     }
 
-    return { valid: true, warnings, suggestions };
+    return { valid: true, warnings, suggestions }
   }
 
   async testConnection(credentials: ProviderCredentials): Promise<ValidationResult> {
-    const validation = await this.validateCredentials(credentials);
+    const validation = await this.validateCredentials(credentials)
     if (!validation.valid) {
-      return validation;
+      return validation
     }
 
     try {
-      const baseUrl = credentials.customFields!.baseUrl;
-      const model = credentials.customFields!.model;
-      const authType = credentials.customFields?.authType || 'Bearer Token';
-      const customHeader = credentials.customFields?.customHeader;
+      const baseUrl = credentials.customFields!.baseUrl
+      const model = credentials.customFields!.model
+      const authType = credentials.customFields?.authType || 'Bearer Token'
+      const customHeader = credentials.customFields?.customHeader
 
       // Build headers based on auth type
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-      };
+      }
 
       if (authType === 'Bearer Token') {
-        headers['Authorization'] = `Bearer ${credentials.apiKey}`;
-      } else if (authType === 'API Key Header') {
-        headers['X-API-Key'] = credentials.apiKey!;
-      } else if (authType === 'Custom Header' && customHeader) {
-        headers[customHeader] = credentials.apiKey!;
+        headers.Authorization = `Bearer ${credentials.apiKey}`
+      }
+      else if (authType === 'API Key Header') {
+        headers['X-API-Key'] = credentials.apiKey!
+      }
+      else if (authType === 'Custom Header' && customHeader) {
+        headers[customHeader] = credentials.apiKey!
       }
 
       // Test with a simple chat completion request
@@ -142,10 +144,10 @@ export class ProviderCustom implements IProvider {
           messages: [{ role: 'user', content: 'Hi' }],
           max_tokens: 10,
         }),
-      });
+      })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({}))
         return {
           valid: false,
           errors: [
@@ -157,14 +159,15 @@ export class ProviderCustom implements IProvider {
             'Ensure the model name is correct',
             'Verify the authentication type matches your API',
           ],
-        };
+        }
       }
 
       return {
         valid: true,
         suggestions: ['Connection successful! Your custom provider is ready to use'],
-      };
-    } catch (error) {
+      }
+    }
+    catch (error) {
       return {
         valid: false,
         errors: [`Network error: ${(error as Error).message}`],
@@ -174,7 +177,7 @@ export class ProviderCustom implements IProvider {
           'Check if the endpoint requires special network access',
           'Try again in a few moments',
         ],
-      };
+      }
     }
   }
 
@@ -185,41 +188,41 @@ export class ProviderCustom implements IProvider {
       '3. Identify the model name you want to use',
       '4. Choose the correct authentication method',
       '5. Fill in all required fields below',
-    ];
+    ]
   }
 
   getErrorHelp(error: Error): string {
-    const message = error.message.toLowerCase();
+    const message = error.message.toLowerCase()
 
     if (message.includes('unauthorized') || message.includes('401')) {
-      return 'Authentication failed. Check your API key and authentication type.';
+      return 'Authentication failed. Check your API key and authentication type.'
     }
 
     if (message.includes('forbidden') || message.includes('403')) {
-      return 'Access denied. Verify your API key has the necessary permissions.';
+      return 'Access denied. Verify your API key has the necessary permissions.'
     }
 
     if (message.includes('not found') || message.includes('404')) {
-      return 'Endpoint not found. Check if your base URL is correct.';
+      return 'Endpoint not found. Check if your base URL is correct.'
     }
 
     if (message.includes('rate limit') || message.includes('429')) {
-      return 'Rate limit exceeded. Please wait before making more requests.';
+      return 'Rate limit exceeded. Please wait before making more requests.'
     }
 
     if (message.includes('model')) {
-      return 'Model error. Verify the model name is correct for your provider.';
+      return 'Model error. Verify the model name is correct for your provider.'
     }
 
     if (message.includes('network') || message.includes('fetch') || message.includes('cors')) {
-      return 'Network error. Check your connection and verify the API is accessible.';
+      return 'Network error. Check your connection and verify the API is accessible.'
     }
 
-    return 'An error occurred. Please verify all configuration fields and try again.';
+    return 'An error occurred. Please verify all configuration fields and try again.'
   }
 
   autoFillFromApiKey(apiKey: string): Partial<ProviderSetup> {
     // Cannot auto-fill for custom providers
-    return {};
+    return {}
   }
 }

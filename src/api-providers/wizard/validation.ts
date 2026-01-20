@@ -3,79 +3,80 @@
  * Real-time validation and helpful error messages
  */
 
-import { ProviderCredentials, ValidationResult } from '../core/provider-interface';
+import type { ProviderCredentials, ValidationResult } from '../core/provider-interface'
 
 export class ValidationHelper {
   /**
    * Validate API key format
    */
   static validateApiKeyFormat(apiKey: string, expectedPrefix?: string): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const suggestions: string[] = []
 
     if (!apiKey || apiKey.trim().length === 0) {
-      errors.push('API key cannot be empty');
-      return { valid: false, errors };
+      errors.push('API key cannot be empty')
+      return { valid: false, errors }
     }
 
     if (apiKey.includes(' ')) {
-      errors.push('API key should not contain spaces');
-      suggestions.push('Please remove any spaces from your API key');
-      return { valid: false, errors, suggestions };
+      errors.push('API key should not contain spaces')
+      suggestions.push('Please remove any spaces from your API key')
+      return { valid: false, errors, suggestions }
     }
 
     if (expectedPrefix && !apiKey.startsWith(expectedPrefix)) {
-      warnings.push(`API key should start with "${expectedPrefix}"`);
-      suggestions.push('Please verify you copied the correct API key');
+      warnings.push(`API key should start with "${expectedPrefix}"`)
+      suggestions.push('Please verify you copied the correct API key')
     }
 
     if (apiKey.length < 10) {
-      errors.push('API key is too short');
-      suggestions.push('Please check if you copied the complete API key');
-      return { valid: false, errors, suggestions };
+      errors.push('API key is too short')
+      suggestions.push('Please check if you copied the complete API key')
+      return { valid: false, errors, suggestions }
     }
 
-    return { valid: true, warnings, suggestions };
+    return { valid: true, warnings, suggestions }
   }
 
   /**
    * Validate URL format
    */
   static validateUrl(url: string): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const suggestions: string[] = []
 
     if (!url || url.trim().length === 0) {
-      errors.push('URL cannot be empty');
-      return { valid: false, errors };
+      errors.push('URL cannot be empty')
+      return { valid: false, errors }
     }
 
     try {
-      const parsed = new URL(url);
+      const parsed = new URL(url)
 
       if (!['http:', 'https:'].includes(parsed.protocol)) {
-        errors.push('URL must use HTTP or HTTPS protocol');
-        suggestions.push('URL should start with http:// or https://');
-        return { valid: false, errors, suggestions };
+        errors.push('URL must use HTTP or HTTPS protocol')
+        suggestions.push('URL should start with http:// or https://')
+        return { valid: false, errors, suggestions }
       }
 
       if (parsed.protocol === 'http:') {
-        warnings.push('Using HTTP instead of HTTPS is not recommended');
-        suggestions.push('Consider using HTTPS for better security');
+        warnings.push('Using HTTP instead of HTTPS is not recommended')
+        suggestions.push('Consider using HTTPS for better security')
       }
 
       if (!parsed.pathname || parsed.pathname === '/') {
-        warnings.push('URL should include a path (e.g., /v1)');
+        warnings.push('URL should include a path (e.g., /v1)')
       }
-    } catch {
-      errors.push('Invalid URL format');
-      suggestions.push('URL should be in format: https://api.example.com/v1');
-      return { valid: false, errors, suggestions };
+    }
+    catch {
+      errors.push('Invalid URL format')
+      suggestions.push('URL should be in format: https://api.example.com/v1')
+      return { valid: false, errors, suggestions }
     }
 
-    return { valid: true, warnings, suggestions };
+    return { valid: true, warnings, suggestions }
   }
 
   /**
@@ -87,21 +88,21 @@ export class ValidationHelper {
         valid: false,
         errors: [`${fieldName} is required`],
         suggestions: [`Please enter a value for ${fieldName}`],
-      };
+      }
     }
 
-    return { valid: true };
+    return { valid: true }
   }
 
   /**
    * Get friendly error message
    */
   static getFriendlyError(error: Error): {
-    title: string;
-    message: string;
-    suggestions: string[];
+    title: string
+    message: string
+    suggestions: string[]
   } {
-    const message = error.message.toLowerCase();
+    const message = error.message.toLowerCase()
 
     // Network errors
     if (message.includes('network') || message.includes('fetch failed')) {
@@ -114,7 +115,7 @@ export class ValidationHelper {
           'Check if the service is currently available',
           'Try again in a few moments',
         ],
-      };
+      }
     }
 
     // Authentication errors
@@ -128,7 +129,7 @@ export class ValidationHelper {
           'Generate a new API key if needed',
           'Ensure you copied the complete key',
         ],
-      };
+      }
     }
 
     // Permission errors
@@ -141,7 +142,7 @@ export class ValidationHelper {
           'Verify your subscription is active',
           'Contact your provider for access',
         ],
-      };
+      }
     }
 
     // Rate limit errors
@@ -154,7 +155,7 @@ export class ValidationHelper {
           'Check your rate limit settings',
           'Consider upgrading your plan',
         ],
-      };
+      }
     }
 
     // Quota/billing errors
@@ -167,7 +168,7 @@ export class ValidationHelper {
           'Add credits to your account',
           'Verify your billing information',
         ],
-      };
+      }
     }
 
     // Model errors
@@ -180,7 +181,7 @@ export class ValidationHelper {
           'Verify your account has access to this model',
           'Try a different model',
         ],
-      };
+      }
     }
 
     // Timeout errors
@@ -193,7 +194,7 @@ export class ValidationHelper {
           'Check your internet connection',
           'The service might be experiencing high load',
         ],
-      };
+      }
     }
 
     // Generic error
@@ -206,7 +207,7 @@ export class ValidationHelper {
         'Try the test connection again',
         'Contact support if the problem persists',
       ],
-    };
+    }
   }
 
   /**
@@ -215,29 +216,29 @@ export class ValidationHelper {
   static async validateSetup(
     credentials: ProviderCredentials,
     requiresApiKey: boolean,
-    customFieldsRequired: string[] = []
+    customFieldsRequired: string[] = [],
   ): Promise<ValidationResult> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const suggestions: string[] = []
 
     // Validate API key
     if (requiresApiKey) {
-      const apiKeyValidation = this.validateApiKeyFormat(credentials.apiKey || '');
+      const apiKeyValidation = this.validateApiKeyFormat(credentials.apiKey || '')
       if (!apiKeyValidation.valid) {
-        errors.push(...(apiKeyValidation.errors || []));
-        suggestions.push(...(apiKeyValidation.suggestions || []));
+        errors.push(...(apiKeyValidation.errors || []))
+        suggestions.push(...(apiKeyValidation.suggestions || []))
       }
-      warnings.push(...(apiKeyValidation.warnings || []));
+      warnings.push(...(apiKeyValidation.warnings || []))
     }
 
     // Validate custom fields
     for (const field of customFieldsRequired) {
-      const value = credentials.customFields?.[field];
-      const fieldValidation = this.validateRequired(value, field);
+      const value = credentials.customFields?.[field]
+      const fieldValidation = this.validateRequired(value, field)
       if (!fieldValidation.valid) {
-        errors.push(...(fieldValidation.errors || []));
-        suggestions.push(...(fieldValidation.suggestions || []));
+        errors.push(...(fieldValidation.errors || []))
+        suggestions.push(...(fieldValidation.suggestions || []))
       }
     }
 
@@ -246,34 +247,34 @@ export class ValidationHelper {
       errors,
       warnings,
       suggestions,
-    };
+    }
   }
 
   /**
    * Format validation result for display
    */
   static formatValidationResult(result: ValidationResult): string {
-    const parts: string[] = [];
+    const parts: string[] = []
 
     if (result.errors && result.errors.length > 0) {
-      parts.push('❌ Errors:');
-      result.errors.forEach(err => parts.push(`  • ${err}`));
+      parts.push('❌ Errors:')
+      result.errors.forEach(err => parts.push(`  • ${err}`))
     }
 
     if (result.warnings && result.warnings.length > 0) {
-      parts.push('⚠️  Warnings:');
-      result.warnings.forEach(warn => parts.push(`  • ${warn}`));
+      parts.push('⚠️  Warnings:')
+      result.warnings.forEach(warn => parts.push(`  • ${warn}`))
     }
 
     if (result.suggestions && result.suggestions.length > 0) {
-      parts.push('💡 Suggestions:');
-      result.suggestions.forEach(sug => parts.push(`  • ${sug}`));
+      parts.push('💡 Suggestions:')
+      result.suggestions.forEach(sug => parts.push(`  • ${sug}`))
     }
 
     if (result.valid && parts.length === 0) {
-      parts.push('✅ Validation passed!');
+      parts.push('✅ Validation passed!')
     }
 
-    return parts.join('\n');
+    return parts.join('\n')
   }
 }

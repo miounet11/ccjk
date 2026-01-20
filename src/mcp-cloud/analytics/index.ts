@@ -2,4 +2,4 @@
  * Analytics Module Exports
  */
 
-export * from './service-analytics';
+export * from './service-analytics'

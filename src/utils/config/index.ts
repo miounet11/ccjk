@@ -3,5 +3,5 @@
  * Centralized configuration management and validation
  */
 
-export * from './manager';
-export * from './validator';
+export * from './manager'
+export * from './validator'

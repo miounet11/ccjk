@@ -3,4 +3,4 @@
  * Error handling and custom error classes
  */
 
-export * from './errors';
+export * from './errors'

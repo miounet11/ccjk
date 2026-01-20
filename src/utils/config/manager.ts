@@ -3,15 +3,15 @@
  * Provides utilities for loading, saving, and managing configuration files
  */
 
-import { promises as fs } from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import { promises as fs } from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
 
 export interface ConfigOptions {
-  configDir?: string;
-  fileName?: string;
-  createIfMissing?: boolean;
-  validate?: (config: any) => boolean;
+  configDir?: string
+  fileName?: string
+  createIfMissing?: boolean
+  validate?: (config: any) => boolean
 }
 
 /**
@@ -19,29 +19,29 @@ export interface ConfigOptions {
  * Handles configuration file operations with validation and error handling
  */
 export class ConfigManager<T = any> {
-  private configPath: string;
-  private options: Required<ConfigOptions>;
-  private cache?: T;
+  private configPath: string
+  private options: Required<ConfigOptions>
+  private cache?: T
 
   constructor(
     private readonly namespace: string,
-    options: ConfigOptions = {}
+    options: ConfigOptions = {},
   ) {
     this.options = {
       configDir: options.configDir || this.getDefaultConfigDir(),
       fileName: options.fileName || `${namespace}.json`,
       createIfMissing: options.createIfMissing ?? true,
       validate: options.validate || (() => true),
-    };
+    }
 
-    this.configPath = path.join(this.options.configDir, this.options.fileName);
+    this.configPath = path.join(this.options.configDir, this.options.fileName)
   }
 
   /**
    * Get the default configuration directory
    */
   private getDefaultConfigDir(): string {
-    return path.join(os.homedir(), '.ccjk');
+    return path.join(os.homedir(), '.ccjk')
   }
 
   /**
@@ -49,20 +49,21 @@ export class ConfigManager<T = any> {
    */
   async load(): Promise<T | null> {
     try {
-      const data = await fs.readFile(this.configPath, 'utf-8');
-      const config = JSON.parse(data) as T;
+      const data = await fs.readFile(this.configPath, 'utf-8')
+      const config = JSON.parse(data) as T
 
       if (!this.options.validate(config)) {
-        throw new Error('Configuration validation failed');
+        throw new Error('Configuration validation failed')
       }
 
-      this.cache = config;
-      return config;
-    } catch (error) {
+      this.cache = config
+      return config
+    }
+    catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return null;
+        return null
       }
-      throw error;
+      throw error
     }
   }
 
@@ -71,22 +72,22 @@ export class ConfigManager<T = any> {
    */
   async save(config: T): Promise<void> {
     if (!this.options.validate(config)) {
-      throw new Error('Configuration validation failed');
+      throw new Error('Configuration validation failed')
     }
 
-    await fs.mkdir(this.options.configDir, { recursive: true });
-    await fs.writeFile(this.configPath, JSON.stringify(config, null, 2), 'utf-8');
-    this.cache = config;
+    await fs.mkdir(this.options.configDir, { recursive: true })
+    await fs.writeFile(this.configPath, JSON.stringify(config, null, 2), 'utf-8')
+    this.cache = config
   }
 
   /**
    * Update configuration (merge with existing)
    */
   async update(updates: Partial<T>): Promise<T> {
-    const current = (await this.load()) || ({} as T);
-    const updated = { ...current, ...updates };
-    await this.save(updated);
-    return updated;
+    const current = (await this.load()) || ({} as T)
+    const updated = { ...current, ...updates }
+    await this.save(updated)
+    return updated
   }
 
   /**
@@ -94,11 +95,12 @@ export class ConfigManager<T = any> {
    */
   async delete(): Promise<void> {
     try {
-      await fs.unlink(this.configPath);
-      this.cache = undefined;
-    } catch (error) {
+      await fs.unlink(this.configPath)
+      this.cache = undefined
+    }
+    catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw error;
+        throw error
       }
     }
   }
@@ -108,10 +110,11 @@ export class ConfigManager<T = any> {
    */
   async exists(): Promise<boolean> {
     try {
-      await fs.access(this.configPath);
-      return true;
-    } catch {
-      return false;
+      await fs.access(this.configPath)
+      return true
+    }
+    catch {
+      return false
     }
   }
 
@@ -119,21 +122,21 @@ export class ConfigManager<T = any> {
    * Get configuration path
    */
   getPath(): string {
-    return this.configPath;
+    return this.configPath
   }
 
   /**
    * Get cached configuration (without file I/O)
    */
   getCached(): T | undefined {
-    return this.cache;
+    return this.cache
   }
 
   /**
    * Clear cache
    */
   clearCache(): void {
-    this.cache = undefined;
+    this.cache = undefined
   }
 }
 
@@ -142,7 +145,7 @@ export class ConfigManager<T = any> {
  */
 export function createConfigManager<T = any>(
   namespace: string,
-  options?: ConfigOptions
+  options?: ConfigOptions,
 ): ConfigManager<T> {
-  return new ConfigManager<T>(namespace, options);
+  return new ConfigManager<T>(namespace, options)
 }

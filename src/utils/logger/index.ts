@@ -3,4 +3,4 @@
  * Simple logging utilities
  */
 
-export * from './logger';
+export * from './logger'

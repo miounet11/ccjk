@@ -3,4 +3,4 @@
  * String manipulation and formatting
  */
 
-export * from './formatters';
+export * from './formatters'

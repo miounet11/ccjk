@@ -3,5 +3,5 @@
  * Platform detection and path management
  */
 
-export * from './detection';
-export * from './paths';
+export * from './detection'
+export * from './paths'

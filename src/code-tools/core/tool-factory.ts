@@ -2,67 +2,67 @@
  * Factory for creating code tool instances
  */
 
-import { ICodeTool } from './interfaces';
-import { ToolRegistry } from './tool-registry';
-import { ToolConfig } from './types';
+import type { ICodeTool } from './interfaces'
+import type { ToolConfig } from './types'
+import { ToolRegistry } from './tool-registry'
 
 /**
  * Factory for creating code tool instances
  */
 export class ToolFactory {
-  private registry: ToolRegistry;
+  private registry: ToolRegistry
 
   constructor(registry?: ToolRegistry) {
-    this.registry = registry || ToolRegistry.getInstance();
+    this.registry = registry || ToolRegistry.getInstance()
   }
 
   /**
    * Create a tool instance by name
    */
   createTool(name: string, config?: Partial<ToolConfig>): ICodeTool {
-    const tool = this.registry.getTool(name);
+    const tool = this.registry.getTool(name)
 
     if (!tool) {
-      throw new Error(`Tool '${name}' not found in registry. Available tools: ${this.registry.getToolNames().join(', ')}`);
+      throw new Error(`Tool '${name}' not found in registry. Available tools: ${this.registry.getToolNames().join(', ')}`)
     }
 
     // Configure if config provided
     if (config) {
-      tool.configure({ name, ...config }).catch(err => {
-        console.warn(`Failed to configure tool '${name}':`, err);
-      });
+      tool.configure({ name, ...config }).catch((err) => {
+        console.warn(`Failed to configure tool '${name}':`, err)
+      })
     }
 
-    return tool;
+    return tool
   }
 
   /**
    * Create multiple tool instances
    */
   createTools(names: string[]): ICodeTool[] {
-    return names.map(name => this.createTool(name));
+    return names.map(name => this.createTool(name))
   }
 
   /**
    * Create all registered tools
    */
   createAllTools(): ICodeTool[] {
-    const names = this.registry.getToolNames();
-    return this.createTools(names);
+    const names = this.registry.getToolNames()
+    return this.createTools(names)
   }
 
   /**
    * Check if a tool can be created
    */
   canCreateTool(name: string): boolean {
-    return this.registry.hasTool(name);
+    return this.registry.hasTool(name)
   }
 
   /**
    * Get available tool names
    */
   getAvailableTools(): string[] {
-    return this.registry.getToolNames();
+    return this.registry.getToolNames()
   }
 }
 
@@ -70,6 +70,6 @@ export class ToolFactory {
  * Convenience function to create a tool
  */
 export function createTool(name: string, config?: Partial<ToolConfig>): ICodeTool {
-  const factory = new ToolFactory();
-  return factory.createTool(name, config);
+  const factory = new ToolFactory()
+  return factory.createTool(name, config)
 }

@@ -7,8 +7,9 @@
  * Capitalize first letter of string
  */
 export function capitalize(str: string): string {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  if (!str)
+    return str
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 /**
@@ -16,11 +17,10 @@ export function capitalize(str: string): string {
  */
 export function camelCase(str: string): string {
   return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, (letter, index) =>
-      index === 0 ? letter.toLowerCase() : letter.toUpperCase()
-    )
+    .replace(/^\w|[A-Z]|\b\w/g, (letter, index) =>
+      index === 0 ? letter.toLowerCase() : letter.toUpperCase())
     .replace(/\s+/g, '')
-    .replace(/[-_]/g, '');
+    .replace(/[-_]/g, '')
 }
 
 /**
@@ -28,9 +28,9 @@ export function camelCase(str: string): string {
  */
 export function pascalCase(str: string): string {
   return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, (letter) => letter.toUpperCase())
+    .replace(/^\w|[A-Z]|\b\w/g, letter => letter.toUpperCase())
     .replace(/\s+/g, '')
-    .replace(/[-_]/g, '');
+    .replace(/[-_]/g, '')
 }
 
 /**
@@ -42,7 +42,7 @@ export function snakeCase(str: string): string {
     .toLowerCase()
     .replace(/\s+/g, '_')
     .replace(/-/g, '_')
-    .replace(/^_/, '');
+    .replace(/^_/, '')
 }
 
 /**
@@ -54,22 +54,23 @@ export function kebabCase(str: string): string {
     .toLowerCase()
     .replace(/\s+/g, '-')
     .replace(/_/g, '-')
-    .replace(/^-/, '');
+    .replace(/^-/, '')
 }
 
 /**
  * Convert string to CONSTANT_CASE
  */
 export function constantCase(str: string): string {
-  return snakeCase(str).toUpperCase();
+  return snakeCase(str).toUpperCase()
 }
 
 /**
  * Truncate string to specified length
  */
 export function truncate(str: string, length: number, suffix: string = '...'): string {
-  if (str.length <= length) return str;
-  return str.slice(0, length - suffix.length) + suffix;
+  if (str.length <= length)
+    return str
+  return str.slice(0, length - suffix.length) + suffix
 }
 
 /**
@@ -79,20 +80,23 @@ export function pad(
   str: string,
   length: number,
   char: string = ' ',
-  direction: 'left' | 'right' | 'both' = 'right'
+  direction: 'left' | 'right' | 'both' = 'right',
 ): string {
-  if (str.length >= length) return str;
+  if (str.length >= length)
+    return str
 
-  const padLength = length - str.length;
+  const padLength = length - str.length
 
   if (direction === 'left') {
-    return char.repeat(padLength) + str;
-  } else if (direction === 'right') {
-    return str + char.repeat(padLength);
-  } else {
-    const leftPad = Math.floor(padLength / 2);
-    const rightPad = padLength - leftPad;
-    return char.repeat(leftPad) + str + char.repeat(rightPad);
+    return char.repeat(padLength) + str
+  }
+  else if (direction === 'right') {
+    return str + char.repeat(padLength)
+  }
+  else {
+    const leftPad = Math.floor(padLength / 2)
+    const rightPad = padLength - leftPad
+    return char.repeat(leftPad) + str + char.repeat(rightPad)
   }
 }
 
@@ -100,35 +104,35 @@ export function pad(
  * Remove whitespace from both ends
  */
 export function trim(str: string): string {
-  return str.trim();
+  return str.trim()
 }
 
 /**
  * Remove whitespace from start
  */
 export function trimStart(str: string): string {
-  return str.trimStart();
+  return str.trimStart()
 }
 
 /**
  * Remove whitespace from end
  */
 export function trimEnd(str: string): string {
-  return str.trimEnd();
+  return str.trimEnd()
 }
 
 /**
  * Split string by delimiter
  */
 export function split(str: string, delimiter: string | RegExp): string[] {
-  return str.split(delimiter);
+  return str.split(delimiter)
 }
 
 /**
  * Join array of strings
  */
 export function join(arr: string[], separator: string = ''): string {
-  return arr.join(separator);
+  return arr.join(separator)
 }
 
 /**
@@ -137,75 +141,75 @@ export function join(arr: string[], separator: string = ''): string {
 export function replaceAll(
   str: string,
   search: string | RegExp,
-  replacement: string
+  replacement: string,
 ): string {
   if (typeof search === 'string') {
-    return str.split(search).join(replacement);
+    return str.split(search).join(replacement)
   }
-  return str.replace(new RegExp(search, 'g'), replacement);
+  return str.replace(new RegExp(search, 'g'), replacement)
 }
 
 /**
  * Check if string starts with prefix
  */
 export function startsWith(str: string, prefix: string): boolean {
-  return str.startsWith(prefix);
+  return str.startsWith(prefix)
 }
 
 /**
  * Check if string ends with suffix
  */
 export function endsWith(str: string, suffix: string): boolean {
-  return str.endsWith(suffix);
+  return str.endsWith(suffix)
 }
 
 /**
  * Check if string contains substring
  */
 export function contains(str: string, substring: string): boolean {
-  return str.includes(substring);
+  return str.includes(substring)
 }
 
 /**
  * Count occurrences of substring
  */
 export function countOccurrences(str: string, substring: string): number {
-  return str.split(substring).length - 1;
+  return str.split(substring).length - 1
 }
 
 /**
  * Reverse string
  */
 export function reverse(str: string): string {
-  return str.split('').reverse().join('');
+  return str.split('').reverse().join('')
 }
 
 /**
  * Remove all whitespace
  */
 export function removeWhitespace(str: string): string {
-  return str.replace(/\s+/g, '');
+  return str.replace(/\s+/g, '')
 }
 
 /**
  * Normalize whitespace (replace multiple spaces with single space)
  */
 export function normalizeWhitespace(str: string): string {
-  return str.replace(/\s+/g, ' ').trim();
+  return str.replace(/\s+/g, ' ').trim()
 }
 
 /**
  * Extract words from string
  */
 export function words(str: string): string[] {
-  return str.match(/\b\w+\b/g) || [];
+  return str.match(/\b\w+\b/g) || []
 }
 
 /**
  * Count words in string
  */
 export function wordCount(str: string): number {
-  return words(str).length;
+  return words(str).length
 }
 
 /**
@@ -215,15 +219,15 @@ export function titleCase(str: string): string {
   return str
     .toLowerCase()
     .split(' ')
-    .map((word) => capitalize(word))
-    .join(' ');
+    .map(word => capitalize(word))
+    .join(' ')
 }
 
 /**
  * Convert string to sentence case
  */
 export function sentenceCase(str: string): string {
-  return capitalize(str.toLowerCase());
+  return capitalize(str.toLowerCase())
 }
 
 /**
@@ -235,9 +239,9 @@ export function escapeHTML(str: string): string {
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#39;',
-  };
-  return str.replace(/[&<>"']/g, (char) => htmlEscapes[char]);
+    '\'': '&#39;',
+  }
+  return str.replace(/[&<>"']/g, char => htmlEscapes[char])
 }
 
 /**
@@ -249,16 +253,16 @@ export function unescapeHTML(str: string): string {
     '&lt;': '<',
     '&gt;': '>',
     '&quot;': '"',
-    '&#39;': "'",
-  };
-  return str.replace(/&(?:amp|lt|gt|quot|#39);/g, (entity) => htmlUnescapes[entity]);
+    '&#39;': '\'',
+  }
+  return str.replace(/&(?:amp|lt|gt|quot|#39);/g, entity => htmlUnescapes[entity])
 }
 
 /**
  * Escape regular expression special characters
  */
 export function escapeRegExp(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 /**
@@ -266,13 +270,13 @@ export function escapeRegExp(str: string): string {
  */
 export function randomString(
   length: number,
-  charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
 ): string {
-  let result = '';
+  let result = ''
   for (let i = 0; i < length; i++) {
-    result += charset.charAt(Math.floor(Math.random() * charset.length));
+    result += charset.charAt(Math.floor(Math.random() * charset.length))
   }
-  return result;
+  return result
 }
 
 /**
@@ -280,10 +284,10 @@ export function randomString(
  */
 export function uuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
 }
 
 /**
@@ -295,15 +299,15 @@ export function slugify(str: string): string {
     .trim()
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-+|-+$/g, '')
 }
 
 /**
  * Extract numbers from string
  */
 export function extractNumbers(str: string): number[] {
-  const matches = str.match(/-?\d+\.?\d*/g);
-  return matches ? matches.map(Number) : [];
+  const matches = str.match(/-?\d+\.?\d*/g)
+  return matches ? matches.map(Number) : []
 }
 
 /**
@@ -311,48 +315,48 @@ export function extractNumbers(str: string): number[] {
  */
 export function template(str: string, values: Record<string, any>): string {
   return str.replace(/\{(\w+)\}/g, (match, key) => {
-    return values[key] !== undefined ? String(values[key]) : match;
-  });
+    return values[key] !== undefined ? String(values[key]) : match
+  })
 }
 
 /**
  * Repeat string n times
  */
 export function repeat(str: string, count: number): string {
-  return str.repeat(count);
+  return str.repeat(count)
 }
 
 /**
  * Check if string is empty or only whitespace
  */
 export function isBlank(str: string): boolean {
-  return !str || str.trim().length === 0;
+  return !str || str.trim().length === 0
 }
 
 /**
  * Ensure string ends with suffix
  */
 export function ensureSuffix(str: string, suffix: string): string {
-  return endsWith(str, suffix) ? str : str + suffix;
+  return endsWith(str, suffix) ? str : str + suffix
 }
 
 /**
  * Ensure string starts with prefix
  */
 export function ensurePrefix(str: string, prefix: string): string {
-  return startsWith(str, prefix) ? str : prefix + str;
+  return startsWith(str, prefix) ? str : prefix + str
 }
 
 /**
  * Remove prefix from string
  */
 export function removePrefix(str: string, prefix: string): string {
-  return startsWith(str, prefix) ? str.slice(prefix.length) : str;
+  return startsWith(str, prefix) ? str.slice(prefix.length) : str
 }
 
 /**
  * Remove suffix from string
  */
 export function removeSuffix(str: string, suffix: string): string {
-  return endsWith(str, suffix) ? str.slice(0, -suffix.length) : str;
+  return endsWith(str, suffix) ? str.slice(0, -suffix.length) : str
 }

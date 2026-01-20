@@ -2,10 +2,9 @@
  * Continue adapter
  */
 
-import { BaseCodeTool } from '../core/base-tool';
-import { ToolMetadata } from '../core/types';
-import { IChatTool, ICodeGenTool } from '../core/interfaces';
-import { ExecutionResult } from '../core/types';
+import type { IChatTool, ICodeGenTool } from '../core/interfaces'
+import type { ExecutionResult, ToolMetadata } from '../core/types'
+import { BaseCodeTool } from '../core/base-tool'
 
 /**
  * Continue tool adapter
@@ -27,50 +26,50 @@ export class ContinueTool extends BaseCodeTool implements IChatTool, ICodeGenToo
         supportsTesting: true,
         supportsDebugging: true,
       },
-    };
+    }
   }
 
   protected getInstallCheckCommand(): string {
-    return 'continue --version';
+    return 'continue --version'
   }
 
   protected getInstallCommand(): string {
-    return 'npm install -g continue';
+    return 'npm install -g continue'
   }
 
   protected getUninstallCommand(): string {
-    return 'npm uninstall -g continue';
+    return 'npm uninstall -g continue'
   }
 
   /**
    * Start a chat session
    */
   async chat(prompt: string): Promise<ExecutionResult> {
-    return this.execute('continue', ['chat', prompt]);
+    return this.execute('continue', ['chat', prompt])
   }
 
   /**
    * Continue a chat session
    */
   async continueChat(message: string): Promise<ExecutionResult> {
-    return this.execute('continue', ['chat', message]);
+    return this.execute('continue', ['chat', message])
   }
 
   /**
    * End chat session
    */
   async endChat(): Promise<void> {
-    await this.execute('continue', ['exit']);
+    await this.execute('continue', ['exit'])
   }
 
   /**
    * Generate code
    */
   async generateCode(prompt: string, outputPath?: string): Promise<ExecutionResult> {
-    const args = ['generate', prompt];
+    const args = ['generate', prompt]
     if (outputPath) {
-      args.push('--output', outputPath);
+      args.push('--output', outputPath)
     }
-    return this.execute('continue', args);
+    return this.execute('continue', args)
   }
 }

@@ -3,4 +3,4 @@
  * Command execution and management
  */
 
-export * from './executor';
+export * from './executor'

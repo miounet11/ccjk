@@ -2,9 +2,9 @@
  * Tests for ToolRegistry
  */
 
-import { ToolRegistry } from '../tool-registry';
-import { ICodeTool } from '../interfaces';
-import { ToolMetadata } from '../types';
+import type { ICodeTool } from '../interfaces'
+import type { ToolMetadata } from '../types'
+import { ToolRegistry } from '../tool-registry'
 
 // Mock tool for testing
 class MockToolA implements ICodeTool {
@@ -22,23 +22,23 @@ class MockToolA implements ICodeTool {
         supportsTesting: false,
         supportsDebugging: false,
       },
-    };
+    }
   }
 
   async isInstalled() {
-    return { installed: true };
+    return { installed: true }
   }
 
   async install() {
-    return { success: true };
+    return { success: true }
   }
 
   async uninstall() {
-    return { success: true };
+    return { success: true }
   }
 
   async getConfig() {
-    return { name: 'mock-a' };
+    return { name: 'mock-a' }
   }
 
   async updateConfig() {}
@@ -46,15 +46,15 @@ class MockToolA implements ICodeTool {
   async configure() {}
 
   async validateConfig() {
-    return true;
+    return true
   }
 
   async execute() {
-    return { success: true };
+    return { success: true }
   }
 
   async getVersion() {
-    return '1.0.0';
+    return '1.0.0'
   }
 
   async reset() {}
@@ -75,23 +75,23 @@ class MockToolB implements ICodeTool {
         supportsTesting: false,
         supportsDebugging: false,
       },
-    };
+    }
   }
 
   async isInstalled() {
-    return { installed: true };
+    return { installed: true }
   }
 
   async install() {
-    return { success: true };
+    return { success: true }
   }
 
   async uninstall() {
-    return { success: true };
+    return { success: true }
   }
 
   async getConfig() {
-    return { name: 'mock-b' };
+    return { name: 'mock-b' }
   }
 
   async updateConfig() {}
@@ -99,114 +99,114 @@ class MockToolB implements ICodeTool {
   async configure() {}
 
   async validateConfig() {
-    return true;
+    return true
   }
 
   async execute() {
-    return { success: true };
+    return { success: true }
   }
 
   async getVersion() {
-    return '1.0.0';
+    return '1.0.0'
   }
 
   async reset() {}
 }
 
-describe('ToolRegistry', () => {
-  let registry: ToolRegistry;
+describe('toolRegistry', () => {
+  let registry: ToolRegistry
 
   beforeEach(() => {
-    registry = ToolRegistry.getInstance();
-    registry.clear();
-  });
+    registry = ToolRegistry.getInstance()
+    registry.clear()
+  })
 
   describe('singleton pattern', () => {
     it('should return same instance', () => {
-      const instance1 = ToolRegistry.getInstance();
-      const instance2 = ToolRegistry.getInstance();
-      expect(instance1).toBe(instance2);
-    });
-  });
+      const instance1 = ToolRegistry.getInstance()
+      const instance2 = ToolRegistry.getInstance()
+      expect(instance1).toBe(instance2)
+    })
+  })
 
   describe('tool registration', () => {
     it('should register tool class', () => {
-      registry.registerToolClass('mock-a', MockToolA);
-      expect(registry.hasTool('mock-a')).toBe(true);
-    });
+      registry.registerToolClass('mock-a', MockToolA)
+      expect(registry.hasTool('mock-a')).toBe(true)
+    })
 
     it('should register tool instance', () => {
-      const tool = new MockToolA();
-      registry.registerTool(tool);
-      const retrieved = registry.getTool('mock-a');
-      expect(retrieved).toBe(tool);
-    });
+      const tool = new MockToolA()
+      registry.registerTool(tool)
+      const retrieved = registry.getTool('mock-a')
+      expect(retrieved).toBe(tool)
+    })
 
     it('should handle case-insensitive names', () => {
-      registry.registerToolClass('mock-a', MockToolA);
-      expect(registry.hasTool('MOCK-A')).toBe(true);
-      expect(registry.hasTool('Mock-A')).toBe(true);
-    });
-  });
+      registry.registerToolClass('mock-a', MockToolA)
+      expect(registry.hasTool('MOCK-A')).toBe(true)
+      expect(registry.hasTool('Mock-A')).toBe(true)
+    })
+  })
 
   describe('tool retrieval', () => {
     beforeEach(() => {
-      registry.registerToolClass('mock-a', MockToolA);
-      registry.registerToolClass('mock-b', MockToolB);
-    });
+      registry.registerToolClass('mock-a', MockToolA)
+      registry.registerToolClass('mock-b', MockToolB)
+    })
 
     it('should get tool by name', () => {
-      const tool = registry.getTool('mock-a');
-      expect(tool).toBeDefined();
-      expect(tool?.getMetadata().name).toBe('mock-a');
-    });
+      const tool = registry.getTool('mock-a')
+      expect(tool).toBeDefined()
+      expect(tool?.getMetadata().name).toBe('mock-a')
+    })
 
     it('should return undefined for non-existent tool', () => {
-      const tool = registry.getTool('non-existent');
-      expect(tool).toBeUndefined();
-    });
+      const tool = registry.getTool('non-existent')
+      expect(tool).toBeUndefined()
+    })
 
     it('should get all tool names', () => {
-      const names = registry.getToolNames();
-      expect(names).toContain('mock-a');
-      expect(names).toContain('mock-b');
-      expect(names.length).toBe(2);
-    });
+      const names = registry.getToolNames()
+      expect(names).toContain('mock-a')
+      expect(names).toContain('mock-b')
+      expect(names.length).toBe(2)
+    })
 
     it('should create instance on first access', () => {
-      const tool1 = registry.getTool('mock-a');
-      const tool2 = registry.getTool('mock-a');
-      expect(tool1).toBe(tool2); // Same instance
-    });
-  });
+      const tool1 = registry.getTool('mock-a')
+      const tool2 = registry.getTool('mock-a')
+      expect(tool1).toBe(tool2) // Same instance
+    })
+  })
 
   describe('tool unregistration', () => {
     it('should unregister tool', () => {
-      registry.registerToolClass('mock-a', MockToolA);
-      expect(registry.hasTool('mock-a')).toBe(true);
+      registry.registerToolClass('mock-a', MockToolA)
+      expect(registry.hasTool('mock-a')).toBe(true)
 
-      registry.unregisterTool('mock-a');
-      expect(registry.hasTool('mock-a')).toBe(false);
-    });
+      registry.unregisterTool('mock-a')
+      expect(registry.hasTool('mock-a')).toBe(false)
+    })
 
     it('should clear all tools', () => {
-      registry.registerToolClass('mock-a', MockToolA);
-      registry.registerToolClass('mock-b', MockToolB);
+      registry.registerToolClass('mock-a', MockToolA)
+      registry.registerToolClass('mock-b', MockToolB)
 
-      registry.clear();
-      expect(registry.getToolNames().length).toBe(0);
-    });
-  });
+      registry.clear()
+      expect(registry.getToolNames().length).toBe(0)
+    })
+  })
 
   describe('metadata retrieval', () => {
     it('should get all metadata', async () => {
-      registry.registerToolClass('mock-a', MockToolA);
-      registry.registerToolClass('mock-b', MockToolB);
+      registry.registerToolClass('mock-a', MockToolA)
+      registry.registerToolClass('mock-b', MockToolB)
 
-      const metadata = await registry.getAllMetadata();
-      expect(metadata.length).toBe(2);
-      expect(metadata.some(m => m.name === 'mock-a')).toBe(true);
-      expect(metadata.some(m => m.name === 'mock-b')).toBe(true);
-    });
-  });
-});
+      const metadata = await registry.getAllMetadata()
+      expect(metadata.length).toBe(2)
+      expect(metadata.some(m => m.name === 'mock-a')).toBe(true)
+      expect(metadata.some(m => m.name === 'mock-b')).toBe(true)
+    })
+  })
+})

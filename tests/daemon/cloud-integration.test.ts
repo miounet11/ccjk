@@ -9,14 +9,14 @@ import { CcjkDaemon } from '../../src/daemon'
 import { PRESET_TEMPLATES } from '../../src/daemon/mobile-control'
 
 // Mock fetch for API calls
-global.fetch = vi.fn()
+globalThis.fetch = vi.fn()
 
 describe('ccjkDaemon - Cloud Integration', () => {
   let mockConfig: DaemonConfig
 
   beforeEach(() => {
     // Reset mocks
-    vi.mocked(global.fetch).mockReset()
+    vi.mocked(globalThis.fetch).mockReset()
 
     // Default mock config for cloud mode
     mockConfig = {
@@ -85,7 +85,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
 
   describe('cloud Registration', () => {
     it('should successfully register device on start', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -104,7 +104,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
 
       await daemon.start()
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/devices/register'),
         expect.objectContaining({
           method: 'POST',
@@ -116,7 +116,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
     })
 
     it('should fail to start in cloud-only mode when registration fails', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: false,
         json: async () => ({
           success: false,
@@ -132,7 +132,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
     it('should continue with email mode in hybrid mode when cloud fails', async () => {
       const hybridConfig = { ...mockConfig, mode: 'hybrid' as const }
 
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: false,
         json: async () => ({
           success: false,
@@ -151,10 +151,8 @@ describe('ccjkDaemon - Cloud Integration', () => {
 
   describe('cloud Task Execution', () => {
     it('should process cloud tasks from heartbeat callback', async () => {
-      let heartbeatCallback: ((tasks: any[]) => void) | undefined
-
       // Mock registration
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -170,7 +168,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
       } as Response)
 
       // Mock heartbeat to capture callback
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -179,7 +177,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
       } as Response)
 
       // Mock task result report
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -204,7 +202,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
 
   describe('log Streaming', () => {
     it('should initialize log streamer after successful registration', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -219,7 +217,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
         }),
       } as Response)
 
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
@@ -233,7 +231,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
     })
 
     it('should stop log streaming on daemon stop', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -248,12 +246,12 @@ describe('ccjkDaemon - Cloud Integration', () => {
         }),
       } as Response)
 
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
 
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
@@ -279,7 +277,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
 
     it('should send mobile control card', async () => {
       // Mock registration
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -295,7 +293,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
       } as Response)
 
       // Mock heartbeat
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
@@ -310,7 +308,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
       expect(mobileControl?.getTemplate('tpl_deploy')).toBeDefined()
 
       // Mock send card API - use regular mockResolvedValue for remaining calls
-      vi.mocked(global.fetch).mockResolvedValue({
+      vi.mocked(globalThis.fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
           success: true,
@@ -341,7 +339,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
 
   describe('status Reporting', () => {
     it('should report cloud connection status', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -356,7 +354,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
         }),
       } as Response)
 
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
@@ -375,7 +373,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
 
   describe('graceful Shutdown', () => {
     it('should send offline status on shutdown', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
@@ -390,13 +388,13 @@ describe('ccjkDaemon - Cloud Integration', () => {
         }),
       } as Response)
 
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
 
       // Mock offline heartbeat
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: {} }),
       } as Response)
@@ -407,7 +405,7 @@ describe('ccjkDaemon - Cloud Integration', () => {
       await daemon.stop()
 
       // Verify offline heartbeat was called
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/heartbeat'),
         expect.objectContaining({
           method: 'POST',

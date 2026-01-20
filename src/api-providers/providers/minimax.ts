@@ -3,13 +3,13 @@
  * MiniMax AI models
  */
 
-import {
+import type {
   IProvider,
   ProviderConfig,
   ProviderCredentials,
-  ValidationResult,
   ProviderSetup,
-} from '../core/provider-interface';
+  ValidationResult,
+} from '../core/provider-interface'
 
 export class ProviderMiniMax implements IProvider {
   private config: ProviderConfig = {
@@ -36,44 +36,44 @@ export class ProviderMiniMax implements IProvider {
       },
     ],
     icon: '⚡',
-  };
+  }
 
   getConfig(): ProviderConfig {
-    return this.config;
+    return this.config
   }
 
   async validateCredentials(credentials: ProviderCredentials): Promise<ValidationResult> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const suggestions: string[] = []
 
     if (!credentials.apiKey) {
-      errors.push('API Key is required');
-      suggestions.push('Get your API key from https://www.minimaxi.com');
-      return { valid: false, errors, suggestions };
+      errors.push('API Key is required')
+      suggestions.push('Get your API key from https://www.minimaxi.com')
+      return { valid: false, errors, suggestions }
     }
 
     if (!credentials.customFields?.groupId) {
-      errors.push('Group ID is required');
-      suggestions.push('Find your Group ID in the MiniMax console');
-      return { valid: false, errors, suggestions };
+      errors.push('Group ID is required')
+      suggestions.push('Find your Group ID in the MiniMax console')
+      return { valid: false, errors, suggestions }
     }
 
     if (credentials.apiKey.length < 20) {
-      warnings.push('API key seems shorter than expected');
+      warnings.push('API key seems shorter than expected')
     }
 
-    return { valid: true, warnings, suggestions };
+    return { valid: true, warnings, suggestions }
   }
 
   async testConnection(credentials: ProviderCredentials): Promise<ValidationResult> {
-    const validation = await this.validateCredentials(credentials);
+    const validation = await this.validateCredentials(credentials)
     if (!validation.valid) {
-      return validation;
+      return validation
     }
 
     try {
-      const groupId = credentials.customFields?.groupId;
+      const groupId = credentials.customFields?.groupId
       const response = await fetch(
         `${this.config.baseUrl}/text/chatcompletion_v2?GroupId=${groupId}`,
         {
@@ -87,11 +87,11 @@ export class ProviderMiniMax implements IProvider {
             messages: [{ role: 'user', content: 'Hi' }],
             max_tokens: 10,
           }),
-        }
-      );
+        },
+      )
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({}))
         return {
           valid: false,
           errors: [
@@ -102,14 +102,15 @@ export class ProviderMiniMax implements IProvider {
             'Check if your account is active',
             'Visit https://www.minimaxi.com for support',
           ],
-        };
+        }
       }
 
       return {
         valid: true,
         suggestions: ['Connection successful! MiniMax is ready to use'],
-      };
-    } catch (error) {
+      }
+    }
+    catch (error) {
       return {
         valid: false,
         errors: [`Network error: ${(error as Error).message}`],
@@ -118,7 +119,7 @@ export class ProviderMiniMax implements IProvider {
           'Verify you can access minimaxi.com',
           'Try again in a few moments',
         ],
-      };
+      }
     }
   }
 
@@ -128,42 +129,42 @@ export class ProviderMiniMax implements IProvider {
       '2. Go to your console and find API Keys section',
       '3. Copy your API Key and Group ID',
       '4. Paste both values below',
-    ];
+    ]
   }
 
   getErrorHelp(error: Error): string {
-    const message = error.message.toLowerCase();
+    const message = error.message.toLowerCase()
 
     if (message.includes('unauthorized') || message.includes('401')) {
-      return 'Invalid API key or Group ID. Please verify your credentials.';
+      return 'Invalid API key or Group ID. Please verify your credentials.'
     }
 
     if (message.includes('forbidden') || message.includes('403')) {
-      return 'Access denied. Check if your account has the necessary permissions.';
+      return 'Access denied. Check if your account has the necessary permissions.'
     }
 
     if (message.includes('rate limit') || message.includes('429')) {
-      return 'Rate limit exceeded. Please wait before making more requests.';
+      return 'Rate limit exceeded. Please wait before making more requests.'
     }
 
     if (message.includes('quota') || message.includes('balance')) {
-      return 'Insufficient balance. Please recharge at https://www.minimaxi.com';
+      return 'Insufficient balance. Please recharge at https://www.minimaxi.com'
     }
 
     if (message.includes('group')) {
-      return 'Group ID error. Please verify your Group ID in the MiniMax console.';
+      return 'Group ID error. Please verify your Group ID in the MiniMax console.'
     }
 
     if (message.includes('network') || message.includes('fetch')) {
-      return 'Network error. Check your connection or try accessing minimaxi.com.';
+      return 'Network error. Check your connection or try accessing minimaxi.com.'
     }
 
-    return 'An error occurred. Please verify your API Key and Group ID.';
+    return 'An error occurred. Please verify your API Key and Group ID.'
   }
 
   autoFillFromApiKey(apiKey: string): Partial<ProviderSetup> {
     return {
       model: this.config.defaultModel,
-    };
+    }
   }
 }

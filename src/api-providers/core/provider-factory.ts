@@ -3,8 +3,8 @@
  * Creates and configures provider instances
  */
 
-import { IProvider, ProviderSetup, ProviderCredentials } from './provider-interface';
-import { providerRegistry } from './provider-registry';
+import type { ProviderCredentials, ProviderSetup } from './provider-interface'
+import { providerRegistry } from './provider-registry'
 
 export class ProviderFactory {
   /**
@@ -13,55 +13,55 @@ export class ProviderFactory {
   static async createSetup(
     providerId: string,
     apiKey: string,
-    customFields?: Record<string, string>
+    customFields?: Record<string, string>,
   ): Promise<ProviderSetup> {
-    const provider = providerRegistry.getProvider(providerId);
+    const provider = providerRegistry.getProvider(providerId)
     if (!provider) {
-      throw new Error(`Provider not found: ${providerId}`);
+      throw new Error(`Provider not found: ${providerId}`)
     }
 
-    const config = provider.getConfig();
+    const config = provider.getConfig()
     const credentials: ProviderCredentials = {
       apiKey,
       customFields,
-    };
+    }
 
     // Auto-fill if provider supports it
-    let autoFilled: Partial<ProviderSetup> = {};
+    let autoFilled: Partial<ProviderSetup> = {}
     if (provider.autoFillFromApiKey) {
-      autoFilled = provider.autoFillFromApiKey(apiKey);
+      autoFilled = provider.autoFillFromApiKey(apiKey)
     }
 
     return {
       provider: config,
       credentials,
       model: autoFilled.model || config.defaultModel,
-    };
+    }
   }
 
   /**
    * Validate a provider setup
    */
   static async validateSetup(setup: ProviderSetup): Promise<{
-    valid: boolean;
-    errors: string[];
-    warnings: string[];
+    valid: boolean
+    errors: string[]
+    warnings: string[]
   }> {
-    const provider = providerRegistry.getProvider(setup.provider.id);
+    const provider = providerRegistry.getProvider(setup.provider.id)
     if (!provider) {
       return {
         valid: false,
         errors: [`Provider not found: ${setup.provider.id}`],
         warnings: [],
-      };
+      }
     }
 
-    const result = await provider.validateCredentials(setup.credentials);
+    const result = await provider.validateCredentials(setup.credentials)
     return {
       valid: result.valid,
       errors: result.errors || [],
       warnings: result.warnings || [],
-    };
+    }
   }
 
   /**
@@ -69,36 +69,37 @@ export class ProviderFactory {
    */
   static async testConnection(
     providerId: string,
-    credentials: ProviderCredentials
+    credentials: ProviderCredentials,
   ): Promise<{
-    success: boolean;
-    message: string;
-    suggestions?: string[];
+    success: boolean
+    message: string
+    suggestions?: string[]
   }> {
-    const provider = providerRegistry.getProvider(providerId);
+    const provider = providerRegistry.getProvider(providerId)
     if (!provider) {
       return {
         success: false,
         message: `Provider not found: ${providerId}`,
-      };
+      }
     }
 
     try {
-      const result = await provider.testConnection(credentials);
+      const result = await provider.testConnection(credentials)
       return {
         success: result.valid,
         message: result.valid
           ? 'Connection successful!'
           : result.errors?.join(', ') || 'Connection failed',
         suggestions: result.suggestions,
-      };
-    } catch (error) {
-      const errorHelp = provider.getErrorHelp(error as Error);
+      }
+    }
+    catch (error) {
+      const errorHelp = provider.getErrorHelp(error as Error)
       return {
         success: false,
         message: (error as Error).message,
         suggestions: [errorHelp],
-      };
+      }
     }
   }
 
@@ -106,17 +107,17 @@ export class ProviderFactory {
    * Get quick setup template for a provider
    */
   static getQuickSetupTemplate(providerId: string): {
-    provider: string;
-    steps: string[];
-    fields: Array<{ name: string; label: string; type: string; required: boolean }>;
+    provider: string
+    steps: string[]
+    fields: Array<{ name: string, label: string, type: string, required: boolean }>
   } | null {
-    const provider = providerRegistry.getProvider(providerId);
+    const provider = providerRegistry.getProvider(providerId)
     if (!provider) {
-      return null;
+      return null
     }
 
-    const config = provider.getConfig();
-    const fields: Array<{ name: string; label: string; type: string; required: boolean }> = [];
+    const config = provider.getConfig()
+    const fields: Array<{ name: string, label: string, type: string, required: boolean }> = []
 
     if (config.requiresApiKey) {
       fields.push({
@@ -124,25 +125,25 @@ export class ProviderFactory {
         label: 'API Key',
         type: 'password',
         required: true,
-      });
+      })
     }
 
     if (config.customFields) {
-      config.customFields.forEach(field => {
+      config.customFields.forEach((field) => {
         fields.push({
           name: field.key,
           label: field.label,
           type: field.type,
           required: field.required,
-        });
-      });
+        })
+      })
     }
 
     return {
       provider: config.name,
       steps: provider.getSetupInstructions(),
       fields,
-    };
+    }
   }
 
   /**
@@ -150,7 +151,7 @@ export class ProviderFactory {
    */
   static cloneSetup(
     original: ProviderSetup,
-    newCredentials: Partial<ProviderCredentials>
+    newCredentials: Partial<ProviderCredentials>,
   ): ProviderSetup {
     return {
       ...original,
@@ -158,7 +159,7 @@ export class ProviderFactory {
         ...original.credentials,
         ...newCredentials,
       },
-    };
+    }
   }
 
   /**
@@ -170,24 +171,24 @@ export class ProviderFactory {
       providerName: setup.provider.name,
       model: setup.model,
       ...(includeCredentials && { credentials: setup.credentials }),
-    };
-    return JSON.stringify(exportData, null, 2);
+    }
+    return JSON.stringify(exportData, null, 2)
   }
 
   /**
    * Import setup from JSON
    */
   static async importSetup(json: string): Promise<ProviderSetup> {
-    const data = JSON.parse(json);
-    const provider = providerRegistry.getProvider(data.providerId);
+    const data = JSON.parse(json)
+    const provider = providerRegistry.getProvider(data.providerId)
     if (!provider) {
-      throw new Error(`Provider not found: ${data.providerId}`);
+      throw new Error(`Provider not found: ${data.providerId}`)
     }
 
     return {
       provider: provider.getConfig(),
       credentials: data.credentials || {},
       model: data.model,
-    };
+    }
   }
 }

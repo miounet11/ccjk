@@ -3,13 +3,13 @@
  * Official Anthropic Claude API
  */
 
-import {
+import type {
   IProvider,
   ProviderConfig,
   ProviderCredentials,
-  ValidationResult,
   ProviderSetup,
-} from '../core/provider-interface';
+  ValidationResult,
+} from '../core/provider-interface'
 
 export class ProviderAnthropic implements IProvider {
   private config: ProviderConfig = {
@@ -28,42 +28,42 @@ export class ProviderAnthropic implements IProvider {
     ],
     requiresApiKey: true,
     icon: '🤖',
-  };
+  }
 
   getConfig(): ProviderConfig {
-    return this.config;
+    return this.config
   }
 
   async validateCredentials(credentials: ProviderCredentials): Promise<ValidationResult> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const suggestions: string[] = []
 
     if (!credentials.apiKey) {
-      errors.push('API Key is required');
-      suggestions.push('Get your API key from https://console.anthropic.com');
-      return { valid: false, errors, suggestions };
+      errors.push('API Key is required')
+      suggestions.push('Get your API key from https://console.anthropic.com')
+      return { valid: false, errors, suggestions }
     }
 
     // Anthropic API keys start with 'sk-ant-'
     if (!credentials.apiKey.startsWith('sk-ant-')) {
-      warnings.push('Anthropic API keys should start with "sk-ant-"');
-      suggestions.push('Please verify you copied the correct API key');
+      warnings.push('Anthropic API keys should start with "sk-ant-"')
+      suggestions.push('Please verify you copied the correct API key')
     }
 
     if (credentials.apiKey.length < 40) {
-      errors.push('API key appears to be too short');
-      suggestions.push('Please check if you copied the complete API key');
-      return { valid: false, errors, warnings, suggestions };
+      errors.push('API key appears to be too short')
+      suggestions.push('Please check if you copied the complete API key')
+      return { valid: false, errors, warnings, suggestions }
     }
 
-    return { valid: true, warnings, suggestions };
+    return { valid: true, warnings, suggestions }
   }
 
   async testConnection(credentials: ProviderCredentials): Promise<ValidationResult> {
-    const validation = await this.validateCredentials(credentials);
+    const validation = await this.validateCredentials(credentials)
     if (!validation.valid) {
-      return validation;
+      return validation
     }
 
     try {
@@ -80,10 +80,10 @@ export class ProviderAnthropic implements IProvider {
           messages: [{ role: 'user', content: 'Hi' }],
           max_tokens: 10,
         }),
-      });
+      })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({}))
         return {
           valid: false,
           errors: [
@@ -94,14 +94,15 @@ export class ProviderAnthropic implements IProvider {
             'Check if your account has sufficient credits',
             'Visit https://console.anthropic.com for support',
           ],
-        };
+        }
       }
 
       return {
         valid: true,
         suggestions: ['Connection successful! Anthropic Claude is ready to use'],
-      };
-    } catch (error) {
+      }
+    }
+    catch (error) {
       return {
         valid: false,
         errors: [`Network error: ${(error as Error).message}`],
@@ -110,7 +111,7 @@ export class ProviderAnthropic implements IProvider {
           'Verify you can access api.anthropic.com',
           'Try again in a few moments',
         ],
-      };
+      }
     }
   }
 
@@ -120,42 +121,42 @@ export class ProviderAnthropic implements IProvider {
       '2. Navigate to API Keys section',
       '3. Create a new API key',
       '4. Copy the API key (starts with "sk-ant-")',
-    ];
+    ]
   }
 
   getErrorHelp(error: Error): string {
-    const message = error.message.toLowerCase();
+    const message = error.message.toLowerCase()
 
     if (message.includes('unauthorized') || message.includes('401')) {
-      return 'Invalid API key. Please check your credentials at https://console.anthropic.com';
+      return 'Invalid API key. Please check your credentials at https://console.anthropic.com'
     }
 
     if (message.includes('forbidden') || message.includes('403')) {
-      return 'Access denied. Your account may not have access to this model.';
+      return 'Access denied. Your account may not have access to this model.'
     }
 
     if (message.includes('rate limit') || message.includes('429')) {
-      return 'Rate limit exceeded. Please wait before making more requests.';
+      return 'Rate limit exceeded. Please wait before making more requests.'
     }
 
     if (message.includes('overloaded') || message.includes('529')) {
-      return 'Anthropic API is temporarily overloaded. Please try again shortly.';
+      return 'Anthropic API is temporarily overloaded. Please try again shortly.'
     }
 
     if (message.includes('credit') || message.includes('billing')) {
-      return 'Billing issue. Please check your account at https://console.anthropic.com';
+      return 'Billing issue. Please check your account at https://console.anthropic.com'
     }
 
     if (message.includes('network') || message.includes('fetch')) {
-      return 'Network error. Check your connection or try accessing anthropic.com.';
+      return 'Network error. Check your connection or try accessing anthropic.com.'
     }
 
-    return 'An error occurred. Please check your API key and try again.';
+    return 'An error occurred. Please check your API key and try again.'
   }
 
   autoFillFromApiKey(apiKey: string): Partial<ProviderSetup> {
     return {
       model: this.config.defaultModel,
-    };
+    }
   }
 }

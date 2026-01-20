@@ -2,9 +2,9 @@
  * Adapters module exports
  */
 
-export * from './claude-code';
-export * from './codex';
-export * from './aider';
-export * from './continue';
-export * from './cline';
-export * from './cursor';
+export * from './aider'
+export * from './claude-code'
+export * from './cline'
+export * from './codex'
+export * from './continue'
+export * from './cursor'

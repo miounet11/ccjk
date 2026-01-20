@@ -3,13 +3,13 @@
  * Moonshot AI's Kimi models
  */
 
-import {
+import type {
   IProvider,
   ProviderConfig,
   ProviderCredentials,
-  ValidationResult,
   ProviderSetup,
-} from '../core/provider-interface';
+  ValidationResult,
+} from '../core/provider-interface'
 
 export class ProviderKimi implements IProvider {
   private config: ProviderConfig = {
@@ -25,42 +25,42 @@ export class ProviderKimi implements IProvider {
     ],
     requiresApiKey: true,
     icon: '🌙',
-  };
+  }
 
   getConfig(): ProviderConfig {
-    return this.config;
+    return this.config
   }
 
   async validateCredentials(credentials: ProviderCredentials): Promise<ValidationResult> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const suggestions: string[] = []
 
     if (!credentials.apiKey) {
-      errors.push('API Key is required');
-      suggestions.push('Get your API key from https://platform.moonshot.cn');
-      return { valid: false, errors, suggestions };
+      errors.push('API Key is required')
+      suggestions.push('Get your API key from https://platform.moonshot.cn')
+      return { valid: false, errors, suggestions }
     }
 
     // Kimi API keys start with 'sk-'
     if (!credentials.apiKey.startsWith('sk-')) {
-      warnings.push('Kimi API keys typically start with "sk-"');
-      suggestions.push('Please verify you copied the correct API key');
+      warnings.push('Kimi API keys typically start with "sk-"')
+      suggestions.push('Please verify you copied the correct API key')
     }
 
     if (credentials.apiKey.length < 30) {
-      errors.push('API key appears to be too short');
-      suggestions.push('Please check if you copied the complete API key');
-      return { valid: false, errors, warnings, suggestions };
+      errors.push('API key appears to be too short')
+      suggestions.push('Please check if you copied the complete API key')
+      return { valid: false, errors, warnings, suggestions }
     }
 
-    return { valid: true, warnings, suggestions };
+    return { valid: true, warnings, suggestions }
   }
 
   async testConnection(credentials: ProviderCredentials): Promise<ValidationResult> {
-    const validation = await this.validateCredentials(credentials);
+    const validation = await this.validateCredentials(credentials)
     if (!validation.valid) {
-      return validation;
+      return validation
     }
 
     try {
@@ -76,10 +76,10 @@ export class ProviderKimi implements IProvider {
           messages: [{ role: 'user', content: 'Hi' }],
           max_tokens: 10,
         }),
-      });
+      })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({}))
         return {
           valid: false,
           errors: [
@@ -90,14 +90,15 @@ export class ProviderKimi implements IProvider {
             'Check if your account is active and has credits',
             'Visit https://platform.moonshot.cn for support',
           ],
-        };
+        }
       }
 
       return {
         valid: true,
         suggestions: ['Connection successful! Kimi is ready to use'],
-      };
-    } catch (error) {
+      }
+    }
+    catch (error) {
       return {
         valid: false,
         errors: [`Network error: ${(error as Error).message}`],
@@ -106,7 +107,7 @@ export class ProviderKimi implements IProvider {
           'Verify you can access moonshot.cn',
           'Try again in a few moments',
         ],
-      };
+      }
     }
   }
 
@@ -116,42 +117,42 @@ export class ProviderKimi implements IProvider {
       '2. Navigate to API Keys in your dashboard',
       '3. Create a new API key',
       '4. Copy the API key (starts with "sk-")',
-    ];
+    ]
   }
 
   getErrorHelp(error: Error): string {
-    const message = error.message.toLowerCase();
+    const message = error.message.toLowerCase()
 
     if (message.includes('unauthorized') || message.includes('401')) {
-      return 'Invalid API key. Please check your credentials at https://platform.moonshot.cn';
+      return 'Invalid API key. Please check your credentials at https://platform.moonshot.cn'
     }
 
     if (message.includes('forbidden') || message.includes('403')) {
-      return 'Access denied. Your account may need activation or additional permissions.';
+      return 'Access denied. Your account may need activation or additional permissions.'
     }
 
     if (message.includes('rate limit') || message.includes('429')) {
-      return 'Rate limit exceeded. Please wait before making more requests.';
+      return 'Rate limit exceeded. Please wait before making more requests.'
     }
 
     if (message.includes('quota') || message.includes('balance') || message.includes('insufficient')) {
-      return 'Insufficient credits. Please recharge your account at https://platform.moonshot.cn';
+      return 'Insufficient credits. Please recharge your account at https://platform.moonshot.cn'
     }
 
     if (message.includes('model')) {
-      return 'Model error. Please verify the model name or choose a different model.';
+      return 'Model error. Please verify the model name or choose a different model.'
     }
 
     if (message.includes('network') || message.includes('fetch')) {
-      return 'Network error. Check your connection or try accessing moonshot.cn directly.';
+      return 'Network error. Check your connection or try accessing moonshot.cn directly.'
     }
 
-    return 'An error occurred. Please check your API key and try again.';
+    return 'An error occurred. Please check your API key and try again.'
   }
 
   autoFillFromApiKey(apiKey: string): Partial<ProviderSetup> {
     return {
       model: this.config.defaultModel,
-    };
+    }
   }
 }

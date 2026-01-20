@@ -3,7 +3,7 @@
  * Pre-configured bundles of MCP services for different use cases
  */
 
-import { ServiceBundle } from '../types';
+import type { ServiceBundle } from '../types'
 
 /**
  * Get all available service bundles
@@ -206,66 +206,66 @@ export function getServiceBundles(): ServiceBundle[] {
       rating: 4.8,
       featured: true,
     },
-  ];
+  ]
 }
 
 /**
  * Get bundle by ID
  */
 export function getBundleById(id: string): ServiceBundle | null {
-  const bundles = getServiceBundles();
-  return bundles.find((bundle) => bundle.id === id) || null;
+  const bundles = getServiceBundles()
+  return bundles.find(bundle => bundle.id === id) || null
 }
 
 /**
  * Get bundles by category
  */
 export function getBundlesByCategory(category: string): ServiceBundle[] {
-  const bundles = getServiceBundles();
-  return bundles.filter((bundle) => bundle.category === category);
+  const bundles = getServiceBundles()
+  return bundles.filter(bundle => bundle.category === category)
 }
 
 /**
  * Get featured bundles
  */
 export function getFeaturedBundles(): ServiceBundle[] {
-  const bundles = getServiceBundles();
-  return bundles.filter((bundle) => bundle.featured);
+  const bundles = getServiceBundles()
+  return bundles.filter(bundle => bundle.featured)
 }
 
 /**
  * Get popular bundles
  */
 export function getPopularBundles(limit: number = 5): ServiceBundle[] {
-  const bundles = getServiceBundles();
-  return bundles.sort((a, b) => b.downloads - a.downloads).slice(0, limit);
+  const bundles = getServiceBundles()
+  return bundles.sort((a, b) => b.downloads - a.downloads).slice(0, limit)
 }
 
 /**
  * Get bundle recommendations based on installed services
  */
 export function getRecommendedBundles(
-  installedServices: string[]
+  installedServices: string[],
 ): ServiceBundle[] {
-  const bundles = getServiceBundles();
+  const bundles = getServiceBundles()
 
   // Score bundles based on how many services are already installed
   const scored = bundles.map((bundle) => {
-    const installedCount = bundle.services.filter((s) =>
-      installedServices.includes(s.serviceId)
-    ).length;
+    const installedCount = bundle.services.filter(s =>
+      installedServices.includes(s.serviceId),
+    ).length
 
-    const totalCount = bundle.services.length;
-    const score = installedCount / totalCount;
+    const totalCount = bundle.services.length
+    const score = installedCount / totalCount
 
-    return { bundle, score };
-  });
+    return { bundle, score }
+  })
 
   // Return bundles with some services installed but not all
   return scored
-    .filter((item) => item.score > 0 && item.score < 1)
+    .filter(item => item.score > 0 && item.score < 1)
     .sort((a, b) => b.score - a.score)
-    .map((item) => item.bundle);
+    .map(item => item.bundle)
 }
 
 /**
@@ -273,7 +273,7 @@ export function getRecommendedBundles(
  */
 export function getBundleDetails(): Record<string, string> {
   return {
-    starter: `
+    'starter': `
 # Starter Bundle 🚀
 
 Perfect for developers new to MCP. This bundle includes the essential services you need to get started.
@@ -339,7 +339,7 @@ Essential tools for cloud-native application development.
 ccjk mcp install-bundle cloud-developer
 \`\`\`
 `,
-    fullstack: `
+    'fullstack': `
 # Full Stack Bundle 🎯
 
 Everything you need for full-stack development.
@@ -363,5 +363,5 @@ Everything you need for full-stack development.
 ccjk mcp install-bundle fullstack
 \`\`\`
 `,
-  };
+  }
 }
