@@ -9,10 +9,8 @@ catalog:
   '@commitlint/cli': ^19.8.1
   '@commitlint/config-conventional': ^19.8.1
   '@commitlint/types': ^19.8.1
-  '@hono/zod-validator': ^0.2.2
   '@iarna/toml': ^2.2.5
   '@iconify-json/carbon': ^1.2.14
-  '@prisma/client': ^5.9.1
   '@types/fs-extra': ^11.0.4
   '@types/imap': ^0.8.43
   '@types/inquirer': ^9.0.9
@@ -39,7 +37,6 @@ catalog:
   fs-extra: ^11.3.2
   glob: ^11.0.3
   gray-matter: ^4.0.3
-  hono: ^3.12.8
   husky: ^9.1.7
   i18next: ^25.5.2
   i18next-fs-backend: ^2.6.0
@@ -54,7 +51,6 @@ catalog:
   ora: ^9.0.0
   pathe: ^2.0.3
   prettier: ^3.0.0
-  prisma: ^5.9.1
   semver: ^7.7.2
   smol-toml: ^1.4.2
   tar: ^7.5.2
