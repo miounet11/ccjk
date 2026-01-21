@@ -145,6 +145,22 @@ export {
   getTempDir,
 } from './platform/paths'
 
+// Stream processor utilities (v3.8+)
+export {
+  batchProcessFiles,
+  type ChunkProcessorOptions,
+  countLines,
+  type FileInfo,
+  getFileInfo,
+  getFileSize,
+  isLargeFile,
+  processLargeFile,
+  processLineByLine,
+  streamJSON,
+  type StreamProcessorOptions,
+  streamWriteJSON,
+} from './stream-processor'
+
 // String utilities
 export * as string from './string'
 
