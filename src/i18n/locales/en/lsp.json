@@ -1,0 +1,78 @@
+{
+  "title": "LSP Language Server",
+  "status": "LSP Server Status",
+  "statusRunning": "Running",
+  "statusStopped": "Stopped",
+  "statusStarting": "Starting",
+  "statusError": "Error",
+  "statusNotInstalled": "Not Installed",
+  "servers": {
+    "typescript": "TypeScript Language Server",
+    "javascript": "JavaScript Language Server",
+    "python": "Python LSP Server",
+    "rust": "Rust Analyzer",
+    "go": "Go PLPS",
+    "cpp": "Clangd (C/C++)",
+    "java": "Eclipse JDT.LS",
+    "yaml": "YAML Language Server",
+    "json": "JSON Language Server",
+    "css": "CSS Language Server",
+    "html": "HTML Language Server",
+    "markdown": "Markdown Language Server"
+  },
+  "commands": {
+    "status": "Show LSP server status",
+    "list": "List all available LSP servers",
+    "start": "Start all LSP servers",
+    "stop": "Stop all LSP servers",
+    "enable": "Enable a specific LSP server",
+    "disable": "Disable a specific LSP server",
+    "restart": "Restart a specific LSP server",
+    "help": "Show LSP command help"
+  },
+  "messages": {
+    "serverEnabled": "Enabled LSP server: {{server}}",
+    "serverDisabled": "Disabled LSP server: {{server}}",
+    "serverStarted": "All LSP servers started",
+    "serverStopped": "All LSP servers stopped",
+    "serverRestarted": "Restarted LSP server: {{server}}",
+    "serverNotAvailable": "LSP server not available: {{server}}",
+    "enableFailed": "Failed to enable LSP server: {{error}}",
+    "disableFailed": "Failed to disable LSP server: {{error}}",
+    "startFailed": "Failed to start LSP servers: {{error}}",
+    "stopFailed": "Failed to stop LSP servers: {{error}}",
+    "restartFailed": "Failed to restart LSP server: {{error}}",
+    "serverIdRequired": "Server ID required. Use: npx ccjk lsp {{command}} <server>",
+    "pleaseInstall": "Please install: {{commands}}"
+  },
+  "features": {
+    "completion": "completion",
+    "hover": "hover",
+    "definition": "definition",
+    "references": "references",
+    "symbols": "symbols",
+    "typeDefinition": "type definition",
+    "implementation": "implementation"
+  },
+  "categories": {
+    "core": "Core / Web Dev",
+    "backend": "Backend Dev",
+    "scripting": "Scripting",
+    "config": "Config Files",
+    "tools": "Tools"
+  },
+  "summary": {
+    "running": "Running",
+    "stopped": "Stopped",
+    "error": "Error",
+    "notInstalled": "Not Installed"
+  },
+  "installedServers": "Installed Servers",
+  "availableServers": "Available Servers",
+  "notInstalledServers": "Available but Not Installed",
+  "requires": "Requires",
+  "extensions": "Extensions",
+  "needsInstall": "Needs install",
+  "files": "Files",
+  "capabilities": "Capabilities"
+}

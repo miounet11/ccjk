@@ -1,4 +1,4 @@
-import type { McpServerConfig, McpService } from '../types'
+import type { McpAutoThreshold, McpServerConfig, McpService } from '../types'
 import { execSync } from 'node:child_process'
 import { homedir } from 'node:os'
 import process from 'node:process'
@@ -9,6 +9,62 @@ import { ensureI18nInitialized, i18n } from '../i18n'
 
 /** Supported platform types for MCP services */
 export type McpPlatform = 'windows' | 'macos' | 'linux' | 'wsl' | 'termux'
+
+/**
+ * MCP Tool Search configuration for Claude Code CLI 2.1.7+
+ * Implements auto-mode for deferred tool loading when descriptions exceed threshold
+ *
+ * @see https://docs.anthropic.com/en/docs/build-with-claude/mcp#tool-search-auto-mode
+ */
+export interface McpToolSearchConfig {
+  /**
+   * Auto mode threshold percentage (0-100) or special values
+   * - Number: Defer tool loading when descriptions exceed this % of context window
+   * - 'always': Load all tools immediately (0% threshold)
+   * - 'never': Defer all tools until requested (100% threshold)
+   * @default 10 (per Claude Code 2.1.7 spec)
+   */
+  mcpAutoEnableThreshold?: McpAutoThreshold
+
+  /**
+   * Enable dynamic service discovery
+   * Allows runtime addition/removal of MCP services without restart
+   * @default true
+   */
+  dynamicServiceDiscovery?: boolean
+
+  /**
+   * Enable list_changed notifications
+   * When enabled, Claude receives notifications when available tools change
+   * @default true
+   */
+  listChangedNotifications?: boolean
+
+  /**
+   * Services excluded from auto-mode (always loaded immediately)
+   * Core services like 'mcp-search', 'context7' are always excluded
+   * @default ['mcp-search', 'context7', 'sqlite']
+   */
+  excludedServices?: string[]
+}
+
+/**
+ * List changed notification payload
+ * Sent when MCP services are added/removed dynamically
+ */
+export interface McpListChangedNotification {
+  /** Type of change */
+  type: 'added' | 'removed' | 'updated'
+
+  /** Service ID that changed */
+  serviceId: string
+
+  /** Timestamp of change */
+  timestamp: number
+
+  /** New service configuration (for added/updated) */
+  config?: McpServerConfig
+}
 
 /** Platform compatibility requirements for MCP services */
 export interface McpPlatformRequirements {
@@ -445,4 +501,206 @@ export async function getMcpServicesWithCompatibility(): Promise<Array<McpServic
       incompatibleReason: reason,
     }
   })
+}
+
+// ============================================================================
+// MCP Tool Search Auto-Mode Configuration (v3.8+)
+// ============================================================================
+
+/**
+ * Default MCP tool search configuration
+ */
+export const DEFAULT_MCP_TOOL_SEARCH_CONFIG: Required<McpToolSearchConfig> = {
+  mcpAutoEnableThreshold: 10, // 10% per Claude Code 2.1.7 spec
+  dynamicServiceDiscovery: true,
+  listChangedNotifications: true,
+  excludedServices: ['mcp-search', 'context7', 'sqlite'],
+}
+
+/**
+ * Get MCP tool search configuration
+ * Reads from environment or returns defaults
+ *
+ * Environment variables:
+ * - MCP_AUTO_THRESHOLD: auto:N syntax (e.g., "auto:15", "auto:always", "auto:never")
+ * - MCP_DYNAMIC_DISCOVERY: "true" or "false"
+ * - MCP_LIST_CHANGED: "true" or "false"
+ *
+ * @returns Current MCP tool search configuration
+ */
+export function getMcpToolSearchConfig(): Required<McpToolSearchConfig> {
+  const env = process.env
+
+  return {
+    mcpAutoEnableThreshold: env.MCP_AUTO_THRESHOLD as McpAutoThreshold || DEFAULT_MCP_TOOL_SEARCH_CONFIG.mcpAutoEnableThreshold,
+    dynamicServiceDiscovery: env.MCP_DYNAMIC_DISCOVERY !== 'false',
+    listChangedNotifications: env.MCP_LIST_CHANGED !== 'false',
+    excludedServices: env.MCP_EXCLUDED_SERVICES?.split(',').map(s => s.trim()).filter(Boolean) || DEFAULT_MCP_TOOL_SEARCH_CONFIG.excludedServices,
+  }
+}
+
+/**
+ * Check if a service is excluded from auto-mode
+ *
+ * @param serviceId - Service ID to check
+ * @param config - Optional tool search config (uses current if not provided)
+ * @returns True if service should always load immediately
+ */
+export function isServiceExcludedFromAutoMode(serviceId: string, config?: McpToolSearchConfig): boolean {
+  const toolSearchConfig = config || getMcpToolSearchConfig()
+  return toolSearchConfig.excludedServices?.includes(serviceId) || DEFAULT_MCP_TOOL_SEARCH_CONFIG.excludedServices.includes(serviceId)
+}
+
+/**
+ * Create a list_changed notification
+ *
+ * @param type - Type of change
+ * @param serviceId - Service ID that changed
+ * @param config - New service configuration (for added/updated)
+ * @returns Notification payload
+ */
+export function createListChangedNotification(
+  type: 'added' | 'removed' | 'updated',
+  serviceId: string,
+  config?: McpServerConfig,
+): McpListChangedNotification {
+  return {
+    type,
+    serviceId,
+    timestamp: Date.now(),
+    config,
+  }
+}
+
+/**
+ * Dynamic service registry for runtime service discovery
+ * Allows adding/removing MCP services without restart
+ */
+class DynamicMcpServiceRegistry {
+  private _services: Map<string, McpServerConfig> = new Map()
+  private _listeners: Set<(notification: McpListChangedNotification) => void> = new Set()
+  private _enabled: boolean = false
+
+  /**
+   * Enable dynamic service discovery
+   */
+  enable(): void {
+    this._enabled = true
+  }
+
+  /**
+   * Disable dynamic service discovery
+   */
+  disable(): void {
+    this._enabled = false
+  }
+
+  /**
+   * Check if dynamic discovery is enabled
+   */
+  isEnabled(): boolean {
+    return this._enabled
+  }
+
+  /**
+   * Add a service dynamically
+   */
+  addService(serviceId: string, config: McpServerConfig): boolean {
+    if (!this._enabled) {
+      return false
+    }
+
+    const isUpdate = this._services.has(serviceId)
+    this._services.set(serviceId, config)
+
+    this._notify({
+      type: isUpdate ? 'updated' : 'added',
+      serviceId,
+      timestamp: Date.now(),
+      config,
+    })
+
+    return true
+  }
+
+  /**
+   * Remove a service dynamically
+   */
+  removeService(serviceId: string): boolean {
+    if (!this._enabled || !this._services.has(serviceId)) {
+      return false
+    }
+
+    const config = this._services.get(serviceId)
+    this._services.delete(serviceId)
+
+    this._notify({
+      type: 'removed',
+      serviceId,
+      timestamp: Date.now(),
+      config,
+    })
+
+    return true
+  }
+
+  /**
+   * Get a service configuration
+   */
+  getService(serviceId: string): McpServerConfig | undefined {
+    return this._services.get(serviceId)
+  }
+
+  /**
+   * List all dynamically registered services
+   */
+  listServices(): Map<string, McpServerConfig> {
+    return new Map(this._services)
+  }
+
+  /**
+   * Subscribe to list change notifications
+   */
+  subscribe(listener: (notification: McpListChangedNotification) => void): () => void {
+    this._listeners.add(listener)
+    return () => this._listeners.delete(listener)
+  }
+
+  /**
+   * Notify all listeners of a change
+   */
+  private _notify(notification: McpListChangedNotification): void {
+    const toolSearchConfig = getMcpToolSearchConfig()
+
+    if (toolSearchConfig.listChangedNotifications) {
+      for (const listener of Array.from(this._listeners)) {
+        try {
+          listener(notification)
+        }
+        catch (error) {
+          console.error('Error notifying MCP list change listener:', error)
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Global dynamic MCP service registry instance
+ */
+export const dynamicMcpRegistry = new DynamicMcpServiceRegistry()
+
+/**
+ * Initialize dynamic service discovery based on configuration
+ * Called during CCJK initialization to enable/disable the feature
+ */
+export function initializeDynamicServiceDiscovery(): void {
+  const config = getMcpToolSearchConfig()
+
+  if (config.dynamicServiceDiscovery) {
+    dynamicMcpRegistry.enable()
+  }
+  else {
+    dynamicMcpRegistry.disable()
+  }
 }

@@ -26,6 +26,7 @@ const NAMESPACES = [
   'installation',
   'interview', // Interview-Driven Development
   'language',
+  'lsp', // Language Server Protocol (v3.8+)
   'marketplace', // Marketplace system for plugins, skills, and workflows
   'mcp',
   'menu',
@@ -42,9 +43,11 @@ const NAMESPACES = [
   'stats', // Usage statistics
   'superpowers', // Superpowers plugin integration
   'team',
+  'thinking', // Thinking mode for Claude Code CLI 2.0.67+
   'tools',
   'uninstall',
   'updater',
+  'vim', // Vim mode enhancement for Claude Code CLI 2.1.0+
   'workflow',
   'cloud-sync',
   'workspace', // Workspace diagnostics and guide

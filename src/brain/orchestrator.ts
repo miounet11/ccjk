@@ -8,6 +8,18 @@
  */
 
 import type { AgentCapability, CloudAgent } from '../types/agent.js'
+import type { SkillMdFile } from '../types/skill-md.js'
+import type {
+  AgentDispatchConfig,
+  AgentDispatcherOptions,
+  ParallelAgentExecution,
+  ParallelExecutionResult,
+} from './agent-dispatcher.js'
+import type {
+  ForkContextConfig,
+  ForkContextOptions,
+  ForkContextResult,
+} from './agent-fork.js'
 import type {
   AgentInstance,
   AgentSelectionCriteria,
@@ -25,6 +37,8 @@ import type {
 import type { AgentRole } from './types.js'
 import { EventEmitter } from 'node:events'
 import { nanoid } from 'nanoid'
+import { AgentDispatcher, getGlobalDispatcher } from './agent-dispatcher.js'
+import { AgentForkManager, getGlobalForkManager } from './agent-fork.js'
 import { ResultAggregator } from './result-aggregator.js'
 import { TaskDecomposer } from './task-decomposer.js'
 
@@ -48,6 +62,33 @@ export interface OrchestratorEvents {
   'agent:error': (agent: AgentInstance, error: Error) => void
   'agent:terminated': (agent: AgentInstance) => void
   'error': (error: Error) => void
+  // Fork context events (v3.8)
+  'fork:created': (forkId: string, skill: SkillMdFile) => void
+  'fork:started': (forkId: string) => void
+  'fork:completed': (forkId: string, result: ForkContextResult) => void
+  'fork:failed': (forkId: string, error: string) => void
+  'fork:cancelled': (forkId: string) => void
+  // Parallel execution events (v3.8)
+  'parallel:started': (executionId: string) => void
+  'parallel:completed': (executionId: string, result: ParallelExecutionResult) => void
+  'parallel:failed': (executionId: string, error: string) => void
+}
+
+/**
+ * Extended orchestrator configuration with fork context support (v3.8)
+ */
+export interface ExtendedOrchestratorConfig extends OrchestratorConfig {
+  /** Fork context manager options */
+  forkContextOptions?: ForkContextOptions
+
+  /** Agent dispatcher options */
+  dispatcherOptions?: AgentDispatcherOptions
+
+  /** Enable fork context execution */
+  enableForkContext?: boolean
+
+  /** Enable agent dispatcher */
+  enableDispatcher?: boolean
 }
 
 /**
@@ -55,15 +96,19 @@ export interface OrchestratorEvents {
  *
  * Coordinates multiple agents to execute complex tasks through intelligent
  * decomposition, parallel execution, and result aggregation.
+ *
+ * v3.8 adds support for fork context isolation and agent dispatching.
  */
 export class BrainOrchestrator extends EventEmitter {
-  private readonly config: Required<OrchestratorConfig>
+  private readonly config: Required<ExtendedOrchestratorConfig>
   private readonly taskDecomposer: TaskDecomposer
   private readonly resultAggregator: ResultAggregator
   private readonly state: OrchestratorState
   private readonly availableAgents: Map<AgentRole, CloudAgent>
+  private readonly forkManager: AgentForkManager
+  private readonly dispatcher: AgentDispatcher
 
-  constructor(config: Partial<OrchestratorConfig> = {}) {
+  constructor(config: Partial<ExtendedOrchestratorConfig> = {}) {
     super()
 
     this.config = {
@@ -78,6 +123,11 @@ export class BrainOrchestrator extends EventEmitter {
       cacheTtl: config.cacheTtl ?? 3600000, // 1 hour
       verboseLogging: config.verboseLogging ?? false,
       custom: config.custom ?? {},
+      // v3.8 options
+      forkContextOptions: config.forkContextOptions ?? {},
+      dispatcherOptions: config.dispatcherOptions ?? {},
+      enableForkContext: config.enableForkContext ?? true,
+      enableDispatcher: config.enableDispatcher ?? true,
     }
 
     this.taskDecomposer = new TaskDecomposer({
@@ -106,6 +156,13 @@ export class BrainOrchestrator extends EventEmitter {
     }
 
     this.availableAgents = new Map()
+
+    // Initialize fork manager (v3.8)
+    this.forkManager = new AgentForkManager(this.config.forkContextOptions)
+    this.setupForkManagerEvents()
+
+    // Initialize agent dispatcher (v3.8)
+    this.dispatcher = new AgentDispatcher(this.config.dispatcherOptions)
   }
 
   /**
@@ -189,351 +246,199 @@ export class BrainOrchestrator extends EventEmitter {
     // Analyze required agents
     const requiredAgents = this.analyzeRequiredAgents(decomposition.subtasks)
 
-    // Create plan
+    // Create task execution graph
+    const executionGraph = decomposition.executionGraph
+
+    // Calculate estimated duration
+    const estimatedDuration = decomposition.estimatedDuration
+
+    // Create orchestration plan
     const plan: OrchestrationPlan = {
       id: nanoid(),
-      name: `Plan for ${task.name}`,
-      description: `Orchestration plan to execute: ${task.description}`,
+      name: `Plan: ${task.name}`,
+      description: `Orchestration plan for ${task.name}`,
       rootTask: task,
       tasks: decomposition.subtasks,
-      executionGraph: decomposition.executionGraph,
+      executionGraph,
       requiredAgents,
       decompositionStrategy: decomposition.strategy,
-      estimatedDuration: decomposition.estimatedDuration,
+      estimatedDuration,
       createdAt: new Date().toISOString(),
       metadata: {
-        taskCount: decomposition.subtasks.length,
-        complexity: decomposition.metadata.complexity,
+        originalTaskId: task.id,
+        decompositionMetadata: decomposition.metadata,
       },
     }
 
-    this.log(`Created plan with ${plan.tasks.length} tasks`)
     return plan
   }
 
   /**
    * Execute an orchestration plan
    *
-   * @param plan - Plan to execute
+   * @param plan - Orchestration plan to execute
    * @returns Orchestration result
    */
   private async executePlan(plan: OrchestrationPlan): Promise<OrchestrationResult> {
     const startTime = Date.now()
-    const completedTasks: string[] = []
-    const failedTasks: string[] = []
-    const cancelledTasks: string[] = []
+    const completed: string[] = []
+    const failed: string[] = []
+    const cancelled: string[] = []
+    const results: Record<string, TaskOutput> = {}
     const errors: TaskError[] = []
     const warnings: string[] = []
 
-    try {
-      // Execute tasks stage by stage
-      for (const stage of plan.executionGraph.stages) {
-        this.log(`Executing stage ${stage.stage} with ${stage.tasks.length} tasks`)
+    this.log(`Executing plan: ${plan.id}`)
 
-        const stageTasks = stage.tasks
-          .map(taskId => plan.tasks.find(t => t.id === taskId))
-          .filter((t): t is Task => t !== undefined)
-
-        // Execute tasks in parallel if enabled
-        if (this.config.enableParallelExecution && stageTasks.length > 1) {
-          await this.executeTasksParallel(stageTasks)
-        }
-        else {
-          await this.executeTasksSequential(stageTasks)
-        }
-
-        // Check task results
-        for (const task of stageTasks) {
-          if (task.status === 'completed') {
-            completedTasks.push(task.id)
-          }
-          else if (task.status === 'failed') {
-            failedTasks.push(task.id)
-            if (task.error) {
-              errors.push(task.error)
-            }
-          }
-          else if (task.status === 'cancelled') {
-            cancelledTasks.push(task.id)
-          }
-        }
-
-        // Stop if critical tasks failed
-        if (failedTasks.length > 0 && this.hasCriticalFailures(stageTasks)) {
-          warnings.push('Critical task failures detected, stopping execution')
-          break
-        }
-      }
-
-      // Aggregate results
-      const completedTaskObjects = plan.tasks.filter(t => completedTasks.includes(t.id))
-      const aggregationResult = await this.resultAggregator.aggregate(completedTaskObjects)
-
-      if (!aggregationResult.success) {
-        warnings.push(...aggregationResult.warnings)
-      }
-
-      // Calculate metrics
-      const duration = Date.now() - startTime
-      const metrics = this.calculateMetrics(plan, completedTasks, failedTasks, cancelledTasks, duration)
-
-      // Determine overall status
-      const status = this.determineStatus(completedTasks, failedTasks, cancelledTasks, plan.tasks.length)
-
-      return {
-        planId: plan.id,
-        success: status === 'completed',
-        status,
-        completedTasks,
-        failedTasks,
-        cancelledTasks,
-        results: aggregationResult.output ? { aggregated: aggregationResult.output } : {},
-        metrics,
-        errors,
-        warnings,
-        startedAt: this.state.startTime!,
-        completedAt: new Date().toISOString(),
-        duration,
-      }
+    // Add tasks to queue
+    for (const task of plan.tasks) {
+      this.state.taskQueue.push(task)
+      this.emit('task:created', task)
     }
-    catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      errors.push({
-        code: 'ORCHESTRATION_ERROR',
-        message: err.message,
-        stack: err.stack,
-        recoverable: false,
+
+    // Execute tasks according to execution graph stages
+    for (const stage of plan.executionGraph.stages) {
+      const stageTasks = plan.tasks.filter(t => stage.tasks.includes(t.id))
+
+      // Execute tasks in parallel within stage
+      const stagePromises = stageTasks.map(async (task) => {
+        this.emit('task:started', task)
+        task.status = 'running'
+        task.startedAt = new Date().toISOString()
+
+        try {
+          // Find and assign agent
+          const agent = this.selectAgentForTask(task)
+          if (!agent) {
+            throw new Error(`No available agent for task: ${task.name}`)
+          }
+
+          task.assignedAgentId = agent.id
+          this.emit('agent:assigned', agent, task)
+
+          // Simulate task execution (in real implementation, this would call the agent)
+          await this.executeTask(agent, task)
+
+          // Mark task as completed
+          task.status = 'completed'
+          task.completedAt = new Date().toISOString()
+          task.actualDuration = Date.now() - new Date(task.startedAt).getTime()
+          task.progress = 100
+
+          completed.push(task.id)
+          this.emit('task:completed', task)
+
+          // Update agent metrics
+          this.updateAgentMetrics(agent, task, true)
+
+          if (task.output) {
+            results[task.id] = task.output
+          }
+
+          return { taskId: task.id, success: true }
+        }
+        catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          task.status = 'failed'
+          task.error = {
+            code: 'TASK_EXECUTION_FAILED',
+            message: err.message,
+            stack: err.stack,
+            recoverable: this.config.autoRetry && task.retryCount < task.maxRetries,
+          }
+          task.completedAt = new Date().toISOString()
+
+          failed.push(task.id)
+          this.emit('task:failed', task, task.error)
+
+          if (task.error) {
+            errors.push(task.error)
+          }
+
+          // Retry if enabled and retries remaining
+          if (this.config.autoRetry && task.retryCount < task.maxRetries && task.error?.recoverable) {
+            task.retryCount++
+            task.status = 'pending'
+            warnings.push(`Retrying task ${task.name} (attempt ${task.retryCount}/${task.maxRetries})`)
+            return { taskId: task.id, success: false, retry: true }
+          }
+
+          return { taskId: task.id, success: false }
+        }
       })
 
-      return {
-        planId: plan.id,
-        success: false,
-        status: 'failed',
-        completedTasks,
-        failedTasks,
-        cancelledTasks,
-        results: {},
-        metrics: this.calculateMetrics(plan, completedTasks, failedTasks, cancelledTasks, Date.now() - startTime),
-        errors,
-        warnings,
-        startedAt: this.state.startTime!,
-        completedAt: new Date().toISOString(),
-        duration: Date.now() - startTime,
-      }
-    }
-  }
+      // Wait for all tasks in stage to complete
+      await Promise.all(stagePromises)
 
-  /**
-   * Execute tasks in parallel
-   *
-   * @param tasks - Tasks to execute
-   */
-  private async executeTasksParallel(tasks: Task[]): Promise<void> {
-    const promises = tasks.map(task => this.executeTask(task))
-    await Promise.allSettled(promises)
-  }
-
-  /**
-   * Execute tasks sequentially
-   *
-   * @param tasks - Tasks to execute
-   */
-  private async executeTasksSequential(tasks: Task[]): Promise<void> {
-    for (const task of tasks) {
-      await this.executeTask(task)
-    }
-  }
-
-  /**
-   * Execute a single task
-   *
-   * @param task - Task to execute
-   */
-  private async executeTask(task: Task): Promise<void> {
-    try {
-      // Check if dependencies are satisfied
-      if (!this.areDependenciesSatisfied(task)) {
-        task.status = 'blocked'
-        this.log(`Task ${task.name} is blocked by dependencies`)
-        return
-      }
-
-      // Update task status
-      task.status = 'running'
-      task.startedAt = new Date().toISOString()
-      this.state.activeTasks.set(task.id, task)
-      this.emit('task:started', task)
-
-      // Select agent for task
-      const agentSelection = await this.selectAgent(task)
-      if (!agentSelection) {
-        throw new Error(`No suitable agent found for task: ${task.name}`)
-      }
-
-      // Assign task to agent
-      const agentInstance = agentSelection.agent
-      agentInstance.currentTask = task
-      agentInstance.status = 'busy'
-      task.assignedAgentId = agentInstance.id
-      this.emit('agent:assigned', agentInstance, task)
-
-      // Execute task with timeout
-      const timeout = task.timeout ?? this.config.defaultTaskTimeout
-      const output = await this.executeWithTimeout(
-        () => this.executeTaskWithAgent(task, agentInstance),
-        timeout,
-      )
-
-      // Update task with output
-      task.output = output
-      task.status = 'completed'
-      task.completedAt = new Date().toISOString()
-      task.actualDuration = Date.now() - new Date(task.startedAt).getTime()
-      task.progress = 100
-
-      // Update agent
-      agentInstance.status = 'idle'
-      agentInstance.currentTask = undefined
-      agentInstance.lastActivityAt = new Date().toISOString()
-      this.updateAgentMetrics(agentInstance, task, true)
-
-      // Move to completed
-      this.state.activeTasks.delete(task.id)
-      this.state.completedTasks.set(task.id, task)
-      this.state.totalTasksProcessed++
-
-      this.emit('task:completed', task)
-      this.emit('agent:completed', agentInstance, task)
-    }
-    catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      const taskError: TaskError = {
-        code: 'TASK_EXECUTION_ERROR',
-        message: err.message,
-        stack: err.stack,
-        recoverable: this.config.autoRetry && task.retryCount < task.maxRetries,
-      }
-
-      task.error = taskError
-      task.status = 'failed'
-      task.completedAt = new Date().toISOString()
-
-      // Update agent if assigned
-      if (task.assignedAgentId) {
-        const agent = this.state.activeAgents.get(task.assignedAgentId)
-        if (agent) {
-          agent.status = 'idle'
-          agent.currentTask = undefined
-          this.updateAgentMetrics(agent, task, false)
+      // Check for critical failures
+      if (this.hasCriticalFailures(stageTasks)) {
+        this.log('Critical failure detected, cancelling remaining tasks')
+        // Cancel remaining tasks
+        for (const remainingTask of plan.tasks.filter(t => t.status === 'pending')) {
+          remainingTask.status = 'cancelled'
+          cancelled.push(remainingTask.id)
+          this.emit('task:cancelled', remainingTask)
         }
+        break
       }
-
-      // Retry if enabled
-      if (taskError.recoverable) {
-        task.retryCount++
-        this.log(`Retrying task ${task.name} (attempt ${task.retryCount}/${task.maxRetries})`)
-        await this.executeTask(task)
-        return
-      }
-
-      this.state.activeTasks.delete(task.id)
-      this.state.failedTasks.set(task.id, task)
-      this.state.totalTasksProcessed++
-
-      this.emit('task:failed', task, taskError)
     }
-  }
 
-  /**
-   * Execute task with an agent (placeholder for actual execution)
-   *
-   * @param task - Task to execute
-   * @param agent - Agent instance
-   * @returns Task output
-   */
-  private async executeTaskWithAgent(task: Task, agent: AgentInstance): Promise<TaskOutput> {
-    // This is a placeholder implementation
-    // In a real system, this would invoke the actual agent to perform the task
+    // Calculate duration
+    const duration = Date.now() - startTime
 
-    this.log(`Agent ${agent.role} executing task: ${task.name}`)
+    // Calculate metrics
+    const metrics = this.calculateMetrics(plan, completed, failed, cancelled, duration)
 
-    // Simulate task execution
-    await this.sleep(Math.random() * 1000 + 500)
+    // Determine overall status
+    const status = this.determineStatus(completed, failed, cancelled, plan.tasks.length)
 
-    // Return mock output
+    // Aggregate results
+    const aggregationResult = await this.resultAggregator.aggregate(
+      plan.tasks.filter(t => t.output !== undefined),
+    )
+
+    // Build results map - use aggregated output if available, otherwise use individual task outputs
+    const finalResults: Record<string, TaskOutput> = {}
+    for (const task of plan.tasks) {
+      if (task.output) {
+        finalResults[task.id] = task.output
+      }
+    }
+
+    // If aggregation produced a merged output, add it as a special entry
+    if (aggregationResult.output) {
+      finalResults._aggregated = aggregationResult.output
+    }
+
     return {
-      data: {
-        taskId: task.id,
-        taskName: task.name,
-        executedBy: agent.role,
-        result: 'Task completed successfully',
-      },
-      confidence: 0.85 + Math.random() * 0.15,
-      logs: [
-        `Task ${task.name} started`,
-        `Processing with agent ${agent.role}`,
-        `Task ${task.name} completed`,
-      ],
-      metadata: {
-        executionTime: Date.now(),
-        agentId: agent.id,
-      },
+      planId: plan.id,
+      success: status === 'completed',
+      status,
+      completedTasks: completed,
+      failedTasks: failed,
+      cancelledTasks: cancelled,
+      results: finalResults,
+      metrics,
+      errors,
+      warnings,
+      startedAt: new Date(startTime).toISOString(),
+      completedAt: new Date().toISOString(),
+      duration,
     }
   }
 
   /**
-   * Execute a function with timeout
-   *
-   * @param fn - Function to execute
-   * @param timeout - Timeout in milliseconds
-   * @returns Function result
-   */
-  private async executeWithTimeout<T>(
-    fn: () => Promise<T>,
-    timeout: number,
-  ): Promise<T> {
-    return Promise.race([
-      fn(),
-      new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error('Task execution timeout')), timeout),
-      ),
-    ])
-  }
-
-  /**
-   * Check if task dependencies are satisfied
-   *
-   * @param task - Task to check
-   * @returns Whether dependencies are satisfied
-   */
-  private areDependenciesSatisfied(task: Task): boolean {
-    for (const dep of task.dependencies) {
-      const depTask = this.state.completedTasks.get(dep.taskId)
-      if (!depTask || depTask.status !== 'completed') {
-        if (dep.required) {
-          return false
-        }
-      }
-    }
-    return true
-  }
-
-  /**
-   * Select an agent to execute a task
+   * Select an agent for a task
    *
    * @param task - Task to execute
-   * @returns Selected agent or undefined
+   * @returns Selected agent instance or undefined
    */
-  private async selectAgent(task: Task): Promise<AgentSelectionResult | undefined> {
-    const criteria: AgentSelectionCriteria = {
-      requiredCapabilities: task.requiredCapabilities,
-      strategy: 'best-fit',
-    }
-
-    // Find available agents with required capabilities
+  private selectAgentForTask(task: Task): AgentInstance | undefined {
     const candidates: AgentInstance[] = []
 
-    for (const [role, agent] of this.availableAgents) {
+    // Find agents with required capabilities
+    const agentEntries = Array.from(this.availableAgents.entries())
+    for (const [role, agent] of agentEntries) {
       // Check if agent has required capabilities
       const hasCapabilities = task.requiredCapabilities.every(cap =>
         agent.definition.capabilities.includes(cap),
@@ -561,14 +466,48 @@ export class BrainOrchestrator extends EventEmitter {
     }
 
     // Select best candidate based on strategy
+    const criteria: AgentSelectionCriteria = {
+      requiredCapabilities: task.requiredCapabilities,
+      strategy: 'best-fit',
+    }
     const selected = this.selectBestAgent(candidates, criteria)
 
-    return {
-      agent: selected,
-      score: 1.0,
-      reason: 'Best fit for required capabilities',
-      alternatives: candidates.filter(c => c !== selected),
+    return selected
+  }
+
+  /**
+   * Execute a task on an agent
+   *
+   * @param agent - Agent instance
+   * @param task - Task to execute
+   */
+  private async executeTask(agent: AgentInstance, task: Task): Promise<void> {
+    // Mark agent as busy
+    agent.status = 'busy'
+    agent.currentTask = task
+    agent.lastActivityAt = new Date().toISOString()
+
+    // Add to active tasks
+    this.state.activeTasks.set(task.id, task)
+
+    // Simulate task execution (in real implementation, delegate to agent)
+    // For now, create a placeholder output
+    await this.sleep(100) // Simulate some work
+
+    task.output = {
+      data: {
+        message: `Task ${task.name} completed by ${agent.role}`,
+        agentId: agent.id,
+      },
+      confidence: 0.9,
     }
+
+    // Mark agent as idle
+    agent.status = 'idle'
+    agent.currentTask = undefined
+
+    // Remove from active tasks
+    this.state.activeTasks.delete(task.id)
   }
 
   /**
@@ -890,7 +829,8 @@ export class BrainOrchestrator extends EventEmitter {
    */
   cancel(): void {
     this.state.status = 'idle'
-    for (const task of this.state.activeTasks.values()) {
+    const activeTaskValues = Array.from(this.state.activeTasks.values())
+    for (const task of activeTaskValues) {
       task.status = 'cancelled'
       this.emit('task:cancelled', task)
     }
@@ -902,7 +842,8 @@ export class BrainOrchestrator extends EventEmitter {
    * Terminate all agents
    */
   terminateAllAgents(): void {
-    for (const agent of this.state.activeAgents.values()) {
+    const activeAgentValues = Array.from(this.state.activeAgents.values())
+    for (const agent of activeAgentValues) {
       agent.status = 'terminated'
       this.emit('agent:terminated', agent)
     }
@@ -928,5 +869,237 @@ export class BrainOrchestrator extends EventEmitter {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  // ========================================================================
+  // FORK CONTEXT METHODS (v3.8)
+  // ========================================================================
+
+  /**
+   * Execute a task in a fork context
+   *
+   * Creates an isolated sub-agent context for executing a skill-based task.
+   *
+   * @param skill - Skill file with fork configuration
+   * @param task - Task to execute
+   * @param executeFn - Execution function
+   * @returns Fork context result
+   */
+  async executeInForkContext(
+    skill: SkillMdFile,
+    task: Task,
+    executeFn: (config: ForkContextConfig) => Promise<OrchestrationResult>,
+  ): Promise<ForkContextResult> {
+    if (!this.config.enableForkContext) {
+      throw new Error('Fork context execution is disabled')
+    }
+
+    this.log(`Executing task in fork context: ${task.name} (skill: ${skill.metadata.name})`)
+
+    // Create fork context
+    const fork = this.forkManager.createFork(skill)
+    this.emit('fork:created', fork.id, skill)
+
+    // Execute in fork
+    const result = await this.forkManager.executeFork(fork.id, task, executeFn)
+
+    if (result.success) {
+      this.emit('fork:completed', fork.id, result)
+    }
+    else {
+      this.emit('fork:failed', fork.id, result.error || 'Unknown error')
+    }
+
+    return result
+  }
+
+  /**
+   * Execute multiple tasks in parallel fork contexts
+   *
+   * @param execution - Parallel execution configuration
+   * @param executeFn - Execution function
+   * @returns Parallel execution result
+   */
+  async executeParallelForks(
+    execution: ParallelAgentExecution,
+    executeFn: (config: ForkContextConfig) => Promise<OrchestrationResult>,
+  ): Promise<ParallelExecutionResult> {
+    this.log(`Executing ${execution.tasks.length} parallel forks`)
+
+    this.emit('parallel:started', execution.id)
+
+    try {
+      const result = await this.dispatcher.dispatchParallel(execution, async (config) => {
+        // Convert dispatch config to fork config
+        const forkConfig: ForkContextConfig = {
+          id: nanoid(),
+          sessionId: config.sessionId || nanoid(),
+          skill: {
+            metadata: {
+              name: config.agentType,
+              description: '',
+              version: '1.0.0',
+              category: 'custom',
+              triggers: [],
+              use_when: [],
+            },
+            content: '',
+            filePath: '',
+          },
+          agentType: config.agentType,
+          agentRole: config.agentRole,
+          mode: config.mode,
+          workingDirectory: config.workingDirectory,
+          env: config.env,
+          allowedTools: config.allowedTools,
+          disallowedTools: config.disallowedTools,
+          timeout: config.timeout,
+        }
+
+        return executeFn(forkConfig)
+      })
+
+      this.emit('parallel:completed', execution.id, result)
+      return result
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      this.emit('parallel:failed', execution.id, errorMessage)
+
+      return {
+        id: execution.id,
+        success: false,
+        results: [],
+        durationMs: 0,
+        successfulCount: 0,
+        failedCount: execution.tasks.length,
+      }
+    }
+  }
+
+  /**
+   * Execute a task with agent dispatching
+   *
+   * Routes the task to the appropriate agent based on skill configuration.
+   *
+   * @param skill - Skill file with agent configuration
+   * @param task - Task to execute
+   * @param executeFn - Execution function
+   * @returns Dispatch result
+   */
+  async executeWithAgentDispatch(
+    skill: SkillMdFile,
+    task: Task,
+    executeFn: (config: ForkContextConfig) => Promise<OrchestrationResult>,
+  ): Promise<OrchestrationResult> {
+    if (!this.config.enableDispatcher) {
+      throw new Error('Agent dispatcher is disabled')
+    }
+
+    this.log(`Dispatching task: ${task.name} to agent: ${skill.metadata.agent || 'default'}`)
+
+    const dispatchResult = await this.dispatcher.dispatch(task, skill, async (config) => {
+      // Convert dispatch config to fork config
+      const forkConfig: ForkContextConfig = {
+        id: nanoid(),
+        sessionId: config.sessionId || nanoid(),
+        skill,
+        agentType: config.agentType,
+        agentRole: config.agentRole,
+        mode: config.mode,
+        workingDirectory: config.workingDirectory,
+        env: config.env,
+        allowedTools: config.allowedTools,
+        disallowedTools: config.disallowedTools,
+        timeout: config.timeout,
+      }
+
+      return executeFn(forkConfig)
+    })
+
+    if (!dispatchResult.success) {
+      throw new Error(dispatchResult.error || 'Agent dispatch failed')
+    }
+
+    return dispatchResult.output as unknown as OrchestrationResult
+  }
+
+  /**
+   * Cancel a running fork context
+   *
+   * @param forkId - Fork context ID
+   */
+  cancelFork(forkId: string): void {
+    this.forkManager.cancel(forkId)
+    this.emit('fork:cancelled', forkId)
+    this.log(`Cancelled fork: ${forkId}`)
+  }
+
+  /**
+   * Get fork context state
+   *
+   * @param forkId - Fork context ID
+   * @returns Fork state or null
+   */
+  getForkState(forkId: string): ReturnType<AgentForkManager['getFork']> {
+    return this.forkManager.getFork(forkId)
+  }
+
+  /**
+   * Get all active fork contexts
+   *
+   * @returns Array of active fork states
+   */
+  getActiveForks(): ReturnType<AgentForkManager['listActive']> {
+    return this.forkManager.listActive()
+  }
+
+  /**
+   * Get fork context statistics
+   *
+   * @returns Fork statistics
+   */
+  getForkStats(): ReturnType<AgentForkManager['getStats']> {
+    return this.forkManager.getStats()
+  }
+
+  /**
+   * Get dispatcher statistics
+   *
+   * @returns Dispatcher statistics
+   */
+  getDispatcherStats(): ReturnType<AgentDispatcher['getStats']> {
+    return this.dispatcher.getStats()
+  }
+
+  /**
+   * Setup fork manager event handlers
+   */
+  private setupForkManagerEvents(): void {
+    this.forkManager.on('created', (fork) => {
+      this.log(`Fork context created: ${fork.id}`)
+    })
+
+    this.forkManager.on('started', (fork) => {
+      this.log(`Fork context started: ${fork.id}`)
+      this.emit('fork:started', fork.id)
+    })
+
+    this.forkManager.on('completed', (fork, result) => {
+      this.log(`Fork context completed: ${fork.id} (${result.durationMs}ms)`)
+    })
+
+    this.forkManager.on('failed', (fork, error) => {
+      this.log(`Fork context failed: ${fork.id} - ${error}`)
+    })
+
+    this.forkManager.on('timeout', (fork) => {
+      this.log(`Fork context timed out: ${fork.id}`)
+      this.emit('fork:failed', fork.id, 'Timeout')
+    })
+
+    this.forkManager.on('cancelled', (fork) => {
+      this.log(`Fork context cancelled: ${fork.id}`)
+    })
   }
 }

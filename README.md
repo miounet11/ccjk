@@ -58,12 +58,14 @@ When others are still manually configuring 15+ steps, CCJK completes everything 
   <a href="#multi-agent-collaboration"><img src="https://img.shields.io/badge/🤖_Multi--Agent-13+_Agents-red?style=for-the-badge" alt="Multi-Agent"></a>
   <a href="#ecosystem-integration"><img src="https://img.shields.io/badge/🔌_Ecosystem-One--Click_Setup-green?style=for-the-badge" alt="Ecosystem"></a>
   <a href="#real-performance-data"><img src="https://img.shields.io/badge/⚡_Performance-73%25_Savings-orange?style=for-the-badge" alt="Performance"></a>
+  <a href="#cloud-advantages"><img src="https://img.shields.io/badge/☁️_Cloud_Cloud_Sync-blue?style=for-the-badge" alt="Cloud Features"></a>
   <a href="#smart-notifications"><img src="https://img.shields.io/badge/🔔_Notifications-Multi--Channel-yellow?style=for-the-badge" alt="Notifications"></a>
 </p>
 
 <p align="center">
   <a href="docs/zh-CN/features/skills.md"><img src="https://img.shields.io/badge/📚_完整文档-中文-blue?style=for-the-badge" alt="中文文档"></a>
   <a href="docs/en/getting-started/index.md"><img src="https://img.shields.io/badge/📖_Full_Docs-English-blue?style=for-the-badge" alt="English Docs"></a>
+  <a href="docs/cloud-service-upgrade.md"><img src="https://img.shields.io/badge/☁️_Cloud_Documentation-blue?style=for-the-badge" alt="Cloud Docs"></a>
   <a href="https://t.me/ccjk_community"><img src="https://img.shields.io/badge/💬_Community-Telegram-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
 </p>
 
@@ -76,7 +78,7 @@ When others are still manually configuring 15+ steps, CCJK completes everything 
 [⚡ 30-Second Start](#30-second-quick-start) ·
 [🎯 Why CCJK](#why-ccjk) ·
 [🐉 Twin Dragons](#twin-dragons-philosophy) ·
-[🧭 Dao·Fa·Shu·Qi](#daofashuqi) ·
+[☁️ Cloud Advantages](#cloud-advantages) ·
 [✨ Core Features](#core-features) ·
 [📊 Real Data](#real-performance-data) ·
 [🚀 Full Guide](#complete-guide)
@@ -243,6 +245,116 @@ CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer**
 </td>
 </tr>
 </table>
+
+---
+
+## ☁️ Cloud Advantages
+
+<div align="center">
+
+### Why CCJK v3.8 Cloud Changes Everything
+
+</div>
+
+CCJK v3.8 introduces cloud-native capabilities that transform it from a local CLI tool into a distributed development platform. Here is how CCJK compares to Claude Code's cloud offerings:
+
+<table>
+<tr>
+<td width="50%">
+
+### 🏆 Feature Comparison
+
+| Feature | Claude Code CLI | CCJK v3.8 Cloud |
+|:--------|:----------------|:----------------|
+| **MCP Marketplace** | Manual config | Cloud discovery + auto-sync |
+| **Skills Management** | File-based | Cloud registry (500+ skills) |
+| **Agent Orchestration** | Single agent | Distributed multi-agent |
+| **Config Sync** | Per-device | Cross-device automatic sync |
+| **Plugin Discovery** | Manual search | AI-powered recommendations |
+| **Token Optimization** | Native | 83% savings via cloud cache |
+| **Offline Support** | Full | Full (cached content) |
+| **Multi-Device** | No | Yes (cloud sync) |
+| **Team Sharing** | Limited | Full (shared configs) |
+
+</td>
+<td width="50%">
+
+### 🚀 Key Cloud Features
+
+**Cross-Device Synchronization**
+- Sync configurations across all devices
+- Automatic conflict resolution
+- GitHub Gist, WebDAV, S3 support
+
+**Cloud Skill Registry**
+- 500+ pre-built skills available
+- Version control and automatic updates
+- Team sharing and collaborative editing
+
+**Multi-Agent Orchestration**
+- 13+ specialized agents working in parallel
+- Cloud-based agent coordination
+- Dynamic scaling for complex tasks
+
+**Intelligent Discovery**
+- Context-aware plugin recommendations
+- Project type detection
+- Community-powered marketplace
+
+</td>
+</tr>
+</table>
+
+<details>
+<summary><b>👉 Click to expand: See detailed cloud features</b></summary>
+
+<br/>
+
+### Cloud Sync Architecture
+
+CCJK v3.8 provides bidirectional synchronization across devices:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Device 1  │────▶│   Cloud     │◀────│   Device 2  │
+│  (Primary)  │     │  Storage    │     │  (Worker)   │
+└─────────────┘     └─────────────┘     └─────────────┘
+       │                   │                   │
+       └───────────────────┴───────────────────┘
+                           │
+                   ┌───────▼────────┐
+                   │  Conflict      │
+                   │  Resolver      │
+                   └────────────────┘
+```
+
+### Supported Cloud Providers
+
+| Provider | Type | Setup |
+|:---------|:-----|:------|
+| **GitHub Gist** | Free | One command |
+| **WebDAV** | Self-hosted | Nextcloud, ownCloud |
+| **S3** | Enterprise | AWS, MinIO |
+
+### Getting Started with Cloud
+
+```bash
+# Enable cloud sync
+npx ccjk cloud enable --provider github-gist
+
+# Sync across devices
+npx ccjk sync
+
+# Browse cloud plugins
+npx ccjk plugin market
+
+# Install cloud skill
+npx ccjk skill install code-reviewer
+```
+
+**For complete cloud documentation**, see [Cloud Service Upgrade Documentation](docs/cloud-service-upgrade.md)
+
+</details>
 
 ---
 
@@ -469,6 +581,11 @@ Unified Report
 - [CCUsage Analytics](docs/en/guides/ccusage.md)
 - [Cometix Customization](docs/en/guides/cometix.md)
 - [MCP Services](docs/en/guides/mcp.md)
+
+### Cloud & Platform
+- [Cloud Service Upgrade](docs/cloud-service-upgrade.md)
+- [API Endpoints Reference](docs/api-endpoints.md)
+- [Deployment Guide](docs/deployment-guide.md)
 
 </details>
 

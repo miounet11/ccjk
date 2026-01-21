@@ -504,6 +504,38 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'vim',
+    description: 'Vim mode configuration and keybindings',
+    tier: 'extended',
+    options: [
+      { flags: '--enable, -e', description: 'Enable Vim mode' },
+      { flags: '--disable, -d', description: 'Disable Vim mode' },
+      { flags: '--toggle, -t', description: 'Toggle Vim mode' },
+      { flags: '--status, -s', description: 'Show status' },
+      { flags: '--install', description: 'Install keybindings' },
+      { flags: '--uninstall', description: 'Uninstall keybindings' },
+      { flags: '--keys, -k', description: 'Show keybinding reference' },
+      { flags: '--test <cmd>', description: 'Test command parsing' },
+      { flags: '--lang, -l <lang>', description: 'Language (en, zh-CN)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { vimCommand } = await import('./commands/vim')
+        await vimCommand({
+          lang: options.lang as 'en' | 'zh-CN' | undefined,
+          enable: options.enable as boolean | undefined,
+          disable: options.disable as boolean | undefined,
+          toggle: options.toggle as boolean | undefined,
+          status: options.status as boolean | undefined,
+          install: options.install as boolean | undefined,
+          uninstall: options.uninstall as boolean | undefined,
+          keys: options.keys as boolean | undefined,
+          test: options.test as string | undefined,
+        })
+      }
+    },
+  },
+  {
     name: 'permissions [action] [...args]',
     description: 'Manage CCJK permissions',
     aliases: ['perm'],
@@ -872,6 +904,24 @@ const COMMANDS: CommandDefinition[] = [
           await teamShare()
         else if (actionStr === 'sync')
           await teamSync()
+      }
+    },
+  },
+
+  // ==================== Thinking Mode Commands ====================
+  {
+    name: 'thinking [action] [...args]',
+    description: 'Thinking Mode (Opus 4.5+ extended reasoning)',
+    aliases: ['think'],
+    tier: 'extended',
+    options: [
+      { flags: '--json', description: 'Output in JSON format' },
+      { flags: '--verbose, -v', description: 'Verbose output' },
+    ],
+    loader: async () => {
+      const { thinking } = await import('./commands/thinking')
+      return async (options, action: unknown, args: unknown) => {
+        await thinking(action as string | undefined, args as string[], options)
       }
     },
   },

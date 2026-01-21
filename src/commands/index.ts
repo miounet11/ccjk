@@ -27,6 +27,8 @@ export * from './help'
 export * from './hooks-sync'
 export * from './init'
 // 其他
+export * from './lsp'
+// LSP 统一命令 (v3.8+)
 export * from './marketplace'
 // MCP 统一命令 (整合 doctor, profile, market)
 export * from './mcp'
@@ -44,4 +46,5 @@ export * from './subagent-workflow'
 
 export * from './team'
 export * from './update'
+export * from './vim'
 export * from './workflows'

@@ -12,6 +12,7 @@ import { join, resolve } from 'pathe'
 import { getApiProviderPresets } from '../config/api-providers'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
+import { getPermissionManager } from '../permissions/permission-manager'
 import { commandExists } from '../utils/platform'
 import { ProviderHealthMonitor } from '../utils/provider-health'
 import { displayWorkspaceReport, runWorkspaceCheck, runWorkspaceWizard } from '../utils/workspace-guide'
@@ -21,6 +22,7 @@ interface CheckResult {
   status: 'ok' | 'warning' | 'error'
   message: string
   fix?: string
+  details?: string[]
 }
 
 /**
@@ -252,6 +254,73 @@ async function checkProviders(codeType: CodeToolType = 'claude-code'): Promise<C
 }
 
 /**
+ * Check permission rules for unreachable or problematic rules
+ */
+async function checkPermissionRules(): Promise<CheckResult> {
+  const isZh = i18n.language === 'zh-CN'
+
+  try {
+    const permissionManager = getPermissionManager()
+    const unreachableRules = permissionManager.getUnreachableRules()
+    const allDiagnostics = permissionManager.getAllDiagnostics()
+
+    // Count problematic rules
+    const shadowedRules = allDiagnostics.filter(d => d.shadowedBy.length > 0)
+    const conflictedRules = allDiagnostics.filter(d => d.conflicts.length > 0)
+
+    const problemCount = unreachableRules.length + shadowedRules.length + conflictedRules.length
+
+    if (problemCount === 0) {
+      const stats = permissionManager.getStats()
+      return {
+        name: 'Permission Rules',
+        status: 'ok',
+        message: `${stats.total} rules configured`,
+      }
+    }
+
+    const details: string[] = []
+
+    if (unreachableRules.length > 0) {
+      details.push(isZh ? `${unreachableRules.length} unreachable rule(s)` : `${unreachableRules.length} unreachable rule(s)`)
+      for (const rule of unreachableRules.slice(0, 3)) {
+        details.push(`  - ${ansis.dim(rule.pattern)}`)
+      }
+      if (unreachableRules.length > 3) {
+        details.push(`  ... ${isZh ? 'and' : 'and'} ${unreachableRules.length - 3} ${isZh ? 'more' : 'more'}`)
+      }
+    }
+
+    if (shadowedRules.length > 0) {
+      details.push(isZh ? `${shadowedRules.length} shadowed rule(s)` : `${shadowedRules.length} shadowed rule(s)`)
+      for (const diag of shadowedRules.slice(0, 2)) {
+        details.push(`  - ${ansis.dim(diag.rule.pattern)} ${ansis.dim(isZh ? 'shadowed by' : 'shadowed by')} ${diag.shadowedBy[0].pattern}`)
+      }
+    }
+
+    if (conflictedRules.length > 0) {
+      details.push(isZh ? `${conflictedRules.length} conflicted rule(s)` : `${conflictedRules.length} conflicted rule(s)`)
+    }
+
+    return {
+      name: 'Permission Rules',
+      status: 'warning',
+      message: `${problemCount} ${isZh ? 'problematic' : 'problematic'} ${isZh ? 'rule(s)' : 'rule(s)'}`,
+      fix: isZh ? 'Run: ccjk permissions diagnose' : 'Run: ccjk permissions diagnose',
+      details,
+    }
+  }
+  catch {
+    // Permission manager may not be initialized
+    return {
+      name: 'Permission Rules',
+      status: 'warning',
+      message: 'Unable to check',
+    }
+  }
+}
+
+/**
  * Main doctor command - runs health checks and displays results
  */
 export async function doctor(options: { checkProviders?: boolean, codeType?: CodeToolType } = {}): Promise<void> {
@@ -268,6 +337,7 @@ export async function doctor(options: { checkProviders?: boolean, codeType?: Cod
     checkSettings,
     checkWorkflows,
     checkMcp,
+    checkPermissionRules,
     checkCcr,
     checkOutputStyles,
   ]
@@ -299,6 +369,12 @@ export async function doctor(options: { checkProviders?: boolean, codeType?: Cod
 
     if (result.fix) {
       console.log(ansis.dim(`   💡 Fix: ${result.fix}`))
+    }
+
+    if (result.details && result.details.length > 0) {
+      for (const detail of result.details) {
+        console.log(ansis.dim(`   ${detail}`))
+      }
     }
 
     if (result.status === 'error')

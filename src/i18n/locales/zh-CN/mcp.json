@@ -123,5 +123,16 @@
       "name": "健康检查",
       "description": "运行健康检查和诊断"
     }
+  },
+  "search": {
+    "invalidAutoSyntax": "无效的自动模式语法: {{value}}",
+    "invalidThresholdRange": "阈值必须在 {{min}} 到 {{max}} 之间，当前值: {{value}}",
+    "noConfigFound": "未找到 MCP 配置",
+    "initializedConfig": "已初始化 MCP 工具搜索配置",
+    "updatedThreshold": "已更新阈值为 {{threshold}}",
+    "updatedDynamicDiscovery": "动态发现已{{enabled}}",
+    "updatedListChanged": "列表变更通知已{{enabled}}",
+    "updatedExcludedServices": "已更新排除服务列表",
+    "addedMcpSearchTool": "已添加 MCPSearch 工具用于按需工具发现"
   }
 }

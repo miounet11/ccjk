@@ -82,5 +82,101 @@
   "guidanceStep3": "3. 查看所有功能：",
   "guidanceStep3Command": "npx ccjk features",
   "guidanceStep4": "4. 遇到问题？运行：",
-  "guidanceStep4Command": "npx ccjk doctor"
+  "guidanceStep4Command": "npx ccjk doctor",
+  "migration": {
+    "title": "配置迁移",
+    "migrationNeeded": "需要迁移配置以支持 Claude Code CLI 2.0-2.1",
+    "migratingConfig": "正在迁移配置...",
+    "migrationComplete": "配置迁移成功",
+    "migrationFailed": "配置迁移失败",
+    "validationErrors": "配置验证错误",
+    "configUpToDate": "配置已是最新版本"
+  },
+  "fields": {
+    "language": {
+      "label": "响应语言",
+      "description": "AI 响应语言（例如：'japanese'、'chinese'、'english'）。留空使用系统默认。",
+      "placeholder": "例如：japanese、chinese、english"
+    },
+    "plansDirectory": {
+      "label": "计划目录",
+      "description": "存储计划文件的自定义目录。留空使用默认位置。",
+      "placeholder": "/path/to/plans"
+    },
+    "showTurnDuration": {
+      "label": "显示回合耗时",
+      "description": "在对话中显示每个回合的耗时"
+    },
+    "respectGitignore": {
+      "label": "遵守 Gitignore",
+      "description": "执行文件操作时遵守 .gitignore 文件"
+    },
+    "auto": {
+      "label": "自动启用功能",
+      "description": "配置功能的自动启用阈值",
+      "mcp": {
+        "label": "MCP 自动启用阈值",
+        "description": "自动启用 MCP 服务器前的使用次数",
+        "placeholder": "5"
+      }
+    },
+    "agent": {
+      "label": "默认代理",
+      "description": "Claude Code CLI 2.0+ 使用的默认代理",
+      "placeholder": "例如：opus、sonnet、haiku"
+    },
+    "thinking": {
+      "label": "扩展思考",
+      "description": "配置扩展思考模式",
+      "enabled": {
+        "label": "启用扩展思考",
+        "description": "启用扩展思考模式以解决复杂问题"
+      },
+      "budgetTokens": {
+        "label": "思考预算 Token",
+        "description": "思考使用的最大 Token 数（默认：10240）",
+        "placeholder": "10240"
+      }
+    },
+    "fileSuggestion": {
+      "label": "文件建议",
+      "description": "配置文件建议机制",
+      "command": {
+        "label": "文件建议命令",
+        "description": "用于文件建议的命令（例如：'git'、'grep'）",
+        "placeholder": "git"
+      }
+    },
+    "allowUnsandboxedCommands": {
+      "label": "允许非沙盒命令",
+      "description": "允许执行不受沙盒保护的命令（危险）"
+    },
+    "disallowedTools": {
+      "label": "禁用工具",
+      "description": "不应提供给 Claude 使用的工具列表"
+    },
+    "attribution": {
+      "label": "归属信息",
+      "description": "AI 响应的自定义归属字符串",
+      "placeholder": "留空使用默认值"
+    },
+    "index": {
+      "label": "索引配置",
+      "description": "上下文索引设置",
+      "maxFiles": {
+        "label": "最大索引文件数",
+        "description": "包含在上下文索引中的最大文件数",
+        "placeholder": "10000"
+      },
+      "maxFileSize": {
+        "label": "最大文件大小",
+        "description": "索引的最大文件大小（字节，默认：2097152 = 2MB）",
+        "placeholder": "2097152"
+      }
+    },
+    "allowBrowser": {
+      "label": "允许浏览器自动化",
+      "description": "允许 Claude 使用浏览器自动化工具"
+    }
+  }
 }

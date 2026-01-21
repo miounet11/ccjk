@@ -82,5 +82,101 @@
   "guidanceStep3": "3. View all features:",
   "guidanceStep3Command": "npx ccjk features",
   "guidanceStep4": "4. Having issues? Run:",
-  "guidanceStep4Command": "npx ccjk doctor"
+  "guidanceStep4Command": "npx ccjk doctor",
+  "migration": {
+    "title": "Configuration Migration",
+    "migrationNeeded": "Configuration migration needed for Claude Code CLI 2.0-2.1 support",
+    "migratingConfig": "Migrating configuration...",
+    "migrationComplete": "Configuration migrated successfully",
+    "migrationFailed": "Configuration migration failed",
+    "validationErrors": "Configuration validation errors",
+    "configUpToDate": "Configuration is up to date"
+  },
+  "fields": {
+    "language": {
+      "label": "Response Language",
+      "description": "Language for AI responses (e.g., 'japanese', 'chinese', 'english'). Leave empty for system default.",
+      "placeholder": "e.g., japanese, chinese, english"
+    },
+    "plansDirectory": {
+      "label": "Plans Directory",
+      "description": "Custom directory for storing plan files. Leave empty for default location.",
+      "placeholder": "/path/to/plans"
+    },
+    "showTurnDuration": {
+      "label": "Show Turn Duration",
+      "description": "Display the time taken for each turn in the conversation"
+    },
+    "respectGitignore": {
+      "label": "Respect Gitignore",
+      "description": "Respect .gitignore file when performing file operations"
+    },
+    "auto": {
+      "label": "Auto-Enable Features",
+      "description": "Configure auto-enable thresholds for features",
+      "mcp": {
+        "label": "MCP Auto-Enable Threshold",
+        "description": "Number of uses before auto-enabling an MCP server",
+        "placeholder": "5"
+      }
+    },
+    "agent": {
+      "label": "Default Agent",
+      "description": "Default agent to use for Claude Code CLI 2.0+",
+      "placeholder": "e.g., opus, sonnet, haiku"
+    },
+    "thinking": {
+      "label": "Extended Thinking",
+      "description": "Configure extended thinking mode",
+      "enabled": {
+        "label": "Enable Extended Thinking",
+        "description": "Enable extended thinking mode for complex problem solving"
+      },
+      "budgetTokens": {
+        "label": "Thinking Budget Tokens",
+        "description": "Maximum tokens to use for thinking (default: 10240)",
+        "placeholder": "10240"
+      }
+    },
+    "fileSuggestion": {
+      "label": "File Suggestion",
+      "description": "Configure file suggestion mechanism",
+      "command": {
+        "label": "File Suggestion Command",
+        "description": "Command to use for file suggestions (e.g., 'git', 'grep')",
+        "placeholder": "git"
+      }
+    },
+    "allowUnsandboxedCommands": {
+      "label": "Allow Unsandboxed Commands",
+      "description": "Allow execution of commands without sandboxing (dangerous)"
+    },
+    "disallowedTools": {
+      "label": "Disallowed Tools",
+      "description": "List of tools that should not be available to Claude"
+    },
+    "attribution": {
+      "label": "Attribution",
+      "description": "Custom attribution string for AI responses",
+      "placeholder": "Leave empty for default"
+    },
+    "index": {
+      "label": "Index Configuration",
+      "description": "Context indexing settings",
+      "maxFiles": {
+        "label": "Maximum Files to Index",
+        "description": "Maximum number of files to include in context index",
+        "placeholder": "10000"
+      },
+      "maxFileSize": {
+        "label": "Maximum File Size",
+        "description": "Maximum file size to index in bytes (default: 2097152 = 2MB)",
+        "placeholder": "2097152"
+      }
+    },
+    "allowBrowser": {
+      "label": "Allow Browser Automation",
+      "description": "Allow Claude to use browser automation tools"
+    }
+  }
 }

@@ -123,5 +123,16 @@
       "name": "Health Check",
       "description": "Run health check and diagnostics"
     }
+  },
+  "search": {
+    "invalidAutoSyntax": "Invalid auto mode syntax: {{value}}",
+    "invalidThresholdRange": "Threshold must be between {{min}} and {{max}}, got: {{value}}",
+    "noConfigFound": "No MCP configuration found",
+    "initializedConfig": "Initialized MCP tool search configuration",
+    "updatedThreshold": "Updated threshold to {{threshold}}",
+    "updatedDynamicDiscovery": "Dynamic discovery {{enabled}}",
+    "updatedListChanged": "List changed notifications {{enabled}}",
+    "updatedExcludedServices": "Updated excluded services list",
+    "addedMcpSearchTool": "Added MCPSearch tool for on-demand tool discovery"
   }
 }

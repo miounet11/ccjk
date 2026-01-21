@@ -615,6 +615,81 @@ export {
   TaskQueue,
 }
 
+// ============================================================================
+// AGENT FORK CONTEXT SYSTEM (v3.8)
+// ============================================================================
+
+/**
+ * Agent Fork Context - Claude Code CLI 2.1.0 fork context isolation
+ *
+ * The fork context system provides:
+ * - Isolated sub-agent contexts for skill execution
+ * - Session ID injection (${CLAUDE_SESSION_ID})
+ * - Hook lifecycle management (PreToolUse, PostToolUse, Stop)
+ * - Tool filtering (allowedTools, disallowedTools)
+ * - Fork context state management and transcription
+ */
+
+export {
+  AgentDispatcher,
+  createAgentDispatcher,
+  getGlobalDispatcher,
+  resetGlobalDispatcher,
+} from './agent-dispatcher.js'
+
+export type {
+  AgentDispatchConfig,
+  AgentDispatcherOptions,
+  AgentDispatchResult,
+  AgentFilterCriteria,
+  ParallelAgentExecution,
+  ParallelExecutionResult,
+} from './agent-dispatcher.js'
+
+// ============================================================================
+// AGENT DISPATCHER SYSTEM (v3.8)
+// ============================================================================
+
+/**
+ * Agent Dispatcher - Skill-based agent routing and execution
+ *
+ * The dispatcher system provides:
+ * - Agent type to role mapping
+ * - Cloud agent registration and management
+ * - Tool filtering and validation
+ * - Parallel agent execution
+ * - Agent caching and load balancing
+ */
+
+export {
+  AgentForkManager,
+  createAgentForkManager,
+  generateSessionId,
+  getGlobalForkManager,
+  parseSkillForkConfig,
+  resetGlobalForkManager,
+} from './agent-fork.js'
+
+export type {
+  ForkContextConfig,
+  ForkContextOptions,
+  ForkContextResult,
+  ForkContextState,
+  ForkHook,
+  ForkTranscriptEntry,
+} from './agent-fork.js'
+
+// ============================================================================
+// ORCHESTRATOR SYSTEM
+// ============================================================================
+
+/**
+ * Brain Orchestrator - Advanced multi-agent coordination system
+ *
+ * The orchestrator provides intelligent task decomposition, parallel execution,
+ * and result aggregation for complex multi-agent workflows.
+ */
+
 export type {
   CodeAnalysisResult,
   CodeIssue,
@@ -626,8 +701,8 @@ export type {
   RefactoringPlan,
   RefactoringStep,
 } from './agents/code-agent'
-
 export type { HealthCheckResult, HeartbeatRecord } from './health-monitor'
+
 // Orchestrator type definitions
 export type {
   AgentInstance,
@@ -664,21 +739,13 @@ export type {
   TaskStage,
   TaskStatus,
 } from './orchestrator-types.js'
+
 // Core orchestrator
 export { BrainOrchestrator } from './orchestrator.js'
 
-// ============================================================================
-// NEW ORCHESTRATOR SYSTEM
-// ============================================================================
-
-/**
- * Brain Orchestrator - Advanced multi-agent coordination system
- *
- * The orchestrator provides intelligent task decomposition, parallel execution,
- * and result aggregation for complex multi-agent workflows.
- */
-
 export type { OrchestratorEvents } from './orchestrator.js'
+export type { ExtendedOrchestratorConfig } from './orchestrator.js'
+
 // Result aggregation
 export { ResultAggregator } from './result-aggregator.js'
 
@@ -689,12 +756,83 @@ export type {
   ResultValidator,
   ValidationResult,
 } from './result-aggregator.js'
+// Skill Hot Reload
+export {
+  createSkillHotReload,
+  getSkillHotReload,
+  getSkillHotReloadStats,
+  resetSkillHotReload,
+  SkillHotReload,
+  startSkillHotReload,
+  stopSkillHotReload,
+} from './skill-hot-reload'
+
+export type {
+  HotReloadEvent,
+  HotReloadEventType,
+  HotReloadOptions,
+  HotReloadStats,
+  SkillHotReloadEvents,
+} from './skill-hot-reload'
+// Skill Parser
+export { getSkillParser, isSkillFile, parseSkillContent, parseSkillFile, resetSkillParser, SkillParser } from './skill-parser'
+
+export type { FrontmatterParseOptions, SkillParseResult } from './skill-parser'
+
+// ============================================================================
+// SKILL HOT RELOAD SYSTEM (v3.8)
+// ============================================================================
+
+/**
+ * Skill Hot Reload System - Automatic skill file watching and reloading
+ *
+ * The skill hot-reload system provides:
+ * - Automatic parsing of SKILL.md files with YAML frontmatter
+ * - In-memory registry with hot-swap capability
+ * - File system watching with chokidar
+ * - Event-driven architecture via MessageBus
+ * - Dependency tracking between skills
+ */
+
+// Skill Registry
+export {
+  getSkillById,
+  getSkillRegistry,
+  getSkillsByTrigger,
+  lookupSkills,
+  registerSkill,
+  resetSkillRegistry,
+  SkillRegistry,
+} from './skill-registry'
+
+export type {
+  SkillLookupOptions,
+  SkillRegistryEntry,
+  SkillRegistryEvents,
+  SkillRegistryStats,
+} from './skill-registry'
+
 // Task decomposition
 export { TaskDecomposer } from './task-decomposer.js'
 
 export type { TaskDecompositionOptions } from './task-decomposer.js'
+
 // Re-export specific types from other modules to avoid conflicts
 export type { Task as QueueTask, TaskPriority as QueueTaskPriority, TaskOptions, TaskQueueOptions, TaskQueueStats } from './task-queue'
+
+// Export all thinking mode types and utilities
+export * from './thinking-mode.js'
+
+// ============================================================================
+// THINKING MODE - Claude Code CLI 2.0.67+ Integration
+// ============================================================================
+
+/**
+ * Thinking Mode Integration
+ *
+ * Provides support for Claude Code CLI 2.0.67+ thinking mode feature.
+ * Enabled by default for Opus 4.5 with configurable budget tokens.
+ */
 
 // Re-export all types from types module
 export * from './types'

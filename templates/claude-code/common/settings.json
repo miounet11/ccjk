@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings",
+  "description": "Default Claude Code settings.json template for CCJK v3.8 - Supports Claude Code CLI 2.0-2.1",
+
+  "model": "default",
+
+  "env": {
+    "ANTHROPIC_MODEL": "",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": ""
+  },
+
+  "language": "",
+
+  "plansDirectory": null,
+
+  "showTurnDuration": false,
+
+  "respectGitignore": true,
+
+  "auto": {
+    "mcp": 5
+  },
+
+  "agent": "",
+
+  "thinking": {
+    "enabled": false,
+    "budgetTokens": 10240
+  },
+
+  "fileSuggestion": {
+    "command": "git"
+  },
+
+  "allowUnsandboxedCommands": false,
+
+  "disallowedTools": [],
+
+  "attribution": "",
+
+  "index": {
+    "maxFiles": 10000,
+    "maxFileSize": 2097152
+  },
+
+  "allowBrowser": false,
+
+  "permissions": {
+    "allow": [
+      "allowEdit",
+      "allowWrite",
+      "allowRead",
+      "allowExec",
+      "allowCreateProcess",
+      "allowKillProcess",
+      "allowNetworkAccess",
+      "allowFileSystemAccess",
+      "allowShellAccess",
+      "allowHttpAccess"
+    ]
+  },
+
+  "chat": {
+    "alwaysApprove": []
+  },
+
+  "experimental": {}
+}
