@@ -36,11 +36,35 @@ npx ccjk  # 一行命令，全部搞定
 
 <br/>
 
+[中文](./README.md) | [English](./README.en.md) | [日本語](./README.ja.md) | [한국어](./README.ko.md)
+
+<br/>
+
 **🚀 [立即开始](#30秒极速上手) · 📊 [真实数据](#真实性能数据) · ⭐ [给我们 Star](#准备-10-倍提升效率了吗)**
 
 <br/>
 
-[中文](./README.md) | [English](./README.en.md) | [日本語](./README.ja.md) | [한국어](./README.ko.md)
+---
+
+### 💡 快捷操作（输入数字执行）
+
+在项目目录中，直接运行：
+
+```
+npx ccjk
+```
+
+或者使用快捷命令：
+
+| 快捷命令 | 功能 |
+|:---------|:-----|
+| `npx ccjk i` | 完整初始化 |
+| `npx ccjk u` | 更新工作流 |
+| `npx ccjk ccr` | CCR 路由管理 |
+| `npx ccjk ccu` | 使用量分析 |
+| `npx ccjk check-updates` | 检查工具更新 |
+
+<br/>
 
 </div>
 
