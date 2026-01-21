@@ -35,7 +35,7 @@ npx ccjk  # Just one line, get started now
 
 <br/>
 
-[English](./README.md) | [中文](./README_zh-CN.md)
+[English](./README.md) | [中文](./README_zh-CN.md) | [日本語](./README.ja.md) | [한국어](./README.ko.md)
 
 </div>
 
@@ -54,7 +54,7 @@ When others are still manually configuring 15+ steps, CCJK completes everything 
 ---
 
 <p align="center">
-  <a href="#核心理念"><img src="https://img.shields.io/badge/🔮_Smart_Skills-6+_Built--in-purple?style=for-the-badge" alt="Smart Skills"></a>
+  <a href="#core-features"><img src="https://img.shields.io/badge/🔮_Smart_Skills-6+_Built--in-purple?style=for-the-badge" alt="Smart Skills"></a>
   <a href="#multi-agent-collaboration"><img src="https://img.shields.io/badge/🤖_Multi--Agent-13+_Agents-red?style=for-the-badge" alt="Multi-Agent"></a>
   <a href="#ecosystem-integration"><img src="https://img.shields.io/badge/🔌_Ecosystem-One--Click_Setup-green?style=for-the-badge" alt="Ecosystem"></a>
   <a href="#real-performance-data"><img src="https://img.shields.io/badge/⚡_Performance-73%25_Savings-orange?style=for-the-badge" alt="Performance"></a>
@@ -62,8 +62,8 @@ When others are still manually configuring 15+ steps, CCJK completes everything 
 </p>
 
 <p align="center">
-  <a href="ccjk/docs/zh-CN/features/skills.md"><img src="https://img.shields.io/badge/📚_完整文档-中文-blue?style=for-the-badge" alt="中文文档"></a>
-  <a href="ccjk/docs/en/getting-started/index.md"><img src="https://img.shields.io/badge/📖_Full_Docs-English-blue?style=for-the-badge" alt="English Docs"></a>
+  <a href="docs/zh-CN/features/skills.md"><img src="https://img.shields.io/badge/📚_完整文档-中文-blue?style=for-the-badge" alt="中文文档"></a>
+  <a href="docs/en/getting-started/index.md"><img src="https://img.shields.io/badge/📖_Full_Docs-English-blue?style=for-the-badge" alt="English Docs"></a>
   <a href="https://t.me/ccjk_community"><img src="https://img.shields.io/badge/💬_Community-Telegram-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
 </p>
 
@@ -111,32 +111,6 @@ claude-code chat "Help me refactor this function"
 - ✅ Smart Context Memory (Save 73% Tokens)
 - ✅ 13+ AI Agent Review (Bug ↓89%)
 - ✅ Auto Workflow Orchestration (Speed ↑65%)
-
-</details>
-
-<details>
-<summary><b>🤔 I'm a beginner, need more help</b></summary>
-
-<br/>
-
-Check out our complete beginner's guide with step-by-step instructions:
-
-- [📖 Complete Beginner's Guide](docs/beginner-guide.md)
-- [🎥 5-Minute Video Tutorial](https://youtube.com/...)
-- [💬 Join Discord for Live Help](https://discord.gg/...)
-
-</details>
-
-<details>
-<summary><b>⚙️ I'm an advanced user, want customization</b></summary>
-
-<br/>
-
-Deep customize CCJK to fit your workflow:
-
-- [🔧 Advanced Configuration](docs/advanced-config.md)
-- [📚 API Reference](docs/api-reference.md)
-- [🎨 Custom Workflows](docs/custom-workflows.md)
 
 </details>
 
@@ -223,32 +197,6 @@ AI-generated code goes straight to production, then production explodes.
 
 <br/>
 
-<div align="center">
-
-> **"CCJK paid for itself in the first week. I now deliver features 3x faster with 90% fewer bugs."**
->
-> — Zhang Wei, Senior Engineer at Fortune 500 Company
-
-[See More User Stories](#developer-community) →
-
-</div>
-
----
-
-<div align="center">
-
-**If CCJK helped you, please give us a ⭐ Star!**
-
-<sub>Your Star is our motivation to keep improving ❤️</sub>
-
-<br/>
-
-<a href="https://github.com/miounet11/ccjk/stargazers">
-  <img src="https://img.shields.io/github/stars/miounet11/ccjk?style=social" alt="GitHub Stars" />
-</a>
-
-</div>
-
 ---
 
 ## 🐉 Twin Dragons Philosophy
@@ -287,7 +235,7 @@ CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer**
 | Claude Code Native | CCJK Enhanced | Improvement |
 |:------------------|:----------|:-----------:|
 | Manual 15+ step config | One-click setup | ↓95% |
-| Repeat context management | Smart orchestration | ↓73% |
+| Manual context management | Smart orchestration | ↓73% |
 | Single AI response | Multi-agent collaboration | ↑89% |
 | Isolated tool usage | Unified ecosystem | ↓80% |
 | Manual updates | Auto-sync evolution | ↓100% |
@@ -295,98 +243,6 @@ CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer**
 </td>
 </tr>
 </table>
-
-[Deep Dive into Twin Dragons Philosophy](docs/philosophy.md) →
-
----
-
-## 🧭 Dao·Fa·Shu·Qi
-
-<div align="center">
-
-### Ancient Wisdom Meets Modern AI
-
-</div>
-
-<table>
-<tr>
-<td width="25%" align="center">
-
-### 道 (Dao)
-**Core Principles**
-
-<br/>
-
-- **If AI can do it, don't do it manually**
-- **Ask AI for everything**
-- **Context is the first principle**
-
-<br/>
-
-<sub>The philosophical foundation</sub>
-
-</td>
-<td width="25%" align="center">
-
-### 法 (Fa)
-**Methodology**
-
-<br/>
-
-- **One-sentence goal + non-goals**
-- **Copy, don't reinvent**
-- **Interface first, implementation later**
-
-<br/>
-
-<sub>The systematic approach</sub>
-
-</td>
-<td width="25%" align="center">
-
-### 术 (Shu)
-**Techniques**
-
-<br/>
-
-- **Clearly state: what can/cannot change**
-- **Debug: expected vs actual + minimal reproduction**
-- **Switch conversations when code grows**
-
-<br/>
-
-<sub>The practical tactics</sub>
-
-</td>
-<td width="25%" align="center">
-
-### 器 (Qi)
-**Tools**
-
-<br/>
-
-- 🔮 Smart Skills System
-- 🤖 13+ AI Agents
-- 🔌 Ecosystem Integration
-- ⚡ Performance Optimization
-
-<br/>
-
-<sub>The concrete implementation</sub>
-
-</td>
-</tr>
-</table>
-
-<br/>
-
-<div align="center">
-
-> **"道生一，一生二，二生三，三生万物"**
->
-> *From principles to methodology, from techniques to tools, CCJK embodies the complete path of AI-assisted development.*
-
-</div>
 
 ---
 
@@ -422,8 +278,6 @@ CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer**
 - 🧪 **TDD Workflow** - Test-driven development
 - 🔄 **Refactor Assistant** - Safe refactoring
 
-[View Complete Skills List](docs/skills.md) →
-
 </details>
 
 </td>
@@ -455,8 +309,6 @@ Your Code
 Unified Report
 ```
 
-[View Agent Details](docs/agents.md) →
-
 </details>
 
 </td>
@@ -482,8 +334,6 @@ Unified Report
 - ⚡ **Superpowers** - Advanced features
 - 🏪 **MCP Market** - Extension store
 
-[View Complete Ecosystem](docs/ecosystem.md) →
-
 </details>
 
 </td>
@@ -508,8 +358,6 @@ Unified Report
 - ✅ Email alerts
 - ✅ Custom webhooks
 
-[Configure Notifications](docs/notifications.md) →
-
 </details>
 
 </td>
@@ -531,263 +379,56 @@ Unified Report
 <td align="center" width="20%">
 
 ### 📉 Token Savings
-
 <img src="https://img.shields.io/badge/73%25-Saved-00D4AA?style=for-the-badge&labelColor=1a1a2e" />
 
 <br/>
-
 <sub>10,000 → 2,700 tokens</sub>
 
 </td>
 <td align="center" width="20%">
 
 ### ⚡ Build Speed
-
 <img src="https://img.shields.io/badge/38%25-Faster-FFE66D?style=for-the-badge&labelColor=1a1a2e" />
 
 <br/>
-
 <sub>45s → 28s</sub>
 
 </td>
 <td align="center" width="20%">
 
 ### 📦 Bundle Size
-
 <img src="https://img.shields.io/badge/18%25-Smaller-9B59B6?style=for-the-badge&labelColor=1a1a2e" />
 
 <br/>
-
 <sub>2.2 MB → 1.8 MB</sub>
 
 </td>
 <td align="center" width="20%">
 
 ### 🧪 Test Coverage
-
 <img src="https://img.shields.io/badge/85%25-Coverage-4ECDC4?style=for-the-badge&labelColor=1a1a2e" />
 
 <br/>
-
 <sub>439+ test cases</sub>
 
 </td>
 <td align="center" width="20%">
 
 ### 🐛 Bug Reduction
-
 <img src="https://img.shields.io/badge/89%25-Reduced-FF6B6B?style=for-the-badge&labelColor=1a1a2e" />
 
 <br/>
-
 <sub>Multi-agent review</sub>
 
 </td>
 </tr>
 </table>
 
-<br/>
-
-<details>
-<summary><b>📈 View Detailed Performance Report</b></summary>
-
-<br/>
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Token Usage** | 10,000 | 2,700 | ↓73% |
-| **Build Time** | 45s | 28s | ↓38% |
-| **Bundle Size** | 2.2 MB | 1.8 MB | ↓18% |
-| **Code Duplication** | 850+ lines | 0 lines | ↓100% |
-| **Test Coverage** | 60% | 85% | ↑42% |
-| **Bug Catch Rate** | 45% | 89% | ↑98% |
-
-[View Complete Performance Report](docs/performance.md) →
-
-</details>
-
 ---
 
 <div align="center">
 
-**⭐ If you find CCJK useful, please give us a Star! Your support is our greatest motivation.**
-
-</div>
-
----
-
-## 🐉 Twin Dragons Philosophy
-
-<div align="center">
-
-> **"Without Claude Code, there is no CCJK. Without CCJK, there is no better Claude Code experience."**
-
-</div>
-
-<table>
-<tr>
-<td width="50%">
-
-### 🎯 Core Philosophy
-
-CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer** that unlocks Claude Code's full potential.
-
-**Symbiotic Relationship**:
-- Claude Code provides power → CCJK amplifies experience
-- User feedback improves both → Symbiotic evolution
-- Twin dragons, complementary prosperity
-
-</td>
-<td width="50%">
-
-### 📈 Value Proposition
-
-| Claude Code Alone | With CCJK | Improvement |
-|:------------------|:----------|:-----------:|
-| Manual 15+ step config | One-click setup | ↓95% time |
-| Manual context management | Smart orchestration | ↓73% tokens |
-| Single AI response | Multi-agent collaboration | ↑89% quality |
-| Isolated tool usage | Unified ecosystem | ↓80% switching |
-| Manual updates | Auto-sync evolution | Zero downtime |
-
-</td>
-</tr>
-</table>
-
-[Deep Dive into Twin Dragons Philosophy](docs/philosophy.md) →
-
----
-
-## 🌟 Developer Community
-
-<div align="center">
-
-### 🔥 Trusted by 15,000+ Developers
-
-</div>
-
-<table>
-<tr>
-<td align="center" width="25%">
-
-### 📈 This Week
-<img src="https://img.shields.io/badge/+1,234-New_Users-00D4AA?style=for-the-badge&labelColor=1a1a2e" />
-
-</td>
-<td align="center" width="25%">
-
-### ⭐ GitHub Stars
-<img src="https://img.shields.io/github/stars/miounet11/ccjk?style=for-the-badge&color=FFE66D&labelColor=1a1a2e" />
-
-</td>
-<td align="center" width="25%">
-
-### 🚀 Daily Active
-<img src="https://img.shields.io/badge/8,500+-Active_Users-FF6B6B?style=for-the-badge&labelColor=1a1a2e" />
-
-</td>
-<td align="center" width="25%">
-
-### 💬 Community
-<img src="https://img.shields.io/badge/2,300+-Members-9B59B6?style=for-the-badge&labelColor=1a1a2e" />
-
-</td>
-</tr>
-</table>
-
-<br/>
-
-<div align="center">
-
-**⭐ If you find CCJK useful, please give us a Star! Your support is our greatest motivation.**
-
-</div>
-
-<br/>
-
-<details open>
-<summary><h3>💬 Real User Testimonials (Click to expand more)</h3></summary>
-
-<br/>
-
-<table>
-<tr>
-<td width="50%">
-
-> **"Finally, a tool that makes Claude Code truly production-ready."**
->
-> The multi-agent review alone has saved us from countless bugs. Our team now mandates CCJK for everyone.
->
-> — **Li Ming**, CTO at Series B Startup
-> <br/>📍 Beijing · 🏢 50-person team
-
-</td>
-<td width="50%">
-
-> **"Setup took 3 minutes, productive in 5 minutes."**
->
-> Used to spend half a day configuring Claude Code, now one command does it all. This is how dev tools should be.
->
-> — **Wang Fang**, Senior Developer at Big Tech
-> <br/>📍 Shenzhen · 🏢 Alibaba
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-> **"Token savings are real, not marketing speak."**
->
-> Our Claude API costs dropped from $800/month to $220, with better results. Even the boss was shocked.
->
-> — **Zhang Wei**, Engineering Manager
-> <br/>📍 Shanghai · 🏢 Fintech Company
-
-</td>
-<td width="50%">
-
-> **"Once you use CCJK, you can't go back to vanilla Claude Code."**
->
-> It's now my infrastructure, as essential as Git. First thing I do in every project: `npx ccjk`.
->
-> — **Liu Yang**, Independent Developer
-> <br/>📍 Chengdu · 🏢 Personal Studio
-
-</td>
-</tr>
-</table>
-
-[View Complete User Story Collection](docs/testimonials.md) →
-
-</details>
-
-<br/>
-
-<div align="center">
-
-### 🚀 CCJK Evolution Timeline
-
-<img src="https://img.shields.io/badge/v1.0-Basic_Config-gray?style=flat-square" />
-→ <img src="https://img.shields.io/badge/v2.0-Multi_Agent-blue?style=flat-square" />
-→ <img src="https://img.shields.io/badge/v3.0-Ecosystem-green?style=flat-square" />
-→ <img src="https://img.shields.io/badge/v3.6.1-Code_Tools-orange?style=flat-square&logo=rocket" /> **← You are here**
-
-<br/>
-
-**Coming Soon (2025 Q2)**:
-- 🧠 AI Self-Learning System (Learn from your code style)
-- 🌐 Cloud Collaboration (Team shared configs)
-- 🎯 Smart Recommendation Engine (Auto-discover optimization opportunities)
-
-[View Complete Roadmap](docs/roadmap.md) →
-
-</div>
-
----
-
-<div align="center">
-
-**⭐ Star us on GitHub to stay updated with new features!**
+**⭐ If CCJK helped you, please give us a ⭐ Star!**
 
 <br/>
 
@@ -807,28 +448,27 @@ CCJK is not a replacement for Claude Code, but a **cognitive enhancement layer**
 <br/>
 
 ### Getting Started
-- [Quick Start](docs/quick-start.md)
-- [Installation Guide](docs/installation.md)
-- [Basic Configuration](docs/basic-config.md)
+- [Quick Start](docs/README.md)
+- [Installation Guide](docs/en/getting-started/index.md)
+- [Basic Configuration](docs/en/configuration/basic.md)
 - [FAQ](docs/faq.md)
 
 ### Core Features
-- [Smart Skills System](docs/skills.md)
-- [Multi-Agent Collaboration](docs/agents.md)
-- [Workflow Orchestration](docs/workflows.md)
-- [Context Management](docs/context.md)
+- [Smart Skills System](docs/zh-CN/features/skills.md)
+- [Multi-Agent Collaboration](docs/zh-CN/features/agents.md)
+- [Workflow Orchestration](docs/zh-CN/features/workflows.md)
+- [Context Management](docs/zh-CN/features/context.md)
 
 ### Advanced Topics
-- [Custom Configuration](docs/advanced-config.md)
-- [API Reference](docs/api-reference.md)
-- [Plugin Development](docs/plugin-development.md)
-- [Performance Optimization](docs/performance.md)
+- [Custom Configuration](docs/en/configuration/advanced.md)
+- [API Reference](docs/en/api/index.md)
+- [Performance Optimization](docs/en/guides/performance.md)
 
 ### Ecosystem Integration
-- [CCR Router](docs/ccr.md)
-- [CCUsage Analytics](docs/ccusage.md)
-- [Cometix Customization](docs/cometix.md)
-- [MCP Services](docs/mcp.md)
+- [CCR Router](docs/en/guides/ccr.md)
+- [CCUsage Analytics](docs/en/guides/ccusage.md)
+- [Cometix Customization](docs/en/guides/cometix.md)
+- [MCP Services](docs/en/guides/mcp.md)
 
 </details>
 
@@ -862,8 +502,7 @@ npx ccjk
 ### 📚 Learn More First
 
 - [📖 Complete Documentation](docs/README.md)
-- [🎥 5-Minute Video Tutorial](https://youtube.com/...)
-- [💬 Join Discord Community](https://discord.gg/...)
+- [💬 Join Telegram Community](https://t.me/ccjk_community)
 - [🐛 View GitHub Issues](https://github.com/miounet11/ccjk/issues)
 
 </td>
@@ -871,59 +510,6 @@ npx ccjk
 </table>
 
 <br/>
-
-<details>
-<summary><b>🤔 Still Hesitating? These Might Help</b></summary>
-
-<br/>
-
-<table>
-<tr>
-<td width="33%">
-
-**❓ Will it break my config?**
-
-No. CCJK auto-backs up to `~/.claude/backup/` before every change. One-click restore, zero risk.
-
-</td>
-<td width="33%">
-
-**❓ I'm a beginner, can I use it?**
-
-Absolutely! CCJK is designed for beginners. Interactive menus guide you through every step, no config knowledge needed.
-
-</td>
-<td width="33%">
-
-**❓ Is it free?**
-
-Completely free and open source (MIT License). We're sustained by community contributions and GitHub Sponsors.
-
-</td>
-</tr>
-</table>
-
-[View Complete FAQ](docs/faq.md) →
-
-</details>
-
-<br/>
-
----
-
-<br/>
-
-**🌟 If CCJK helped you, please give us a ⭐ Star!**
-
-<sub>Your Star is our motivation to keep improving ❤️</sub>
-
-<br/>
-
-<a href="https://github.com/miounet11/ccjk/stargazers">
-  <img src="https://img.shields.io/github/stars/miounet11/ccjk?style=social" alt="GitHub Stars" />
-</a>
-
-<br/><br/>
 
 ---
 
@@ -933,69 +519,24 @@ Completely free and open source (MIT License). We're sustained by community cont
 <tr>
 <td align="center">
 
-**💬 Discord**
-
-[Join Community](https://discord.gg/...)
-
-</td>
-<td align="center">
-
-**📱 Telegram**
-
+**💬 Telegram**
 [Join Group](https://t.me/ccjk_community)
 
 </td>
 <td align="center">
 
-**🐦 Twitter**
-
-[@ccjk_dev](https://twitter.com/ccjk_dev)
-
-</td>
-<td align="center">
-
 **📧 Email**
-
 [support@ccjk.dev](mailto:support@ccjk.dev)
 
 </td>
 <td align="center">
 
 **🐛 Issues**
-
 [GitHub Issues](https://github.com/miounet11/ccjk/issues)
 
 </td>
 </tr>
 </table>
-
----
-
-<br/>
-
-<div align="center">
-
-### 💝 Support CCJK Development
-
-If CCJK saves you time and money, consider supporting us:
-
-<br/>
-
-<a href="https://github.com/sponsors/miounet11">
-  <img src="https://img.shields.io/badge/Sponsor-GitHub_Sponsors-EA4AAA?style=for-the-badge&logo=github" alt="GitHub Sponsors" />
-</a>
-&nbsp;&nbsp;
-<a href="https://www.buymeacoffee.com/ccjk">
-  <img src="https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee" />
-</a>
-
-<br/><br/>
-
-<sub>Every contribution helps us maintain and improve CCJK for the community ❤️</sub>
-
-</div>
-
-<br/>
 
 ---
 
@@ -1016,454 +557,3 @@ MIT © [CCJK Contributors](https://github.com/miounet11/ccjk/graphs/contributors
 </div>
 
 </div>
-
----
-
-## Quick Start (Legacy - For Reference)
-
-```typescript
-import { createTool } from 'ccjk';
-
-// Create a tool instance
-const claude = createTool('claude-code');
-
-// Check if installed
-const status = await claude.isInstalled();
-console.log(status.installed); // true/false
-
-// Configure the tool
-await claude.configure({
-  name: 'claude-code',
-  apiKey: 'your-api-key',
-  model: 'claude-opus-4',
-});
-
-// Execute commands
-const result = await claude.execute('chat', ['Hello, Claude!']);
-console.log(result.output);
-```
-
-## Supported Tools
-
-| Tool | Chat | File Edit | Code Gen | Review | Testing | Debug |
-|------|------|-----------|----------|--------|---------|-------|
-| Claude Code | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Codex | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Aider | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| Continue | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Cline | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Cursor | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-## Usage Examples
-
-### Basic Tool Management
-
-```typescript
-import { createTool, getRegistry } from 'ccjk';
-
-// Create a tool
-const aider = createTool('aider');
-
-// Check installation status
-const status = await aider.isInstalled();
-if (!status.installed) {
-  await aider.install();
-}
-
-// Get tool version
-const version = await aider.getVersion();
-console.log(`Aider version: ${version}`);
-
-// Get all available tools
-const registry = getRegistry();
-const toolNames = registry.getToolNames();
-console.log('Available tools:', toolNames);
-```
-
-### Configuration Management
-
-```typescript
-import { createTool } from 'ccjk';
-
-const tool = createTool('claude-code');
-
-// Update configuration
-await tool.updateConfig({
-  apiKey: 'sk-ant-...',
-  model: 'claude-opus-4',
-  settings: {
-    temperature: 0.7,
-    maxTokens: 4096,
-  },
-});
-
-// Get current configuration
-const config = await tool.getConfig();
-console.log(config);
-
-// Reset to defaults
-await tool.reset();
-```
-
-### Chat Interface
-
-```typescript
-import { createTool } from 'ccjk';
-import { IChatTool } from 'ccjk';
-
-const tool = createTool('claude-code') as IChatTool;
-
-// Start a chat
-const response = await tool.chat('Explain async/await in JavaScript');
-console.log(response.output);
-
-// Continue the conversation
-const followUp = await tool.continueChat('Can you show an example?');
-console.log(followUp.output);
-
-// End the chat
-await tool.endChat();
-```
-
-### File Editing
-
-```typescript
-import { createTool } from 'ccjk';
-import { IFileEditTool } from 'ccjk';
-
-const tool = createTool('aider') as IFileEditTool;
-
-// Edit a single file
-await tool.editFile(
-  './src/index.ts',
-  'Add error handling to the main function'
-);
-
-// Edit multiple files
-await tool.editFiles(
-  ['./src/index.ts', './src/utils.ts'],
-  'Add TypeScript strict mode'
-);
-```
-
-### Code Generation
-
-```typescript
-import { createTool } from 'ccjk';
-import { ICodeGenTool } from 'ccjk';
-
-const tool = createTool('codex') as ICodeGenTool;
-
-// Generate code
-const result = await tool.generateCode(
-  'Create a React component for a todo list',
-  './src/components/TodoList.tsx'
-);
-
-if (result.success) {
-  console.log('Code generated successfully!');
-}
-```
-
-### Working with Multiple Tools
-
-```typescript
-import { createTool, getRegistry } from 'ccjk';
-
-// Get all tools
-const registry = getRegistry();
-const allTools = registry.getAllTools();
-
-// Check which tools are installed
-for (const tool of allTools) {
-  const status = await tool.isInstalled();
-  const metadata = tool.getMetadata();
-  console.log(`${metadata.displayName}: ${status.installed ? '✅' : '❌'}`);
-}
-
-// Use the best available tool
-const preferredTools = ['claude-code', 'cursor', 'aider'];
-let selectedTool;
-
-for (const toolName of preferredTools) {
-  const tool = createTool(toolName);
-  const status = await tool.isInstalled();
-  if (status.installed) {
-    selectedTool = tool;
-    break;
-  }
-}
-
-if (selectedTool) {
-  console.log(`Using: ${selectedTool.getMetadata().displayName}`);
-}
-```
-
-## Architecture
-
-```
-src/code-tools/
-├── core/
-│   ├── types.ts              # Type definitions
-│   ├── interfaces.ts         # Core interfaces
-│   ├── base-tool.ts          # Abstract base class
-│   ├── tool-registry.ts      # Tool registration
-│   └── tool-factory.ts       # Factory pattern
-├── adapters/
-│   ├── claude-code.ts        # Claude Code adapter
-│   ├── codex.ts              # Codex adapter
-│   ├── aider.ts              # Aider adapter
-│   ├── continue.ts           # Continue adapter
-│   ├── cline.ts              # Cline adapter
-│   └── cursor.ts             # Cursor adapter
-└── index.ts                  # Main entry point
-```
-
-## Core Concepts
-
-### ICodeTool Interface
-
-All tools implement the `ICodeTool` interface:
-
-```typescript
-interface ICodeTool {
-  getMetadata(): ToolMetadata;
-  isInstalled(): Promise<InstallStatus>;
-  install(): Promise<ExecutionResult>;
-  uninstall(): Promise<ExecutionResult>;
-  getConfig(): Promise<ToolConfig>;
-  updateConfig(updates: Partial<ToolConfig>): Promise<void>;
-  configure(config: ToolConfig): Promise<void>;
-  validateConfig(config: Partial<ToolConfig>): Promise<boolean>;
-  execute(command: string, args?: string[]): Promise<ExecutionResult>;
-  getVersion(): Promise<string | undefined>;
-  reset(): Promise<void>;
-}
-```
-
-### BaseCodeTool Class
-
-The `BaseCodeTool` abstract class provides common functionality:
-
-- Configuration management (load/save/update)
-- Command execution
-- Version parsing
-- Installation checking
-- Path resolution
-
-### Tool Registry
-
-The registry manages tool instances:
-
-```typescript
-const registry = getRegistry();
-
-// Register a new tool
-registry.registerToolClass('my-tool', MyToolClass);
-
-// Get a tool
-const tool = registry.getTool('my-tool');
-
-// Get all tool names
-const names = registry.getToolNames();
-```
-
-### Tool Factory
-
-The factory creates tool instances:
-
-```typescript
-const factory = new ToolFactory();
-
-// Create a single tool
-const tool = factory.createTool('claude-code');
-
-// Create multiple tools
-const tools = factory.createTools(['aider', 'cursor']);
-
-// Create all registered tools
-const allTools = factory.createAllTools();
-```
-
-## Adding a New Tool
-
-Adding a new tool takes less than 5 minutes:
-
-1. Create a new adapter file:
-
-```typescript
-// src/code-tools/adapters/my-tool.ts
-import { BaseCodeTool } from '../core/base-tool';
-import { ToolMetadata } from '../core/types';
-
-export class MyTool extends BaseCodeTool {
-  getMetadata(): ToolMetadata {
-    return {
-      name: 'my-tool',
-      displayName: 'My Tool',
-      description: 'My awesome tool',
-      version: '1.0.0',
-      capabilities: {
-        supportsChat: true,
-        supportsFileEdit: true,
-        supportsCodeGen: true,
-        supportsReview: false,
-        supportsTesting: false,
-        supportsDebugging: false,
-      },
-    };
-  }
-
-  protected getInstallCheckCommand(): string {
-    return 'my-tool --version';
-  }
-
-  protected getInstallCommand(): string {
-    return 'npm install -g my-tool';
-  }
-
-  protected getUninstallCommand(): string {
-    return 'npm uninstall -g my-tool';
-  }
-}
-```
-
-2. Register the tool in `src/code-tools/index.ts`:
-
-```typescript
-import { MyTool } from './adapters/my-tool';
-
-registry.registerToolClass('my-tool', MyTool);
-```
-
-3. Export from adapters:
-
-```typescript
-// src/code-tools/adapters/index.ts
-export * from './my-tool';
-```
-
-That's it! Your tool is now available via `createTool('my-tool')`.
-
-## Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm test -- --coverage
-
-# Run specific test file
-npm test base-tool.test.ts
-```
-
-## API Reference
-
-### Types
-
-#### ToolConfig
-```typescript
-interface ToolConfig {
-  name: string;
-  version?: string;
-  installPath?: string;
-  apiKey?: string;
-  model?: string;
-  settings?: Record<string, any>;
-  env?: Record<string, string>;
-}
-```
-
-#### InstallStatus
-```typescript
-interface InstallStatus {
-  installed: boolean;
-  path?: string;
-  version?: string;
-  error?: string;
-}
-```
-
-#### ExecutionResult
-```typescript
-interface ExecutionResult {
-  success: boolean;
-  output?: string;
-  error?: string;
-  exitCode?: number;
-}
-```
-
-#### ToolCapabilities
-```typescript
-interface ToolCapabilities {
-  supportsChat: boolean;
-  supportsFileEdit: boolean;
-  supportsCodeGen: boolean;
-  supportsReview: boolean;
-  supportsTesting: boolean;
-  supportsDebugging: boolean;
-  custom?: Record<string, boolean>;
-}
-```
-
-### Interfaces
-
-- `ICodeTool` - Base interface for all tools
-- `IChatTool` - Interface for chat-capable tools
-- `IFileEditTool` - Interface for file editing tools
-- `ICodeGenTool` - Interface for code generation tools
-
-## Benefits
-
-### Before (Without Abstraction)
-
-```typescript
-// Different APIs for each tool
-const claudeStatus = await checkClaudeInstalled();
-const aiderStatus = await isAiderInstalled();
-const cursorStatus = await cursorInstallCheck();
-
-// Different configuration methods
-await configureClaudeCode({ apiKey: 'key' });
-await setAiderConfig({ token: 'key' });
-await cursorSetup({ auth: 'key' });
-
-// Different execution patterns
-await claudeChat('prompt');
-await aiderMessage('prompt');
-await cursorAsk('prompt');
-```
-
-### After (With Abstraction)
-
-```typescript
-// Unified API for all tools
-const tools = ['claude-code', 'aider', 'cursor'].map(createTool);
-
-// Same interface for all
-for (const tool of tools) {
-  const status = await tool.isInstalled();
-  await tool.configure({ apiKey: 'key' });
-  await tool.execute('chat', ['prompt']);
-}
-```
-
-### Code Reduction
-
-- **Before**: ~500 lines of duplicate code across 6 tools
-- **After**: ~200 lines in base class + ~50 lines per adapter
-- **Savings**: ~300 lines (60% reduction)
-
-## License
-
-MIT
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
-
-## Support
-
-For issues and questions, please open an issue on GitHub.

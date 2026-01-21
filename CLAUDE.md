@@ -677,34 +677,126 @@ pnpm version
 pnpm release
 ```
 
-### ⚠️ Important: pnpm catalog: Protocol Issue
+### ⚠️ CRITICAL: pnpm catalog: Protocol Issue
 
-**Problem**: When using pnpm's `catalog:` protocol in `package.json` dependencies (e.g., `"dayjs": "catalog:runtime"`), the `catalog:` references are NOT automatically resolved during `npm publish`. This causes npm installation to fail with error:
+**PROBLEM**: pnpm's `catalog:` protocol in `package.json` causes npm install failures!
+
+When using `catalog:` references like `"dayjs": "catalog:"`, these references are NOT resolved during `npm publish`. Users installing via npm will get:
 
 ```
-npm error Unsupported URL Type "catalog:": catalog:runtime
+npm error code EUNSUPPORTEDPROTOCOL
+npm error Unsupported URL Type "catalog:": catalog:
 ```
 
-**Root Cause**: The `catalog:` protocol is a pnpm workspace feature defined in `pnpm-workspace.yaml`. While pnpm resolves these during local installation, the raw `catalog:` strings get published to npm registry, which npm cannot understand.
+**ROOT CAUSE**: The `catalog:` protocol is a pnpm workspace feature defined in `pnpm-workspace.yaml`. While pnpm resolves these during local development, the raw `catalog:` strings get published to npm registry, which npm cannot understand.
 
-**Solution**: Before publishing to npm, you must replace all `catalog:` references with actual version numbers:
+**REQUIRED FIX BEFORE EVERY PUBLISH**:
 
 ```bash
-# Option 1: Use the publish-fix script
-node publish-fix.mjs  # Creates package.json.publish with resolved versions
-cp package.json package.json.backup
-cp package.json.publish package.json
-npm publish
-cp package.json.backup package.json
+# Step 1: Check for catalog: references
+grep -c "catalog:" package.json  # If > 0, need to fix
 
-# Option 2: Manual replacement
-# Replace "catalog:xxx" with actual versions from pnpm-workspace.yaml catalogs
+# Step 2: Replace with actual versions (Node.js script)
+cat > /tmp/fix-package.mjs << 'ENDSCRIPT'
+import { readFile, writeFile } from 'node:fs/promises';
+
+const packageJson = JSON.parse(await readFile('package.json', 'utf-8'));
+
+// Versions from pnpm-workspace.yaml catalog section
+const versions = {
+  // Dependencies
+  '@anthropic-ai/sdk': '^0.52.0',
+  '@iarna/toml': '^2.2.5',
+  '@types/semver': '^7.7.1',
+  '@types/tar': '^6.1.13',
+  'ansis': '^4.1.0',
+  'cac': '^6.7.14',
+  'chalk': '^5.6.2',
+  'chokidar': '^4.0.3',
+  'commander': '^14.0.2',
+  'dayjs': '^1.11.18',
+  'find-up-simple': '^1.0.1',
+  'fs-extra': '^11.3.2',
+  'gray-matter': '^4.0.3',
+  'i18next': '^25.5.2',
+  'i18next-fs-backend': '^2.6.0',
+  'imap': '^0.8.19',
+  'inquirer': '^12.9.6',
+  'inquirer-toggle': '^1.0.1',
+  'mailparser': '^3.9.1',
+  'nanoid': '^5.1.6',
+  'nodemailer': '^7.0.12',
+  'ora': '^9.0.0',
+  'pathe': '^2.0.3',
+  'semver': '^7.7.2',
+  'smol-toml': '^1.4.2',
+  'tar': '^7.5.2',
+  'tinyexec': '^1.0.1',
+  'trash': '^10.0.0',
+  'zod': '^3.22.4',
+  // DevDependencies
+  '@antfu/eslint-config': '^5.4.1',
+  '@types/fs-extra': '^11.0.4',
+  '@types/imap': '^0.8.43',
+  '@types/inquirer': '^9.0.9',
+  '@types/jest': '^29.5.0',
+  '@types/mailparser': '^3.4.6',
+  '@types/node': '^22.18.6',
+  '@types/nodemailer': '^7.0.5',
+  '@typescript-eslint/eslint-plugin': '^6.0.0',
+  '@typescript-eslint/parser': '^6.0.0',
+  '@vitest/coverage-v8': '^3.2.4',
+  '@vitest/ui': '^3.2.4',
+  'eslint': '^9.36.0',
+  'eslint-plugin-format': '^1.0.2',
+  'glob': '^11.0.3',
+  'husky': '^9.1.7',
+  'jest': '^29.5.0',
+  'lint-staged': '^16.2.0',
+  'prettier': '^3.0.0',
+  'ts-jest': '^29.1.0',
+  'tsx': '^4.20.5',
+  'typescript': '^5.9.2',
+  'unbuild': '^3.6.1',
+  'vitest': '^3.2.4'
+};
+
+for (const [pkg, version] of Object.entries(versions)) {
+  if (packageJson.dependencies?.[pkg]) {
+    packageJson.dependencies[pkg] = version;
+  }
+  if (packageJson.devDependencies?.[pkg]) {
+    packageJson.devDependencies[pkg] = version;
+  }
+}
+
+await writeFile('package.json', JSON.stringify(packageJson, null, 2) + '\n');
+console.log('Fixed package.json');
+ENDSCRIPT
+
+node /tmp/fix-package.mjs
+
+# Step 3: Verify no catalog: references remain
+grep -c "catalog:" package.json  # Should return 0
+
+# Step 4: Build and publish
+pnpm build
+npm publish --access public
+
+# Step 5: Verify published package
+npm view ccjk@<version> dependencies --json | grep -c "catalog:"  # Should return 0
 ```
 
-**Prevention**:
-- Always verify published package with `npm view ccjk@<version> dependencies --json` after publishing
-- Consider using `publishConfig` in package.json or a prepublish script to auto-resolve catalog references
-- Test installation with `npm install ccjk@<version>` (not pnpm) after publishing
+**PREVENTION CHECKLIST**:
+1. ✅ Always verify `grep -c "catalog:" package.json` returns 0 before publishing
+2. ✅ Test installation with `npm install ccjk@<version>` (not pnpm) after publishing
+3. ✅ Check `npm view ccjk@<version> dependencies` to confirm no catalog: references
+4. ❌ NEVER restore package.json with catalog: references after publish
+
+**VERSION CONTROL NOTE**:
+- Keep `package.json` WITHOUT catalog: references as the committed version
+- For local development with pnpm workspace, you can temporarily add catalog: back, but NEVER commit this version
+- The git-tracked version must always have semantic versions for npm compatibility
 
 ---
 

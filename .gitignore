@@ -63,3 +63,13 @@ MENU_REDESIGN_INDEX.md
 MENU_REDESIGN_SUMMARY.md
 RELEASE_NOTES_v3.6.1.md
 CREATIVE_DESIGN_PACKAGE.md
+
+# Private Documentation in docs/
+docs/ceshi_test_doc.md
+docs/CONFIG-HOT-RELOAD*.md
+docs/SESSION_MANAGEMENT_GUIDE.md
+docs/HOOKS.md
+docs/mobile-control-guide.md
+docs/remote-control-guide.md
+docs/skill-hot-reload.md
+docs/skills-sync-guide.md
