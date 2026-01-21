@@ -1,0 +1,135 @@
+{
+  "command": {
+    "description": "Manage AI agent definitions and cloud sync"
+  },
+  "options": {
+    "category": "Filter by category",
+    "limit": "Limit number of results",
+    "json": "Output in JSON format",
+    "force": "Force operation (skip confirmation)",
+    "dryRun": "Dry run (simulate without executing)",
+    "direction": "Sync direction (push/pull/both)",
+    "format": "Export format (json/yaml/markdown)",
+    "output": "Output file path"
+  },
+  "noResults": "No agents found",
+  "info": {
+    "category": "Category",
+    "author": "Author",
+    "rating": "Rating",
+    "description": "Description",
+    "version": "Version",
+    "downloads": "Downloads",
+    "ratings": "Ratings"
+  },
+  "list": {
+    "loading": "Loading installed agents...",
+    "success": "Found {{count}} installed agents",
+    "failed": "Failed to load agents list",
+    "title": "Installed Agents",
+    "titleFiltered": "Installed Agents (Category: {{category}})"
+  },
+  "search": {
+    "searching": "Searching for \"{{query}}\"...",
+    "found": "Found {{count}} agents matching \"{{query}}\"",
+    "failed": "Search failed",
+    "results": "Search Results"
+  },
+  "install": {
+    "installing": "Installing agent {{id}}...",
+    "notFound": "Agent not found: {{id}}",
+    "dryRun": "Dry run - would install the following agent:",
+    "alreadyInstalled": "Agent {{name}} is already installed",
+    "success": "Successfully installed agent {{name}}",
+    "failed": "Failed to install agent {{name}}",
+    "warnings": "Warnings",
+    "location": "Installation location"
+  },
+  "uninstall": {
+    "notFound": "Agent not found: {{id}}",
+    "confirm": "Are you sure you want to uninstall agent {{name}}?",
+    "cancelled": "Uninstall cancelled",
+    "uninstalling": "Uninstalling agent {{name}}...",
+    "success": "Successfully uninstalled agent {{name}}",
+    "failed": "Failed to uninstall agent {{name}}"
+  },
+  "sync": {
+    "notAuthenticated": "Not authenticated. Please bind device first.",
+    "bindHint": "Run 'ccjk notification bind <code>' to bind device",
+    "syncing": "Syncing agents...",
+    "success": "Agent sync completed",
+    "failed": "Agent sync failed",
+    "pushed": "Pushed to cloud",
+    "pulled": "Pulled from cloud",
+    "conflicts": "Conflicts",
+    "skipped": "Skipped"
+  },
+  "templates": {
+    "loading": "Loading agent templates...",
+    "success": "Found {{count}} agent templates",
+    "failed": "Failed to load templates",
+    "title": "Available Agent Templates",
+    "titleFiltered": "Agent Templates (Category: {{category}})",
+    "noTemplates": "No templates found",
+    "variables": "Variables"
+  },
+  "create": {
+    "loading": "Loading template...",
+    "templateNotFound": "Template not found: {{id}}",
+    "templateLoaded": "Template loaded successfully",
+    "namePrompt": "Agent name",
+    "nameRequired": "Agent name is required",
+    "variableRequired": "This variable is required",
+    "variableInvalid": "Variable value is invalid",
+    "creating": "Creating agent...",
+    "success": "Successfully created agent {{name}}",
+    "failed": "Failed to create agent",
+    "location": "Agent location"
+  },
+  "export": {
+    "exporting": "Exporting agent {{id}}...",
+    "success": "Agent exported to: {{path}}",
+    "failed": "Failed to export agent"
+  },
+  "import": {
+    "importing": "Importing agent from {{path}}...",
+    "success": "Successfully imported agent {{name}}",
+    "failed": "Failed to import agent",
+    "location": "Agent location"
+  },
+  "update": {
+    "checking": "Checking for agent updates...",
+    "checkComplete": "Update check completed",
+    "checkFailed": "Failed to check for updates",
+    "noUpdates": "All agents are up to date",
+    "available": "{{count}} agent updates available",
+    "hint": "Run 'ccjk agents install <agent-id>' to update agents"
+  },
+  "menu": {
+    "title": "Agent Management",
+    "selectAction": "Select action",
+    "list": "List installed agents",
+    "search": "Search cloud agents",
+    "install": "Install agent",
+    "uninstall": "Uninstall agent",
+    "sync": "Sync agents",
+    "templates": "Browse templates",
+    "create": "Create from template",
+    "export": "Export agent",
+    "import": "Import agent",
+    "update": "Check for updates",
+    "searchPrompt": "Enter search query",
+    "installPrompt": "Enter agent ID",
+    "uninstallPrompt": "Select agent to uninstall",
+    "createPrompt": "Select template",
+    "exportPrompt": "Select agent to export",
+    "importPrompt": "Enter file path",
+    "noAgentsInstalled": "No agents installed"
+  },
+  "errors": {
+    "searchQueryRequired": "Error: Search query is required",
+    "agentIdRequired": "Error: Agent ID is required",
+    "templateIdRequired": "Error: Template ID is required",
+    "filePathRequired": "Error: File path is required"
+  }
+}

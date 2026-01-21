@@ -1,0 +1,78 @@
+{
+  "title": "LSP 语言服务器",
+  "status": "LSP 服务器状态",
+  "statusRunning": "运行中",
+  "statusStopped": "已停止",
+  "statusStarting": "启动中",
+  "statusError": "错误",
+  "statusNotInstalled": "未安装",
+  "servers": {
+    "typescript": "TypeScript 语言服务器",
+    "javascript": "JavaScript 语言服务器",
+    "python": "Python LSP 服务器",
+    "rust": "Rust 分析器",
+    "go": "Go PLPS",
+    "cpp": "Clangd (C/C++)",
+    "java": "Eclipse JDT.LS",
+    "yaml": "YAML 语言服务器",
+    "json": "JSON 语言服务器",
+    "css": "CSS 语言服务器",
+    "html": "HTML 语言服务器",
+    "markdown": "Markdown 语言服务器"
+  },
+  "commands": {
+    "status": "查看 LSP 服务器状态",
+    "list": "列出所有可用的 LSP 服务器",
+    "start": "启动所有 LSP 服务器",
+    "stop": "停止所有 LSP 服务器",
+    "enable": "启用指定的 LSP 服务器",
+    "disable": "禁用指定的 LSP 服务器",
+    "restart": "重启指定的 LSP 服务器",
+    "help": "显示 LSP 命令帮助"
+  },
+  "messages": {
+    "serverEnabled": "已启用 LSP 服务器: {{server}}",
+    "serverDisabled": "已禁用 LSP 服务器: {{server}}",
+    "serverStarted": "所有 LSP 服务器已启动",
+    "serverStopped": "所有 LSP 服务器已停止",
+    "serverRestarted": "已重启 LSP 服务器: {{server}}",
+    "serverNotAvailable": "LSP 服务器不可用: {{server}}",
+    "enableFailed": "启用 LSP 服务器失败: {{error}}",
+    "disableFailed": "禁用 LSP 服务器失败: {{error}}",
+    "startFailed": "启动 LSP 服务器失败: {{error}}",
+    "stopFailed": "停止 LSP 服务器失败: {{error}}",
+    "restartFailed": "重启 LSP 服务器失败: {{error}}",
+    "serverIdRequired": "需要服务器 ID。使用: npx ccjk lsp {{command}} <server>",
+    "pleaseInstall": "请安装: {{commands}}"
+  },
+  "features": {
+    "completion": "补全",
+    "hover": "悬停",
+    "definition": "定义",
+    "references": "引用",
+    "symbols": "符号",
+    "typeDefinition": "类型定义",
+    "implementation": "实现"
+  },
+  "categories": {
+    "core": "核心 / Web 开发",
+    "backend": "后端开发",
+    "scripting": "脚本语言",
+    "config": "配置文件",
+    "tools": "工具"
+  },
+  "summary": {
+    "running": "运行中",
+    "stopped": "已停止",
+    "error": "错误",
+    "notInstalled": "未安装"
+  },
+  "installedServers": "已安装的服务器",
+  "availableServers": "可用的服务器",
+  "notInstalledServers": "可用但未安装",
+  "requires": "需要",
+  "extensions": "扩展名",
+  "needsInstall": "需要安装",
+  "files": "文件",
+  "capabilities": "能力"
+}

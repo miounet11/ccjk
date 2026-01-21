@@ -1,0 +1,7 @@
+{
+  "enterTeamName": "输入团队名称",
+  "teamInitialized": "团队已初始化",
+  "noTeamConfig": "未找到团队配置。请先运行 'ccjk team init'",
+  "shareConfig": "团队配置",
+  "syncComplete": "团队配置已同步"
+}

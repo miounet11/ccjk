@@ -1,0 +1,7 @@
+{
+  "enterTeamName": "Enter team name",
+  "teamInitialized": "Team initialized",
+  "noTeamConfig": "No team configuration found. Run 'ccjk team init' first",
+  "shareConfig": "Team configuration",
+  "syncComplete": "Team configuration synced"
+}

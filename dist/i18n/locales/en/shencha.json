@@ -1,0 +1,14 @@
+{
+  "scanning": "Scanning codebase...",
+  "analyzing": "Analyzing code quality...",
+  "fixing": "Applying fixes...",
+  "reportGenerated": "Report generated: {{path}}",
+  "scanComplete": "Scan complete",
+  "fixesApplied": "{{count}} fixes applied",
+  "noIssuesFound": "No issues found",
+  "errorScanning": "Error during scanning: {{error}}",
+  "errorAnalyzing": "Error during analysis: {{error}}",
+  "errorFixing": "Error applying fixes: {{error}}",
+  "errorGeneratingReport": "Error generating report: {{error}}",
+  "successMessage": "ShenCha analysis completed successfully"
+}

@@ -1,0 +1,69 @@
+{
+  "subagent": {
+    "title": "Subagent Management",
+    "description": "Manage Claude Code subagents with fork/inherit modes",
+    "created": "Subagent created: {{name}}",
+    "completed": "Subagent completed: {{name}}",
+    "failed": "Subagent failed: {{name}}",
+    "timeout": "Subagent timed out: {{name}}",
+    "cancelled": "Subagent cancelled: {{name}}",
+    "notFound": "Subagent not found: {{id}}",
+    "alreadyExists": "Subagent already exists: {{id}}",
+    "maxConcurrentReached": "Maximum concurrent subagents limit reached ({{max}}). Active: {{active}}",
+    "invalidConfig": "Invalid subagent configuration",
+    "invalidId": "Subagent config must have a valid id",
+    "invalidName": "Subagent config must have a valid name",
+    "invalidMode": "Subagent mode must be \"fork\" or \"inherit\"",
+    "invalidTimeout": "Subagent timeout must be a positive number",
+    "alreadyFinished": "Subagent {{id}} already finished with status: {{status}}",
+    "cannotCancel": "Cannot cancel subagent {{id}} with status: {{status}}",
+    "mode": {
+      "fork": "Fork (isolated context)",
+      "inherit": "Inherit (parent context)"
+    },
+    "status": {
+      "pending": "Pending",
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed",
+      "timeout": "Timeout",
+      "cancelled": "Cancelled"
+    },
+    "transcript": {
+      "saved": "Transcript saved: {{path}}",
+      "saveFailed": "Failed to save transcript: {{error}}",
+      "loaded": "Transcript loaded: {{id}}",
+      "loadFailed": "Failed to load transcript: {{error}}",
+      "notFound": "Transcript not found: {{path}}",
+      "cleanupComplete": "Cleaned up {{count}} old transcripts",
+      "cleanupFailed": "Failed to cleanup transcripts: {{error}}",
+      "type": {
+        "user": "User",
+        "assistant": "Assistant",
+        "tool": "Tool",
+        "system": "System",
+        "error": "Error"
+      }
+    },
+    "stats": {
+      "total": "Total subagents: {{count}}",
+      "active": "Active: {{count}}",
+      "pending": "Pending: {{count}}",
+      "running": "Running: {{count}}",
+      "completed": "Completed: {{count}}",
+      "failed": "Failed: {{count}}",
+      "timeout": "Timeout: {{count}}",
+      "cancelled": "Cancelled: {{count}}",
+      "transcripts": "Transcripts: {{count}}",
+      "transcriptSize": "Total size: {{size}} bytes",
+      "oldestTranscript": "Oldest: {{date}}",
+      "newestTranscript": "Newest: {{date}}"
+    },
+    "manager": {
+      "initialized": "SubagentManager initialized",
+      "cleared": "Cleared {{count}} finished subagents",
+      "clearedAll": "Cleared all subagents",
+      "removed": "Removed subagent: {{id}}"
+    }
+  }
+}

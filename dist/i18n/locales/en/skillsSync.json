@@ -1,0 +1,74 @@
+{
+  "title": {
+    "sync": "🔄 Skills Sync",
+    "push": "↑ Push Skills",
+    "pull": "↓ Pull Skills",
+    "list": "📋 Cloud Skills List"
+  },
+  "menu": {
+    "title": "Skills Cloud Sync",
+    "prompt": "Select an action:",
+    "sync": "Sync all skills",
+    "push": "Push local skills to cloud",
+    "pull": "Pull skills from cloud",
+    "list": "View cloud skills list",
+    "status": "View sync status",
+    "back": "Back"
+  },
+  "prompt": {
+    "confirmSync": "Confirm sync all skills?",
+    "confirmPush": "Confirm push local skills to cloud?",
+    "confirmPull": "Confirm pull skills from cloud?"
+  },
+  "message": {
+    "syncing": "Syncing skills",
+    "pushing": "Pushing skills",
+    "pulling": "Pulling skills",
+    "cancelled": "Operation cancelled",
+    "foundLocalSkills": "Found {{count}} local skill(s)",
+    "foundCloudSkills": "Found {{count}} cloud skill(s)",
+    "noLocalSkills": "No local skills found",
+    "noCloudSkills": "No cloud skills found"
+  },
+  "label": {
+    "status": "Sync Status",
+    "localSkills": "Local Skills",
+    "cloudSkills": "Cloud Skills",
+    "lastSync": "Last Sync",
+    "syncStates": "Sync States",
+    "author": "Author",
+    "updated": "Updated"
+  },
+  "status": {
+    "synced": "Synced",
+    "localAhead": "Local Ahead",
+    "remoteAhead": "Remote Ahead",
+    "conflict": "Conflict",
+    "localOnly": "Local Only",
+    "remoteOnly": "Remote Only"
+  },
+  "result": {
+    "title": "Sync Result",
+    "success": "Sync succeeded",
+    "failed": "Sync failed",
+    "statistics": "Statistics",
+    "total": "Total",
+    "succeeded": "Succeeded",
+    "conflicts": "Conflicts",
+    "uploaded": "Uploaded",
+    "downloaded": "Downloaded",
+    "skipped": "Skipped",
+    "duration": "Duration",
+    "details": "Details",
+    "conflictHint": "Please resolve conflicts manually or use --force option to force sync"
+  },
+  "error": {
+    "syncFailed": "Sync failed",
+    "pushFailed": "Push failed",
+    "pullFailed": "Pull failed",
+    "listFailed": "List failed"
+  },
+  "warning": {
+    "statusFailed": "Failed to get status"
+  }
+}

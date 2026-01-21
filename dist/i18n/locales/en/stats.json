@@ -1,0 +1,20 @@
+{
+  "title": "Usage Statistics",
+  "totalRequests": "Total Requests",
+  "successRate": "Success Rate",
+  "totalTokens": "Total Tokens",
+  "input": "Input",
+  "output": "Output",
+  "estimatedCost": "Estimated Cost",
+  "averageLatency": "Average Latency",
+  "providerDistribution": "Provider Distribution",
+  "noData": "No data available",
+  "period": {
+    "1d": "Last 24 hours",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "90d": "Last 90 days",
+    "all": "All time"
+  },
+  "exportSuccess": "Statistics exported successfully"
+}

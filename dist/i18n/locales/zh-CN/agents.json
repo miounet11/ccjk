@@ -1,0 +1,135 @@
+{
+  "command": {
+    "description": "管理 AI 代理定义和云同步"
+  },
+  "options": {
+    "category": "按类别筛选",
+    "limit": "结果数量限制",
+    "json": "以 JSON 格式输出",
+    "force": "强制操作（跳过确认）",
+    "dryRun": "模拟运行（不实际执行）",
+    "direction": "同步方向（push/pull/both）",
+    "format": "导出格式（json/yaml/markdown）",
+    "output": "输出文件路径"
+  },
+  "noResults": "未找到代理",
+  "info": {
+    "category": "类别",
+    "author": "作者",
+    "rating": "评分",
+    "description": "描述",
+    "version": "版本",
+    "downloads": "下载量",
+    "ratings": "评分数"
+  },
+  "list": {
+    "loading": "正在加载已安装的代理...",
+    "success": "找到 {{count}} 个已安装的代理",
+    "failed": "加载代理列表失败",
+    "title": "已安装的代理",
+    "titleFiltered": "已安装的代理（类别：{{category}}）"
+  },
+  "search": {
+    "searching": "正在搜索 \"{{query}}\"...",
+    "found": "找到 {{count}} 个代理匹配 \"{{query}}\"",
+    "failed": "搜索失败",
+    "results": "搜索结果"
+  },
+  "install": {
+    "installing": "正在安装代理 {{id}}...",
+    "notFound": "未找到代理：{{id}}",
+    "dryRun": "模拟运行 - 将安装以下代理：",
+    "alreadyInstalled": "代理 {{name}} 已安装",
+    "success": "成功安装代理 {{name}}",
+    "failed": "安装代理 {{name}} 失败",
+    "warnings": "警告",
+    "location": "安装位置"
+  },
+  "uninstall": {
+    "notFound": "未找到代理：{{id}}",
+    "confirm": "确定要卸载代理 {{name}} 吗？",
+    "cancelled": "已取消卸载",
+    "uninstalling": "正在卸载代理 {{name}}...",
+    "success": "成功卸载代理 {{name}}",
+    "failed": "卸载代理 {{name}} 失败"
+  },
+  "sync": {
+    "notAuthenticated": "未认证。请先绑定设备。",
+    "bindHint": "运行 'ccjk notification bind <code>' 绑定设备",
+    "syncing": "正在同步代理...",
+    "success": "代理同步完成",
+    "failed": "代理同步失败",
+    "pushed": "已推送到云端",
+    "pulled": "已从云端拉取",
+    "conflicts": "冲突",
+    "skipped": "已跳过"
+  },
+  "templates": {
+    "loading": "正在加载代理模板...",
+    "success": "找到 {{count}} 个代理模板",
+    "failed": "加载模板失败",
+    "title": "可用的代理模板",
+    "titleFiltered": "代理模板（类别：{{category}}）",
+    "noTemplates": "未找到模板",
+    "variables": "变量"
+  },
+  "create": {
+    "loading": "正在加载模板...",
+    "templateNotFound": "未找到模板：{{id}}",
+    "templateLoaded": "模板加载成功",
+    "namePrompt": "代理名称",
+    "nameRequired": "代理名称不能为空",
+    "variableRequired": "此变量为必填项",
+    "variableInvalid": "变量值无效",
+    "creating": "正在创建代理...",
+    "success": "成功创建代理 {{name}}",
+    "failed": "创建代理失败",
+    "location": "代理位置"
+  },
+  "export": {
+    "exporting": "正在导出代理 {{id}}...",
+    "success": "代理已导出到：{{path}}",
+    "failed": "导出代理失败"
+  },
+  "import": {
+    "importing": "正在导入代理：{{path}}...",
+    "success": "成功导入代理 {{name}}",
+    "failed": "导入代理失败",
+    "location": "代理位置"
+  },
+  "update": {
+    "checking": "正在检查代理更新...",
+    "checkComplete": "更新检查完成",
+    "checkFailed": "检查更新失败",
+    "noUpdates": "所有代理都是最新版本",
+    "available": "有 {{count}} 个代理可更新",
+    "hint": "运行 'ccjk agents install <agent-id>' 更新代理"
+  },
+  "menu": {
+    "title": "代理管理",
+    "selectAction": "选择操作",
+    "list": "列出已安装的代理",
+    "search": "搜索云端代理",
+    "install": "安装代理",
+    "uninstall": "卸载代理",
+    "sync": "同步代理",
+    "templates": "浏览模板",
+    "create": "从模板创建",
+    "export": "导出代理",
+    "import": "导入代理",
+    "update": "检查更新",
+    "searchPrompt": "输入搜索关键词",
+    "installPrompt": "输入代理 ID",
+    "uninstallPrompt": "选择要卸载的代理",
+    "createPrompt": "选择模板",
+    "exportPrompt": "选择要导出的代理",
+    "importPrompt": "输入文件路径",
+    "noAgentsInstalled": "未安装任何代理"
+  },
+  "errors": {
+    "searchQueryRequired": "错误：需要搜索关键词",
+    "agentIdRequired": "错误：需要代理 ID",
+    "templateIdRequired": "错误：需要模板 ID",
+    "filePathRequired": "错误：需要文件路径"
+  }
+}

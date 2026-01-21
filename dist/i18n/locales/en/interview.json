@@ -1,0 +1,104 @@
+{
+  "banner": {
+    "title": "Interview-Driven Development (IDD)",
+    "subtitle": "Interview first. Spec second. Code last.",
+    "credit": "Based on Thariq (@trq212) workflow from Anthropic"
+  },
+  "templates": {
+    "title": "Available Interview Templates:",
+    "usage": "Usage: ccjk interview --template <template-id> [SPEC.md]",
+    "webapp": {
+      "name": "Web Application",
+      "description": "Standard web application interview template"
+    },
+    "api": {
+      "name": "API Service",
+      "description": "Backend API/microservice interview template"
+    },
+    "saas": {
+      "name": "SaaS Product",
+      "description": "Full SaaS product interview with all categories"
+    },
+    "ecommerce": {
+      "name": "E-commerce",
+      "description": "Online store interview template"
+    },
+    "quick": {
+      "name": "Quick Validation",
+      "description": "Fast interview for quick project validation"
+    }
+  },
+  "depth": {
+    "title": "Interview depth:",
+    "quick": "Quick (~10 questions)",
+    "quickDesc": "Fast validation, surface-level decisions",
+    "standard": "Standard (~25 questions)",
+    "standardDesc": "Standard coverage of all major areas",
+    "deep": "Deep (~40+ questions)",
+    "deepDesc": "Comprehensive exploration for complex features",
+    "recommended": "(Recommended)"
+  },
+  "specFile": {
+    "prompt": "Spec file path (where to save the specification):",
+    "required": "Please enter a file path",
+    "extension": "File should have .md extension"
+  },
+  "confirm": {
+    "title": "Interview Configuration:",
+    "template": "Template:",
+    "depth": "Depth:",
+    "output": "Output:",
+    "start": "Start interview?"
+  },
+  "progress": {
+    "starting": "Starting interview...",
+    "pauseHint": "Press Ctrl+C at any time to pause and save progress.",
+    "question": "Question {{current}} of ~{{total}}",
+    "selectOne": "Select one:",
+    "selectMultiple": "Select all that apply (space to select, enter to confirm):",
+    "customInput": "Enter your custom answer:",
+    "typeOther": "Type something else..."
+  },
+  "pause": {
+    "title": "Interview paused.",
+    "saveProgress": "Save progress for later?",
+    "sessionSaved": "Session saved to: {{path}}",
+    "resumeHint": "Resume with: ccjk interview --resume {{path}}"
+  },
+  "resume": {
+    "loading": "Resuming interview session...",
+    "sessionId": "Session ID: {{id}}",
+    "progress": "Progress: {{count}} questions answered",
+    "sessionNotFound": "Session file not found: {{path}}",
+    "loadFailed": "Failed to load session file.",
+    "resumeFailed": "Failed to resume session."
+  },
+  "complete": {
+    "title": "Interview Complete!",
+    "questionsAnswered": "Questions answered:",
+    "duration": "Duration:",
+    "specFile": "Spec file:",
+    "categorySummary": "Category Summary:",
+    "nextSteps": "Next steps:",
+    "step1": "Review the spec: cat {{path}}",
+    "step2": "Start planning: /plan",
+    "step3": "Begin coding: Use the spec as context"
+  },
+  "generate": {
+    "generating": "Generating specification..."
+  },
+  "cancelled": "Interview cancelled.",
+  "templateNotFound": "Template not found: {{id}}",
+  "availableTemplates": "Available templates:",
+  "categories": {
+    "projectFoundation": "Project Foundation",
+    "targetAudience": "Target Audience",
+    "technicalImplementation": "Technical Implementation",
+    "featuresScope": "Features & Scope",
+    "uiUx": "UI & UX",
+    "concerns": "Concerns",
+    "tradeoffs": "Tradeoffs",
+    "businessLogic": "Business Logic",
+    "securityCompliance": "Security & Compliance"
+  }
+}

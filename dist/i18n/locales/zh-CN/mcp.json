@@ -1,0 +1,138 @@
+{
+  "configureMcp": "是否配置 MCP 服务？",
+  "mcpBackupSuccess": "已备份原有 MCP 配置",
+  "mcpConfigSuccess": "MCP 服务已配置",
+  "selectMcpServices": "选择要安装的 MCP 服务",
+  "services.context7.description": "查询最新的库文档和代码示例",
+  "services.context7.name": "Context7 文档查询",
+  "services.open-websearch.description": "使用 DuckDuckGo、Bing 和 Brave 搜索引擎进行网页搜索",
+  "services.open-websearch.name": "open-websearch",
+  "services.mcp-deepwiki.description": "查询 GitHub 仓库文档和示例",
+  "services.mcp-deepwiki.name": "DeepWiki",
+  "services.spec-workflow.description": "规范化特性开发工作流程，从需求到实现的系统化方法",
+  "services.spec-workflow.name": "Spec 工作流",
+  "services.serena.name": "Serena 助手",
+  "services.serena.description": "提供类似 IDE 的语义代码检索与编辑，支持符号级实体提取与关系结构利用；与现有编码代理配合可显著提升标记效率",
+  "services.agent-browser.description": "Anthropic 官方浏览器自动化，用于网页交互和测试",
+  "services.agent-browser.name": "Agent Browser 浏览器自动化",
+  "services.filesystem.name": "文件系统操作",
+  "services.filesystem.description": "读取、写入和管理本地文件系统中的文件和目录",
+  "services.memory.name": "知识图谱记忆",
+  "services.memory.description": "使用知识图谱实现持久化记忆，跨会话存储和检索信息",
+  "services.sequential-thinking.name": "顺序思考",
+  "services.sequential-thinking.description": "通过顺序思考过程进行动态问题解决，支持思路修正和回溯",
+  "services.fetch.name": "HTTP 请求",
+  "services.fetch.description": "从 URL 获取和处理内容，将 HTML 转换为 Markdown 进行分析",
+  "services.sqlite.name": "SQLite 数据库",
+  "services.sqlite.description": "查询和管理 SQLite 数据库，支持完整的 SQL 操作",
+  "apiKeyApprovalFailed": "API密钥批准状态管理失败",
+  "apiKeyPrompt": "请输入 API Key",
+  "primaryApiKeySetFailed": "设置 primaryApiKey 失败",
+  "market": {
+    "noResults": "未找到相关服务器：{{keyword}}",
+    "searchResults": "找到 {{count}} 个服务器：{{keyword}}",
+    "trending": "🔥 热门 MCP 服务器",
+    "installing": "正在安装 {{name}}...",
+    "confirmInstall": "添加到 Claude Code 配置？",
+    "confirmUninstall": "从配置中移除 {{name}}？",
+    "cancelled": "操作已取消",
+    "installSuccess": "✓ {{name}} 安装成功",
+    "manualConfig": "注意：可能需要手动配置",
+    "serverNotFound": "未找到服务器：{{name}}",
+    "searchKeywordRequired": "需要搜索关键词",
+    "installNameRequired": "需要服务器名称",
+    "uninstallNameRequired": "卸载需要服务器名称",
+    "unknownAction": "未知操作：{{action}}",
+    "apiUnavailable": "⚠ 市场 API 不可用",
+    "usingLocalData": "使用本地备用数据",
+    "moreResults": "显示 {{shown}}/{{total}} 个结果。使用 --limit 查看更多。",
+    "ratings": "评分",
+    "noTrending": "暂无热门包",
+    "recommendedForYou": "📦 为您推荐",
+    "basedOnInstalled": "基于您已安装的 {{count}} 个包",
+    "noInstalledForRecommendations": "未找到已安装的包",
+    "installSomeFirst": "请先安装一些包以获取个性化推荐",
+    "noRecommendations": "暂无推荐",
+    "recommendationsFailed": "获取推荐失败"
+  },
+  "installer": {
+    "serviceNotFound": "未找到 MCP 服务：{{id}}",
+    "apiKeyRequired": "此服务需要 API 密钥",
+    "requiresApiKey": "此服务需要 API 密钥",
+    "noConfig": "未找到 MCP 配置",
+    "serviceNotInstalled": "服务未安装：{{id}}",
+    "alreadyInstalled": "{{name}} 已安装",
+    "installFailed": "安装 {{name}} 失败",
+    "uninstallSuccess": "✓ {{name}} 卸载成功",
+    "uninstallFailed": "卸载 {{name}} 失败",
+    "restartRequired": "重启 Claude Code 以使更改生效",
+    "noServicesInstalled": "未安装任何 MCP 服务",
+    "installedServices": "已安装的 MCP 服务 ({{tool}})"
+  },
+  "server": {
+    "starting": "正在启动 CCJK MCP 服务器...",
+    "started": "✓ CCJK MCP 服务器已启动",
+    "listening": "监听端口：{{port}}",
+    "stdioMode": "使用 stdio 传输模式",
+    "httpMode": "使用 HTTP 传输模式",
+    "error": "MCP 服务器错误：{{error}}",
+    "invalidTransport": "无效的传输模式：{{transport}}",
+    "portInUse": "端口 {{port}} 已被占用",
+    "initializeFailed": "初始化 MCP 服务器失败",
+    "toolNotFound": "未找到工具：{{name}}",
+    "toolExecutionError": "工具执行错误：{{error}}",
+    "invalidRequest": "无效的请求格式",
+    "methodNotSupported": "不支持的方法：{{method}}",
+    "serverInfo": "CCJK MCP 服务器 v{{version}}",
+    "capabilities": "服务器能力：{{capabilities}}",
+    "toolsAvailable": "可用工具：{{count}} 个",
+    "requestReceived": "收到请求：{{method}}",
+    "responseTime": "响应时间：{{time}}ms",
+    "debugMode": "调试模式已启用"
+  },
+  "tools": {
+    "chat": {
+      "name": "CCJK 对话",
+      "description": "通过 CCJK 向 Claude 发送消息，支持自定义提供商和模型选择"
+    },
+    "providers": {
+      "name": "列出提供商",
+      "description": "列出所有已配置的 API 提供商"
+    },
+    "stats": {
+      "name": "使用统计",
+      "description": "获取使用统计信息（需要 CCusage 工具）"
+    },
+    "workflows": {
+      "name": "工作流列表",
+      "description": "列出可用的工作流"
+    },
+    "mcpServices": {
+      "name": "MCP 服务列表",
+      "description": "列出已配置的 MCP 服务"
+    },
+    "config": {
+      "name": "配置管理",
+      "description": "获取或设置 CCJK 配置"
+    },
+    "init": {
+      "name": "初始化配置",
+      "description": "初始化或更新 Claude Code 配置"
+    },
+    "doctor": {
+      "name": "健康检查",
+      "description": "运行健康检查和诊断"
+    }
+  },
+  "search": {
+    "invalidAutoSyntax": "无效的自动模式语法: {{value}}",
+    "invalidThresholdRange": "阈值必须在 {{min}} 到 {{max}} 之间，当前值: {{value}}",
+    "noConfigFound": "未找到 MCP 配置",
+    "initializedConfig": "已初始化 MCP 工具搜索配置",
+    "updatedThreshold": "已更新阈值为 {{threshold}}",
+    "updatedDynamicDiscovery": "动态发现已{{enabled}}",
+    "updatedListChanged": "列表变更通知已{{enabled}}",
+    "updatedExcludedServices": "已更新排除服务列表",
+    "addedMcpSearchTool": "已添加 MCPSearch 工具用于按需工具发现"
+  }
+}

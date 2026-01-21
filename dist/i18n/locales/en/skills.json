@@ -1,0 +1,100 @@
+{
+  "title": {
+    "list": "📋 Available Skills",
+    "run": "🚀 Run Skill",
+    "info": "ℹ️  Skill Information",
+    "create": "✨ Create New Skill"
+  },
+  "menu": {
+    "title": "🎯 Skills Management",
+    "prompt": "What would you like to do?",
+    "list": "List all skills",
+    "run": "Run a skill",
+    "info": "Show skill information",
+    "create": "Create new skill",
+    "batch": "Batch create skills",
+    "enable": "Enable a skill",
+    "disable": "Disable a skill",
+    "delete": "Delete a skill",
+    "back": "Back to main menu"
+  },
+  "message": {
+    "noSkills": "No skills found",
+    "totalSkills": "Total: {{count}} skill(s)",
+    "skillExecuted": "Skill executed successfully",
+    "skillCreated": "Skill created: {{name}}",
+    "skillEnabled": "Skill enabled: {{name}}",
+    "skillDisabled": "Skill disabled: {{name}}",
+    "skillDeleted": "Skill deleted: {{name}}",
+    "alreadyEnabled": "Skill is already enabled: {{name}}",
+    "alreadyDisabled": "Skill is already disabled: {{name}}",
+    "deleteCancelled": "Delete cancelled"
+  },
+  "hint": {
+    "createSkill": "Create a new skill with:",
+    "listSkills": "Use 'ccjk skills list' to see available skills",
+    "enableSkill": "Enable it with: ccjk skills enable <name>",
+    "runSkill": "Run it with: ccjk skills run <name>",
+    "copyTemplate": "Copy the template above to use in your conversation"
+  },
+  "warning": {
+    "skillDisabled": "Skill is disabled: {{name}}"
+  },
+  "error": {
+    "listFailed": "Failed to list skills",
+    "runFailed": "Failed to run skill",
+    "infoFailed": "Failed to get skill info",
+    "createFailed": "Failed to create skill",
+    "enableFailed": "Failed to enable skill",
+    "disableFailed": "Failed to disable skill",
+    "deleteFailed": "Failed to delete skill",
+    "skillNotFound": "Skill not found: {{name}}",
+    "skillExists": "Skill already exists: {{name}}",
+    "nameRequired": "Name is required",
+    "descriptionRequired": "Description is required",
+    "triggersRequired": "At least one trigger is required"
+  },
+  "label": {
+    "triggers": "Triggers",
+    "template": "Template",
+    "details": "Details",
+    "id": "ID",
+    "version": "Version",
+    "category": "Category",
+    "author": "Author",
+    "tags": "Tags",
+    "agents": "Agents",
+    "characters": "characters",
+    "path": "Path"
+  },
+  "prompt": {
+    "skillName": "Enter skill name:",
+    "newSkillName": "Enter new skill name:",
+    "nameEn": "Skill name (English):",
+    "nameZh": "Skill name (中文):",
+    "descriptionEn": "Description (English):",
+    "descriptionZh": "Description (中文):",
+    "category": "Select category:",
+    "triggers": "Triggers (comma-separated):",
+    "template": "Skill template:",
+    "confirmDelete": "Are you sure you want to delete '{{name}}'? (yes/no)"
+  },
+  "category": {
+    "git": "Git & Version Control",
+    "dev": "Development",
+    "testing": "Testing & QA",
+    "docs": "Documentation",
+    "review": "Code Review",
+    "seo": "SEO & Marketing",
+    "devops": "DevOps & Infrastructure",
+    "custom": "Custom"
+  },
+  "batch": {
+    "title": "📦 Batch Create Skills",
+    "prompt": "Select skill categories to create:",
+    "noneSelected": "No categories selected",
+    "creating": "Creating skills",
+    "created": "Successfully created {{count}} skill(s)",
+    "failed": "Failed to create {{count}} skill(s)"
+  }
+}
