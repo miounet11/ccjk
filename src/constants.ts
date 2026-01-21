@@ -36,6 +36,7 @@ export const CURSOR_CONFIG_FILE = join(CURSOR_DIR, 'config.json')
 // CCJK configuration paths
 export const CCJK_CONFIG_DIR = join(homedir(), '.ccjk')
 export const CCJK_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'config.toml')
+export const STATE_FILE = join(CCJK_CONFIG_DIR, 'state.json')
 export const CCJK_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'plugins')
 export const CCJK_SKILLS_DIR = join(CCJK_CONFIG_DIR, 'skills')
 export const CCJK_GROUPS_DIR = join(CCJK_CONFIG_DIR, 'groups')

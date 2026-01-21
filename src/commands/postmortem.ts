@@ -4,12 +4,12 @@
  */
 
 import process from 'node:process'
-import chalk from 'chalk'
-import { Command } from 'commander'
+import ansis from 'ansis'
+import { cac } from 'cac'
 import ora from 'ora'
 import { getPostmortemManager } from '../postmortem/manager'
 
-export function createPostmortemCommand(): Command {
+export function createPostmortemCommand() {
   const cmd = new Command('postmortem')
     .alias('pm')
     .description('🔬 Postmortem 智能尸检系统 - 从历史 bug 中学习')
@@ -28,25 +28,25 @@ export function createPostmortemCommand(): Command {
         const manager = getPostmortemManager(process.cwd())
         const result = await manager.init()
 
-        spinner.succeed(chalk.green('Postmortem 系统初始化完成'))
+        spinner.succeed(ansis.green('Postmortem 系统初始化完成'))
 
         console.log()
-        console.log(chalk.cyan('📊 分析结果:'))
-        console.log(`   ${chalk.yellow('生成报告:')} ${result.created} 个`)
-        console.log(`   ${chalk.yellow('存储目录:')} ${result.directory}`)
+        console.log(ansis.cyan('📊 分析结果:'))
+        console.log(`   ${ansis.yellow('生成报告:')} ${result.created} 个`)
+        console.log(`   ${ansis.yellow('存储目录:')} ${result.directory}`)
         console.log()
 
         if (result.created > 0) {
-          console.log(chalk.gray('💡 提示: 运行 `ccjk postmortem list` 查看所有报告'))
-          console.log(chalk.gray('💡 提示: 报告已自动同步到 CLAUDE.md'))
+          console.log(ansis.dim('💡 提示: 运行 `ccjk postmortem list` 查看所有报告'))
+          console.log(ansis.dim('💡 提示: 报告已自动同步到 CLAUDE.md'))
         }
         else {
-          console.log(chalk.gray('💡 提示: 未发现 fix 类型的 commits'))
-          console.log(chalk.gray('   当有新的 bug 修复时，运行 `ccjk postmortem generate` 生成报告'))
+          console.log(ansis.dim('💡 提示: 未发现 fix 类型的 commits'))
+          console.log(ansis.dim('   当有新的 bug 修复时，运行 `ccjk postmortem generate` 生成报告'))
         }
       }
       catch (error) {
-        spinner.fail(chalk.red('初始化失败'))
+        spinner.fail(ansis.red('初始化失败'))
         console.error(error)
         process.exit(1)
       }
@@ -76,16 +76,16 @@ export function createPostmortemCommand(): Command {
             until: options.until,
           })
 
-          spinner.succeed(chalk.green('发布摘要生成完成'))
+          spinner.succeed(ansis.green('发布摘要生成完成'))
 
           console.log()
-          console.log(chalk.cyan(`📦 版本 ${summary.version} 摘要:`))
-          console.log(`   ${chalk.yellow('Fix commits:')} ${summary.fixCommitCount} 个`)
-          console.log(`   ${chalk.yellow('新增 Postmortem:')} ${summary.newPostmortems.length} 个`)
+          console.log(ansis.cyan(`📦 版本 ${summary.version} 摘要:`))
+          console.log(`   ${ansis.yellow('Fix commits:')} ${summary.fixCommitCount} 个`)
+          console.log(`   ${ansis.yellow('新增 Postmortem:')} ${summary.newPostmortems.length} 个`)
 
           if (summary.newPostmortems.length > 0) {
             console.log()
-            console.log(chalk.cyan('📝 新增报告:'))
+            console.log(ansis.cyan('📝 新增报告:'))
             for (const id of summary.newPostmortems) {
               console.log(`   - ${id}`)
             }
@@ -93,7 +93,7 @@ export function createPostmortemCommand(): Command {
 
           if (summary.keyLessons.length > 0) {
             console.log()
-            console.log(chalk.cyan('📚 关键教训:'))
+            console.log(ansis.cyan('📚 关键教训:'))
             for (const lesson of summary.keyLessons.slice(0, 5)) {
               console.log(`   • ${lesson}`)
             }
@@ -102,14 +102,14 @@ export function createPostmortemCommand(): Command {
         else {
           // 普通生成
           const result = await manager.init()
-          spinner.succeed(chalk.green('Postmortem 生成完成'))
+          spinner.succeed(ansis.green('Postmortem 生成完成'))
 
           console.log()
-          console.log(`   ${chalk.yellow('生成报告:')} ${result.created} 个`)
+          console.log(`   ${ansis.yellow('生成报告:')} ${result.created} 个`)
         }
       }
       catch (error) {
-        spinner.fail(chalk.red('生成失败'))
+        spinner.fail(ansis.red('生成失败'))
         console.error(error)
         process.exit(1)
       }
@@ -142,14 +142,14 @@ export function createPostmortemCommand(): Command {
         }
 
         if (reports.length === 0) {
-          console.log(chalk.yellow('暂无 Postmortem 报告'))
-          console.log(chalk.gray('运行 `ccjk postmortem init` 初始化系统'))
+          console.log(ansis.yellow('暂无 Postmortem 报告'))
+          console.log(ansis.dim('运行 `ccjk postmortem init` 初始化系统'))
           return
         }
 
         console.log()
-        console.log(chalk.cyan.bold('📋 Postmortem 报告列表'))
-        console.log(chalk.gray('─'.repeat(60)))
+        console.log(ansis.cyan.bold('📋 Postmortem 报告列表'))
+        console.log(ansis.dim('─'.repeat(60)))
 
         const severityEmoji: Record<string, string> = {
           critical: '🔴',
@@ -170,18 +170,18 @@ export function createPostmortemCommand(): Command {
           const status = statusEmoji[report.status] || '❓'
 
           console.log()
-          console.log(`${severity} ${chalk.bold(report.id)}: ${report.title}`)
-          console.log(`   ${chalk.gray('类别:')} ${report.category}  ${chalk.gray('状态:')} ${status} ${report.status}`)
-          console.log(`   ${chalk.gray('创建:')} ${new Date(report.createdAt).toLocaleDateString()}`)
+          console.log(`${severity} ${ansis.bold(report.id)}: ${report.title}`)
+          console.log(`   ${ansis.dim('类别:')} ${report.category}  ${ansis.dim('状态:')} ${status} ${report.status}`)
+          console.log(`   ${ansis.dim('创建:')} ${new Date(report.createdAt).toLocaleDateString()}`)
         }
 
         console.log()
-        console.log(chalk.gray('─'.repeat(60)))
-        console.log(chalk.gray(`共 ${reports.length} 个报告`))
-        console.log(chalk.gray('运行 `ccjk postmortem show <id>` 查看详情'))
+        console.log(ansis.dim('─'.repeat(60)))
+        console.log(ansis.dim(`共 ${reports.length} 个报告`))
+        console.log(ansis.dim('运行 `ccjk postmortem show <id>` 查看详情'))
       }
       catch (error) {
-        console.error(chalk.red('获取列表失败'), error)
+        console.error(ansis.red('获取列表失败'), error)
         process.exit(1)
       }
     })
@@ -198,18 +198,18 @@ export function createPostmortemCommand(): Command {
         const report = manager.getReport(id)
 
         if (!report) {
-          console.log(chalk.red(`未找到 Postmortem: ${id}`))
+          console.log(ansis.red(`未找到 Postmortem: ${id}`))
           process.exit(1)
         }
 
         const severityColors: Record<string, typeof chalk> = {
-          critical: chalk.red,
-          high: chalk.yellow,
-          medium: chalk.blue,
-          low: chalk.green,
+          critical: ansis.red,
+          high: ansis.yellow,
+          medium: ansis.blue,
+          low: ansis.green,
         }
 
-        const color = severityColors[report.severity] || chalk.white
+        const color = severityColors[report.severity] || ansis.white
 
         console.log()
         console.log(color.bold(`═══════════════════════════════════════════════════════════`))
@@ -217,62 +217,62 @@ export function createPostmortemCommand(): Command {
         console.log(color.bold(`═══════════════════════════════════════════════════════════`))
 
         console.log()
-        console.log(chalk.cyan('📊 元数据'))
+        console.log(ansis.cyan('📊 元数据'))
         console.log(`   严重程度: ${color(report.severity.toUpperCase())}`)
         console.log(`   类别: ${report.category}`)
         console.log(`   状态: ${report.status}`)
         console.log(`   创建时间: ${report.createdAt}`)
 
         console.log()
-        console.log(chalk.cyan('📝 问题描述'))
+        console.log(ansis.cyan('📝 问题描述'))
         console.log(report.description.split('\n').map(l => `   ${l}`).join('\n'))
 
         console.log()
-        console.log(chalk.cyan('🔍 根本原因'))
+        console.log(ansis.cyan('🔍 根本原因'))
         for (const cause of report.rootCause) {
           console.log(`   • ${cause}`)
         }
 
         console.log()
-        console.log(chalk.cyan('✅ 修复方案'))
+        console.log(ansis.cyan('✅ 修复方案'))
         console.log(`   ${report.solution.description}`)
 
         if (report.solution.codeExample) {
           console.log()
-          console.log(chalk.red('   ❌ 错误写法:'))
-          console.log(chalk.gray(report.solution.codeExample.bad.split('\n').map(l => `      ${l}`).join('\n')))
+          console.log(ansis.red('   ❌ 错误写法:'))
+          console.log(ansis.dim(report.solution.codeExample.bad.split('\n').map(l => `      ${l}`).join('\n')))
           console.log()
-          console.log(chalk.green('   ✅ 正确写法:'))
-          console.log(chalk.gray(report.solution.codeExample.good.split('\n').map(l => `      ${l}`).join('\n')))
+          console.log(ansis.green('   ✅ 正确写法:'))
+          console.log(ansis.dim(report.solution.codeExample.good.split('\n').map(l => `      ${l}`).join('\n')))
         }
 
         console.log()
-        console.log(chalk.cyan('🛡️ 预防措施'))
+        console.log(ansis.cyan('🛡️ 预防措施'))
         for (const measure of report.preventionMeasures) {
           console.log(`   • ${measure}`)
         }
 
         console.log()
-        console.log(chalk.cyan('🤖 AI 开发指令'))
+        console.log(ansis.cyan('🤖 AI 开发指令'))
         for (const directive of report.aiDirectives) {
           console.log(`   • ${directive}`)
         }
 
         if (report.relatedFiles.length > 0) {
           console.log()
-          console.log(chalk.cyan('📁 相关文件'))
+          console.log(ansis.cyan('📁 相关文件'))
           for (const file of report.relatedFiles.slice(0, 10)) {
             console.log(`   • ${file}`)
           }
           if (report.relatedFiles.length > 10) {
-            console.log(chalk.gray(`   ... 还有 ${report.relatedFiles.length - 10} 个文件`))
+            console.log(ansis.dim(`   ... 还有 ${report.relatedFiles.length - 10} 个文件`))
           }
         }
 
         console.log()
       }
       catch (error) {
-        console.error(chalk.red('获取详情失败'), error)
+        console.error(ansis.red('获取详情失败'), error)
         process.exit(1)
       }
     })
@@ -299,8 +299,8 @@ export function createPostmortemCommand(): Command {
         spinner.stop()
 
         console.log()
-        console.log(chalk.cyan.bold('🔍 Postmortem 代码检查报告'))
-        console.log(chalk.gray('─'.repeat(60)))
+        console.log(ansis.cyan.bold('🔍 Postmortem 代码检查报告'))
+        console.log(ansis.dim('─'.repeat(60)))
 
         console.log()
         console.log(`   检查文件: ${result.filesChecked} 个`)
@@ -315,7 +315,7 @@ export function createPostmortemCommand(): Command {
 
         if (result.issuesFound.length > 0) {
           console.log()
-          console.log(chalk.yellow('⚠️ 发现的问题:'))
+          console.log(ansis.yellow('⚠️ 发现的问题:'))
           console.log()
 
           const severityEmoji: Record<string, string> = {
@@ -327,21 +327,21 @@ export function createPostmortemCommand(): Command {
 
           for (const issue of result.issuesFound) {
             const emoji = severityEmoji[issue.pattern.severity] || '⚪'
-            console.log(`${emoji} ${chalk.bold(issue.file)}:${issue.line}:${issue.column}`)
+            console.log(`${emoji} ${ansis.bold(issue.file)}:${issue.line}:${issue.column}`)
             console.log(`   ${issue.message}`)
-            console.log(chalk.gray(`   ${issue.suggestion}`))
+            console.log(ansis.dim(`   ${issue.suggestion}`))
             console.log()
           }
         }
 
-        console.log(chalk.gray('─'.repeat(60)))
+        console.log(ansis.dim('─'.repeat(60)))
 
         if (result.passed) {
-          console.log(chalk.green.bold('✅ 检查通过'))
+          console.log(ansis.green.bold('✅ 检查通过'))
         }
         else {
-          console.log(chalk.red.bold('❌ 检查未通过'))
-          console.log(chalk.gray('   请修复 Critical 和 High 级别的问题'))
+          console.log(ansis.red.bold('❌ 检查未通过'))
+          console.log(ansis.dim('   请修复 Critical 和 High 级别的问题'))
 
           if (options.ci) {
             process.exit(1)
@@ -349,7 +349,7 @@ export function createPostmortemCommand(): Command {
         }
       }
       catch (error) {
-        spinner.fail(chalk.red('检查失败'))
+        spinner.fail(ansis.red('检查失败'))
         console.error(error)
         process.exit(1)
       }
@@ -368,16 +368,16 @@ export function createPostmortemCommand(): Command {
         const manager = getPostmortemManager(process.cwd())
         const result = await manager.syncToClaudeMd()
 
-        spinner.succeed(chalk.green('同步完成'))
+        spinner.succeed(ansis.green('同步完成'))
 
         console.log()
-        console.log(`   ${chalk.yellow('同步条目:')} ${result.synced} 个`)
-        console.log(`   ${chalk.yellow('目标文件:')} ${result.claudeMdPath}`)
+        console.log(`   ${ansis.yellow('同步条目:')} ${result.synced} 个`)
+        console.log(`   ${ansis.yellow('目标文件:')} ${result.claudeMdPath}`)
         console.log()
-        console.log(chalk.gray('💡 AI 在开发时会自动参考这些 Postmortem 避免重复犯错'))
+        console.log(ansis.dim('💡 AI 在开发时会自动参考这些 Postmortem 避免重复犯错'))
       }
       catch (error) {
-        spinner.fail(chalk.red('同步失败'))
+        spinner.fail(ansis.red('同步失败'))
         console.error(error)
         process.exit(1)
       }
@@ -395,27 +395,27 @@ export function createPostmortemCommand(): Command {
         const index = manager.loadIndex()
 
         if (!index) {
-          console.log(chalk.yellow('暂无统计数据'))
-          console.log(chalk.gray('运行 `ccjk postmortem init` 初始化系统'))
+          console.log(ansis.yellow('暂无统计数据'))
+          console.log(ansis.dim('运行 `ccjk postmortem init` 初始化系统'))
           return
         }
 
         console.log()
-        console.log(chalk.cyan.bold('📊 Postmortem 统计'))
-        console.log(chalk.gray('─'.repeat(40)))
+        console.log(ansis.cyan.bold('📊 Postmortem 统计'))
+        console.log(ansis.dim('─'.repeat(40)))
 
         console.log()
-        console.log(chalk.yellow('总计:'), index.stats.total, '个报告')
+        console.log(ansis.yellow('总计:'), index.stats.total, '个报告')
 
         console.log()
-        console.log(chalk.yellow('按严重程度:'))
+        console.log(ansis.yellow('按严重程度:'))
         console.log(`   🔴 Critical: ${index.stats.bySeverity.critical}`)
         console.log(`   🟠 High: ${index.stats.bySeverity.high}`)
         console.log(`   🟡 Medium: ${index.stats.bySeverity.medium}`)
         console.log(`   🟢 Low: ${index.stats.bySeverity.low}`)
 
         console.log()
-        console.log(chalk.yellow('按类别:'))
+        console.log(ansis.yellow('按类别:'))
         for (const [category, count] of Object.entries(index.stats.byCategory)) {
           if (count > 0) {
             console.log(`   ${category}: ${count}`)
@@ -423,17 +423,17 @@ export function createPostmortemCommand(): Command {
         }
 
         console.log()
-        console.log(chalk.yellow('按状态:'))
+        console.log(ansis.yellow('按状态:'))
         console.log(`   ⚡ Active: ${index.stats.byStatus.active}`)
         console.log(`   ✅ Resolved: ${index.stats.byStatus.resolved}`)
         console.log(`   👀 Monitoring: ${index.stats.byStatus.monitoring}`)
         console.log(`   📦 Archived: ${index.stats.byStatus.archived}`)
 
         console.log()
-        console.log(chalk.gray(`最后更新: ${index.lastUpdated}`))
+        console.log(ansis.dim(`最后更新: ${index.lastUpdated}`))
       }
       catch (error) {
-        console.error(chalk.red('获取统计失败'), error)
+        console.error(ansis.red('获取统计失败'), error)
         process.exit(1)
       }
     })

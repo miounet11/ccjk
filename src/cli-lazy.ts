@@ -817,60 +817,40 @@ const COMMANDS: CommandDefinition[] = [
   },
   {
     name: 'session <action> [id]',
-    description: 'Manage sessions (save, list, restore, export, cleanup, status, create, rename, delete)',
+    description: 'Session management (save, restore, list, delete, resume)',
     tier: 'extended',
     options: [
-      { flags: '--all, -a', description: 'Clean all targets without selection' },
-      { flags: '--force, -f', description: 'Force cleanup without confirmation' },
       { flags: '--name, -n <name>', description: 'Session name' },
-      { flags: '--provider, -p <provider>', description: 'API provider' },
-      { flags: '--api-key, -k <key>', description: 'API key' },
-      { flags: '--resume, -r <session>', description: 'Resume session by name or ID' },
-      { flags: '--background, -b', description: 'Run in background mode' },
     ],
     loader: async () => {
-      const { saveSession, listSessions, restoreSession, exportSession, cleanupSession, sessionStatus, createSessionCommand, renameSessionCommand, deleteSessionCommand } = await import('./commands/session')
-      return async (options, action: unknown, id: unknown) => {
-        const actionStr = action as string
-        if (actionStr === 'save')
-          await saveSession()
-        else if (actionStr === 'list')
-          await listSessions()
-        else if (actionStr === 'restore')
-          await restoreSession(id as string)
-        else if (actionStr === 'export')
-          await exportSession(id as string)
-        else if (actionStr === 'cleanup' || actionStr === 'clean')
-          await cleanupSession({ all: options.all as boolean, force: options.force as boolean })
-        else if (actionStr === 'status')
-          await sessionStatus()
-        else if (actionStr === 'create')
-          await createSessionCommand(options)
-        else if (actionStr === 'rename')
-          await renameSessionCommand(id as string, options)
-        else if (actionStr === 'delete')
-          await deleteSessionCommand(id as string, options)
-        else
-          console.error(`Unknown action: ${actionStr}. Use: save, list, restore, export, cleanup, status, create, rename, or delete`)
+      const { handleSessionCommand } = await import('./commands/session')
+      return async (_options, action: unknown, id: unknown) => {
+        const args: string[] = []
+        if (action)
+          args.push(action as string)
+        if (id)
+          args.push(id as string)
+        await handleSessionCommand(args)
       }
     },
   },
   {
     name: 'context <action> [id]',
-    description: '🧠 Context Compression - Intelligent context management',
+    description: 'Context management (analyze, compress, optimize, status)',
     aliases: ['ctx'],
     tier: 'extended',
     options: [
-      { flags: '--session, -s <id>', description: 'Session ID to operate on' },
-      { flags: '--format, -f <format>', description: 'Output format (json, text)' },
       { flags: '--verbose, -v', description: 'Verbose output' },
     ],
     loader: async () => {
-      return async (options, action: unknown, id: unknown) => {
-        const actionStr = action as string
-        const idStr = id as string | undefined
-        const { contextCommand } = await import('./context-compression/commands/context')
-        await contextCommand(actionStr, idStr, options)
+      const { handleContextCommand } = await import('./commands/context')
+      return async (_options, action: unknown, id: unknown) => {
+        const args: string[] = []
+        if (action)
+          args.push(action as string)
+        if (id)
+          args.push(id as string)
+        await handleContextCommand(args)
       }
     },
   },

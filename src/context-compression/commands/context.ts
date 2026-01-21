@@ -14,10 +14,8 @@
  */
 
 import type { CliOptions } from '../../cli-lazy'
-import chalk from 'chalk'
+import ansis from 'ansis'
 import ora from 'ora'
-
-const { green, yellow, cyan, gray, red, blue } = chalk
 
 interface ContextCommandOptions extends CliOptions {
   session?: string

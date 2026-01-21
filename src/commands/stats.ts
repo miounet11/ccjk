@@ -9,7 +9,7 @@
  */
 
 import type { CliOptions } from '../cli-lazy'
-import chalk from 'chalk'
+import ansis from 'ansis'
 import { i18n } from '../i18n'
 import { getStatsStorage } from '../stats-storage'
 
@@ -35,7 +35,7 @@ export async function stats(options: StatsOptions = {}): Promise<void> {
   const records = storage.getRecordsByDateRange(startDate, endDate)
 
   if (records.length === 0) {
-    console.log(chalk.yellow(`\n${i18n.t('stats:noData')}\n`))
+    console.log(ansis.yellow(`\n${i18n.t('stats:noData')}\n`))
     return
   }
 
@@ -45,7 +45,7 @@ export async function stats(options: StatsOptions = {}): Promise<void> {
     : records
 
   if (filteredRecords.length === 0) {
-    console.log(chalk.yellow(`\n${i18n.t('stats:noData')} for provider: ${options.provider}\n`))
+    console.log(ansis.yellow(`\n${i18n.t('stats:noData')} for provider: ${options.provider}\n`))
     return
   }
 
@@ -66,7 +66,7 @@ export async function stats(options: StatsOptions = {}): Promise<void> {
   // Export if requested
   if (options.export) {
     await exportStats(stats, options.export, format)
-    console.log(chalk.green(`\n${i18n.t('stats:exportSuccess')}: ${options.export}\n`))
+    console.log(ansis.green(`\n${i18n.t('stats:exportSuccess')}: ${options.export}\n`))
   }
 }
 
@@ -119,49 +119,49 @@ function calculateStats(records: any[]): { totalRequests: number, successfulRequ
  * Display statistics in table format
  */
 function displayTable(stats: any, period: string): void {
-  console.log(chalk.cyan.bold(`\n📊 ${i18n.t('stats:title')} - ${i18n.t(`stats:period.${period}`)}`))
-  console.log(chalk.gray('─'.repeat(60)))
+  console.log(ansis.cyan.bold(`\n📊 ${i18n.t('stats:title')} - ${i18n.t(`stats:period.${period}`)}`))
+  console.log(ansis.dim('─'.repeat(60)))
 
   // Request statistics
-  console.log(chalk.yellow('\n📈 Request Statistics:'))
-  console.log(`  ${i18n.t('stats:totalRequests')}: ${chalk.bold(stats.totalRequests.toLocaleString())}`)
-  console.log(`  ${chalk.green('✓')} Successful: ${chalk.bold(stats.successfulRequests.toLocaleString())}`)
-  console.log(`  ${chalk.red('✗')} Failed: ${chalk.bold(stats.failedRequests.toLocaleString())}`)
-  console.log(`  ${i18n.t('stats:successRate')}: ${chalk.bold(stats.successRate.toFixed(2))}%`)
+  console.log(ansis.yellow('\n📈 Request Statistics:'))
+  console.log(`  ${i18n.t('stats:totalRequests')}: ${ansis.bold(stats.totalRequests.toLocaleString())}`)
+  console.log(`  ${ansis.green('✓')} Successful: ${ansis.bold(stats.successfulRequests.toLocaleString())}`)
+  console.log(`  ${ansis.red('✗')} Failed: ${ansis.bold(stats.failedRequests.toLocaleString())}`)
+  console.log(`  ${i18n.t('stats:successRate')}: ${ansis.bold(stats.successRate.toFixed(2))}%`)
 
   // Token statistics
-  console.log(chalk.yellow('\n🎯 Token Usage:'))
-  console.log(`  ${i18n.t('stats:input')}: ${chalk.bold(stats.totalInputTokens.toLocaleString())}`)
-  console.log(`  ${i18n.t('stats:output')}: ${chalk.bold(stats.totalOutputTokens.toLocaleString())}`)
-  console.log(`  ${i18n.t('stats:totalTokens')}: ${chalk.bold(stats.totalTokens.toLocaleString())}`)
+  console.log(ansis.yellow('\n🎯 Token Usage:'))
+  console.log(`  ${i18n.t('stats:input')}: ${ansis.bold(stats.totalInputTokens.toLocaleString())}`)
+  console.log(`  ${i18n.t('stats:output')}: ${ansis.bold(stats.totalOutputTokens.toLocaleString())}`)
+  console.log(`  ${i18n.t('stats:totalTokens')}: ${ansis.bold(stats.totalTokens.toLocaleString())}`)
 
   // Cost statistics
-  console.log(chalk.yellow('\n💰 Cost Analysis:'))
-  console.log(`  ${i18n.t('stats:estimatedCost')}: ${chalk.bold(`$${stats.totalCost.toFixed(4)}`)}`)
+  console.log(ansis.yellow('\n💰 Cost Analysis:'))
+  console.log(`  ${i18n.t('stats:estimatedCost')}: ${ansis.bold(`$${stats.totalCost.toFixed(4)}`)}`)
 
   // Performance statistics
-  console.log(chalk.yellow('\n⚡ Performance:'))
-  console.log(`  ${i18n.t('stats:averageLatency')}: ${chalk.bold(stats.averageLatency.toFixed(0))}ms`)
+  console.log(ansis.yellow('\n⚡ Performance:'))
+  console.log(`  ${i18n.t('stats:averageLatency')}: ${ansis.bold(stats.averageLatency.toFixed(0))}ms`)
 
   // Provider distribution
   if (Object.keys(stats.providerCounts).length > 0) {
-    console.log(chalk.yellow(`\n☁️  ${i18n.t('stats:providerDistribution')}:`))
+    console.log(ansis.yellow(`\n☁️  ${i18n.t('stats:providerDistribution')}:`))
     for (const [provider, count] of Object.entries(stats.providerCounts)) {
       const percentage = ((count as number) / stats.totalRequests * 100).toFixed(1)
-      console.log(`  ${provider}: ${chalk.bold(count)} (${percentage}%)`)
+      console.log(`  ${provider}: ${ansis.bold(count)} (${percentage}%)`)
     }
   }
 
   // Model distribution
   if (Object.keys(stats.modelCounts).length > 0) {
-    console.log(chalk.yellow('\n🤖 Model Distribution:'))
+    console.log(ansis.yellow('\n🤖 Model Distribution:'))
     for (const [model, count] of Object.entries(stats.modelCounts)) {
       const percentage = ((count as number) / stats.totalRequests * 100).toFixed(1)
-      console.log(`  ${model}: ${chalk.bold(count)} (${percentage}%)`)
+      console.log(`  ${model}: ${ansis.bold(count)} (${percentage}%)`)
     }
   }
 
-  console.log(chalk.gray(`\n${'─'.repeat(60)}\n`))
+  console.log(ansis.dim(`\n${'─'.repeat(60)}\n`))
 }
 
 /**
@@ -221,19 +221,19 @@ export async function listStatsDates(): Promise<void> {
   const dates = storage.getAvailableDates()
 
   if (dates.length === 0) {
-    console.log(chalk.yellow('\nNo statistics data available\n'))
+    console.log(ansis.yellow('\nNo statistics data available\n'))
     return
   }
 
-  console.log(chalk.cyan.bold('\n📅 Available Statistics Dates:'))
-  console.log(chalk.gray('─'.repeat(40)))
+  console.log(ansis.cyan.bold('\n📅 Available Statistics Dates:'))
+  console.log(ansis.dim('─'.repeat(40)))
 
   for (const date of dates) {
     const records = storage.getRecordsByDate(date)
-    console.log(`  ${date}: ${chalk.bold(records.length)} requests`)
+    console.log(`  ${date}: ${ansis.bold(records.length)} requests`)
   }
 
-  console.log(chalk.gray(`\n${'─'.repeat(40)}\n`))
+  console.log(ansis.dim(`\n${'─'.repeat(40)}\n`))
 }
 
 /**
@@ -243,14 +243,14 @@ export async function storageStats(): Promise<void> {
   const storage = getStatsStorage()
   const stats = storage.getStorageStats()
 
-  console.log(chalk.cyan.bold('\n💾 Storage Statistics:'))
-  console.log(chalk.gray('─'.repeat(40)))
-  console.log(`  Total record files: ${chalk.bold(stats.totalRecordFiles)}`)
-  console.log(`  Total daily files: ${chalk.bold(stats.totalDailyFiles)}`)
-  console.log(`  Total records: ${chalk.bold(stats.totalRecords.toLocaleString())}`)
-  console.log(`  Oldest date: ${chalk.bold(stats.oldestDate || 'N/A')}`)
-  console.log(`  Newest date: ${chalk.bold(stats.newestDate || 'N/A')}`)
-  console.log(chalk.gray(`\n${'─'.repeat(40)}\n`))
+  console.log(ansis.cyan.bold('\n💾 Storage Statistics:'))
+  console.log(ansis.dim('─'.repeat(40)))
+  console.log(`  Total record files: ${ansis.bold(stats.totalRecordFiles)}`)
+  console.log(`  Total daily files: ${ansis.bold(stats.totalDailyFiles)}`)
+  console.log(`  Total records: ${ansis.bold(stats.totalRecords.toLocaleString())}`)
+  console.log(`  Oldest date: ${ansis.bold(stats.oldestDate || 'N/A')}`)
+  console.log(`  Newest date: ${ansis.bold(stats.newestDate || 'N/A')}`)
+  console.log(ansis.dim(`\n${'─'.repeat(40)}\n`))
 }
 
 /**
@@ -260,5 +260,5 @@ export async function cleanupStats(daysToKeep: number = 90): Promise<void> {
   const storage = getStatsStorage()
   const deletedCount = storage.cleanupOldRecords(daysToKeep)
 
-  console.log(chalk.green(`\n✓ Cleanup complete: ${deletedCount} old records marked for deletion\n`))
+  console.log(ansis.green(`\n✓ Cleanup complete: ${deletedCount} old records marked for deletion\n`))
 }

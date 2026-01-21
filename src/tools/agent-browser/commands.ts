@@ -4,11 +4,9 @@
  */
 
 import process from 'node:process'
-import chalk from 'chalk'
+import ansis from 'ansis'
 import { checkAgentBrowserInstalled, getInstallPath } from './installer'
 import { AgentBrowserSession } from './session'
-
-const { bold, cyan, gray, green, red, yellow } = chalk
 
 // ============================================================================
 // 类型定义

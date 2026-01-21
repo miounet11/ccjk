@@ -6,9 +6,7 @@
 import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import chalk from 'chalk'
-
-const { bold, cyan, gray, green, red, yellow } = chalk
+import ansis from 'ansis'
 
 // ============================================================================
 // 类型定义

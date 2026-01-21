@@ -90,21 +90,33 @@ describe('contextCache', () => {
     })
 
     it('should update LRU order on access', () => {
-      const smallCache = new ContextCache(1000, 100)
+      // Use cache size that fits exactly 4 entries to force eviction
+      // Each entry ~600 bytes, so 2400 bytes = 4 entries
+      const smallCache = new ContextCache(2400, 100)
 
       smallCache.set('test-1', createMockContext('test-1', 200))
       smallCache.set('test-2', createMockContext('test-2', 200))
       smallCache.set('test-3', createMockContext('test-3', 200))
 
-      // Access test-1 to make it most recently used
+      // Access test-1 to make it most recently used (moves to end)
       smallCache.get('test-1')
 
-      // Add more to trigger eviction
+      // Add test-4 - should fit (4 entries fit exactly)
       smallCache.set('test-4', createMockContext('test-4', 200))
+
+      // All 4 should still exist
+      expect(smallCache.has('test-1')).toBe(true)
+      expect(smallCache.has('test-2')).toBe(true)
+      expect(smallCache.has('test-3')).toBe(true)
+      expect(smallCache.has('test-4')).toBe(true)
+
+      // Now add test-5 - should evict test-2 (least recently used after test-1 access)
       smallCache.set('test-5', createMockContext('test-5', 200))
 
-      // test-1 should still be there, test-2 should be evicted
+      // test-1 should still be there (recently accessed)
       expect(smallCache.has('test-1')).toBe(true)
+      // test-2 should have been evicted (least recently used)
+      expect(smallCache.has('test-2')).toBe(false)
     })
   })
 

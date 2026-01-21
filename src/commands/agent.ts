@@ -15,7 +15,7 @@
  */
 
 import type { AgentCapability, AgentDefinition } from '../plugins-v2/types'
-import chalk from 'chalk'
+import ansis from 'ansis'
 import {
   createAgent,
   createAgentFromTemplate,
@@ -91,19 +91,19 @@ export async function handleAgentCommand(
  */
 async function createNewAgent(name: string, options: AgentCommandOptions): Promise<void> {
   if (!name) {
-    console.log(chalk.red('Error: Please specify an agent name'))
-    console.log(chalk.dim('Example: agent create my-assistant'))
+    console.log(ansis.red('Error: Please specify an agent name'))
+    console.log(ansis.dim('Example: agent create my-assistant'))
     return
   }
 
-  console.log(chalk.cyan(`\n🤖 Creating agent: ${name}\n`))
+  console.log(ansis.cyan(`\n🤖 Creating agent: ${name}\n`))
 
   try {
     let agent: AgentDefinition
 
     if (options.template) {
       // Create from template
-      console.log(chalk.dim(`Using template: ${options.template}`))
+      console.log(ansis.dim(`Using template: ${options.template}`))
 
       agent = await createAgentFromTemplate(options.template, {
         id: name,
@@ -120,13 +120,13 @@ async function createNewAgent(name: string, options: AgentCommandOptions): Promi
       // Add skills
       if (options.skills && options.skills.length > 0) {
         builder.addSkills(options.skills)
-        console.log(chalk.dim(`Adding skills: ${options.skills.join(', ')}`))
+        console.log(ansis.dim(`Adding skills: ${options.skills.join(', ')}`))
       }
 
       // Add MCP servers
       if (options.mcp && options.mcp.length > 0) {
         builder.addMcpServers(options.mcp)
-        console.log(chalk.dim(`Adding MCP servers: ${options.mcp.join(', ')}`))
+        console.log(ansis.dim(`Adding MCP servers: ${options.mcp.join(', ')}`))
       }
 
       // Set persona
@@ -137,19 +137,19 @@ async function createNewAgent(name: string, options: AgentCommandOptions): Promi
       agent = await builder.save()
     }
 
-    console.log(chalk.green(`\n✅ Agent created successfully!`))
+    console.log(ansis.green(`\n✅ Agent created successfully!`))
     console.log('')
-    console.log(chalk.bold('Agent Details:'))
-    console.log(chalk.dim(`  ID: ${agent.id}`))
-    console.log(chalk.dim(`  Name: ${agent.name.en}`))
-    console.log(chalk.dim(`  Skills: ${agent.skills.length}`))
-    console.log(chalk.dim(`  MCP Servers: ${agent.mcpServers.length}`))
-    console.log(chalk.dim(`  Capabilities: ${agent.capabilities.join(', ')}`))
+    console.log(ansis.bold('Agent Details:'))
+    console.log(ansis.dim(`  ID: ${agent.id}`))
+    console.log(ansis.dim(`  Name: ${agent.name.en}`))
+    console.log(ansis.dim(`  Skills: ${agent.skills.length}`))
+    console.log(ansis.dim(`  MCP Servers: ${agent.mcpServers.length}`))
+    console.log(ansis.dim(`  Capabilities: ${agent.capabilities.join(', ')}`))
     console.log('')
-    console.log(chalk.dim(`Run with: agent run ${agent.id}`))
+    console.log(ansis.dim(`Run with: agent run ${agent.id}`))
   }
   catch (error) {
-    console.log(chalk.red(`❌ Failed to create agent: ${error instanceof Error ? error.message : error}`))
+    console.log(ansis.red(`❌ Failed to create agent: ${error instanceof Error ? error.message : error}`))
   }
 }
 
@@ -165,21 +165,21 @@ async function listAgents(options: AgentCommandOptions): Promise<void> {
     return
   }
 
-  console.log(chalk.cyan('\n🤖 Installed Agents\n'))
+  console.log(ansis.cyan('\n🤖 Installed Agents\n'))
 
   if (agents.length === 0) {
-    console.log(chalk.dim('No agents created yet.'))
-    console.log(chalk.dim('\nCreate an agent with:'))
-    console.log(chalk.dim('  agent create my-assistant --template code-assistant'))
-    console.log(chalk.dim('  agent create my-agent --skills git-helper,code-reviewer'))
+    console.log(ansis.dim('No agents created yet.'))
+    console.log(ansis.dim('\nCreate an agent with:'))
+    console.log(ansis.dim('  agent create my-assistant --template code-assistant'))
+    console.log(ansis.dim('  agent create my-agent --skills git-helper,code-reviewer'))
     return
   }
 
   for (const agent of agents) {
     const name = agent.name.en || agent.id
 
-    console.log(`  ${chalk.bold(name)} ${chalk.dim(`(${agent.id})`)}`)
-    console.log(chalk.dim(`    ${agent.description.en}`))
+    console.log(`  ${ansis.bold(name)} ${ansis.dim(`(${agent.id})`)}`)
+    console.log(ansis.dim(`    ${agent.description.en}`))
 
     const badges: string[] = []
     if (agent.skills.length > 0)
@@ -190,13 +190,13 @@ async function listAgents(options: AgentCommandOptions): Promise<void> {
       badges.push(`⚡ ${agent.capabilities.length} capabilities`)
 
     if (badges.length > 0) {
-      console.log(chalk.dim(`    ${badges.join(' • ')}`))
+      console.log(ansis.dim(`    ${badges.join(' • ')}`))
     }
 
     console.log('')
   }
 
-  console.log(chalk.dim(`Total: ${agents.length} agents`))
+  console.log(ansis.dim(`Total: ${agents.length} agents`))
 }
 
 /**
@@ -204,7 +204,7 @@ async function listAgents(options: AgentCommandOptions): Promise<void> {
  */
 async function showAgentInfo(agentId: string, options: AgentCommandOptions): Promise<void> {
   if (!agentId) {
-    console.log(chalk.red('Error: Please specify an agent ID'))
+    console.log(ansis.red('Error: Please specify an agent ID'))
     return
   }
 
@@ -212,7 +212,7 @@ async function showAgentInfo(agentId: string, options: AgentCommandOptions): Pro
   const agent = manager.getAgent(agentId)
 
   if (!agent) {
-    console.log(chalk.red(`Agent not found: ${agentId}`))
+    console.log(ansis.red(`Agent not found: ${agentId}`))
     return
   }
 
@@ -222,80 +222,80 @@ async function showAgentInfo(agentId: string, options: AgentCommandOptions): Pro
   }
 
   console.log('')
-  console.log(chalk.bold(chalk.cyan(`🤖 ${agent.name.en}`)))
-  console.log(chalk.dim(`ID: ${agent.id}`))
+  console.log(ansis.bold(ansis.cyan(`🤖 ${agent.name.en}`)))
+  console.log(ansis.dim(`ID: ${agent.id}`))
   console.log('')
 
-  console.log(chalk.bold('📝 Description'))
-  console.log(chalk.dim(`  ${agent.description.en}`))
+  console.log(ansis.bold('📝 Description'))
+  console.log(ansis.dim(`  ${agent.description.en}`))
   console.log('')
 
-  console.log(chalk.bold('🎭 Persona'))
-  console.log(chalk.dim(`  ${agent.persona.substring(0, 200)}${agent.persona.length > 200 ? '...' : ''}`))
+  console.log(ansis.bold('🎭 Persona'))
+  console.log(ansis.dim(`  ${agent.persona.substring(0, 200)}${agent.persona.length > 200 ? '...' : ''}`))
   console.log('')
 
   if (agent.instructions) {
-    console.log(chalk.bold('📋 Instructions'))
+    console.log(ansis.bold('📋 Instructions'))
     const lines = agent.instructions.split('\n').slice(0, 5)
     for (const line of lines) {
-      console.log(chalk.dim(`  ${line}`))
+      console.log(ansis.dim(`  ${line}`))
     }
     if (agent.instructions.split('\n').length > 5) {
-      console.log(chalk.dim('  ...'))
+      console.log(ansis.dim('  ...'))
     }
     console.log('')
   }
 
   if (agent.skills.length > 0) {
-    console.log(chalk.bold('📚 Skills'))
+    console.log(ansis.bold('📚 Skills'))
     for (const skill of agent.skills) {
       const plugin = manager.getPlugin(skill.pluginId)
       const name = plugin?.manifest.name.en || skill.pluginId
-      console.log(chalk.dim(`  • ${name}`))
+      console.log(ansis.dim(`  • ${name}`))
     }
     console.log('')
   }
 
   if (agent.mcpServers.length > 0) {
-    console.log(chalk.bold('🔧 MCP Servers'))
+    console.log(ansis.bold('🔧 MCP Servers'))
     for (const mcp of agent.mcpServers) {
-      console.log(chalk.dim(`  • ${mcp.serverName}`))
+      console.log(ansis.dim(`  • ${mcp.serverName}`))
       if (mcp.tools && mcp.tools.length > 0) {
-        console.log(chalk.dim(`    Tools: ${mcp.tools.join(', ')}`))
+        console.log(ansis.dim(`    Tools: ${mcp.tools.join(', ')}`))
       }
     }
     console.log('')
   }
 
   if (agent.capabilities.length > 0) {
-    console.log(chalk.bold('⚡ Capabilities'))
+    console.log(ansis.bold('⚡ Capabilities'))
     for (const cap of agent.capabilities) {
-      console.log(chalk.dim(`  • ${formatCapability(cap)}`))
+      console.log(ansis.dim(`  • ${formatCapability(cap)}`))
     }
     console.log('')
   }
 
   if (agent.triggers && agent.triggers.length > 0) {
-    console.log(chalk.bold('🎯 Triggers'))
+    console.log(ansis.bold('🎯 Triggers'))
     for (const trigger of agent.triggers) {
-      console.log(chalk.dim(`  • ${trigger}`))
+      console.log(ansis.dim(`  • ${trigger}`))
     }
     console.log('')
   }
 
   // Show system prompt preview
-  console.log(chalk.bold('💬 System Prompt Preview'))
+  console.log(ansis.bold('💬 System Prompt Preview'))
   try {
     const runtime = await getAgentRuntime(agentId)
     const prompt = runtime.getSystemPrompt()
     const lines = prompt.split('\n').slice(0, 10)
     for (const line of lines) {
-      console.log(chalk.dim(`  ${line}`))
+      console.log(ansis.dim(`  ${line}`))
     }
-    console.log(chalk.dim('  ...'))
+    console.log(ansis.dim('  ...'))
   }
   catch {
-    console.log(chalk.dim('  (Unable to generate preview)'))
+    console.log(ansis.dim('  (Unable to generate preview)'))
   }
 }
 
@@ -304,7 +304,7 @@ async function showAgentInfo(agentId: string, options: AgentCommandOptions): Pro
  */
 async function removeAgent(agentId: string): Promise<void> {
   if (!agentId) {
-    console.log(chalk.red('Error: Please specify an agent ID'))
+    console.log(ansis.red('Error: Please specify an agent ID'))
     return
   }
 
@@ -312,14 +312,14 @@ async function removeAgent(agentId: string): Promise<void> {
   const agent = manager.getAgent(agentId)
 
   if (!agent) {
-    console.log(chalk.red(`Agent not found: ${agentId}`))
+    console.log(ansis.red(`Agent not found: ${agentId}`))
     return
   }
 
-  console.log(chalk.yellow(`\n⚠️  Removing agent: ${agent.name.en}`))
+  console.log(ansis.yellow(`\n⚠️  Removing agent: ${agent.name.en}`))
 
   // TODO: Implement agent removal in plugin manager
-  console.log(chalk.red('Agent removal not yet implemented'))
+  console.log(ansis.red('Agent removal not yet implemented'))
 }
 
 /**
@@ -327,7 +327,7 @@ async function removeAgent(agentId: string): Promise<void> {
  */
 async function runAgent(agentId: string, task: string): Promise<void> {
   if (!agentId) {
-    console.log(chalk.red('Error: Please specify an agent ID'))
+    console.log(ansis.red('Error: Please specify an agent ID'))
     return
   }
 
@@ -335,50 +335,50 @@ async function runAgent(agentId: string, task: string): Promise<void> {
   const agent = manager.getAgent(agentId)
 
   if (!agent) {
-    console.log(chalk.red(`Agent not found: ${agentId}`))
+    console.log(ansis.red(`Agent not found: ${agentId}`))
     return
   }
 
-  console.log(chalk.cyan(`\n🤖 Starting agent: ${agent.name.en}\n`))
+  console.log(ansis.cyan(`\n🤖 Starting agent: ${agent.name.en}\n`))
 
   try {
     const runtime = await getAgentRuntime(agentId)
 
     // Show system prompt
-    console.log(chalk.bold('System Prompt:'))
-    console.log(chalk.dim('─'.repeat(60)))
-    console.log(chalk.dim(runtime.getSystemPrompt()))
-    console.log(chalk.dim('─'.repeat(60)))
+    console.log(ansis.bold('System Prompt:'))
+    console.log(ansis.dim('─'.repeat(60)))
+    console.log(ansis.dim(runtime.getSystemPrompt()))
+    console.log(ansis.dim('─'.repeat(60)))
     console.log('')
 
     if (task) {
       runtime.setTask(task)
-      console.log(chalk.bold('Task:'))
-      console.log(chalk.dim(task))
+      console.log(ansis.bold('Task:'))
+      console.log(ansis.dim(task))
       console.log('')
     }
 
     // Show skill content if available
     const skillContent = runtime.getSkillContent()
     if (skillContent) {
-      console.log(chalk.bold('Skill Knowledge:'))
-      console.log(chalk.dim('─'.repeat(60)))
+      console.log(ansis.bold('Skill Knowledge:'))
+      console.log(ansis.dim('─'.repeat(60)))
       const lines = skillContent.split('\n').slice(0, 20)
       for (const line of lines) {
-        console.log(chalk.dim(line))
+        console.log(ansis.dim(line))
       }
       if (skillContent.split('\n').length > 20) {
-        console.log(chalk.dim('... (truncated)'))
+        console.log(ansis.dim('... (truncated)'))
       }
-      console.log(chalk.dim('─'.repeat(60)))
+      console.log(ansis.dim('─'.repeat(60)))
     }
 
     console.log('')
-    console.log(chalk.green('✅ Agent ready!'))
-    console.log(chalk.dim('The system prompt and skill knowledge above can be used with Claude.'))
+    console.log(ansis.green('✅ Agent ready!'))
+    console.log(ansis.dim('The system prompt and skill knowledge above can be used with Claude.'))
   }
   catch (error) {
-    console.log(chalk.red(`❌ Failed to start agent: ${error instanceof Error ? error.message : error}`))
+    console.log(ansis.red(`❌ Failed to start agent: ${error instanceof Error ? error.message : error}`))
   }
 }
 
@@ -394,7 +394,7 @@ async function listTemplates(options: AgentCommandOptions): Promise<void> {
     return
   }
 
-  console.log(chalk.cyan('\n📋 Available Agent Templates\n'))
+  console.log(ansis.cyan('\n📋 Available Agent Templates\n'))
 
   const templateInfo: Record<string, { name: string, description: string, capabilities: string[] }> = {
     'code-assistant': {
@@ -427,19 +427,19 @@ async function listTemplates(options: AgentCommandOptions): Promise<void> {
   for (const templateId of templates) {
     const info = templateInfo[templateId]
     if (info) {
-      console.log(`  ${chalk.bold(info.name)} ${chalk.dim(`(${templateId})`)}`)
-      console.log(chalk.dim(`    ${info.description}`))
-      console.log(chalk.dim(`    Capabilities: ${info.capabilities.join(', ')}`))
+      console.log(`  ${ansis.bold(info.name)} ${ansis.dim(`(${templateId})`)}`)
+      console.log(ansis.dim(`    ${info.description}`))
+      console.log(ansis.dim(`    Capabilities: ${info.capabilities.join(', ')}`))
       console.log('')
     }
     else {
-      console.log(`  ${chalk.bold(templateId)}`)
+      console.log(`  ${ansis.bold(templateId)}`)
       console.log('')
     }
   }
 
-  console.log(chalk.dim('Create an agent from template:'))
-  console.log(chalk.dim('  agent create my-assistant --template code-assistant'))
+  console.log(ansis.dim('Create an agent from template:'))
+  console.log(ansis.dim('  agent create my-assistant --template code-assistant'))
 }
 
 /**
@@ -467,43 +467,43 @@ function formatCapability(cap: AgentCapability): string {
  */
 function showAgentHelp(): void {
   console.log(`
-${chalk.bold(chalk.cyan('🤖 Agent Command'))}
+${ansis.bold(ansis.cyan('🤖 Agent Command'))}
 
-${chalk.bold('Usage:')}
+${ansis.bold('Usage:')}
   agent <command> [options]
 
-${chalk.bold('Commands:')}
-  ${chalk.green('create')} <name>     Create a new agent
-  ${chalk.green('list')}              List all agents
-  ${chalk.green('info')} <id>         Show agent details
-  ${chalk.green('remove')} <id>       Remove an agent
-  ${chalk.green('run')} <id> [task]   Run an agent
-  ${chalk.green('templates')}         List available templates
+${ansis.bold('Commands:')}
+  ${ansis.green('create')} <name>     Create a new agent
+  ${ansis.green('list')}              List all agents
+  ${ansis.green('info')} <id>         Show agent details
+  ${ansis.green('remove')} <id>       Remove an agent
+  ${ansis.green('run')} <id> [task]   Run an agent
+  ${ansis.green('templates')}         List available templates
 
-${chalk.bold('Options:')}
+${ansis.bold('Options:')}
   --template <id>    Use a template (code-assistant, git-master, etc.)
   --skills <ids>     Comma-separated skill IDs to include
   --mcp <servers>    Comma-separated MCP server names
   --persona <text>   Custom persona for the agent
   --json             Output as JSON
 
-${chalk.bold('Examples:')}
-  ${chalk.dim('# Create from template')}
+${ansis.bold('Examples:')}
+  ${ansis.dim('# Create from template')}
   agent create my-assistant --template code-assistant
 
-  ${chalk.dim('# Create with specific skills')}
+  ${ansis.dim('# Create with specific skills')}
   agent create reviewer --skills code-reviewer,react-best-practices
 
-  ${chalk.dim('# Create with MCP servers')}
+  ${ansis.dim('# Create with MCP servers')}
   agent create deployer --mcp vercel,github --skills vercel-deploy
 
-  ${chalk.dim('# List all agents')}
+  ${ansis.dim('# List all agents')}
   agent list
 
-  ${chalk.dim('# Run an agent')}
+  ${ansis.dim('# Run an agent')}
   agent run my-assistant "Review this code"
 
-${chalk.bold('Agent Composition:')}
+${ansis.bold('Agent Composition:')}
   Agents combine Skills (knowledge) + MCP (tools) + Persona (behavior)
 
   ┌─────────────────────────────────────────────┐

@@ -3,9 +3,7 @@
  * 管理浏览器会话的生命周期
  */
 
-import chalk from 'chalk'
-
-const { green, yellow } = chalk
+import ansis from 'ansis'
 
 // ============================================================================
 // 类型定义

@@ -4,6 +4,7 @@
 
 import type { ProviderSetup } from '../core/provider-interface'
 import type { QuickSwitch } from '../wizard/quick-switch'
+import { providerRegistry } from '../core/provider-registry'
 import { Provider302AI } from '../providers/302ai'
 import { ProviderGLM } from '../providers/glm'
 import { createQuickSwitch } from '../wizard/quick-switch'
@@ -16,8 +17,12 @@ describe('quickSwitch', () => {
   beforeEach(() => {
     quickSwitch = createQuickSwitch()
 
+    // Register providers in registry for import tests
     const provider302ai = new Provider302AI()
     const providerGLM = new ProviderGLM()
+
+    providerRegistry.register(provider302ai)
+    providerRegistry.register(providerGLM)
 
     setup302ai = {
       provider: provider302ai.getConfig(),
@@ -30,6 +35,12 @@ describe('quickSwitch', () => {
       credentials: { apiKey: 'glm-test-key' },
       model: 'glm-4-plus',
     }
+  })
+
+  afterEach(() => {
+    // Clean up registry after tests
+    providerRegistry.unregister('302ai')
+    providerRegistry.unregister('glm')
   })
 
   describe('saveProvider', () => {
