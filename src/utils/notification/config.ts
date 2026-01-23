@@ -16,7 +16,7 @@ import type {
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { parse as parseToml, stringify as stringifyToml } from '@iarna/toml'
+import { parse as parseToml, stringify as stringifyToml } from 'smol-toml'
 import { writeFileAtomic } from '../fs-operations'
 import {
   decryptToken,
