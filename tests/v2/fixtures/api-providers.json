@@ -1,0 +1,242 @@
+{
+  "302.AI": {
+    "name": "302.AI",
+    "displayName": "302.AI (Recommended)",
+    "description": "High-performance AI API service with competitive pricing",
+    "baseURL": "https://api.302.ai/v1",
+    "authType": "bearer",
+    "models": [
+      {
+        "id": "gpt-4",
+        "name": "GPT-4",
+        "description": "Most capable model for complex tasks",
+        "contextWindow": 8192,
+        "pricing": {
+          "input": 0.03,
+          "output": 0.06
+        }
+      },
+      {
+        "id": "gpt-3.5-turbo",
+        "name": "GPT-3.5 Turbo",
+        "description": "Fast and efficient for most tasks",
+        "contextWindow": 4096,
+        "pricing": {
+          "input": 0.0015,
+          "output": 0.002
+        }
+      },
+      {
+        "id": "claude-3-opus",
+        "name": "Claude 3 Opus",
+        "description": "Anthropic's most powerful model",
+        "contextWindow": 200000,
+        "pricing": {
+          "input": 0.015,
+          "output": 0.075
+        }
+      }
+    ],
+    "headers": {
+      "User-Agent": "CCJK/6.0.0",
+      "Content-Type": "application/json"
+    },
+    "features": [
+      "streaming",
+      "function_calling",
+      "vision",
+      "json_mode"
+    ],
+    "limits": {
+      "requestsPerMinute": 3500,
+      "tokensPerMinute": 90000,
+      "maxConcurrentRequests": 100
+    }
+  },
+  "OpenAI": {
+    "name": "OpenAI",
+    "displayName": "OpenAI Official",
+    "description": "Official OpenAI API service",
+    "baseURL": "https://api.openai.com/v1",
+    "authType": "bearer",
+    "models": [
+      {
+        "id": "gpt-4",
+        "name": "GPT-4",
+        "description": "Most capable GPT-4 model",
+        "contextWindow": 8192,
+        "pricing": {
+          "input": 0.03,
+          "output": 0.06
+        }
+      },
+      {
+        "id": "gpt-4-turbo",
+        "name": "GPT-4 Turbo",
+        "description": "Latest GPT-4 with improved performance",
+        "contextWindow": 128000,
+        "pricing": {
+          "input": 0.01,
+          "output": 0.03
+        }
+      },
+      {
+        "id": "gpt-3.5-turbo",
+        "name": "GPT-3.5 Turbo",
+        "description": "Fast and cost-effective",
+        "contextWindow": 16385,
+        "pricing": {
+          "input": 0.0005,
+          "output": 0.0015
+        }
+      }
+    ],
+    "headers": {
+      "User-Agent": "CCJK/6.0.0",
+      "Content-Type": "application/json"
+    },
+    "features": [
+      "streaming",
+      "function_calling",
+      "vision",
+      "json_mode",
+      "dall_e"
+    ],
+    "limits": {
+      "requestsPerMinute": 3500,
+      "tokensPerMinute": 90000,
+      "maxConcurrentRequests": 100
+    }
+  },
+  "Anthropic": {
+    "name": "Anthropic",
+    "displayName": "Anthropic Claude",
+    "description": "Anthropic's Claude models",
+    "baseURL": "https://api.anthropic.com",
+    "authType": "x-api-key",
+    "models": [
+      {
+        "id": "claude-3-opus-20240229",
+        "name": "Claude 3 Opus",
+        "description": "Most powerful Claude model",
+        "contextWindow": 200000,
+        "pricing": {
+          "input": 0.015,
+          "output": 0.075
+        }
+      },
+      {
+        "id": "claude-3-sonnet-20240229",
+        "name": "Claude 3 Sonnet",
+        "description": "Balanced performance and speed",
+        "contextWindow": 200000,
+        "pricing": {
+          "input": 0.003,
+          "output": 0.015
+        }
+      },
+      {
+        "id": "claude-3-haiku-20240307",
+        "name": "Claude 3 Haiku",
+        "description": "Fastest Claude model",
+        "contextWindow": 200000,
+        "pricing": {
+          "input": 0.00025,
+          "output": 0.00125
+        }
+      }
+    ],
+    "headers": {
+      "User-Agent": "CCJK/6.0.0",
+      "Content-Type": "application/json",
+      "anthropic-version": "2023-06-01"
+    },
+    "features": [
+      "streaming",
+      "function_calling",
+      "vision",
+      "json_mode"
+    ],
+    "limits": {
+      "requestsPerMinute": 1000,
+      "tokensPerMinute": 40000,
+      "maxConcurrentRequests": 50
+    }
+  },
+  "GLM": {
+    "name": "GLM",
+    "displayName": "智谱 GLM",
+    "description": "智谱AI的GLM系列模型",
+    "baseURL": "https://open.bigmodel.cn/api/paas/v4",
+    "authType": "bearer",
+    "models": [
+      {
+        "id": "glm-4",
+        "name": "GLM-4",
+        "description": "智谱最新一代大模型",
+        "contextWindow": 128000,
+        "pricing": {
+          "input": 0.1,
+          "output": 0.1
+        }
+      },
+      {
+        "id": "glm-3-turbo",
+        "name": "GLM-3 Turbo",
+        "description": "高性能对话模型",
+        "contextWindow": 32000,
+        "pricing": {
+          "input": 0.005,
+          "output": 0.005
+        }
+      }
+    ],
+    "headers": {
+      "User-Agent": "CCJK/6.0.0",
+      "Content-Type": "application/json"
+    },
+    "features": [
+      "streaming",
+      "function_calling",
+      "vision"
+    ],
+    "limits": {
+      "requestsPerMinute": 200,
+      "tokensPerMinute": 20000,
+      "maxConcurrentRequests": 20
+    }
+  },
+  "Test": {
+    "name": "Test",
+    "displayName": "Test Provider",
+    "description": "Test API provider for unit tests",
+    "baseURL": "https://api.test.local/v1",
+    "authType": "bearer",
+    "models": [
+      {
+        "id": "test-model",
+        "name": "Test Model",
+        "description": "A test model for unit testing",
+        "contextWindow": 4096,
+        "pricing": {
+          "input": 0.001,
+          "output": 0.001
+        }
+      }
+    ],
+    "headers": {
+      "User-Agent": "CCJK/6.0.0-test",
+      "Content-Type": "application/json",
+      "X-Test-Mode": "true"
+    },
+    "features": [
+      "streaming",
+      "function_calling"
+    ],
+    "limits": {
+      "requestsPerMinute": 1000,
+      "tokensPerMinute": 10000,
+      "maxConcurrentRequests": 10
+    }
+  }
+}

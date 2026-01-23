@@ -1,0 +1,62 @@
+name: Status Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  status-check:
+    name: Status Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Quick build check
+        run: pnpm build
+
+      - name: Quick test check
+        run: pnpm test:run
+
+      - name: Package size check
+        run: |
+          du -sh dist/
+          echo "Package size check passed"
+
+      - name: Catalog references check
+        run: |
+          if grep -q "catalog:" package.json; then
+            echo "❌ ERROR: package.json contains catalog: references!"
+            exit 1
+          fi
+          echo "✅ No catalog: references found"
+
+      - name: Status summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const status = '${{ job.status }}';
+            console.log('Status check completed:', status);

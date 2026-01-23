@@ -1,0 +1,28 @@
+# Development Dockerfile
+FROM node:22-alpine
+
+# Install pnpm and development tools
+RUN apk add --no-cache git && \
+    npm install -g pnpm@9
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install all dependencies (including dev)
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build project
+RUN pnpm build
+
+# Set environment
+ENV NODE_ENV=development
+
+# Default command
+ENTRYPOINT ["node", "dist/index.mjs"]
+CMD ["--help"]

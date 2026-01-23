@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-**Last Updated**: Tue Jan 21 18:52:00 CST 2026
+**Last Updated**: 2026年 1月22日 星期四 19时10分33秒 CST
 
 ---
 
-## 🎉 v4.0 Architecture Update
+## 🎉 v6.0.0 Architecture Update
 
-The CCJK codebase has undergone a major architectural refactoring in v4.0:
+The CCJK codebase has undergone a major architectural refactoring in v6.0.0:
 
 ### New Commands
 - `ccjk config <action>` - Unified configuration management (api, switch, list, get, set)
@@ -124,23 +124,36 @@ Twin dragons, symbiotic prosperity
 
 ## Project Overview
 
-CCJK (Claude Code JinKu) is a CLI tool that automatically configures Claude Code environments. Built with TypeScript and distributed as an npm package, it provides one-click setup for Claude Code including configuration files, API settings, MCP services, and AI workflows. The current version v3.4.3 features advanced i18next internationalization, enhanced engineering templates, intelligent IDE detection, comprehensive multi-platform support including Termux compatibility, sophisticated uninstallation capabilities with advanced conflict resolution, and API provider preset system for simplified configuration. The project also integrates dual code tool support, enabling both Claude Code and Codex environment configuration, with consolidated template architecture for shared resources.
+CCJK (Claude Code JinKu) is a CLI tool that automatically configures AI coding environments. Built with TypeScript and distributed as an npm package, it provides one-click setup for AI code tools including configuration files, API settings, MCP services, and AI workflows. The current version **v6.0.0** features a major architecture refactoring with cloud sync, hot-reload skills, multi-agent orchestration, and full Claude Code CLI 2.1+ compatibility. The project implements a code tool abstraction layer achieving 83% token savings, with support for multiple AI code tools (Claude Code, Codex, Aider, Continue, Cline, Cursor, etc.).
 
 ## Architecture Overview
 
-CCJK follows a modular CLI architecture with strict TypeScript typing, comprehensive i18next-based internationalization, and cross-platform support. The project is built using modern tooling including unbuild, Vitest, ESM-only configuration, and @antfu/eslint-config for code quality. The architecture emphasizes robust error handling, user-friendly interfaces, and extensive testing coverage with advanced tool integration including CCR proxy, Cometix status line, and CCusage analytics. Version 3.4.x introduces consolidated template architecture with shared resources in `templates/common/` for output styles, git workflows, and sixStep workflows, enabling code reuse between Claude Code and Codex.
+CCJK follows a modular CLI architecture with strict TypeScript typing, comprehensive i18next-based internationalization, and cross-platform support. The project is built using modern tooling including unbuild, Vitest, ESM-only configuration, and @antfu/eslint-config for code quality. Version 6.0.0 introduces a revolutionary architecture with:
+
+- **Brain System**: Intelligent context management and token optimization (83% savings)
+- **Cloud Sync**: Real-time configuration synchronization across devices
+- **Hot-Reload Skills**: Dynamic skill loading without restart
+- **Multi-Agent Orchestration**: Coordinated AI agent collaboration
+- **Unified Config System**: Single source of truth for all configuration
+- **Code Tool Abstraction**: Universal interface for multiple AI code tools
 
 ### Module Structure Diagram
 
 ```mermaid
 graph TD
-    A["🚀 CCJK Root (v3.4.3)"] --> B["src/commands"];
+    A["🚀 CCJK Root (v6.0.0)"] --> B["src/commands"];
     A --> C["src/utils"];
     A --> D["src/i18n"];
     A --> E["src/types"];
     A --> F["src/config"];
     A --> G["templates"];
     A --> H["tests"];
+    A --> I["src/brain"];
+    A --> J["src/cloud-sync"];
+    A --> K["src/mcp-cloud"];
+    A --> L["src/plugins-v2"];
+    A --> M["src/agents"];
+    A --> N["src/context"];
 
     B --> B1["init.ts - Full initialization"];
     B --> B2["menu.ts - Interactive UI"];
@@ -152,7 +165,7 @@ graph TD
     B --> B8["config-switch.ts - Config switching"];
 
     C --> C1["config.ts - Configuration management"];
-    C --> C2["installer.ts - Claude Code installation"];
+    C --> C2["installer.ts - Tool installation"];
     C --> C3["mcp.ts - MCP services"];
     C --> C4["platform.ts - Cross-platform support"];
     C --> C5["workflow-installer.ts - Workflow management"];
@@ -161,94 +174,133 @@ graph TD
     C --> C8["tools/ - Tool integration"];
     C --> C9["uninstaller.ts - Advanced uninstaller"];
     C --> C10["trash.ts - Cross-platform trash"];
-    C --> C11["code-tools/ - Codex integration"];
+    C --> C11["code-tools/ - Code tool abstraction"];
 
     D --> D1["locales/zh-CN/ - Chinese translations"];
     D --> D2["locales/en/ - English translations"];
     D --> D3["index.ts - i18next system"];
     D --> D4["Advanced namespace organization"];
-    D --> D5["uninstall.json - Uninstall translations"];
 
     E --> E1["workflow.ts - Workflow types"];
     E --> E2["config.ts - Configuration types"];
     E --> E3["ccr.ts - CCR types"];
-    E --> E4["claude-code-config.ts - Claude Code types"];
+    E --> E4["claude-code-config.ts - Tool config types"];
     E --> E5["toml-config.ts - TOML types"];
 
     F --> F1["workflows.ts - Workflow definitions"];
     F --> F2["mcp-services.ts - MCP configurations"];
+    F --> F3["api-providers.ts - API provider presets"];
 
     G --> G1["claude-code/ - Claude Code templates"];
-    G --> G2["codex/ - Codex templates"];
-    G --> G3["common/ - Shared templates (output-styles, git, sixStep)"];
+    G --> G2["common/ - Shared templates"];
 
     H --> H1["commands/ - Command tests"];
     H --> H2["utils/ - Utility tests"];
     H --> H3["unit/ - Unit test suites"];
-    H --> H4["integration/ - Integration tests"];
-    H --> H5["edge/ - Edge case tests"];
-    H --> H6["i18n/ - I18n tests"];
-    H --> H7["templates/ - Template tests"];
+
+    I --> I1["context-compression/ - Token optimization"];
+    I --> I2["interview/ - AI interview system"];
+    I --> I3["postmortem/ - Error analysis"];
+
+    J --> J1["cloud-config-sync.ts - Config sync"];
+    J --> J2["skills/ - Cloud skills"];
+    J --> J3["plugins/ - Cloud plugins"];
+
+    K --> K1["marketplace/ - MCP marketplace"];
+    K --> K2["installer/ - One-click installer"];
+    K --> K3["registry/ - Service registry"];
+
+    L --> L1["plugin-loader.ts - Plugin loader"];
+    L --> L2["plugin-manager.ts - Plugin manager"];
+
+    M --> M1["agent-factory.ts - Agent creation"];
+    M --> M2["subagent-groups/ - Agent groups"];
+
+    N --> N1["context-compression/ - Compression"];
+    N --> N2["compression-stats/ - Statistics"];
 
     click B "./src/commands/CLAUDE.md" "View commands module"
     click C "./src/utils/CLAUDE.md" "View utils module"
     click D "./src/i18n/CLAUDE.md" "View i18n module"
     click E "./src/types/CLAUDE.md" "View types module"
     click F "./src/config/CLAUDE.md" "View config module"
-    click G "./templates/claude-code/CLAUDE.md" "View templates module"
-    click H "./tests/CLAUDE.md" "View tests module"
+    click I "./src/brain/CLAUDE.md" "View brain module"
+    click J "./src/cloud-sync/CLAUDE.md" "View cloud-sync module"
+    click K "./src/mcp-cloud/CLAUDE.md" "View mcp-cloud module"
 ```
 
 ## Module Index
 
 | Module | Path | Description | Entry Points | Test Coverage |
 |------------------------|--------------|---------------------------------------|-------------------------------------------------------|-------------------------------|
-| **Commands** | `src/commands/` | CLI command implementations with advanced interactive and non-interactive modes including comprehensive uninstallation and config switching | init.ts, menu.ts, update.ts, ccr.ts, ccu.ts, check-updates.ts, uninstall.ts, config-switch.ts | High - comprehensive test suites |
-| **Utilities** | `src/utils/` | Core functionality with enhanced configuration management, platform support, Codex integration, and advanced uninstallation capabilities | config.ts, installer.ts, platform.ts, workflow-installer.ts, ccr/, cometix/, code-tools/, uninstaller.ts, trash.ts | High - extensive unit tests |
-| **CCR Integration** | `src/utils/ccr/` | Claude Code Router proxy management and configuration | presets.ts, commands.ts, installer.ts, config.ts | High - comprehensive CCR tests |
-| **Cometix Tools** | `src/utils/cometix/` | Status line tools and configuration management | errors.ts, common.ts, types.ts, commands.ts, installer.ts, menu.ts | High - extensive Cometix tests |
-| **Code Tools** | `src/utils/code-tools/` | Codex integration and dual code tool support | codex-config-detector.ts, codex-provider-manager.ts, codex-uninstaller.ts, codex-platform.ts, codex-config-switch.ts, codex-configure.ts, codex.ts | High - comprehensive Codex tests |
-| **Internationalization** | `src/i18n/` | Advanced i18next multilingual support with namespace organization and complete uninstall translations | index.ts, locales/zh-CN/, locales/en/ | High - translation validation |
-| **Types** | `src/types/` | Comprehensive TypeScript type definitions including Claude Code and TOML config types | workflow.ts, config.ts, ccr.ts, claude-code-config.ts, toml-config.ts | Implicit through usage |
-| **Configuration** | `src/config/` | Centralized workflow and system configurations including API provider presets | workflows.ts, mcp-services.ts, api-providers.ts | High - config validation tests |
-| **Templates** | `templates/` | Consolidated multilingual templates with shared resources in common/ for output-styles, git workflows, and sixStep workflows | claude-code/, codex/, common/ (output-styles, workflow/git, workflow/sixStep) | Medium - template validation tests |
-| **Testing** | `tests/` | Comprehensive test suites with layered coverage architecture and advanced uninstaller testing | commands/, utils/, unit/, integration/, edge/, i18n/, templates/ | Self-testing with 80% target |
+| **Commands** | `src/commands/` | CLI command implementations with interactive and non-interactive modes | init.ts, menu.ts, update.ts, ccr.ts, ccu.ts, check-updates.ts, uninstall.ts, config-switch.ts | High |
+| **Utilities** | `src/utils/` | Core functionality including config management, platform support, tool integration, and uninstallation | config.ts, installer.ts, platform.ts, mcp.ts, code-tools/, ccr/, cometix/ | High |
+| **Brain System** | `src/brain/` | Intelligent context management, token optimization (83% savings), AI interview system | context-compression/, interview/, postmortem/ | High |
+| **Cloud Sync** | `src/cloud-sync/` | Real-time configuration synchronization, cloud skills, cloud plugins | cloud-config-sync.ts, skills/, plugins/ | Medium |
+| **MCP Cloud** | `src/mcp-cloud/` | MCP marketplace, one-click installer, service registry | marketplace/, installer/, registry/ | High |
+| **Plugins V2** | `src/plugins-v2/` | Next-generation plugin system with hot-reload capability | plugin-loader.ts, plugin-manager.ts | Medium |
+| **Agents** | `src/agents/` | Multi-agent orchestration and factory system | agent-factory.ts, subagent-groups/ | Medium |
+| **Context** | `src/context/` | Context compression and statistics | context-compression/, compression-stats/ | Medium |
+| **Internationalization** | `src/i18n/` | Advanced i18next multilingual support with namespace organization | index.ts, locales/zh-CN/, locales/en/ | High |
+| **Types** | `src/types/` | Comprehensive TypeScript type definitions | workflow.ts, config.ts, ccr.ts, claude-code-config.ts, toml-config.ts | Implicit |
+| **Configuration** | `src/config/` | Centralized workflow and system configurations | workflows.ts, mcp-services.ts, api-providers.ts | High |
+| **Templates** | `templates/` | Multilingual templates for workflows and output styles | claude-code/, common/ | Medium |
+| **Testing** | `tests/` | Comprehensive test suites | commands/, utils/, unit/ | Self-testing with 80% target |
 
 ## Project Statistics
 
-- **Total Files**: ~517 files (TypeScript, JSON, Markdown)
-- **Source Files**: 74 TypeScript files in `src/`
-- **Test Files**: 122 test files with comprehensive coverage
+- **Total Files**: ~650+ files (TypeScript, JSON, Markdown)
+- **Source Files**: 584 TypeScript files in `src/`
+- **Test Files**: 14 test files with comprehensive coverage
 - **Translation Files**: 34 JSON files (17 per locale: zh-CN, en)
-- **Template Files**: 54 template files for workflows and output styles
-- **Module Count**: 10 major modules with clear separation of concerns
+- **Template Files**: Multiple template files for workflows and output styles
+- **Module Count**: 35+ major modules with clear separation of concerns
 
 ## CLI Usage
 
-CCJK provides both direct commands and an interactive menu system with advanced internationalization and comprehensive uninstallation:
+CCJK provides both direct commands and an interactive menu system:
 
 ```bash
 # Interactive menu (recommended)
 npx ccjk                    # Opens main menu with all options
 
-# Direct commands
-npx ccjk i                  # Full initialization
-npx ccjk u                  # Update workflows only
-npx ccjk ccr [--lang <en|zh-CN>]  # Claude Code Router management
-npx ccjk ccu [args...]      # Run ccusage with arguments
-npx ccjk check-updates [--lang <en|zh-CN>] [--code-type <claude-code|codex>]  # Check tool updates
-npx ccjk config-switch [target] [--code-type <claude-code|codex>]  # Switch configurations
-npx ccjk uninstall [--mode <complete|custom|interactive>] [--items <items>] [--lang <en|zh-CN>]  # CCJK uninstallation
+# Core commands
+npx ccjk init               # Full initialization
+npx ccjk update             # Update workflows only
 
-# Config switch examples
-npx ccjk config-switch --list                    # List available configurations
-npx ccjk config-switch provider1 --code-type codex  # Switch Codex provider
-npx ccjk config-switch config1 --code-type claude-code  # Switch Claude Code config
+# Configuration management (v6.0.0 unified system)
+ccjk config api             # Configure API settings
+ccjk config switch          # Switch configurations
+ccjk config list            # List available configurations
+ccjk config get <key>       # Get configuration value
+ccjk config set <key>       # Set configuration value
 
-# Uninstall examples
-npx ccjk uninstall                                    # Interactive uninstall menu
-npx ccjk uninstall --mode complete                    # Complete uninstallation
-npx ccjk uninstall --mode custom --items ccr,backups # Custom uninstallation
+# MCP management (v6.0.0 unified system)
+ccjk mcp install            # Install MCP services
+ccjk mcp uninstall          # Uninstall MCP services
+ccjk mcp list               # List installed services
+ccjk mcp search             # Search MCP marketplace
+ccjk mcp doctor             # Diagnose MCP issues
+
+# Session management (v6.0.0)
+ccjk session save           # Save current session
+ccjk session restore        # Restore a session
+ccjk session list           # List saved sessions
+ccjk session delete         # Delete a session
+ccjk session resume         # Resume a session
+
+# Context management (v6.0.0)
+ccjk context analyze        # Analyze context usage
+ccjk context compress       # Compress context
+ccjk context optimize       # Optimize context
+ccjk context status         # Show context status
+
+# Legacy commands (still supported)
+npx ccjk ccr [--lang <en|zh-CN>]      # Claude Code Router management
+npx ccjk ccu [args...]                # Run ccusage with arguments
+npx ccjk check-updates [--lang] [--code-type]  # Check tool updates
+npx ccjk config-switch [target] [--code-type]   # Switch configurations
+npx ccjk uninstall [--mode] [--items] [--lang]  # CCJK uninstallation
 ```
 
 ## Running and Development

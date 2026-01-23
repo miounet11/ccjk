@@ -1,0 +1,37 @@
+{
+  "version": "6.0.0",
+  "language": "en",
+  "apiProvider": "302.AI",
+  "apiKey": "sk-test-fixture-key-12345678901234567890",
+  "claudeCodePath": "/usr/local/bin/claude-code",
+  "workflowsEnabled": true,
+  "mcpEnabled": true,
+  "cloudSyncEnabled": false,
+  "telemetryEnabled": false,
+  "autoUpdateEnabled": true,
+  "debugMode": false,
+  "features": {
+    "brainSystem": true,
+    "contextCompression": true,
+    "multiAgentOrchestration": true,
+    "hotReloadSkills": true
+  },
+  "paths": {
+    "configDir": "~/.claude",
+    "workflowsDir": "~/.claude/workflows",
+    "mcpDir": "~/.claude/mcp",
+    "backupDir": "~/.claude/backup",
+    "tempDir": "/tmp/ccjk"
+  },
+  "limits": {
+    "maxTokens": 200000,
+    "maxFileSize": "10MB",
+    "maxConcurrentOperations": 5,
+    "requestTimeout": 30000
+  },
+  "security": {
+    "encryptCredentials": true,
+    "validateCertificates": true,
+    "allowUnsafeOperations": false
+  }
+}

@@ -1,0 +1,53 @@
+# Production Dockerfile
+FROM node:22-alpine AS base
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile --prod=false
+
+# Copy source code
+COPY . .
+
+# Build project
+RUN pnpm build
+
+# Production stage
+FROM node:22-alpine AS production
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile
+
+# Copy built files from base stage
+COPY --from=base /app/dist ./dist
+COPY --from=base /app/node_modules ./node_modules
+
+# Create non-root user
+RUN addgroup -g 1001 -S ccjk && \
+    adduser -S ccjk -u 1001 && \
+    chown -R ccjk:ccjk /app
+
+USER ccjk
+
+# Set environment
+ENV NODE_ENV=production
+
+# Entry point
+ENTRYPOINT ["node", "dist/index.mjs"]
+CMD ["--help"]

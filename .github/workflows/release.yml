@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.changeset/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test:run
+
+      - name: Build project
+        run: pnpm build
+
+      - name: Fix catalog: references before publish
+        run: node scripts/fix-package-catalog.mjs
+
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          publish: pnpm changeset publish
+          commit: 'chore: release'
+          title: 'chore: release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.changesets.outputs.publishedPackages }}
+          name: Release v${{ steps.changesets.outputs.publishedPackages }}
+          body: |
+            ## Changes
+
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
+
+            ## Installation
+
+            ```bash
+            npm install -g ccjk@${{ steps.changesets.outputs.publishedPackages }}
+            # or
+            pnpm add -g ccjk@${{ steps.changesets.outputs.publishedPackages }}
+            ```
+
+            ## Docker
+
+            ```bash
+            docker pull ccjk/ccjk:${{ steps.changesets.outputs.publishedPackages }}
+            docker pull ccjk/ccjk:latest
+            ```
+          generate_release_notes: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify release
+        if: steps.changesets.outputs.published == 'true'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            🎉 New release published!
+            Version: ${{ steps.changesets.outputs.publishedPackages }}
+            Package: ccjk
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always() && steps.changesets.outputs.published == 'true'

@@ -1,0 +1,140 @@
+{
+  "id": "test-workflow-001",
+  "name": "Test Initialization Workflow",
+  "description": "A comprehensive test workflow for CCJK initialization",
+  "version": "1.0.0",
+  "category": "test",
+  "tags": ["test", "initialization", "setup"],
+  "author": "CCJK Test Suite",
+  "license": "MIT",
+  "requirements": {
+    "node": ">=20",
+    "ccjk": ">=6.0.0",
+    "os": ["linux", "darwin", "win32"]
+  },
+  "variables": {
+    "PROJECT_NAME": {
+      "type": "string",
+      "default": "test-project",
+      "description": "Name of the test project"
+    },
+    "API_PROVIDER": {
+      "type": "string",
+      "default": "302.AI",
+      "description": "API provider to use"
+    },
+    "ENABLE_DEBUG": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable debug mode"
+    }
+  },
+  "steps": [
+    {
+      "id": "validate-environment",
+      "name": "Validate Environment",
+      "type": "validation",
+      "description": "Validate that the environment meets requirements",
+      "validation": {
+        "node": ">=20",
+        "npm": ">=8",
+        "git": ">=2.0"
+      },
+      "onError": "abort"
+    },
+    {
+      "id": "create-directories",
+      "name": "Create Directories",
+      "type": "filesystem",
+      "description": "Create necessary directories",
+      "operations": [
+        {
+          "type": "mkdir",
+          "path": "~/.claude",
+          "recursive": true
+        },
+        {
+          "type": "mkdir",
+          "path": "~/.claude/workflows",
+          "recursive": true
+        },
+        {
+          "type": "mkdir",
+          "path": "~/.claude/mcp",
+          "recursive": true
+        }
+      ]
+    },
+    {
+      "id": "initialize-config",
+      "name": "Initialize Configuration",
+      "type": "config",
+      "description": "Initialize CCJK configuration",
+      "config": {
+        "template": "default",
+        "variables": {
+          "apiProvider": "{{API_PROVIDER}}",
+          "debugMode": "{{ENABLE_DEBUG}}"
+        }
+      }
+    },
+    {
+      "id": "install-dependencies",
+      "name": "Install Dependencies",
+      "type": "command",
+      "description": "Install required dependencies",
+      "command": "npm",
+      "args": ["install", "--silent"],
+      "timeout": 60000,
+      "retries": 3
+    },
+    {
+      "id": "verify-installation",
+      "name": "Verify Installation",
+      "type": "verification",
+      "description": "Verify that installation was successful",
+      "checks": [
+        {
+          "type": "command",
+          "command": "ccjk --version",
+          "expectedOutput": "6.0.0"
+        },
+        {
+          "type": "file",
+          "path": "~/.claude/config.json",
+          "exists": true
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "success": {
+      "message": "Test workflow completed successfully",
+      "data": {
+        "configPath": "~/.claude/config.json",
+        "workflowsPath": "~/.claude/workflows",
+        "mcpPath": "~/.claude/mcp"
+      }
+    },
+    "error": {
+      "message": "Test workflow failed",
+      "troubleshooting": [
+        "Check that Node.js version is >= 20",
+        "Ensure npm is properly installed",
+        "Verify network connectivity",
+        "Check file system permissions"
+      ]
+    }
+  },
+  "cleanup": {
+    "onSuccess": "keep",
+    "onError": "cleanup",
+    "operations": [
+      {
+        "type": "remove",
+        "path": "/tmp/ccjk-test-*",
+        "pattern": true
+      }
+    ]
+  }
+}

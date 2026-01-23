@@ -1,0 +1,226 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: ccjk-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ccjk_dev
+      POSTGRES_USER: ccjk_user
+      POSTGRES_PASSWORD: ccjk_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/sql/init:/docker-entrypoint-initdb.d
+    networks:
+      - ccjk-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ccjk_user -d ccjk_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Test Database
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: ccjk-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ccjk_test
+      POSTGRES_USER: ccjk_user
+      POSTGRES_PASSWORD: ccjk_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - ccjk-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ccjk_user -d ccjk_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: ccjk-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./scripts/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - ccjk-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Elasticsearch for Search & Analytics
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: ccjk-elasticsearch-dev
+    restart: unless-stopped
+    environment:
+      - node.name=ccjk-es-node
+      - cluster.name=ccjk-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - ./scripts/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    networks:
+      - ccjk-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kibana for Elasticsearch UI (Optional)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: ccjk-kibana-dev
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=ccjk-kibana
+      - SERVER_HOST=0.0.0.0
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - ccjk-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # MinIO for S3-compatible Object Storage (Development)
+  minio:
+    image: minio/minio:latest
+    container_name: ccjk-minio-dev
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ccjk_admin
+      MINIO_ROOT_PASSWORD: ccjk_password_123
+      MINIO_DEFAULT_BUCKETS: ccjk-dev-storage,ccjk-test-storage
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - ccjk-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Prometheus for Metrics Collection (Optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ccjk-prometheus-dev
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./scripts/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - ccjk-network
+    profiles:
+      - monitoring
+
+  # Grafana for Metrics Visualization (Optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ccjk-grafana-dev
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=ccjk_admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./scripts/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - ccjk-network
+    profiles:
+      - monitoring
+
+  # Jaeger for Distributed Tracing (Optional)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: ccjk-jaeger-dev
+    restart: unless-stopped
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+    networks:
+      - ccjk-network
+    profiles:
+      - tracing
+
+volumes:
+  postgres_data:
+    driver: local
+  postgres_test_data:
+    driver: local
+  redis_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  minio_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  ccjk-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

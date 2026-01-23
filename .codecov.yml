@@ -1,0 +1,41 @@
+# Codecov Configuration
+
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+        base: auto
+        informational: true
+    patch:
+      default:
+        target: 75%
+        threshold: 2%
+        base: auto
+        informational: true
+
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+
+ignore:
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/templates/**"
+  - "**/tests/**"
+
+flags:
+  unittests:
+    paths:
+      - src/
+    carryforward: true
+  integration:
+    paths:
+      - tests/integration/
+    carryforward: true

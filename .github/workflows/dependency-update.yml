@@ -1,0 +1,74 @@
+name: Dependency Update
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Update dependencies
+        run: |
+          pnpm update --latest
+          pnpm dedupe
+
+      - name: Test updated dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test:run
+          pnpm build
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: 'chore: update dependencies'
+          body: |
+            ## 📦 Dependency Updates
+
+            This PR updates all dependencies to their latest versions.
+
+            ### Changes
+            - Updated all npm dependencies
+            - Ran `pnpm dedupe` to optimize package resolution
+            - Verified tests pass with new versions
+
+            ### Checklist
+            - [ ] Tests pass
+            - [ ] Build succeeds
+            - [ ] No breaking changes identified
+
+            ### Note
+            Please review the changes and ensure there are no breaking changes before merging.
+          branch: update-dependencies
+          delete-branch: true
+          labels: dependencies, automated
+
+      - name: Notify update
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Dependency update status: ${{ job.status }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

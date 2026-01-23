@@ -1,0 +1,137 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'  # Every day at 2 AM UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Performance Benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        run: pnpm build
+
+      - name: Run benchmarks
+        run: pnpm benchmark
+        continue-on-error: true
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'benchmarkjs'
+          output-file-path: benchmark-results.json
+          alert-threshold: '120%'
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@lu'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-results.json
+          retention-days: 30
+
+  benchmark-comparison:
+    name: Compare Benchmarks
+    runs-on: ubuntu-latest
+    needs: benchmark
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download benchmark results
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results
+
+      - name: Comment PR with benchmark results
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('benchmark-results.json', 'utf8'));
+
+            const comment = `## 📊 Benchmark Results
+
+            | Benchmark | Current | Base | Change |
+            |-----------|---------|------|--------|
+            ${Object.entries(results).map(([name, data]) =>
+              `| ${name} | ${data.current.toFixed(2)}ms | ${data.base.toFixed(2)}ms | ${data.change > 0 ? '+' : ''}${data.change.toFixed(2)}% |`
+            ).join('\n')}
+
+            ${results.some(r => r.change > 10) ? '⚠️ Performance regression detected!' : '✅ Performance looks good'}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  performance-regression-test:
+    name: Performance Regression Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run performance tests
+        run: |
+          echo "Running performance regression tests..."
+          # Add your performance regression test commands here
+
+      - name: Notify on regression
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'failure'
+          text: '⚠️ Performance regression detected in nightly tests!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

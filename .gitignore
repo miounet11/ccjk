@@ -73,3 +73,63 @@ docs/mobile-control-guide.md
 docs/remote-control-guide.md
 docs/skill-hot-reload.md
 docs/skills-sync-guide.md
+
+# Temporary Documentation Files
+*.md.tmp
+*.md.old
+*.md.bak
+*.md.backup
+*-CHANGES.md
+*-SUMMARY.md
+*-REPORT.md
+*-VERIFICATION.md
+*-optimized.md
+*-draft.md
+*-working.md
+
+# Test Reports & Verification Files
+test-verification-report.md
+verification-report.md
+testing-report.md
+test-results.md
+
+# Research & Analysis Files (Temporary)
+RESEARCH_*.md
+ANALYSIS_*.md
+INVESTIGATION_*.md
+
+# Rollback & Migration Files (Temporary)
+ROLLBACK_*.md
+MIGRATION_*.md
+BACKUP_*.md
+
+# Editor & OS Temporary Files
+*.swp
+*.swo
+*~
+.*.sw*
+.Timeline
+.nfs*
+.DS_Store?
+._*
+
+# Debug Files
+debug.log
+*.debug
+error.log
+stderr.log
+stdout.log
+
+# Build Artifacts (Additional)
+*.tsbuildinfo
+*.local
+
+# Package Manager Lock Files (Optional)
+# pnpm-lock.yaml
+# package-lock.json
+# yarn.lock
+
+# Temp Directories
+tmp/
+temp/
+.tmp/

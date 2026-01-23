@@ -1,0 +1,65 @@
+{
+  "name": "@ccjk/actionbook",
+  "version": "1.0.0",
+  "description": "High-performance precomputation engine for code analysis with LevelDB storage and incremental indexing",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "types": "./index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "example": "node --loader tsx/esm example.ts"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/types": "^6.0.0",
+    "chokidar": "^3.5.3",
+    "level": "^8.0.0",
+    "lru-cache": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "eslint": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "types.js",
+    "types.d.ts",
+    "precompute/",
+    "cache/",
+    "api/",
+    "indexer/",
+    "README.md"
+  ],
+  "keywords": [
+    "code-analysis",
+    "ast",
+    "precomputation",
+    "leveldb",
+    "typescript",
+    "performance",
+    "caching",
+    "incremental-indexing"
+  ],
+  "license": "MIT",
+  "author": "CCJK Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ccjk-cc/actionbook"
+  }
+}
