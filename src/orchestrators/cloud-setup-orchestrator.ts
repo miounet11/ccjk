@@ -255,7 +255,7 @@ export class CloudSetupOrchestrator {
 
     const analysis = await analyzeProject(options.targetDir || process.cwd(), {
       analyzeTransitiveDeps: true,
-      maxFilesToScan: 5000,
+      // Use default maxFilesToScan of 10000 for better large project support
       analyzeGitHistory: true,
       analyzeTeamMetrics: true,
     })

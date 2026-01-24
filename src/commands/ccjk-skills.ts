@@ -18,7 +18,7 @@ import consola from 'consola'
 import inquirer from 'inquirer'
 import { i18n } from '../i18n'
 import { analyzeProject } from '../analyzers'
-import { createCompleteCloudClient, type FallbackCloudClient } from '../cloud-client'
+import { createCompleteCloudClient, type FallbackCloudClient, type ProjectAnalysisRequest } from '../cloud-client'
 import { getSkillParser } from '../plugins-v2'
 
 // ============================================================================
@@ -104,7 +104,7 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
 
     const analysis = await analyzeProject(opts.targetDir, {
       analyzeTransitiveDeps: true,
-      maxFilesToScan: 5000,
+      // Don't override maxFilesToScan - use default of 10000
     })
 
     if (!opts.json) {
@@ -247,32 +247,28 @@ async function getRecommendedSkills(
       retries: 2,
     }) as FallbackCloudClient
 
-    // Prepare request
-    const request = {
-      projectType: analysis.projectType,
-      languages: analysis.languages.map(l => ({
-        language: l.language,
-        confidence: l.confidence,
-        fileCount: l.fileCount,
-      })),
-      frameworks: analysis.frameworks.map(f => ({
-        name: f.name,
-        version: f.version,
-        confidence: f.confidence,
-      })),
-      packageManager: analysis.packageManager,
-      buildSystem: analysis.buildSystem,
-      dependencies: analysis.dependencies?.direct.map(d => ({
-        name: d.name,
-        version: d.version,
-        type: d.type,
-        isDev: d.isDev,
-      })),
-      configFiles: analysis.configFiles,
-      metadata: {
-        confidence: analysis.metadata.confidence,
-        filesScanned: analysis.metadata.filesScanned,
-      },
+    // Prepare request - match API format exactly
+    const request: ProjectAnalysisRequest = {
+      projectRoot: analysis.rootPath || process.cwd(),
+      language: options.lang,
+      ccjkVersion: '8.0.4',
+    }
+
+    // Add dependencies if available
+    if (analysis.dependencies?.direct) {
+      const deps: Record<string, string> = {}
+      const devDeps: Record<string, string> = {}
+
+      for (const dep of analysis.dependencies.direct) {
+        if (dep.isDev) {
+          devDeps[dep.name] = dep.version || '*'
+        } else {
+          deps[dep.name] = dep.version || '*'
+        }
+      }
+
+      request.dependencies = deps
+      request.devDependencies = devDeps
     }
 
     // Get cloud recommendations

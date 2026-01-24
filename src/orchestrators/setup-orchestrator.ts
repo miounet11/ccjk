@@ -450,7 +450,9 @@ export class SetupOrchestrator {
         skills: skillIds,
         install: true,
         lang: options.lang || 'en',
-        verbose: options.verbose || false
+        verbose: options.verbose || false,
+        targetDir: options.projectPath || process.cwd(),
+        interactive: false
       }
 
       // Execute skills command
@@ -503,7 +505,9 @@ export class SetupOrchestrator {
         services: mcpIds,
         install: true,
         lang: options.lang || 'en',
-        verbose: options.verbose || false
+        verbose: options.verbose || false,
+        targetDir: options.projectPath || process.cwd(),
+        interactive: false
       }
 
       // Execute MCP command
@@ -556,7 +560,9 @@ export class SetupOrchestrator {
         agents: agentIds,
         create: true,
         lang: options.lang || 'en',
-        verbose: options.verbose || false
+        verbose: options.verbose || false,
+        targetDir: options.projectPath || process.cwd(),
+        interactive: false
       }
 
       // Execute agents command
@@ -609,7 +615,9 @@ export class SetupOrchestrator {
         hooks: hookIds,
         install: true,
         lang: options.lang || 'en',
-        verbose: options.verbose || false
+        verbose: options.verbose || false,
+        targetDir: options.projectPath || process.cwd(),
+        interactive: false
       }
 
       // Execute hooks command

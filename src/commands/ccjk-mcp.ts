@@ -141,7 +141,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
     consola.info(isZh ? '🔍 分析项目中...' : '🔍 Analyzing project...')
     const analysis = await analyzeProject(projectPath, {
       analyzeTransitiveDeps: false,
-      maxFilesToScan: 5000
+      // Use default maxFilesToScan of 10000 for better large project support
     })
 
     result.project.type = analysis.projectType
