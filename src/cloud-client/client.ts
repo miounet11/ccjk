@@ -99,7 +99,7 @@ export class CloudClient {
     try {
       consola.debug('Analyzing project:', request.projectRoot)
 
-      const response = await this.fetch<ProjectAnalysisResponse>('/v1/analyze', {
+      const response = await this.fetch<ProjectAnalysisResponse>('/api/v8/analysis/projects', {
         method: 'POST',
         body: request,
       })
@@ -152,7 +152,7 @@ export class CloudClient {
     try {
       consola.debug('Fetching batch templates:', request.ids.length)
 
-      const response = await this.fetch<BatchTemplateResponse>('/v1/templates/batch', {
+      const response = await this.fetch<BatchTemplateResponse>('/api/v8/templates/batch', {
         method: 'POST',
         body: request,
       })
@@ -178,7 +178,7 @@ export class CloudClient {
     try {
       consola.debug('Reporting usage:', report.metricType)
 
-      const response = await this.fetch<UsageReportResponse>('/v1/report', {
+      const response = await this.fetch<UsageReportResponse>('/api/v8/telemetry/installation', {
         method: 'POST',
         body: report,
       })
@@ -209,7 +209,7 @@ export class CloudClient {
     try {
       consola.debug('Checking API health')
 
-      const response = await this.fetch<HealthCheckResponse>('/v1/health', {
+      const response = await this.fetch<HealthCheckResponse>('/api/v8/health', {
         method: 'GET',
       })
 
