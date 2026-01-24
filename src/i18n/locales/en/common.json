@@ -17,5 +17,14 @@
   "claudeCode": "Claude Code",
   "codex": "Codex",
   "yes": "Yes",
-  "pressEnterToContinue": "Press Enter to continue..."
+  "pressEnterToContinue": "Press Enter to continue...",
+  "backup": {
+    "created": "✅ Backup created: {path}",
+    "restoring": "🔄 Restoring backup from {timestamp}",
+    "restoreComplete": "✅ Backup restored successfully",
+    "restoreFailed": "❌ Failed to restore backup",
+    "failed": "❌ Failed to create backup",
+    "removed": "🗑️  Removed old backup: {path}",
+    "removeFailed": "⚠️  Failed to remove backup: {path}"
+  }
 }

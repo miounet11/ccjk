@@ -1,0 +1,22 @@
+{
+  "title": "🎯 CCJK Skills Installation",
+  "analyzing": "🔍 Analyzing project...",
+  "detected": "Detected",
+  "frameworks": "Frameworks",
+  "packageManager": "Package manager",
+  "buildSystem": "Build system",
+  "recommending": "📚 Recommending skills...",
+  "recommendedSkills": "Recommended Skills ({{count}} found)",
+  "selectSkills": "Select skills to install (space to select, enter to confirm)",
+  "installing": "📦 Installing skills...",
+  "installedCount": "Successfully installed {{count}} skill(s)",
+  "failedCount": "Failed to install {{count}} skill(s)",
+  "noSkillsFound": "No suitable skills found for this project type",
+  "noSkillsSelected": "No skills selected for installation",
+  "tryDifferentProject": "Try running in a different project directory",
+  "nextSteps": "Next steps",
+  "useMcpCommand": "Use /ccjk:mcp to install MCP services",
+  "useAgentsCommand": "Use /ccjk:agents to create agents",
+  "useSetupCommand": "Use /ccjk:setup to configure everything at once",
+  "error": "Error"
+}

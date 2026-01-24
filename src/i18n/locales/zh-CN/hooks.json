@@ -43,5 +43,32 @@
   "helpRemove": "移除钩子",
   "helpClear": "清除钩子（全部或按类型）",
   "helpEnable": "全局启用钩子",
-  "helpDisable": "全局禁用钩子"
+  "helpDisable": "全局禁用钩子",
+  "analyzingProject": "🔍 正在分析项目...",
+  "projectDetected": "   检测到：{{type}} 项目",
+  "foundHooks": "🪝 推荐钩子（找到 {{count}} 个）：",
+  "category": {
+    "pre-commit": "Pre-Commit 钩子",
+    "post-test": "Post-Test 钩子",
+    "lifecycle": "生命周期钩子"
+  },
+  "trigger": "触发器",
+  "command": "命令",
+  "installPrompt": "安装所有钩子？[Y/n]",
+  "installCancelled": "安装已取消",
+  "installingHooks": "🪝 正在安装钩子...",
+  "wouldInstall": "   → {{name}}",
+  "installed": "   ✓ {{name}}",
+  "installFailed": "   ✗ {{name}}",
+  "installSuccess": "✅ 成功安装 {{count}} 个钩子！（{{duration}}ms）",
+  "installPartial": "⚠️  {{failed}} 个钩子安装失败，共 {{total}} 个",
+  "installError": "❌ 钩子安装失败：{{error}}",
+  "noHooksFound": "未找到符合条件的钩子",
+  "invalidTrigger": "无效的触发器：{{trigger}}",
+  "testingInstructions": "测试您的钩子：",
+  "testPreCommit": "运行：git commit -m \"test\"（应触发 pre-commit 钩子）",
+  "testPostTest": "运行：npm test（应触发 post-test 钩子）",
+  "testLifecycle": "运行：npm run build（应触发生命周期钩子）",
+  "listHooks": "列出钩子：ccjk hooks list",
+  "testHooks": "测试钩子：ccjk hooks test"
 }

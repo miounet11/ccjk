@@ -120,5 +120,20 @@
   "context.suggestions": "Suggestions",
   "context.suggestionLargeFiles": "Consider removing or summarizing large files",
   "context.suggestionManyFiles": "Consider using .claudeignore to reduce file count",
-  "context.suggestionClaudeignore": "Create .claudeignore to exclude unnecessary files"
+  "context.suggestionClaudeignore": "Create .claudeignore to exclude unnecessary files",
+  "commands.ccjkSetup.description": "Complete local AI coding environment setup orchestrator",
+  "commands.ccjkSetup.args.profile": "Setup profile (minimal|recommended|full|custom)",
+  "commands.ccjkSetup.args.resources": "Resources to install (skills|mcp|agents|hooks)",
+  "commands.ccjkSetup.args.parallel": "Enable parallel execution",
+  "commands.ccjkSetup.args.maxConcurrency": "Maximum parallel operations",
+  "commands.ccjkSetup.args.interactive": "Enable interactive mode",
+  "commands.ccjkSetup.args.autoConfirm": "Auto-confirm all prompts",
+  "commands.ccjkSetup.args.showProgress": "Show progress indicators",
+  "commands.ccjkSetup.args.dryRun": "Preview without making changes",
+  "commands.ccjkSetup.args.report": "Generate installation report",
+  "commands.ccjkSetup.args.json": "Output in JSON format",
+  "commands.ccjkSetup.args.verbose": "Enable verbose output",
+  "commands.ccjkSetup.args.backup": "Create backup before setup",
+  "commands.ccjkSetup.args.rollbackOnError": "Auto-rollback on failure",
+  "commands.ccjkSetup.args.lang": "Display language"
 }

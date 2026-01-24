@@ -11,6 +11,7 @@ export * from './browser'
 // 默认导出 Browser
 export { default as Browser } from './browser'
 export * from './check-updates'
+export * from './ccjk-skills'
 
 export * from './claude-md'
 export * from './cloud-plugins'
@@ -48,3 +49,11 @@ export * from './team'
 export * from './update'
 export * from './vim'
 export * from './workflows'
+
+// CCJK v8.0.0 Commands
+export * from './ccjk-hooks'
+export * from './ccjk-mcp'
+export * from './ccjk-skills'
+export * from './ccjk-agents'
+export * from './ccjk-setup'
+export * from './ccjk-all'

@@ -43,5 +43,32 @@
   "helpRemove": "Remove a hook",
   "helpClear": "Clear hooks (all or by type)",
   "helpEnable": "Enable hooks globally",
-  "helpDisable": "Disable hooks globally"
+  "helpDisable": "Disable hooks globally",
+  "analyzingProject": "🔍 Analyzing project...",
+  "projectDetected": "   Detected: {{type}} project",
+  "foundHooks": "🪝 Recommended Hooks ({{count}} found):",
+  "category": {
+    "pre-commit": "Pre-Commit Hooks",
+    "post-test": "Post-Test Hooks",
+    "lifecycle": "Lifecycle Hooks"
+  },
+  "trigger": "Trigger",
+  "command": "Command",
+  "installPrompt": "Install all hooks? [Y/n]",
+  "installCancelled": "Installation cancelled",
+  "installingHooks": "🪝 Installing hooks...",
+  "wouldInstall": "   → {{name}}",
+  "installed": "   ✓ {{name}}",
+  "installFailed": "   ✗ {{name}}",
+  "installSuccess": "✅ Successfully installed {{count}} hooks! ({{duration}}ms)",
+  "installPartial": "⚠️  {{failed}} hooks failed to install out of {{total}} total",
+  "installError": "❌ Hook installation failed: {{error}}",
+  "noHooksFound": "No hooks found matching criteria",
+  "invalidTrigger": "Invalid trigger: {{trigger}}",
+  "testingInstructions": "Test your hooks:",
+  "testPreCommit": "Run: git commit -m \"test\" (should trigger pre-commit hooks)",
+  "testPostTest": "Run: npm test (should trigger post-test hooks)",
+  "testLifecycle": "Run: npm run build (should trigger lifecycle hooks)",
+  "listHooks": "List hooks: ccjk hooks list",
+  "testHooks": "Test hooks: ccjk hooks test"
 }

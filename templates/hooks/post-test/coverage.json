@@ -1,0 +1,21 @@
+{
+  "name": "post-test-coverage",
+  "description": "Generate coverage report after tests",
+  "type": "post-test",
+  "category": "post-test",
+  "projectTypes": ["typescript", "javascript"],
+  "trigger": {
+    "matcher": "command:npm test"
+  },
+  "action": {
+    "command": "npm",
+    "args": ["run", "coverage:report"],
+    "timeout": 30000
+  },
+  "enabled": true,
+  "priority": 100,
+  "metadata": {
+    "version": "1.0.0",
+    "tags": ["testing", "coverage", "metrics"]
+  }
+}

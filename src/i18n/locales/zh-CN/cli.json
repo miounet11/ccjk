@@ -120,5 +120,20 @@
   "context.suggestions": "建议",
   "context.suggestionLargeFiles": "考虑移除或总结大文件",
   "context.suggestionManyFiles": "考虑使用 .claudeignore 减少文件数量",
-  "context.suggestionClaudeignore": "创建 .claudeignore 排除不必要的文件"
+  "context.suggestionClaudeignore": "创建 .claudeignore 排除不必要的文件",
+  "commands.ccjkSetup.description": "完整本地 AI 编程环境配置编排器",
+  "commands.ccjkSetup.args.profile": "配置方案 (minimal|recommended|full|custom)",
+  "commands.ccjkSetup.args.resources": "要安装的资源 (skills|mcp|agents|hooks)",
+  "commands.ccjkSetup.args.parallel": "启用并行执行",
+  "commands.ccjkSetup.args.maxConcurrency": "最大并行操作数",
+  "commands.ccjkSetup.args.interactive": "启用交互模式",
+  "commands.ccjkSetup.args.autoConfirm": "自动确认所有提示",
+  "commands.ccjkSetup.args.showProgress": "显示进度指示器",
+  "commands.ccjkSetup.args.dryRun": "预览而不做更改",
+  "commands.ccjkSetup.args.report": "生成安装报告",
+  "commands.ccjkSetup.args.json": "以 JSON 格式输出",
+  "commands.ccjkSetup.args.verbose": "启用详细输出",
+  "commands.ccjkSetup.args.backup": "配置前创建备份",
+  "commands.ccjkSetup.args.rollbackOnError": "失败时自动回滚",
+  "commands.ccjkSetup.args.lang": "显示语言"
 }

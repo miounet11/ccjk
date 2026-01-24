@@ -1,0 +1,23 @@
+{
+  "title": "CCJK All - 云端智能设置",
+  "description": "终极云端驱动设置命令，提供 AI 驱动的推荐配置",
+  "connectingToCloud": "正在连接到 CCJK 云服务...",
+  "connected": "✓ 已连接",
+  "latency": "延迟",
+  "cloudVersion": "✓ 云端版本",
+  "cloudUnavailable": "⚠ 云服务不可用",
+  "usingLocalMode": "使用本地推荐",
+  "setupComplete": "✅ 设置完成！",
+  "installedCount": "在 {duration} 秒内安装了 {count} 个资源",
+  "cloudFeedback": "☁️ 云端反馈：",
+  "nextSteps": "下一步：",
+  "startCoding": "开始编码：您的设置已准备就绪",
+  "viewRecommendations": "查看推荐：ccjk ccjk:all --show-reasons",
+  "customizeSetup": "自定义：使用单独命令（ccjk:skills、ccjk:mcp 等）",
+  "reportGenerated": "报告已生成：{path}",
+  "helpTitle": "CCJK All 命令帮助",
+  "usage": "用法：",
+  "options": "选项：",
+  "examples": "示例：",
+  "strategies": "策略："
+}

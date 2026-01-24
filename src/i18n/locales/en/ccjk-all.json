@@ -1,0 +1,23 @@
+{
+  "title": "CCJK All - Cloud-Driven Intelligent Setup",
+  "description": "The ultimate cloud-driven setup command with AI-powered recommendations",
+  "connectingToCloud": "Connecting to CCJK Cloud Service...",
+  "connected": "✓ Connected",
+  "latency": "latency",
+  "cloudVersion": "✓ Cloud version",
+  "cloudUnavailable": "⚠ Cloud service unavailable",
+  "usingLocalMode": "Using local recommendations",
+  "setupComplete": "✅ Setup complete!",
+  "installedCount": "Installed {count} resources in {duration}s",
+  "cloudFeedback": "☁️ Cloud Feedback:",
+  "nextSteps": "Next steps:",
+  "startCoding": "Start coding: Your setup is ready",
+  "viewRecommendations": "View recommendations: ccjk ccjk:all --show-reasons",
+  "customizeSetup": "Customize: Use individual commands (ccjk:skills, ccjk:mcp, etc.)",
+  "reportGenerated": "Report generated: {path}",
+  "helpTitle": "CCJK All Command Help",
+  "usage": "Usage:",
+  "options": "Options:",
+  "examples": "Examples:",
+  "strategies": "Strategies:"
+}

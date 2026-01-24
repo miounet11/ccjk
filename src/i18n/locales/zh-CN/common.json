@@ -17,5 +17,14 @@
   "claudeCode": "Claude Code",
   "codex": "Codex",
   "yes": "是",
-  "pressEnterToContinue": "按回车键继续..."
+  "pressEnterToContinue": "按回车键继续...",
+  "backup": {
+    "created": "✅ 备份已创建：{path}",
+    "restoring": "🔄 正在从 {timestamp} 恢复备份",
+    "restoreComplete": "✅ 备份恢复成功",
+    "restoreFailed": "❌ 备份恢复失败",
+    "failed": "❌ 创建备份失败",
+    "removed": "🗑️  已移除旧备份：{path}",
+    "removeFailed": "⚠️  移除备份失败：{path}"
+  }
 }

@@ -1,0 +1,21 @@
+{
+  "name": "post-test-summary",
+  "description": "Summarize test results",
+  "type": "post-test",
+  "category": "post-test",
+  "projectTypes": ["typescript", "javascript", "python", "rust", "go"],
+  "trigger": {
+    "matcher": "command:*test*"
+  },
+  "action": {
+    "command": "ccjk",
+    "args": ["test:summary"],
+    "timeout": 10000
+  },
+  "enabled": true,
+  "priority": 90,
+  "metadata": {
+    "version": "1.0.0",
+    "tags": ["testing", "summary", "metrics"]
+  }
+}

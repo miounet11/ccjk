@@ -1,0 +1,22 @@
+{
+  "title": "🎯 CCJK 技能安装",
+  "analyzing": "🔍 分析项目...",
+  "detected": "检测到",
+  "frameworks": "框架",
+  "packageManager": "包管理器",
+  "buildSystem": "构建系统",
+  "recommending": "📚 推荐技能...",
+  "recommendedSkills": "推荐的技能 (找到 {{count}} 个)",
+  "selectSkills": "选择要安装的技能 (空格选择, 回车确认)",
+  "installing": "📦 安装技能中...",
+  "installedCount": "成功安装了 {{count}} 个技能",
+  "failedCount": "安装失败 {{count}} 个技能",
+  "noSkillsFound": "未找到适合此项目类型的技能",
+  "noSkillsSelected": "未选择任何技能进行安装",
+  "tryDifferentProject": "尝试在不同的项目目录中运行",
+  "nextSteps": "后续步骤",
+  "useMcpCommand": "使用 /ccjk:mcp 安装 MCP 服务",
+  "useAgentsCommand": "使用 /ccjk:agents 创建代理",
+  "useSetupCommand": "使用 /ccjk:setup 一次性配置所有内容",
+  "error": "错误"
+}

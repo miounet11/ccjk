@@ -1,0 +1,22 @@
+{
+  "name": "pre-commit-prettier",
+  "description": "Format code with Prettier",
+  "type": "pre-commit",
+  "category": "pre-commit",
+  "projectTypes": ["typescript", "javascript"],
+  "trigger": {
+    "matcher": "git:pre-commit",
+    "condition": "git diff --cached --name-only | grep -E \"\\.(ts|js|tsx|jsx|json|md)$\""
+  },
+  "action": {
+    "command": "prettier",
+    "args": ["--write", "--staged"],
+    "timeout": 15000
+  },
+  "enabled": true,
+  "priority": 90,
+  "metadata": {
+    "version": "1.0.0",
+    "tags": ["formatting", "code-quality"]
+  }
+}

@@ -9,6 +9,7 @@
 
 import type { CAC } from 'cac'
 import type { SupportedLang } from './constants'
+import type { SkillCategory } from './skills/types'
 import process from 'node:process'
 
 // ============================================================================
@@ -1212,6 +1213,244 @@ const COMMANDS: CommandDefinition[] = [
   // - shencha: replaced by 'ccjk doctor'
   // - features: replaced by 'ccjk' menu
   // - tools: replaced by 'ccjk' menu
+
+  // ==================== CCJK v8.0.0 Commands ====================
+  {
+    name: 'ccjk:mcp',
+    description: 'Intelligent MCP service management based on project analysis',
+    aliases: ['ccjk-mcp'],
+    tier: 'extended',
+    options: [
+      { flags: '--tier <tier>', description: 'Service tier filter (core, ondemand, scenario, all)' },
+      { flags: '--services <services>', description: 'Specific services to install (comma-separated)' },
+      { flags: '--exclude <services>', description: 'Services to exclude (comma-separated)' },
+      { flags: '--auto-install', description: 'Auto-install dependencies' },
+      { flags: '--skip-verification', description: 'Skip service verification' },
+      { flags: '--dry-run', description: 'Preview without installing' },
+      { flags: '--json', description: 'JSON output for automation' },
+      { flags: '--force', description: 'Force reinstallation' },
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { ccjkMcp, formatResultAsJson, formatResultForConsole } = await import('./commands/ccjk-mcp')
+
+        // Parse services list
+        const services = options.services ? (options.services as string).split(',').map(s => s.trim()) : undefined
+        const exclude = options.exclude ? (options.exclude as string).split(',').map(s => s.trim()) : undefined
+
+        const result = await ccjkMcp({
+          interactive: !options.json && !options.dryRun,
+          tier: options.tier as 'core' | 'ondemand' | 'scenario' | 'all',
+          services,
+          exclude,
+          autoInstall: options.autoInstall as boolean,
+          skipVerification: options.skipVerification as boolean,
+          dryRun: options.dryRun as boolean,
+          json: options.json as boolean,
+          lang: options.lang as SupportedLang,
+          force: options.force as boolean,
+        })
+
+        if (options.json) {
+          console.log(formatResultAsJson(result))
+        } else {
+          console.log(formatResultForConsole(result))
+        }
+      }
+    },
+  },
+  {
+    name: 'ccjk:skills',
+    description: 'Install and manage CCJK skills',
+    aliases: ['ccjk-skills'],
+    tier: 'extended',
+    options: [
+      { flags: '--list', description: 'List available skills' },
+      { flags: '--install <skills>', description: 'Install specific skills (comma-separated)' },
+      { flags: '--uninstall <skills>', description: 'Uninstall specific skills (comma-separated)' },
+      { flags: '--tier <tier>', description: 'Skill tier filter' },
+      { flags: '--json', description: 'JSON output' },
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { ccjkSkills } = await import('./commands/ccjk-skills')
+        await ccjkSkills({
+          list: options.list as boolean,
+          install: options.install as string,
+          uninstall: options.uninstall as string,
+          tier: options.tier as string,
+          json: options.json as boolean,
+          lang: options.lang as SupportedLang,
+        })
+      }
+    },
+  },
+  {
+    name: 'ccjk:agents',
+    description: 'Create and manage CCJK agents',
+    aliases: ['ccjk-agents'],
+    tier: 'extended',
+    options: [
+      { flags: '--create <name>', description: 'Create a new agent' },
+      { flags: '--list', description: 'List available agents' },
+      { flags: '--delete <name>', description: 'Delete an agent' },
+      { flags: '--template <template>', description: 'Use specific template' },
+      { flags: '--json', description: 'JSON output' },
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { ccjkAgents } = await import('./commands/ccjk-agents')
+        await ccjkAgents({
+          create: options.create as string,
+          list: options.list as boolean,
+          delete: options.delete as string,
+          template: options.template as string,
+          json: options.json as boolean,
+          lang: options.lang as SupportedLang,
+        })
+      }
+    },
+  },
+  {
+    name: 'ccjk:hooks',
+    description: 'Manage CCJK hooks and automation',
+    aliases: ['ccjk-hooks'],
+    tier: 'extended',
+    options: [
+      { flags: '--list', description: 'List installed hooks' },
+      { flags: '--install <hooks>', description: 'Install hooks (comma-separated)' },
+      { flags: '--uninstall <hooks>', description: 'Uninstall hooks (comma-separated)' },
+      { flags: '--enable <hooks>', description: 'Enable hooks (comma-separated)' },
+      { flags: '--disable <hooks>', description: 'Disable hooks (comma-separated)' },
+      { flags: '--json', description: 'JSON output' },
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { ccjkHooks } = await import('./commands/ccjk-hooks')
+        await ccjkHooks({
+          list: options.list as boolean,
+          install: options.install as string,
+          uninstall: options.uninstall as string,
+          enable: options.enable as string,
+          disable: options.disable as string,
+          json: options.json as boolean,
+          lang: options.lang as SupportedLang,
+        })
+      }
+    },
+  },
+  {
+    name: 'ccjk:skills',
+    description: 'Auto-install skills based on project analysis',
+    aliases: ['ccjk-skills'],
+    tier: 'extended',
+    options: [
+      { flags: '--interactive, -i', description: 'Interactive mode (default: true)' },
+      { flags: '--category <category>', description: 'Filter by skill category' },
+      { flags: '--tags <tags>', description: 'Filter by tags (comma-separated)' },
+      { flags: '--exclude <skills>', description: 'Exclude specific skills (comma-separated)' },
+      { flags: '--dry-run', description: 'Show what would be installed without installing' },
+      { flags: '--json', description: 'Output in JSON format' },
+      { flags: '--force', description: 'Force installation (overwrite existing)' },
+      { flags: '--target-dir <dir>', description: 'Target directory (default: current)' },
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { ccjkSkills } = await import('./commands/ccjk-skills')
+        await ccjkSkills({
+          interactive: options.interactive !== false,
+          category: options.category as SkillCategory,
+          tags: options.tags ? (options.tags as string).split(',') : undefined,
+          exclude: options.exclude ? (options.exclude as string).split(',') : undefined,
+          dryRun: options.dryRun as boolean,
+          json: options.json as boolean,
+          force: options.force as boolean,
+          targetDir: options.targetDir as string,
+          lang: options.lang as SupportedLang,
+        })
+      }
+    },
+  },
+
+  // ==================== CCJK v8.0.0 Setup Commands ====================
+  {
+    name: 'ccjk:all',
+    description: 'Cloud AI-powered complete setup (Recommended)',
+    aliases: ['ccjk-all'],
+    tier: 'extended',
+    options: [
+      { flags: '--strategy <type>', description: 'Cloud strategy (cloud-smart/cloud-conservative/local-fallback)' },
+      { flags: '--use-cloud', description: 'Use cloud recommendations' },
+      { flags: '--cloud-endpoint <url>', description: 'Cloud API endpoint' },
+      { flags: '--cache-strategy <type>', description: 'Cache strategy' },
+      { flags: '--show-reasons', description: 'Show recommendation reasons' },
+      { flags: '--show-confidence', description: 'Show confidence scores' },
+      { flags: '--show-comparison', description: 'Show community comparison' },
+      { flags: '--submit-telemetry', description: 'Submit anonymous telemetry' },
+      { flags: '--dry-run', description: 'Preview without installing' },
+      { flags: '--json', description: 'JSON output' },
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { ccjkAll } = await import('./commands/ccjk-all')
+        await ccjkAll({
+          strategy: options.strategy as 'cloud-smart' | 'cloud-conservative' | 'local-fallback',
+          useCloud: options.useCloud as boolean,
+          cloudEndpoint: options.cloudEndpoint as string,
+          cacheStrategy: options.cacheStrategy as string,
+          showReasons: options.showReasons as boolean,
+          showConfidence: options.showConfidence as boolean,
+          showComparison: options.showComparison as boolean,
+          submitTelemetry: options.submitTelemetry as boolean,
+          dryRun: options.dryRun as boolean,
+          json: options.json as boolean,
+          lang: options.lang as SupportedLang,
+        })
+      }
+    },
+  },
+  {
+    name: 'ccjk:setup',
+    description: 'Complete local setup with project analysis',
+    aliases: ['ccjk-setup'],
+    tier: 'extended',
+    options: [
+      { flags: '--profile <profile>', description: 'Setup profile (minimal/recommended/full/custom)' },
+      { flags: '--resources <resources>', description: 'Resources to install (comma-separated)' },
+      { flags: '--parallel', description: 'Enable parallel execution' },
+      { flags: '--max-concurrency <number>', description: 'Maximum parallel operations' },
+      { flags: '--interactive', description: 'Interactive mode' },
+      { flags: '--auto-confirm, -y', description: 'Auto-confirm all prompts' },
+      { flags: '--dry-run', description: 'Preview without installing' },
+      { flags: '--json', description: 'JSON output' },
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { ccjkSetup } = await import('./commands/ccjk-setup')
+        const exitCode = await ccjkSetup({
+          profile: options.profile as 'minimal' | 'recommended' | 'full' | 'custom',
+          resources: options.resources ? (options.resources as string).split(',') : undefined,
+          parallel: options.parallel as boolean,
+          maxConcurrency: options.maxConcurrency as number,
+          interactive: options.interactive !== false,
+          autoConfirm: options.autoConfirm as boolean,
+          dryRun: options.dryRun as boolean,
+          json: options.json as boolean,
+          lang: options.lang as SupportedLang,
+        })
+        if (exitCode !== 0) {
+          process.exit(exitCode)
+        }
+      }
+    },
+  },
 ]
 
 // ============================================================================

@@ -57,6 +57,12 @@ import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from './mcp
 import { notificationCommand } from './notification'
 import { uninstall } from './uninstall'
 import { update } from './update'
+import { ccjkAll } from './ccjk-all'
+import { ccjkSetup } from './ccjk-setup'
+import { ccjkSkills } from './ccjk-skills'
+import { ccjkMcp } from './ccjk-mcp'
+import { ccjkAgents } from './ccjk-agents'
+import { ccjkHooks } from './ccjk-hooks'
 
 type MenuResult = 'exit' | 'switch' | undefined
 
@@ -67,6 +73,164 @@ const CODE_TOOL_LABELS: Record<CodeToolType, string> = {
   'continue': 'Continue',
   'cline': 'Cline',
   'cursor': 'Cursor',
+}
+
+// ⭐ NEW: CCJK v8.0.0 Quick Setup Command Wrappers
+
+/**
+ * Execute ccjk:all command (Cloud AI Setup)
+ */
+async function executeCcjkAllCommand(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log('')
+  console.log(ansis.cyan.bold(isZh ? '☁️  云驱动智能设置' : '☁️  Cloud AI-Powered Setup'))
+  console.log('')
+  console.log(ansis.dim(isZh
+    ? '基于云服务AI推荐，一键完成所有CCJK配置（Skills + MCP + Agents + Hooks）'
+    : 'AI-powered cloud recommendations for complete CCJK setup (Skills + MCP + Agents + Hooks)'))
+  console.log('')
+
+  try {
+    await ccjkAll({} as any)
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
+    console.log('')
+    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:all' : '💡 Tip: You can also run: ccjk ccjk:all'))
+  }
+}
+
+/**
+ * Execute ccjk:setup command (Complete Local Setup)
+ */
+async function executeCcjkSetupCommand(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log('')
+  console.log(ansis.yellow.bold(isZh ? '🔧 完整本地设置' : '🔧 Complete Local Setup'))
+  console.log('')
+  console.log(ansis.dim(isZh
+    ? '基于项目分析，一键完成所有CCJK配置（Skills + MCP + Agents + Hooks）'
+    : 'Project-based complete CCJK setup (Skills + MCP + Agents + Hooks)'))
+  console.log('')
+
+  try {
+    await ccjkSetup({} as any)
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
+    console.log('')
+    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:setup' : '💡 Tip: You can also run: ccjk ccjk:setup'))
+  }
+}
+
+/**
+ * Execute ccjk:skills command (Install Skills)
+ */
+async function executeCcjkSkillsCommand(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log('')
+  console.log(ansis.cyan(isZh ? '📚 安装技能' : '📚 Install Skills'))
+  console.log('')
+  console.log(ansis.dim(isZh
+    ? '基于项目类型，智能推荐并安装相关技能'
+    : 'Intelligently recommend and install project-specific skills'))
+  console.log('')
+
+  try {
+    await ccjkSkills({} as any)
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
+    console.log('')
+    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:skills' : '💡 Tip: You can also run: ccjk ccjk:skills'))
+  }
+}
+
+/**
+ * Execute ccjk:mcp command (Setup MCP Services)
+ */
+async function executeCcjkMcpCommand(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log('')
+  console.log(ansis.cyan(isZh ? '🔌 设置MCP服务' : '🔌 Setup MCP Services'))
+  console.log('')
+  console.log(ansis.dim(isZh
+    ? '基于项目需求，智能推荐并配置MCP服务'
+    : 'Intelligently recommend and configure MCP services'))
+  console.log('')
+
+  try {
+    await ccjkMcp({} as any)
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
+    console.log('')
+    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:mcp' : '💡 Tip: You can also run: ccjk ccjk:mcp'))
+  }
+}
+
+/**
+ * Execute ccjk:agents command (Create AI Agents)
+ */
+async function executeCcjkAgentsCommand(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log('')
+  console.log(ansis.green(isZh ? '🤖 创建AI代理' : '🤖 Create AI Agents'))
+  console.log('')
+  console.log(ansis.dim(isZh
+    ? '基于项目栈，智能创建专业的AI助手代理'
+    : 'Intelligently create specialized AI assistant agents'))
+  console.log('')
+
+  try {
+    await ccjkAgents({} as any)
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
+    console.log('')
+    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:agents' : '💡 Tip: You can also run: ccjk ccjk:agents'))
+  }
+}
+
+/**
+ * Execute ccjk:hooks command (Configure Hooks)
+ */
+async function executeCcjkHooksCommand(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log('')
+  console.log(ansis.green(isZh ? '🪝 配置Hooks' : '🪝 Configure Hooks'))
+  console.log('')
+  console.log(ansis.dim(isZh
+    ? '基于项目工作流，智能配置自动化hooks'
+    : 'Intelligently configure automation hooks'))
+  console.log('')
+
+  try {
+    await ccjkHooks({} as any)
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
+    console.log('')
+    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:hooks' : '💡 Tip: You can also run: ccjk ccjk:hooks'))
+  }
 }
 
 function getCurrentCodeTool(): CodeToolType {
@@ -1020,39 +1184,62 @@ async function showCategorizedMenu(): Promise<MenuResult> {
   console.log(ansis.green.bold(i18n.t('menu:oneClick.title')))
   console.log('')
 
+  // ⭐ NEW: Quick Setup Section (prominently displayed)
+  console.log(`  ${ansis.cyan.bold('⚡ Quick Setup - CCJK v8.0.0 Intelligent Features')}`)
+  console.log('')
+  console.log(
+    `  ${ansis.white('1.')} ${ansis.yellow.bold('ccjk:all')} ${ansis.dim('☁️  Cloud AI Setup (Recommended)')}`,
+  )
+  console.log(
+    `  ${ansis.white('2.')} ${ansis.yellow.bold('ccjk:setup')} ${ansis.dim('🔧 Complete Local Setup')}`,
+  )
+  console.log(
+    `  ${ansis.white('3.')} ${ansis.cyan('ccjk:skills')} ${ansis.dim('📚 Install Skills')}`,
+  )
+  console.log(
+    `  ${ansis.white('4.')} ${ansis.cyan('ccjk:mcp')} ${ansis.dim('🔌 Setup MCP Services')}`,
+  )
+  console.log(
+    `  ${ansis.white('5.')} ${ansis.cyan('ccjk:agents')} ${ansis.green('🤖 Create AI Agents')}`,
+  )
+  console.log(
+    `  ${ansis.white('6.')} ${ansis.cyan('ccjk:hooks')} ${ansis.green('🪝 Configure Hooks')}`,
+  )
+  console.log('')
+
   // Quick Start section
   console.log(`  ${ansis.green.bold(i18n.t('menu:menuSections.quickStart'))}`)
   console.log(
-    `  ${ansis.white('1.')} ${ansis.white(i18n.t('menu:oneClick.setup'))} ${ansis.dim(`- ${i18n.t('menu:oneClick.setupDesc')}`)}`,
+    `  ${ansis.white('7.')} ${ansis.white(i18n.t('menu:oneClick.setup'))} ${ansis.dim(`- ${i18n.t('menu:oneClick.setupDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.white('2.')} ${ansis.white(i18n.t('menu:oneClick.fix'))} ${ansis.dim(`- ${i18n.t('menu:oneClick.fixDesc')}`)}`,
+    `  ${ansis.white('8.')} ${ansis.white(i18n.t('menu:oneClick.fix'))} ${ansis.dim(`- ${i18n.t('menu:oneClick.fixDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.white('3.')} ${ansis.white(i18n.t('menu:oneClick.update'))} ${ansis.dim(`- ${i18n.t('menu:oneClick.updateDesc')}`)}`,
+    `  ${ansis.white('9.')} ${ansis.white(i18n.t('menu:oneClick.update'))} ${ansis.dim(`- ${i18n.t('menu:oneClick.updateDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.white('4.')} ${ansis.white(i18n.t('menu:oneClick.notify'))} ${ansis.dim(`- ${i18n.t('menu:oneClick.notifyDesc')}`)}`,
+    `  ${ansis.white('10.')} ${ansis.white(i18n.t('menu:oneClick.notify'))} ${ansis.dim(`- ${i18n.t('menu:oneClick.notifyDesc')}`)}`,
   )
   console.log('')
 
   // Important Settings section
   console.log(`  ${ansis.green.bold(i18n.t('menu:menuSections.configCenter'))}`)
   console.log(
-    `  ${ansis.white('5.')} ${ansis.white(i18n.t('menu:configCenter.api'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.apiDesc')}`)}`,
+    `  ${ansis.white('11.')} ${ansis.white(i18n.t('menu:configCenter.api'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.apiDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.white('6.')} ${ansis.white(i18n.t('menu:configCenter.mcp'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.mcpDesc')}`)}`,
+    `  ${ansis.white('12.')} ${ansis.white(i18n.t('menu:configCenter.mcp'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.mcpDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.white('7.')} ${ansis.white(i18n.t('menu:configCenter.model'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
+    `  ${ansis.white('13.')} ${ansis.white(i18n.t('menu:configCenter.model'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
   )
   console.log('')
 
   // More Features
   console.log(`  ${ansis.dim('─'.repeat(50))}`)
   console.log(
-    `  ${ansis.white('8.')} ${ansis.white(i18n.t('menu:oneClick.more'))} → ${ansis.dim(i18n.t('menu:oneClick.moreDesc'))}`,
+    `  ${ansis.white('14.')} ${ansis.white(i18n.t('menu:oneClick.more'))} → ${ansis.dim(i18n.t('menu:oneClick.moreDesc'))}`,
   )
   console.log('')
   console.log(
@@ -1066,7 +1253,7 @@ async function showCategorizedMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '0', 'q', 'Q']
+      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '0', 'q', 'Q']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -1079,36 +1266,61 @@ async function showCategorizedMenu(): Promise<MenuResult> {
   const normalized = choice.toLowerCase()
 
   switch (normalized) {
-    // One-click setup
+    // ⭐ NEW: CCJK Quick Setup Commands
     case '1':
+      // ccjk:all - Cloud AI Setup
+      await executeCcjkAllCommand()
+      break
+    case '2':
+      // ccjk:setup - Complete Local Setup
+      await executeCcjkSetupCommand()
+      break
+    case '3':
+      // ccjk:skills - Install Skills
+      await executeCcjkSkillsCommand()
+      break
+    case '4':
+      // ccjk:mcp - Setup MCP Services
+      await executeCcjkMcpCommand()
+      break
+    case '5':
+      // ccjk:agents - Create AI Agents
+      await executeCcjkAgentsCommand()
+      break
+    case '6':
+      // ccjk:hooks - Configure Hooks
+      await executeCcjkHooksCommand()
+      break
+    // One-click setup
+    case '7':
       await init({ skipBanner: true })
       break
     // One-click checkup (diagnose + fix)
-    case '2':
+    case '8':
       await oneClickCheckup()
       break
     // One-click update
-    case '3':
+    case '9':
       await oneClickUpdate()
       break
     // Task notifications
-    case '4':
+    case '10':
       await notificationCommand()
       break
     // API Config (Important Setting)
-    case '5':
+    case '11':
       await configureApiFeature()
       break
     // MCP Config (Important Setting)
-    case '6':
+    case '12':
       await configureMcpFeature()
       break
     // Default Model (Important Setting)
-    case '7':
+    case '13':
       await configureDefaultModelFeature()
       break
     // More features submenu
-    case '8':
+    case '14':
       printSeparator()
       await showMoreFeaturesMenu()
       return undefined

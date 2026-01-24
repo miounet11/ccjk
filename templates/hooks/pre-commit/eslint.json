@@ -1,0 +1,22 @@
+{
+  "name": "pre-commit-eslint",
+  "description": "Run ESLint on staged files",
+  "type": "pre-commit",
+  "category": "pre-commit",
+  "projectTypes": ["typescript", "javascript"],
+  "trigger": {
+    "matcher": "git:pre-commit",
+    "condition": "git diff --cached --name-only | grep -E \"\\.(ts|js|tsx|jsx)$\""
+  },
+  "action": {
+    "command": "eslint",
+    "args": ["--fix", "--staged"],
+    "timeout": 30000
+  },
+  "enabled": true,
+  "priority": 100,
+  "metadata": {
+    "version": "1.0.0",
+    "tags": ["linting", "code-quality"]
+  }
+}
