@@ -13,7 +13,7 @@ import type {
   ValidationError,
   ValidationWarning,
   ProjectContext,
-} from '../types.js'
+} from './types.js'
 
 export class WorkflowValidator {
   /**
@@ -260,7 +260,7 @@ export class WorkflowValidator {
   private validateCircularDependencies(workflow: Workflow): ValidationError[] {
     const errors: ValidationError[] = []
 
-    const stepMap = new Map(workflow.steps.map(s => [s.id, s]))
+    const stepMap = new Map<string, WorkflowStep>(workflow.steps.map(s => [s.id, s]))
     const visited = new Set<string>()
     const recursionStack = new Set<string>()
     const cycles: string[][] = []
@@ -437,8 +437,11 @@ export class WorkflowValidator {
   /**
    * Validate performance issues
    */
-  private validatePerformance(workflow: Workflow): ValidationWarning[] = []
+  private validatePerformance(workflow: Workflow): ValidationWarning[] {
+    // TODO: Implement performance validation
+    return []
   }
+
 
   /**
    * Generate improvement suggestions

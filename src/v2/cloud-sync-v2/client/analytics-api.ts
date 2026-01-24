@@ -395,8 +395,8 @@ export class AnalyticsAPIClient extends APIClient {
       cohort: string
       size: number
       retention: number[]
-    }
-  >} {
+    }>
+  }> {
     return this.get<any>('/analytics/cohorts', {
       params: { cohortType, period },
       cache: true,

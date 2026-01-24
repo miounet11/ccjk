@@ -492,6 +492,53 @@ const COMMANDS: CommandDefinition[] = [
       }
     },
   },
+  // ==================== New v8.0.0 Commands ====================
+  {
+    name: 'task [action]',
+    description: 'Task management (create, list, update, delete, graph, stats, schedule)',
+    aliases: ['tasks'],
+    tier: 'extended',
+    options: [
+      { flags: '--lang, -l <lang>', description: 'Display language' },
+    ],
+    loader: async () => {
+      const { registerTaskCommands } = await import('./commands/task')
+      return async (options, action: unknown, ...args: unknown[]) => {
+        await registerTaskCommands(action as string, options, args)
+      }
+    },
+  },
+  {
+    name: 'keybinding [action]',
+    description: 'Keybinding management (list, add, remove, toggle, reset)',
+    aliases: ['kb'],
+    tier: 'extended',
+    options: [
+      { flags: '--lang, -l <lang>', description: 'Display language' },
+    ],
+    loader: async () => {
+      const { registerKeybindingCommands } = await import('./commands/keybinding')
+      return async (options, action: unknown, ...args: unknown[]) => {
+        await registerKeybindingCommands(action as string, options, args)
+      }
+    },
+  },
+  {
+    name: 'history [action]',
+    description: 'History management (list, search, stats, clear)',
+    aliases: ['hist'],
+    tier: 'extended',
+    options: [
+      { flags: '--lang, -l <lang>', description: 'Display language' },
+    ],
+    loader: async () => {
+      const { registerHistoryCommands } = await import('./commands/history')
+      return async (options, action: unknown, ...args: unknown[]) => {
+        await registerHistoryCommands(action as string, options, args)
+      }
+    },
+  },
+  // ========================================================================
   {
     name: 'ccr',
     description: 'Configure Claude Code Router',
