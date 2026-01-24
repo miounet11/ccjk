@@ -1,6 +1,5 @@
 /**
- * Cloud Setup Orchestrator
- *
+ * Cloud Setup Orchestrator *
  * Orchestrates cloud-powered setup with AI recommendations for optimal CCJK configuration
  * @module orchestrators/cloud-setup-orchestrator
  */
@@ -28,6 +27,14 @@ import { ccjkSkills } from '../commands/ccjk-skills'
 import { ccjkMcp } from '../commands/ccjk-mcp'
 import { ccjkAgents } from '../commands/ccjk-agents'
 import { ccjkHooks } from '../commands/ccjk-hooks'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+
+// Read package.json for version
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'))
+const CCJK_VERSION = packageJson.version
 import { analyzeProject } from '../analyzers'
 import { createCompleteCloudClient, type FallbackCloudClient } from '../cloud-client'
 import { i18n } from '../i18n'
@@ -331,7 +338,7 @@ export class CloudSetupOrchestrator {
     const request: ProjectAnalysisRequest = {
       projectRoot: options.targetDir || process.cwd(),
       language: options.lang,
-      ccjkVersion: require('../../package.json').version,
+      ccjkVersion: CCJK_VERSION,
     }
 
     // Add dependencies if available
@@ -873,7 +880,7 @@ export class CloudSetupOrchestrator {
           ],
         },
         clientInfo: {
-          ccjkVersion: require('../../package.json').version,
+          ccjkVersion: CCJK_VERSION,
           os: process.platform,
           nodeVersion: process.version,
         },
