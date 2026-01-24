@@ -283,7 +283,8 @@ async function getRecommendedSkills(
 
     if (cloudResponse.recommendations) {
       for (const rec of cloudResponse.recommendations) {
-        if (rec.type === 'skill') {
+        // Skills are categorized as 'workflow' in the API
+        if (rec.category === 'workflow') {
           const skill = await cloudClient.getTemplate(rec.id, options.lang)
           if (skill) {
             recommendations.push({
