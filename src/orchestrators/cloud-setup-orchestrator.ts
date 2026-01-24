@@ -277,12 +277,17 @@ export class CloudSetupOrchestrator {
   private generateProjectFingerprint(analysis: ProjectAnalysis): string {
     const hash = createHash('sha256')
 
-    // Hash key project characteristics
-    hash.update(JSON.stringify(analysis.dependencies))
-    hash.update(JSON.stringify(analysis.devDependencies))
+    // Hash key project characteristics - ensure all values are strings
+    const depNames = analysis.dependencies?.direct.map(d => d.name).join(',') || ''
+    const devDepNames = analysis.dependencies?.direct.filter(d => d.isDev).map(d => d.name).join(',') || ''
+    const frameworkNames = analysis.frameworks?.map(f => f.name).join(',') || ''
+    const languageNames = analysis.languages?.map(l => l.language).join(',') || ''
+
+    hash.update(depNames)
+    hash.update(devDepNames)
     hash.update(analysis.projectType || '')
-    hash.update(JSON.stringify(analysis.frameworks))
-    hash.update(JSON.stringify(analysis.languages))
+    hash.update(frameworkNames)
+    hash.update(languageNames)
 
     return hash.digest('hex')
   }
@@ -322,13 +327,33 @@ export class CloudSetupOrchestrator {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:gettingRecommendations'))}`)
     }
 
+    // Prepare request - convert DependencyAnalysis to Record<string, string>
     const request: ProjectAnalysisRequest = {
       projectRoot: options.targetDir || process.cwd(),
-      dependencies: analysis.dependencies,
-      devDependencies: analysis.devDependencies,
-      gitRemote: analysis.gitRemote,
       language: options.lang,
       ccjkVersion: require('../../package.json').version,
+    }
+
+    // Add dependencies if available
+    if (analysis.dependencies?.direct) {
+      const deps: Record<string, string> = {}
+      const devDeps: Record<string, string> = {}
+
+      for (const dep of analysis.dependencies.direct) {
+        if (dep.isDev) {
+          devDeps[dep.name] = dep.version || '*'
+        } else {
+          deps[dep.name] = dep.version || '*'
+        }
+      }
+
+      request.dependencies = deps
+      request.devDependencies = devDeps
+    }
+
+    // Add git remote if available
+    if (analysis.gitRemote) {
+      request.gitRemote = analysis.gitRemote
     }
 
     try {
