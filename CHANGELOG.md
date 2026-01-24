@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.1] - 2026-01-24 - Menu Quick Setup Enhancement 🎯
+
+### New Features
+
+#### Menu Homepage Enhancement
+- **Added** Quick Setup section prominently displayed at menu top
+- **Added** 6 ccjk:* intelligent commands accessible from interactive menu:
+  - ccjk:all - Cloud AI-powered complete setup (Recommended) ☁️
+  - ccjk:setup - Complete local setup with project analysis 🔧
+  - ccjk:skills - Intelligently install project-specific skills 📚
+  - ccjk:mcp - Smart MCP service configuration 🔌
+  - ccjk:agents - Create specialized AI assistant agents 🤖
+  - ccjk:hooks - Configure automation hooks 🪝
+- **Added** Visual hierarchy with cyan titles, yellow bold for recommended
+- **Added** Complete bilingual i18n support for all 6 commands
+- **Added** One-click execution from interactive menu
+- **Added** Professional emoji icons for visual clarity
+
+### Fixes
+
+- **Fixed** Command exports to use simple function exports
+- **Fixed** Build issues with citty dependency (removed)
+- **Fixed** Build issues with clack prompts (replaced with inquirer)
+- **Fixed** Orchestrator imports to use actual exported functions
+- **Fixed** Menu imports to use correct command function names
+
+### Documentation
+
+- **Added** `docs/menu-quick-setup-upgrade.md` with visual examples
+- **Added** Complete inline documentation for all new modules
+
+---
+
 ## [8.0.0] - 2026-01-24 - Cloud-Native Quick Setup Release ☁️
 
 ### 🎉 Major Features
