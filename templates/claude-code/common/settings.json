@@ -1,6 +1,6 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-settings",
-  "description": "Default Claude Code settings.json template for CCJK v3.8 - Supports Claude Code CLI 2.0-2.1",
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "description": "Default Claude Code settings.json template for CCJK v8.1.2 - Supports Claude Code CLI 2.0-2.1",
 
   "model": "default",
 
@@ -12,8 +12,6 @@
   },
 
   "language": "",
-
-  "plansDirectory": null,
 
   "showTurnDuration": false,
 
@@ -31,6 +29,7 @@
   },
 
   "fileSuggestion": {
+    "type": "command",
     "command": "git"
   },
 
@@ -38,7 +37,7 @@
 
   "disallowedTools": [],
 
-  "attribution": "",
+  "attribution": {},
 
   "index": {
     "maxFiles": 10000,
@@ -49,16 +48,16 @@
 
   "permissions": {
     "allow": [
-      "allowEdit",
-      "allowWrite",
-      "allowRead",
-      "allowExec",
-      "allowCreateProcess",
-      "allowKillProcess",
-      "allowNetworkAccess",
-      "allowFileSystemAccess",
-      "allowShellAccess",
-      "allowHttpAccess"
+      "AllowEdit",
+      "AllowWrite",
+      "AllowRead",
+      "AllowExec",
+      "AllowCreateProcess",
+      "AllowKillProcess",
+      "AllowNetworkAccess",
+      "AllowFileSystemAccess",
+      "AllowShellAccess",
+      "AllowHttpAccess"
     ]
   },
 
