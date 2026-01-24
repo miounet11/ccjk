@@ -251,11 +251,11 @@ async function getRecommendedSkills(
     const request: ProjectAnalysisRequest = {
       projectRoot: analysis.rootPath || process.cwd(),
       language: options.lang,
-      ccjkVersion: '8.0.4',
+      ccjkVersion: '8.0.8',  // Will be dynamically loaded in production
     }
 
     // Add dependencies if available
-    if (analysis.dependencies?.direct) {
+    if (analysis.dependencies?.direct && analysis.dependencies.direct.length > 0) {
       const deps: Record<string, string> = {}
       const devDeps: Record<string, string> = {}
 
@@ -267,12 +267,18 @@ async function getRecommendedSkills(
         }
       }
 
-      request.dependencies = deps
-      request.devDependencies = devDeps
+      // Only add if non-empty
+      if (Object.keys(deps).length > 0) {
+        request.dependencies = deps
+      }
+      if (Object.keys(devDeps).length > 0) {
+        request.devDependencies = devDeps
+      }
     }
 
     // Get cloud recommendations
     logger.info('Fetching cloud recommendations...')
+    logger.debug('Request payload:', JSON.stringify(request, null, 2))
     const cloudResponse = await cloudClient.analyzeProject(request)
 
     if (cloudResponse.recommendations) {

@@ -68,13 +68,54 @@ export class CloudClient {
     }
 
     if (error instanceof Error) {
-      if (error.message.includes('timeout') || error.message.includes('timed out')) {
+      // Extract HTTP status and response data if available
+      const errorMessage = error.message || ''
+
+      // Check for timeout errors
+      if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
         throw CloudClientError.timeout(this.config.timeout || 10000)
       }
 
-      if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
+      // Check for network errors
+      if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('ENOTFOUND')) {
         throw CloudClientError.network(error)
       }
+
+      // Extract HTTP status code from error message
+      const statusMatch = errorMessage.match(/(\d{3})\s+/)
+      const statusCode = statusMatch ? parseInt(statusMatch[1]) : undefined
+
+      // Try to parse response body from error
+      let responseDetails = errorMessage
+      try {
+        // ofetch might include response data in the error message
+        if (errorMessage.includes(':')) {
+          const parts = errorMessage.split(':')
+          if (parts.length > 1) {
+            responseDetails = parts.slice(1).join(':').trim()
+          }
+        }
+      } catch {
+        // Ignore parsing errors
+      }
+
+      consola.warn(`Cloud API error in ${context}:`, {
+        statusCode,
+        message: responseDetails,
+        originalError: error,
+      })
+
+      // Throw appropriate error based on status code
+      if (statusCode) {
+        throw CloudClientError.fromResponse(statusCode, responseDetails)
+      }
+
+      throw new CloudClientError(
+        'UNKNOWN_ERROR',
+        `Unexpected error during ${context}: ${responseDetails}`,
+        undefined,
+        error,
+      )
     }
 
     consola.warn(`Cloud API error in ${context}:`, error)

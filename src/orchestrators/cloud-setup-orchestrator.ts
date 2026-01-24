@@ -342,7 +342,7 @@ export class CloudSetupOrchestrator {
     }
 
     // Add dependencies if available
-    if (analysis.dependencies?.direct) {
+    if (analysis.dependencies?.direct && analysis.dependencies.direct.length > 0) {
       const deps: Record<string, string> = {}
       const devDeps: Record<string, string> = {}
 
@@ -354,8 +354,13 @@ export class CloudSetupOrchestrator {
         }
       }
 
-      request.dependencies = deps
-      request.devDependencies = devDeps
+      // Only add if non-empty
+      if (Object.keys(deps).length > 0) {
+        request.dependencies = deps
+      }
+      if (Object.keys(devDeps).length > 0) {
+        request.devDependencies = devDeps
+      }
     }
 
     // Add git remote if available
