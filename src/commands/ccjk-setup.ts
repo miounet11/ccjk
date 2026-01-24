@@ -133,3 +133,23 @@ async function showResults(result: SetupResult, options: CcjkSetupOptions, logge
     logger.log(result.report)
   }
 }
+
+// ============================================================================
+// Export
+// ============================================================================
+
+const ccjkSetupCommand = {
+  meta: {
+    name: 'ccjk:setup',
+    description: 'Setup CCJK with optimal configuration',
+    category: 'setup',
+  },
+  args: {},
+  options: {},
+  handler: ccjkSetup,
+}
+
+export default ccjkSetupCommand
+
+// Also export as named export for tests
+export { ccjkSetupCommand as CcjkSetupCommand }

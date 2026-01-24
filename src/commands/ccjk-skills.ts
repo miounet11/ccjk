@@ -685,3 +685,19 @@ function getCategoryIcon(category: SkillCategory): string {
   }
   return icons[category] || '📦'
 }
+// ============================================================================
+// Export
+// ============================================================================
+
+const ccjkSkillsCommand = {
+  meta: {
+    name: 'ccjk:skills',
+    description: 'Analyze project and recommend skills to install',
+    category: 'skills',
+  },
+  args: {},
+  options: {},
+  handler: ccjkSkills,
+}
+
+export default ccjkSkillsCommand

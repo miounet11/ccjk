@@ -23,7 +23,7 @@ export class Router {
 
   constructor(config?: Partial<RouterConfig>) {
     this.config = {
-      minConfidence: 0.5,
+      minConfidence: 0.25, // Reduced for better sensitivity
       maxResults: 2,
       keywordWeights: {
         exact: 1.0,
@@ -99,6 +99,15 @@ export class Router {
         tags,
         priority
       );
+
+      // Fallback: if no skills found for specific layers, use top priority skills
+      if (!primarySkill && !secondarySkill) {
+        const prioritizedSkills = Array.from(this.skills.values())
+          .sort((a, b) => b.metadata.priority - a.metadata.priority);
+
+        primarySkill = prioritizedSkills[0] || null;
+        secondarySkill = prioritizedSkills[1] || null;
+      }
     } else if (tags && tags.length > 0) {
       // Load skills by tags
       const matchingSkills = this.findSkillsByTags(tags);
@@ -194,11 +203,18 @@ export class Router {
     keywords.push(...questionWords);
 
     // Add quick reference keys
-    const refKeys = Object.keys(skill.protocol.quickReference);
+    const refKeys = Object.keys(skill.protocol.quickReference || {});
     keywords.push(...refKeys);
 
-    // Remove duplicates
-    return Array.from(new Set(keywords));
+    // Filter out common/stop words and remove duplicates
+    const stopWords = new Set([
+      'for', 'the', 'and', 'but', 'or', 'not', 'with', 'this', 'that',
+      'these', 'those', 'from', 'have', 'been', 'were', 'was', 'are',
+      'is', 'am', 'can', 'could', 'should', 'would', 'will', 'into',
+      'over', 'after', 'before', 'between', 'under', 'again', 'same'
+    ]);
+
+    return Array.from(new Set(keywords)).filter(k => !stopWords.has(k.toLowerCase()));
   }
 
   /**
@@ -288,9 +304,11 @@ export class Router {
     if (totalKeywords === 0) return 0;
 
     const matchRatio = matchedKeywords.length / totalKeywords;
-    const normalizedScore = Math.min(score / 10, 1); // Normalize to 0-1
+    // Normalize score to 0-1 range (divide by 5 instead of 10 for better sensitivity)
+    const normalizedScore = Math.min(score / 5, 1);
 
-    return (matchRatio * 0.6 + normalizedScore * 0.4);
+    // Weight: 70% match ratio, 30% score
+    return (matchRatio * 0.7 + normalizedScore * 0.3);
   }
 
   /**

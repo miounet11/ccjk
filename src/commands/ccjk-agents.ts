@@ -379,3 +379,20 @@ async function createCustomAgent(
     return null
   }
 }
+
+// ============================================================================
+// Export
+// ============================================================================
+
+const ccjkAgentsCommand = {
+  meta: {
+    name: 'ccjk:agents',
+    description: 'Create and configure AI agents for your project',
+    category: 'agents',
+  },
+  args: {},
+  options: {},
+  handler: ccjkAgents,
+}
+
+export default ccjkAgentsCommand

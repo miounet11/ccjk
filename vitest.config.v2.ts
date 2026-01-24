@@ -97,7 +97,7 @@ export default defineConfig({
       'verbose',
       'json',
       'html',
-      ['junit', { outputFile: './coverage/v2/junit.xml' }],
+      'junit',
     ],
 
     // Enhanced watch mode

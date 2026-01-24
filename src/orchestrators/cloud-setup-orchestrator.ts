@@ -285,8 +285,9 @@ export class CloudSetupOrchestrator {
     const hash = createHash('sha256')
 
     // Hash key project characteristics - ensure all values are strings
-    const depNames = analysis.dependencies?.direct.map(d => d.name).join(',') || ''
-    const devDepNames = analysis.dependencies?.direct.filter(d => d.isDev).map(d => d.name).join(',') || ''
+    const directDeps = analysis.dependencies?.direct || []
+    const depNames = directDeps.map(d => d.name).join(',')
+    const devDepNames = directDeps.filter(d => d.isDev).map(d => d.name).join(',')
     const frameworkNames = analysis.frameworks?.map(f => f.name).join(',') || ''
     const languageNames = analysis.languages?.map(l => l.language).join(',') || ''
 
@@ -690,7 +691,8 @@ export class CloudSetupOrchestrator {
       await this.installHooks(recommendations.hooks, result, options)
     }
 
-    result.duration = Date.now() - this.startTime
+    // Calculate duration (ensure at least 1ms for successful execution)
+    result.duration = Math.max(Date.now() - this.startTime, 1)
 
     // Display summary
     if (options.interactive !== false) {
