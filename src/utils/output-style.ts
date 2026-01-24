@@ -8,6 +8,7 @@ import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { updateZcfConfig } from './ccjk-config'
 import { copyFile, ensureDir, exists, removeFile } from './fs-operations'
+import { mergeAndCleanPermissions } from './permission-cleaner'
 import { readJsonConfig, writeJsonConfig } from './json-config'
 import { addNumbersToChoices } from './prompt-helpers'
 import { promptBoolean } from './toggle-prompt'
@@ -83,14 +84,69 @@ export async function copyOutputStyles(selectedStyles: string[], lang: Supported
 }
 
 export function setGlobalDefaultOutputStyle(styleId: string): void {
+  // Get template permissions for validation
+  const templatePermissions = getTemplatePermissions()
+
   const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || {}
+
+  // Clean permissions before writing
+  const cleanedPermissions = mergeAndCleanPermissions(
+    templatePermissions,
+    existingSettings.permissions?.allow,
+  )
 
   const updatedSettings: ClaudeSettings = {
     ...existingSettings,
     outputStyle: styleId,
+    // Ensure clean permissions
+    permissions: {
+      allow: cleanedPermissions,
+    },
+  }
+
+  // Remove problematic fields
+  if ((updatedSettings as any).plansDirectory === null) {
+    delete (updatedSettings as any).plansDirectory
   }
 
   writeJsonConfig(SETTINGS_FILE, updatedSettings)
+}
+
+/**
+ * Get template permissions from template settings.json
+ */
+function getTemplatePermissions(): string[] {
+  try {
+    const { fileURLToPath } = require('node:url')
+    const { dirname, join } = require('pathe')
+    const { readFileSync } = require('fs')
+
+    const currentFilePath = fileURLToPath(import.meta.url)
+    const distDir = dirname(dirname(currentFilePath))
+    const rootDir = dirname(distDir)
+    const templatePath = join(rootDir, 'templates', 'claude-code', 'common', 'settings.json')
+
+    if (require('fs').existsSync(templatePath)) {
+      const template = JSON.parse(readFileSync(templatePath, 'utf-8'))
+      return template.permissions?.allow || []
+    }
+  }
+  catch (error) {
+    // Silently fall back to default
+  }
+  // Default permissions if template not found
+  return [
+    'AllowEdit',
+    'AllowWrite',
+    'AllowRead',
+    'AllowExec',
+    'AllowCreateProcess',
+    'AllowKillProcess',
+    'AllowNetworkAccess',
+    'AllowFileSystemAccess',
+    'AllowShellAccess',
+    'AllowHttpAccess',
+  ]
 }
 
 export function hasLegacyPersonalityFiles(): boolean {
