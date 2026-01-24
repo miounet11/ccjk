@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "8.0.8",
+  "version": "8.0.9",
   "packageManager": "pnpm@10.17.1",
   "description": "Ultimate AI Development Tool - Code Tool Abstraction Layer with 83% Token Savings - Now with Cloud Sync, Hot-Reload Skills, Multi-Agent Orchestration, and Full Claude Code CLI 2.1+ Compatibility",
   "author": {

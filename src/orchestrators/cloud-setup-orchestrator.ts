@@ -503,8 +503,11 @@ export class CloudSetupOrchestrator {
       console.log(`  ${ansis.bold(i18n.t('cloud-setup:skills'))} (${recommendations.skills.length}):`)
       for (const skill of recommendations.skills) {
         const confidence = options.showConfidence ? ` [${Math.round(skill.relevanceScore * 100)}%]` : ''
-        const reason = options.showRecommendationReason && skill.description ? ` - ${skill.description[i18n.language as SupportedLang] || skill.description.en}` : ''
-        console.log(`    ${ansis.green('✓')} ${skill.name[i18n.language as SupportedLang] || skill.name.en}${ansis.dim(confidence)}${ansis.dim(reason)}`)
+        const skillName = skill.name?.[i18n.language as SupportedLang] || skill.name?.en || skill.id
+        const reason = options.showRecommendationReason && skill.description
+          ? ` - ${skill.description[i18n.language as SupportedLang] || skill.description.en || ''}`
+          : ''
+        console.log(`    ${ansis.green('✓')} ${skillName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
       }
     }
 
@@ -513,8 +516,11 @@ export class CloudSetupOrchestrator {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:mcpServices'))} (${recommendations.mcpServices.length}):`)
       for (const service of recommendations.mcpServices) {
         const confidence = options.showConfidence ? ` [${Math.round(service.relevanceScore * 100)}%]` : ''
-        const reason = options.showRecommendationReason && service.description ? ` - ${service.description[i18n.language as SupportedLang] || service.description.en}` : ''
-        console.log(`    ${ansis.green('✓')} ${service.name[i18n.language as SupportedLang] || service.name.en}${ansis.dim(confidence)}${ansis.dim(reason)}`)
+        const serviceName = service.name?.[i18n.language as SupportedLang] || service.name?.en || service.id
+        const reason = options.showRecommendationReason && service.description
+          ? ` - ${service.description[i18n.language as SupportedLang] || service.description.en || ''}`
+          : ''
+        console.log(`    ${ansis.green('✓')} ${serviceName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
       }
     }
 
@@ -523,8 +529,11 @@ export class CloudSetupOrchestrator {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:agents'))} (${recommendations.agents.length}):`)
       for (const agent of recommendations.agents) {
         const confidence = options.showConfidence ? ` [${Math.round(agent.relevanceScore * 100)}%]` : ''
-        const reason = options.showRecommendationReason && agent.description ? ` - ${agent.description[i18n.language as SupportedLang] || agent.description.en}` : ''
-        console.log(`    ${ansis.green('✓')} ${agent.name[i18n.language as SupportedLang] || agent.name.en}${ansis.dim(confidence)}${ansis.dim(reason)}`)
+        const agentName = agent.name?.[i18n.language as SupportedLang] || agent.name?.en || agent.id
+        const reason = options.showRecommendationReason && agent.description
+          ? ` - ${agent.description[i18n.language as SupportedLang] || agent.description.en || ''}`
+          : ''
+        console.log(`    ${ansis.green('✓')} ${agentName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
       }
     }
 
@@ -533,13 +542,16 @@ export class CloudSetupOrchestrator {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:hooks'))} (${recommendations.hooks.length}):`)
       for (const hook of recommendations.hooks) {
         const confidence = options.showConfidence ? ` [${Math.round(hook.relevanceScore * 100)}%]` : ''
-        const reason = options.showRecommendationReason && hook.description ? ` - ${hook.description[i18n.language as SupportedLang] || hook.description.en}` : ''
-        console.log(`    ${ansis.green('✓')} ${hook.name[i18n.language as SupportedLang] || hook.name.en}${ansis.dim(confidence)}${ansis.dim(reason)}`)
+        const hookName = hook.name?.[i18n.language as SupportedLang] || hook.name?.en || hook.id
+        const reason = options.showRecommendationReason && hook.description
+          ? ` - ${hook.description[i18n.language as SupportedLang] || hook.description.en || ''}`
+          : ''
+        console.log(`    ${ansis.green('✓')} ${hookName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
       }
     }
 
     // Display insights
-    if (recommendations.insights && recommendations.insights.insights.length > 0) {
+    if (recommendations.insights?.insights && recommendations.insights.insights.length > 0) {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:insights'))}:`)
       for (const insight of recommendations.insights.insights) {
         console.log(`    ${ansis.cyan('💡')} ${insight}`)
@@ -547,7 +559,7 @@ export class CloudSetupOrchestrator {
     }
 
     // Display productivity improvements
-    if (recommendations.insights && recommendations.insights.productivityImprovements.length > 0) {
+    if (recommendations.insights?.productivityImprovements && recommendations.insights.productivityImprovements.length > 0) {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:productivityImprovements'))}:`)
       for (const improvement of recommendations.insights.productivityImprovements) {
         console.log(`    ${ansis.green('↑')} ${improvement.resource}: +${improvement.improvement}% ${improvement.reason}`)
