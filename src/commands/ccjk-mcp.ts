@@ -27,6 +27,7 @@ import { mcpServiceTemplates, getCompatibleMcpServiceTemplates, isTemplateCompat
 import { backupMcpConfig, mergeMcpServers, readMcpConfig, writeMcpConfig } from '../utils/claude-config'
 import { commandExists, isWindows } from '../utils/platform'
 import { CLAUDE_DIR } from '../constants'
+import { getTemplatesClient, type Template } from '../cloud-client'
 
 /**
  * Command options interface
@@ -159,7 +160,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
     }
 
     // Step 2: Get recommended services
-    const recommendedServices = getRecommendedServices(analysis, options)
+    const recommendedServices = await getRecommendedServices(analysis, options)
     const availableServices = filterServicesByTier(recommendedServices, options.tier)
     const selectedServices = filterServicesByExclusion(availableServices, options.exclude)
 
@@ -404,15 +405,79 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
 /**
  * Get recommended services based on project analysis
  */
-function getRecommendedServices(
+async function getRecommendedServices(
   analysis: ProjectAnalysis,
   options: CcjkMcpOptions
-): McpServiceTemplate[] {
+): Promise<McpServiceTemplate[]> {
   const services: McpServiceTemplate[] = []
   const projectType = analysis.projectType.toLowerCase()
   const languages = analysis.languages.map(l => l.language.toLowerCase())
+  const frameworks = analysis.frameworks.map(f => f.name.toLowerCase())
+  const isZh = i18n.language === 'zh-CN'
 
-  // Get all compatible templates
+  // Try to fetch from cloud v8 Templates API first
+  try {
+    const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' })
+    const cloudMcpServices = await templatesClient.getOfficialMcpServers()
+
+    if (cloudMcpServices.length > 0) {
+      consola.success(isZh ? `从云端获取 ${cloudMcpServices.length} 个 MCP 服务` : `Fetched ${cloudMcpServices.length} MCP services from cloud`)
+
+      // Filter by project relevance
+      const relevantServices = cloudMcpServices.filter(mcp => {
+        const tags = mcp.tags || []
+        const category = mcp.category || ''
+        const compatibility = mcp.compatibility || {}
+
+        // Check if MCP matches project
+        return (
+          tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag)) ||
+          (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase())) ||
+          (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase())) ||
+          category === 'core' // Always include core services
+        )
+      })
+
+      // Convert cloud templates to local format
+      for (const mcp of (relevantServices.length > 0 ? relevantServices : cloudMcpServices.slice(0, 10))) {
+        // Check if we have a local template for this service
+        const localTemplate = mcpServiceTemplates[mcp.id] || mcpServiceTemplates[mcp.name_en.toLowerCase().replace(/\s+/g, '-')]
+
+        if (localTemplate) {
+          services.push(localTemplate)
+        } else {
+          // Create a template from cloud data
+          const cloudTemplate: McpServiceTemplate = {
+            id: mcp.id || mcp.name_en.toLowerCase().replace(/\s+/g, '-'),
+            name: {
+              en: mcp.name_en,
+              'zh-CN': mcp.name_zh_cn || mcp.name_en
+            },
+            description: {
+              en: mcp.description_en || '',
+              'zh-CN': mcp.description_zh_cn || mcp.description_en || ''
+            },
+            type: 'stdio',
+            command: mcp.npm_package ? 'npx' : 'node',
+            args: mcp.npm_package ? ['-y', mcp.npm_package] : [],
+            installCommand: mcp.install_command || `npm install -g ${mcp.npm_package || mcp.id}`,
+            requiredFor: [],
+            optionalFor: ['all'],
+            env: {}
+          }
+          services.push(cloudTemplate)
+        }
+      }
+
+      if (services.length > 0) {
+        return services
+      }
+    }
+  } catch (error) {
+    consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
+  }
+
+  // Fallback to local templates
   const allServices = getCompatibleMcpServiceTemplates()
 
   // Find services required for this project type

@@ -103,5 +103,13 @@ export async function deleteAgentFile(agentId: string): Promise<boolean> {
 }
 
 function generateAgentId(agent: AgentDefinition): string {
-  return agent.role.toLowerCase().replace(/\s+/g, '-')
+  // Use agent.id if available, fallback to name extraction
+  if (agent.id) {
+    return agent.id.toLowerCase().replace(/\s+/g, '-')
+  }
+  // Fallback: extract from name (handle both string and multilingual object)
+  const name = typeof agent.name === 'string'
+    ? agent.name
+    : (agent.name?.en || agent.name?.['zh-CN'] || 'unknown-agent')
+  return name.toLowerCase().replace(/\s+/g, '-')
 }

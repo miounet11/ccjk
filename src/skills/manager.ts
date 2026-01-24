@@ -160,12 +160,15 @@ export function searchSkills(options: SkillSearchOptions): CcjkSkill[] {
 
   if (options.query) {
     const query = options.query.toLowerCase()
-    skills = skills.filter(s =>
-      s.id.toLowerCase().includes(query)
-      || s.name.en.toLowerCase().includes(query)
-      || s.name['zh-CN'].toLowerCase().includes(query)
-      || s.triggers.some(t => t.toLowerCase().includes(query)),
-    )
+    skills = skills.filter(s => {
+      // Handle both string and multilingual object for name
+      const nameEn = typeof s.name === 'string' ? s.name : (s.name?.en || '')
+      const nameZh = typeof s.name === 'string' ? s.name : (s.name?.['zh-CN'] || '')
+      return s.id.toLowerCase().includes(query)
+        || nameEn.toLowerCase().includes(query)
+        || nameZh.toLowerCase().includes(query)
+        || s.triggers.some(t => t.toLowerCase().includes(query))
+    })
   }
 
   if (options.limit) {
@@ -409,17 +412,26 @@ const BATCH_TEMPLATES: Record<string, BatchSkillTemplate> = {
 export function createBatchSkills(options: BatchSkillOptions): SkillInstallResult[] {
   const results: SkillInstallResult[] = []
 
+  // Helper to safely extract string from name/description
+  const extractStr = (val: string | Record<string, string> | undefined, fallback: string): string => {
+    if (!val) return fallback
+    if (typeof val === 'string') return val
+    return val.en || val['zh-CN'] || Object.values(val)[0] || fallback
+  }
+
   // Language-specific skills
   if (options.lang) {
     const template = BATCH_TEMPLATES[options.lang]
     if (template) {
       for (const skillDef of template.skills) {
+        const nameStr = extractStr(skillDef.name as any, skillDef.id)
+        const descStr = extractStr(skillDef.description as any, '')
         const skill: CcjkSkill = {
           ...skillDef,
           category: template.category,
           enabled: true,
           version: '1.0.0',
-          template: `# ${skillDef.name.en}\n\n${skillDef.description.en}\n\nThis is a placeholder template.`,
+          template: `# ${nameStr}\n\n${descStr}\n\nThis is a placeholder template.`,
         }
         results.push(addSkill(skill))
       }
@@ -430,12 +442,14 @@ export function createBatchSkills(options: BatchSkillOptions): SkillInstallResul
   if (options.seo) {
     const template = BATCH_TEMPLATES.seo
     for (const skillDef of template.skills) {
+      const nameStr = extractStr(skillDef.name as any, skillDef.id)
+      const descStr = extractStr(skillDef.description as any, '')
       const skill: CcjkSkill = {
         ...skillDef,
         category: template.category,
         enabled: true,
         version: '1.0.0',
-        template: `# ${skillDef.name.en}\n\n${skillDef.description.en}\n\nThis is a placeholder template.`,
+        template: `# ${nameStr}\n\n${descStr}\n\nThis is a placeholder template.`,
       }
       results.push(addSkill(skill))
     }
@@ -445,12 +459,14 @@ export function createBatchSkills(options: BatchSkillOptions): SkillInstallResul
   if (options.devops) {
     const template = BATCH_TEMPLATES.devops
     for (const skillDef of template.skills) {
+      const nameStr = extractStr(skillDef.name as any, skillDef.id)
+      const descStr = extractStr(skillDef.description as any, '')
       const skill: CcjkSkill = {
         ...skillDef,
         category: template.category,
         enabled: true,
         version: '1.0.0',
-        template: `# ${skillDef.name.en}\n\n${skillDef.description.en}\n\nThis is a placeholder template.`,
+        template: `# ${nameStr}\n\n${descStr}\n\nThis is a placeholder template.`,
       }
       results.push(addSkill(skill))
     }

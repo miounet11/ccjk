@@ -5,7 +5,7 @@ import { join, resolve } from 'pathe'
 import { ProjectAnalyzer } from '../analyzers/index.js'
 import { hookManager } from '../hooks/hook-manager.js'
 import { loadHookTemplates } from '../hooks/template-loader.js'
-import { getCloudRecommendedHooks } from '../cloud-client/hook-recommendations.js'
+import { getTemplatesClient, type Template } from '../cloud-client'
 import { writeFile, ensureDir } from 'fs-extra'
 import inquirer from 'inquirer'
 import { i18n } from '../i18n/index.js'
@@ -53,12 +53,69 @@ export async function ccjkHooks(
 
     // Step 2: Get recommended hooks
     let recommendedHooks: HookConfig[] = []
+    const isZh = i18n.language === 'zh-CN'
 
     try {
-      // Try cloud recommendations first
-      recommendedHooks = await getCloudRecommendedHooks(projectInfo)
+      // Try cloud v8 Templates API first
+      const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' })
+      const cloudHooks = await templatesClient.getHooks()
+
+      if (cloudHooks.length > 0) {
+        consola.success(isZh ? `从云端获取 ${cloudHooks.length} 个钩子` : `Fetched ${cloudHooks.length} hooks from cloud`)
+
+        // Filter by project relevance
+        const languages = projectInfo.languages?.map(l => l.language.toLowerCase()) || []
+        const frameworks = projectInfo.frameworks?.map(f => f.name.toLowerCase()) || []
+
+        const relevantHooks = cloudHooks.filter(hook => {
+          const tags = hook.tags || []
+          const category = hook.category || ''
+          const compatibility = hook.compatibility || {}
+
+          // Check if hook matches project
+          return (
+            tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag)) ||
+            (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase())) ||
+            (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase())) ||
+            category === 'pre-commit' || category === 'commit-msg' // Always include common hooks
+          )
+        })
+
+        // Convert cloud templates to HookConfig format
+        for (const hook of (relevantHooks.length > 0 ? relevantHooks : cloudHooks.slice(0, 10))) {
+          const hookConfig: HookConfig = {
+            id: hook.id || hook.name_en.toLowerCase().replace(/\s+/g, '-'),
+            name: hook.name_zh_cn && isZh ? hook.name_zh_cn : hook.name_en,
+            description: hook.description_zh_cn && isZh ? hook.description_zh_cn : (hook.description_en || ''),
+            type: (hook.category || 'pre-commit') as HookType,
+            category: (hook.category || 'pre-commit') as HookCategory,
+            projectTypes: ['all'],
+            trigger: {
+              matcher: `git:${hook.category || 'pre-commit'}`,
+              condition: undefined
+            },
+            action: {
+              command: hook.install_command || 'echo',
+              args: [hook.name_en],
+              timeout: 30000
+            },
+            enabled: true,
+            priority: hook.rating_average ? Math.round(hook.rating_average * 20) : 50
+          }
+          recommendedHooks.push(hookConfig)
+        }
+      }
     } catch (error) {
       // Fallback to local templates
+      consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
+      const templates = await loadHookTemplates()
+      recommendedHooks = templates.filter(template =>
+        template.projectTypes.includes(projectType)
+      )
+    }
+
+    // If still no hooks, use local templates
+    if (recommendedHooks.length === 0) {
       const templates = await loadHookTemplates()
       recommendedHooks = templates.filter(template =>
         template.projectTypes.includes(projectType)

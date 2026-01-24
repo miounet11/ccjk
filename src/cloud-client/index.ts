@@ -18,6 +18,9 @@ import { initializeTelemetry } from './telemetry'
 import { getCloudRecommendations, getCloudSkillRecommendations, getCloudMcpRecommendations } from './recommendations'
 import { getCloudRecommendedHooks, submitHookAnalytics, getCommunityHooks } from './hook-recommendations.js'
 
+// Import v8 Templates Client
+import { TemplatesClient, getTemplatesClient, createTemplatesClient } from './templates-client'
+
 // Export types
 export * from './types'
 
@@ -49,6 +52,22 @@ export {
   submitHookAnalytics,
   getCommunityHooks,
 }
+
+// Export v8 Templates Client
+export {
+  TemplatesClient,
+  getTemplatesClient,
+  createTemplatesClient,
+}
+export type {
+  Template,
+  TemplateType as V8TemplateType,
+  TemplateSearchParams,
+  TemplateListResponse,
+  BatchTemplateRequest as V8BatchTemplateRequest,
+  BatchTemplateResponse as V8BatchTemplateResponse,
+  TemplatesClientConfig,
+} from './templates-client'
 
 // Re-export all interfaces for convenience
 export type {

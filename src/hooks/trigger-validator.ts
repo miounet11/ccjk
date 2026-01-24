@@ -91,7 +91,12 @@ async function validateGitTrigger(
     ]
 
     const hasValidCondition = validConditions.some(c => condition.includes(c))
-    if (!hasValidCondition) {
+
+    // Also allow file pattern conditions (e.g., "package-lock.json || yarn.lock")
+    // These are used by cloud hooks to specify which files trigger the hook
+    const isFilePatternCondition = /^[\w\-.*]+(\s*\|\|\s*[\w\-.*]+)*$/.test(condition.trim())
+
+    if (!hasValidCondition && !isFilePatternCondition) {
       throw new Error(`Invalid git condition: ${condition}`)
     }
   }

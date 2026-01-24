@@ -20,7 +20,7 @@ import { ProjectAnalyzer } from '../analyzers'
 import type { AgentRecommendation } from '../templates/agents'
 import { loadAgentTemplates } from '../templates/agents'
 import { registerAgent } from '../plugins-v2/agent-manager'
-import { getCloudRecommendations } from '../cloud-client'
+import { getTemplatesClient, type Template } from '../cloud-client'
 import { i18n } from '../i18n'
 import { validateAgentDefinition } from '../plugins-v2/agent-validator'
 import { writeAgentFile } from '../plugins-v2/agent-writer'
@@ -106,11 +106,52 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
       consola.info(`${isZh ? '语言' : 'Languages'}: ${languages.join(', ')}`)
     }
 
-    // Step 2: Get recommendations
+    // Step 2: Get recommendations from v8 Templates API
     consola.log('')
     consola.info(isZh ? '📋 获取推荐中...' : '📋 Getting recommendations...')
 
-    let recommendations = await getCloudRecommendations(analysis)
+    let recommendations: AgentRecommendation[] = []
+
+    try {
+      // Use new v8 Templates API
+      const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' })
+
+      // Get specialist agents matching project frameworks/languages
+      const cloudAgents = await templatesClient.getSpecialistAgents()
+
+      // Filter by project relevance
+      const relevantAgents = cloudAgents.filter(agent => {
+        const tags = agent.tags || []
+        const category = agent.category || ''
+        const compatibility = agent.compatibility || {}
+
+        // Check if agent matches project frameworks or languages
+        return (
+          frameworks.some(fw => tags.includes(fw.toLowerCase()) || category.includes(fw.toLowerCase())) ||
+          languages.some(lang => tags.includes(lang.toLowerCase()) || (compatibility.languages || []).includes(lang.toLowerCase())) ||
+          tags.includes(projectType.toLowerCase())
+        )
+      })
+
+      // Convert Template to AgentRecommendation format
+      recommendations = (relevantAgents.length > 0 ? relevantAgents : cloudAgents.slice(0, 10)).map(agent => ({
+        id: agent.id,
+        name: agent.name_zh_cn && isZh ? agent.name_zh_cn : agent.name_en,
+        description: agent.description_zh_cn && isZh ? agent.description_zh_cn : (agent.description_en || ''),
+        skills: agent.tags || [],
+        mcpServers: [],
+        persona: agent.name_en,
+        capabilities: [],
+        confidence: agent.rating_average / 5 || 0.8,
+        reason: `${isZh ? '推荐理由' : 'Recommended'}: ${agent.category}`
+      }))
+
+      if (recommendations.length > 0) {
+        consola.success(isZh ? `从云端获取 ${recommendations.length} 个专业代理` : `Fetched ${recommendations.length} specialist agents from cloud`)
+      }
+    } catch (error) {
+      consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
+    }
 
     // Fallback to local templates if cloud is unavailable
     if (!recommendations || recommendations.length === 0) {

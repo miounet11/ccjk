@@ -18,7 +18,7 @@ import consola from 'consola'
 import inquirer from 'inquirer'
 import { i18n } from '../i18n'
 import { analyzeProject } from '../analyzers'
-import { createCompleteCloudClient, type FallbackCloudClient, type ProjectAnalysisRequest } from '../cloud-client'
+import { getTemplatesClient, type Template } from '../cloud-client'
 import { getSkillParser } from '../plugins-v2'
 
 // ============================================================================
@@ -239,67 +239,54 @@ async function getRecommendedSkills(
 ): Promise<RecommendedSkill[]> {
   const logger = consola.withTag('recommender')
   const recommendations: RecommendedSkill[] = []
+  const isZh = options.lang === 'zh-CN'
+
+  const languages = analysis.languages.map(l => l.language.toLowerCase())
+  const frameworks = analysis.frameworks.map(f => f.name.toLowerCase())
+  const projectType = analysis.projectType?.toLowerCase() || ''
 
   try {
-    // Create cloud client with fallback
-    const cloudClient = createCompleteCloudClient({
-      timeout: 5000,
-      retries: 2,
-    }) as FallbackCloudClient
+    // Use new v8 Templates API
+    const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' })
 
-    // Prepare request - match API format exactly
-    const request: ProjectAnalysisRequest = {
-      projectRoot: analysis.rootPath || process.cwd(),
-      language: options.lang,
-      ccjkVersion: '8.0.8',  // Will be dynamically loaded in production
-    }
-
-    // Add dependencies if available
-    if (analysis.dependencies?.direct && analysis.dependencies.direct.length > 0) {
-      const deps: Record<string, string> = {}
-      const devDeps: Record<string, string> = {}
-
-      for (const dep of analysis.dependencies.direct) {
-        if (dep.isDev) {
-          devDeps[dep.name] = dep.version || '*'
-        } else {
-          deps[dep.name] = dep.version || '*'
-        }
-      }
-
-      // Only add if non-empty
-      if (Object.keys(deps).length > 0) {
-        request.dependencies = deps
-      }
-      if (Object.keys(devDeps).length > 0) {
-        request.devDependencies = devDeps
-      }
-    }
-
-    // Get cloud recommendations
     logger.info('Fetching cloud recommendations...')
-    logger.debug('Request payload:', JSON.stringify(request, null, 2))
-    const cloudResponse = await cloudClient.analyzeProject(request)
+    const cloudSkills = await templatesClient.getSkills()
 
-    if (cloudResponse.recommendations) {
-      for (const rec of cloudResponse.recommendations) {
-        // Skills are categorized as 'workflow' in the API
-        if (rec.category === 'workflow') {
-          const skill = await cloudClient.getTemplate(rec.id, options.lang)
-          if (skill) {
-            recommendations.push({
-              id: rec.id,
-              name: skill.name,
-              description: skill.description,
-              category: rec.category || 'custom',
-              priority: rec.relevanceScore * 10,
-              source: 'cloud',
-              tags: rec.tags || [],
-              agents: rec.agents,
-              templatePath: skill.contentPath || rec.id,
-            })
-          }
-        }
+    if (cloudSkills.length > 0) {
+      logger.success(isZh ? `从云端获取 ${cloudSkills.length} 个技能` : `Fetched ${cloudSkills.length} skills from cloud`)
+
+      // Filter by project relevance
+      const relevantSkills = cloudSkills.filter(skill => {
+        const tags = skill.tags || []
+        const category = skill.category || ''
+        const compatibility = skill.compatibility || {}
+
+        // Check if skill matches project
+        return (
+          tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag)) ||
+          (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase())) ||
+          (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase()))
+        )
+      })
+
+      // Convert cloud templates to RecommendedSkill format
+      for (const skill of (relevantSkills.length > 0 ? relevantSkills : cloudSkills.slice(0, 10))) {
+        recommendations.push({
+          id: skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-'),
+          name: {
+            en: skill.name_en,
+            'zh-CN': skill.name_zh_cn || skill.name_en
+          },
+          description: {
+            en: skill.description_en || '',
+            'zh-CN': skill.description_zh_cn || skill.description_en || ''
+          },
+          category: (skill.category || 'custom') as SkillCategory,
+          priority: skill.rating_average ? skill.rating_average * 2 : 7,
+          source: 'cloud',
+          tags: skill.tags || [],
+          templatePath: skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-'),
+        })
       }
     }
   } catch (error) {
