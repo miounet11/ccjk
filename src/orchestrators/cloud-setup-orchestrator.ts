@@ -586,17 +586,27 @@ export class CloudSetupOrchestrator {
       return false
     }
 
-    const { inquirer } = await import('inquirer')
-    const { confirm } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'confirm',
-        message: i18n.t('cloud-setup:installResources', { count: totalResources }),
-        default: true,
-      },
-    ])
+    try {
+      // Dynamic import of inquirer
+      const inquirerModule = await import('inquirer')
+      const inquirer = inquirerModule.default || inquirerModule
 
-    return confirm
+      const { confirm } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'confirm',
+          message: i18n.t('cloud-setup:installResources', { count: totalResources }),
+          default: true,
+        },
+      ])
+
+      return confirm
+    }
+    catch (error) {
+      this.logger.error('Failed to prompt user:', error)
+      // Fallback to true if inquirer fails
+      return true
+    }
   }
 
   /**
