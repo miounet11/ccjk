@@ -7,6 +7,7 @@
 import type { ProjectAnalysis } from '../analyzers'
 import type { AgentRecommendation } from '../templates/agents'
 import { createCloudClient } from './client'
+import { extractString } from '../utils/i18n-helpers'
 
 /**
  * Get agent recommendations from cloud
@@ -27,9 +28,10 @@ export async function getCloudRecommendations(
     })
 
     // Convert cloud response to our format
+    // Handle both string and multilingual object formats for name/description
     return (response.recommendations || []).map((rec: any) => ({
-      name: rec.name || rec.id || 'Unknown Agent',
-      description: rec.description || 'No description available',
+      name: extractString(rec.name, rec.id || 'Unknown Agent'),
+      description: extractString(rec.description, 'No description available'),
       skills: rec.skills || [],
       mcpServers: rec.mcpServers || [],
       persona: rec.persona,

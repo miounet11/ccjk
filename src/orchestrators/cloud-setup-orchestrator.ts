@@ -38,6 +38,7 @@ const CCJK_VERSION = packageJson.version
 import { analyzeProject } from '../analyzers'
 import { createCompleteCloudClient, type FallbackCloudClient } from '../cloud-client'
 import { i18n } from '../i18n'
+import { extractString } from '../utils/i18n-helpers'
 
 // ============================================================================
 // Types
@@ -504,10 +505,9 @@ export class CloudSetupOrchestrator {
       console.log(`  ${ansis.bold(i18n.t('cloud-setup:skills'))} (${recommendations.skills.length}):`)
       for (const skill of recommendations.skills) {
         const confidence = options.showConfidence ? ` [${Math.round(skill.relevanceScore * 100)}%]` : ''
-        const skillName = skill.name?.[i18n.language as SupportedLang] || skill.name?.en || skill.id
-        const reason = options.showRecommendationReason && skill.description
-          ? ` - ${skill.description[i18n.language as SupportedLang] || skill.description.en || ''}`
-          : ''
+        const skillName = extractString(skill.name, skill.id, i18n.language as SupportedLang)
+        const skillDesc = extractString(skill.description, '', i18n.language as SupportedLang)
+        const reason = options.showRecommendationReason && skillDesc ? ` - ${skillDesc}` : ''
         console.log(`    ${ansis.green('✓')} ${skillName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
       }
     }
@@ -517,10 +517,9 @@ export class CloudSetupOrchestrator {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:mcpServices'))} (${recommendations.mcpServices.length}):`)
       for (const service of recommendations.mcpServices) {
         const confidence = options.showConfidence ? ` [${Math.round(service.relevanceScore * 100)}%]` : ''
-        const serviceName = service.name?.[i18n.language as SupportedLang] || service.name?.en || service.id
-        const reason = options.showRecommendationReason && service.description
-          ? ` - ${service.description[i18n.language as SupportedLang] || service.description.en || ''}`
-          : ''
+        const serviceName = extractString(service.name, service.id, i18n.language as SupportedLang)
+        const serviceDesc = extractString(service.description, '', i18n.language as SupportedLang)
+        const reason = options.showRecommendationReason && serviceDesc ? ` - ${serviceDesc}` : ''
         console.log(`    ${ansis.green('✓')} ${serviceName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
       }
     }
@@ -530,10 +529,9 @@ export class CloudSetupOrchestrator {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:agents'))} (${recommendations.agents.length}):`)
       for (const agent of recommendations.agents) {
         const confidence = options.showConfidence ? ` [${Math.round(agent.relevanceScore * 100)}%]` : ''
-        const agentName = agent.name?.[i18n.language as SupportedLang] || agent.name?.en || agent.id
-        const reason = options.showRecommendationReason && agent.description
-          ? ` - ${agent.description[i18n.language as SupportedLang] || agent.description.en || ''}`
-          : ''
+        const agentName = extractString(agent.name, agent.id, i18n.language as SupportedLang)
+        const agentDesc = extractString(agent.description, '', i18n.language as SupportedLang)
+        const reason = options.showRecommendationReason && agentDesc ? ` - ${agentDesc}` : ''
         console.log(`    ${ansis.green('✓')} ${agentName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
       }
     }
@@ -543,10 +541,9 @@ export class CloudSetupOrchestrator {
       console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:hooks'))} (${recommendations.hooks.length}):`)
       for (const hook of recommendations.hooks) {
         const confidence = options.showConfidence ? ` [${Math.round(hook.relevanceScore * 100)}%]` : ''
-        const hookName = hook.name?.[i18n.language as SupportedLang] || hook.name?.en || hook.id
-        const reason = options.showRecommendationReason && hook.description
-          ? ` - ${hook.description[i18n.language as SupportedLang] || hook.description.en || ''}`
-          : ''
+        const hookName = extractString(hook.name, hook.id, i18n.language as SupportedLang)
+        const hookDesc = extractString(hook.description, '', i18n.language as SupportedLang)
+        const reason = options.showRecommendationReason && hookDesc ? ` - ${hookDesc}` : ''
         console.log(`    ${ansis.green('✓')} ${hookName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
       }
     }

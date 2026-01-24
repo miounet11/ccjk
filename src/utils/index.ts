@@ -192,3 +192,14 @@ export {
   isString,
   isURL,
 } from './validation/validators'
+
+// I18n helpers for cloud API multilingual data
+export * as i18nHelpers from './i18n-helpers'
+
+export {
+  extractDisplayName,
+  extractString,
+  type MultilingualString,
+  normalizeRecommendation,
+  normalizeRecommendations,
+} from './i18n-helpers'

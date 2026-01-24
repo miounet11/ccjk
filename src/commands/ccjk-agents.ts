@@ -24,6 +24,7 @@ import { getCloudRecommendations } from '../cloud-client'
 import { i18n } from '../i18n'
 import { validateAgentDefinition } from '../plugins-v2/agent-validator'
 import { writeAgentFile } from '../plugins-v2/agent-writer'
+import { extractString, extractDisplayName } from '../utils/i18n-helpers'
 
 /**
  * Command options interface
@@ -139,8 +140,10 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
     consola.log('')
 
     recommendations.forEach((agent, index) => {
-      consola.log(`  ${index + 1}. ${agent.name}`)
-      consola.log(`     ${agent.description}`)
+      const displayName = extractDisplayName(agent.name as any, isZh)
+      const displayDesc = extractDisplayName(agent.description as any, isZh, 'No description available')
+      consola.log(`  ${index + 1}. ${displayName}`)
+      consola.log(`     ${displayDesc}`)
       if (agent.skills && agent.skills.length > 0) {
         consola.log(`     ${isZh ? '技能' : 'Skills'}: ${agent.skills.join(', ')}`)
       }
@@ -260,19 +263,26 @@ async function createAgent(
   options: CcjkAgentsOptions
 ): Promise<string | null> {
   try {
+    const isZh = i18n.language === 'zh-CN'
+
+    // Use shared extractString helper for multilingual support
+    // Cloud API returns { en: '...', 'zh-CN': '...' }, local templates return string
+    const agentName = extractString(recommendation.name as any, recommendation.id || 'unknown-agent')
+    const agentDescription = extractString(recommendation.description as any, 'No description available')
+
     // Convert recommendation to agent definition
     const agentDef: AgentDefinition = {
-      id: recommendation.name.toLowerCase().replace(/\s+/g, '-'),
+      id: agentName.toLowerCase().replace(/\s+/g, '-'),
       name: {
-        en: recommendation.name,
-        'zh-CN': recommendation.name
+        en: agentName,
+        'zh-CN': agentName
       },
       description: {
-        en: recommendation.description,
-        'zh-CN': recommendation.description
+        en: agentDescription,
+        'zh-CN': agentDescription
       },
-      persona: recommendation.persona || recommendation.name,
-      instructions: recommendation.description,
+      persona: recommendation.persona || agentName,
+      instructions: agentDescription,
       skills: (recommendation.skills || []).map(skill => ({
         pluginId: 'local-agent',
         skillId: skill
@@ -286,13 +296,13 @@ async function createAgent(
     // Validate agent definition
     const validation = validateAgentDefinition(agentDef)
     if (!validation.valid) {
-      consola.error(`${isZh ? '验证失败' : 'Validation failed'}: ${recommendation.name}`, validation.errors)
+      consola.error(`${isZh ? '验证失败' : 'Validation failed'}: ${agentName}`, validation.errors)
       return null
     }
 
     if (options.dryRun) {
-      consola.info(`[DRY RUN] ${isZh ? '将创建代理' : 'Would create agent'}: ${recommendation.name}`)
-      return recommendation.name
+      consola.info(`[DRY RUN] ${isZh ? '将创建代理' : 'Would create agent'}: ${agentName}`)
+      return agentName
     }
 
     // Write agent file
@@ -301,10 +311,12 @@ async function createAgent(
     // Register with agent manager
     await registerAgent(agentDef)
 
-    return recommendation.name
+    return agentName
   } catch (error) {
     const isZh = i18n.language === 'zh-CN'
-    consola.error(`${isZh ? '创建失败' : 'Failed to create'}: ${recommendation.name}`, error)
+    // Use shared extractString helper for error logging
+    const errorName = extractString(recommendation.name as any, 'unknown')
+    consola.error(`${isZh ? '创建失败' : 'Failed to create'}: ${errorName}`, error)
     return null
   }
 }
