@@ -248,6 +248,7 @@ export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
 /**
  * Merge settings.json intelligently
  * Preserves user's environment variables and custom configurations
+ * BUT ensures schema-critical fields use template values for validation
  */
 export function mergeSettingsFile(templatePath: string, targetPath: string): void {
   try {
@@ -273,21 +274,51 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
       ...(existingSettings.env || {}), // User's env vars override (preserving API keys, etc.)
     }
 
-    // Merge settings with special handling for arrays
-    const mergedSettings = deepMerge(templateSettings, existingSettings, {
-      mergeArrays: true,
-      arrayMergeStrategy: 'unique',
-    })
+    // Start with template as base to ensure correct schema/format
+    const mergedSettings: ClaudeSettings = { ...templateSettings }
+
+    // Merge user settings, but preserve template's schema-critical fields
+    // Fields that MUST come from template for validation
+    const schemaCriticalFields = [
+      '$schema',
+      'attribution',
+      'fileSuggestion',
+      'permissions',
+    ]
+
+    // Fields that should not be null (remove null values from user settings)
+    const removeNullFields = [
+      'plansDirectory',
+      'contextFiles',
+    ]
+
+    // Copy user settings to merged, skipping schema-critical fields
+    for (const [key, value] of Object.entries(existingSettings)) {
+      if (!schemaCriticalFields.includes(key)) {
+        // Don't copy null values for fields that should not be null
+        if (removeNullFields.includes(key) && value === null) {
+          continue
+        }
+        (mergedSettings as any)[key] = value
+      }
+    }
 
     // Ensure user's env vars are preserved
     mergedSettings.env = mergedEnv
 
     // Handle permissions.allow array specially to avoid duplicates and clean invalid entries
     if (mergedSettings.permissions && mergedSettings.permissions.allow) {
+      // Always use template's permission format as base, add user's unique valid ones
       mergedSettings.permissions.allow = mergeAndCleanPermissions(
         templateSettings.permissions?.allow,
         existingSettings.permissions?.allow,
       )
+    }
+
+    // Clean up null values that should not exist
+    // If plansDirectory is null, remove it entirely (Claude Code will use default)
+    if ((mergedSettings as any).plansDirectory === null) {
+      delete (mergedSettings as any).plansDirectory
     }
 
     // Write merged settings

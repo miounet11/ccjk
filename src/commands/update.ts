@@ -18,6 +18,7 @@ import { handleExitPromptError, handleGeneralError } from '../utils/error-handle
 import { resolveAiOutputLanguage } from '../utils/prompts'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
 import { selectAndInstallWorkflows } from '../utils/workflow-installer'
+import { copyConfigFiles } from '../utils/config'
 
 export interface UpdateOptions {
   configLang?: SupportedLang
@@ -106,6 +107,11 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
     }
 
     console.log(ansis.green(`\n${i18n.t('configuration:updatingPrompts')}\n`))
+
+    // Auto-fix settings.json validation issues by merging with template
+    // This ensures schema-critical fields are correct while preserving user's env vars
+    console.log(ansis.dim('✔ Checking and fixing configuration format...\n'))
+    copyConfigFiles(false)
 
     // Execute prompt-only update with AI language
     await updatePromptOnly(aiOutputLang)

@@ -134,6 +134,7 @@ const COMMANDS: CommandDefinition[] = [
     options: [
       { flags: '--check-providers', description: 'Check API provider health' },
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
+      { flags: '--fix-settings', description: 'Fix settings.json validation issues' },
     ],
     loader: async () => {
       const { doctor } = await import('./commands/doctor')
@@ -141,6 +142,7 @@ const COMMANDS: CommandDefinition[] = [
         await doctor({
           checkProviders: options.checkProviders as boolean | undefined,
           codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          fixSettings: options.fixSettings as boolean | undefined,
         })
       }
     },

@@ -65,5 +65,41 @@ export function mergeAndCleanPermissions(
   const template = templatePermissions || []
   const user = userPermissions || []
 
-  return cleanupPermissions(template, user)
+  // Start with template permissions (they are the source of truth)
+  const result = [...template]
+
+  // Add valid user permissions that don't exist in template
+  for (const perm of user) {
+    // Skip if already in result
+    if (result.includes(perm)) {
+      continue
+    }
+
+    // Skip lowercase permission names (must start with uppercase "Allow" or be MCP)
+    // Valid examples: "AllowEdit", "AllowWrite", "mcp__server_name"
+    // Invalid examples: "allowEdit", "allowWrite", "bash"
+    if (/^[a-z]/.test(perm) && !perm.startsWith('mcp__')) {
+      continue // Skip lowercase tool names
+    }
+
+    // Skip invalid wildcard patterns
+    if (['mcp__.*', 'mcp__*', 'mcp__(*)'].includes(perm)) {
+      continue
+    }
+
+    // Check for redundant permissions (e.g., "AllowEdit(*)" when "AllowEdit" exists)
+    let isRedundant = false
+    for (const templatePerm of template) {
+      if (perm.startsWith(`${templatePerm}(`)) {
+        isRedundant = true
+        break
+      }
+    }
+
+    if (!isRedundant) {
+      result.push(perm)
+    }
+  }
+
+  return result
 }

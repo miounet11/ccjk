@@ -17,8 +17,9 @@ export async function getCloudRecommendations(
   try {
     const client = createCloudClient()
 
-    // Send project analysis to cloud
-    const response = await client.getRecommendations({
+    // Send project analysis to cloud using analyzeProject API
+    const response = await client.analyzeProject({
+      projectRoot: analysis.projectRoot || process.cwd(),
       projectType: analysis.projectType,
       frameworks: analysis.frameworks.map(f => f.name),
       languages: analysis.languages.map(l => l.language),
@@ -26,14 +27,14 @@ export async function getCloudRecommendations(
     })
 
     // Convert cloud response to our format
-    return response.recommendations.map(rec => ({
-      name: rec.name,
-      description: rec.description,
+    return (response.recommendations || []).map((rec: any) => ({
+      name: rec.name || rec.id || 'Unknown Agent',
+      description: rec.description || 'No description available',
       skills: rec.skills || [],
       mcpServers: rec.mcpServers || [],
       persona: rec.persona,
       capabilities: rec.capabilities || [],
-      confidence: rec.confidence || 0.8,
+      confidence: rec.confidence || rec.relevanceScore || 0.8,
       reason: rec.reason || 'Recommended by CCJK Cloud'
     }))
   } catch (error) {
@@ -51,13 +52,14 @@ export async function getCloudSkillRecommendations(
 ): Promise<any[]> {
   try {
     const client = createCloudClient()
-    const response = await client.getSkillRecommendations({
+    const response = await client.analyzeProject({
+      projectRoot: analysis.projectRoot || process.cwd(),
       projectType: analysis.projectType,
       languages: analysis.languages.map(l => l.language),
       frameworks: analysis.frameworks.map(f => f.name),
     })
 
-    return response.skills
+    return response.skills || []
   } catch (error) {
     console.warn('Failed to get cloud skill recommendations:', error)
     return []
@@ -72,12 +74,13 @@ export async function getCloudMcpRecommendations(
 ): Promise<any[]> {
   try {
     const client = createCloudClient()
-    const response = await client.getMcpRecommendations({
+    const response = await client.analyzeProject({
+      projectRoot: analysis.projectRoot || process.cwd(),
       projectType: analysis.projectType,
       languages: analysis.languages.map(l => l.language),
     })
 
-    return response.mcpServers
+    return response.mcpServers || []
   } catch (error) {
     console.warn('Failed to get cloud MCP recommendations:', error)
     return []

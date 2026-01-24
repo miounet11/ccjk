@@ -4,7 +4,7 @@
  */
 
 import type { CodeToolType } from '../constants'
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, copyFileSync, mkdirSync } from 'node:fs'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
@@ -57,17 +57,75 @@ async function checkClaudeDir(): Promise<CheckResult> {
 }
 
 /**
- * Check if settings.json exists
+ * Check if settings.json exists and is valid
  */
 async function checkSettings(): Promise<CheckResult> {
-  if (existsSync(SETTINGS_FILE)) {
-    return { name: 'settings.json', status: 'ok', message: 'Configured' }
+  if (!existsSync(SETTINGS_FILE)) {
+    return {
+      name: 'settings.json',
+      status: 'warning',
+      message: 'Not found',
+      fix: 'Run: npx ccjk init',
+    }
   }
-  return {
-    name: 'settings.json',
-    status: 'warning',
-    message: 'Not found',
-    fix: 'Run: npx ccjk init',
+
+  try {
+    const { readFileSync } = await import('node:fs')
+    const content = readFileSync(SETTINGS_FILE, 'utf-8')
+    const settings = JSON.parse(content)
+
+    // Check for schema validation issues
+    const issues: string[] = []
+
+    // Check $schema
+    if (settings.$schema && settings.$schema !== 'https://json.schemastore.org/claude-code-settings.json') {
+      issues.push('Invalid $schema URL')
+    }
+
+    // Check attribution
+    if (typeof settings.attribution === 'string') {
+      issues.push('attribution should be an object, not a string')
+    }
+
+    // Check fileSuggestion.type
+    if (settings.fileSuggestion && settings.fileSuggestion.type !== 'command') {
+      issues.push('fileSuggestion.type must be "command"')
+    }
+
+    // Check permissions.allow for lowercase tool names
+    if (settings.permissions?.allow) {
+      const lowerCaseTools = settings.permissions.allow.filter((t: string) =>
+        /^[a-z]/.test(t) && !t.startsWith('Allow'),
+      )
+      if (lowerCaseTools.length > 0) {
+        issues.push(`${lowerCaseTools.length} permission(s) with lowercase names`)
+      }
+    }
+
+    // Check for invalid plansDirectory
+    if (settings.plansDirectory === null) {
+      issues.push('plansDirectory should not be null')
+    }
+
+    if (issues.length > 0) {
+      return {
+        name: 'settings.json',
+        status: 'error',
+        message: `Validation issues: ${issues.length} problem(s)`,
+        fix: 'Run: npx ccjk doctor --fix-settings',
+        details: issues,
+      }
+    }
+
+    return { name: 'settings.json', status: 'ok', message: 'Valid configuration' }
+  }
+  catch (error) {
+    return {
+      name: 'settings.json',
+      status: 'error',
+      message: 'Invalid JSON',
+      fix: 'Run: npx ccjk init',
+    }
   }
 }
 
@@ -321,10 +379,67 @@ async function checkPermissionRules(): Promise<CheckResult> {
 }
 
 /**
+ * Fix settings.json validation issues by merging with template
+ */
+async function fixSettingsFile(): Promise<void> {
+  const isZh = i18n.language === 'zh-CN'
+  const { copyConfigFiles } = await import('../utils/config')
+
+  console.log('')
+  console.log(ansis.bold.cyan('🔧 Fixing settings.json'))
+  console.log(ansis.dim('─'.repeat(50)))
+  console.log('')
+
+  // First, backup the existing settings
+  const backupPath = join(CLAUDE_DIR, 'backup', `settings.backup.${Date.now()}.json`)
+  try {
+    if (existsSync(SETTINGS_FILE)) {
+      mkdirSync(join(CLAUDE_DIR, 'backup'), { recursive: true })
+      copyFileSync(SETTINGS_FILE, backupPath)
+      console.log(ansis.green(`✔ ${isZh ? '已备份旧设置' : 'Backed up settings'}: ${backupPath}`))
+    }
+  }
+  catch (error) {
+    console.log(ansis.yellow(`⚠️ ${isZh ? '备份失败，继续...' : 'Backup failed, continuing...'}`))
+  }
+
+  // Run copyConfigFiles which will merge with template
+  console.log('')
+  console.log(ansis.dim(isZh ? '正在合并模板设置...' : 'Merging template settings...'))
+  copyConfigFiles(false)
+
+  // Verify the fix
+  const checkResult = await checkSettings()
+  console.log('')
+
+  if (checkResult.status === 'ok') {
+    console.log(ansis.green(`✅ ${isZh ? '设置已修复！' : 'Settings fixed successfully!'}`))
+  }
+  else {
+    console.log(ansis.yellow(`⚠️ ${isZh ? '仍有一些问题' : 'Some issues remain'}:`))
+    if (checkResult.details) {
+      for (const detail of checkResult.details) {
+        console.log(ansis.dim(`   • ${detail}`))
+      }
+    }
+  }
+
+  console.log('')
+  console.log(ansis.dim(isZh ? '提示: 请重启 Claude Code 以应用更改' : 'Tip: Restart Claude Code to apply changes'))
+  console.log('')
+}
+
+/**
  * Main doctor command - runs health checks and displays results
  */
-export async function doctor(options: { checkProviders?: boolean, codeType?: CodeToolType } = {}): Promise<void> {
+export async function doctor(options: { checkProviders?: boolean, codeType?: CodeToolType, fixSettings?: boolean } = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
+
+  // Handle --fix-settings flag
+  if (options.fixSettings) {
+    await fixSettingsFile()
+    return
+  }
 
   console.log('')
   console.log(ansis.bold.cyan('🔍 CCJK Health Check'))

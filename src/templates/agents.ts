@@ -4,10 +4,26 @@
  * Loads and manages agent templates from templates/agents directory
  */
 
-import { join } from 'pathe'
+import { join, dirname } from 'pathe'
+import { fileURLToPath } from 'node:url'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 
-const AGENT_TEMPLATES_DIR = join(process.cwd(), 'templates', 'agents')
+// Get the directory of this module to locate templates in npm package
+const _dirname = dirname(fileURLToPath(import.meta.url))
+const AGENT_TEMPLATES_DIR = join(_dirname, '..', 'templates', 'agents')
+
+// Fallback to process.cwd() for development/monorepo setups
+const AGENT_TEMPLATES_DIR_FALLBACK = join(process.cwd(), 'templates', 'agents')
+
+/**
+ * Get the effective agent templates directory
+ */
+function getAgentTemplatesDir(): string {
+  if (existsSync(AGENT_TEMPLATES_DIR)) {
+    return AGENT_TEMPLATES_DIR
+  }
+  return AGENT_TEMPLATES_DIR_FALLBACK
+}
 
 /**
  * Agent recommendation structure (simplified from templates)
@@ -27,19 +43,21 @@ export interface AgentRecommendation {
  * Load all agent templates
  */
 export async function loadAgentTemplates(): Promise<AgentRecommendation[]> {
-  if (!existsSync(AGENT_TEMPLATES_DIR)) {
-    console.warn('Agent templates directory not found:', AGENT_TEMPLATES_DIR)
+  const templatesDir = getAgentTemplatesDir()
+
+  if (!existsSync(templatesDir)) {
+    console.warn('Agent templates directory not found:', templatesDir)
     return []
   }
 
   const templates: AgentRecommendation[] = []
-  const files = readdirSync(AGENT_TEMPLATES_DIR)
+  const files = readdirSync(templatesDir)
 
   for (const file of files) {
     if (!file.endsWith('.json')) continue
 
     try {
-      const filePath = join(AGENT_TEMPLATES_DIR, file)
+      const filePath = join(templatesDir, file)
       const content = readFileSync(filePath, 'utf-8')
       const template = JSON.parse(content)
 
@@ -68,7 +86,8 @@ export async function loadAgentTemplates(): Promise<AgentRecommendation[]> {
  * Load specific agent template
  */
 export async function loadAgentTemplate(templateId: string): Promise<AgentRecommendation | null> {
-  const filePath = join(AGENT_TEMPLATES_DIR, `${templateId}.json`)
+  const templatesDir = getAgentTemplatesDir()
+  const filePath = join(templatesDir, `${templateId}.json`)
 
   if (!existsSync(filePath)) {
     return null
