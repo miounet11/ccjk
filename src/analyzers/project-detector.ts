@@ -181,12 +181,44 @@ export async function detectProject(
 }
 
 /**
- * Scan project files
+ * Root-level config files that must be checked for project detection
+ */
+const ROOT_CONFIG_FILES = [
+  'package.json',
+  'tsconfig.json',
+  'jsconfig.json',
+  'go.mod',
+  'Cargo.toml',
+  'pyproject.toml',
+  'requirements.txt',
+  'setup.py',
+  'Gemfile',
+  'composer.json',
+  'pom.xml',
+  'build.gradle',
+  'build.gradle.kts',
+  'pubspec.yaml',
+  'Package.swift',
+  'pom.xml',
+]
+
+/**
+ * Scan project files with root config prioritization
  */
 async function scanProjectFiles(
   projectPath: string,
   config: DetectorConfig,
 ): Promise<string[]> {
+  // First, ensure root config files are included
+  const rootConfigFiles: string[] = []
+  for (const configFile of ROOT_CONFIG_FILES) {
+    const configPath = path.join(projectPath, configFile)
+    if (await fs.pathExists(configPath)) {
+      rootConfigFiles.push(configFile)
+      logger.debug(`Found root config: ${configFile}`)
+    }
+  }
+
   const patterns = ['**/*']
   const ignore = config.excludePatterns
 
@@ -194,16 +226,28 @@ async function scanProjectFiles(
     ignore.push('node_modules/**')
   }
 
-  const files = await glob(patterns, {
+  // Scan all files
+  const allFiles = await glob(patterns, {
     cwd: projectPath,
     ignore,
     absolute: false,
   })
 
-  // Limit number of files if needed
+  // Combine root configs with scanned files, removing duplicates
+  const fileSet = new Set([...rootConfigFiles, ...allFiles])
+  const files = Array.from(fileSet)
+
+  // Limit number of files if needed, but keep root configs
   if (files.length > config.maxFilesToScan) {
     logger.warn(`Too many files (${files.length}), limiting to ${config.maxFilesToScan}`)
-    return files.slice(0, config.maxFilesToScan)
+
+    // Separate root configs from other files
+    const rootConfigs = files.filter(f => ROOT_CONFIG_FILES.includes(f))
+    const otherFiles = files.filter(f => !ROOT_CONFIG_FILES.includes(f))
+
+    // Keep all root configs and limit other files
+    const limitedOthers = otherFiles.slice(0, config.maxFilesToScan - rootConfigs.length)
+    return [...rootConfigs, ...limitedOthers]
   }
 
   return files

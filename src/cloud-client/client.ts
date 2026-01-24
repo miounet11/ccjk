@@ -258,7 +258,7 @@ export class CloudClient {
  */
 export function createCloudClient(config?: Partial<CloudClientConfig>): CloudClient {
   return new CloudClient({
-    baseURL: 'https://api.claudehome.cn/v1',
+    baseURL: 'https://api.claudehome.cn',
     timeout: 10000,
     version: '8.0.0',
     enableCache: true,
