@@ -1,9 +1,9 @@
 import type { SetupResult, SetupReport } from '../orchestrators/setup-orchestrator'
-import { format } from 'date-fns'
+import dayjs from 'dayjs'
 
 export function generateReport(result: SetupResult): string {
   const report: SetupReport = {
-    date: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+    date: dayjs().format('YYYY-MM-DD HH:mm:ss'),
     profile: result.installationPlan?.profile || 'unknown',
     duration: result.duration,
     projectAnalysis: result.projectAnalysis,

@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs'
 import { join } from 'pathe'
-import { format } from 'date-fns'
+import dayjs from 'dayjs'
 import { consola } from 'consola'
 import { i18n } from '../i18n'
 
@@ -15,7 +15,7 @@ export async function createBackup(
   operation: string,
   options: BackupOptions = {}
 ): Promise<string> {
-  const timestamp = format(new Date(), 'yyyyMMdd-HHmmss')
+  const timestamp = dayjs().format('YYYYMMDD-HHmmss')
   const backupName = options.name || operation
   const backupDir = join(process.cwd(), '.ccjk-backups', `${backupName}-${timestamp}`)
 
