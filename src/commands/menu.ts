@@ -1234,12 +1234,15 @@ async function showCategorizedMenu(): Promise<MenuResult> {
   console.log(
     `  ${ansis.white('13.')} ${ansis.white(i18n.t('menu:configCenter.model'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
   )
+  console.log(
+    `  ${ansis.yellow('14.')} ${ansis.yellow(i18n.t('menu:configCenter.permission'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
+  )
   console.log('')
 
   // More Features
   console.log(`  ${ansis.dim('─'.repeat(50))}`)
   console.log(
-    `  ${ansis.white('14.')} ${ansis.white(i18n.t('menu:oneClick.more'))} → ${ansis.dim(i18n.t('menu:oneClick.moreDesc'))}`,
+    `  ${ansis.white('15.')} ${ansis.white(i18n.t('menu:oneClick.more'))} → ${ansis.dim(i18n.t('menu:oneClick.moreDesc'))}`,
   )
   console.log('')
   console.log(
@@ -1253,7 +1256,7 @@ async function showCategorizedMenu(): Promise<MenuResult> {
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '0', 'q', 'Q']
+      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '0', 'q', 'Q']
       return valid.includes(value) || i18n.t('common:invalidChoice')
     },
   })
@@ -1319,8 +1322,12 @@ async function showCategorizedMenu(): Promise<MenuResult> {
     case '13':
       await configureDefaultModelFeature()
       break
-    // More features submenu
+    // Environment Permissions (Important Setting)
     case '14':
+      await configureEnvPermissionFeature()
+      break
+    // More features submenu
+    case '15':
       printSeparator()
       await showMoreFeaturesMenu()
       return undefined
