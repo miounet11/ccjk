@@ -64,6 +64,8 @@ async function validateGitTrigger(
   const validGitHooks = [
     'pre-commit',
     'post-commit',
+    'commit-msg',
+    'prepare-commit-msg',
     'pre-push',
     'post-push',
     'pre-merge',
@@ -71,7 +73,13 @@ async function validateGitTrigger(
     'pre-rebase',
     'post-rebase',
     'pre-checkout',
-    'post-checkout'
+    'post-checkout',
+    'pre-receive',
+    'post-receive',
+    'update',
+    'pre-applypatch',
+    'post-applypatch',
+    'applypatch-msg'
   ]
 
   if (!validGitHooks.includes(pattern)) {
