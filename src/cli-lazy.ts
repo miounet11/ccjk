@@ -1940,10 +1940,67 @@ export async function runLazyCli(): Promise<void> {
   // 在后台执行：设备注册、握手、自动同步、静默升级
   bootstrapCloudServices()
 
+  // 🚀 快速启动检测：检查是否为供应商短码
+  const handled = await tryQuickProviderLaunch()
+  if (handled) {
+    return // 快速启动已处理，不进入常规 CLI
+  }
+
   const cac = (await import('cac')).default
   const cli = cac('ccjk')
   await setupCommandsLazy(cli)
   cli.parse()
+}
+
+/**
+ * 尝试快速供应商启动
+ *
+ * 检测 `npx ccjk <shortcode>` 格式，如果是供应商短码则启动快速配置流程
+ *
+ * @returns true 如果已处理，false 继续常规 CLI
+ */
+async function tryQuickProviderLaunch(): Promise<boolean> {
+  const args = process.argv.slice(2)
+
+  // 没有参数或第一个参数是选项，跳过
+  if (args.length === 0 || args[0].startsWith('-')) {
+    return false
+  }
+
+  const firstArg = args[0].toLowerCase()
+
+  // 检查是否可能是供应商短码
+  const { couldBeShortcode, isKnownCommand } = await import('./commands/quick-provider')
+
+  // 如果是已知命令，跳过
+  if (isKnownCommand(firstArg)) {
+    return false
+  }
+
+  // 如果不符合短码格式，跳过
+  if (!couldBeShortcode(firstArg)) {
+    return false
+  }
+
+  // 尝试快速启动
+  const { quickProviderLaunch } = await import('./commands/quick-provider')
+
+  try {
+    const handled = await quickProviderLaunch(firstArg, {
+      lang: process.env.CCJK_LANG as 'zh-CN' | 'en',
+    })
+
+    if (handled) {
+      return true // 配置完成
+    }
+
+    // 用户取消，继续进入主菜单
+    return false
+  }
+  catch {
+    // 出错时继续进入常规 CLI
+    return false
+  }
 }
 
 /**
