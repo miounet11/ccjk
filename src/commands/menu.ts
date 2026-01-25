@@ -85,7 +85,7 @@ async function executeCcjkAllCommand(): Promise<void> {
   const isZh = lang === 'zh-CN'
 
   console.log('')
-  console.log(ansis.cyan.bold(isZh ? '☁️  云驱动智能设置' : '☁️  Cloud AI-Powered Setup'))
+  console.log(ansis.green.bold(isZh ? '☁️  云驱动智能设置' : '☁️  Cloud AI-Powered Setup'))
   console.log('')
   console.log(ansis.dim(isZh
     ? '基于云服务AI推荐，一键完成所有CCJK配置（Skills + MCP + Agents + Hooks）'
@@ -99,7 +99,7 @@ async function executeCcjkAllCommand(): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error)
     console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
     console.log('')
-    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:all' : '💡 Tip: You can also run: ccjk ccjk:all'))
+    console.log(ansis.green(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:all' : '💡 Tip: You can also run: ccjk ccjk:all'))
   }
 }
 
@@ -111,7 +111,7 @@ async function executeCcjkSetupCommand(): Promise<void> {
   const isZh = lang === 'zh-CN'
 
   console.log('')
-  console.log(ansis.yellow.bold(isZh ? '🔧 完整本地设置' : '🔧 Complete Local Setup'))
+  console.log(ansis.green.bold(isZh ? '🔧 完整本地设置' : '🔧 Complete Local Setup'))
   console.log('')
   console.log(ansis.dim(isZh
     ? '基于项目分析，一键完成所有CCJK配置（Skills + MCP + Agents + Hooks）'
@@ -125,7 +125,7 @@ async function executeCcjkSetupCommand(): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error)
     console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
     console.log('')
-    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:setup' : '💡 Tip: You can also run: ccjk ccjk:setup'))
+    console.log(ansis.green(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:setup' : '💡 Tip: You can also run: ccjk ccjk:setup'))
   }
 }
 
@@ -137,7 +137,7 @@ async function executeCcjkSkillsCommand(): Promise<void> {
   const isZh = lang === 'zh-CN'
 
   console.log('')
-  console.log(ansis.cyan(isZh ? '📚 安装技能' : '📚 Install Skills'))
+    console.log(ansis.green(isZh ? '📚 安装技能' : '📚 Install Skills'))
   console.log('')
   console.log(ansis.dim(isZh
     ? '基于项目类型，智能推荐并安装相关技能'
@@ -151,7 +151,7 @@ async function executeCcjkSkillsCommand(): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error)
     console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
     console.log('')
-    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:skills' : '💡 Tip: You can also run: ccjk ccjk:skills'))
+    console.log(ansis.green(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:skills' : '💡 Tip: You can also run: ccjk ccjk:skills'))
   }
 }
 
@@ -163,7 +163,7 @@ async function executeCcjkMcpCommand(): Promise<void> {
   const isZh = lang === 'zh-CN'
 
   console.log('')
-  console.log(ansis.cyan(isZh ? '🔌 设置MCP服务' : '🔌 Setup MCP Services'))
+  console.log(ansis.green(isZh ? '🔌 设置MCP服务' : '🔌 Setup MCP Services'))
   console.log('')
   console.log(ansis.dim(isZh
     ? '基于项目需求，智能推荐并配置MCP服务'
@@ -177,7 +177,7 @@ async function executeCcjkMcpCommand(): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error)
     console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
     console.log('')
-    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:mcp' : '💡 Tip: You can also run: ccjk ccjk:mcp'))
+    console.log(ansis.green(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:mcp' : '💡 Tip: You can also run: ccjk ccjk:mcp'))
   }
 }
 
@@ -203,7 +203,7 @@ async function executeCcjkAgentsCommand(): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error)
     console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
     console.log('')
-    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:agents' : '💡 Tip: You can also run: ccjk ccjk:agents'))
+    console.log(ansis.green(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:agents' : '💡 Tip: You can also run: ccjk ccjk:agents'))
   }
 }
 
@@ -229,7 +229,7 @@ async function executeCcjkHooksCommand(): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error)
     console.error(ansis.red(`${isZh ? '执行失败' : 'Execution failed'}: ${errorMessage}`))
     console.log('')
-    console.log(ansis.yellow(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:hooks' : '💡 Tip: You can also run: ccjk ccjk:hooks'))
+    console.log(ansis.green(isZh ? '💡 提示: 可以使用命令直接运行: ccjk ccjk:hooks' : '💡 Tip: You can also run: ccjk ccjk:hooks'))
   }
 }
 
@@ -265,7 +265,7 @@ async function promptCodeToolSelection(current: CodeToolType): Promise<CodeToolT
   })
 
   if (!tool) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    console.log(ansis.green(i18n.t('common:cancelled')))
     return null
   }
 
@@ -315,7 +315,7 @@ async function showSuperpowersMenu(): Promise<void> {
   })
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    console.log(ansis.green(i18n.t('common:cancelled')))
     return
   }
 
@@ -344,7 +344,7 @@ async function showSuperpowersMenu(): Promise<void> {
       // Uninstall Superpowers
       const status = await checkSuperpowersInstalled()
       if (!status.installed) {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        console.log(ansis.green(i18n.t('superpowers:status.notInstalled')))
         break
       }
 
@@ -359,7 +359,7 @@ async function showSuperpowersMenu(): Promise<void> {
         await uninstallSuperpowers()
       }
       else {
-        console.log(ansis.yellow(i18n.t('common:cancelled')))
+        console.log(ansis.green(i18n.t('common:cancelled')))
       }
       break
     }
@@ -367,7 +367,7 @@ async function showSuperpowersMenu(): Promise<void> {
       // Update Superpowers
       const status = await checkSuperpowersInstalled()
       if (!status.installed) {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        console.log(ansis.green(i18n.t('superpowers:status.notInstalled')))
         break
       }
 
@@ -381,7 +381,7 @@ async function showSuperpowersMenu(): Promise<void> {
         console.log(ansis.green(`✔ ${i18n.t('superpowers:status.installed')}`))
       }
       else {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        console.log(ansis.green(i18n.t('superpowers:status.notInstalled')))
       }
       break
     }
@@ -389,13 +389,13 @@ async function showSuperpowersMenu(): Promise<void> {
       // View Available Skills
       const status = await checkSuperpowersInstalled()
       if (!status.installed) {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        console.log(ansis.green(i18n.t('superpowers:status.notInstalled')))
         break
       }
 
       const skills = await getSuperpowersSkills()
       if (skills.length === 0) {
-        console.log(ansis.yellow(i18n.t('superpowers:skills.noSkills')))
+        console.log(ansis.green(i18n.t('superpowers:skills.noSkills')))
       }
       else {
         console.log(ansis.green(i18n.t('superpowers:skills.available')))
@@ -584,7 +584,7 @@ async function showMarketplaceMenu(): Promise<void> {
   })
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    console.log(ansis.green(i18n.t('common:cancelled')))
     return
   }
 
@@ -602,7 +602,7 @@ async function showMarketplaceMenu(): Promise<void> {
         try {
           const result = await searchPackages({ query, limit: 10 })
           if (result.packages.length === 0) {
-            console.log(ansis.yellow(i18n.t('marketplace:noResults')))
+            console.log(ansis.green(i18n.t('marketplace:noResults')))
           }
           else {
             console.log(ansis.green(i18n.t('marketplace:searchResults', { count: result.total })))
@@ -631,7 +631,7 @@ async function showMarketplaceMenu(): Promise<void> {
       try {
         const installed = await getInstalledPackages()
         if (installed.length === 0) {
-          console.log(ansis.yellow(i18n.t('marketplace:noInstalled')))
+          console.log(ansis.green(i18n.t('marketplace:noInstalled')))
         }
         else {
           console.log(ansis.green(i18n.t('marketplace:installedPackages', { count: installed.length })))
@@ -741,7 +741,7 @@ async function showSmartGuideMenu(): Promise<void> {
     ? '智能助手让你在 Claude Code 中通过输入数字快速执行操作'
     : 'Smart Assistant lets you execute actions by typing numbers in Claude Code')
   console.log('')
-  console.log(`  ${isZh ? '状态' : 'Status'}: ${installed ? ansis.green(isZh ? '已启用' : 'Enabled') : ansis.yellow(isZh ? '未启用' : 'Disabled')}`)
+  console.log(`  ${isZh ? '状态' : 'Status'}: ${installed ? ansis.green(isZh ? '已启用' : 'Enabled') : ansis.green(isZh ? '未启用' : 'Disabled')}`)
   console.log('')
   console.log(`  ${ansis.green('1.')} ${installed ? (isZh ? '更新智能助手' : 'Update Smart Assistant') : (isZh ? '启用智能助手' : 'Enable Smart Assistant')}`)
   console.log(`  ${ansis.green('2.')} ${isZh ? '禁用智能助手' : 'Disable Smart Assistant'}`)
@@ -776,7 +776,7 @@ async function showSmartGuideMenu(): Promise<void> {
     }
     case '2': {
       if (!installed) {
-        console.log(ansis.yellow(isZh ? '智能助手未启用' : 'Smart Assistant is not enabled'))
+        console.log(ansis.green(isZh ? '智能助手未启用' : 'Smart Assistant is not enabled'))
         break
       }
       const success = await removeSmartGuide()
@@ -823,7 +823,7 @@ async function showWorkflowsAndSkillsMenu(): Promise<void> {
   })
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    console.log(ansis.green(i18n.t('common:cancelled')))
     return
   }
 
@@ -838,13 +838,13 @@ async function showWorkflowsAndSkillsMenu(): Promise<void> {
       // View installed skills - use existing Superpowers functionality
       const status = await checkSuperpowersInstalled()
       if (!status.installed) {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        console.log(ansis.green(i18n.t('superpowers:status.notInstalled')))
         break
       }
 
       const skills = await getSuperpowersSkills()
       if (skills.length === 0) {
-        console.log(ansis.yellow(i18n.t('menu:ccjkFeatures.noSkillsInstalled')))
+        console.log(ansis.green(i18n.t('menu:ccjkFeatures.noSkillsInstalled')))
       }
       else {
         console.log(ansis.green(i18n.t('menu:ccjkFeatures.skillCount', { count: skills.length })))
@@ -1185,25 +1185,25 @@ async function showCategorizedMenu(): Promise<MenuResult> {
   console.log('')
 
   // ⭐ NEW: Quick Setup Section (prominently displayed)
-  console.log(`  ${ansis.cyan.bold('⚡ Quick Setup - CCJK v8.0.0 Intelligent Features')}`)
+  console.log(`  ${ansis.green.bold('⚡ Quick Setup - CCJK Intelligent Features')}`)
   console.log('')
   console.log(
-    `  ${ansis.white('1.')} ${ansis.yellow.bold('ccjk:all')} ${ansis.dim('☁️  Cloud AI Setup (Recommended)')}`,
+    `  ${ansis.white('1.')} ${ansis.green.bold('ccjk:all')} ${ansis.dim('☁️  Cloud AI Setup (Recommended)')}`,
   )
   console.log(
-    `  ${ansis.white('2.')} ${ansis.yellow.bold('ccjk:setup')} ${ansis.dim('🔧 Complete Local Setup')}`,
+    `  ${ansis.white('2.')} ${ansis.green.bold('ccjk:setup')} ${ansis.dim('🔧 Complete Local Setup')}`,
   )
   console.log(
-    `  ${ansis.white('3.')} ${ansis.cyan('ccjk:skills')} ${ansis.dim('📚 Install Skills')}`,
+    `  ${ansis.white('3.')} ${ansis.green('ccjk:skills')} ${ansis.dim('📚 Install Skills')}`,
   )
   console.log(
-    `  ${ansis.white('4.')} ${ansis.cyan('ccjk:mcp')} ${ansis.dim('🔌 Setup MCP Services')}`,
+    `  ${ansis.white('4.')} ${ansis.green('ccjk:mcp')} ${ansis.dim('🔌 Setup MCP Services')}`,
   )
   console.log(
-    `  ${ansis.white('5.')} ${ansis.cyan('ccjk:agents')} ${ansis.green('🤖 Create AI Agents')}`,
+    `  ${ansis.white('5.')} ${ansis.green('ccjk:agents')} ${ansis.green('🤖 Create AI Agents')}`,
   )
   console.log(
-    `  ${ansis.white('6.')} ${ansis.cyan('ccjk:hooks')} ${ansis.green('🪝 Configure Hooks')}`,
+    `  ${ansis.white('6.')} ${ansis.green('ccjk:hooks')} ${ansis.green('🪝 Configure Hooks')}`,
   )
   console.log('')
 
@@ -1235,7 +1235,7 @@ async function showCategorizedMenu(): Promise<MenuResult> {
     `  ${ansis.white('13.')} ${ansis.white(i18n.t('menu:configCenter.model'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.modelDesc')}`)}`,
   )
   console.log(
-    `  ${ansis.yellow('14.')} ${ansis.yellow(i18n.t('menu:configCenter.permission'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
+    `  ${ansis.green('14.')} ${ansis.green(i18n.t('menu:configCenter.permission'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
   )
   console.log('')
 
@@ -1262,7 +1262,7 @@ async function showCategorizedMenu(): Promise<MenuResult> {
   })
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    console.log(ansis.green(i18n.t('common:cancelled')))
     return 'exit'
   }
 
@@ -1410,7 +1410,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
   })
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    console.log(ansis.green(i18n.t('common:cancelled')))
     return 'exit'
   }
 
@@ -1563,7 +1563,7 @@ async function showCodexMenu(): Promise<MenuResult> {
   })
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    console.log(ansis.green(i18n.t('common:cancelled')))
     return 'exit'
   }
 
@@ -1701,7 +1701,7 @@ async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
         value: 'full',
       },
       {
-        name: ansis.yellow(i18n.t('menu:newUser.viewHelp')) + ansis.dim(` - ${i18n.t('menu:newUser.viewHelpDesc')}`),
+        name: ansis.green(i18n.t('menu:newUser.viewHelp')) + ansis.dim(` - ${i18n.t('menu:newUser.viewHelpDesc')}`),
         value: 'help',
       },
     ],
@@ -1768,7 +1768,7 @@ export async function showMainMenu(options: { codeType?: string, legacyMenu?: bo
       }
       catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err)
-        console.error(ansis.yellow(errorMessage))
+        console.error(ansis.green(errorMessage))
       }
     }
 
