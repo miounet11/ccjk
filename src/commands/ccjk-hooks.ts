@@ -307,7 +307,12 @@ function groupHooksByCategory(hooks: HookConfig[]): Record<string, HookConfig[]>
   }
 
   for (const hook of hooks) {
-    groups[hook.category].push(hook)
+    const category = hook.category || 'lifecycle'
+    // Dynamically create category group if it doesn't exist
+    if (!groups[category]) {
+      groups[category] = []
+    }
+    groups[category].push(hook)
   }
 
   return groups

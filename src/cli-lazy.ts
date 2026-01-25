@@ -1954,6 +1954,7 @@ export async function runLazyCli(): Promise<void> {
  * - 自动握手连接云服务
  * - 后台静默升级检查（CCJK、Claude Code、CCR）
  * - 自动同步配置和技能
+ * - Plan Mode 上下文同步初始化
  *
  * 全程静默，不打扰用户，不阻塞 CLI
  */
@@ -1961,6 +1962,10 @@ function bootstrapCloudServices(): void {
   // 使用 setImmediate 确保不阻塞 CLI 启动
   setImmediate(async () => {
     try {
+      // 0. 初始化 Plan Mode 上下文同步功能
+      const { initializeContextFeatures } = await import('./context/startup')
+      await initializeContextFeatures()
+
       // 1. 云服务自动引导（设备注册、握手、同步）
       const { autoBootstrap } = await import('./services/cloud/auto-bootstrap')
       await autoBootstrap()

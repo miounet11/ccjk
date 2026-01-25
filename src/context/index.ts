@@ -13,3 +13,26 @@ export * from './manager'
 // Re-export main classes for convenience
 export { ContextManager } from './manager'
 export * from './types'
+
+// Compact Advisor
+export {
+  CompactAdvisor,
+  DEFAULT_COMPACT_CONFIG,
+  getCompactAdvisor,
+  resetCompactAdvisor,
+} from './compact-advisor'
+
+export type {
+  CompactAdvisorConfig,
+  CompactReason,
+  CompactSuggestion,
+  ContextAction,
+  ContextState,
+} from './compact-advisor'
+
+// Startup initialization
+export {
+  getPlanModeStatus,
+  initializeContextFeatures,
+  isPlanModeAvailable,
+} from './startup'

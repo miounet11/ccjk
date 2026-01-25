@@ -1,8 +1,9 @@
 # CCJK Cloud API 需求规范文档
 
-> **版本**: v8.2.0
+> **版本**: v9.0.2
 > **日期**: 2026-01-25
 > **状态**: 待云端实现
+> **更新**: 新增 MCP/Hooks/Skills 数据格式问题
 
 ---
 
@@ -10,16 +11,70 @@
 
 ### 1.1 当前问题
 
-在 CCJK v8.0.0 云驱动智能设置功能中，发现以下 API 兼容性问题：
+在 CCJK v9.0.2 云驱动智能设置功能中，发现以下 API 兼容性问题：
 
-| 问题 | 错误信息 | 影响范围 |
-|------|----------|----------|
-| Agents 创建失败 | `recommendation.name.toLowerCase is not a function` | 所有代理创建 |
-| Skills 安装失败 | `Cannot read properties of undefined (reading 'en')` | 技能安装 |
-| 模板批量获取失败 | `400 Bad Request` on `/api/v8/templates/batch` | 模板下载 |
-| 遥测上报失败 | `400 Bad Request` on `/api/v8/telemetry/installation` | 使用统计 |
+| 问题 | 错误信息 | 影响范围 | 优先级 |
+|------|----------|----------|--------|
+| **MCP 配置失败** | `Cannot read properties of undefined (reading 'name')` | MCP 服务安装 | **P0** |
+| **Hooks 安装失败** | `Cannot read properties of undefined (reading 'push')` | Hooks 配置 | **P0** |
+| **Skills 模板缺失** | `Template not found: tpl_xxx` | Skills 安装 | **P1** |
+| Agents 创建失败 | `recommendation.name.toLowerCase is not a function` | 所有代理创建 | P1 |
+| Skills 安装失败 | `Cannot read properties of undefined (reading 'en')` | 技能安装 | P1 |
+| 模板批量获取失败 | `400 Bad Request` on `/api/v8/templates/batch` | 模板下载 | P2 |
+| 遥测上报失败 | `400 Bad Request` on `/api/v8/telemetry/installation` | 使用统计 | P3 |
 
-### 1.2 根因分析
+### 1.2 v9.0.2 新增问题详情
+
+#### 问题 1: MCP 服务配置失败
+
+**错误堆栈**:
+```
+ERROR  MCP 服务配置失败 Cannot read properties of undefined (reading 'name')
+    at dist/chunks/ccjk-mcp.mjs:517:39
+    at Array.forEach (<anonymous>)
+    at ccjkMcp (dist/chunks/ccjk-mcp.mjs:515:26)
+```
+
+**根因**: 云端返回的 MCP 服务创建了临时模板对象，但后续通过 `serviceId` 查找时，本地 `mcpServiceTemplates` 字典中不存在该服务，返回 `undefined`。
+
+**客户端已修复**: 增加 fallback 查找逻辑
+**云端需配合**: 确保返回的 MCP 服务包含完整的 `id`、`name`、`type`、`command`、`args` 字段
+
+---
+
+#### 问题 2: Hooks 安装失败
+
+**错误堆栈**:
+```
+ERROR  Hooks installation failed: Cannot read properties of undefined (reading 'push')
+    at groupHooksByCategory (dist/chunks/ccjk-hooks.mjs:1012:27)
+    at ccjkHooks (dist/chunks/ccjk-hooks.mjs:879:29)
+```
+
+**根因**: 客户端只预定义了 3 个分类 (`pre-commit`, `post-test`, `lifecycle`)，但云端返回的 hooks 包含其他分类（如 `git-hooks`, `workflow`, `commit-msg`），导致数组未初始化。
+
+**客户端已修复**: 动态创建未知分类的数组
+**云端需配合**: 使用标准 Git Hook 分类名称（见下方规范）
+
+---
+
+#### 问题 3: Skills 模板缺失
+
+**错误信息**:
+```
+Template not found: tpl_VVvfHw7NA_qw
+Template not found: tpl_uKPyj6viVGfg
+Template not found: tpl_Ox4f9FJhul-A
+... (共 11 个模板缺失)
+```
+
+**根因**: Skills API 返回的 `template_id` 在云端模板存储中不存在
+
+**云端需配合**:
+1. 确保所有返回的 `template_id` 在云端存在
+2. 或直接在响应中包含 `template_content` 字段
+
+### 1.3 历史问题根因分析
 
 云端 API 返回的数据结构与客户端预期不一致：
 
@@ -45,9 +100,165 @@
 
 ---
 
-## 2. API 规范要求
+## 2. MCP 服务 API 规范 (新增)
 
-### 2.1 多语言字段规范
+### 2.1 接口信息
+
+- **端点**: `GET /api/v8/templates/mcp-servers`
+- **当前版本**: v8.2.0
+
+### 2.2 响应格式要求
+
+```typescript
+interface CloudMcpService {
+  // ========== 必填字段 ==========
+  id: string              // 唯一标识符
+  name_en: string         // 英文名称
+
+  // ========== 推荐字段 ==========
+  name_zh_cn?: string     // 中文名称
+  description_en?: string // 英文描述
+  description_zh_cn?: string
+  type?: 'stdio' | 'http' | 'websocket'  // 默认 'stdio'
+  command?: string        // 启动命令
+  args?: string[]         // 命令参数
+  npm_package?: string    // npm 包名
+  install_command?: string
+  env?: Record<string, string>
+  category?: 'core' | 'ondemand' | 'scenario'
+  tags?: string[]
+  compatibility?: {
+    languages?: string[]
+    frameworks?: string[]
+  }
+}
+```
+
+### 2.3 示例响应
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "filesystem-mcp",
+      "name_en": "Filesystem MCP",
+      "name_zh_cn": "文件系统 MCP",
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-filesystem"],
+      "category": "core"
+    }
+  ]
+}
+```
+
+---
+
+## 3. Hooks API 规范 (新增)
+
+### 3.1 接口信息
+
+- **端点**: `GET /api/v8/templates/hooks`
+
+### 3.2 响应格式要求
+
+```typescript
+interface CloudHook {
+  id: string        // 必填：唯一标识符
+  name_en: string   // 必填：英文名称
+  category: HookCategory  // 必填：必须是有效的 Git Hook 类型
+
+  name_zh_cn?: string
+  description_en?: string
+  description_zh_cn?: string
+  install_command?: string
+  tags?: string[]
+}
+
+// ✅ 有效的 category 值
+type HookCategory =
+  | 'pre-commit'      // 提交前
+  | 'commit-msg'      // 提交消息
+  | 'post-commit'     // 提交后
+  | 'pre-push'        // 推送前
+  | 'post-merge'      // 合并后
+  | 'pre-rebase'      // 变基前
+  | 'post-checkout'   // 检出后
+  | 'post-test'       // 测试后（扩展）
+  | 'lifecycle'       // 生命周期（扩展）
+
+// ❌ 无效的 category 值（当前云端返回）
+// 'git-hooks', 'workflow' - 不是具体的 hook 类型
+```
+
+### 3.3 示例响应
+
+```json
+{
+  "data": [
+    {
+      "id": "lint-staged",
+      "name_en": "Lint Staged",
+      "category": "pre-commit",
+      "install_command": "npx lint-staged"
+    },
+    {
+      "id": "commitlint",
+      "name_en": "Commitlint",
+      "category": "commit-msg",
+      "install_command": "npx commitlint --edit $1"
+    }
+  ]
+}
+```
+
+---
+
+## 4. Skills/Templates API 规范 (新增)
+
+### 4.1 接口信息
+
+- **端点**: `GET /api/v8/templates/skills`
+
+### 4.2 响应格式要求
+
+```typescript
+interface CloudSkill {
+  id: string        // 必填
+  name_en: string   // 必填
+
+  // 模板内容（二选一，推荐方案 B）
+  template_id?: string      // 方案 A: 模板 ID（必须存在）
+  template_content?: string // 方案 B: 直接包含内容（推荐）
+
+  name_zh_cn?: string
+  description_en?: string
+  description_zh_cn?: string
+  tags?: string[]
+}
+```
+
+### 4.3 缺失的模板 ID 列表
+
+以下模板需要在云端创建或修复：
+
+| 模板 ID | Skill 名称 |
+|---------|------------|
+| `tpl_VVvfHw7NA_qw` | TypeScript Best Practices |
+| `tpl_uKPyj6viVGfg` | React Best Practices |
+| `tpl_Ox4f9FJhul-A` | Component Generator |
+| `tpl_l9SkEvoBkncY` | Schema Generator |
+| `tpl_m2FEpjnJIXp8` | Test Generator |
+| `tpl_GW52d3V_8CRm` | JSDoc Generator |
+| `tpl_DhHFG_rbdOHk` | Code Refactor |
+| `tpl_zfX8agBWn3Ig` | Import Organizer |
+| `tpl_N6pApssmXhQg` | Security Scanner |
+| `tpl_S8krkPai0MkC` | Security Audit |
+
+---
+
+## 5. 多语言字段规范
 
 所有支持多语言的字段必须遵循以下格式之一：
 

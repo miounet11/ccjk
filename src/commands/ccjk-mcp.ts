@@ -330,7 +330,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
       // Add new services
       const newServers: Record<string, any> = {}
       for (const serviceId of result.installed) {
-        const service = mcpServiceTemplates[serviceId]
+        const service = mcpServiceTemplates[serviceId] || servicesToInstall.find(s => s.id === serviceId)
         if (service) {
           newServers[serviceId] = {
             type: service.type,
@@ -347,8 +347,10 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
 
       if (!options.json) {
         result.installed.forEach(serviceId => {
-          const service = mcpServiceTemplates[serviceId]
-          const name = isZh ? service.name['zh-CN'] : service.name.en
+          const service = mcpServiceTemplates[serviceId] || servicesToInstall.find(s => s.id === serviceId)
+          const name = service
+            ? (isZh ? service.name['zh-CN'] : service.name.en)
+            : serviceId
           console.log(`  ${ansis.green('✓')} ${serviceId} (${name})`)
         })
       }
@@ -362,11 +364,13 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
       }
 
       for (const serviceId of result.installed) {
-        const service = mcpServiceTemplates[serviceId]
-        const verified = await verifyService(service)
+        const service = mcpServiceTemplates[serviceId] || servicesToInstall.find(s => s.id === serviceId)
+        const verified = service ? await verifyService(service) : false
 
         if (!options.json) {
-          const name = isZh ? service.name['zh-CN'] : service.name.en
+          const name = service
+            ? (isZh ? service.name['zh-CN'] : service.name.en)
+            : serviceId
           const status = verified ? ansis.green('✓') : ansis.red('✗')
           console.log(`  ${status} ${serviceId} (${name})`)
         }
