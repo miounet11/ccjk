@@ -12,6 +12,30 @@
  * - Cross-platform compatibility
  *
  * @module utils/skill-md/hot-reload
+ *
+ * @deprecated This module is deprecated since v8.3.0.
+ * Use `src/brain/skill-hot-reload.ts` (SkillHotReload class) instead,
+ * which provides more comprehensive features including:
+ * - Integration with SkillRegistry and MessageBus
+ * - Better error handling and statistics
+ * - Support for multiple skill file patterns
+ *
+ * Migration guide:
+ * ```typescript
+ * // Old (deprecated):
+ * import { SkillHotReloader } from '@/utils/skill-md/hot-reload'
+ * const reloader = new SkillHotReloader()
+ * reloader.watch()
+ *
+ * // New (recommended):
+ * import { getSkillHotReload, startSkillHotReload } from '@/brain'
+ * const hotReload = await startSkillHotReload()
+ * // or
+ * const hotReload = getSkillHotReload(options)
+ * await hotReload.start()
+ * ```
+ *
+ * This module will be removed in v9.0.0.
  */
 
 import type { FSWatcher } from 'chokidar'
@@ -111,6 +135,9 @@ export interface HotReloadOptions {
  * // Stop watching
  * reloader.stop()
  * ```
+ *
+ * @deprecated Use `SkillHotReload` from `@/brain/skill-hot-reload` instead.
+ * This class will be removed in v9.0.0.
  */
 export class SkillHotReloader extends EventEmitter {
   private watcher: FSWatcher | null = null

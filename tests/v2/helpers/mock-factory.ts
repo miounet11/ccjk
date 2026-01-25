@@ -275,6 +275,72 @@ export class MockFactory {
     vi.resetAllMocks()
     vi.restoreAllMocks()
   }
+
+  /**
+   * Create a mock for Hook objects
+   */
+  static createHook(options: {
+    id: string
+    level?: string
+    name?: string
+    handler?: (...args: any[]) => any
+    dependencies?: string[]
+    timeout?: number
+  }) {
+    const {
+      id,
+      level = 'L2',
+      name = `Hook-${id}`,
+      handler = vi.fn().mockResolvedValue({ success: true }),
+      dependencies = [],
+      timeout = 5000,
+    } = options
+
+    return {
+      id,
+      level,
+      name,
+      handler,
+      dependencies,
+      timeout,
+      execute: vi.fn().mockImplementation(async (...args: any[]) => {
+        return handler(...args)
+      }),
+    }
+  }
+
+  /**
+   * Create a mock for Skill objects
+   */
+  static createSkill(options: {
+    id: string
+    name?: string
+    layer?: string
+    category?: string
+    keywords?: string[]
+    handler?: (...args: any[]) => any
+  }) {
+    const {
+      id,
+      name = `Skill-${id}`,
+      layer = 'L1',
+      category = 'general',
+      keywords = [],
+      handler = vi.fn().mockResolvedValue({ success: true }),
+    } = options
+
+    return {
+      id,
+      name,
+      layer,
+      category,
+      keywords,
+      handler,
+      execute: vi.fn().mockImplementation(async (...args: any[]) => {
+        return handler(...args)
+      }),
+    }
+  }
 }
 
 /**

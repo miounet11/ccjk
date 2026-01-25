@@ -22,16 +22,16 @@ export default defineConfig({
     ],
     globals: true,
     setupFiles: [
-      './tests/setup/e2e.setup.ts'
+      './tests/e2e/setup.ts'
     ],
     env: {
       NODE_ENV: 'test',
       E2E_TEST: 'true',
-      DATABASE_URL: 'postgresql://ccjk_user:ccjk_password@localhost:5433/ccjk_test',
-      REDIS_URL: 'redis://localhost:6379/15',
-      ELASTICSEARCH_URL: 'http://localhost:9200',
       LOG_LEVEL: 'error',
-      CCJK_E2E_TIMEOUT: '120000'
+      CCJK_E2E_TIMEOUT: '120000',
+      CI: 'true', // Default to CI mode for E2E tests
+      FORCE_COLOR: '0',
+      NO_COLOR: '1',
     },
     coverage: {
       provider: 'v8',

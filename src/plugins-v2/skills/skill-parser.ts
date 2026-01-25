@@ -629,6 +629,16 @@ export function isValidSkillDirectory(dirPath: string): boolean {
 
 /**
  * Check if a file is a SKILL.md file
+ *
+ * @param filePath - Path to check
+ * @returns True if the file is named SKILL.md (case-insensitive)
+ *
+ * @remarks
+ * This is a simplified implementation that only checks for SKILL.md files.
+ * For more comprehensive skill file detection (including .yaml, .yml extensions),
+ * use `isSkillFile` from `@/brain/skill-parser` instead.
+ *
+ * @see {@link @/brain/skill-parser#isSkillFile} for the canonical implementation
  */
 export function isSkillFile(filePath: string): boolean {
   return basename(filePath).toUpperCase() === 'SKILL.MD'

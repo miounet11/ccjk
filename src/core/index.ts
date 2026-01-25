@@ -41,3 +41,10 @@ export { default as McpSearch } from './mcp-search'
 
 export * from './zero-config'
 export { default as ZeroConfig } from './zero-config'
+
+// Platform abstraction layer (v8.3+)
+export * from './platform'
+export { default as platform } from './platform'
+
+// Security module (v8.3+)
+export * from './security'

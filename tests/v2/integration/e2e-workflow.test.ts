@@ -754,6 +754,28 @@ describe('End-to-End Workflow Integration', () => {
         metadata: { timestamp: new Date() },
       }
 
+      // Setup mocks for multi-step workflow
+      brainAnalyzer.analyze.mockResolvedValue({
+        type: 'multi-aspect-analysis',
+        aspects: ['refactoring', 'testing', 'performance', 'security'],
+        confidence: 0.9,
+      })
+
+      const mockSkills = [
+        { id: 'refactor-skill', category: 'refactoring', layer: 'L2' },
+        { id: 'test-skill', category: 'testing', layer: 'L1' },
+        { id: 'perf-skill', category: 'optimization', layer: 'L2' },
+        { id: 'security-skill', category: 'security', layer: 'L3' },
+      ]
+      skillManager.loadSkills.mockResolvedValue(mockSkills)
+      skillManager.executeSkills.mockResolvedValue([
+        { skillId: 'executed-skill', status: 'completed' }
+      ])
+      solutionGenerator.generate.mockResolvedValue({
+        type: 'multi-step-solution',
+        steps: ['step1', 'step2', 'step3'],
+      })
+
       // Multi-step workflow setup
       integrationOrchestrator.orchestrate.mockImplementation(async () => {
         const results = []

@@ -756,7 +756,7 @@ describe('Skills DSL Integration', () => {
       })
 
       // Act & Assert
-      await expect(skillExecutor.getExecutionPlan(circularSkills)).rejects.toThrow(
+      expect(() => skillExecutor.getExecutionPlan(circularSkills)).toThrow(
         'Circular dependency detected: SkillA <-> SkillB'
       )
     })

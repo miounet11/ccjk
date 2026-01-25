@@ -5,11 +5,36 @@ import { dirname } from 'pathe'
 import { exec } from 'tinyexec'
 
 /**
+ * Platform Utilities Module
+ *
+ * Provides cross-platform detection and utility functions.
+ *
+ * @module utils/platform
+ *
+ * @remarks
+ * For new code, consider using the more comprehensive Platform Abstraction Layer
+ * at `@/core/platform` which provides:
+ * - Detailed platform info with `getPlatformInfo()`
+ * - Platform capabilities detection with `getPlatformCapabilities()`
+ * - Better WSL, Docker, and CI environment detection
+ *
+ * @see {@link @/core/platform/detector} for the comprehensive platform detection API
+ */
+
+/**
  * Commands that require cmd /c wrapper on Windows for proper execution context
  * Add new commands here if they need Windows-specific handling
  */
 const WINDOWS_WRAPPED_COMMANDS = ['npx', 'uvx', 'uv']
 
+/**
+ * Get the current platform
+ *
+ * @returns Platform identifier: 'windows', 'macos', or 'linux'
+ *
+ * @remarks
+ * For more detailed platform information, use `getPlatformInfo()` from `@/core/platform`.
+ */
 export function getPlatform(): 'windows' | 'macos' | 'linux' {
   const p = platform()
   if (p === 'win32')

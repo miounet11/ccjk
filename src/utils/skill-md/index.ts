@@ -48,7 +48,9 @@ export type {
   SkillValidationResultWithPath,
 } from './discovery.js'
 // Export hot reload system
+// @deprecated Use `@/brain/skill-hot-reload` instead. Will be removed in v9.0.0.
 export {
+  /** @deprecated Use `SkillHotReload` from `@/brain` instead */
   SkillHotReloader,
 } from './hot-reload.js'
 

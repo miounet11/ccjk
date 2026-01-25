@@ -1,0 +1,302 @@
+name: i18n Integrity Check
+
+on:
+  pull_request:
+    paths:
+      - 'src/i18n/locales/**'
+      - 'scripts/check-i18n.ts'
+      - '.github/workflows/i18n-check.yml'
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/i18n/locales/**'
+      - 'scripts/check-i18n.ts'
+  workflow_dispatch:
+    inputs:
+      generate_report:
+        description: 'Generate detailed report'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  i18n-check:
+    name: Translation Integrity Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run i18n integrity check
+        id: i18n-check
+        run: |
+          # Run check and capture output
+          set +e
+          OUTPUT=$(pnpm i18n:check --ci 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          # Output to console
+          echo "$OUTPUT"
+
+          # Save to file for artifact
+          echo "$OUTPUT" > i18n-check-report.txt
+
+          # Set output for summary
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+          # Exit with original code
+          exit $EXIT_CODE
+        continue-on-error: true
+
+      - name: Generate JSON report
+        if: always()
+        run: |
+          pnpm i18n:check --json > i18n-report.json 2>/dev/null || true
+
+      - name: Generate detailed report
+        if: ${{ github.event.inputs.generate_report == 'true' || failure() }}
+        run: |
+          pnpm i18n:report > i18n-detailed-report.txt 2>&1 || true
+
+      - name: Upload i18n report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-reports
+          path: |
+            i18n-check-report.txt
+            i18n-report.json
+            i18n-detailed-report.txt
+          retention-days: 30
+
+      - name: Create PR comment
+        if: github.event_name == 'pull_request' && steps.i18n-check.outputs.exit_code != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let report = '';
+            try {
+              report = fs.readFileSync('i18n-check-report.txt', 'utf8');
+            } catch (e) {
+              report = 'Failed to read report';
+            }
+
+            let jsonReport = {};
+            try {
+              jsonReport = JSON.parse(fs.readFileSync('i18n-report.json', 'utf8'));
+            } catch (e) {
+              // Ignore JSON parse errors
+            }
+
+            const summary = jsonReport.summary || {};
+            const missingFiles = jsonReport.missingFiles || [];
+            const missingKeys = jsonReport.missingKeys || {};
+            const placeholderMismatches = jsonReport.placeholderMismatches || [];
+
+            let body = `## i18n Integrity Check Failed\n\n`;
+            body += `### Summary\n`;
+            body += `| Metric | Value |\n`;
+            body += `|--------|-------|\n`;
+            body += `| Total Files | ${summary.totalFiles || 'N/A'} |\n`;
+            body += `| Translated Files | ${summary.translatedFiles || 'N/A'} (${summary.coveragePercent || 0}%) |\n`;
+            body += `| Missing Files | ${missingFiles.length} |\n`;
+            body += `| Keys Coverage | ${summary.keysCoverage?.percent || 0}% |\n`;
+            body += `| Placeholder Mismatches | ${placeholderMismatches.length} |\n\n`;
+
+            if (missingFiles.length > 0) {
+              body += `### Missing Files\n`;
+              missingFiles.slice(0, 10).forEach(f => {
+                body += `- \`${f}\`\n`;
+              });
+              if (missingFiles.length > 10) {
+                body += `- ... and ${missingFiles.length - 10} more\n`;
+              }
+              body += `\n`;
+            }
+
+            const missingKeyFiles = Object.keys(missingKeys);
+            if (missingKeyFiles.length > 0) {
+              body += `### Missing Keys\n`;
+              missingKeyFiles.slice(0, 5).forEach(file => {
+                const keys = missingKeys[file];
+                body += `**${file}** (${keys.length} keys):\n`;
+                keys.slice(0, 5).forEach(k => {
+                  body += `- \`${k}\`\n`;
+                });
+                if (keys.length > 5) {
+                  body += `- ... and ${keys.length - 5} more\n`;
+                }
+                body += `\n`;
+              });
+              if (missingKeyFiles.length > 5) {
+                body += `... and ${missingKeyFiles.length - 5} more files with missing keys\n\n`;
+              }
+            }
+
+            if (placeholderMismatches.length > 0) {
+              body += `### Placeholder Mismatches\n`;
+              placeholderMismatches.slice(0, 5).forEach(m => {
+                body += `- **${m.file}** \`${m.key}\`\n`;
+                body += `  - Expected: \`${m.sourcePlaceholders.join(', ') || '(none)'}\`\n`;
+                body += `  - Got: \`${m.targetPlaceholders.join(', ') || '(none)'}\`\n`;
+              });
+              if (placeholderMismatches.length > 5) {
+                body += `- ... and ${placeholderMismatches.length - 5} more\n`;
+              }
+              body += `\n`;
+            }
+
+            body += `### How to Fix\n`;
+            body += `1. Run \`pnpm i18n:check --fix\` to create missing files with TODO markers\n`;
+            body += `2. Run \`pnpm i18n:report\` to see detailed report\n`;
+            body += `3. Translate the missing keys in the affected files\n`;
+            body += `4. Ensure all placeholders match between source and target\n\n`;
+            body += `---\n`;
+            body += `*This comment was generated by the i18n integrity check workflow.*`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' &&
+              c.body.includes('i18n Integrity Check')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Update PR comment on success
+        if: github.event_name == 'pull_request' && steps.i18n-check.outputs.exit_code == '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let jsonReport = {};
+            try {
+              jsonReport = JSON.parse(fs.readFileSync('i18n-report.json', 'utf8'));
+            } catch (e) {
+              // Ignore
+            }
+
+            const summary = jsonReport.summary || {};
+
+            let body = `## i18n Integrity Check Passed\n\n`;
+            body += `| Metric | Value |\n`;
+            body += `|--------|-------|\n`;
+            body += `| Total Files | ${summary.totalFiles || 'N/A'} |\n`;
+            body += `| Translation Coverage | ${summary.coveragePercent || 100}% |\n`;
+            body += `| Keys Coverage | ${summary.keysCoverage?.percent || 100}% |\n`;
+            body += `| Placeholder Mismatches | 0 |\n\n`;
+            body += `All translation files and keys are properly synchronized.\n\n`;
+            body += `---\n`;
+            body += `*This comment was generated by the i18n integrity check workflow.*`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' &&
+              c.body.includes('i18n Integrity Check')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Set job summary
+        if: always()
+        run: |
+          echo "## i18n Integrity Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f i18n-report.json ]; then
+            TOTAL=$(jq -r '.summary.totalFiles // "N/A"' i18n-report.json)
+            TRANSLATED=$(jq -r '.summary.translatedFiles // "N/A"' i18n-report.json)
+            COVERAGE=$(jq -r '.summary.coveragePercent // "N/A"' i18n-report.json)
+            KEYS_COVERAGE=$(jq -r '.summary.keysCoverage.percent // "N/A"' i18n-report.json)
+            MISSING_FILES=$(jq -r '.missingFiles | length' i18n-report.json)
+            PLACEHOLDER_MISMATCHES=$(jq -r '.placeholderMismatches | length' i18n-report.json)
+            PASSED=$(jq -r '.passed' i18n-report.json)
+
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Total Files | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| Translated Files | $TRANSLATED ($COVERAGE%) |" >> $GITHUB_STEP_SUMMARY
+            echo "| Missing Files | $MISSING_FILES |" >> $GITHUB_STEP_SUMMARY
+            echo "| Keys Coverage | $KEYS_COVERAGE% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Placeholder Mismatches | $PLACEHOLDER_MISMATCHES |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$PASSED" = "true" ]; then
+              echo "### Status: PASSED" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### Status: FAILED" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "Run \`pnpm i18n:check --fix\` locally to create missing files." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "Failed to generate report." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if check failed
+        if: steps.i18n-check.outputs.exit_code != '0'
+        run: |
+          echo "i18n integrity check failed. Please fix the issues above."
+          exit 1

@@ -1182,6 +1182,27 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
 
+  // ==================== Performance Monitoring ====================
+  {
+    name: 'monitor [action]',
+    description: 'Real-time performance monitoring dashboard',
+    tier: 'extended',
+    options: [
+      { flags: '--refresh, -r <ms>', description: 'Refresh interval (milliseconds)' },
+      { flags: '--range <timeRange>', description: 'Report time range (hourly|daily|weekly|monthly)' },
+      { flags: '--format, -f <format>', description: 'Export format (json|csv|html)' },
+      { flags: '--output, -o <file>', description: 'Output file path' },
+      { flags: '--json', description: 'Also output JSON format' },
+      { flags: '--no-banner', description: 'Do not display banner' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown) => {
+        const { monitor } = await import('./commands/monitor')
+        await monitor((action as 'start' | 'stop' | 'report' | 'export' | 'help') || undefined, options)
+      }
+    },
+  },
+
   // ==================== Configuration Management ====================
   {
     name: 'config [action] [key] [value]',
@@ -1797,6 +1818,15 @@ async function registerSpecialCommands(cli: CAC): Promise<void> {
       const { workspaceDiagnostics } = await import('./commands/doctor')
       await workspaceDiagnostics(dir)
     })
+
+  // ==================== Shell Completion ====================
+  cli
+    .command('completion <action> [shell]', 'Shell completion management')
+    .option('--lang, -l <lang>', 'Display language')
+    .action(async (action, shell, options) => {
+      const { completionCommand } = await import('./cli/completion')
+      await completionCommand(action as string, shell as string, options)
+    })
 }
 
 // ============================================================================
@@ -1840,6 +1870,7 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
       `  ${cyan('ccjk mcp')} <action>        MCP server management`,
       `  ${cyan('ccjk browser')}      ${gray('ab')}    Agent Browser automation ${green('NEW')}`,
       `  ${cyan('ccjk skills')}       ${gray('sk')}    Manage CCJK skills ${green('NEW')}`,
+      `  ${cyan('ccjk monitor')}      ${gray('mon')}   Performance monitoring ${green('NEW')}`,
       `  ${cyan('ccjk interview')}    ${gray('iv')}    Interview-driven development`,
       `  ${cyan('ccjk commit')}             Smart git commit`,
       `  ${cyan('ccjk config-switch')} ${gray('cs')}   Switch configuration`,
@@ -1867,6 +1898,7 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
       `  ${cyan('ccjk workflows')}    ${gray('wf')}    Manage workflows`,
       `  ${cyan('ccjk ccr')}               CCR proxy management`,
       `  ${cyan('ccjk ccu')}               Usage statistics`,
+      `  ${cyan('ccjk completion')}        Shell completion ${green('NEW')}`,
       `  ${cyan('ccjk uninstall')}         Remove configurations`,
     ].join('\n'),
   })

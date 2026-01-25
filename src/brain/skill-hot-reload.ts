@@ -16,9 +16,9 @@ import type { MessageType } from './types'
 import { EventEmitter } from 'node:events'
 import { homedir } from 'node:os'
 import chokidar from 'chokidar'
-import { join } from 'pathe'
+import { basename, join } from 'pathe'
 import { getMessageBus } from './message-bus'
-import { getSkillParser } from './skill-parser'
+import { getSkillParser, isSkillFile as isSkillFileCanonical } from './skill-parser'
 import { getSkillRegistry } from './skill-registry'
 
 // ============================================================================
@@ -652,18 +652,20 @@ export class SkillHotReload extends EventEmitter {
 
   /**
    * Check if a file is a skill file
+   *
+   * Delegates to the canonical `isSkillFile` from skill-parser,
+   * with additional checks for files in skills directories.
    */
   private isSkillFile(filePath: string): boolean {
-    const basename = filePath.split('/').pop() || ''
-    const upperBasename = basename.toUpperCase()
-
-    // Check for SKILL.md or skill.md
-    if (upperBasename === 'SKILL.MD' || upperBasename === 'SKILL.MD')
+    // First check using canonical implementation
+    if (isSkillFileCanonical(filePath)) {
       return true
+    }
 
-    // Check for .md extension in skills directory
+    // Additional check: .md files in skills directory
+    const fileBasename = basename(filePath)
     if (filePath.includes('/skills/') || filePath.includes('\\skills\\')) {
-      return filePath.endsWith('.md')
+      return fileBasename.endsWith('.md')
     }
 
     return false

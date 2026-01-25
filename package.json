@@ -1,9 +1,9 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "8.2.2",
+  "version": "9.0.0",
   "packageManager": "pnpm@10.17.1",
-  "description": "Ultimate AI Development Tool - Code Tool Abstraction Layer with 83% Token Savings - Now with Cloud Sync, Hot-Reload Skills, Multi-Agent Orchestration, and Full Claude Code CLI 2.1+ Compatibility",
+  "description": "CCJK v9.0.0 - Revolutionary AI Development Platform with Enterprise Security, Streaming Cloud Sync, CRDT Conflict Resolution, and Unified V3 Architecture",
   "author": {
     "name": "CCJK Team",
     "email": "9248293@gmail.com"
@@ -79,7 +79,7 @@
     "build": "unbuild",
     "start": "node bin/ccjk.mjs",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "node scripts/validate-prepublish.mjs && pnpm build",
+    "prepublishOnly": "node scripts/validate-prepublish.mjs && pnpm build && pnpm test:run",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "vitest",
@@ -87,6 +87,11 @@
     "test:coverage": "vitest run --coverage",
     "test:run": "vitest run",
     "test:watch": "vitest watch",
+    "test:e2e": "NODE_ENV=test vitest --config vitest.e2e.config.ts",
+    "test:e2e:run": "NODE_ENV=test vitest run --config vitest.e2e.config.ts",
+    "test:e2e:ui": "NODE_ENV=test vitest --config vitest.e2e.config.ts --ui",
+    "test:e2e:coverage": "NODE_ENV=test vitest run --config vitest.e2e.config.ts --coverage",
+    "test:e2e:debug": "NODE_ENV=test CCJK_E2E_DEBUG=true vitest --config vitest.e2e.config.ts",
     "test:v2": "vitest --config vitest.config.v2.ts",
     "test:v2:ui": "vitest --config vitest.config.v2.ts --ui",
     "test:v2:coverage": "vitest run --config vitest.config.v2.ts --coverage",
@@ -122,7 +127,9 @@
     "benchmark:save": "tsx src/v2/__tests__/benchmarks.ts && echo 'Results saved to .ccjk/benchmark-results.json'",
     "benchmark:detailed": "tsx src/v2/__tests__/benchmarks.ts --detailed",
     "benchmark:server": "npx http-server docs/v2 -p 8080 -o dashboard.html",
-    "benchmark:open": "open docs/v2/dashboard.html || xdg-open docs/v2/dashboard.html || start docs/v2/dashboard.html"
+    "benchmark:open": "open docs/v2/dashboard.html || xdg-open docs/v2/dashboard.html || start docs/v2/dashboard.html",
+    "i18n:check": "tsx scripts/check-i18n.ts",
+    "i18n:report": "tsx scripts/check-i18n.ts --report"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",

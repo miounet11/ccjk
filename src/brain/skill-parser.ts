@@ -775,8 +775,21 @@ export function parseSkillContent(content: string, filePath?: string): SkillPars
 /**
  * Check if a file is a valid skill file
  *
+ * This is the canonical implementation for skill file detection.
+ * It supports multiple file extensions (.md, .yaml, .yml) and
+ * the standard SKILL.md naming convention.
+ *
  * @param filePath - Path to check
  * @returns True if valid skill file
+ *
+ * @example
+ * ```typescript
+ * import { isSkillFile } from '@/brain/skill-parser'
+ *
+ * isSkillFile('/path/to/SKILL.md')     // true
+ * isSkillFile('/path/to/skill.yaml')   // true
+ * isSkillFile('/path/to/readme.md')    // false (not in skills dir)
+ * ```
  */
 export function isSkillFile(filePath: string): boolean {
   const ext = extname(filePath)
