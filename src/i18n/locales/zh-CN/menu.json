@@ -20,7 +20,7 @@
   "oneClick.issuesFixed": "已自动修复 {{count}} 个问题",
   "oneClick.manualFix": "有 {{count}} 个问题需要手动处理",
 
-  "quickSetup.title": "⚡ 快速配置 - CCJK v8.0.0 智能功能",
+  "quickSetup.title": "⚡ 快速配置 - CCJK 智能功能",
   "quickSetup.ccjkAll": "ccjk:all - 云驱动AI设置（推荐）",
   "quickSetup.ccjkAllDesc": "☁️  云AI驱动的完整智能配置",
   "quickSetup.ccjkSetup": "ccjk:setup - 完整本地设置",

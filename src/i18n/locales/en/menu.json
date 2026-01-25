@@ -20,7 +20,7 @@
   "oneClick.issuesFixed": "Auto-fixed {{count}} issue(s)",
   "oneClick.manualFix": "{{count}} issue(s) need manual attention",
 
-  "quickSetup.title": "⚡ Quick Setup - CCJK v8.0.0 Intelligent Features",
+  "quickSetup.title": "⚡ Quick Setup - CCJK Intelligent Features",
   "quickSetup.ccjkAll": "ccjk:all - Cloud AI Setup (Recommended)",
   "quickSetup.ccjkAllDesc": "☁️  AI-powered complete setup with cloud intelligence",
   "quickSetup.ccjkSetup": "ccjk:setup - Complete Local Setup",
