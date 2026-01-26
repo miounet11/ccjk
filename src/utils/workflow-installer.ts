@@ -19,7 +19,7 @@ function getRootDir(): string {
 const DEFAULT_CODE_TOOL_TEMPLATE = 'claude-code'
 
 // Categories that use shared templates from common directory
-const COMMON_TEMPLATE_CATEGORIES = ['git', 'sixStep']
+const COMMON_TEMPLATE_CATEGORIES = ['git', 'sixStep', 'essential', 'interview']
 
 // Format tags for display with colors
 function formatTags(tags: WorkflowTag[]): string {
@@ -188,16 +188,29 @@ async function installWorkflowWithDependencies(
     }
 
     for (const agent of config.agents) {
-      const agentSource = join(
-        rootDir,
-        'templates',
-        DEFAULT_CODE_TOOL_TEMPLATE,
-        configLang,
-        'workflow',
-        config.category,
-        'agents',
-        agent.filename,
-      )
+      // Agents also use common templates for shared categories
+      const isCommonTemplate = COMMON_TEMPLATE_CATEGORIES.includes(config.category)
+      const agentSource = isCommonTemplate
+        ? join(
+            rootDir,
+            'templates',
+            'common',
+            'workflow',
+            config.category,
+            configLang,
+            'agents',
+            agent.filename,
+          )
+        : join(
+            rootDir,
+            'templates',
+            DEFAULT_CODE_TOOL_TEMPLATE,
+            configLang,
+            'workflow',
+            config.category,
+            'agents',
+            agent.filename,
+          )
       const agentDest = join(agentsCategoryDir, agent.filename)
 
       if (existsSync(agentSource)) {
