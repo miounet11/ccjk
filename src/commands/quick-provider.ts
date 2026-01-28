@@ -21,6 +21,8 @@ import { getProviderRegistry } from '../services/provider-registry'
 const KNOWN_COMMANDS = new Set([
   // Core commands
   '', 'init', 'update', 'doctor', 'help',
+  // Quick setup commands (must be before 'quick' deprecated)
+  'quick-setup', 'quick', 'qs',
   // Extended commands
   'serve', 'mcp', 'browser', 'interview', 'commit', 'config',
   'daemon', 'providers', 'task', 'tasks', 'keybinding', 'kb',
@@ -37,7 +39,7 @@ const KNOWN_COMMANDS = new Set([
   // Special commands
   'cloud', 'system', 'sys', 'plugin', 'completion',
   // Deprecated but still recognized
-  'skills-sync', 'agents-sync', 'marketplace', 'quick', 'deep',
+  'skills-sync', 'agents-sync', 'marketplace', 'deep',
   'setup', 'sync', 'versions', 'upgrade', 'config-scan', 'workspace',
 ])
 

@@ -8,6 +8,7 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { version } from '../../package.json'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
+import { detectSmartDefaults, needsApiKeyPrompt } from '../config/smart-defaults'
 import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
 import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
@@ -278,6 +279,101 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
     options.workflows = 'all'
     // Convert "all" to actual workflow array
     options.workflows = WORKFLOW_CONFIG_BASE.map(w => w.id)
+  }
+}
+
+/**
+ * Simplified one-click initialization
+ * Uses smart defaults to minimize user interaction
+ * @param options - Init options
+ */
+export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
+  try {
+    console.log(ansis.bold.green('\n🚀 CCJK One-Click Installation\n'));
+
+    // Step 1: Detect smart defaults
+    const { smartDefaults } = await import('../config/smart-defaults');
+    const defaults = await smartDefaults.detect();
+
+    // Step 2: Validate detected defaults
+    const validation = smartDefaults.validateDefaults(defaults);
+    if (!validation.valid) {
+      console.log(ansis.yellow('⚠ Environment issues detected:'));
+      validation.issues.forEach(issue => {
+        console.log(ansis.gray(`  • ${issue}`));
+      });
+      console.log('');
+    }
+
+    // Step 3: Only prompt for API key if needed
+    if (!defaults.apiKey && !options.skipPrompt) {
+      console.log(ansis.yellow('⚠ No API key detected in environment'));
+      console.log(ansis.gray('Please provide your Anthropic API key to continue:\n'));
+
+      const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
+        type: 'password',
+        name: 'apiKey',
+        message: 'Enter your Anthropic API key:',
+        validate: (value: string) => {
+          if (!value) return 'API key is required';
+          if (!value.startsWith('sk-ant-')) return 'API key should start with sk-ant-';
+          return true;
+        },
+      });
+
+      defaults.apiKey = apiKey;
+      defaults.apiProvider = 'anthropic';
+    }
+
+    // Step 4: Set up options with smart defaults
+    options.skipPrompt = true;
+    options.skipBanner = true;
+    options.apiType = 'api_key';
+    options.apiKey = defaults.apiKey;
+    options.mcpServices = defaults.mcpServices;
+    options.workflows = defaults.skills.map(skill => skill.replace('ccjk:', '')); // Remove ccjk: prefix
+    options.codeType = defaults.codeToolType || 'claude-code';
+    options.configAction = 'backup';
+    options.installCometixLine = defaults.tools.cometix;
+    options.installSuperpowers = false;
+    options.outputStyles = ['senior-architect']; // Use valid output style
+    options.defaultOutputStyle = 'senior-architect';
+
+    // Step 5: Display installation summary
+    console.log(ansis.gray('📋 Installation Summary:'));
+    console.log(ansis.gray(`  • Platform: ${defaults.platform}`));
+    console.log(ansis.gray(`  • Code Tool: ${defaults.codeToolType}`));
+    console.log(ansis.gray(`  • API Provider: ${defaults.apiProvider}`));
+    console.log(ansis.gray(`  • MCP Services: ${defaults.mcpServices.join(', ')}`));
+    console.log(ansis.gray(`  • Skills: ${defaults.skills.length} selected`));
+    console.log(ansis.gray(`  • Agents: ${defaults.agents.length} selected`));
+    console.log('');
+
+    // Step 6: Run full init with smart defaults
+    console.log(ansis.gray('🔧 Installing with smart defaults...\n'));
+
+    const startTime = Date.now();
+    await init(options);
+    const duration = Math.round((Date.now() - startTime) / 1000);
+
+    // Step 7: Success message with timing
+    console.log('');
+    console.log(ansis.bold.green('✅ Installation Complete!'));
+    console.log(ansis.gray(`⏱️  Completed in ${duration} seconds\n`));
+
+    console.log(ansis.bold.cyan('🎯 Quick Start:'));
+    console.log(ansis.gray('  1. Open your project directory'));
+    console.log(ansis.gray('  2. Run: claude'));
+    console.log(ansis.gray('  3. Start coding with AI assistance!\n'));
+
+    console.log(ansis.gray('💡 Advanced Options:'));
+    console.log(ansis.gray('  • npx ccjk menu    - Interactive configuration'));
+    console.log(ansis.gray('  • npx ccjk update  - Update workflows'));
+    console.log(ansis.gray('  • npx ccjk ccr     - Configure proxy'));
+    console.log('');
+  } catch (error) {
+    console.error(ansis.red('❌ Installation failed:'), error instanceof Error ? error.message : error);
+    throw error;
   }
 }
 
@@ -1102,6 +1198,37 @@ export async function init(options: InitOptions = {}): Promise<void> {
       aiOutputLang: aiOutputLang as AiOutputLanguage | string,
       codeToolType,
     })
+
+    // Step 12.1: Ask to import recommended environment variables and permissions (if not skip-prompt)
+    if (!options.skipPrompt) {
+      const { importRecommendedEnv, importRecommendedPermissions } = await import('../utils/simple-config')
+      const confirmImport = await promptBoolean({
+        message: i18n.t('configuration:recommendImportEnvPerm') || '导入 CCJK 推荐的环境变量和权限配置？（推荐，可减少权限弹窗）',
+        defaultValue: true,
+      })
+
+      if (confirmImport) {
+        // Import environment variables
+        try {
+          await importRecommendedEnv()
+          console.log(ansis.green(`✔ ${i18n.t('configuration:envImportSuccess')}`))
+        }
+        catch (error) {
+          console.error(ansis.yellow(`⚠ ${i18n.t('configuration:envImportFailed')}: ${error}`))
+        }
+
+        // Import permissions
+        try {
+          await importRecommendedPermissions()
+          console.log(ansis.green(`✔ ${i18n.t('configuration:permissionsImportSuccess') || '权限配置已导入'}`))
+        }
+        catch (error) {
+          console.error(ansis.yellow(`⚠ ${i18n.t('configuration:permissionsImportFailed')}: ${error}`))
+        }
+
+        console.log() // Add blank line
+      }
+    }
 
     // Step 13: Success message with enhanced guidance
     console.log('')

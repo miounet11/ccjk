@@ -108,6 +108,24 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'quick-setup',
+    description: 'One-click configuration for CCJK',
+    aliases: ['quick', 'qs'],
+    tier: 'core',
+    options: [
+      { flags: '--api-key <key>', description: 'API key' },
+      { flags: '--provider <provider>', description: 'API provider' },
+      { flags: '--skip-prompt, -s', description: 'Skip all prompts' },
+      { flags: '--lang, -l <lang>', description: 'Display language' },
+    ],
+    loader: async () => {
+      const { quickSetup } = await import('./commands/quick-setup')
+      return async (options) => {
+        await quickSetup(options)
+      }
+    },
+  },
+  {
     name: 'update',
     description: 'Update Claude Code prompts',
     aliases: ['u'],
@@ -1856,6 +1874,7 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
     title: yellow('📦 Core Commands'),
     body: [
       `  ${cyan('ccjk')}                    Interactive menu ${green('(default)')}`,
+      `  ${cyan('ccjk quick-setup')}  ${gray('qs')}    One-click configuration ${green('NEW')}`,
       `  ${cyan('ccjk init')}         ${gray('i')}     Initialize configuration`,
       `  ${cyan('ccjk update')}       ${gray('u')}     Update prompts & workflows`,
       `  ${cyan('ccjk doctor')}             Health check & diagnostics`,

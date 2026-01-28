@@ -16,5 +16,11 @@ export {
   searchSkills,
   setSkillEnabled,
 } from './manager'
+
 // CCJK Skills System
 export * from './types'
+
+// Auto-trigger system
+export * from './auto-trigger'
+export * from './intent-detector'
+export * from './context-analyzer'

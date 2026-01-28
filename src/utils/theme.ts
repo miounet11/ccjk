@@ -19,21 +19,21 @@ import ansis from 'ansis'
 export const theme = {
   // === Core Colors ===
   /** Terminal green - main text color */
-  primary: ansis.hex('#00FF00'),
+  primary: ansis.green,
   /** Bright white - emphasis and highlights */
   secondary: ansis.white,
   /** Dim green - subtle accents */
-  accent: ansis.hex('#00CC00'),
+  accent: ansis.green,
 
   // === Semantic Colors ===
   /** Success - bright green checkmark */
-  success: ansis.hex('#00FF7F'),
+  success: ansis.bold.green,
   /** Warning - amber/yellow for caution */
-  warning: ansis.hex('#FFD700'),
+  warning: ansis.yellow,
   /** Error - red for failures */
-  error: ansis.hex('#FF4444'),
+  error: ansis.red,
   /** Info - cyan for informational messages */
-  info: ansis.hex('#00FFFF'),
+  info: ansis.cyan,
 
   // === Text Styles ===
   /** Muted text - gray for less important info */
@@ -45,15 +45,15 @@ export const theme = {
 
   // === MUD-specific Styles ===
   /** Command prompt style - bright green */
-  prompt: ansis.hex('#00FF00').bold,
+  prompt: ansis.bold.green,
   /** System message - white */
   system: ansis.white,
   /** NPC/hint text - dim green */
-  hint: ansis.hex('#88CC88'),
+  hint: ansis.green,
   /** Quest/task highlight - bright */
-  quest: ansis.hex('#00FF00').bold,
+  quest: ansis.bold.green,
   /** Item/feature name - white bold */
-  item: ansis.white.bold,
+  item: ansis.bold.white,
 } as const
 
 /**
