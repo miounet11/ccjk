@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.3.5] - 2026-01-28 - CJK IME Full-Width Input Support
+
+### Added
+- **Full-Width Input Support (CJK IME)**: Menu now accepts full-width numbers and letters
+  - Converts ０１２３４５６７８９ to 0123456789 automatically
+  - Converts Ｈ/ｈ to H/h for help option
+  - Aligns with Claude Code 2.1.21's Japanese full-width support
+  - Benefits Chinese, Japanese, and Korean users using native IME
+  - New utility: `src/utils/input-normalizer.ts`
+
+---
+
 ## [9.0.0] - 2026-01-25 - Revolutionary Architecture Rewrite 🔥
 
 ### 🚨 Breaking Changes

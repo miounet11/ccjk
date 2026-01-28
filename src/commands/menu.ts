@@ -10,6 +10,7 @@ import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { changeScriptLanguageFeature } from '../utils/features'
+import { normalizeMenuInput } from '../utils/input-normalizer'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../utils/tools'
 import { showApiConfigMenu } from './api-config-selector'
@@ -195,8 +196,10 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     name: 'choice',
     message: isZh ? '请输入选项 (0-9, H):' : 'Enter option (0-9, H):',
     validate: (value) => {
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'h', 'H', 'q', 'Q']
-      return valid.includes(value) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
+      // Normalize full-width input for CJK IME support (Claude Code 2.1.21 alignment)
+      const normalized = normalizeMenuInput(value)
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'h', 'q']
+      return valid.includes(normalized) || (isZh ? '请输入有效选项 (支持全角数字)' : 'Please enter a valid option (full-width supported)')
     },
   })
 
@@ -205,19 +208,19 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     return 'exit'
   }
 
-  const normalized = choice.toLowerCase()
+  // Normalize full-width characters for CJK IME support
+  const normalized = normalizeMenuInput(choice)
 
   switch (normalized) {
     // ═══════════════════════════════════════════════════
     // 🚀 Quick Start (1-3)
     // ═══════════════════════════════════════════════════
     case '1': {
-      // Quick Setup
+      // Quick Setup - use API config menu directly
       console.log('')
       console.log(ansis.green(isZh ? '⚡ 一键配置...' : '⚡ Quick Setup...'))
       console.log('')
-      const { quickSetup } = await import('./quick-setup')
-      await quickSetup()
+      await showApiConfigMenu()
       break
     }
 

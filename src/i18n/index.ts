@@ -17,13 +17,19 @@ const NAMESPACES = [
   'api',
   'ccr',
   'ccjk', // CCJK-specific translations
+  'ccjk-skills', // CCJK Skills installation command
+  'ccjk-agents', // CCJK Agents management command
+  'ccjk-all', // CCJK All-in-one setup command
   'cli',
+  'cloud-setup', // Cloud-based setup wizard
   'cloudPlugins', // Cloud-based plugin system
   'cometix',
   'codex',
   'configuration',
   'context', // Context compression system
   'errors',
+  'hooks', // Git hooks management
+  'hooksSync', // Hooks cloud synchronization
   'installation',
   'interview', // Interview-Driven Development
   'language',
@@ -37,6 +43,7 @@ const NAMESPACES = [
   'plugins', // Cloud plugins management
   'registry', // Version checking, China detection, and multiple installations
   'sandbox', // Sandbox mode for secure request/response handling
+  'setup', // Setup wizard
   'shencha',
   'skills', // Skills management system
   'skillsSync', // Skills cloud synchronization
