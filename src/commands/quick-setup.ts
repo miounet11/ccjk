@@ -120,39 +120,7 @@ function displayError(result: QuickSetupResult): void {
 }
 
 /**
- * Prompt for API key with validation (supports custom providers)
- */
-async function promptApiKey(provider: string = 'anthropic'): Promise<string> {
-  const isZh = i18n.language === 'zh-CN'
-
-  // Different validation for different providers
-  const validateKey = (input: string) => {
-    if (!input || input.trim() === '') {
-      return isZh ? 'API 密钥不能为空' : 'API key is required'
-    }
-
-    // Only validate Anthropic keys strictly
-    if (provider === 'anthropic' && !input.startsWith('sk-ant-')) {
-      return isZh ? 'Anthropic API 密钥应以 sk-ant- 开头' : 'Anthropic API key should start with sk-ant-'
-    }
-
-    return true
-  }
-
-  const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
-    type: 'password',
-    name: 'apiKey',
-    message: isZh
-      ? `请输入您的 ${provider === 'anthropic' ? 'Anthropic' : provider.toUpperCase()} API 密钥:`
-      : `Enter your ${provider === 'anthropic' ? 'Anthropic' : provider.toUpperCase()} API key:`,
-    validate: validateKey,
-  })
-
-  return apiKey
-}
-
-/**
- * Prompt for API provider (without 302.ai)
+ * Prompt for API provider selection
  */
 async function promptProvider(): Promise<string> {
   const isZh = i18n.language === 'zh-CN'
@@ -162,16 +130,48 @@ async function promptProvider(): Promise<string> {
     name: 'provider',
     message: isZh ? '选择 API 提供商:' : 'Select API provider:',
     choices: [
-      { name: 'Anthropic (Official)', value: 'anthropic' },
-      { name: 'GLM (Zhipu AI)', value: 'glm' },
-      { name: 'MiniMax', value: 'minimax' },
-      { name: 'Kimi (Moonshot)', value: 'kimi' },
-      { name: isZh ? '其他/自定义...' : 'Other/Custom...', value: 'custom' },
+      { name: 'Anthropic (官方)', value: 'anthropic' },
+      { name: 'OpenRouter', value: 'openrouter' },
+      { name: 'Amazon Bedrock', value: 'bedrock' },
+      { name: 'Google Vertex AI', value: 'vertex' },
+      { name: isZh ? '其他' : 'Other', value: 'other' },
     ],
     default: 'anthropic',
   })
 
   return provider
+}
+
+/**
+ * Prompt for API key input
+ */
+async function promptApiKey(provider: string): Promise<string> {
+  const isZh = i18n.language === 'zh-CN'
+
+  const providerNames: Record<string, string> = {
+    anthropic: 'Anthropic',
+    openrouter: 'OpenRouter',
+    bedrock: 'Amazon Bedrock',
+    vertex: 'Google Vertex AI',
+    other: isZh ? '自定义' : 'Custom',
+  }
+
+  const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
+    type: 'password',
+    name: 'apiKey',
+    message: isZh
+      ? `输入 ${providerNames[provider] || provider} API 密钥:`
+      : `Enter ${providerNames[provider] || provider} API key:`,
+    mask: '*',
+    validate: (input: string) => {
+      if (!input || input.trim().length === 0) {
+        return isZh ? 'API 密钥不能为空' : 'API key cannot be empty'
+      }
+      return true
+    },
+  })
+
+  return apiKey.trim()
 }
 
 /**
@@ -311,15 +311,16 @@ function applyDefaultsToInitOptions(
   apiKey: string,
   provider: string,
   lang: SupportedLang,
+  skipApiConfig: boolean = false,
 ): InitOptions {
   return {
     skipPrompt: true,
     skipBanner: true,
     configLang: lang,
     allLang: lang,
-    apiType: 'api_key',
-    apiKey,
-    provider,
+    apiType: skipApiConfig ? 'skip' : 'api_key',
+    apiKey: skipApiConfig ? undefined : apiKey,
+    provider: skipApiConfig ? undefined : provider,
     // Core MCP services only (filesystem, git, fetch)
     mcpServices: defaults.mcpServices,
     // Essential skills (git-commit, feat, workflow, init-project)
@@ -458,11 +459,15 @@ export async function quickSetup(options: QuickSetupOptions = {}): Promise<Quick
     const finalSkills = customSkills || defaults.skills
     const finalAgents = customAgents || defaults.agents
 
+    // Determine if API config should be skipped (no key available)
+    const hasApiKey = !!apiKey && apiKey.length > 0
+
     const initOptions = applyDefaultsToInitOptions(
       { ...defaults, mcpServices: finalMcpServices, skills: finalSkills, agents: finalAgents },
-      apiKey,
-      provider,
+      hasApiKey ? apiKey : '',
+      hasApiKey ? provider : 'anthropic',
       lang,
+      !hasApiKey,
     )
 
     // Save CCJK config
