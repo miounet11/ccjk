@@ -10,6 +10,7 @@ import type { CodexConfigData, CodexMcpService } from './code-tools/codex'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { getMcpService, getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
+import { updateClaudeConfig } from '../config/unified/claude-config'
 import { ClAUDE_CONFIG_FILE, CODEX_CONFIG_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { buildMcpServerConfig, readMcpConfig, writeMcpConfig } from './claude-config'
@@ -167,6 +168,9 @@ async function installMcpServiceForClaudeCode(
 
   // Write config
   writeMcpConfig(config)
+
+  // Auto-authorize MCP service in settings.json
+  await autoAuthorizeMcpService(serviceId)
 }
 
 /**
@@ -311,6 +315,9 @@ async function uninstallMcpServiceFromClaudeCode(serviceId: string): Promise<voi
 
   // Write config
   writeMcpConfig(config)
+
+  // Remove MCP service authorization from settings.json
+  await removeAuthorizeMcpService(serviceId)
 }
 
 /**
@@ -494,4 +501,58 @@ export async function getAvailableMcpServices(tool?: CodeToolType): Promise<stri
   return allServices
     .filter(s => !installedIds.has(s.id.toLowerCase()))
     .map(s => s.id)
+}
+
+/**
+ * Auto-authorize MCP service in settings.json
+ * Adds the MCP permission to permissions.allow array
+ * @param serviceId - The ID of the MCP service to authorize
+ */
+async function autoAuthorizeMcpService(serviceId: string): Promise<void> {
+  // Format: mcp__<service_id> (lowercase, replace hyphens with underscores)
+  const mcpPermission = `mcp__${serviceId.toLowerCase().replace(/-/g, '_')}`
+
+  // Read current settings and update permissions
+  const { readClaudeConfig } = await import('../config/unified/claude-config')
+  const currentSettings = readClaudeConfig() || {}
+
+  // Ensure permissions.allow array exists
+  if (!currentSettings.permissions) {
+    currentSettings.permissions = {}
+  }
+  if (!currentSettings.permissions.allow) {
+    currentSettings.permissions.allow = []
+  }
+
+  // Check if permission already exists
+  if (!currentSettings.permissions.allow.includes(mcpPermission)) {
+    currentSettings.permissions.allow.push(mcpPermission)
+
+    // Write updated settings
+    updateClaudeConfig({
+      permissions: currentSettings.permissions,
+    })
+  }
+}
+
+/**
+ * Remove MCP service authorization from settings.json
+ * @param serviceId - The ID of the MCP service to deauthorize
+ */
+async function removeAuthorizeMcpService(serviceId: string): Promise<void> {
+  const mcpPermission = `mcp__${serviceId.toLowerCase().replace(/-/g, '_')}`
+
+  const { readClaudeConfig } = await import('../config/unified/claude-config')
+  const currentSettings = readClaudeConfig() || {}
+
+  if (currentSettings.permissions?.allow) {
+    const index = currentSettings.permissions.allow.indexOf(mcpPermission)
+    if (index !== -1) {
+      currentSettings.permissions.allow.splice(index, 1)
+
+      updateClaudeConfig({
+        permissions: currentSettings.permissions,
+      })
+    }
+  }
 }

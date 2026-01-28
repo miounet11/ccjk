@@ -13,7 +13,7 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { i18n } from '../i18n'
 import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
-import { configureApiFeature } from '../utils/features'
+import { configureApiFeature, handleCustomApiMode } from '../utils/features'
 import { configSwitchCommand } from './config-switch'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { readZcfConfig } from '../utils/ccjk-config'
@@ -132,7 +132,8 @@ async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promi
  */
 async function handleCustomConfig(isZh: boolean): Promise<ApiConfigResult> {
   try {
-    await configureApiFeature()
+    // Directly call handleCustomApiMode to avoid duplicate menu
+    await handleCustomApiMode()
     return { mode: 'custom', success: true, cancelled: false }
   } catch {
     return { mode: 'custom', success: false, cancelled: false }

@@ -67,7 +67,11 @@
     "uninstallFailed": "Failed to uninstall {{name}}",
     "restartRequired": "Restart Claude Code for changes to take effect",
     "noServicesInstalled": "No MCP services installed",
-    "installedServices": "Installed MCP services ({{tool}})"
+    "installedServices": "Installed MCP services ({{tool}})",
+    "autoGrantPrompt": "Auto-grant permissions for MCP tools? (You won't be asked again)",
+    "autoGrantEnabled": "Auto-grant enabled. MCP tools will be authorized automatically.",
+    "autoGrantDisabled": "Auto-grant disabled. You'll approve each MCP tool manually.",
+    "permissionGranted": "Permission granted for {{serviceId}}"
   },
   "server": {
     "starting": "Starting CCJK MCP server...",

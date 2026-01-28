@@ -123,6 +123,13 @@ export interface GeneralConfig {
   templateLang?: SupportedLang
   aiOutputLang?: AiOutputLanguage | string
   currentTool: CodeToolType
+  /**
+   * Auto-grant MCP permissions when installing MCP services
+   * - undefined: not yet asked (will prompt on first MCP install)
+   * - true: always auto-grant permissions
+   * - false: never auto-grant (user prefers manual approval)
+   */
+  autoGrantMcpPermissions?: boolean
 }
 
 /**

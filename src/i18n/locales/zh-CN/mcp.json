@@ -67,7 +67,11 @@
     "uninstallFailed": "卸载 {{name}} 失败",
     "restartRequired": "重启 Claude Code 以使更改生效",
     "noServicesInstalled": "未安装任何 MCP 服务",
-    "installedServices": "已安装的 MCP 服务 ({{tool}})"
+    "installedServices": "已安装的 MCP 服务 ({{tool}})",
+    "autoGrantPrompt": "是否自动授权 MCP 工具权限？（之后不再询问）",
+    "autoGrantEnabled": "已启用自动授权，MCP 工具将自动获得权限。",
+    "autoGrantDisabled": "已禁用自动授权，您需要手动批准每个 MCP 工具。",
+    "permissionGranted": "已授权 {{serviceId}} 的权限"
   },
   "server": {
     "starting": "正在启动 CCJK MCP 服务器...",

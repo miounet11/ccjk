@@ -54,7 +54,7 @@ async function handleOfficialLoginMode(): Promise<void> {
 }
 
 // Handle custom API configuration mode
-async function handleCustomApiMode(): Promise<void> {
+export async function handleCustomApiMode(): Promise<void> {
   ensureI18nInitialized()
 
   // Get current code tool type from CCJK config
