@@ -12,6 +12,7 @@ import { changeScriptLanguageFeature } from '../utils/features'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { configureApiFeature, configureMcpFeature } from '../utils/features'
+import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
 import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../utils/tools'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { simplifiedInit } from './init'
@@ -101,17 +102,19 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   const updateDesc = isZh ? '更新所有组件到最新版本' : 'Update all components to latest version'
 
   // Advanced items
-  const skillsName = isZh ? '4. 📚 Skills 管理' : '4. 📚 Skills Manager'
+  const apiName = isZh ? '4. 🔑 API 管理' : '4. 🔑 API Manager'
+  const apiDesc = isZh ? '配置 API URL、认证信息或 CCR 代理' : 'Configure API URL, auth or CCR proxy'
+  const skillsName = isZh ? '5. 📚 Skills 管理' : '5. 📚 Skills Manager'
   const skillsDesc = isZh ? '安装/更新/删除工作流技能' : 'Install/update/remove workflow skills'
-  const mcpName = isZh ? '5. 🔌 MCP 管理' : '5. 🔌 MCP Manager'
+  const mcpName = isZh ? '6. 🔌 MCP 管理' : '6. 🔌 MCP Manager'
   const mcpDesc = isZh ? '配置 Model Context Protocol 服务' : 'Configure Model Context Protocol services'
-  const agentsName = isZh ? '6. 🤖 Agents 管理' : '6. 🤖 Agents Manager'
+  const agentsName = isZh ? '7. 🤖 Agents 管理' : '7. 🤖 Agents Manager'
   const agentsDesc = isZh ? '创建/管理 AI 智能体' : 'Create/manage AI agents'
 
   // System items
-  const languageName = isZh ? '7. 🌍 语言设置' : '7. 🌍 Language'
+  const languageName = isZh ? '8. 🌍 语言设置' : '8. 🌍 Language'
   const languageDesc = isZh ? '切换界面语言' : 'Switch interface language'
-  const helpName = isZh ? '8. ❓ 帮助文档' : '8. ❓ Help'
+  const helpName = isZh ? '9. ❓ 帮助文档' : '9. ❓ Help'
   const helpDesc = isZh ? '查看使用指南' : 'View user guide'
 
   const exitText = isZh ? '0. 🚪 退出' : '0. 🚪 Exit'
@@ -126,6 +129,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 
   console.log(ansis.bold.green(`${advancedTitle}`))
   console.log(ansis.dim('─'.repeat(50)))
+  console.log(`  ${ansis.green(apiName)} ${ansis.dim(`- ${apiDesc}`)}`)
   console.log(`  ${ansis.green(skillsName)} ${ansis.dim(`- ${skillsDesc}`)}`)
   console.log(`  ${ansis.green(mcpName)} ${ansis.dim(`- ${mcpDesc}`)}`)
   console.log(`  ${ansis.green(agentsName)} ${ansis.dim(`- ${agentsDesc}`)}`)
@@ -142,9 +146,9 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
-    message: isZh ? '请输入选项 (0-8):' : 'Enter option (0-8):',
+    message: isZh ? '请输入选项 (0-9):' : 'Enter option (0-9):',
     validate: (value) => {
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'q', 'Q']
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'q', 'Q']
       return valid.includes(value) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
@@ -185,6 +189,14 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 
     // Advanced
     case '4':
+      // API Manager - show API configuration submenu
+      console.log('')
+      console.log(ansis.green(isZh ? '🔑 API 管理...' : '🔑 API Manager...'))
+      console.log('')
+      await showApiConfigMenu()
+      break
+
+    case '5':
       // Skills Manager
       console.log('')
       console.log(ansis.green(isZh ? '📚 Skills 管理...' : '📚 Skills Manager...'))
@@ -192,7 +204,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       await ccjkSkills({} as any)
       break
 
-    case '5':
+    case '6':
       // MCP Manager
       console.log('')
       console.log(ansis.green(isZh ? '🔌 MCP 管理...' : '🔌 MCP Manager...'))
@@ -200,7 +212,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       await ccjkMcp({} as any)
       break
 
-    case '6':
+    case '7':
       // Agents Manager
       console.log('')
       console.log(ansis.green(isZh ? '🤖 Agents 管理...' : '🤖 Agents Manager...'))
@@ -209,7 +221,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       break
 
     // System
-    case '7':
+    case '8':
       // Language Settings
       {
         const currentLang = i18n.language as SupportedLang
@@ -217,7 +229,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       }
       break
 
-    case '8':
+    case '9':
       // Help Documentation
       console.log('')
       console.log(ansis.bold.cyan(isZh ? '📖 CCJK 使用指南' : '📖 CCJK User Guide'))
@@ -264,6 +276,88 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   }
 
   return undefined
+}
+
+/**
+ * Show API Configuration submenu
+ */
+async function showApiConfigMenu(): Promise<void> {
+  const lang = i18n.language as SupportedLang
+  const isZh = lang === 'zh-CN'
+
+  console.log('')
+  console.log(ansis.bold.cyan(isZh ? '🔑 API 配置管理' : '🔑 API Configuration'))
+  console.log('')
+
+  const choices = [
+    { name: isZh ? '1. 使用官方登录（不配置 API）' : '1. Use Official Login (No API Config)', value: 'official' },
+    { name: isZh ? '2. 自定义 API 配置' : '2. Custom API Configuration', value: 'custom' },
+    { name: isZh ? '3. 使用 CCR 代理' : '3. Use CCR Proxy', value: 'ccr' },
+    { name: isZh ? '4. 切换 API 配置' : '4. Switch API Configuration', value: 'switch' },
+    { name: isZh ? '5. 查看当前配置' : '5. View Current Configuration', value: 'view' },
+    { name: isZh ? '6. 返回主菜单' : '6. Back to Main Menu', value: 'back' },
+  ]
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'list',
+    name: 'choice',
+    message: isZh ? '请选择 API 配置模式:' : 'Select API configuration mode:',
+    choices,
+    pageSize: 10,
+  })
+
+  if (!choice || choice === 'back') {
+    return
+  }
+
+  const codeTool = getCurrentCodeTool()
+
+  switch (choice) {
+    case 'official':
+      // Switch to official login
+      if (codeTool === 'claude-code') {
+        const result = await ClaudeCodeConfigManager.switchToOfficial()
+        if (result.success) {
+          console.log(ansis.green(isZh ? '✅ 已切换到官方登录' : '✅ Switched to official login'))
+        } else {
+          console.log(ansis.red(isZh ? `❌ 切换失败: ${result.error}` : `❌ Failed to switch: ${result.error}`))
+        }
+      } else {
+        console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'))
+      }
+      break
+
+    case 'custom':
+      // Custom API configuration
+      await configureApiFeature()
+      break
+
+    case 'ccr':
+      // Use CCR proxy
+      if (codeTool === 'claude-code') {
+        const result = await ClaudeCodeConfigManager.switchToCcr()
+        if (result.success) {
+          console.log(ansis.green(isZh ? '✅ 已切换到 CCR 代理' : '✅ Switched to CCR proxy'))
+        } else {
+          console.log(ansis.red(isZh ? `❌ 切换失败: ${result.error}` : `❌ Failed to switch: ${result.error}`))
+        }
+      } else {
+        console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'))
+      }
+      break
+
+    case 'switch':
+      // Switch between configurations
+      await configSwitchCommand({ codeType: codeTool })
+      break
+
+    case 'view':
+      // View current configuration
+      await configSwitchCommand({ codeType: codeTool, list: true })
+      break
+  }
+
+  printSeparator()
 }
 
 /**
