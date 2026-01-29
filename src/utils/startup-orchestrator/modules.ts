@@ -151,20 +151,28 @@ export function createZeroConfigModule(): StartupModule {
       const startTime = Date.now()
 
       try {
-        // TODO: Import and execute zero config logic
-        // const { activateZeroConfig } = await import('../zero-config')
-        // await activateZeroConfig()
+        // 执行零配置激活逻辑
+        const { activateSuperpowers, checkActivationStatus } = await import('../zero-config')
+        const status = await activateSuperpowers('zh-CN')
 
         return {
           status: 'success',
           duration: Date.now() - startTime,
           data: {
+            activationStatus: status,
             capabilities: [
               {
                 id: 'zero-config',
                 name: 'Zero Configuration',
                 description: 'Automatic setup with intelligent defaults',
                 enabled: true,
+                module: 'zero-config',
+              },
+              {
+                id: 'superpowers',
+                name: 'Superpowers',
+                description: 'Enhanced Claude Code skills and workflows',
+                enabled: status.isInstalled,
                 module: 'zero-config',
               },
             ],

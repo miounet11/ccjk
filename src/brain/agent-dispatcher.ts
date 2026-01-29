@@ -512,13 +512,60 @@ export class AgentDispatcher {
     const filteredConfig = this.applyToolFiltering(config)
 
     const timeout = filteredConfig.timeout ?? this.options.defaultTimeout
+    const softTimeout = Math.floor(timeout * 0.8) // 80% 时发出警告
+    const warningTimeout = Math.floor(timeout * 0.6) // 60% 时发出提示
 
-    return Promise.race([
-      executeFn(filteredConfig),
-      new Promise<OrchestrationResult>((_, reject) =>
-        setTimeout(() => reject(new Error('Agent execution timeout')), timeout),
-      ),
-    ])
+    let softTimeoutReached = false
+    let warningTimeoutReached = false
+
+    // 60% 超时提示
+    const warningTimer = setTimeout(() => {
+      warningTimeoutReached = true
+      if (this.options.verbose) {
+        console.log(`\n💭 Agent ${agent.id} 正在执行中，请稍候...`)
+      }
+    }, warningTimeout)
+
+    // 80% 软超时警告
+    const softTimer = setTimeout(() => {
+      softTimeoutReached = true
+      console.log(`\n⚠️ 任务执行时间较长 (已超过 ${Math.floor(softTimeout / 1000)}s)，可能需要：`)
+      console.log('   1. 等待完成（剩余约 ' + Math.floor((timeout - softTimeout) / 1000) + 's）')
+      console.log('   2. 使用 Ctrl+C 中断后执行 /compact 清理上下文')
+      console.log('   3. 将任务分解为更小的步骤\n')
+    }, softTimeout)
+
+    try {
+      const result = await Promise.race([
+        executeFn(filteredConfig),
+        new Promise<OrchestrationResult>((_, reject) =>
+          setTimeout(() => {
+            reject(new Error('Agent execution timeout'))
+          }, timeout),
+        ),
+      ])
+
+      clearTimeout(warningTimer)
+      clearTimeout(softTimer)
+      return result
+    }
+    catch (error) {
+      clearTimeout(warningTimer)
+      clearTimeout(softTimer)
+
+      // 如果是超时错误，提供更友好的提示
+      if (error instanceof Error && error.message === 'Agent execution timeout') {
+        const friendlyError = new Error(
+          `任务执行超时 (${Math.floor(timeout / 1000)}s)。建议：\n` +
+          `  1. 使用 /compact 清理上下文后重试\n` +
+          `  2. 将任务分解为更小的步骤\n` +
+          `  3. 检查网络连接是否稳定`,
+        )
+        friendlyError.name = 'TimeoutError'
+        throw friendlyError
+      }
+      throw error
+    }
   }
 
   /**

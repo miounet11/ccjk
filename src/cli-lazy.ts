@@ -2049,6 +2049,10 @@ function bootstrapCloudServices(): void {
       // 2. 静默自动升级（CCJK、Claude Code、CCR 等）
       const { autoUpgrade } = await import('./services/cloud/silent-updater')
       await autoUpgrade()
+
+      // 3. Superpower 零配置激活（自动安装和加载核心技能）
+      const { activateSuperpowers } = await import('./utils/zero-config')
+      await activateSuperpowers('zh-CN')
     }
     catch {
       // 云服务错误静默处理，不影响用户使用

@@ -16,7 +16,8 @@ import { CORE_SKILLS } from './types'
  * Get the Superpowers skills directory
  */
 function getSkillsDir(): string {
-  return join(homedir(), '.claude', 'superpowers', 'skills')
+  // 统一使用 plugins/superpowers 路径，与 installer.ts 保持一致
+  return join(homedir(), '.claude', 'plugins', 'superpowers', 'skills')
 }
 
 /**

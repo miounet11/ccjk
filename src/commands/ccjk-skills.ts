@@ -18,7 +18,7 @@ import consola from 'consola'
 import inquirer from 'inquirer'
 import { i18n } from '../i18n'
 import { analyzeProject } from '../analyzers'
-import { getTemplatesClient, type Template } from '../cloud-client'
+import { getTemplatesClient, type Template, createCloudClient } from '../cloud-client'
 import { getSkillParser } from '../plugins-v2'
 
 // ============================================================================
@@ -581,10 +581,27 @@ async function installSkills(
 }
 
 /**
- * Load skill template from file
+ * Load skill template from file or cloud
  */
 async function loadSkillTemplate(templatePath: string): Promise<string | null> {
   try {
+    // Check if this is a cloud template ID (starts with skill_ or tpl_)
+    const isCloudTemplate = templatePath.startsWith('skill_') || templatePath.startsWith('tpl_')
+
+    if (isCloudTemplate) {
+      // Try to fetch from cloud using v1 API (which includes content)
+      try {
+        const cloudClient = createCloudClient()
+        const template = await cloudClient.getTemplate(templatePath)
+        if (template && template.content) {
+          return template.content
+        }
+      } catch (error) {
+        consola.warn(`Failed to fetch cloud template ${templatePath}:`, error)
+        // Fall through to local templates
+      }
+    }
+
     // Try local templates first
     const localPath = join(process.cwd(), 'templates', 'skills', templatePath)
     if (await fileExists(localPath)) {
