@@ -344,6 +344,75 @@ export function createCompleteCloudClient(config?: Partial<import('./types').Clo
 /**
  * Export default client factory
  */
+// Skills Marketplace API Types
+export type {
+  ApiResponse,
+  Pagination,
+  Quota,
+  SkillCategory,
+  SkillProvider,
+  SkillStatus,
+  SupportedAgent,
+  SkillMetadata,
+  Skill,
+  UserSkill,
+  Rating,
+  RatingSummary,
+  MarketplaceParams,
+  SearchParams,
+  SuggestionsParams,
+  TrendingParams,
+  RecommendationsParams,
+  RatingsParams,
+  InstallSkillRequest,
+  UpdateSkillRequest,
+  CreateRatingRequest,
+  MarketplaceFilters,
+  MarketplaceResponse,
+  SearchResponse,
+} from './skills-marketplace-types.js'
+
+// Skills Marketplace API
+export { skillsMarketplaceApi } from './skills-marketplace-api.js'
+
+// User Skills API
+export type { AuthRequestOptions } from './user-skills-api.js'
+export {
+  userSkillsApi,
+  getUserSkills,
+  installSkill,
+  uninstallSkill,
+  updateSkill,
+  getRecommendations,
+  getUserQuota,
+  canInstallMore,
+  getQuotaUsagePercentage,
+  isSkillInstalled,
+  getEnabledSkills,
+  getDisabledSkills,
+  sortByUsage,
+  sortByLastUsed,
+} from './user-skills-api.js'
+
+// Ratings API
+export {
+  ratingsApi,
+  getSkillRatings,
+  createRating,
+  RatingsApiError,
+  RatingsApiErrorCode,
+  isDuplicateRatingError,
+  isUnauthorizedError,
+  isSkillNotFoundError,
+} from './ratings-api.js'
+export type {
+  GetSkillRatingsParams,
+  GetSkillRatingsResponse,
+  CreateRatingData,
+  CreateRatingResponse,
+  RatingSortOption,
+} from './ratings-api.js'
+
 export default {
   createClient: createCompleteCloudClient,
   createCloudClient,

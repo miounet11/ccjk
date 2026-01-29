@@ -62,13 +62,21 @@ $ARGUMENTS
 
 **执行流程**:
 
-0. **环境预检查** (新增)
+0. **环境预检查**
    - 验证 `.ccjk/plan/current/` 目录是否存在
    - 检查目录写入权限
    - 如果目录不存在，自动创建
    - 如果权限不足，提示用户修复并提供具体命令
 
-1. **启用 Planner Agent** 进行深度分析
+1. **启动规划 Agent** - 使用 Task tool 调用规划专家：
+   ```
+   Task tool 参数:
+   - subagent_type: "general-purpose"
+   - description: "功能规划分析"
+   - prompt: 读取 ~/.claude/agents/planner.md 的内容作为 system prompt，
+             然后分析用户的功能需求: $ARGUMENTS
+   ```
+
 2. **生成规划文档** 存储至 `.ccjk/plan/current/`
 3. **文档命名**: `功能名称.md`
 
@@ -113,7 +121,14 @@ $ARGUMENTS
 
 1. **检索上次规划** 从 `.ccjk/plan/current/` 读取
 2. **分析用户反馈** 识别修改点
-3. **启用 Planner Agent** 重新规划
+3. **启动规划 Agent** - 使用 Task tool 重新规划：
+   ```
+   Task tool 参数:
+   - subagent_type: "general-purpose"
+   - description: "规划迭代更新"
+   - prompt: 读取 ~/.claude/agents/planner.md 的内容作为 system prompt，
+             结合已有规划文档和用户反馈进行迭代优化
+   ```
 4. **版本管理**:
    - 原文件: `功能名称.md`
    - 迭代版本: `功能名称-v2.md`, `功能名称-v3.md`
@@ -162,7 +177,14 @@ $ARGUMENTS
 **前端任务特殊处理**:
 
 1. **检查 UI 设计** - 是否存在设计稿
-2. **无设计时** - 必须调用 `UI-UX-Designer Agent`
+2. **无设计时** - 使用 Task tool 调用 UI-UX-Designer Agent：
+   ```
+   Task tool 参数:
+   - subagent_type: "general-purpose"
+   - description: "UI/UX 设计"
+   - prompt: 读取 ~/.claude/agents/ui-ux-designer.md 的内容作为 system prompt，
+             为当前前端任务提供 UI/UX 设计规范
+   ```
 3. **设计完成后** - 再进行开发实施
 
 ---
@@ -177,7 +199,7 @@ $ARGUMENTS
 | `!status` | 查看任务完成状态 |
 | `!next` | 执行下一个子任务 |
 | `!pause` | 暂停执行，保存进度 |
-| `!design` | 调用 UI-UX-Designer |
+| `!design` | 调用 UI-UX-Designer Agent (使用 Task tool) |
 | `!test` | 为当前功能生成测试 |
 
 ---
