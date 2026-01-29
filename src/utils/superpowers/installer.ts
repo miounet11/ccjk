@@ -108,17 +108,21 @@ export async function installSuperpowers(options: SuperpowersInstallOptions): Pr
     // Install via Git clone (primary method)
     // Note: "claude /plugin" is NOT a valid CLI command - /plugin is an internal slash command
     // that only works inside Claude Code's interactive session
-    const result = await installSuperpowersViaGit()
+    const result = await installSuperpowersViaGit(options.skipPrompt)
 
     // Configure cloud sync if requested
     if (result.success && options.enableCloudSync && options.cloudProvider && options.cloudCredentials) {
       try {
         const { configureCloudSync } = await import('./cloud-sync')
         await configureCloudSync(options.cloudProvider, options.cloudCredentials)
-        console.log(i18n.t('superpowers:cloudSync.configured'))
+        if (!options.skipPrompt) {
+          console.log(i18n.t('superpowers:cloudSync.configured'))
+        }
       }
       catch (error) {
-        console.warn(i18n.t('superpowers:cloudSync.configFailed'), error)
+        if (!options.skipPrompt) {
+          console.warn(i18n.t('superpowers:cloudSync.configFailed'), error)
+        }
       }
     }
 
@@ -136,8 +140,9 @@ export async function installSuperpowers(options: SuperpowersInstallOptions): Pr
 
 /**
  * Install Superpowers via git clone (primary method)
+ * @param silent - If true, suppress console output (for auto-install)
  */
-export async function installSuperpowersViaGit(): Promise<SuperpowersInstallResult> {
+export async function installSuperpowersViaGit(silent = false): Promise<SuperpowersInstallResult> {
   try {
     const pluginDir = getClaudePluginDir()
     const superpowersPath = getSuperpowersPath()
@@ -147,7 +152,9 @@ export async function installSuperpowersViaGit(): Promise<SuperpowersInstallResu
     await mkdir(pluginDir, { recursive: true })
 
     // Clone the repository
-    console.log(i18n.t('superpowers:cloning'))
+    if (!silent) {
+      console.log(i18n.t('superpowers:cloning'))
+    }
     await execAsync(
       `git clone https://github.com/obra/superpowers.git "${superpowersPath}"`,
       { timeout: 120000 },
