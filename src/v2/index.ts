@@ -129,7 +129,7 @@ export * from './agents-v2/index.js';
  * );
  * ```
  */
-export * from './workflow-v2/index.js';
+export * from '../workflow-v2/index.js';
 
 /**
  * Actionbook - Precomputation Engine

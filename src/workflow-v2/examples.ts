@@ -12,7 +12,7 @@ import {
   FragmentLibrary,
   type Workflow,
   type Fragment,
-} from '../index.js'
+} from './index.js'
 
 /**
  * Example 1: Basic Workflow Generation
@@ -496,6 +496,8 @@ export async function runAllExamples() {
 }
 
 // Run examples if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Note: Use `npx tsx src/workflow-v2/examples.ts` to run
+const isMainModule = typeof require !== 'undefined' && require.main === module
+if (isMainModule) {
   runAllExamples()
 }

@@ -1,0 +1,92 @@
+{
+  "memory": {
+    "title": "Memory Management",
+    "subtitle": "Cross-Session AI Memory System",
+    "menu": {
+      "list": "📋 List all memories",
+      "search": "🔍 Search memories",
+      "add": "➕ Add memory",
+      "delete": "🗑️  Delete memory",
+      "stats": "📊 View statistics",
+      "export": "📤 Export memories",
+      "import": "📥 Import memories",
+      "clear": "🗑️  Clear memories",
+      "back": "🔙 Back"
+    },
+    "prompts": {
+      "selectAction": "Select action:",
+      "searchQuery": "Enter search query:",
+      "memoryContent": "Memory content:",
+      "memoryType": "Type:",
+      "importance": "Importance:",
+      "scope": "Scope:",
+      "tags": "Tags (comma-separated):",
+      "project": "Project name (optional):",
+      "deleteId": "Enter memory ID to delete:",
+      "confirmDelete": "Confirm deletion?",
+      "exportFile": "Export filename:",
+      "importFile": "Import filename:",
+      "mergeMemories": "Merge with existing memories?",
+      "confirmClear": "Confirm clearing all memories? This cannot be undone!"
+    },
+    "types": {
+      "decision": "Decision",
+      "pattern": "Pattern",
+      "preference": "Preference",
+      "context": "Context",
+      "learning": "Learning",
+      "error": "Error",
+      "workflow": "Workflow"
+    },
+    "importance": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "scope": {
+      "global": "Global",
+      "project": "Project",
+      "session": "Session"
+    },
+    "messages": {
+      "noMemories": "No memories found",
+      "noMatches": "No matching memories found",
+      "memoryAdded": "Memory added",
+      "memoryDeleted": "Memory deleted",
+      "memoryNotFound": "Memory not found",
+      "aboutToDelete": "About to delete:",
+      "exported": "Memories exported to",
+      "imported": "Memories imported",
+      "importFailed": "Import failed",
+      "cleared": "All memories cleared",
+      "cancelled": "Operation cancelled",
+      "searchCancelled": "Search cancelled",
+      "deleteCancelled": "Deletion cancelled",
+      "exportCancelled": "Export cancelled",
+      "importCancelled": "Import cancelled",
+      "contentRequired": "Content cannot be empty",
+      "unknownAction": "Unknown action"
+    },
+    "stats": {
+      "title": "Memory Statistics",
+      "total": "Total",
+      "archived": "Archived",
+      "storageSize": "Storage size",
+      "byType": "By Type",
+      "byScope": "By Scope",
+      "byImportance": "By Importance"
+    },
+    "display": {
+      "memoryList": "Memory List",
+      "searchResults": "Search Results",
+      "relevant": "relevant",
+      "moreMemories": "and",
+      "memories": "more memories",
+      "exported": "Exported",
+      "imported": "Imported",
+      "accessCount": "Access count",
+      "lastAccessed": "Last accessed"
+    }
+  }
+}

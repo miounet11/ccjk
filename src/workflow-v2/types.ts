@@ -20,6 +20,7 @@ export interface WorkflowStep {
   timeout?: number // in seconds
   retry?: RetryConfig
   metadata?: Record<string, unknown>
+  platform?: 'linux' | 'macos' | 'windows' | 'all' // Platform-specific step
 }
 
 /**
@@ -141,6 +142,19 @@ export interface FragmentMetadata {
 /**
  * Project context for workflow generation
  */
+/**
+ * File system context for project analysis
+ */
+export interface FileSystemContext {
+  hasTests: boolean
+  hasDocs: boolean
+  hasConfig: boolean
+  mainFiles: string[]
+}
+
+/**
+ * Project context for workflow generation
+ */
 export interface ProjectContext {
   language: string
   framework?: string
@@ -151,7 +165,10 @@ export interface ProjectContext {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
   environmentVariables?: Record<string, string>
-  customContext?: Record<string, unknown>
+  customContext?: {
+    fileSystem?: FileSystemContext
+    [key: string]: unknown
+  }
 }
 
 /**
@@ -196,6 +213,7 @@ export interface WorkflowGenerationRequest {
 export interface WorkflowGenerationResult {
   workflow: Workflow
   metadata: GenerationMetadata
+  validation?: ValidationResult
   suggestions?: string[]
   warnings?: string[]
 }
@@ -210,6 +228,9 @@ export interface GenerationMetadata {
   tokensUsed?: number
   cacheHit?: boolean
   confidence?: number // 0-1
+  optimized?: boolean
+  optimizationImprovements?: number
+  fragmentCount?: number
 }
 
 /**
@@ -226,7 +247,7 @@ export interface ValidationResult {
  * Validation error
  */
 export interface ValidationError {
-  type: 'circular_dependency' | 'missing_dependency' | 'invalid_command' | 'timeout_exceeded' | 'syntax_error' | 'other'
+  type: 'circular_dependency' | 'missing_dependency' | 'invalid_command' | 'timeout_exceeded' | 'syntax_error' | 'security_risk' | 'other'
   stepId?: string
   message: string
   severity: 'critical' | 'high' | 'medium' | 'low'
@@ -236,7 +257,7 @@ export interface ValidationError {
  * Validation warning
  */
 export interface ValidationWarning {
-  type: 'long_duration' | 'deprecated_tool' | 'platform_specific' | 'security_risk' | 'performance_issue' | 'other'
+  type: 'long_duration' | 'deprecated_tool' | 'platform_specific' | 'security_risk' | 'performance_issue' | 'invalid_command' | 'other'
   stepId?: string
   message: string
   suggestion?: string
@@ -257,7 +278,8 @@ export interface OptimizationResult {
  * Optimization improvement
  */
 export interface Improvement {
-  type: 'parallelization' | 'caching' | 'dependency_reduction' | 'command_optimization' | 'resource_cleanup'
+  type: 'parallelization' | 'caching' | 'dependency_reduction' | 'command_optimization' | 'resource_cleanup' | 'timeout_optimization' | 'error_handling'
+  stepId?: string
   description: string
   impact: 'high' | 'medium' | 'low'
   before?: string

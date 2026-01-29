@@ -11,7 +11,7 @@ import type {
   OptimizationResult,
   Improvement,
   ProjectContext,
-} from '../types.js'
+} from './types.js'
 
 interface OptimizationRule {
   id: string
@@ -157,8 +157,8 @@ export class WorkflowOptimizer {
         continue
       }
 
-      const isCacheable = cacheableOperations.some(op => step.command.includes(op))
-      if (isCacheable && !step.command.includes('--cache')) {
+      const isCacheable = cacheableOperations.some(op => step.command!.includes(op))
+      if (isCacheable && !step.command!.includes('--cache')) {
         improvements.push({
           type: 'caching',
           description: `Add caching for step: ${step.name}`,
@@ -256,14 +256,14 @@ export class WorkflowOptimizer {
         continue
       }
 
-      const startsResource = resourceOperations.some(op => step.command.includes(op))
+      const startsResource = resourceOperations.some(op => step.command!.includes(op))
       if (!startsResource) {
         continue
       }
 
       // Check if there's a cleanup step
-      const hasCleanup = workflow.steps.slice(i + 1).some(s => {
-        return s.command && cleanupOperations.some(op => s.command.includes(op))
+      const hasCleanup = workflow.steps.slice(i + 1).some((s: WorkflowStep) => {
+        return s.command && cleanupOperations.some(op => s.command!.includes(op))
       })
 
       if (!hasCleanup) {

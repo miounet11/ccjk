@@ -270,8 +270,8 @@ export const deployFragments: Fragment[] = [
         name: 'Create CNAME File',
         description: 'Create CNAME file for custom domain if needed',
         script: `
-          if [ -n "${CUSTOM_DOMAIN}" ]; then
-            echo "${CUSTOM_DOMAIN}" > dist/CNAME
+          if [ -n "\${CUSTOM_DOMAIN}" ]; then
+            echo "\${CUSTOM_DOMAIN}" > dist/CNAME
           fi
         `,
         dependencies: ['check-build-output'],
@@ -807,8 +807,8 @@ export const deployFragments: Fragment[] = [
         name: 'Notify Release',
         description: 'Send notifications about the new release',
         script: `
-          echo "Release v${VERSION} has been published!"
-          echo "GitHub Release: https://github.com/${GITHUB_REPO}/releases/tag/v${VERSION}"
+          echo "Release v\${VERSION} has been published!"
+          echo "GitHub Release: https://github.com/\${GITHUB_REPO}/releases/tag/v\${VERSION}"
         `,
         dependencies: ['create-github-release'],
         validation: {
@@ -1047,7 +1047,7 @@ export const deployFragments: Fragment[] = [
         description: 'Send notification about the rollback',
         script: `
           echo "Rollback completed successfully"
-          echo "Application rolled back to version ${PREVIOUS_VERSION}"
+          echo "Application rolled back to version \${PREVIOUS_VERSION}"
         `,
         dependencies: ['verify-rollback'],
         validation: {

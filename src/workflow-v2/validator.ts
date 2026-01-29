@@ -15,6 +15,9 @@ import type {
   ProjectContext,
 } from './types.js'
 
+// Re-export types for convenience
+export type { ValidationResult, ValidationError, ValidationWarning }
+
 export class WorkflowValidator {
   /**
    * Validate a complete workflow
@@ -338,7 +341,7 @@ export class WorkflowValidator {
       }
 
       for (const [platform, cmds] of Object.entries(platformCommands)) {
-        if (platform !== targetPlatform && cmds.some(cmd => step.command.includes(cmd))) {
+        if (platform !== targetPlatform && cmds.some(cmd => step.command!.includes(cmd))) {
           warnings.push({
             type: 'platform_specific',
             stepId: step.id,
