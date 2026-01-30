@@ -5,28 +5,28 @@
  * enabling Claude to remember decisions, patterns, preferences, and context.
  */
 
-export { MemoryManager } from './manager'
-export { MemoryStore } from './store'
-export { EmbeddingService } from './embedding'
-export { MemoryRetrieval } from './retrieval'
-export { AutoCapture } from './auto-capture'
-
 export type {
-  MemoryType,
-  MemoryImportance,
-  MemoryScope,
-  MemorySource,
+  CapturePattern,
+  MemoryConfig,
   MemoryEmbedding,
   MemoryEntry,
+  MemoryExport,
+  MemoryImportance,
   MemoryIndex,
-  MemoryConfig,
+  MemoryInjection,
+  MemoryInjectionContext,
   MemoryQuery,
   MemoryResult,
+  MemoryScope,
+  MemorySource,
   MemoryStats,
-  CapturePattern,
-  MemoryExport,
-  MemoryInjectionContext,
-  MemoryInjection,
+  MemoryType,
 } from '../types/memory'
-
 export { DEFAULT_MEMORY_CONFIG } from '../types/memory'
+export { AutoCapture } from './auto-capture'
+export { EmbeddingService } from './embedding'
+export { MemoryManager } from './manager'
+
+export { MemoryRetrieval } from './retrieval'
+
+export { MemoryStore } from './store'

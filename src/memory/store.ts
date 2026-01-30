@@ -2,9 +2,6 @@
  * Memory Store - Core storage and CRUD operations for memory entries
  */
 
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
 import type {
   MemoryConfig,
   MemoryEntry,
@@ -15,6 +12,9 @@ import type {
   MemoryStats,
   MemoryType,
 } from '../types/memory'
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { join } from 'pathe'
 import { DEFAULT_MEMORY_CONFIG } from '../types/memory'
 
 /**

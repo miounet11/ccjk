@@ -1,4 +1,4 @@
-import type { ProjectAnalyzer } from '../analyzers/project-analyzer'
+import type { ProjectAnalyzer } from '../analyzers'
 import type { CcjkSkillsOptions } from '../commands/ccjk-skills'
 import type { CcjkMcpOptions } from '../commands/ccjk-mcp'
 import type { CcjkAgentsOptions } from '../commands/ccjk-agents'
@@ -144,6 +144,9 @@ export class SetupOrchestrator {
 
         // Check if any critical failures
         result.success = result.totalFailed === 0 || !options.rollbackOnError
+      } else {
+        // Dry run is always successful
+        result.success = true
       }
 
       // Phase 6: Generate Report

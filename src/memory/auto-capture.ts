@@ -10,7 +10,7 @@ import type {
   MemorySource,
   MemoryType,
 } from '../types/memory'
-import { EmbeddingService } from './embedding'
+import type { EmbeddingService } from './embedding'
 import type { MemoryStore } from './store'
 
 /**

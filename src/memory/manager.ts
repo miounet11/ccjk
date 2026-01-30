@@ -5,6 +5,7 @@
 import type {
   MemoryConfig,
   MemoryEntry,
+  MemoryExport,
   MemoryInjection,
   MemoryInjectionContext,
   MemoryQuery,
@@ -177,7 +178,7 @@ export class MemoryManager {
    */
   private formatMemoriesForInjection(
     memories: MemoryResult[],
-    context: MemoryInjectionContext,
+    _context: MemoryInjectionContext,
   ): string {
     if (memories.length === 0) {
       return ''
@@ -249,7 +250,7 @@ export class MemoryManager {
   /**
    * Export memories
    */
-  export() {
+  export(): MemoryExport {
     return this.memoryStore.export()
   }
 

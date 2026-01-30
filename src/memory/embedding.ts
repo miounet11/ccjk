@@ -51,7 +51,7 @@ class LocalEmbedding {
    */
   embed(text: string): number[] {
     const tokens = this.tokenize(text)
-    const vector = new Array(Math.min(this.vocabulary.size, 384)).fill(0)
+    const vector = Array.from({ length: Math.min(this.vocabulary.size, 384) }).fill(0)
 
     const termFreq = new Map<string, number>()
     for (const token of tokens) {
@@ -128,14 +128,14 @@ export class EmbeddingService {
   /**
    * Generate OpenAI embedding (placeholder)
    */
-  private async generateOpenAIEmbedding(text: string): Promise<number[]> {
+  private async generateOpenAIEmbedding(_text: string): Promise<number[]> {
     throw new Error('OpenAI embedding not implemented yet. Use local model or implement API integration.')
   }
 
   /**
    * Generate Anthropic embedding (placeholder)
    */
-  private async generateAnthropicEmbedding(text: string): Promise<number[]> {
+  private async generateAnthropicEmbedding(_text: string): Promise<number[]> {
     throw new Error('Anthropic embedding not implemented yet. Use local model or implement API integration.')
   }
 

@@ -51,6 +51,7 @@ export type SyncableItemType
     | 'workflows' // Workflow configurations
     | 'settings' // User settings
     | 'mcp-configs' // MCP server configurations
+    | 'memories' // AI memory entries
 
 // ============================================================================
 // Configuration Types
@@ -142,7 +143,7 @@ export const DEFAULT_SYNC_CONFIG: SyncConfig = {
     credentials: {},
   },
   direction: 'bidirectional',
-  itemTypes: ['skills', 'workflows', 'settings', 'mcp-configs'],
+  itemTypes: ['skills', 'workflows', 'settings', 'mcp-configs', 'memories'],
   autoSyncInterval: 0,
   conflictStrategy: 'newest-wins',
   maxRetries: 3,

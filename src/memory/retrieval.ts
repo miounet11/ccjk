@@ -7,8 +7,8 @@ import type {
   MemoryQuery,
   MemoryResult,
 } from '../types/memory'
-import { EmbeddingService } from './embedding'
 import type { MemoryStore } from './store'
+import { EmbeddingService } from './embedding'
 
 /**
  * Memory Retrieval class

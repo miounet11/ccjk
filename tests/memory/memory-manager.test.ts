@@ -2,14 +2,14 @@
  * Memory Manager Tests
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'
-import { MemoryManager } from '../../src/memory/manager'
-import type { MemoryEntry, MemorySource } from '../../src/types/memory'
+import type { MemorySource } from '../../src/types/memory'
+import os from 'node:os'
 import fs from 'fs-extra'
 import path from 'pathe'
-import os from 'node:os'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { MemoryManager } from '../../src/memory/manager'
 
-describe('MemoryManager', () => {
+describe('memoryManager', () => {
   let manager: MemoryManager
   let testStoragePath: string
 

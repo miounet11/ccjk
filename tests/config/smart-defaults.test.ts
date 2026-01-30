@@ -17,7 +17,7 @@ vi.mock('node:os', () => ({
 
 // Mock platform detection
 vi.mock('../../src/utils/platform', () => ({
-  detectPlatform: vi.fn(() => 'linux'),
+  getPlatform: vi.fn(() => 'linux'),
 }));
 
 describe('SmartDefaultsDetector', () => {
