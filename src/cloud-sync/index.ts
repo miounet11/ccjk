@@ -133,30 +133,61 @@ export function getConflicts(): SyncConflict[] {
 }
 
 /**
- * Resolve a conflict
+ * Resolve a conflict by choosing local or remote version
+ * @param conflictId - ID of the conflict to resolve
+ * @param resolution - Which version to keep: 'local' or 'remote'
+ * @returns SyncResult with the resolution outcome
  */
 export async function resolveConflict(
   conflictId: string,
   resolution: 'local' | 'remote',
-): Promise<void> {
+): Promise<SyncResult> {
   if (!syncEngineInstance) {
     throw new Error('Sync engine not configured')
   }
 
-  const state = syncEngineInstance.getState()
-  const conflict = state.conflicts.find(c => c.id === conflictId)
+  const startTime = Date.now()
+  const startedAt = new Date().toISOString()
 
-  if (!conflict) {
-    throw new Error(`Conflict not found: ${conflictId}`)
+  try {
+    // Get the conflict before resolution to include in result
+    const state = syncEngineInstance.getState()
+    const conflict = state.conflicts.find(c => c.id === conflictId)
+    const resolvedItem = conflict
+      ? (resolution === 'local' ? conflict.localItem : conflict.remoteItem)
+      : null
+
+    // Delegate to the sync engine's resolveConflictManually method
+    // This properly updates state, pushes changes to remote, and removes the conflict
+    await syncEngineInstance.resolveConflictManually(conflictId, resolution)
+
+    return {
+      success: true,
+      direction: 'bidirectional',
+      pushed: resolvedItem && resolution === 'local' ? [resolvedItem] : [],
+      pulled: resolvedItem && resolution === 'remote' ? [resolvedItem] : [],
+      conflicts: [],
+      errors: [],
+      durationMs: Date.now() - startTime,
+      startedAt,
+      completedAt: new Date().toISOString(),
+    }
+  } catch (error) {
+    return {
+      success: false,
+      direction: 'bidirectional',
+      pushed: [],
+      pulled: [],
+      conflicts: [],
+      errors: [{
+        code: 'UNKNOWN_ERROR' as const,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }],
+      durationMs: Date.now() - startTime,
+      startedAt,
+      completedAt: new Date().toISOString(),
+    }
   }
-
-  // Resolve by choosing local or remote version
-  // The sync engine will handle the actual resolution
-  const resolvedItem = resolution === 'local' ? conflict.localItem : conflict.remoteItem
-
-  // Remove the conflict from state and apply the resolution
-  // This is a simplified resolution - in production, you'd update the sync engine state
-  console.log(`Resolved conflict ${conflictId} with ${resolution} version:`, resolvedItem.version)
 }
 
 // ============================================================================

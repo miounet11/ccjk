@@ -1,13 +1,16 @@
 /**
  * Cloud Client Implementation
  *
- * Main HTTP client for CCJK Cloud API v1.0.0
+ * Main HTTP client for CCJK Cloud API
  * @module cloud-client/client
  */
 
 import type { $Fetch } from 'ofetch'
 import { ofetch } from 'ofetch'
 import consola from 'consola'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type {
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
@@ -20,6 +23,22 @@ import type {
   CloudClientConfig,
 } from './types'
 import { CloudClientError } from './types'
+
+// Read version from package.json
+const __dirname = dirname(fileURLToPath(import.meta.url))
+let CCJK_VERSION = '9.0.0' // fallback
+try {
+  const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'))
+  CCJK_VERSION = packageJson.version
+} catch {
+  // Use fallback version
+}
+
+/**
+ * API version prefix for all endpoints
+ * All API paths should use this prefix for consistency
+ */
+const API_PREFIX = '/api/v1'
 
 /**
  * Cloud Client Class
@@ -43,7 +62,7 @@ export class CloudClient {
       baseURL: this.config.baseURL,
       timeout: this.config.timeout,
       headers: {
-        'User-Agent': `CCJK/${this.config.version || '8.0.0'}`,
+        'User-Agent': `CCJK/${this.config.version || CCJK_VERSION}`,
         ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
       },
       retry: this.config.enableRetry ? this.config.maxRetries : 0,
@@ -131,7 +150,7 @@ export class CloudClient {
   /**
    * Analyze project and get recommendations
    *
-   * POST /v1/analyze
+   * POST /api/v1/analysis/projects
    *
    * @param request - Project analysis request
    * @returns Project analysis response with recommendations
@@ -140,7 +159,7 @@ export class CloudClient {
     try {
       consola.debug('Analyzing project:', request.projectRoot)
 
-      const response = await this.fetch<ProjectAnalysisResponse>('/api/v8/analysis/projects', {
+      const response = await this.fetch<ProjectAnalysisResponse>(`${API_PREFIX}/analysis/projects`, {
         method: 'POST',
         body: request,
       })
@@ -157,7 +176,7 @@ export class CloudClient {
   /**
    * Get a single template by ID
    *
-   * GET /v1/templates/:id
+   * GET /api/v1/templates/:id
    *
    * @param id - Template identifier
    * @param language - Language for translations (optional)
@@ -167,7 +186,7 @@ export class CloudClient {
     try {
       consola.debug('Fetching template:', id)
 
-      const response = await this.fetch<TemplateResponse>(`/v1/templates/${encodeURIComponent(id)}`, {
+      const response = await this.fetch<TemplateResponse>(`${API_PREFIX}/templates/${encodeURIComponent(id)}`, {
         method: 'GET',
         params: language ? { language } : undefined,
       })
@@ -184,7 +203,7 @@ export class CloudClient {
   /**
    * Get multiple templates in batch
    *
-   * POST /v1/templates/batch
+   * POST /api/v1/templates/batch
    *
    * @param request - Batch template request
    * @returns Batch template response
@@ -193,7 +212,7 @@ export class CloudClient {
     try {
       consola.debug('Fetching batch templates:', request.ids.length)
 
-      const response = await this.fetch<BatchTemplateResponse>('/api/v8/templates/batch', {
+      const response = await this.fetch<BatchTemplateResponse>(`${API_PREFIX}/templates/batch`, {
         method: 'POST',
         body: request,
       })
@@ -210,7 +229,7 @@ export class CloudClient {
   /**
    * Report usage metrics
    *
-   * POST /v1/report
+   * POST /api/v1/telemetry/installation
    *
    * @param report - Usage report payload
    * @returns Usage report response
@@ -219,7 +238,7 @@ export class CloudClient {
     try {
       consola.debug('Reporting usage:', report.metricType)
 
-      const response = await this.fetch<UsageReportResponse>('/api/v8/telemetry/installation', {
+      const response = await this.fetch<UsageReportResponse>(`${API_PREFIX}/telemetry/installation`, {
         method: 'POST',
         body: report,
       })
@@ -242,7 +261,7 @@ export class CloudClient {
   /**
    * Check API health status
    *
-   * GET /v1/health
+   * GET /api/v1/health
    *
    * @returns Health check response
    */
@@ -250,7 +269,7 @@ export class CloudClient {
     try {
       consola.debug('Checking API health')
 
-      const response = await this.fetch<HealthCheckResponse>('/api/v8/health', {
+      const response = await this.fetch<HealthCheckResponse>(`${API_PREFIX}/health`, {
         method: 'GET',
       })
 
@@ -277,7 +296,7 @@ export class CloudClient {
         baseURL: this.config.baseURL,
         timeout: this.config.timeout,
         headers: {
-          'User-Agent': `CCJK/${this.config.version || '8.0.0'}`,
+          'User-Agent': `CCJK/${this.config.version || CCJK_VERSION}`,
           ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
         },
         retry: this.config.enableRetry ? this.config.maxRetries : 0,
@@ -301,7 +320,7 @@ export function createCloudClient(config?: Partial<CloudClientConfig>): CloudCli
   return new CloudClient({
     baseURL: 'https://api.claudehome.cn',
     timeout: 10000,
-    version: '8.0.0',
+    version: CCJK_VERSION,
     enableCache: true,
     enableRetry: true,
     maxRetries: 3,

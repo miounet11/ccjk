@@ -1,6 +1,26 @@
 /**
  * Dependency resolver and analyzer
  * Builds dependency graphs and generates installation plans
+ *
+ * ## Known Limitations
+ *
+ * ### Transitive Dependencies
+ * Currently, transitive dependency analysis is NOT fully implemented.
+ * The `all` field in DependencyAnalysis will only contain direct dependencies,
+ * even when `analyzeTransitiveDeps` is enabled in DetectorConfig.
+ *
+ * To properly resolve transitive dependencies, lockfile parsing would be needed:
+ * - package-lock.json (npm)
+ * - yarn.lock (yarn)
+ * - pnpm-lock.yaml (pnpm)
+ * - bun.lockb (bun)
+ *
+ * This limitation affects:
+ * - Dependency graph completeness
+ * - Conflict detection accuracy
+ * - Cloud recommendation quality for complex projects
+ *
+ * @see https://github.com/ccjk/ccjk/issues/XXX for tracking
  */
 
 import fs from 'fs-extra'
@@ -26,6 +46,15 @@ export async function analyzeDependencies(
   config: DetectorConfig,
 ): Promise<DependencyAnalysis> {
   logger.info('Analyzing project dependencies')
+
+  // Warn if transitive deps analysis is requested but not implemented
+  if (config.analyzeTransitiveDeps) {
+    logger.warn(
+      'Transitive dependency analysis requested but not fully implemented. ' +
+      'The "all" field will only contain direct dependencies. ' +
+      'See dependency-resolver.ts for details.',
+    )
+  }
 
   const projectPath = analysis.rootPath
   const packageManager = analysis.packageManager
@@ -100,13 +129,13 @@ async function analyzeNpmDependencies(
     const direct: DependencyNode[] = []
 
     // Process dependencies
-    const processDeps = (deps: Record<string, string>, isDev: boolean, isPeer: boolean) => {
+    const processDeps = (deps: Record<string, string>, isDev: boolean, isPeer: boolean): DependencyNode[] => {
       if (!deps) return []
 
       return Object.entries(deps).map(([name, version]) => ({
         name,
         version: version as string,
-        type: isDev ? 'dev' : isPeer ? 'peer' : 'runtime',
+        type: (isDev ? 'dev' : isPeer ? 'peer' : 'runtime') as DependencyNode['type'],
         isDev,
         isPeer,
         isOptional: false,
@@ -152,16 +181,16 @@ async function analyzePythonDependencies(
       try {
         const { parse } = await import('smol-toml')
         const content = await fs.readFile(pyprojectPath, 'utf-8')
-        const pyproject = parse(content)
+        const pyproject = parse(content) as Record<string, any>
 
-        const deps = pyproject.tool?.poetry?.dependencies || {}
-        const devDeps = pyproject.tool?.poetry?.['dev-dependencies'] || {}
+        const deps = (pyproject.tool?.poetry?.dependencies || {}) as Record<string, unknown>
+        const devDeps = (pyproject.tool?.poetry?.['dev-dependencies'] || {}) as Record<string, unknown>
 
         for (const [name, version] of Object.entries(deps)) {
           direct.push({
             name,
             version: typeof version === 'string' ? version : 'latest',
-            type: 'runtime',
+            type: 'runtime' as const,
             isDev: false,
             isPeer: false,
             isOptional: false,
@@ -172,7 +201,7 @@ async function analyzePythonDependencies(
           direct.push({
             name,
             version: typeof version === 'string' ? version : 'latest',
-            type: 'dev',
+            type: 'dev' as const,
             isDev: true,
             isPeer: false,
             isOptional: false,
@@ -188,16 +217,16 @@ async function analyzePythonDependencies(
       try {
         const { parse } = await import('smol-toml')
         const content = await fs.readFile(pipfilePath, 'utf-8')
-        const pipfile = parse(content)
+        const pipfile = parse(content) as Record<string, any>
 
-        const deps = pipfile.packages || {}
-        const devDeps = pipfile['dev-packages'] || {}
+        const deps = (pipfile.packages || {}) as Record<string, unknown>
+        const devDeps = (pipfile['dev-packages'] || {}) as Record<string, unknown>
 
         for (const [name, version] of Object.entries(deps)) {
           direct.push({
             name,
             version: typeof version === 'string' ? version : 'latest',
-            type: 'runtime',
+            type: 'runtime' as const,
             isDev: false,
             isPeer: false,
             isOptional: false,
@@ -208,7 +237,7 @@ async function analyzePythonDependencies(
           direct.push({
             name,
             version: typeof version === 'string' ? version : 'latest',
-            type: 'dev',
+            type: 'dev' as const,
             isDev: true,
             isPeer: false,
             isOptional: false,
@@ -234,7 +263,7 @@ async function analyzePythonDependencies(
               direct.push({
                 name: match[1],
                 version: match[2] || 'latest',
-                type: 'runtime',
+                type: 'runtime' as const,
                 isDev: false,
                 isPeer: false,
                 isOptional: false,
@@ -324,25 +353,25 @@ async function analyzeRustDependencies(
   try {
     const { parse } = await import('smol-toml')
     const content = await fs.readFile(cargoTomlPath, 'utf-8')
-    const cargoToml = parse(content)
+    const cargoToml = parse(content) as Record<string, any>
     const direct: DependencyNode[] = []
 
-    const processDeps = (deps: Record<string, any>, isDev: boolean) => {
+    const processDeps = (deps: Record<string, any> | undefined, isDev: boolean): DependencyNode[] => {
       if (!deps) return []
 
       return Object.entries(deps).map(([name, version]) => ({
         name,
-        version: typeof version === 'string' ? version : version.version || 'latest',
-        type: isDev ? 'dev' : 'runtime',
+        version: typeof version === 'string' ? version : version?.version || 'latest',
+        type: (isDev ? 'dev' : 'runtime') as DependencyNode['type'],
         isDev,
         isPeer: false,
         isOptional: false,
       }))
     }
 
-    const deps = processDeps(cargoToml.dependencies, false)
-    const devDeps = processDeps(cargoToml['dev-dependencies'], true)
-    const buildDeps = processDeps(cargoToml['build-dependencies'], false)
+    const deps = processDeps(cargoToml.dependencies as Record<string, any> | undefined, false)
+    const devDeps = processDeps(cargoToml['dev-dependencies'] as Record<string, any> | undefined, true)
+    const buildDeps = processDeps(cargoToml['build-dependencies'] as Record<string, any> | undefined, false)
 
     direct.push(...deps, ...devDeps, ...buildDeps)
 

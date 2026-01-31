@@ -393,13 +393,80 @@ export class CloudSetupOrchestrator {
   }
 
   /**
+   * Check if a dependency exists in the analysis
+   * Handles both Map<string, DependencyInfo> and DependencyNode[] formats
+   */
+  private hasDependency(analysis: ProjectAnalysis, name: string, isDev: boolean = false): boolean {
+    const deps = analysis.dependencies
+    if (!deps) return false
+
+    // Handle Map<string, DependencyInfo> format (from src/analyzers/types.ts)
+    if (isDev && deps.dev instanceof Map) {
+      return deps.dev.has(name)
+    }
+    if (!isDev && deps.direct instanceof Map) {
+      return deps.direct.has(name)
+    }
+
+    // Handle DependencyNode[] format (from project-detector types)
+    if (Array.isArray(deps.direct)) {
+      const nodeList = deps.direct as Array<{ name: string; isDev?: boolean }>
+      return nodeList.some(d => d.name === name && (isDev ? d.isDev : !d.isDev))
+    }
+
+    return false
+  }
+
+  /**
+   * Check if a framework is detected in the analysis
+   */
+  private hasFramework(analysis: ProjectAnalysis, name: string): boolean {
+    if (!analysis.frameworks) return false
+
+    // Handle FrameworkDetectionResult[] format
+    if (Array.isArray(analysis.frameworks) && analysis.frameworks.length > 0) {
+      const first = analysis.frameworks[0]
+      if (typeof first === 'object' && 'name' in first) {
+        return analysis.frameworks.some((f: any) => f.name?.toLowerCase() === name.toLowerCase())
+      }
+      // Handle string[] format
+      if (typeof first === 'string') {
+        return analysis.frameworks.includes(name)
+      }
+    }
+
+    return false
+  }
+
+  /**
+   * Check if a language is detected in the analysis
+   */
+  private hasLanguage(analysis: ProjectAnalysis, name: string): boolean {
+    if (!analysis.languages) return false
+
+    // Handle LanguageDetection[] format
+    if (Array.isArray(analysis.languages) && analysis.languages.length > 0) {
+      const first = analysis.languages[0]
+      if (typeof first === 'object' && 'language' in first) {
+        return analysis.languages.some((l: any) => l.language?.toLowerCase() === name.toLowerCase())
+      }
+      // Handle string[] format
+      if (typeof first === 'string') {
+        return analysis.languages.includes(name)
+      }
+    }
+
+    return false
+  }
+
+  /**
    * Get local fallback recommendations
    */
   private getLocalRecommendations(analysis: ProjectAnalysis): CloudRecommendations {
     const recommendations: Recommendation[] = []
 
-    // TypeScript projects
-    if (analysis.devDependencies?.typescript) {
+    // TypeScript projects - check dev dependencies or language detection
+    if (this.hasDependency(analysis, 'typescript', true) || this.hasLanguage(analysis, 'typescript')) {
       recommendations.push({
         id: 'ts-best-practices',
         name: { en: 'TypeScript Best Practices', 'zh-CN': 'TypeScript 最佳实践' },
@@ -410,8 +477,8 @@ export class CloudSetupOrchestrator {
       })
     }
 
-    // React projects
-    if (analysis.dependencies?.react) {
+    // React projects - check dependencies or framework detection
+    if (this.hasDependency(analysis, 'react') || this.hasFramework(analysis, 'react')) {
       recommendations.push({
         id: 'react-design-patterns',
         name: { en: 'React Design Patterns', 'zh-CN': 'React 设计模式' },
@@ -423,7 +490,7 @@ export class CloudSetupOrchestrator {
     }
 
     // Next.js projects
-    if (analysis.dependencies?.next) {
+    if (this.hasDependency(analysis, 'next') || this.hasFramework(analysis, 'next') || this.hasFramework(analysis, 'nextjs')) {
       recommendations.push({
         id: 'nextjs-optimization',
         name: { en: 'Next.js Optimization', 'zh-CN': 'Next.js 优化' },
@@ -434,8 +501,20 @@ export class CloudSetupOrchestrator {
       })
     }
 
-    // Node.js projects
-    if (analysis.dependencies?.express || analysis.dependencies?.fastify) {
+    // Vue projects
+    if (this.hasDependency(analysis, 'vue') || this.hasFramework(analysis, 'vue')) {
+      recommendations.push({
+        id: 'vue-design-patterns',
+        name: { en: 'Vue Design Patterns', 'zh-CN': 'Vue 设计模式' },
+        description: { en: 'Vue 3 Composition API patterns', 'zh-CN': 'Vue 3 组合式 API 模式' },
+        category: 'workflow',
+        relevanceScore: 0.95,
+        tags: ['vue', 'composition-api', 'frontend'],
+      })
+    }
+
+    // Node.js backend projects
+    if (this.hasDependency(analysis, 'express') || this.hasDependency(analysis, 'fastify') || this.hasFramework(analysis, 'express')) {
       recommendations.push({
         id: 'nodejs-workflow',
         name: { en: 'Node.js Workflow', 'zh-CN': 'Node.js 工作流' },
@@ -446,15 +525,39 @@ export class CloudSetupOrchestrator {
       })
     }
 
+    // NestJS projects
+    if (this.hasDependency(analysis, '@nestjs/core') || this.hasFramework(analysis, 'nest') || this.hasFramework(analysis, 'nestjs')) {
+      recommendations.push({
+        id: 'nestjs-workflow',
+        name: { en: 'NestJS Workflow', 'zh-CN': 'NestJS 工作流' },
+        description: { en: 'NestJS backend development', 'zh-CN': 'NestJS 后端开发' },
+        category: 'workflow',
+        relevanceScore: 0.92,
+        tags: ['nestjs', 'backend', 'typescript'],
+      })
+    }
+
+    // Python projects
+    if (this.hasLanguage(analysis, 'python')) {
+      recommendations.push({
+        id: 'python-workflow',
+        name: { en: 'Python Workflow', 'zh-CN': 'Python 工作流' },
+        description: { en: 'Python development best practices', 'zh-CN': 'Python 开发最佳实践' },
+        category: 'workflow',
+        relevanceScore: 0.88,
+        tags: ['python', 'backend'],
+      })
+    }
+
     return {
       skills: recommendations.filter(r => r.category === 'workflow'),
-      mcpServices: [],
-      agents: [],
-      hooks: [],
-      confidence: 0.7,
-      fingerprint: analysis.fingerprint || '',
+      mcpServices: recommendations.filter(r => r.category === 'mcp'),
+      agents: recommendations.filter(r => r.category === 'agent'),
+      hooks: recommendations.filter(r => r.category === 'tool'),
+      confidence: 0.7, // Local fallback has lower confidence
+      fingerprint: '',
       insights: {
-        insights: [i18n.t('cloud-setup:localFallbackUsed')],
+        insights: [],
         productivityImprovements: [],
         nextRecommendations: [],
       },
