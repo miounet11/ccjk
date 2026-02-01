@@ -1467,6 +1467,32 @@ const COMMANDS: CommandDefinition[] = [
       }
     },
   },
+
+  // ==================== Plugin Management ====================
+  {
+    name: 'add <source>',
+    description: 'Add plugins from GitHub, npm, or local path',
+    tier: 'extended',
+    options: [
+      { flags: '--type, -t <type>', description: 'Plugin type (skill, mcp, agent, hook)' },
+      { flags: '--force, -f', description: 'Force overwrite existing' },
+      { flags: '--dry-run, -d', description: 'Preview without installing' },
+      { flags: '--json', description: 'JSON output' },
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      const { addCommand } = await import('./commands/add')
+      return async (options, source: unknown) => {
+        await addCommand(source as string, {
+          type: options.type as 'skill' | 'mcp' | 'agent' | 'hook' | undefined,
+          force: options.force as boolean,
+          dryRun: options.dryRun as boolean,
+          json: options.json as boolean,
+          lang: options.lang as 'zh-CN' | 'en',
+        })
+      }
+    },
+  },
 ]
 
 // ============================================================================

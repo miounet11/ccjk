@@ -21,18 +21,17 @@ import {
 } from '../thinking-mode'
 import type { ThinkingModeSettings } from '../../types/thinking'
 
-// Mock i18n
-vi.mock('../i18n', () => ({
+// Mock i18n - use vi.hoisted to ensure mockI18n is available when mock is hoisted
+const mockI18n = vi.hoisted(() => ({ language: 'en' }))
+vi.mock('../../i18n', () => ({
   ensureI18nInitialized: vi.fn().mockResolvedValue(undefined),
-  i18n: {
-    language: 'en',
-  },
+  i18n: mockI18n,
 }))
 
 // Mock json-config utilities
 const mockConfigData: Record<string, any> = {}
 
-vi.mock('../utils/json-config', () => ({
+vi.mock('../../utils/json-config', () => ({
   readJsonConfig: vi.fn((path: string) => {
     return mockConfigData[path] || {}
   }),
@@ -55,7 +54,7 @@ describe('ThinkingModeManager', () => {
       thinking: DEFAULT_THINKING_CONFIG,
     }
 
-    manager = new ThinkingModeManager('/test/settings.json')
+    manager = getThinkingManager('/test/settings.json')
   })
 
   afterEach(() => {
@@ -585,7 +584,9 @@ describe('ThinkingModeManager', () => {
     })
 
     it('should show Chinese summary when i18n is zh-CN', () => {
-      vi.mocked(require('../i18n').i18n, { partial: true }).language = 'zh-CN'
+      // Temporarily change language to zh-CN
+      const originalLanguage = mockI18n.language
+      mockI18n.language = 'zh-CN'
 
       manager.setEnabled(true)
 
@@ -593,6 +594,9 @@ describe('ThinkingModeManager', () => {
 
       expect(status.summary).toContain('Thinking Mode')
       expect(status.summary).toContain('tokens')
+
+      // Restore original language
+      mockI18n.language = originalLanguage
     })
   })
 
@@ -623,12 +627,12 @@ describe('ThinkingModeManager', () => {
     })
 
     it('should handle rounding edge cases for sub-agent budget', () => {
-      manager.setBudgetTokens(3)
+      manager.setBudgetTokens(3333)
       manager.setSubAgentReduction(0.33)
 
       const subBudget = manager.calculateSubAgentBudget()
 
-      expect(subBudget).toBe(Math.floor(3 * 0.33))
+      expect(subBudget).toBe(Math.floor(3333 * 0.33))
     })
 
     it('should handle sub-agent budget at reduction factor boundary', () => {

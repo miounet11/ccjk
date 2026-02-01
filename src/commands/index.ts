@@ -57,3 +57,6 @@ export * from './ccjk-skills'
 export * from './ccjk-agents'
 export * from './ccjk-setup'
 export * from './ccjk-all'
+
+// Plugin Management
+export * from './add'
