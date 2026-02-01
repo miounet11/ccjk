@@ -5,6 +5,7 @@
  *
  * Commands:
  * - skill install <source>  - Install a skill from GitHub/local
+ * - skill create <name>     - Create a new skill from template
  * - skill list              - List installed skills
  * - skill info <id>         - Show skill details
  * - skill remove <id>       - Remove a skill
@@ -13,7 +14,13 @@
  * @module commands/skill
  */
 
+import type { SkillCategory } from '../types/skill-md'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { join } from 'pathe'
 import ansis from 'ansis'
+import * as Handlebars from 'handlebars'
+import inquirer from 'inquirer'
 import { getPluginManager } from '../plugins-v2'
 
 // ============================================================================
@@ -39,6 +46,12 @@ export async function handleSkillCommand(
     case 'install':
     case 'add':
       await installSkill(restArgs[0], options)
+      break
+
+    case 'create':
+    case 'new':
+    case 'init':
+      await createSkill(restArgs[0], options)
       break
 
     case 'list':
@@ -67,8 +80,248 @@ export async function handleSkillCommand(
 }
 
 // ============================================================================
+// Template Helpers
+// ============================================================================
+
+/**
+ * Get templates directory path
+ */
+function getTemplatesDir(): string {
+  // Try to find templates in package directory
+  const possiblePaths = [
+    join(__dirname, '../../templates/skills'),
+    join(__dirname, '../../../templates/skills'),
+    join(process.cwd(), 'templates/skills'),
+  ]
+
+  for (const p of possiblePaths) {
+    if (existsSync(p)) {
+      return p
+    }
+  }
+
+  return possiblePaths[0]
+}
+
+/**
+ * Get available skill templates
+ */
+function getAvailableTemplates(): string[] {
+  const templatesDir = getTemplatesDir()
+  if (!existsSync(templatesDir)) {
+    return ['basic']
+  }
+
+  const { readdirSync } = require('node:fs')
+  const files = readdirSync(templatesDir) as string[]
+  return files
+    .filter((f: string) => f.endsWith('.hbs'))
+    .map((f: string) => f.replace('.hbs', ''))
+}
+
+/**
+ * Load and compile a Handlebars template
+ */
+function loadTemplate(templateName: string): HandlebarsTemplateDelegate | null {
+  const templatesDir = getTemplatesDir()
+  const templatePath = join(templatesDir, `${templateName}.hbs`)
+
+  if (!existsSync(templatePath)) {
+    return null
+  }
+
+  const templateContent = readFileSync(templatePath, 'utf-8')
+  return Handlebars.compile(templateContent)
+}
+
+// ============================================================================
 // Subcommands
 // ============================================================================
+
+/**
+ * Create a new skill from template
+ */
+async function createSkill(name: string | undefined, _options: SkillCommandOptions): Promise<void> {
+  console.log(ansis.cyan('\n🎨 Create New Skill\n'))
+
+  const availableTemplates = getAvailableTemplates()
+  const categories: SkillCategory[] = ['dev', 'git', 'review', 'testing', 'docs', 'devops', 'planning', 'debugging', 'custom']
+
+  // Interactive prompts
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'Skill name (kebab-case):',
+      default: name || 'my-skill',
+      validate: (input: string) => {
+        if (!/^[a-z][a-z0-9-]*$/.test(input)) {
+          return 'Name must be kebab-case (lowercase letters, numbers, hyphens)'
+        }
+        return true
+      },
+    },
+    {
+      type: 'input',
+      name: 'title',
+      message: 'Skill title:',
+      default: (ans: { name: string }) => ans.name.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+    },
+    {
+      type: 'input',
+      name: 'description',
+      message: 'Brief description:',
+      default: 'A custom skill for CCJK',
+    },
+    {
+      type: 'list',
+      name: 'template',
+      message: 'Select template:',
+      choices: availableTemplates.map(t => ({
+        name: t === 'basic' ? `${t} (blank template)` : t,
+        value: t,
+      })),
+      default: 'basic',
+    },
+    {
+      type: 'list',
+      name: 'category',
+      message: 'Category:',
+      choices: categories,
+      default: 'custom',
+    },
+    {
+      type: 'input',
+      name: 'use_when',
+      message: 'When should this skill activate? (natural language):',
+      default: 'When user requests this functionality',
+    },
+    {
+      type: 'confirm',
+      name: 'auto_activate',
+      message: 'Auto-activate based on context?',
+      default: true,
+    },
+    {
+      type: 'list',
+      name: 'context',
+      message: 'Execution context:',
+      choices: [
+        { name: 'inherit - Share parent context', value: 'inherit' },
+        { name: 'fork - Isolated context', value: 'fork' },
+      ],
+      default: 'inherit',
+    },
+    {
+      type: 'number',
+      name: 'priority',
+      message: 'Priority (1-10, higher = more priority):',
+      default: 5,
+      validate: (input: number) => input >= 1 && input <= 10 ? true : 'Must be between 1 and 10',
+    },
+    {
+      type: 'confirm',
+      name: 'hasArgs',
+      message: 'Does this skill accept arguments ($0, $1, etc.)?',
+      default: false,
+    },
+    {
+      type: 'input',
+      name: 'argNames',
+      message: 'Argument names (comma-separated):',
+      when: (ans: { hasArgs: boolean }) => ans.hasArgs,
+      default: 'file,options',
+    },
+    {
+      type: 'list',
+      name: 'targetDir',
+      message: 'Where to create the skill?',
+      choices: [
+        { name: `~/.claude/skills (global)`, value: join(homedir(), '.claude', 'skills') },
+        { name: `.claude/skills (project)`, value: join(process.cwd(), '.claude', 'skills') },
+      ],
+      default: join(homedir(), '.claude', 'skills'),
+    },
+  ])
+
+  // Process arguments
+  const args = answers.hasArgs && answers.argNames
+    ? answers.argNames.split(',').map((name: string, index: number) => ({
+        name: name.trim(),
+        description: `Argument ${index + 1}`,
+        required: index === 0,
+      }))
+    : undefined
+
+  // Prepare template data
+  const templateData = {
+    name: answers.name,
+    title: answers.title,
+    description: answers.description,
+    author: process.env.USER || 'CCJK User',
+    category: answers.category,
+    use_when: answers.use_when,
+    auto_activate: answers.auto_activate,
+    context: answers.context,
+    priority: answers.priority,
+    timeout: 300,
+    args,
+    instructions: `Implement the ${answers.title} functionality here.\n\nAdd your specific instructions for Claude.`,
+  }
+
+  // Load and render template
+  let template = loadTemplate(answers.template)
+  if (!template) {
+    // Fallback to basic template
+    template = loadTemplate('basic')
+    if (!template) {
+      console.log(ansis.red('Error: Could not load template'))
+      return
+    }
+  }
+
+  const content = template(templateData)
+
+  // Ensure target directory exists
+  if (!existsSync(answers.targetDir)) {
+    mkdirSync(answers.targetDir, { recursive: true })
+  }
+
+  // Write skill file
+  const skillPath = join(answers.targetDir, `${answers.name}.md`)
+
+  if (existsSync(skillPath)) {
+    const { overwrite } = await inquirer.prompt([{
+      type: 'confirm',
+      name: 'overwrite',
+      message: `Skill ${answers.name}.md already exists. Overwrite?`,
+      default: false,
+    }])
+
+    if (!overwrite) {
+      console.log(ansis.yellow('\nSkill creation cancelled.'))
+      return
+    }
+  }
+
+  writeFileSync(skillPath, content, 'utf-8')
+
+  console.log(ansis.green(`\n✅ Skill created successfully!`))
+  console.log(ansis.dim(`   Path: ${skillPath}`))
+  console.log('')
+  console.log(ansis.bold('Next steps:'))
+  console.log(ansis.dim(`   1. Edit ${skillPath} to customize the skill`))
+  console.log(ansis.dim(`   2. The skill will be auto-loaded (hot-reload enabled)`))
+  console.log(ansis.dim(`   3. Use /${answers.name} to invoke the skill`))
+
+  if (args && args.length > 0) {
+    console.log('')
+    console.log(ansis.bold('Arguments:'))
+    args.forEach((arg: { name: string; required: boolean }, i: number) => {
+      console.log(ansis.dim(`   $${i} - ${arg.name}${arg.required ? ' (required)' : ''}`))
+    })
+  }
+}
 
 /**
  * Install a skill
@@ -371,7 +624,8 @@ ${ansis.bold('Usage:')}
   skill <command> [options]
 
 ${ansis.bold('Commands:')}
-  ${ansis.green('install')} <source>   Install a skill from GitHub or local path
+  ${ansis.green('create')} [name]     Create a new skill from template (interactive)
+  ${ansis.green('install')} <source>  Install a skill from GitHub or local path
   ${ansis.green('list')}              List installed skills
   ${ansis.green('info')} <id>         Show detailed skill information
   ${ansis.green('remove')} <id>       Remove an installed skill
@@ -382,6 +636,9 @@ ${ansis.bold('Options:')}
   --json             Output as JSON
 
 ${ansis.bold('Examples:')}
+  ${ansis.dim('# Create a new skill (interactive wizard)')}
+  skill create my-skill
+
   ${ansis.dim('# Install from GitHub')}
   skill install vercel-labs/agent-skills/skills/react-best-practices
 
@@ -404,6 +661,15 @@ ${ansis.bold('Skill Format:')}
   │   └── main.sh
   └── references/       # Reference documents
       └── rules/
+
+${ansis.bold('Argument Shorthand (v2.1.19+):')}
+  Skills can use $0, $1, $2... for argument interpolation:
+
+  ${ansis.dim('# In skill content:')}
+  ${ansis.dim('Edit file $0 with message: $1')}
+
+  ${ansis.dim('# Usage:')}
+  ${ansis.dim('/my-skill src/app.ts "Fix bug"')}
 `)
 }
 

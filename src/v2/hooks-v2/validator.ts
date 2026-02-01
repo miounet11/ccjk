@@ -44,7 +44,7 @@ export class HookValidator {
   /**
    * Initialize default validation rules
    */
-  private initializeDefaultRules(): void {
+  initializeDefaultRules(): void {
     // Protocol completeness rule
     this.addRule({
       id: 'protocol-completeness',
@@ -107,7 +107,7 @@ export class HookValidator {
       validate: async (hook: HookProtocol, context: HookContext) => {
         // Check if hook contexts match current context
         if (hook.contexts.length > 0) {
-          const contextMatch = hook.contexts.some(c =>
+          const contextMatch = hook.contexts.some((c: string) =>
             c === context.taskType ||
             c === context.phase ||
             c === context.agentType
@@ -148,11 +148,12 @@ export class HookValidator {
       id: 'priority-conflict',
       name: 'Priority Conflict',
       description: 'Detects conflicts between hooks with different priorities',
-      validate: async (hook: HookProtocol, context: HookContext) => {
+      validate: async (hook: HookProtocol, _context: HookContext) => {
         // This would require access to other active hooks
         // For now, just validate priority is within range
         return hook.priority >= 0 && hook.priority <= 100
       },
+      errorMessage: 'Hook priority is out of valid range (0-100)',
       warningMessage: 'Hook priority may conflict with other active hooks',
       priority: 60,
       mandatory: false,
@@ -333,63 +334,6 @@ export class HookValidator {
  * Global hook validator instance
  */
 export const hookValidator = new HookValidator()
-
-/**
- * Quick validation function
- */
-export async function validateHook(hook: HookProtocol, context?: HookContext): Promise<HookValidationResult> {
-  if (context) {
-    return hookValidator.validateInContext(hook, context)
-  }
-  return hookValidator.validateProtocol(hook)
-}
-
-/**
- * Validate multiple hooks
- */
-export async function validateHooks(hooks: HookProtocol[]): Promise<Map<string, HookValidationResult>> {
-  return hookValidator.validateMultiple(hooks)
-}
-
-/**
- * Add custom validation rule
- */
-export function addValidationRule(rule: ValidationRule): void {
-  hookValidator.addRule(rule)
-}
-
-/**
- * Remove validation rule
- */
-export function removeValidationRule(ruleId: string): void {
-  hookValidator.removeRule(ruleId)
-}
-
-/**
- * Get all validation rules
- */
-export function getValidationRules(): ValidationRule[] {
-  return hookValidator.getAllRules()
-}
-
-/**
- * Get validation statistics
- */
-export function getValidationStats(): ReturnType<typeof hookValidator.getStats> {
-  return hookValidator.getStats()
-}
-
-/**
- * Reset validator to default rules
- */
-export function resetValidator(): void {
-  // Clear all rules and reinitialize
-  const rules = hookValidator.getAllRules()
-  for (const rule of rules) {
-    hookValidator.removeRule(rule.id)
-  }
-  hookValidator.initializeDefaultRules()
-}
 
 /**
  * Quick validation function

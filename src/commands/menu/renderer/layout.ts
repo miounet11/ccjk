@@ -9,10 +9,10 @@
  * - Keyboard shortcut indicators
  */
 
-import type { SupportedLang } from '../../constants'
+import type { SupportedLang } from '../../../constants'
 import type { MenuCategory, MenuItem, MenuItemRenderData, MenuRenderOptions, MenuSection } from '../types'
 import ansis from 'ansis'
-import { i18n } from '../../i18n'
+import { i18n } from '../../../i18n/index'
 
 /**
  * Default render options
@@ -42,6 +42,7 @@ const colors = {
   warning: ansis.yellow,
   success: ansis.green,
   icon: ansis.green,
+  dim: ansis.dim,
 }
 
 /**
@@ -179,7 +180,7 @@ function getCategoryTitle(category: MenuCategory): string {
 /**
  * Get category icon
  */
-function getCategoryIcon(category: MenuCategory): string {
+export function getCategoryIcon(category: MenuCategory): string {
   const icons: Record<MenuCategory, string> = {
     quick: '🚀',
     config: '⚙️',

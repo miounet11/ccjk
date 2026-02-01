@@ -58,7 +58,7 @@ export interface MenuItem {
   action: MenuAction
 
   /** Action handler function */
-  handler?: () => Promise<void> | void
+  handler?: () => Promise<void | boolean> | void | boolean
 
   /** Keyboard shortcut (single character) */
   shortcut?: string
@@ -150,6 +150,7 @@ export type MenuResult
     | 'back' // Go back to previous menu
     | 'exit' // Exit menu system
     | 'switch' // Switch code tool (requires menu reload)
+    | undefined // No action taken, continue
 
 /**
  * Menu configuration

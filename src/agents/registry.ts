@@ -5,12 +5,12 @@
  * expertise areas, costs, and collaboration preferences.
  */
 
-import type { AgentCapability } from '../types/agent.js'
-
 /**
  * Extended agent capability with orchestration-specific fields
  */
-interface ExtendedAgentCapability extends AgentCapability {
+export interface ExtendedAgentCapability {
+  id: string
+  name: string
   expertise: string[]
   cost: number
   canCollaborate: string[]

@@ -3,7 +3,7 @@
  */
 
 import type { AgentCapability, AgentAssignment, OrchestrationResult, OrchestrationOptions, Task } from '../types/agent'
-import { agentCapabilityMap } from './capability-map'
+import { AgentCapabilityMap, agentCapabilityMap } from './capability-map'
 
 export class MultiAgentOrchestrator {
   private capabilityMap: AgentCapabilityMap

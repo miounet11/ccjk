@@ -1,6 +1,6 @@
 import { homedir } from 'node:os'
 import { join } from 'pathe'
-import { i18n } from './i18n'
+import { i18n } from './i18n/index'
 
 // Claude Code configuration paths
 export const CLAUDE_DIR = join(homedir(), '.claude')

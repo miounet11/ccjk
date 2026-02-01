@@ -4,6 +4,8 @@ packages:
 
 catalog:
   '@antfu/eslint-config': ^5.4.1
+  handlebars: ^4.7.8
+  web-tree-sitter: ^0.26.3
   '@anthropic-ai/sdk': ^0.52.0
   '@changesets/cli': ^2.29.7
   '@commitlint/cli': ^19.8.1
@@ -101,6 +103,12 @@ catalogs:
     typescript: ^5
   conflicts_conflicts_eslint_h8_0_0_h8:
     eslint: ^8
+  conflicts_conflicts_chokidar_h3_5_3_h4_0_3:
+    chokidar: ^4.0.3
+  conflicts_conflicts_eslint_h8_0_0_h9_36_0:
+    eslint: ^9.36.0
+  conflicts_conflicts_vitest_h1_0_0_h3_2_4:
+    vitest: ^3.2.4
 
 onlyBuiltDependencies:
   - esbuild

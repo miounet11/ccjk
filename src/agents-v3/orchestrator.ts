@@ -15,9 +15,7 @@ import type {
   AgentInstance,
   AgentPoolConfig,
   AgentStatus,
-  CommunicationConfig,
   DeepPartial,
-  ErrorRecoveryConfig,
   Message,
   MessageId,
   OrchestratorConfig,
@@ -30,8 +28,8 @@ import type {
   TaskResult,
 } from './types.js'
 import { AgentPool, createAgentPool, type AgentPoolEvents } from './agent-pool.js'
-import { Communication, createCommunication, type CommunicationEvents } from './communication.js'
-import { ErrorRecovery, createErrorRecovery, type ErrorRecoveryEvents } from './error-recovery.js'
+import { Communication, createCommunication, type CommunicationEvents, type CommunicationConfig } from './communication.js'
+import { ErrorRecovery, createErrorRecovery, type ErrorRecoveryEvents, type ErrorRecoveryConfig } from './error-recovery.js'
 import { TaskScheduler, createTaskScheduler, type TaskSchedulerEvents } from './task-scheduler.js'
 
 // ============================================================================
@@ -600,7 +598,7 @@ export class OrchestratorV3 {
           taskId: task.id,
           input: task.input,
         },
-        task.timeout,
+        { timeout: task.timeout },
       )
 
       return {
@@ -623,10 +621,12 @@ export class OrchestratorV3 {
       }
 
       if (this.config.recovery.enabled) {
+        // Create executor wrapper that binds the agent parameter
+        const executor = (retryTask: Task) => this.executeTask(retryTask, agent)
         const recoveryResult = await this.recovery.handleError(
           task,
           taskError,
-          this.executeTask.bind(this),
+          executor,
         )
 
         if (recoveryResult) {
@@ -703,7 +703,11 @@ export class OrchestratorV3 {
     return {
       scheduler: { ...base.scheduler, ...partial.scheduler },
       pool: { ...base.pool, ...partial.pool },
-      recovery: { ...base.recovery, ...partial.recovery },
+      recovery: {
+        enabled: partial.recovery?.enabled ?? base.recovery.enabled,
+        maxAttempts: partial.recovery?.maxAttempts ?? base.recovery.maxAttempts,
+        strategies: (partial.recovery?.strategies as RecoveryStrategy[] | undefined) ?? base.recovery.strategies,
+      },
       communication: { ...base.communication, ...partial.communication },
       logging: { ...base.logging, ...partial.logging },
       metrics: { ...base.metrics, ...partial.metrics },

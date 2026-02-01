@@ -51,23 +51,28 @@ export const DEFAULT_CONFIG = {
 // Helper function to create a complete agent system
 export async function createAgentSystem(config = DEFAULT_CONFIG) {
   const Redis = (await import('ioredis')).default;
+  const { createAgentRegistry: createRegistry } = await import('./registry.js');
+  const { createMessageBus: createBus } = await import('./bus/message-bus.js');
+  const { createMessageRouter: createRouter } = await import('./bus/router.js');
+  const { createMessageQueue: createQueue } = await import('./bus/queue.js');
+  const { createPubSub: createPub } = await import('./bus/pubsub.js');
 
   // Create Redis connection
   const redis = new Redis(config.redis);
 
   // Create components
-  const registry = createAgentRegistry(redis, {
+  const registry = createRegistry(redis, {
     keyPrefix: config.redis.keyPrefix + 'agents:',
   });
 
-  const messageBus = createMessageBus(config);
-  const router = createMessageRouter(redis, {
+  const messageBus = createBus(config);
+  const router = createRouter(redis, {
     keyPrefix: config.redis.keyPrefix + 'router:',
   });
-  const queue = createMessageQueue(redis, {
+  const queue = createQueue(redis, {
     keyPrefix: config.redis.keyPrefix + 'queue:',
   });
-  const pubsub = createPubSub(redis, {
+  const pubsub = createPub(redis, {
     keyPrefix: config.redis.keyPrefix + 'pubsub:',
   });
 
@@ -82,4 +87,4 @@ export async function createAgentSystem(config = DEFAULT_CONFIG) {
 }
 
 // Re-export for convenience
-export { Redis } from 'ioredis';
+export type { Redis } from 'ioredis';

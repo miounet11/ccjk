@@ -30,3 +30,48 @@ export interface HookDefinition {
   command: string | string[];
   context?: Record<string, any>;
 }
+
+/**
+ * Hook execution context
+ */
+export interface HookExecutionContext {
+  taskType?: string;
+  phase?: string;
+  agentType?: string;
+  variables?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Hook protocol definition for validator
+ */
+export interface HookProtocol {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  contexts: string[];
+  variables: string[];
+  priority: number;
+  enabled: boolean;
+}
+
+/**
+ * Hook context for validation
+ */
+export interface HookContext {
+  taskType?: string;
+  phase?: string;
+  agentType?: string;
+  variables?: Record<string, unknown>;
+}
+
+/**
+ * Hook validation result
+ */
+export interface HookValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  score: number;
+}

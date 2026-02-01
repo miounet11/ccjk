@@ -9,7 +9,7 @@
  */
 
 import type { MenuDefinition, MenuItem } from '../types'
-import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../../utils/tools'
+import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../../../utils/tools'
 
 /**
  * Tools submenu items

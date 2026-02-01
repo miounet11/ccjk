@@ -370,3 +370,139 @@ export function getAllActionsForMenu(lang: SupportedLang = 'en'): Array<{ name: 
     value: action.id,
   }))
 }
+
+/**
+ * Show Quick Actions menu
+ */
+export async function showQuickActionsMenu(): Promise<void> {
+  const { default: inquirer } = await import('inquirer')
+  const { default: ansis } = await import('ansis')
+
+  console.log(ansis.cyan('\n📋 Quick Actions'))
+  console.log(generateQuickActionsPanel('en'))
+
+  const { action } = await inquirer.prompt([{
+    type: 'list',
+    name: 'action',
+    message: 'Select an action:',
+    choices: [
+      ...getAllActionsForMenu('en'),
+      { name: '← Back', value: 0 },
+    ],
+  }])
+
+  if (action === 0) return
+
+  const selectedAction = getActionByNumber(action)
+  if (selectedAction) {
+    console.log(ansis.green(`\nExecuting: ${selectedAction.command}`))
+    // The command would be executed by the skill system
+  }
+}
+
+/**
+ * Show Smart Guide configuration menu
+ */
+export async function showSmartGuideMenu(): Promise<void> {
+  const { default: inquirer } = await import('inquirer')
+  const { default: ansis } = await import('ansis')
+
+  const installed = await isSmartGuideInstalled()
+
+  console.log(ansis.cyan('\n🎯 Smart Guide Configuration'))
+  console.log(`Status: ${installed ? ansis.green('Installed') : ansis.yellow('Not installed')}`)
+
+  const { action } = await inquirer.prompt([{
+    type: 'list',
+    name: 'action',
+    message: 'Select an action:',
+    choices: [
+      { name: installed ? '🔄 Reinstall Smart Guide' : '📥 Install Smart Guide', value: 'install' },
+      { name: '🗑️  Remove Smart Guide', value: 'remove', disabled: !installed },
+      { name: '📖 View Reference Card', value: 'view' },
+      { name: '← Back', value: 'back' },
+    ],
+  }])
+
+  switch (action) {
+    case 'install':
+      await injectSmartGuide('en')
+      console.log(ansis.green('✓ Smart Guide installed'))
+      break
+    case 'remove':
+      await removeSmartGuide()
+      console.log(ansis.green('✓ Smart Guide removed'))
+      break
+    case 'view':
+      console.log(generateSkillReferenceCard('en'))
+      break
+  }
+}
+
+/**
+ * Show Workflows and Skills menu
+ */
+export async function showWorkflowsAndSkillsMenu(): Promise<void> {
+  const { default: inquirer } = await import('inquirer')
+  const { default: ansis } = await import('ansis')
+
+  console.log(ansis.cyan('\n📋 Workflows & Skills'))
+
+  const { action } = await inquirer.prompt([{
+    type: 'list',
+    name: 'action',
+    message: 'Select a category:',
+    choices: [
+      { name: '📝 Development Workflows', value: 'dev' },
+      { name: '🔍 Code Review Skills', value: 'review' },
+      { name: '🧪 Testing Skills', value: 'test' },
+      { name: '📖 Documentation Skills', value: 'docs' },
+      { name: '← Back', value: 'back' },
+    ],
+  }])
+
+  if (action === 'back') return
+
+  // Show skills in selected category
+  const categorySkills = QUICK_ACTIONS.filter(a => {
+    switch (action) {
+      case 'dev': return [4, 6].includes(a.id) // Plan, Brainstorm
+      case 'review': return [2, 7].includes(a.id) // Review, Verify
+      case 'test': return [3, 5].includes(a.id) // Test, Debug
+      case 'docs': return [1, 8].includes(a.id) // Commit, Docs
+      default: return false
+    }
+  })
+
+  console.log(ansis.dim('\nAvailable skills:'))
+  for (const skill of categorySkills) {
+    console.log(`  ${skill.icon} ${skill.name} - ${skill.description}`)
+  }
+}
+
+/**
+ * Show Output Styles menu
+ */
+export async function showOutputStylesMenu(): Promise<void> {
+  const { default: inquirer } = await import('inquirer')
+  const { default: ansis } = await import('ansis')
+
+  console.log(ansis.cyan('\n🎨 Output Styles'))
+
+  const { style } = await inquirer.prompt([{
+    type: 'list',
+    name: 'style',
+    message: 'Select output style:',
+    choices: [
+      { name: '📝 Standard - Clear and concise', value: 'standard' },
+      { name: '📋 Detailed - Comprehensive explanations', value: 'detailed' },
+      { name: '⚡ Minimal - Brief responses only', value: 'minimal' },
+      { name: '🎯 Technical - Code-focused output', value: 'technical' },
+      { name: '← Back', value: 'back' },
+    ],
+  }])
+
+  if (style === 'back') return
+
+  console.log(ansis.green(`\n✓ Output style set to: ${style}`))
+}

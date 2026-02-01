@@ -6,7 +6,7 @@
  */
 
 import type { MenuCategory, MenuItem, MenuLevel, MenuSection } from '../types'
-import { i18n } from '../../i18n'
+import { i18n } from '../../../i18n/index'
 import { menuItemsByCategory } from '../main-menu'
 import { getCategoryIcon } from './layout'
 

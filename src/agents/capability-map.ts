@@ -237,3 +237,44 @@ export class AgentCapabilityMap {
 
 // Export singleton instance
 export const agentCapabilityMap = new AgentCapabilityMap()
+
+// ============================================================================
+// Convenience exports for backward compatibility
+// ============================================================================
+
+/** All agent capabilities */
+export const AGENT_CAPABILITIES = AGENT_DEFINITIONS.map(def => ({
+  ...def,
+})) as AgentCapability[]
+
+/**
+ * Find agents by specialty
+ */
+export function findAgentsBySpecialty(specialty: string): AgentCapability[] {
+  return agentCapabilityMap.findBySpecialty(specialty)
+}
+
+/**
+ * Get agent capability by ID
+ */
+export function getAgentCapability(id: string): AgentCapability | null {
+  return agentCapabilityMap.getAgent(id)
+}
+
+/**
+ * Get collaborators for an agent (agents with complementary skills)
+ */
+export function getCollaborators(agentId: string): AgentCapability[] {
+  const agent = agentCapabilityMap.getAgent(agentId)
+  if (!agent) return []
+
+  // Find agents with different specialties that could complement
+  return agentCapabilityMap.getAllAgents().filter(other => {
+    if (other.id === agentId) return false
+    // Check if there's minimal overlap (complementary skills)
+    const overlap = other.specialties.filter(s =>
+      agent.specialties.includes(s)
+    ).length
+    return overlap < agent.specialties.length / 2
+  })
+}

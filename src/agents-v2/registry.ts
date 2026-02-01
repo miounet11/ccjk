@@ -12,9 +12,8 @@ import type {
   AgentExpertise,
   AgentSkill,
   IAgentRegistry,
-  MessageBusError,
-  AgentNotFoundError,
 } from './types.js';
+import { MessageBusError, AgentNotFoundError } from './types.js';
 
 export class AgentRegistry implements IAgentRegistry {
   private redis: Redis;

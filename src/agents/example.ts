@@ -4,55 +4,77 @@
  * Demonstrates how to use the multi-agent orchestration system
  */
 
-import type { OrchestratorTask } from '../types/agent.js'
+import type { Task } from '../types/agent.js'
 import { MultiAgentOrchestrator } from './multi-agent-orchestrator.js'
 
 async function example() {
   const orchestrator = new MultiAgentOrchestrator()
 
   // Example 1: Simple task
-  const simpleTask: OrchestratorTask = {
+  const simpleTasks: Task[] = [{
     id: 'task-1',
     description: 'Create a new TypeScript CLI command',
-    complexity: 'simple',
-    requiredSpecialties: ['typescript', 'cli'],
-  }
+    complexity: 3,
+    priority: 'medium',
+    requiredCapabilities: ['typescript', 'cli-architecture'],
+  }]
 
   console.log('Executing simple task...')
-  const simpleResult = await orchestrator.orchestrate(simpleTask)
-  console.log('Simple task result:', simpleResult.resolution)
-  console.log('Metrics:', orchestrator.getMetrics(simpleResult))
+  const simpleResult = orchestrator.orchestrate(simpleTasks)
+  console.log('Simple task result:', simpleResult)
+  console.log('Stats:', orchestrator.getStats(simpleResult))
 
   // Example 2: Medium complexity task
-  const mediumTask: OrchestratorTask = {
+  const mediumTasks: Task[] = [{
     id: 'task-2',
     description: 'Add internationalization support to CLI',
-    complexity: 'medium',
-    requiredSpecialties: ['typescript', 'i18next', 'localization'],
-  }
+    complexity: 5,
+    priority: 'high',
+    requiredCapabilities: ['typescript', 'internationalization', 'i18next'],
+  }]
 
   console.log('\nExecuting medium task...')
-  const mediumResult = await orchestrator.orchestrate(mediumTask)
-  console.log('Medium task result:', mediumResult.resolution)
-  console.log('Metrics:', orchestrator.getMetrics(mediumResult))
+  const mediumResult = orchestrator.orchestrate(mediumTasks)
+  console.log('Medium task result:', mediumResult)
+  console.log('Stats:', orchestrator.getStats(mediumResult))
 
   // Example 3: Complex task with multiple phases
-  const complexTask: OrchestratorTask = {
-    id: 'task-3',
-    description: 'Implement full feature with tests and configuration',
-    complexity: 'complex',
-    requiredSpecialties: ['typescript', 'testing', 'configuration', 'i18next'],
-  }
+  const complexTasks: Task[] = [
+    {
+      id: 'task-3a',
+      description: 'Design configuration architecture',
+      complexity: 7,
+      priority: 'high',
+      requiredCapabilities: ['configuration-management', 'config-merging'],
+    },
+    {
+      id: 'task-3b',
+      description: 'Implement configuration system',
+      complexity: 8,
+      priority: 'high',
+      requiredCapabilities: ['typescript', 'configuration-management'],
+    },
+    {
+      id: 'task-3c',
+      description: 'Write tests for configuration',
+      complexity: 5,
+      priority: 'medium',
+      requiredCapabilities: ['testing', 'vitest'],
+    },
+  ]
 
-  console.log('\nExecuting complex task...')
-  const complexResult = await orchestrator.orchestrate(complexTask)
-  console.log('Complex task result:', complexResult.resolution)
-  console.log('Metrics:', orchestrator.getMetrics(complexResult))
+  console.log('\nExecuting complex tasks...')
+  const complexResult = orchestrator.orchestrate(complexTasks)
+  console.log('Complex task result:', complexResult)
+  console.log('Stats:', orchestrator.getStats(complexResult))
 }
 
 // Run example if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  example().catch(console.error)
+if (typeof process !== 'undefined' && process.argv[1]) {
+  const fileUrl = new URL(import.meta.url)
+  if (fileUrl.pathname === process.argv[1]) {
+    example().catch(console.error)
+  }
 }
 
 export { example }

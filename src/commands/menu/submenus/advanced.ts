@@ -12,8 +12,8 @@
  */
 
 import type { MenuDefinition, MenuItem } from '../types'
-import { showOutputStylesMenu, showQuickActionsMenu, showSmartGuideMenu, showWorkflowsAndSkillsMenu } from '../../utils/smart-guide'
-import { doctor, workspaceDiagnostics } from '../doctor'
+import { showOutputStylesMenu, showQuickActionsMenu, showSmartGuideMenu, showWorkflowsAndSkillsMenu } from '../../../utils/smart-guide'
+import { doctor, workspaceDiagnostics } from '../../doctor'
 
 /**
  * Advanced features submenu items

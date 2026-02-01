@@ -46,5 +46,6 @@ export {
   isCacheValid,
   readCachedRegistry,
   searchPackages,
+  showMarketplaceMenu,
   writeCacheRegistry,
 } from './registry.js'

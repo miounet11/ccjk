@@ -96,6 +96,49 @@ export interface Hook {
 }
 
 /**
+ * Skill argument definition
+ *
+ * Defines arguments for parameter shorthand ($0, $1, etc.)
+ * Compatible with Claude Code v2.1.19+ argument interpolation.
+ *
+ * @example
+ * ```yaml
+ * args:
+ *   - name: file
+ *     description: Target file path
+ *     required: true
+ *   - name: message
+ *     description: Commit message
+ *     default: "Auto commit"
+ * ```
+ */
+export interface SkillArgument {
+  /** Argument name (for documentation) */
+  name: string
+
+  /** Argument description */
+  description?: string
+
+  /**
+   * Whether argument is required
+   * @default false
+   */
+  required?: boolean
+
+  /** Default value if not provided */
+  default?: string
+
+  /**
+   * Argument type for validation
+   * @default "string"
+   */
+  type?: 'string' | 'number' | 'boolean' | 'path' | 'url'
+
+  /** Validation pattern (regex) */
+  pattern?: string
+}
+
+/**
  * Skill output definition
  *
  * Defines outputs that a skill produces, which can be
@@ -348,6 +391,27 @@ export interface SkillMdMetadata {
    * @default 300 (5 minutes)
    */
   timeout?: number
+
+  /**
+   * Argument definitions for parameter shorthand
+   *
+   * Supports Claude Code v2.1.19+ style argument interpolation.
+   * Use $0, $1, $2... in skill content to reference arguments.
+   *
+   * @example
+   * ```yaml
+   * args:
+   *   - name: file
+   *     description: Target file path
+   *     required: true
+   *   - name: message
+   *     description: Commit message
+   *     default: "Auto commit"
+   * ```
+   *
+   * In content: "Edit $0 with message: $1"
+   */
+  args?: SkillArgument[]
 
   /**
    * Skill outputs

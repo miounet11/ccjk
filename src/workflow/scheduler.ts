@@ -96,7 +96,6 @@ export class SubagentScheduler extends EventEmitter {
   private queue: QueueEntry[] = []
   private running: Map<string, RunningEntry> = new Map()
   private subagentManager: SubagentManager
-  // @ts-expect-error Reserved for future two-stage review integration
   private _reviewer: TwoStageReviewer
   private isRunning: boolean = false
   private isPaused: boolean = false

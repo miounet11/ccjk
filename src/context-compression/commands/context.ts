@@ -17,6 +17,8 @@ import type { CliOptions } from '../../cli-lazy'
 import ansis from 'ansis'
 import ora from 'ora'
 
+const { cyan, yellow, gray, green, red, blue, bold, dim } = ansis
+
 interface ContextCommandOptions extends CliOptions {
   session?: string
   format?: 'json' | 'text'

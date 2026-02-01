@@ -48,3 +48,63 @@ export { default as platform } from './platform'
 
 // Security module (v8.3+)
 export * from './security'
+
+// Command Groups System (v9.4+)
+export * from './command-groups'
+export {
+  COMMAND_GROUPS,
+  generateMainHelp,
+  getAllCommands,
+  getCommand,
+  getCommandGroup,
+  getVisibleGroups,
+  registerCommandGroups,
+} from './command-groups'
+
+// Hook-Skill Bridge (v9.4+)
+export * from './hook-skill-bridge'
+export {
+  getHookSkillBridge,
+  HookSkillBridge,
+  initHookSkillBridge,
+  onHookTriggerSkill,
+  registerHook,
+  triggerHooks,
+  unregisterHook,
+} from './hook-skill-bridge'
+
+// Lifecycle Hooks (v9.4+)
+export * from './lifecycle-hooks'
+export * from './auto-compact-hook'
+export {
+  getLifecycleManager,
+  initLifecycle,
+  lifecycle,
+  onLifecycleEvent,
+  onLifecycleEventTriggerSkill,
+  registerBuiltinHooks,
+} from './lifecycle-hooks'
+
+// Unified Discovery API (v9.4+)
+export * from './discovery'
+export {
+  discoverAgents,
+  discoverAll,
+  discoverHooks,
+  discoverSkills,
+  findAgentsByCapability,
+  findHooksForSkill,
+  findSkillsByTrigger,
+  getDiscoveryStats,
+} from './discovery'
+
+// Upstream Error Handler (v9.4+)
+export * from './upstream-error-handler'
+export {
+  getUpstreamErrorHandler,
+  handleUpstreamError,
+  initUpstreamErrorHandler,
+  isContextOverflowError,
+  isRecoverableError,
+  UpstreamErrorHandler,
+} from './upstream-error-handler'

@@ -10,7 +10,7 @@
 
 import type { MenuInput, MenuItem, MenuSection } from '../types'
 import inquirer from 'inquirer'
-import { i18n } from '../../i18n'
+import { i18n } from '../../../i18n/index'
 
 /**
  * Valid menu input characters

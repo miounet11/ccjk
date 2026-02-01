@@ -686,3 +686,77 @@ export async function deleteSessionCommand(sessionId: string, options: CliOption
     console.error(ansis.red('Failed to delete session:'), error)
   }
 }
+
+/**
+ * Main session command handler
+ * Routes to appropriate sub-command based on action
+ */
+export async function handleSessionCommand(args: string[]): Promise<void> {
+  const [action, sessionId] = args
+
+  switch (action) {
+    case 'save':
+      await saveSession()
+      break
+    case 'list':
+    case 'ls':
+      await listSessions()
+      break
+    case 'restore':
+    case 'load':
+      await restoreSession(sessionId)
+      break
+    case 'export':
+      await exportSession(sessionId)
+      break
+    case 'cleanup':
+    case 'clean':
+      await cleanupSession()
+      break
+    case 'status':
+      await sessionStatus()
+      break
+    case 'create':
+    case 'new':
+      await createSessionCommand({})
+      break
+    case 'rename':
+      if (!sessionId) {
+        console.log(ansis.red('Please provide a session ID to rename'))
+        return
+      }
+      await renameSessionCommand(sessionId, {})
+      break
+    case 'delete':
+    case 'rm':
+      if (!sessionId) {
+        console.log(ansis.red('Please provide a session ID to delete'))
+        return
+      }
+      await deleteSessionCommand(sessionId, {})
+      break
+    default:
+      // Show help
+      console.log()
+      console.log(ansis.cyan.bold('📦 Session Management Commands'))
+      console.log()
+      console.log(ansis.white('Usage: ccjk session <action> [id]'))
+      console.log()
+      console.log(ansis.white('Actions:'))
+      console.log(`${ansis.gray('  save       ')}Save current session`)
+      console.log(`${ansis.gray('  list       ')}List all sessions`)
+      console.log(`${ansis.gray('  restore    ')}Restore a session`)
+      console.log(`${ansis.gray('  export     ')}Export a session`)
+      console.log(`${ansis.gray('  cleanup    ')}Clean up old sessions`)
+      console.log(`${ansis.gray('  status     ')}Show session status`)
+      console.log(`${ansis.gray('  create     ')}Create a new session`)
+      console.log(`${ansis.gray('  rename     ')}Rename a session`)
+      console.log(`${ansis.gray('  delete     ')}Delete a session`)
+      console.log()
+      console.log(ansis.white('Examples:'))
+      console.log(ansis.gray('  ccjk session save'))
+      console.log(ansis.gray('  ccjk session list'))
+      console.log(ansis.gray('  ccjk session restore abc123'))
+      break
+  }
+}

@@ -34,6 +34,12 @@
  */
 
 // ============================================================================
+// Internal Imports (for use within this file)
+// ============================================================================
+
+import { createOrchestrator as _createOrchestrator } from './orchestrator.js'
+
+// ============================================================================
 // Main Exports
 // ============================================================================
 
@@ -48,8 +54,6 @@ export {
 export {
   AgentPool,
   createAgentPool,
-  type AgentPoolConfig,
-  type AgentPoolStats,
   type AgentPoolEvents,
   type AgentFactory,
 } from './agent-pool.js'
@@ -58,11 +62,17 @@ export {
 export {
   TaskScheduler,
   createTaskScheduler,
-  type SchedulerConfig,
-  type SchedulerStats,
   type TaskSchedulerEvents,
   type TaskExecutor,
 } from './task-scheduler.js'
+
+// Re-export types from types.js for convenience
+export type {
+  AgentPoolConfig,
+  AgentPoolStats,
+  SchedulerConfig,
+  SchedulerStats,
+} from './types.js'
 
 // Error Recovery
 export {
@@ -103,7 +113,7 @@ export function quickStart(config?: {
   enableRecovery?: boolean
   enableEncryption?: boolean
 }) {
-  return createOrchestrator({
+  return _createOrchestrator({
     pool: {
       minAgents: config?.minAgents ?? 2,
       maxAgents: config?.maxAgents ?? 10,

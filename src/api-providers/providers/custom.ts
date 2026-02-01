@@ -147,7 +147,7 @@ export class ProviderCustom implements IProvider {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
+        const errorData = await response.json().catch(() => ({})) as { error?: { message?: string } }
         return {
           valid: false,
           errors: [

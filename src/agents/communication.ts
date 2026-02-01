@@ -118,10 +118,10 @@ export class AgentCommunication {
     const messages = await Promise.all(
       recipients.map(to =>
         this.sendMessage(from, to, type, {
-          ...payload,
+          ...(typeof payload === 'object' && payload !== null ? payload : { data: payload }),
           broadcast: true,
           recipientCount: recipients.length,
-        })
+        } as Record<string, unknown>)
       )
     )
 
@@ -200,9 +200,9 @@ export class AgentCommunication {
     }
 
     return this.sendMessage(from, originalMessage.from, type, {
-      ...payload,
+      ...(typeof payload === 'object' && payload !== null ? payload : { data: payload }),
       inReplyTo: originalMessageId,
-    })
+    } as Record<string, unknown>)
   }
 
   /**
@@ -270,9 +270,11 @@ export class AgentCommunication {
    * Retry failed messages for an agent
    */
   async retryFailedMessages(agentId: string): Promise<void> {
-    const messages = this.getMessages(agentId).filter(
+    const messages = this.messageHistory.filter(
       (msg): msg is AgentMessage =>
-        msg.status === 'failed' && (msg as AgentMessage).retries < this.config.maxRetries
+        (msg.to === agentId || msg.from === agentId) &&
+        msg.status === 'failed' &&
+        msg.retries < this.config.maxRetries
     )
 
     for (const message of messages) {
@@ -366,7 +368,7 @@ export function createCommunication(config?: Partial<CommunicationConfig>): Agen
 /**
  * Message type constants (frozen for immutability)
  */
-export const MESSAGE_TYPES = Object.freeze({
+export const MESSAGE_TYPES = {
   TASK_REQUEST: 'task_request',
   TASK_RESPONSE: 'task_response',
   STATUS_UPDATE: 'status_update',
@@ -376,4 +378,4 @@ export const MESSAGE_TYPES = Object.freeze({
   RESULT_SHARE: 'result_share',
   FEEDBACK: 'feedback',
   HEARTBEAT: 'heartbeat',
-}) as const
+} as const

@@ -76,13 +76,13 @@ describe('quickSwitch', () => {
       expect(saved).toHaveLength(2)
     })
 
-    it('should sort by last used (most recent first)', () => {
+    it('should sort by last used (most recent first)', async () => {
       quickSwitch.saveProvider(setup302ai)
-      setTimeout(() => {
-        quickSwitch.saveProvider(setupGLM)
-        const saved = quickSwitch.getSavedProviders()
-        expect(saved[0].id).toBe('glm')
-      }, 10)
+      // Wait a bit to ensure different timestamps
+      await new Promise(resolve => setTimeout(resolve, 10))
+      quickSwitch.saveProvider(setupGLM)
+      const saved = quickSwitch.getSavedProviders()
+      expect(saved[0].id).toBe('glm')
     })
   })
 

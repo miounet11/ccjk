@@ -80,7 +80,7 @@ export class SkillsAPIClient extends APIClient {
       formData.append('version', version)
     }
 
-    if (Buffer.isBuffer(content) || content instanceof Uint8Array) {
+    if (Buffer.isBuffer(content)) {
       const blob = new Blob([content], { type: 'application/octet-stream' })
       formData.append('file', blob)
     } else {

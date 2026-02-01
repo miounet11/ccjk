@@ -20,7 +20,7 @@ import { getProviderRegistry } from '../services/provider-registry'
 
 const KNOWN_COMMANDS = new Set([
   // Core commands
-  '', 'init', 'update', 'doctor', 'help',
+  '', 'init', 'update', 'doctor', 'help', 'menu',
   // Quick setup commands (must be before 'quick' deprecated)
   'quick-setup', 'quick', 'qs',
   // Extended commands

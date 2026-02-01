@@ -1,0 +1,132 @@
+---
+name: type-fix
+description: Fix TypeScript type errors with intelligent analysis
+version: 1.0.0
+author: CCJK Team
+category: debugging
+triggers:
+  - /type-fix
+  - /fix-types
+  - /ts-fix
+use_when:
+  - User has TypeScript errors
+  - When tsc reports type issues
+  - When fixing type annotations
+auto_activate: true
+priority: 8
+user_invocable: true
+context: inherit
+args:
+  - name: target
+    description: File or directory with type errors
+    required: false
+    default: "."
+    type: path
+allowed_tools:
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+  - Bash(tsc *)
+  - Bash(npx tsc *)
+  - mcp__ide__getDiagnostics
+hooks:
+  - type: SkillActivate
+    command: "npx tsc --noEmit 2>&1 | head -50"
+timeout: 300
+---
+
+# TypeScript Type Fix Skill
+
+Intelligently fix TypeScript type errors using file operation tools and IDE diagnostics.
+
+## Arguments
+
+- `$0` - **target**: File or directory with type errors (default: current directory)
+
+## Workflow
+
+### Step 1: Diagnose
+
+1. Run `tsc --noEmit` to get all type errors
+2. Use `mcp__ide__getDiagnostics` if available for real-time errors
+3. Parse and categorize errors by type
+
+### Step 2: Analyze
+
+Common error categories:
+
+| Error Code | Description | Fix Strategy |
+|------------|-------------|-------------|
+| TS2304 | Cannot find name | Add import or declare |
+| TS2322 | Type not assignable | Fix type annotation |
+| TS2339 | Property doesn't exist | Add to interface or fix typo |
+| TS2345 | Argument type mismatch | Cast or fix function signature |
+| TS2531 | Object possibly null | Add null check |
+| TS7006 | Parameter implicit any | Add type annotation |
+
+### Step 3: Fix
+
+For each error:
+
+1. **Read** the file containing the error
+2. **Analyze** the context around the error line
+3. **Edit** with the minimal fix needed
+4. **Verify** the fix resolves the error
+
+## Fix Patterns
+
+### Missing Import
+```typescript
+// Error: Cannot find name 'useState'
+// Fix: Add import
+import { useState } from 'react'
+```
+
+### Null Check
+```typescript
+// Error: Object is possibly 'undefined'
+// Before
+const name = user.name
+
+// After
+const name = user?.name ?? 'Unknown'
+```
+
+### Type Annotation
+```typescript
+// Error: Parameter 'x' implicitly has an 'any' type
+// Before
+function process(x) { ... }
+
+// After
+function process(x: string) { ... }
+```
+
+### Interface Extension
+```typescript
+// Error: Property 'newField' does not exist on type 'Config'
+// Fix: Extend interface
+interface Config {
+  existing: string
+  newField: number  // Add missing property
+}
+```
+
+## Important Rules
+
+1. **Prefer specific types** over `any` or `unknown`
+2. **Use type guards** instead of type assertions when possible
+3. **Fix root cause** not just symptoms
+4. **Preserve existing types** - don't break working code
+5. **Run tsc after each fix** to verify
+
+## Example Usage
+
+```
+/type-fix
+/type-fix src/components/
+/fix-types ./lib/api.ts
+/ts-fix src/
+```

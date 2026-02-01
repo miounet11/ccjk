@@ -539,3 +539,12 @@ export async function context(action: string, args: string[] = [], options: Cont
       break
   }
 }
+
+/**
+ * Handle context command from CLI
+ * Wrapper for the main context function
+ */
+export async function handleContextCommand(args: string[]): Promise<void> {
+  const [action, ...rest] = args
+  await context(action || '', rest)
+}

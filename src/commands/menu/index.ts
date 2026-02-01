@@ -32,7 +32,7 @@ import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../../constants'
-import { i18n } from '../../i18n'
+import { i18n } from '../../i18n/index'
 import { displayBannerWithInfo } from '../../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config'
 import { configureCodexAiMemoryFeature, configureCodexApi, configureCodexDefaultModelFeature, configureCodexMcp, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../../utils/code-tools/codex'
@@ -123,19 +123,19 @@ function attachHandlers(items: MenuItem[]): MenuItem[] {
         return { ...item, handler: async () => await notificationCommand() }
 
       case 'api-config':
-        return { ...item, handler: async () => await (await import('../api')).configureApiCommand() }
+        return { ...item, handler: async () => await (await import('../api')).apiCommand('wizard', [], {}) }
 
       case 'mcp-config':
-        return { ...item, handler: async () => await (await import('../mcp')).mcpCommand() }
+        return { ...item, handler: async () => await (await import('../mcp')).mcpStatus({}) }
 
       case 'model-config':
-        return { ...item, handler: async () => await (await import('../config')).configureModelCommand() }
+        return { ...item, handler: async () => await (await import('../config')).configCommand('set', ['model'], {}) }
 
       case 'memory-config':
-        return { ...item, handler: async () => await (await import('../config')).configureMemoryCommand() }
+        return { ...item, handler: async () => await (await import('../config')).configCommand('set', ['memory'], {}) }
 
       case 'permission-config':
-        return { ...item, handler: async () => await (await import('../permissions')).permissionsCommand() }
+        return { ...item, handler: async () => await (await import('../permissions')).listPermissions({})  }
 
       case 'config-switch':
         return { ...item, handler: async () => await configSwitchCommand({ codeType: 'claude-code' }) }
@@ -189,7 +189,7 @@ function attachHandlers(items: MenuItem[]): MenuItem[] {
         return { ...item, handler: async () => await uninstall() }
 
       case 'language':
-        return { ...item, handler: async () => await changeScriptLanguageFeature(i18n.language as SupportedLang) }
+        return { ...item, handler: async () => { await changeScriptLanguageFeature(i18n.language as SupportedLang) } }
 
       default:
         return item
@@ -431,10 +431,10 @@ async function showMoreFeaturesMenu(): Promise<void> {
         await showMarketplaceMenu()
         break
       case '7':
-        await (await import('../config')).configureMemoryCommand()
+        await (await import('../config')).configCommand('set', ['memory'], {})
         break
       case '8':
-        await (await import('../permissions')).permissionsCommand()
+        await (await import('../permissions')).listPermissions({})
         break
       case '9':
         await configSwitchCommand({ codeType: 'claude-code' })
@@ -1123,7 +1123,7 @@ async function isFirstTimeUser(): Promise<boolean> {
  * Show welcome screen for new users
  */
 async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
-  const { version } = await import('../../package.json')
+  const { version } = await import('../../../package.json')
 
   console.log('')
   console.log(ansis.green.bold('╔════════════════════════════════════════════════════════════════════════╗'))

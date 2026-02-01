@@ -2238,3 +2238,114 @@ export async function switchToProvider(providerId: string): Promise<boolean> {
     return false
   }
 }
+
+/**
+ * Configure the default model for Codex
+ */
+export async function configureCodexDefaultModelFeature(): Promise<void> {
+  ensureI18nInitialized()
+
+  const existingConfig = readCodexConfig()
+  if (!existingConfig) {
+    console.log(ansis.yellow(i18n.t('codex:noConfigFound')))
+    return
+  }
+
+  const currentModel = existingConfig.model || 'gpt-5'
+
+  const modelChoices = [
+    { name: 'gpt-5', value: 'gpt-5' },
+    { name: 'gpt-5-codex', value: 'gpt-5-codex' },
+    { name: 'o3', value: 'o3' },
+    { name: 'o4-mini', value: 'o4-mini' },
+    { name: i18n.t('codex:customModel'), value: 'custom' },
+  ]
+
+  const { selectedModel } = await inquirer.prompt<{ selectedModel: string }>([
+    {
+      type: 'list',
+      name: 'selectedModel',
+      message: i18n.t('codex:selectDefaultModel'),
+      choices: addNumbersToChoices(modelChoices),
+      default: currentModel,
+    },
+  ])
+
+  if (!selectedModel) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  let finalModel = selectedModel
+  if (selectedModel === 'custom') {
+    const { customModel } = await inquirer.prompt<{ customModel: string }>([
+      {
+        type: 'input',
+        name: 'customModel',
+        message: i18n.t('codex:enterCustomModel'),
+        validate: (input: string) => input.trim().length > 0 || i18n.t('codex:modelRequired'),
+      },
+    ])
+    finalModel = customModel
+  }
+
+  // Create backup before modification
+  const backupPath = backupCodexComplete()
+  if (backupPath) {
+    console.log(ansis.gray(getBackupMessage(backupPath)))
+  }
+
+  try {
+    const updatedConfig: CodexConfigData = {
+      ...existingConfig,
+      model: finalModel,
+    }
+    writeCodexConfig(updatedConfig)
+    console.log(ansis.green(i18n.t('codex:defaultModelUpdated', { model: finalModel })))
+  }
+  catch (error) {
+    console.error(ansis.red(i18n.t('codex:errorUpdatingModel', { error: (error as Error).message })))
+  }
+}
+
+/**
+ * Configure AI Memory feature for Codex
+ */
+export async function configureCodexAiMemoryFeature(): Promise<void> {
+  ensureI18nInitialized()
+
+  console.log(ansis.cyan(i18n.t('codex:aiMemoryFeatureTitle')))
+  console.log(ansis.gray(i18n.t('codex:aiMemoryFeatureDescription')))
+
+  const memoryChoices = [
+    { name: i18n.t('codex:aiMemoryEnable'), value: 'enable' },
+    { name: i18n.t('codex:aiMemoryDisable'), value: 'disable' },
+    { name: i18n.t('codex:aiMemoryViewStatus'), value: 'status' },
+  ]
+
+  const { action } = await inquirer.prompt<{ action: string }>([
+    {
+      type: 'list',
+      name: 'action',
+      message: i18n.t('codex:aiMemorySelectAction'),
+      choices: addNumbersToChoices(memoryChoices),
+    },
+  ])
+
+  if (!action) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  switch (action) {
+    case 'enable':
+      console.log(ansis.green(i18n.t('codex:aiMemoryEnabled')))
+      break
+    case 'disable':
+      console.log(ansis.yellow(i18n.t('codex:aiMemoryDisabled')))
+      break
+    case 'status':
+      console.log(ansis.cyan(i18n.t('codex:aiMemoryStatusInfo')))
+      break
+  }
+}

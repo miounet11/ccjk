@@ -10,6 +10,7 @@
 import type { CAC } from 'cac'
 import type { SupportedLang } from './constants'
 import type { SkillCategory } from './skills/types'
+import type { HookType, HookCategory } from './hooks/types'
 import process from 'node:process'
 
 // ============================================================================
@@ -514,51 +515,23 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   // ==================== New v8.0.0 Commands ====================
-  {
-    name: 'task [action]',
-    description: 'Task management (create, list, update, delete, graph, stats, schedule)',
-    aliases: ['tasks'],
-    tier: 'extended',
-    options: [
-      { flags: '--lang, -l <lang>', description: 'Display language' },
-    ],
-    loader: async () => {
-      const { registerTaskCommands } = await import('./commands/task')
-      return async (options, action: unknown, ...args: unknown[]) => {
-        await registerTaskCommands(action as string, options, args)
-      }
-    },
-  },
-  {
-    name: 'keybinding [action]',
-    description: 'Keybinding management (list, add, remove, toggle, reset)',
-    aliases: ['kb'],
-    tier: 'extended',
-    options: [
-      { flags: '--lang, -l <lang>', description: 'Display language' },
-    ],
-    loader: async () => {
-      const { registerKeybindingCommands } = await import('./commands/keybinding')
-      return async (options, action: unknown, ...args: unknown[]) => {
-        await registerKeybindingCommands(action as string, options, args)
-      }
-    },
-  },
-  {
-    name: 'history [action]',
-    description: 'History management (list, search, stats, clear)',
-    aliases: ['hist'],
-    tier: 'extended',
-    options: [
-      { flags: '--lang, -l <lang>', description: 'Display language' },
-    ],
-    loader: async () => {
-      const { registerHistoryCommands } = await import('./commands/history')
-      return async (options, action: unknown, ...args: unknown[]) => {
-        await registerHistoryCommands(action as string, options, args)
-      }
-    },
-  },
+  // Note: task, keybinding, and history commands use Commander.js subcommand pattern
+  // They are registered via registerSpecialCommands() instead of lazy loading
+  // {
+  //   name: 'task [action]',
+  //   description: 'Task management (create, list, update, delete, graph, stats, schedule)',
+  //   aliases: ['tasks'],
+  //   tier: 'extended',
+  //   options: [
+  //     { flags: '--lang, -l <lang>', description: 'Display language' },
+  //   ],
+  //   loader: async () => {
+  //     // TODO: Implement CAC-compatible task command handler
+  //     return async () => {
+  //       console.log('Task command not yet implemented for CAC')
+  //     }
+  //   },
+  // },
   // ========================================================================
   {
     name: 'ccr',
@@ -999,22 +972,22 @@ const COMMANDS: CommandDefinition[] = [
 
         if (actionStr === 'init') {
           const ora = (await import('ora')).default
-          const chalk = (await import('chalk')).default
+          const ansis = (await import('ansis')).default
           const spinner = ora('Analyzing historical fix commits...').start()
           try {
             const result = await manager.init()
-            spinner.succeed(chalk.green('Postmortem system initialized'))
-            console.log(`\n   ${chalk.yellow('Reports generated:')} ${result.created}`)
-            console.log(`   ${chalk.yellow('Directory:')} ${result.directory}\n`)
+            spinner.succeed(ansis.green('Postmortem system initialized'))
+            console.log(`\n   ${ansis.yellow('Reports generated:')} ${result.created}`)
+            console.log(`   ${ansis.yellow('Directory:')} ${result.directory}\n`)
           }
           catch (error) {
-            spinner.fail(chalk.red('Initialization failed'))
+            spinner.fail(ansis.red('Initialization failed'))
             console.error(error)
           }
         }
         else if (actionStr === 'generate' || actionStr === 'gen') {
           const ora = (await import('ora')).default
-          const chalk = (await import('chalk')).default
+          const ansis = (await import('ansis')).default
           const spinner = ora('Analyzing commits...').start()
           try {
             if (options.version) {
@@ -1023,24 +996,24 @@ const COMMANDS: CommandDefinition[] = [
                 since: options.since as string,
                 until: options.until as string,
               })
-              spinner.succeed(chalk.green('Release summary generated'))
-              console.log(`\n   ${chalk.yellow('Version:')} ${summary.version}`)
-              console.log(`   ${chalk.yellow('Fix commits:')} ${summary.fixCommitCount}`)
-              console.log(`   ${chalk.yellow('New postmortems:')} ${summary.newPostmortems.length}\n`)
+              spinner.succeed(ansis.green('Release summary generated'))
+              console.log(`\n   ${ansis.yellow('Version:')} ${summary.version}`)
+              console.log(`   ${ansis.yellow('Fix commits:')} ${summary.fixCommitCount}`)
+              console.log(`   ${ansis.yellow('New postmortems:')} ${summary.newPostmortems.length}\n`)
             }
             else {
               const result = await manager.init()
-              spinner.succeed(chalk.green('Postmortem generation complete'))
-              console.log(`\n   ${chalk.yellow('Reports:')} ${result.created}\n`)
+              spinner.succeed(ansis.green('Postmortem generation complete'))
+              console.log(`\n   ${ansis.yellow('Reports:')} ${result.created}\n`)
             }
           }
           catch (error) {
-            spinner.fail(chalk.red('Generation failed'))
+            spinner.fail(ansis.red('Generation failed'))
             console.error(error)
           }
         }
         else if (actionStr === 'list' || actionStr === 'ls') {
-          const chalk = (await import('chalk')).default
+          const ansis = (await import('ansis')).default
           let reports = manager.listReports()
           if (options.severity)
             reports = reports.filter(r => r.severity === options.severity)
@@ -1050,44 +1023,44 @@ const COMMANDS: CommandDefinition[] = [
             reports = reports.filter(r => r.status === options.status)
 
           if (reports.length === 0) {
-            console.log(chalk.yellow('\nNo postmortem reports found'))
-            console.log(chalk.gray('Run "ccjk postmortem init" to initialize\n'))
+            console.log(ansis.yellow('\nNo postmortem reports found'))
+            console.log(ansis.gray('Run "ccjk postmortem init" to initialize\n'))
             return
           }
 
           const severityEmoji: Record<string, string> = { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' }
-          console.log(chalk.cyan.bold('\n📋 Postmortem Reports'))
-          console.log(chalk.gray('─'.repeat(50)))
+          console.log(ansis.cyan.bold('\n📋 Postmortem Reports'))
+          console.log(ansis.gray('─'.repeat(50)))
           for (const r of reports) {
-            console.log(`\n${severityEmoji[r.severity] || '⚪'} ${chalk.bold(r.id)}: ${r.title}`)
-            console.log(`   ${chalk.gray('Category:')} ${r.category}  ${chalk.gray('Status:')} ${r.status}`)
+            console.log(`\n${severityEmoji[r.severity] || '⚪'} ${ansis.bold(r.id)}: ${r.title}`)
+            console.log(`   ${ansis.gray('Category:')} ${r.category}  ${ansis.gray('Status:')} ${r.status}`)
           }
-          console.log(chalk.gray(`\n─ Total: ${reports.length} reports ─\n`))
+          console.log(ansis.gray(`\n─ Total: ${reports.length} reports ─\n`))
         }
         else if (actionStr === 'show') {
-          const chalk = (await import('chalk')).default
+          const ansis = (await import('ansis')).default
           const id = argsArr[0]
           if (!id) {
-            console.log(chalk.red('Please specify a postmortem ID'))
+            console.log(ansis.red('Please specify a postmortem ID'))
             return
           }
           const report = manager.getReport(id)
           if (!report) {
-            console.log(chalk.red(`Postmortem not found: ${id}`))
+            console.log(ansis.red(`Postmortem not found: ${id}`))
             return
           }
-          console.log(chalk.cyan.bold(`\n═══ ${report.id}: ${report.title} ═══\n`))
-          console.log(`${chalk.yellow('Severity:')} ${report.severity.toUpperCase()}`)
-          console.log(`${chalk.yellow('Category:')} ${report.category}`)
-          console.log(`${chalk.yellow('Status:')} ${report.status}`)
-          console.log(`\n${chalk.cyan('Description:')}\n${report.description}`)
-          console.log(`\n${chalk.cyan('Root Cause:')}\n${report.rootCause.map(c => `  • ${c}`).join('\n')}`)
-          console.log(`\n${chalk.cyan('Prevention:')}\n${report.preventionMeasures.map(m => `  • ${m}`).join('\n')}`)
-          console.log(`\n${chalk.cyan('AI Directives:')}\n${report.aiDirectives.map(d => `  • ${d}`).join('\n')}\n`)
+          console.log(ansis.cyan.bold(`\n═══ ${report.id}: ${report.title} ═══\n`))
+          console.log(`${ansis.yellow('Severity:')} ${report.severity.toUpperCase()}`)
+          console.log(`${ansis.yellow('Category:')} ${report.category}`)
+          console.log(`${ansis.yellow('Status:')} ${report.status}`)
+          console.log(`\n${ansis.cyan('Description:')}\n${report.description}`)
+          console.log(`\n${ansis.cyan('Root Cause:')}\n${report.rootCause.map(c => `  • ${c}`).join('\n')}`)
+          console.log(`\n${ansis.cyan('Prevention:')}\n${report.preventionMeasures.map(m => `  • ${m}`).join('\n')}`)
+          console.log(`\n${ansis.cyan('AI Directives:')}\n${report.aiDirectives.map(d => `  • ${d}`).join('\n')}\n`)
         }
         else if (actionStr === 'check') {
           const ora = (await import('ora')).default
-          const chalk = (await import('chalk')).default
+          const ansis = (await import('ansis')).default
           const spinner = ora('Checking code...').start()
           try {
             const result = await manager.checkCode({
@@ -1095,8 +1068,8 @@ const COMMANDS: CommandDefinition[] = [
               files: argsArr.length > 0 ? argsArr : undefined,
             })
             spinner.stop()
-            console.log(chalk.cyan.bold('\n🔍 Postmortem Code Check'))
-            console.log(chalk.gray('─'.repeat(40)))
+            console.log(ansis.cyan.bold('\n🔍 Postmortem Code Check'))
+            console.log(ansis.gray('─'.repeat(40)))
             console.log(`   Files checked: ${result.filesChecked}`)
             console.log(`   Issues found: ${result.issuesFound.length}`)
             console.log(`\n   🔴 Critical: ${result.summary.critical}`)
@@ -1105,54 +1078,54 @@ const COMMANDS: CommandDefinition[] = [
             console.log(`   🟢 Low: ${result.summary.low}`)
 
             if (result.issuesFound.length > 0) {
-              console.log(chalk.yellow('\n⚠️ Issues:'))
+              console.log(ansis.yellow('\n⚠️ Issues:'))
               for (const issue of result.issuesFound.slice(0, 10)) {
                 console.log(`\n   ${issue.file}:${issue.line}`)
                 console.log(`   ${issue.message}`)
               }
             }
 
-            console.log(result.passed ? chalk.green('\n✅ Check passed\n') : chalk.red('\n❌ Check failed\n'))
+            console.log(result.passed ? ansis.green('\n✅ Check passed\n') : ansis.red('\n❌ Check failed\n'))
             if (!result.passed && options.ci)
               process.exit(1)
           }
           catch (error) {
-            spinner.fail(chalk.red('Check failed'))
+            spinner.fail(ansis.red('Check failed'))
             console.error(error)
           }
         }
         else if (actionStr === 'sync') {
           const ora = (await import('ora')).default
-          const chalk = (await import('chalk')).default
+          const ansis = (await import('ansis')).default
           const spinner = ora('Syncing to CLAUDE.md...').start()
           try {
             const result = await manager.syncToClaudeMd()
-            spinner.succeed(chalk.green('Sync complete'))
-            console.log(`\n   ${chalk.yellow('Synced:')} ${result.synced} items`)
-            console.log(`   ${chalk.yellow('File:')} ${result.claudeMdPath}\n`)
+            spinner.succeed(ansis.green('Sync complete'))
+            console.log(`\n   ${ansis.yellow('Synced:')} ${result.synced} items`)
+            console.log(`   ${ansis.yellow('File:')} ${result.claudeMdPath}\n`)
           }
           catch (error) {
-            spinner.fail(chalk.red('Sync failed'))
+            spinner.fail(ansis.red('Sync failed'))
             console.error(error)
           }
         }
         else if (actionStr === 'stats') {
-          const chalk = (await import('chalk')).default
+          const ansis = (await import('ansis')).default
           const index = manager.loadIndex()
           if (!index) {
-            console.log(chalk.yellow('\nNo statistics available'))
-            console.log(chalk.gray('Run "ccjk postmortem init" to initialize\n'))
+            console.log(ansis.yellow('\nNo statistics available'))
+            console.log(ansis.gray('Run "ccjk postmortem init" to initialize\n'))
             return
           }
-          console.log(chalk.cyan.bold('\n📊 Postmortem Statistics'))
-          console.log(chalk.gray('─'.repeat(40)))
-          console.log(`\n${chalk.yellow('Total:')} ${index.stats.total} reports`)
-          console.log(`\n${chalk.yellow('By Severity:')}`)
+          console.log(ansis.cyan.bold('\n📊 Postmortem Statistics'))
+          console.log(ansis.gray('─'.repeat(40)))
+          console.log(`\n${ansis.yellow('Total:')} ${index.stats.total} reports`)
+          console.log(`\n${ansis.yellow('By Severity:')}`)
           console.log(`   🔴 Critical: ${index.stats.bySeverity.critical}`)
           console.log(`   🟠 High: ${index.stats.bySeverity.high}`)
           console.log(`   🟡 Medium: ${index.stats.bySeverity.medium}`)
           console.log(`   🟢 Low: ${index.stats.bySeverity.low}`)
-          console.log(`\n${chalk.yellow('By Status:')}`)
+          console.log(`\n${ansis.yellow('By Status:')}`)
           console.log(`   ⚡ Active: ${index.stats.byStatus.active}`)
           console.log(`   ✅ Resolved: ${index.stats.byStatus.resolved}`)
           console.log(`   👀 Monitoring: ${index.stats.byStatus.monitoring}`)
@@ -1303,14 +1276,15 @@ const COMMANDS: CommandDefinition[] = [
   },
   {
     name: 'ccjk:skills',
-    description: 'Install and manage CCJK skills',
+    description: 'Auto-recommend and install CCJK skills based on project analysis',
     aliases: ['ccjk-skills'],
     tier: 'extended',
     options: [
-      { flags: '--list', description: 'List available skills' },
-      { flags: '--install <skills>', description: 'Install specific skills (comma-separated)' },
-      { flags: '--uninstall <skills>', description: 'Uninstall specific skills (comma-separated)' },
-      { flags: '--tier <tier>', description: 'Skill tier filter' },
+      { flags: '--category <category>', description: 'Filter by skill category' },
+      { flags: '--tags <tags>', description: 'Filter by tags (comma-separated)' },
+      { flags: '--exclude <skills>', description: 'Exclude specific skills (comma-separated)' },
+      { flags: '--dry-run', description: 'Show recommendations without installing' },
+      { flags: '--force', description: 'Force installation even if already installed' },
       { flags: '--json', description: 'JSON output' },
       { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
     ],
@@ -1318,10 +1292,11 @@ const COMMANDS: CommandDefinition[] = [
       return async (options: CliOptions) => {
         const { ccjkSkills } = await import('./commands/ccjk-skills')
         await ccjkSkills({
-          list: options.list as boolean,
-          install: options.install as string,
-          uninstall: options.uninstall as string,
-          tier: options.tier as string,
+          category: options.category as SkillCategory | undefined,
+          tags: options.tags ? (options.tags as string).split(',') : undefined,
+          exclude: options.exclude ? (options.exclude as string).split(',') : undefined,
+          dryRun: options.dryRun as boolean,
+          force: options.force as boolean,
           json: options.json as boolean,
           lang: options.lang as SupportedLang,
         })
@@ -1357,29 +1332,29 @@ const COMMANDS: CommandDefinition[] = [
   },
   {
     name: 'ccjk:hooks',
-    description: 'Manage CCJK hooks and automation',
+    description: 'Auto-recommend and configure CCJK hooks based on project analysis',
     aliases: ['ccjk-hooks'],
     tier: 'extended',
     options: [
-      { flags: '--list', description: 'List installed hooks' },
-      { flags: '--install <hooks>', description: 'Install hooks (comma-separated)' },
-      { flags: '--uninstall <hooks>', description: 'Uninstall hooks (comma-separated)' },
-      { flags: '--enable <hooks>', description: 'Enable hooks (comma-separated)' },
-      { flags: '--disable <hooks>', description: 'Disable hooks (comma-separated)' },
+      { flags: '--type <type>', description: 'Filter by hook type (pre-commit, post-commit, etc.)' },
+      { flags: '--category <category>', description: 'Filter by category (quality, security, etc.)' },
+      { flags: '--exclude <hooks>', description: 'Exclude specific hooks (comma-separated)' },
+      { flags: '--enabled', description: 'Only show enabled hooks' },
+      { flags: '--dry-run', description: 'Show recommendations without installing' },
       { flags: '--json', description: 'JSON output' },
-      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+      { flags: '--verbose', description: 'Verbose output' },
     ],
     loader: async () => {
       return async (options: CliOptions) => {
         const { ccjkHooks } = await import('./commands/ccjk-hooks')
         await ccjkHooks({
-          list: options.list as boolean,
-          install: options.install as string,
-          uninstall: options.uninstall as string,
-          enable: options.enable as string,
-          disable: options.disable as string,
+          type: options.type as HookType | 'all' | undefined,
+          category: options.category as HookCategory | 'all' | undefined,
+          exclude: options.exclude ? (options.exclude as string).split(',') : undefined,
+          enabled: options.enabled as boolean,
+          dryRun: options.dryRun as boolean,
           json: options.json as boolean,
-          lang: options.lang as SupportedLang,
+          verbose: options.verbose as boolean,
         })
       }
     },
@@ -1444,8 +1419,8 @@ const COMMANDS: CommandDefinition[] = [
           strategy: options.strategy as 'cloud-smart' | 'cloud-conservative' | 'local-fallback',
           useCloud: options.useCloud as boolean,
           cloudEndpoint: options.cloudEndpoint as string,
-          cacheStrategy: options.cacheStrategy as string,
-          showReasons: options.showReasons as boolean,
+          cacheStrategy: options.cacheStrategy as 'aggressive' | 'normal' | 'disabled',
+          showRecommendationReason: options.showReasons as boolean,
           showConfidence: options.showConfidence as boolean,
           showComparison: options.showComparison as boolean,
           submitTelemetry: options.submitTelemetry as boolean,
@@ -1477,14 +1452,14 @@ const COMMANDS: CommandDefinition[] = [
         const { ccjkSetup } = await import('./commands/ccjk-setup')
         const exitCode = await ccjkSetup({
           profile: options.profile as 'minimal' | 'recommended' | 'full' | 'custom',
-          resources: options.resources ? (options.resources as string).split(',') : undefined,
+          resources: options.resources ? (options.resources as string).split(',') as ('skills' | 'mcp' | 'agents' | 'hooks')[] : undefined,
           parallel: options.parallel as boolean,
-          maxConcurrency: options.maxConcurrency as number,
+          maxConcurrency: options.maxConcurrency ? Number(options.maxConcurrency) : undefined,
           interactive: options.interactive !== false,
           autoConfirm: options.autoConfirm as boolean,
           dryRun: options.dryRun as boolean,
           json: options.json as boolean,
-          lang: options.lang as SupportedLang,
+          lang: options.lang as 'en' | 'zh-CN',
         })
         if (exitCode !== 0) {
           process.exit(exitCode)

@@ -26,5 +26,10 @@
     "failed": "❌ Failed to create backup",
     "removed": "🗑️  Removed old backup: {path}",
     "removeFailed": "⚠️  Failed to remove backup: {path}"
+  },
+  "autoCompact": {
+    "compacting": "🗜️  Auto-compacting conversation ({{current}}/{{max}} messages)...",
+    "success": "✅ Conversation compacted: {{before}} → {{after}} messages",
+    "failed": "❌ Auto-compact failed: {{error}}"
   }
 }

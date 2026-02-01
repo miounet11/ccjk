@@ -6,6 +6,8 @@
 import process from 'node:process'
 import ansis from 'ansis'
 import { checkAgentBrowserInstalled, getInstallPath } from './installer'
+
+const { cyan, yellow, gray, green, red, blue, bold, dim } = ansis
 import { AgentBrowserSession } from './session'
 
 // ============================================================================

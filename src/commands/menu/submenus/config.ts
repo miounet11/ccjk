@@ -11,11 +11,11 @@
  * - Context management
  */
 
-import type { SupportedLang } from '../../constants'
+import type { SupportedLang } from '../../../constants'
 import type { MenuDefinition, MenuItem } from '../types'
-import { i18n } from '../../i18n'
-import { configureAiMemoryFeature, configureApiFeature, configureDefaultModelFeature, configureEnvPermissionFeature, configureMcpFeature } from '../../utils/features'
-import { showContextMenu } from '../context-menu'
+import { i18n } from '../../../i18n/index'
+import { configureAiMemoryFeature, configureApiFeature, configureDefaultModelFeature, configureEnvPermissionFeature, configureMcpFeature } from '../../../utils/features'
+import { showContextMenu } from '../../context-menu'
 
 /**
  * Configuration submenu items
@@ -96,7 +96,7 @@ export const configMenuItems: MenuItem[] = [
     icon: '🔀',
     shortcut: '6',
     handler: async () => {
-      const { configSwitchCommand } = await import('../config-switch')
+      const { configSwitchCommand } = await import('../../config-switch')
       await configSwitchCommand({ codeType: 'claude-code' })
     },
   },

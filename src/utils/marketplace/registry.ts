@@ -426,3 +426,86 @@ export async function getPackagesByCategory(
   const result = await searchPackages({ category: category as any })
   return result.packages
 }
+
+/**
+ * Show marketplace menu
+ */
+export async function showMarketplaceMenu(): Promise<void> {
+  const { default: inquirer } = await import('inquirer')
+  const { default: ansis } = await import('ansis')
+
+  console.log(ansis.cyan('\n📦 Plugin Marketplace'))
+
+  const { action } = await inquirer.prompt([{
+    type: 'list',
+    name: 'action',
+    message: 'Select an action:',
+    choices: [
+      { name: '🔍 Search packages', value: 'search' },
+      { name: '⭐ Featured packages', value: 'featured' },
+      { name: '📋 Browse by category', value: 'category' },
+      { name: '📥 Installed packages', value: 'installed' },
+      { name: '← Back', value: 'back' },
+    ],
+  }])
+
+  if (action === 'back') return
+
+  switch (action) {
+    case 'search': {
+      const { query } = await inquirer.prompt([{
+        type: 'input',
+        name: 'query',
+        message: 'Search query:',
+      }])
+      if (query) {
+        const results = await searchPackages({ query })
+        console.log(ansis.green(`\nFound ${results.total} packages:`))
+        for (const pkg of results.packages.slice(0, 10)) {
+          console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`)
+        }
+      }
+      break
+    }
+    case 'featured': {
+      const featured = await getFeaturedPackages()
+      console.log(ansis.green('\n⭐ Featured packages:'))
+      for (const pkg of featured.slice(0, 10)) {
+        console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`)
+      }
+      break
+    }
+    case 'category': {
+      const { category } = await inquirer.prompt([{
+        type: 'list',
+        name: 'category',
+        message: 'Select category:',
+        choices: [
+          { name: '🔧 Tools', value: 'tools' },
+          { name: '📝 Skills', value: 'skills' },
+          { name: '🎨 Themes', value: 'themes' },
+          { name: '🔌 Integrations', value: 'integrations' },
+        ],
+      }])
+      const packages = await getPackagesByCategory(category)
+      console.log(ansis.green(`\n${category} packages:`))
+      for (const pkg of packages.slice(0, 10)) {
+        console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`)
+      }
+      break
+    }
+    case 'installed': {
+      const { getInstalledPackages } = await import('./installer.js')
+      const installed = await getInstalledPackages()
+      if (installed.length === 0) {
+        console.log(ansis.yellow('\nNo packages installed'))
+      } else {
+        console.log(ansis.green('\n📥 Installed packages:'))
+        for (const pkg of installed) {
+          console.log(`  ${ansis.cyan(pkg.name)} v${pkg.version}`)
+        }
+      }
+      break
+    }
+  }
+}

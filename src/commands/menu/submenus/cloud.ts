@@ -12,9 +12,9 @@
 import type { MenuDefinition, MenuItem } from '../types'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { i18n } from '../../i18n'
-import { showMarketplaceMenu as showLegacyMarketplaceMenu } from '../../utils/marketplace/registry'
-import { addNumbersToChoices } from '../../utils/prompt-helpers'
+import { i18n } from '../../../i18n/index'
+import { showMarketplaceMenu as showLegacyMarketplaceMenu } from '../../../utils/marketplace/registry'
+import { addNumbersToChoices } from '../../../utils/prompt-helpers'
 import {
   checkSuperpowersInstalled,
   getSuperpowersSkills,
@@ -22,10 +22,10 @@ import {
   installSuperpowersViaGit,
   uninstallSuperpowers,
   updateSuperpowers,
-} from '../../utils/superpowers'
-import { hooksSync } from '../hooks-sync'
-import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from '../mcp-market'
-import { notificationCommand } from '../notification'
+} from '../../../utils/superpowers'
+import { hooksSync } from '../../hooks-sync'
+import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from '../../mcp-market'
+import { notificationCommand } from '../../notification'
 
 /**
  * Show Superpowers management menu

@@ -5,8 +5,8 @@
  * intelligent agent selection, task decomposition, and result aggregation.
  */
 
-import type { AgentCapability, Task } from '../types/agent.js'
-import { AGENT_REGISTRY } from './registry.js'
+import type { Task } from '../types/agent.js'
+import { AGENT_REGISTRY, type ExtendedAgentCapability } from './registry.js'
 
 // Types for orchestration system (local definitions to avoid circular dependencies)
 export interface Agent {
@@ -60,13 +60,6 @@ export interface OrchestratorResult {
   }
 }
 
-// Extended AgentCapability with orchestration-specific fields
-interface ExtendedAgentCapability extends AgentCapability {
-  expertise: string[]
-  cost: number
-  canCollaborate: string[]
-}
-
 /**
  * Default orchestrator configuration
  */
@@ -93,7 +86,7 @@ export class AgentOrchestrator {
    * Select appropriate agents for a given task
    */
   async selectAgents(task: Task): Promise<Agent[]> {
-    const taskKeywords = this.extractKeywords(task.description + ' ' + task.requirements.join(' '))
+    const taskKeywords = this.extractKeywords(task.description + ' ' + task.requiredCapabilities.join(' '))
     const scoredAgents = this.registry.map(agent => ({
       agent,
       score: this.calculateRelevanceScore(agent, taskKeywords),
@@ -344,19 +337,19 @@ export class AgentOrchestrator {
     const subtasks: Task[] = []
 
     // Strategy 1: Split by requirements
-    if (task.requirements.length >= agentCount) {
-      const reqsPerAgent = Math.ceil(task.requirements.length / agentCount)
+    if (task.requiredCapabilities.length >= agentCount) {
+      const reqsPerAgent = Math.ceil(task.requiredCapabilities.length / agentCount)
 
       for (let i = 0; i < agentCount; i++) {
         const start = i * reqsPerAgent
         const end = start + reqsPerAgent
-        const subReqs = task.requirements.slice(start, end)
+        const subReqs = task.requiredCapabilities.slice(start, end)
 
         if (subReqs.length > 0) {
           subtasks.push({
             ...task,
             description: `${task.description} (Part ${i + 1}/${agentCount})`,
-            requirements: subReqs,
+            requiredCapabilities: subReqs,
           })
         }
       }
@@ -375,7 +368,7 @@ export class AgentOrchestrator {
           subtasks.push({
             ...task,
             description: `${task.description} (${agentPhases.join(' → ')})`,
-            requirements: task.requirements,
+            requiredCapabilities: task.requiredCapabilities,
           })
         }
       }
@@ -440,19 +433,19 @@ export class AgentOrchestrator {
   private determinePhases(task: Task): string[] {
     const phases: string[] = []
 
-    if (task.requirements.some(r => r.includes('test'))) {
+    if (task.requiredCapabilities.some(r => r.includes('test'))) {
       phases.push('test')
     }
 
-    if (task.requirements.some(r => r.includes('implement') || r.includes('code'))) {
+    if (task.requiredCapabilities.some(r => r.includes('implement') || r.includes('code'))) {
       phases.push('implement')
     }
 
-    if (task.requirements.some(r => r.includes('review') || r.includes('check'))) {
+    if (task.requiredCapabilities.some(r => r.includes('review') || r.includes('check'))) {
       phases.push('review')
     }
 
-    if (task.requirements.some(r => r.includes('plan') || r.includes('design'))) {
+    if (task.requiredCapabilities.some(r => r.includes('plan') || r.includes('design'))) {
       phases.unshift('plan')
     }
 

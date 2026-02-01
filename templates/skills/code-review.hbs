@@ -1,0 +1,141 @@
+---
+name: code-review
+description: Comprehensive code review with actionable feedback
+version: 1.0.0
+author: CCJK Team
+category: review
+triggers:
+  - /review
+  - /code-review
+  - /cr
+use_when:
+  - User wants code reviewed
+  - When preparing for PR
+  - When checking code quality
+auto_activate: true
+priority: 7
+user_invocable: true
+context: inherit
+args:
+  - name: target
+    description: File, directory, or git ref to review
+    required: true
+    type: string
+  - name: focus
+    description: Review focus (security, performance, style, all)
+    required: false
+    default: "all"
+allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(git diff *)
+  - Bash(git log *)
+  - Bash(git show *)
+hooks:
+  - type: SkillActivate
+    command: "git diff --stat HEAD~1"
+timeout: 300
+---
+
+# Code Review Skill
+
+Comprehensive code review that provides actionable feedback following industry best practices.
+
+## Arguments
+
+- `$0` - **target**: File, directory, or git ref to review (required)
+- `$1` - **focus**: Review focus area - security, performance, style, or all (default: "all")
+
+## Review Checklist
+
+### 🔒 Security (if focus includes security)
+
+- [ ] No hardcoded secrets or credentials
+- [ ] Input validation on user data
+- [ ] SQL injection prevention
+- [ ] XSS prevention
+- [ ] CSRF protection
+- [ ] Proper authentication/authorization
+- [ ] Secure dependencies (no known vulnerabilities)
+
+### ⚡ Performance (if focus includes performance)
+
+- [ ] No N+1 queries
+- [ ] Efficient algorithms (appropriate Big-O)
+- [ ] Proper caching strategies
+- [ ] Lazy loading where appropriate
+- [ ] No memory leaks
+- [ ] Optimized bundle size
+
+### 📝 Code Style (if focus includes style)
+
+- [ ] Consistent naming conventions
+- [ ] Proper TypeScript types (no `any`)
+- [ ] Clear function/variable names
+- [ ] Appropriate comments (why, not what)
+- [ ] No dead code
+- [ ] DRY principle followed
+
+### 🏗️ Architecture
+
+- [ ] Single responsibility principle
+- [ ] Proper separation of concerns
+- [ ] Testable code structure
+- [ ] Error handling coverage
+- [ ] Logging for debugging
+
+## Review Process
+
+### Step 1: Context Gathering
+
+1. Read the target files: `$0`
+2. Understand the change purpose
+3. Check related tests
+
+### Step 2: Analysis
+
+1. Apply checklist based on focus: `$1`
+2. Identify issues by severity:
+   - 🔴 **Critical**: Must fix before merge
+   - 🟡 **Warning**: Should fix, but not blocking
+   - 🔵 **Suggestion**: Nice to have improvements
+
+### Step 3: Feedback
+
+Provide feedback in this format:
+
+```markdown
+## Review Summary
+
+**Files Reviewed**: X
+**Issues Found**: Y (Z critical)
+
+### Critical Issues 🔴
+
+1. **[file:line]** Issue description
+   - Problem: What's wrong
+   - Solution: How to fix
+   - Example: Code snippet
+
+### Warnings 🟡
+
+...
+
+### Suggestions 🔵
+
+...
+
+### Positive Highlights ✅
+
+- Good patterns observed
+- Well-written sections
+```
+
+## Example Usage
+
+```
+/review src/api/
+/code-review HEAD~3..HEAD security
+/cr ./components/Auth.tsx all
+```

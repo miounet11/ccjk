@@ -1,0 +1,72 @@
+---
+name: {{name}}
+description: {{description}}
+version: 1.0.0
+author: {{author}}
+category: {{category}}
+triggers:
+  - /{{name}}
+{{#if aliases}}
+{{#each aliases}}
+  - /{{this}}
+{{/each}}
+{{/if}}
+use_when:
+  - {{use_when}}
+auto_activate: {{auto_activate}}
+priority: {{priority}}
+user_invocable: true
+context: {{context}}
+{{#if args}}
+args:
+{{#each args}}
+  - name: {{this.name}}
+    description: {{this.description}}
+    required: {{this.required}}
+{{#if this.default}}
+    default: "{{this.default}}"
+{{/if}}
+{{/each}}
+{{/if}}
+{{#if allowed_tools}}
+allowed_tools:
+{{#each allowed_tools}}
+  - {{this}}
+{{/each}}
+{{/if}}
+{{#if hooks}}
+hooks:
+{{#each hooks}}
+  - type: {{this.type}}
+{{#if this.matcher}}
+    matcher: "{{this.matcher}}"
+{{/if}}
+{{#if this.command}}
+    command: "{{this.command}}"
+{{/if}}
+{{/each}}
+{{/if}}
+timeout: {{timeout}}
+---
+
+# {{title}}
+
+{{description}}
+
+## Instructions
+
+{{instructions}}
+
+{{#if args}}
+## Arguments
+
+{{#each args}}
+- `${{@index}}` - **{{this.name}}**: {{this.description}}{{#if this.required}} (required){{/if}}{{#if this.default}} (default: "{{this.default}}"){{/if}}
+{{/each}}
+{{/if}}
+
+## Example Usage
+
+```
+/{{name}}{{#if args}} {{#each args}}{{#if this.required}}<{{this.name}}>{{else}}[{{this.name}}]{{/if}} {{/each}}{{/if}}
+```

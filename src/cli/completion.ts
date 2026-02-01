@@ -48,7 +48,7 @@ export interface CompletionProvider {
   getOptions(command: string): OptionInfo[]
   getSubcommands(command: string): SubcommandInfo[]
   getValues(command: string, option: string): Promise<string[]>
-  generateScript(shell: ShellType): string
+  generateScript(shell: ShellType): Promise<string>
 }
 
 export interface CompletionOptions {
@@ -406,16 +406,16 @@ class CCJKCompletionProvider implements CompletionProvider {
     return opt.values
   }
 
-  generateScript(shell: ShellType): string {
+  async generateScript(shell: ShellType): Promise<string> {
     switch (shell) {
       case 'bash':
-        return this.generateBashScript()
+        return await this.generateBashScript()
       case 'zsh':
-        return this.generateZshScript()
+        return await this.generateZshScript()
       case 'fish':
-        return this.generateFishScript()
+        return await this.generateFishScript()
       case 'powershell':
-        return this.generatePowerShellScript()
+        return await this.generatePowerShellScript()
       default:
         throw new Error(`Unsupported shell: ${shell}`)
     }
@@ -467,8 +467,7 @@ export async function getAvailableSkills(): Promise<string[]> {
   try {
     const { getSkillRegistry } = await import('../brain/skill-registry')
     const registry = getSkillRegistry()
-    // Use getAllSkills instead of listSkills
-    const skills = await registry.getAllSkills()
+    const skills = registry.getAll()
     return skills.map(s => s.id)
   }
   catch {

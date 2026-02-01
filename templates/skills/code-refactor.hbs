@@ -1,0 +1,133 @@
+---
+name: code-refactor
+description: Intelligent code refactoring with file operation priority
+version: 1.0.0
+author: CCJK Team
+category: dev
+triggers:
+  - /refactor
+  - /code-refactor
+use_when:
+  - User wants to refactor code
+  - When code needs restructuring or cleanup
+  - When improving code quality
+auto_activate: true
+priority: 7
+user_invocable: true
+context: inherit
+args:
+  - name: file
+    description: Target file or directory to refactor
+    required: true
+    type: path
+  - name: scope
+    description: Refactoring scope (function, class, module, all)
+    required: false
+    default: "all"
+allowed_tools:
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+  - Bash(git diff *)
+  - Bash(git status)
+hooks:
+  - type: SkillActivate
+    command: "git status --short"
+  - type: PreToolUse
+    matcher: "Edit(*)"
+    command: "echo 'Editing file...'"
+timeout: 600
+---
+
+# Code Refactoring Skill
+
+Intelligent code refactoring that prioritizes file operation tools (Read, Edit, Write) over bash commands, following Claude Code v2.1.21+ best practices.
+
+## Core Principles
+
+1. **File Operations First**: Always use Read/Edit/Write tools instead of cat/sed/awk
+2. **Preserve Behavior**: Refactoring must not change external behavior
+3. **Incremental Changes**: Make small, verifiable changes
+4. **Test Coverage**: Ensure tests pass after each change
+
+## Arguments
+
+- `$0` - **file**: Target file or directory to refactor (required)
+- `$1` - **scope**: Refactoring scope - function, class, module, or all (default: "all")
+
+## Workflow
+
+### Step 1: Analysis
+
+1. Use `Read` tool to examine the target file: `$0`
+2. Identify code smells and improvement opportunities
+3. Check for existing tests
+
+### Step 2: Planning
+
+1. List specific refactoring actions needed
+2. Prioritize by impact and risk
+3. Identify dependencies between changes
+
+### Step 3: Execution
+
+For each refactoring action:
+
+1. **Read** the current state of the code
+2. **Edit** with precise, minimal changes
+3. **Verify** the change doesn't break functionality
+
+### Step 4: Verification
+
+1. Run existing tests
+2. Check for type errors
+3. Verify git diff shows expected changes
+
+## Refactoring Patterns
+
+### Extract Function
+```typescript
+// Before
+function process() {
+  // complex logic A
+  // complex logic B
+}
+
+// After
+function process() {
+  doLogicA()
+  doLogicB()
+}
+```
+
+### Rename for Clarity
+```typescript
+// Before
+const d = getData()
+
+// After
+const userData = fetchUserData()
+```
+
+### Remove Dead Code
+- Delete unused imports
+- Remove commented-out code
+- Clean up unused variables
+
+## Important Rules
+
+1. **NEVER use bash for file editing** - Use Edit tool instead of sed/awk
+2. **NEVER use cat for reading** - Use Read tool
+3. **Always show diff preview** before committing changes
+4. **Preserve formatting** - Match existing code style
+5. **One concern per edit** - Don't mix unrelated changes
+
+## Example Usage
+
+```
+/refactor src/utils/config.ts function
+/refactor src/components/ all
+/code-refactor ./lib/parser.ts class
+```

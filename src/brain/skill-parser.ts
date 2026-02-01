@@ -9,6 +9,7 @@
 
 import type {
   Hook,
+  SkillArgument,
   SkillCategory,
   SkillDifficulty,
   SkillMdFile,
@@ -125,6 +126,7 @@ interface RawFrontmatter {
   permissions?: string[] | string
   timeout?: number
   outputs?: unknown[]
+  args?: unknown[] // Claude Code v2.1.19+ argument definitions
   [key: string]: unknown
 }
 
@@ -300,6 +302,8 @@ export class SkillParser {
       metadata.hooks = this.parseHooks(raw.hooks, warnings)
     if (raw.outputs !== undefined)
       metadata.outputs = this.parseOutputs(raw.outputs, warnings)
+    if (raw.args !== undefined)
+      metadata.args = this.parseArgs(raw.args, warnings)
 
     return metadata
   }
@@ -694,6 +698,77 @@ export class SkillParser {
     }
 
     return outputs
+  }
+
+  /**
+   * Parse args array (Claude Code v2.1.19+ argument definitions)
+   *
+   * Supports $0, $1, $2... shorthand for argument interpolation.
+   */
+  private parseArgs(value: unknown[], warnings: string[]): SkillArgument[] {
+    if (!Array.isArray(value))
+      throw new Error('args must be an array')
+
+    const args: SkillArgument[] = []
+
+    for (let i = 0; i < value.length; i++) {
+      const arg = value[i]
+      if (typeof arg !== 'object' || arg === null) {
+        warnings.push(`Argument at index ${i} is not an object, skipping`)
+        continue
+      }
+
+      const argObj = arg as Record<string, unknown>
+
+      // Validate required fields
+      const name = this.parseString(argObj.name, `args[${i}].name`, true)
+
+      if (!name)
+        continue
+
+      const parsedArg: SkillArgument = {
+        name,
+      }
+
+      // Optional fields
+      if (argObj.description !== undefined)
+        parsedArg.description = this.parseString(argObj.description, `args[${i}].description`)
+      if (argObj.required !== undefined)
+        parsedArg.required = this.parseBoolean(argObj.required, `args[${i}].required`)
+      if (argObj.default !== undefined)
+        parsedArg.default = this.parseString(argObj.default, `args[${i}].default`)
+
+      // Type validation
+      if (argObj.type !== undefined) {
+        const type = this.parseString(argObj.type, `args[${i}].type`)
+        const validTypes = ['string', 'number', 'boolean', 'path', 'url']
+        if (type && validTypes.includes(type)) {
+          parsedArg.type = type as SkillArgument['type']
+        }
+        else if (type) {
+          warnings.push(`Invalid argument type at index ${i}: ${type}, defaulting to 'string'`)
+        }
+      }
+
+      // Pattern validation
+      if (argObj.pattern !== undefined) {
+        const pattern = this.parseString(argObj.pattern, `args[${i}].pattern`)
+        if (pattern) {
+          // Validate regex pattern
+          try {
+            new RegExp(pattern)
+            parsedArg.pattern = pattern
+          }
+          catch {
+            warnings.push(`Invalid regex pattern at args[${i}].pattern: ${pattern}`)
+          }
+        }
+      }
+
+      args.push(parsedArg)
+    }
+
+    return args
   }
 
   /**
