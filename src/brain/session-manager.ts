@@ -12,8 +12,10 @@
 import type { CodeToolType } from '../constants'
 import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
+import * as fs from 'node:fs/promises'
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
+import * as path from 'node:path'
 import { join } from 'pathe'
 
 // ============================================================================
@@ -33,6 +35,7 @@ export interface GitInfo {
   forkPoint?: string // Commit hash where this session was forked from another
   remoteUrl?: string
   isDetached?: boolean
+  rootPath?: string // Git repository root path
 }
 
 export interface SessionMetadata {
@@ -777,10 +780,195 @@ export class SessionManager {
 }
 
 // ============================================================================
+// Cross-Session Recovery
+// ============================================================================
+
+/**
+ * Recovery checkpoint data
+ */
+export interface RecoveryCheckpoint {
+  sessionId: string
+  timestamp: Date
+  historyLength: number
+  lastMessagePreview: string
+  contextTokens: number
+  gitBranch?: string
+  workingDirectory: string
+}
+
+/**
+ * Cross-session recovery manager
+ *
+ * Provides crash recovery and session continuity features.
+ */
+export class CrossSessionRecovery {
+  private sessionManager: SessionManager
+  private checkpointFile: string
+  private maxCheckpoints = 10
+
+  constructor(sessionManager: SessionManager) {
+    this.sessionManager = sessionManager
+    this.checkpointFile = path.join(sessionManager['sessionsDir'], '.recovery-checkpoints.json')
+  }
+
+  /**
+   * Create a recovery checkpoint
+   */
+  async createCheckpoint(session: Session, contextTokens: number = 0): Promise<void> {
+    const checkpoint: RecoveryCheckpoint = {
+      sessionId: session.id,
+      timestamp: new Date(),
+      historyLength: session.history.length,
+      lastMessagePreview: this.getLastMessagePreview(session),
+      contextTokens,
+      gitBranch: session.gitInfo?.branch,
+      workingDirectory: session.gitInfo?.rootPath || process.cwd(),
+    }
+
+    const checkpoints = await this.loadCheckpoints()
+    checkpoints.unshift(checkpoint)
+
+    // Keep only recent checkpoints
+    const trimmed = checkpoints.slice(0, this.maxCheckpoints)
+
+    await fs.writeFile(
+      this.checkpointFile,
+      JSON.stringify(trimmed, null, 2),
+      'utf-8',
+    )
+  }
+
+  /**
+   * Get last message preview
+   */
+  private getLastMessagePreview(session: Session): string {
+    const lastEntry = session.history[session.history.length - 1]
+    if (!lastEntry) {
+      return '(empty session)'
+    }
+
+    const preview = lastEntry.content.slice(0, 100)
+    return preview.length < lastEntry.content.length ? `${preview}...` : preview
+  }
+
+  /**
+   * Load recovery checkpoints
+   */
+  async loadCheckpoints(): Promise<RecoveryCheckpoint[]> {
+    try {
+      const data = await fs.readFile(this.checkpointFile, 'utf-8')
+      const checkpoints = JSON.parse(data)
+      return checkpoints.map((cp: any) => ({
+        ...cp,
+        timestamp: new Date(cp.timestamp),
+      }))
+    }
+    catch {
+      return []
+    }
+  }
+
+  /**
+   * Get the most recent checkpoint
+   */
+  async getLatestCheckpoint(): Promise<RecoveryCheckpoint | null> {
+    const checkpoints = await this.loadCheckpoints()
+    return checkpoints[0] || null
+  }
+
+  /**
+   * Get checkpoints for a specific session
+   */
+  async getSessionCheckpoints(sessionId: string): Promise<RecoveryCheckpoint[]> {
+    const checkpoints = await this.loadCheckpoints()
+    return checkpoints.filter(cp => cp.sessionId === sessionId)
+  }
+
+  /**
+   * Recover session from checkpoint
+   */
+  async recoverFromCheckpoint(checkpoint: RecoveryCheckpoint): Promise<Session | null> {
+    return this.sessionManager.loadSession(checkpoint.sessionId)
+  }
+
+  /**
+   * Find recoverable sessions (sessions with recent activity)
+   */
+  async findRecoverableSessions(maxAgeHours: number = 24): Promise<Session[]> {
+    const sessions = await this.sessionManager.listSessions({
+      sortBy: 'lastUsedAt',
+      order: 'desc',
+    })
+
+    const cutoff = new Date()
+    cutoff.setHours(cutoff.getHours() - maxAgeHours)
+
+    return sessions.filter(s => s.lastUsedAt >= cutoff)
+  }
+
+  /**
+   * Auto-recover: Find the best session to resume
+   */
+  async autoRecover(): Promise<Session | null> {
+    // First, try the latest checkpoint
+    const latestCheckpoint = await this.getLatestCheckpoint()
+
+    if (latestCheckpoint) {
+      const session = await this.recoverFromCheckpoint(latestCheckpoint)
+      if (session) {
+        return session
+      }
+    }
+
+    // Fall back to most recently used session
+    const recentSessions = await this.findRecoverableSessions(1) // Last hour
+
+    if (recentSessions.length > 0) {
+      return recentSessions[0]
+    }
+
+    return null
+  }
+
+  /**
+   * Clear all checkpoints
+   */
+  async clearCheckpoints(): Promise<void> {
+    try {
+      await fs.unlink(this.checkpointFile)
+    }
+    catch {
+      // File doesn't exist, ignore
+    }
+  }
+
+  /**
+   * Get recovery status
+   */
+  async getRecoveryStatus(): Promise<{
+    hasCheckpoints: boolean
+    checkpointCount: number
+    latestCheckpoint: RecoveryCheckpoint | null
+    recoverableSessions: number
+  }> {
+    const checkpoints = await this.loadCheckpoints()
+    const recoverableSessions = await this.findRecoverableSessions(24)
+
+    return {
+      hasCheckpoints: checkpoints.length > 0,
+      checkpointCount: checkpoints.length,
+      latestCheckpoint: checkpoints[0] || null,
+      recoverableSessions: recoverableSessions.length,
+    }
+  }
+}
+
+// ============================================================================
 // Singleton Instance
 // ============================================================================
 
 let sessionManagerInstance: SessionManager | null = null
+let crossSessionRecoveryInstance: CrossSessionRecovery | null = null
 
 /**
  * Get singleton session manager instance
@@ -793,8 +981,19 @@ export function getSessionManager(options?: SessionManagerOptions): SessionManag
 }
 
 /**
+ * Get singleton cross-session recovery instance
+ */
+export function getCrossSessionRecovery(): CrossSessionRecovery {
+  if (!crossSessionRecoveryInstance) {
+    crossSessionRecoveryInstance = new CrossSessionRecovery(getSessionManager())
+  }
+  return crossSessionRecoveryInstance
+}
+
+/**
  * Reset singleton instance (mainly for testing)
  */
 export function resetSessionManager(): void {
   sessionManagerInstance = null
+  crossSessionRecoveryInstance = null
 }

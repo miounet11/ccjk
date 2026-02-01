@@ -836,3 +836,94 @@ export * from './thinking-mode.js'
 
 // Re-export all types from types module
 export * from './types'
+
+// ============================================================================
+// SESSION MANAGEMENT & ZPA (Zero-Prompt Architecture)
+// ============================================================================
+
+/**
+ * Session Management System
+ *
+ * Provides comprehensive session management for CCJK:
+ * - Session creation, loading, saving, and forking
+ * - Git branch integration
+ * - Session search and statistics
+ * - Import/export functionality
+ */
+
+export {
+  SessionManager,
+  getSessionManager,
+  resetSessionManager,
+  CrossSessionRecovery,
+  getCrossSessionRecovery,
+} from './session-manager'
+
+export type {
+  Session,
+  SessionHistoryEntry,
+  SessionMetadata,
+  GitInfo as SessionGitInfo,
+  SessionManagerOptions,
+  SessionListOptions,
+  RecoveryCheckpoint,
+} from './session-manager'
+
+/**
+ * Auto Session Saver
+ *
+ * Automatic session persistence with crash recovery:
+ * - Periodic auto-save with configurable intervals
+ * - Crash recovery data management
+ * - Event-driven save triggers
+ */
+
+export {
+  AutoSessionSaver,
+  getAutoSessionSaver,
+  resetAutoSessionSaver,
+  createAutoSessionSaver,
+} from './auto-session-saver'
+
+export type {
+  AutoSessionSaverConfig,
+  AutoSaveEvent,
+  CrashRecoveryData,
+  AutoSessionSaverStats as AutoSaverStats,
+} from './auto-session-saver'
+
+/**
+ * Context Overflow Detection
+ *
+ * Proactive context management with predictive capabilities:
+ * - Token usage tracking and estimation
+ * - Overflow prediction with configurable thresholds
+ * - Auto-compact recommendations
+ * - Model-specific presets (Claude, GPT-4, custom)
+ */
+
+export {
+  ContextOverflowDetector,
+  PredictiveContextDetector,
+  getContextDetector,
+  resetContextDetector,
+  createClaudeDetector,
+  createGPT4Detector,
+  createCustomDetector,
+  createPredictiveClaudeDetector,
+} from './context-overflow-detector'
+
+export type {
+  ContextOverflowConfig,
+  UsageStats,
+  OverflowPrediction,
+} from './context-overflow-detector'
+
+/**
+ * Auto Compact Manager
+ *
+ * Intelligent context compaction:
+ * - Automatic compaction when thresholds are reached
+ * - Multiple compaction strategies
+ * - History preservation with summarization
+ */

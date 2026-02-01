@@ -5,6 +5,12 @@
  * Uses tiktoken-like approximation for token estimation and provides
  * configurable thresholds for warning and critical alerts.
  *
+ * Enhanced for Zero-Participation Automation:
+ * - Real-time token monitoring
+ * - Predictive overflow detection
+ * - Auto-trigger compact at thresholds
+ * - Integration with Auto Session Saver
+ *
  * @module brain/context-overflow-detector
  */
 
@@ -433,4 +439,191 @@ export function createCustomDetector(
     criticalThreshold: 90,
     ...config,
   })
+}
+
+// ============================================================================
+// Enhanced Predictive Analysis
+// ============================================================================
+
+/**
+ * Prediction result for context overflow
+ */
+export interface OverflowPrediction {
+  /** Predicted turns until warning threshold */
+  turnsUntilWarning: number
+  /** Predicted turns until critical threshold */
+  turnsUntilCritical: number
+  /** Predicted turns until overflow */
+  turnsUntilOverflow: number
+  /** Confidence level (0-1) based on data points */
+  confidence: number
+  /** Recommended action */
+  recommendation: 'none' | 'prepare' | 'compact_soon' | 'compact_now'
+  /** Current usage trend */
+  trend: 'stable' | 'increasing' | 'decreasing'
+}
+
+/**
+ * Enhanced detector with predictive capabilities
+ */
+export class PredictiveContextDetector extends ContextOverflowDetector {
+  private recentTokenRates: number[] = []
+  private readonly maxRateSamples = 10
+
+  /**
+   * Track usage with rate calculation
+   */
+  override trackUsage(input: string, output: string): void {
+    const inputTokens = this.estimateTokenCount(input)
+    const outputTokens = this.estimateTokenCount(output)
+    const totalTokens = inputTokens + outputTokens
+
+    // Track token rate
+    this.recentTokenRates.push(totalTokens)
+    if (this.recentTokenRates.length > this.maxRateSamples) {
+      this.recentTokenRates.shift()
+    }
+
+    super.trackUsage(input, output)
+  }
+
+  /**
+   * Get overflow prediction
+   */
+  predictOverflow(): OverflowPrediction {
+    const stats = this.getUsageStats()
+    const avgTokensPerTurn = this.getAverageTokensPerTurn()
+
+    // Calculate confidence based on data points
+    const confidence = Math.min(1, this.recentTokenRates.length / this.maxRateSamples)
+
+    // Calculate trend
+    const trend = this.calculateTrend()
+
+    // Calculate turns until thresholds
+    const turnsUntilWarning = this.calculateTurnsUntil(80, avgTokensPerTurn, stats)
+    const turnsUntilCritical = this.calculateTurnsUntil(90, avgTokensPerTurn, stats)
+    const turnsUntilOverflow = this.calculateTurnsUntil(100, avgTokensPerTurn, stats)
+
+    // Determine recommendation
+    let recommendation: OverflowPrediction['recommendation'] = 'none'
+
+    if (stats.usagePercentage >= 90) {
+      recommendation = 'compact_now'
+    }
+    else if (stats.usagePercentage >= 80 || turnsUntilCritical <= 3) {
+      recommendation = 'compact_soon'
+    }
+    else if (stats.usagePercentage >= 70 || turnsUntilWarning <= 5) {
+      recommendation = 'prepare'
+    }
+
+    return {
+      turnsUntilWarning,
+      turnsUntilCritical,
+      turnsUntilOverflow,
+      confidence,
+      recommendation,
+      trend,
+    }
+  }
+
+  /**
+   * Calculate turns until a threshold
+   */
+  private calculateTurnsUntil(
+    targetPercentage: number,
+    avgTokensPerTurn: number,
+    stats: UsageStats,
+  ): number {
+    if (avgTokensPerTurn === 0) {
+      return Number.POSITIVE_INFINITY
+    }
+
+    const targetTokens = (targetPercentage / 100) * stats.maxTokens
+    const remainingTokens = targetTokens - stats.estimatedTokens
+
+    if (remainingTokens <= 0) {
+      return 0
+    }
+
+    return Math.floor(remainingTokens / avgTokensPerTurn)
+  }
+
+  /**
+   * Calculate usage trend
+   */
+  private calculateTrend(): OverflowPrediction['trend'] {
+    if (this.recentTokenRates.length < 3) {
+      return 'stable'
+    }
+
+    const recent = this.recentTokenRates.slice(-3)
+    const older = this.recentTokenRates.slice(0, -3)
+
+    if (older.length === 0) {
+      return 'stable'
+    }
+
+    const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length
+    const olderAvg = older.reduce((a, b) => a + b, 0) / older.length
+
+    const changePercent = ((recentAvg - olderAvg) / olderAvg) * 100
+
+    if (changePercent > 10) {
+      return 'increasing'
+    }
+    else if (changePercent < -10) {
+      return 'decreasing'
+    }
+
+    return 'stable'
+  }
+
+  /**
+   * Reset with rate tracking
+   */
+  override reset(): void {
+    super.reset()
+    this.recentTokenRates = []
+  }
+}
+
+/**
+ * Create a predictive detector for Claude models
+ */
+export function createPredictiveClaudeDetector(
+  config?: Partial<ContextOverflowConfig>,
+): PredictiveContextDetector {
+  return new PredictiveContextDetector({
+    maxTokens: 200000,
+    warningThreshold: 80,
+    criticalThreshold: 90,
+    ...config,
+  })
+}
+
+// ============================================================================
+// Singleton Instance
+// ============================================================================
+
+let contextDetectorInstance: PredictiveContextDetector | null = null
+
+/**
+ * Get the singleton context detector instance
+ */
+export function getContextDetector(
+  config?: Partial<ContextOverflowConfig>,
+): PredictiveContextDetector {
+  if (!contextDetectorInstance) {
+    contextDetectorInstance = createPredictiveClaudeDetector(config)
+  }
+  return contextDetectorInstance
+}
+
+/**
+ * Reset the singleton instance (for testing)
+ */
+export function resetContextDetector(): void {
+  contextDetectorInstance = null
 }
