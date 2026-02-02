@@ -152,8 +152,8 @@ export function createZeroConfigModule(): StartupModule {
 
       try {
         // 执行零配置激活逻辑
-        const { activateSuperpowers, checkActivationStatus } = await import('../zero-config')
-        const status = await activateSuperpowers('zh-CN')
+        const zeroConfig = await import('../zero-config')
+        const status = await zeroConfig.activateSuperpowers('zh-CN')
 
         return {
           status: 'success',
@@ -237,10 +237,23 @@ export function createCapabilityDiscoveryModule(): StartupModule {
 /**
  * Register all default modules to an orchestrator
  */
-export function registerDefaultModules(orchestrator: any): void {
+export function registerDefaultModules(orchestrator: { registerModule: (module: StartupModule) => unknown }): void {
   orchestrator.registerModule(createVersionSyncModule())
   orchestrator.registerModule(createConfigGuardianModule())
   orchestrator.registerModule(createToolRouterModule())
   orchestrator.registerModule(createZeroConfigModule())
   orchestrator.registerModule(createCapabilityDiscoveryModule())
+}
+
+/**
+ * Get all default startup modules as an array
+ */
+export function getDefaultModules(): StartupModule[] {
+  return [
+    createVersionSyncModule(),
+    createConfigGuardianModule(),
+    createToolRouterModule(),
+    createZeroConfigModule(),
+    createCapabilityDiscoveryModule(),
+  ]
 }

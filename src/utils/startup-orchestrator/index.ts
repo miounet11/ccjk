@@ -12,6 +12,7 @@ export {
   createToolRouterModule,
   createVersionSyncModule,
   createZeroConfigModule,
+  getDefaultModules,
   registerDefaultModules,
 } from './modules'
 export { createDefaultOrchestrator, StartupOrchestrator } from './orchestrator'
