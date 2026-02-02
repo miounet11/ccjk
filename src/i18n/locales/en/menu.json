@@ -1,6 +1,80 @@
 {
+  "oneClick": {
+    "title": "CCJK Quick Actions",
+    "setup": "Quick Setup",
+    "setupDesc": "Auto-configure everything (API Key required)",
+    "fix": "Diagnostics",
+    "fixDesc": "Diagnose issues and auto-fix",
+    "fixComplete": "Diagnostics complete! All issues fixed.",
+    "update": "Update All",
+    "updateDesc": "Update all components to latest version",
+    "updateComplete": "Update complete! All components are up to date.",
+    "notify": "Notifications",
+    "notifyDesc": "View system notifications and announcements",
+    "running": "Running..."
+  },
+  "moreMenu": {
+    "title": "More Features",
+    "extensions": "Extensions",
+    "config": "Configuration",
+    "system": "System Settings"
+  },
+  "categorizedMenu": {
+    "mcpMarket": "MCP Market",
+    "mcpMarketDesc": "Browse and install MCP services",
+    "marketplace": "Marketplace",
+    "marketplaceDesc": "Browse and install extension packages",
+    "diagnostics": "Diagnostics",
+    "diagnosticsDesc": "Run system diagnostics",
+    "workspace": "Workspace Diagnostics",
+    "workspaceDesc": "Check workspace configuration"
+  },
+  "pluginsMenu": {
+    "ccr": "CCR Router",
+    "ccrDesc": "Claude Code Router proxy",
+    "ccusage": "Usage Stats",
+    "ccusageDesc": "View API usage statistics",
+    "cometix": "Cometix",
+    "cometixDesc": "Cometix tool integration",
+    "superpowers": "Superpowers",
+    "superpowersDesc": "Enhanced skill packs"
+  },
+  "menuOptions": {
+    "changeLanguage": "Change Language / 切换语言",
+    "switchCodeTool": "Switch Code Tool",
+    "uninstall": "Uninstall CCJK",
+    "mcpMarket": "MCP Market",
+    "marketplace": "Marketplace",
+    "hooksSync": "Hooks Sync",
+    "quickActions": "Quick Actions",
+    "smartGuide": "Smart Guide",
+    "workflowsAndSkills": "Workflows & Skills",
+    "outputStyles": "Output Styles",
+    "doctor": "Health Check"
+  },
+  "menuDescriptions": {
+    "changeLanguage": "Switch interface language",
+    "switchCodeTool": "Switch between different code tools",
+    "uninstall": "Uninstall CCJK and related configurations",
+    "mcpMarket": "Browse and install MCP services",
+    "marketplace": "Browse and install extension packages",
+    "hooksSync": "Sync Git Hooks configuration",
+    "quickActions": "Quick access to common operations",
+    "smartGuide": "Smart configuration guide",
+    "workflowsAndSkills": "Manage workflows and skills",
+    "outputStyles": "Configure output styles",
+    "doctor": "Run environment health check"
+  },
   "menu": {
     "title": "CCJK Main Menu",
+    "menuSections": {
+      "quickStart": "🚀 Core Features",
+      "configCenter": "⚙️ Configuration Center",
+      "extensions": "🔌 Extensions",
+      "smartFeatures": "✨ Smart Features",
+      "cloudServices": "☁️ Cloud Services",
+      "systemSettings": "🛠️ System Settings"
+    },
     "configCenter": {
       "api": "API Configuration",
       "apiDesc": "One-click API key setup (Anthropic/OpenRouter/Custom)",

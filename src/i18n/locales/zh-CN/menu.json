@@ -1,6 +1,80 @@
 {
+  "oneClick": {
+    "title": "CCJK 快速操作",
+    "setup": "一键配置",
+    "setupDesc": "自动完成所有配置（仅需 API Key）",
+    "fix": "一键体检",
+    "fixDesc": "诊断问题并自动修复",
+    "fixComplete": "体检完成！所有问题已修复。",
+    "update": "一键更新",
+    "updateDesc": "更新所有组件到最新版本",
+    "updateComplete": "更新完成！所有组件已是最新版本。",
+    "notify": "通知中心",
+    "notifyDesc": "查看系统通知和公告",
+    "running": "正在执行..."
+  },
+  "moreMenu": {
+    "title": "更多功能",
+    "extensions": "扩展工具",
+    "config": "配置选项",
+    "system": "系统设置"
+  },
+  "categorizedMenu": {
+    "mcpMarket": "MCP 市场",
+    "mcpMarketDesc": "浏览和安装 MCP 服务",
+    "marketplace": "扩展市场",
+    "marketplaceDesc": "浏览和安装扩展包",
+    "diagnostics": "诊断工具",
+    "diagnosticsDesc": "运行系统诊断",
+    "workspace": "工作区诊断",
+    "workspaceDesc": "检查工作区配置"
+  },
+  "pluginsMenu": {
+    "ccr": "CCR 路由",
+    "ccrDesc": "Claude Code Router 代理",
+    "ccusage": "用量统计",
+    "ccusageDesc": "查看 API 使用统计",
+    "cometix": "Cometix",
+    "cometixDesc": "Cometix 工具集成",
+    "superpowers": "Superpowers",
+    "superpowersDesc": "增强技能包"
+  },
+  "menuOptions": {
+    "changeLanguage": "切换语言 / Change Language",
+    "switchCodeTool": "切换代码工具",
+    "uninstall": "卸载 CCJK",
+    "mcpMarket": "MCP 市场",
+    "marketplace": "扩展市场",
+    "hooksSync": "Hooks 同步",
+    "quickActions": "快速操作",
+    "smartGuide": "智能引导",
+    "workflowsAndSkills": "工作流与技能",
+    "outputStyles": "输出样式",
+    "doctor": "健康检查"
+  },
+  "menuDescriptions": {
+    "changeLanguage": "切换界面语言",
+    "switchCodeTool": "在不同代码工具之间切换",
+    "uninstall": "卸载 CCJK 及相关配置",
+    "mcpMarket": "浏览和安装 MCP 服务",
+    "marketplace": "浏览和安装扩展包",
+    "hooksSync": "同步 Git Hooks 配置",
+    "quickActions": "常用操作快捷入口",
+    "smartGuide": "智能配置引导",
+    "workflowsAndSkills": "管理工作流和技能",
+    "outputStyles": "配置输出样式",
+    "doctor": "运行环境健康检查"
+  },
   "menu": {
     "title": "CCJK 主菜单",
+    "menuSections": {
+      "quickStart": "🚀 核心功能",
+      "configCenter": "⚙️ 配置中心",
+      "extensions": "🔌 扩展工具",
+      "smartFeatures": "✨ 智能功能",
+      "cloudServices": "☁️ 云服务",
+      "systemSettings": "🛠️ 系统设置"
+    },
     "configCenter": {
       "api": "API 配置",
       "apiDesc": "一键配置 API 密钥（Anthropic/OpenRouter/自定义）",
