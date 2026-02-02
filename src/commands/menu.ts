@@ -133,22 +133,25 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   const lang = i18n.language as SupportedLang
   const isZh = lang === 'zh-CN'
 
-  // Section titles
+  // Section titles - API 配置作为核心卖点放在第一位置
+  const coreTitle = isZh ? '🔑 核心功能 (Core)' : '🔑 Core Features'
   const quickStartTitle = isZh ? '🚀 快速开始 (Quick Start)' : '🚀 Quick Start'
   const advancedTitle = isZh ? '📦 高级功能 (Advanced)' : '📦 Advanced'
   const systemTitle = isZh ? '⚙️ 系统设置 (System)' : '⚙️ System'
 
-  // Quick Start items (1-3)
-  const quickSetupName = isZh ? '1. ⚡ 一键配置' : '1. ⚡ Quick Setup'
-  const quickSetupDesc = isZh ? '自动完成所有配置' : 'Auto-configure everything'
-  const doctorName = isZh ? '2. 🔧 一键体检' : '2. 🔧 Diagnostics'
+  // Core items (1) - API 配置是核心卖点
+  const apiName = isZh ? '1. 🔑 API 配置' : '1. 🔑 API Config'
+  const apiDesc = isZh ? '一键配置 API (核心功能)' : 'One-click API setup (core feature)'
+
+  // Quick Start items (2-4)
+  const quickSetupName = isZh ? '2. ⚡ 一键初始化' : '2. ⚡ Quick Init'
+  const quickSetupDesc = isZh ? '初始化项目配置' : 'Initialize project config'
+  const doctorName = isZh ? '3. 🔧 一键体检' : '3. 🔧 Diagnostics'
   const doctorDesc = isZh ? '诊断问题并自动修复' : 'Diagnose issues and auto-fix'
-  const updateName = isZh ? '3. 🔄 一键更新' : '3. 🔄 Update All'
+  const updateName = isZh ? '4. 🔄 一键更新' : '4. 🔄 Update All'
   const updateDesc = isZh ? '更新所有组件到最新版本' : 'Update all components to latest'
 
-  // Advanced items (4-8)
-  const apiName = isZh ? '4. 🔑 API 管理' : '4. 🔑 API Manager'
-  const apiDesc = isZh ? '配置 API URL、认证信息或 CCR 代理' : 'Configure API URL, auth or CCR proxy'
+  // Advanced items (5-8)
   const skillsName = isZh ? '5. 📚 Skills 管理' : '5. 📚 Skills Manager'
   const skillsDesc = isZh ? '安装/更新/删除工作流技能' : 'Install/update/remove workflow skills'
   const mcpName = isZh ? '6. 🔌 MCP 管理' : '6. 🔌 MCP Manager'
@@ -165,8 +168,13 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   const helpDesc = isZh ? '查看使用指南' : 'View user guide'
   const exitText = isZh ? '0. 🚪 退出' : '0. 🚪 Exit'
 
-  // Display menu
+  // Display menu - API 配置作为核心卖点放在最显眼位置
   console.log('')
+  console.log(ansis.bold.yellow(coreTitle))
+  console.log(ansis.dim('─'.repeat(50)))
+  console.log(`  ${ansis.yellow.bold(apiName)} ${ansis.dim(`- ${apiDesc}`)}`)
+  console.log('')
+
   console.log(ansis.bold.green(quickStartTitle))
   console.log(ansis.dim('─'.repeat(50)))
   console.log(`  ${ansis.green(quickSetupName)} ${ansis.dim(`- ${quickSetupDesc}`)}`)
@@ -176,7 +184,6 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 
   console.log(ansis.bold.green(advancedTitle))
   console.log(ansis.dim('─'.repeat(50)))
-  console.log(`  ${ansis.green(apiName)} ${ansis.dim(`- ${apiDesc}`)}`)
   console.log(`  ${ansis.green(skillsName)} ${ansis.dim(`- ${skillsDesc}`)}`)
   console.log(`  ${ansis.green(mcpName)} ${ansis.dim(`- ${mcpDesc}`)}`)
   console.log(`  ${ansis.green(agentsName)} ${ansis.dim(`- ${agentsDesc}`)}`)
@@ -213,18 +220,30 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 
   switch (normalized) {
     // ═══════════════════════════════════════════════════
-    // 🚀 Quick Start (1-3)
+    // 🔑 Core (1) - API 配置是核心卖点
     // ═══════════════════════════════════════════════════
     case '1': {
-      // Quick Setup - use API config menu directly
+      // API Config - 核心功能，一键配置 API
       console.log('')
-      console.log(ansis.green(isZh ? '⚡ 一键配置...' : '⚡ Quick Setup...'))
+      console.log(ansis.yellow.bold(isZh ? '🔑 API 配置...' : '🔑 API Config...'))
       console.log('')
       await showApiConfigMenu()
       break
     }
 
+    // ═══════════════════════════════════════════════════
+    // 🚀 Quick Start (2-4)
+    // ═══════════════════════════════════════════════════
     case '2': {
+      // Quick Init - 初始化项目配置
+      console.log('')
+      console.log(ansis.green(isZh ? '⚡ 一键初始化...' : '⚡ Quick Init...'))
+      console.log('')
+      await simplifiedInit({ skipPrompt: false })
+      break
+    }
+
+    case '3': {
       // Diagnostics
       console.log('')
       console.log(ansis.green(isZh ? '🔧 一键体检...' : '🔧 Running Diagnostics...'))
@@ -233,7 +252,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       break
     }
 
-    case '3': {
+    case '4': {
       // Update All
       console.log('')
       console.log(ansis.green(isZh ? '🔄 一键更新...' : '🔄 Updating All...'))
@@ -243,17 +262,8 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     // ═══════════════════════════════════════════════════
-    // 📦 Advanced (4-8)
+    // 📦 Advanced (5-8)
     // ═══════════════════════════════════════════════════
-    case '4': {
-      // API Manager
-      console.log('')
-      console.log(ansis.green(isZh ? '🔑 API 管理...' : '🔑 API Manager...'))
-      console.log('')
-      await showApiConfigMenu()
-      break
-    }
-
     case '5': {
       // Skills Manager
       console.log('')

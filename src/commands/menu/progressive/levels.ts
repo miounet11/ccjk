@@ -26,13 +26,13 @@ export const levelDefinitions = {
     icon: '🌱',
     categories: ['quick', 'config'],
     features: [
+      'API config',      // #1 Core feature - one-click API setup
       'One-click setup',
       'Diagnostics',
       'Update all',
-      'API config',
+      'Notifications',
       'MCP config',
       'Model config',
-      'Notifications',
       'Doctor',
     ],
   },

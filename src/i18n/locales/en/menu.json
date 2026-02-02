@@ -1,6 +1,22 @@
 {
   "menu": {
     "title": "CCJK Main Menu",
+    "configCenter": {
+      "api": "API Configuration",
+      "apiDesc": "One-click API key setup (Anthropic/OpenRouter/Custom)",
+      "mcp": "MCP Configuration",
+      "mcpDesc": "Configure Model Context Protocol services",
+      "model": "Model Configuration",
+      "modelDesc": "Select and configure AI models",
+      "memory": "Memory Configuration",
+      "memoryDesc": "Configure conversation memory settings",
+      "permission": "Permission Configuration",
+      "permissionDesc": "Manage tool and file permissions",
+      "configSwitch": "Config Switch",
+      "configSwitchDesc": "Switch between configuration profiles",
+      "context": "Context Configuration",
+      "contextDesc": "Configure context window and limits"
+    },
     "quickStart": {
       "title": "🚀 Quick Start",
       "items": {

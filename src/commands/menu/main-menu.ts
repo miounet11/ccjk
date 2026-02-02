@@ -15,9 +15,19 @@ import type { MenuCategory, MenuItem } from './types'
 
 /**
  * Quick Actions Category - Always visible first
- * These are the most common actions users need
+ * API Configuration is the #1 feature - one-click setup for all providers
  */
 export const quickActionsItems: MenuItem[] = [
+  {
+    id: 'api-config',
+    label: 'menu:configCenter.api',
+    description: 'menu:configCenter.apiDesc',
+    category: 'quick',
+    level: 'basic',
+    action: 'command',
+    icon: '🔑',
+    shortcut: '1',
+  },
   {
     id: 'init',
     label: 'menu:oneClick.setup',
@@ -26,7 +36,7 @@ export const quickActionsItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '⚡',
-    shortcut: '1',
+    shortcut: '2',
   },
   {
     id: 'diagnostics',
@@ -36,7 +46,7 @@ export const quickActionsItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '🔧',
-    shortcut: '2',
+    shortcut: '3',
   },
   {
     id: 'update',
@@ -46,7 +56,7 @@ export const quickActionsItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '🔄',
-    shortcut: '3',
+    shortcut: '4',
   },
   {
     id: 'notifications',
@@ -56,29 +66,19 @@ export const quickActionsItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '📱',
-    shortcut: '4',
+    shortcut: '5',
   },
 ]
 
 /**
  * Configuration Category - Core settings
- * Essential configuration options
+ * Essential configuration options (API config moved to quick actions)
  */
 export const configItems: MenuItem[] = [
   {
-    id: 'api-config',
-    label: 'configCenter.api',
-    description: 'configCenter.apiDesc',
-    category: 'config',
-    level: 'basic',
-    action: 'command',
-    icon: '🔑',
-    shortcut: '5',
-  },
-  {
     id: 'mcp-config',
-    label: 'configCenter.mcp',
-    description: 'configCenter.mcpDesc',
+    label: 'menu:configCenter.mcp',
+    description: 'menu:configCenter.mcpDesc',
     category: 'config',
     level: 'basic',
     action: 'command',
@@ -87,8 +87,8 @@ export const configItems: MenuItem[] = [
   },
   {
     id: 'model-config',
-    label: 'configCenter.model',
-    description: 'configCenter.modelDesc',
+    label: 'menu:configCenter.model',
+    description: 'menu:configCenter.modelDesc',
     category: 'config',
     level: 'basic',
     action: 'command',
@@ -97,8 +97,8 @@ export const configItems: MenuItem[] = [
   },
   {
     id: 'memory-config',
-    label: 'configCenter.memory',
-    description: 'configCenter.memoryDesc',
+    label: 'menu:configCenter.memory',
+    description: 'menu:configCenter.memoryDesc',
     category: 'config',
     level: 'intermediate',
     action: 'submenu',
@@ -107,8 +107,8 @@ export const configItems: MenuItem[] = [
   },
   {
     id: 'permission-config',
-    label: 'configCenter.permission',
-    description: 'configCenter.permissionDesc',
+    label: 'menu:configCenter.permission',
+    description: 'menu:configCenter.permissionDesc',
     category: 'config',
     level: 'intermediate',
     action: 'command',
@@ -117,8 +117,8 @@ export const configItems: MenuItem[] = [
   },
   {
     id: 'config-switch',
-    label: 'configCenter.configSwitch',
-    description: 'configCenter.configSwitchDesc',
+    label: 'menu:configCenter.configSwitch',
+    description: 'menu:configCenter.configSwitchDesc',
     category: 'config',
     level: 'intermediate',
     action: 'command',
@@ -127,8 +127,8 @@ export const configItems: MenuItem[] = [
   },
   {
     id: 'context-config',
-    label: 'configCenter.context',
-    description: 'configCenter.contextDesc',
+    label: 'menu:configCenter.context',
+    description: 'menu:configCenter.contextDesc',
     category: 'config',
     level: 'expert',
     action: 'submenu',
@@ -378,13 +378,13 @@ export function getItemById(id: string): MenuItem | undefined {
  * For backward compatibility during migration
  */
 export const legacyKeyToItemId: Record<string, string> = {
-  // Quick Start
-  '1': 'init',
-  '2': 'diagnostics',
-  '3': 'update',
-  '4': 'notifications',
+  // Quick Actions (API config is #1 - core feature)
+  '1': 'api-config',
+  '2': 'init',
+  '3': 'diagnostics',
+  '4': 'update',
+  '5': 'notifications',
   // Config
-  '5': 'api-config',
   '6': 'mcp-config',
   '7': 'model-config',
   // Smart Features

@@ -1,6 +1,22 @@
 {
   "menu": {
     "title": "CCJK 主菜单",
+    "configCenter": {
+      "api": "API 配置",
+      "apiDesc": "一键配置 API 密钥（Anthropic/OpenRouter/自定义）",
+      "mcp": "MCP 配置",
+      "mcpDesc": "配置 Model Context Protocol 服务",
+      "model": "模型配置",
+      "modelDesc": "选择和配置 AI 模型",
+      "memory": "记忆配置",
+      "memoryDesc": "配置对话记忆设置",
+      "permission": "权限配置",
+      "permissionDesc": "管理工具和文件权限",
+      "configSwitch": "配置切换",
+      "configSwitchDesc": "在配置文件之间切换",
+      "context": "上下文配置",
+      "contextDesc": "配置上下文窗口和限制"
+    },
     "quickStart": {
       "title": "🚀 快速开始",
       "items": {
