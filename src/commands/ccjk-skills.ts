@@ -76,7 +76,7 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
     const opts: Required<CcjkSkillsOptions> = {
       lang: options.lang || 'en',
       interactive: options.interactive ?? true,
-      category: options.category,
+      category: options.category || 'custom',
       tags: options.tags || [],
       exclude: options.exclude || [],
       dryRun: options.dryRun ?? false,
@@ -596,9 +596,20 @@ async function loadSkillTemplate(skill: RecommendedSkill): Promise<string | null
       return skill.templateContent
     }
 
-    // 2. For cloud templates, fetch from V8 API
-    const isCloudTemplate = templatePath.startsWith('skill_') || templatePath.startsWith('tpl_')
-    if (isCloudTemplate) {
+    // 2. For cloud templates with skill_ prefix, the content should already be in templateContent
+    // If we reach here with a skill_ ID, it means the cloud API didn't return content
+    const isSkillRecord = templatePath.startsWith('skill_')
+    if (isSkillRecord) {
+      // skill_ IDs are skill record IDs, not template IDs
+      // The content should have been provided in templateContent from the list API
+      consola.warn(`Cloud skill ${templatePath} has no template content. The cloud API may not have returned the content.`)
+      // Don't try to fetch by skill record ID - it won't work
+      return null
+    }
+
+    // 3. For templates with tpl_ prefix, try to fetch from V8 API
+    const isTemplateId = templatePath.startsWith('tpl_')
+    if (isTemplateId) {
       try {
         const templatesClient = getTemplatesClient()
         const template = await templatesClient.getTemplate(templatePath)
@@ -615,13 +626,13 @@ async function loadSkillTemplate(skill: RecommendedSkill): Promise<string | null
       }
     }
 
-    // 3. Try local templates in project directory
+    // 4. Try local templates in project directory
     const localPath = join(process.cwd(), 'templates', 'skills', templatePath)
     if (await fileExists(localPath)) {
       return await fs.readFile(localPath, 'utf-8')
     }
 
-    // 4. Try package templates
+    // 5. Try package templates
     const packagePath = join(__dirname, '..', '..', 'templates', 'skills', templatePath)
     if (await fileExists(packagePath)) {
       return await fs.readFile(packagePath, 'utf-8')
@@ -699,6 +710,7 @@ function getCategoryIcon(category: SkillCategory): string {
     seo: '🔍',
     devops: '🚀',
     custom: '⚙️',
+    debug: '🐛',
   }
   return icons[category] || '📦'
 }
