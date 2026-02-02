@@ -71,10 +71,21 @@ export { CloudApiClient, createCloudApiClient, DEFAULT_BASE_URL, DEFAULT_RETRIES
 // Export sub-clients
 export { AuthClient } from './auth'
 export { BindClient } from './bind'
+export { ContextClient } from './context'
 export { DeviceClient } from './device'
 export { NotifyClient } from './notify'
 export { ReplyClient, type PollOptions } from './reply'
+export { SessionsClient } from './sessions'
 export { TemplatesClient } from './templates'
+
+// Export WebSocket client
+export {
+  ContextWebSocketClient,
+  createWebSocketClient,
+  type WebSocketClientConfig,
+  type WebSocketEventHandlers,
+  type WebSocketState,
+} from './websocket'
 
 // Export credentials manager
 export {

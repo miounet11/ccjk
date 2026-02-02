@@ -108,3 +108,13 @@ export type {
   UpgradeLogEntry,
   UpgradeResult,
 } from './cloud/silent-updater'
+
+// Context Management Service
+export {
+  ContextService,
+  createContextService,
+} from './context-service'
+
+export type {
+  ContextServiceConfig,
+} from './context-service'

@@ -26,17 +26,22 @@ import type {
   McpToolInfo,
   PluginPackage,
 } from '../types'
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { getPluginManager } from '../core/plugin-manager'
 import { getMcpServerManager } from '../mcp/mcp-integration'
+import { writeAgentFile, getAgentsDir, getLegacyAgentsDir } from '../agent-writer'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const AGENTS_DIR = join(homedir(), '.ccjk', 'agents')
+// Claude Code compatible location (project-local)
+const getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'agents')
+
+// Legacy CCJK location (global, for backward compatibility)
+const LEGACY_AGENTS_DIR = join(homedir(), '.ccjk', 'agents')
 const AGENT_TEMPLATES_DIR = join(homedir(), '.ccjk', 'agent-templates')
 
 // ============================================================================
@@ -324,6 +329,10 @@ export class AgentCreator {
    * Save a template
    */
   async saveTemplate(templateId: string, template: Partial<AgentDefinition>): Promise<void> {
+    // Ensure templates directory exists
+    if (!existsSync(AGENT_TEMPLATES_DIR)) {
+      mkdirSync(AGENT_TEMPLATES_DIR, { recursive: true })
+    }
     const templatePath = join(AGENT_TEMPLATES_DIR, `${templateId}.json`)
     writeFileSync(templatePath, JSON.stringify(template, null, 2))
   }
@@ -337,13 +346,27 @@ export class AgentCreator {
     if (existsSync(AGENT_TEMPLATES_DIR)) {
       const files = readdirSync(AGENT_TEMPLATES_DIR)
       for (const file of files) {
-        if (file.endsWith('.json')) {
-          templates.push(file.replace('.json', ''))
+        if (file.endsWith('.json') || file.endsWith('.md')) {
+          templates.push(file.replace(/\.(json|md)$/, ''))
         }
       }
     }
 
     return templates
+  }
+
+  /**
+   * Write agent to Claude Code compatible location (project-local .claude/agents/)
+   */
+  async writeToClaudeCode(
+    agent: AgentDefinition,
+    options?: { projectDir?: string }
+  ): Promise<string> {
+    return writeAgentFile(agent, {
+      format: 'markdown',
+      projectDir: options?.projectDir,
+      global: false,
+    })
   }
 }
 

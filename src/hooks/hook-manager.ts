@@ -304,3 +304,139 @@ export class HookManager {
  * Singleton instance of HookManager
  */
 export const hookManager = new HookManager()
+
+// ============================================================================
+// Claude Code Compatible Output
+// ============================================================================
+
+/**
+ * Claude Code hook event types
+ * Maps to Claude Code's hook system events
+ */
+export type ClaudeCodeHookEvent =
+  | 'PreToolUse'
+  | 'PostToolUse'
+  | 'Notification'
+  | 'Stop'
+
+/**
+ * Claude Code hook configuration format
+ */
+export interface ClaudeCodeHook {
+  /** Regex pattern to match tool names (for PreToolUse/PostToolUse) */
+  matcher?: string
+  /** Shell commands to execute */
+  hooks: string[]
+  /** Timeout in seconds */
+  timeout?: number
+}
+
+/**
+ * Claude Code hooks configuration
+ */
+export interface ClaudeCodeHooksConfig {
+  PreToolUse?: ClaudeCodeHook[]
+  PostToolUse?: ClaudeCodeHook[]
+  Notification?: ClaudeCodeHook[]
+  Stop?: ClaudeCodeHook[]
+}
+
+/**
+ * Map CCJK hook types to Claude Code hook events
+ */
+const HOOK_TYPE_MAP: Record<HookType, ClaudeCodeHookEvent | null> = {
+  [HookType.PreRequest]: 'PreToolUse',
+  [HookType.PostResponse]: 'PostToolUse',
+  [HookType.ProviderSwitch]: null, // No direct mapping
+  [HookType.Error]: 'Notification',
+  [HookType.SessionStart]: null, // No direct mapping
+  [HookType.SessionEnd]: 'Stop',
+}
+
+/**
+ * Convert CCJK hooks to Claude Code format
+ */
+export function convertToClaudeCodeHooks(ccjkHooks: HooksConfig): ClaudeCodeHooksConfig {
+  const claudeHooks: ClaudeCodeHooksConfig = {}
+
+  for (const [type, hooks] of Object.entries(ccjkHooks)) {
+    if (!hooks || hooks.length === 0) continue
+
+    const claudeEvent = HOOK_TYPE_MAP[type as HookType]
+    if (!claudeEvent) continue
+
+    // Group hooks by their enabled status
+    const enabledHooks = hooks.filter(h => h.enabled !== false)
+    if (enabledHooks.length === 0) continue
+
+    // Create Claude Code hook entry
+    const claudeHook: ClaudeCodeHook = {
+      matcher: '.*', // Match all tools by default
+      hooks: enabledHooks.map(h => h.command),
+    }
+
+    // Use the minimum timeout from all hooks (convert ms to seconds)
+    const timeouts = enabledHooks
+      .filter(h => h.timeout)
+      .map(h => Math.ceil((h.timeout || 5000) / 1000))
+    if (timeouts.length > 0) {
+      claudeHook.timeout = Math.min(...timeouts)
+    }
+
+    if (!claudeHooks[claudeEvent]) {
+      claudeHooks[claudeEvent] = []
+    }
+    claudeHooks[claudeEvent]!.push(claudeHook)
+  }
+
+  return claudeHooks
+}
+
+/**
+ * Export hooks to Claude Code settings format
+ * Returns the hooks section for .claude/settings.json
+ */
+export function exportHooksToClaudeCode(): ClaudeCodeHooksConfig {
+  return convertToClaudeCodeHooks(hookManager.getAllHooks())
+}
+
+/**
+ * Get Claude Code settings path
+ */
+export function getClaudeCodeSettingsPath(projectDir?: string): string {
+  return join(projectDir || process.cwd(), '.claude', 'settings.json')
+}
+
+/**
+ * Write hooks to Claude Code settings file
+ * Merges with existing settings if present
+ */
+export function writeHooksToClaudeCodeSettings(projectDir?: string): string {
+  const settingsPath = getClaudeCodeSettingsPath(projectDir)
+  const settingsDir = dirname(settingsPath)
+
+  // Ensure directory exists
+  if (!existsSync(settingsDir)) {
+    mkdirSync(settingsDir, { recursive: true })
+  }
+
+  // Load existing settings if present
+  let existingSettings: Record<string, any> = {}
+  if (existsSync(settingsPath)) {
+    try {
+      existingSettings = JSON.parse(readFileSync(settingsPath, 'utf-8'))
+    }
+    catch {
+      // Ignore parse errors, start fresh
+    }
+  }
+
+  // Convert and merge hooks
+  const claudeHooks = exportHooksToClaudeCode()
+  existingSettings.hooks = claudeHooks
+
+  // Write settings
+  writeFileSync(settingsPath, JSON.stringify(existingSettings, null, 2), 'utf-8')
+
+  return settingsPath
+}

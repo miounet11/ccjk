@@ -9,6 +9,7 @@ import type {
   SkillSearchOptions,
 } from './types'
 import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { cloudSyncSkill } from '../cloud-sync/skill'
 import { CCJK_SKILLS_DIR } from '../constants'
@@ -480,4 +481,128 @@ export function createBatchSkills(options: BatchSkillOptions): SkillInstallResul
  */
 export function getBatchCategories(): string[] {
   return Object.keys(BATCH_TEMPLATES)
+}
+
+// ============================================================================
+// Claude Code Compatible Output
+// ============================================================================
+
+/**
+ * Claude Code expects custom commands as Markdown files in:
+ * - Project-local: `.claude/commands/*.md`
+ * - User-global: `~/.claude/commands/*.md`
+ *
+ * Format:
+ * ```markdown
+ * ---
+ * description: Command description for /command-name
+ * ---
+ *
+ * Command instructions here...
+ * ```
+ *
+ * The filename becomes the command trigger (e.g., `ts-debug.md` → `/ts-debug`)
+ */
+
+// Claude Code compatible locations
+const getProjectCommandsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'commands')
+const getUserCommandsDir = () => join(homedir(), '.claude', 'commands')
+
+export interface SkillWriteOptions {
+  /** Project directory (for project-local commands) */
+  projectDir?: string
+  /** Write to user-global location instead of project-local */
+  global?: boolean
+}
+
+/**
+ * Convert CcjkSkill to Claude Code Markdown format
+ */
+function skillToMarkdown(skill: CcjkSkill): string {
+  // Get description in English (primary) or Chinese
+  const description = typeof skill.description === 'string'
+    ? skill.description
+    : (skill.description?.en || skill.description?.['zh-CN'] || '')
+
+  // Build YAML frontmatter
+  const frontmatter = [
+    '---',
+    `description: ${description}`,
+    '---',
+  ]
+
+  // Build body content from template
+  const body: string[] = []
+
+  if (skill.template) {
+    body.push('')
+    body.push(skill.template)
+  }
+
+  return frontmatter.join('\n') + body.join('\n') + '\n'
+}
+
+/**
+ * Write skill to Claude Code compatible location (project-local .claude/commands/)
+ *
+ * @param skill - The skill to write
+ * @param options - Write options
+ * @returns Path to the written file
+ */
+export function writeSkillToClaudeCode(
+  skill: CcjkSkill,
+  options?: SkillWriteOptions
+): string {
+  const isGlobal = options?.global || false
+  const commandsDir = isGlobal
+    ? getUserCommandsDir()
+    : getProjectCommandsDir(options?.projectDir)
+
+  // Ensure commands directory exists
+  if (!existsSync(commandsDir)) {
+    mkdirSync(commandsDir, { recursive: true })
+  }
+
+  // Use the first trigger (without leading /) as filename
+  const trigger = skill.triggers[0]?.replace(/^\//, '') || skill.id
+  const fileName = `${trigger}.md`
+  const filePath = join(commandsDir, fileName)
+
+  // Convert to markdown and write
+  const content = skillToMarkdown(skill)
+  writeFileAtomic(filePath, content)
+
+  return filePath
+}
+
+/**
+ * Write multiple skills to Claude Code compatible location
+ */
+export function writeSkillsToClaudeCode(
+  skills: CcjkSkill[],
+  options?: SkillWriteOptions
+): string[] {
+  return skills.map(skill => writeSkillToClaudeCode(skill, options))
+}
+
+/**
+ * Export all enabled skills to Claude Code format
+ */
+export function exportSkillsToClaudeCode(options?: SkillWriteOptions): string[] {
+  const skills = getAllSkills().filter(s => s.enabled)
+  return writeSkillsToClaudeCode(skills, options)
+}
+
+/**
+ * Get the project-local commands directory path
+ */
+export function getCommandsDir(projectDir?: string): string {
+  return getProjectCommandsDir(projectDir)
+}
+
+/**
+ * Get the user-global commands directory path
+ */
+export function getUserGlobalCommandsDir(): string {
+  return getUserCommandsDir()
 }

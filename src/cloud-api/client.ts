@@ -9,9 +9,11 @@
 import type { CloudApiClientConfig } from '../types/cloud-api'
 import { AuthClient } from './auth'
 import { BindClient } from './bind'
+import { ContextClient } from './context'
 import { DeviceClient } from './device'
 import { NotifyClient } from './notify'
 import { ReplyClient } from './reply'
+import { SessionsClient } from './sessions'
 import { TemplatesClient } from './templates'
 
 /**
@@ -70,6 +72,12 @@ export class CloudApiClient {
   /** Templates client */
   readonly templates: TemplatesClient
 
+  /** Sessions client */
+  readonly sessions: SessionsClient
+
+  /** Context client */
+  readonly context: ContextClient
+
   constructor(config: CloudApiClientConfig) {
     this.config = {
       baseUrl: config.baseUrl || DEFAULT_BASE_URL,
@@ -83,9 +91,11 @@ export class CloudApiClient {
     // Initialize sub-clients
     this.auth = new AuthClient(this.config)
     this.bind = new BindClient(this.config)
+    this.context = new ContextClient(this.config)
     this.device = new DeviceClient(this.config)
     this.notify = new NotifyClient(this.config)
     this.reply = new ReplyClient(this.config)
+    this.sessions = new SessionsClient(this.config)
     this.templates = new TemplatesClient(this.config)
   }
 
