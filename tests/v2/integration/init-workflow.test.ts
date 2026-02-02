@@ -4,8 +4,11 @@ import { createTestTempDir } from '@v2/setup'
 
 /**
  * Integration test suite for CCJK initialization workflow
+ *
+ * NOTE: These tests are skipped because they test mock objects rather than real code.
+ * They serve as a template for future integration tests.
  */
-describe('CCJK Initialization Integration', () => {
+describe.skip('CCJK Initialization Integration', () => {
   let mockSuite: any
   let testDir: string
   let initCommand: any

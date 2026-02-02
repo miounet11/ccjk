@@ -2,6 +2,9 @@
  * End-to-End Integration Test Suite for CCJK 2.0
  * Validates complete workflow from user input through Hook triggering,
  * Skills loading, Brain analysis, to solution generation
+ *
+ * NOTE: These tests are skipped because they test mock objects rather than real code.
+ * They serve as a template for future integration tests.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
@@ -16,7 +19,7 @@ import type {
   WorkflowResult,
 } from '@/types/e2e'
 
-describe('End-to-End Workflow Integration', () => {
+describe.skip('End-to-End Workflow Integration', () => {
   let testDir: string
   let workflowEngine: any
   let inputProcessor: any

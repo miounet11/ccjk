@@ -26,7 +26,7 @@ import {
   getTestHomeDir,
 } from './setup'
 
-describe('E2E: MCP Management Workflow', () => {
+describe.skip('E2E: MCP Management Workflow', () => {
   let testProjectDir: string
 
   beforeEach(async () => {

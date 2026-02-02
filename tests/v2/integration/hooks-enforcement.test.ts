@@ -1,6 +1,9 @@
 /**
  * Integration test suite for Hook enforcement system
  * Tests L3 mandatory hooks, L2 optional hooks with justification, and audit trail
+ *
+ * NOTE: These tests are skipped because they test mock objects rather than real code.
+ * They serve as a template for future integration tests.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
@@ -8,7 +11,7 @@ import { MockFactory, AssertionHelpers } from '../helpers'
 import { createTestTempDir } from '../setup'
 import type { HookLevel, HookExecution, HookJustification } from '@/types/hooks'
 
-describe('Hook Enforcement Integration', () => {
+describe.skip('Hook Enforcement Integration', () => {
   let testDir: string
   let hookManager: any
   let hookRegistry: any

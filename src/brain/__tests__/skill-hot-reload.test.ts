@@ -17,14 +17,17 @@ import {
 } from '../skill-hot-reload'
 import type { HotReloadEvent, HotReloadOptions } from '../skill-hot-reload'
 
-// Mock chokidar
-const mockWatcher = {
-  on: vi.fn().mockReturnThis(),
-  add: vi.fn(),
-  unwatch: vi.fn(),
-  close: vi.fn().mockResolvedValue(undefined),
-  getWatched: vi.fn().mockReturnValue({}),
-}
+// Mock chokidar - use hoisted mock to avoid initialization order issues
+const { mockWatcher } = vi.hoisted(() => {
+  const mockWatcher = {
+    on: vi.fn().mockReturnThis(),
+    add: vi.fn(),
+    unwatch: vi.fn(),
+    close: vi.fn().mockResolvedValue(undefined),
+    getWatched: vi.fn().mockReturnValue({}),
+  }
+  return { mockWatcher }
+})
 
 vi.mock('chokidar', () => ({
   default: {
@@ -47,6 +50,7 @@ vi.mock('../skill-parser', () => ({
       },
     }),
   }),
+  isSkillFile: vi.fn().mockReturnValue(true),
 }))
 
 // Mock skill registry
@@ -85,6 +89,22 @@ describe('SkillHotReload', () => {
     // Reset mock watcher event handlers
     mockWatcher.on.mockClear()
     mockWatcher.on.mockReturnThis()
+
+    // Reset skill parser mock to return success by default
+    const { getSkillParser } = await import('../skill-parser')
+    vi.mocked(getSkillParser).mockReturnValue({
+      parseFile: vi.fn().mockReturnValue({
+        success: true,
+        skill: {
+          id: 'test-skill',
+          name: 'Test Skill',
+          description: 'A test skill',
+          version: '1.0.0',
+          triggers: ['/test'],
+          content: '# Test',
+        },
+      }),
+    } as any)
   })
 
   afterEach(async () => {
@@ -571,6 +591,10 @@ describe('SkillHotReload', () => {
     })
 
     it('should ignore non-skill files', async () => {
+      // Mock isSkillFile to return false for non-skill files
+      const { isSkillFile } = await import('../skill-parser')
+      vi.mocked(isSkillFile).mockReturnValue(false)
+
       hotReload = new SkillHotReload({
         ignoreInitial: true,
         debounceDelay: 0,

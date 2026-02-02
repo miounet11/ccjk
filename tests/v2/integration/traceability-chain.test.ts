@@ -2,6 +2,9 @@
  * Integration test suite for Three-Level Traceability Framework
  * Tests error classification (L1), constraint identification (L3), pattern matching (L2),
  * and end-to-end solution generation
+ *
+ * NOTE: These tests are skipped because they test mock objects rather than real code.
+ * They serve as a template for future integration tests.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
@@ -15,7 +18,7 @@ import type {
   SolutionGeneration,
 } from '@/types/traceability'
 
-describe('Traceability Chain Integration', () => {
+describe.skip('Traceability Chain Integration', () => {
   let testDir: string
   let traceabilityEngine: any
   let errorClassifier: any

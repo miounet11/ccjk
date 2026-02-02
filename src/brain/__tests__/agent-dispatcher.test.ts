@@ -627,7 +627,8 @@ describe('AgentDispatcher', () => {
       const result = await timeoutDispatcher.dispatch(task, skill, executeFn)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('timeout')
+      // Error message is in Chinese: "任务执行超时 (0s)。建议：..."
+      expect(result.error).toMatch(/超时|timeout/i)
 
       timeoutDispatcher.cleanup()
     })

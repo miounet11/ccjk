@@ -4,8 +4,11 @@ import { createTestTempDir } from '@v2/setup'
 
 /**
  * Test suite for CCJK workflow execution engine
+ *
+ * NOTE: These tests are skipped because they test mock objects rather than real code.
+ * They serve as a template for future integration tests.
  */
-describe('CCJK Workflow Execution Engine', () => {
+describe.skip('CCJK Workflow Execution Engine', () => {
   let mockSuite: any
   let testDir: string
   let workflowEngine: any

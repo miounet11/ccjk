@@ -368,7 +368,7 @@ export function createCommunication(config?: Partial<CommunicationConfig>): Agen
 /**
  * Message type constants (frozen for immutability)
  */
-export const MESSAGE_TYPES = {
+export const MESSAGE_TYPES = Object.freeze({
   TASK_REQUEST: 'task_request',
   TASK_RESPONSE: 'task_response',
   STATUS_UPDATE: 'status_update',
@@ -378,4 +378,4 @@ export const MESSAGE_TYPES = {
   RESULT_SHARE: 'result_share',
   FEEDBACK: 'feedback',
   HEARTBEAT: 'heartbeat',
-} as const
+} as const)

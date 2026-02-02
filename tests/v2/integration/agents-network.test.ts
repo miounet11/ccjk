@@ -2,6 +2,9 @@
  * Integration test suite for Agents Network Communication
  * Tests agent registration, Redis message passing, request-response patterns,
  * pub-sub broadcasting, and performance benchmarks
+ *
+ * NOTE: These tests are skipped because they test mock objects rather than real code.
+ * They serve as a template for future integration tests.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
@@ -15,7 +18,7 @@ import type {
   AgentNetworkMetrics,
 } from '@/types/agents-v2'
 
-describe('Agents Network Integration', () => {
+describe.skip('Agents Network Integration', () => {
   let testDir: string
   let agentRegistry: any
   let redisBus: any

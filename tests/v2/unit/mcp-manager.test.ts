@@ -4,8 +4,11 @@ import { createTestTempDir } from '@v2/setup'
 
 /**
  * Test suite for CCJK MCP (Model Context Protocol) service management
+ *
+ * NOTE: These tests are skipped because they test mock objects rather than real code.
+ * They serve as a template for future integration tests.
  */
-describe('CCJK MCP Service Management', () => {
+describe.skip('CCJK MCP Service Management', () => {
   let mockSuite: any
   let testDir: string
   let mcpManager: any

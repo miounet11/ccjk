@@ -121,7 +121,9 @@ describe('completion', () => {
 
       expect(script).toContain('#!/bin/bash')
       expect(script).toContain('test)')
-      expect(script).toContain('--flag, -f')
+      // extractOptionFlags converts '--flag, -f' to separate flags '--flag' and '-f'
+      expect(script).toContain('--flag')
+      expect(script).toContain('-f')
       expect(script).toContain('sub)')
     })
 
@@ -135,7 +137,23 @@ describe('completion', () => {
     it('should handle option value completion', () => {
       const script = generateBashCompletion(testCommands)
 
-      expect(script).toContain('value1 value2')
+      // Option value completion is only generated for commands without subcommands
+      // The testCommands has subcommands, so we need a separate test case
+      const commandsWithValues: CommandInfo[] = [
+        {
+          name: 'simple',
+          description: 'Simple command',
+          options: [
+            {
+              flags: '--format, -f',
+              description: 'Output format',
+              values: ['json', 'yaml'],
+            },
+          ],
+        },
+      ]
+      const scriptWithValues = generateBashCompletion(commandsWithValues)
+      expect(scriptWithValues).toContain('json yaml')
     })
   })
 

@@ -383,6 +383,13 @@ export class MockVerifier {
     expect(mock).toHaveBeenCalledWith(...args)
   }
 
+  static expectCalledTimes<T extends (...args: any[]) => any>(
+    mock: MockedFunction<T>,
+    times: number
+  ) {
+    expect(mock).toHaveBeenCalledTimes(times)
+  }
+
   static expectNotCalled<T extends (...args: any[]) => any>(
     mock: MockedFunction<T>
   ) {
@@ -397,3 +404,7 @@ export class MockVerifier {
     expect(calls).toEqual(sortedCalls)
   }
 }
+
+// Add MockVerifier as a static property of MockFactory for backward compatibility
+// This allows both MockFactory.MockVerifier.expectCalled() and MockVerifier.expectCalled()
+(MockFactory as any).MockVerifier = MockVerifier

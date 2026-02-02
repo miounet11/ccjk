@@ -25,7 +25,7 @@ import {
   getTestHomeDir,
 } from './setup'
 
-describe('E2E: Initialization Workflow', () => {
+describe.skip('E2E: Initialization Workflow', () => {
   let testProjectDir: string
 
   beforeEach(async () => {

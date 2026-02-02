@@ -61,14 +61,14 @@ vi.mock('../agent-fork', () => ({
 vi.mock('../agent-dispatcher', () => ({
   AgentDispatcher: vi.fn().mockImplementation(() => ({
     dispatch: vi.fn().mockResolvedValue({ success: true, output: {} }),
-    dispatchParallel: vi.fn().mockResolvedValue({
-      id: 'parallel-1',
+    dispatchParallel: vi.fn().mockImplementation((execution) => Promise.resolve({
+      id: execution.id,
       success: true,
       results: [],
       durationMs: 100,
       successfulCount: 0,
       failedCount: 0,
-    }),
+    })),
     getStats: vi.fn().mockReturnValue({
       registeredCloudAgents: 0,
       cachedAgents: 0,
