@@ -26,6 +26,10 @@ export interface Template {
   category: string
   tags: string[]
 
+  // Template content (for skills, hooks, agents)
+  template_content?: string
+  content?: string // Alternative field name used by some endpoints
+
   // Version info
   author?: string
   version: string

@@ -18,7 +18,7 @@ import consola from 'consola'
 import inquirer from 'inquirer'
 import { i18n } from '../i18n'
 import { analyzeProject } from '../analyzers'
-import { getTemplatesClient, type Template, createCloudClient } from '../cloud-client'
+import { getTemplatesClient, type Template } from '../cloud-client'
 import { getSkillParser } from '../plugins-v2'
 
 // ============================================================================
@@ -56,6 +56,8 @@ interface RecommendedSkill {
   tags: string[]
   agents?: string[]
   templatePath: string
+  /** Template content from V8 API (for cloud skills) */
+  templateContent?: string
 }
 
 // ============================================================================
@@ -286,6 +288,8 @@ async function getRecommendedSkills(
           source: 'cloud',
           tags: skill.tags || [],
           templatePath: skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-'),
+          // Store template content from V8 API response
+          templateContent: skill.template_content || skill.content,
         })
       }
     }
@@ -526,8 +530,8 @@ async function installSkills(
         continue
       }
 
-      // Load template content
-      const templateContent = await loadSkillTemplate(skill.templatePath)
+      // Load template content (use cached content from V8 API if available)
+      const templateContent = await loadSkillTemplate(skill)
       if (!templateContent) {
         throw new Error(`Template not found: ${skill.templatePath}`)
       }
@@ -581,20 +585,29 @@ async function installSkills(
 }
 
 /**
- * Load skill template from file or cloud
+ * Load skill template from cached content, cloud V8 API, or local files
  */
-async function loadSkillTemplate(templatePath: string): Promise<string | null> {
-  try {
-    // Check if this is a cloud template ID (starts with skill_ or tpl_)
-    const isCloudTemplate = templatePath.startsWith('skill_') || templatePath.startsWith('tpl_')
+async function loadSkillTemplate(skill: RecommendedSkill): Promise<string | null> {
+  const templatePath = skill.templatePath
 
+  try {
+    // 1. Use cached template content from V8 API response (most efficient)
+    if (skill.templateContent) {
+      return skill.templateContent
+    }
+
+    // 2. For cloud templates, fetch from V8 API
+    const isCloudTemplate = templatePath.startsWith('skill_') || templatePath.startsWith('tpl_')
     if (isCloudTemplate) {
-      // Try to fetch from cloud using v1 API (which includes content)
       try {
-        const cloudClient = createCloudClient()
-        const template = await cloudClient.getTemplate(templatePath)
-        if (template && template.content) {
-          return template.content
+        const templatesClient = getTemplatesClient()
+        const template = await templatesClient.getTemplate(templatePath)
+        if (template) {
+          // V8 API returns template_content or content
+          const content = template.template_content || template.content
+          if (content) {
+            return content
+          }
         }
       } catch (error) {
         consola.warn(`Failed to fetch cloud template ${templatePath}:`, error)
@@ -602,13 +615,13 @@ async function loadSkillTemplate(templatePath: string): Promise<string | null> {
       }
     }
 
-    // Try local templates first
+    // 3. Try local templates in project directory
     const localPath = join(process.cwd(), 'templates', 'skills', templatePath)
     if (await fileExists(localPath)) {
       return await fs.readFile(localPath, 'utf-8')
     }
 
-    // Try package templates
+    // 4. Try package templates
     const packagePath = join(__dirname, '..', '..', 'templates', 'skills', templatePath)
     if (await fileExists(packagePath)) {
       return await fs.readFile(packagePath, 'utf-8')
