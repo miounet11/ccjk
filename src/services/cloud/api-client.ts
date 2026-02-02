@@ -260,10 +260,17 @@ export class CloudApiClient {
       const data = await response.json() as CloudApiResponse<T>
 
       if (!response.ok) {
+        // Handle error object format from cloud API
+        const errorMsg = typeof data.error === 'object' && data.error !== null
+          ? (data.error as { message?: string }).message || JSON.stringify(data.error)
+          : data.error || `HTTP ${response.status}: ${response.statusText}`
+        const errorCode = typeof data.error === 'object' && data.error !== null
+          ? (data.error as { code?: string }).code || data.code
+          : data.code
         return {
           success: false,
-          error: data.error || `HTTP ${response.status}: ${response.statusText}`,
-          code: data.code || `HTTP_${response.status}`,
+          error: errorMsg,
+          code: errorCode || `HTTP_${response.status}`,
         }
       }
 

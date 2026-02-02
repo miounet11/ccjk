@@ -143,8 +143,8 @@ export class ProviderRegistryService {
           `/providers/${encodeURIComponent(normalizedCode)}`,
         )
 
-        if (response.success && response.data?.data) {
-          return response.data.data
+        if (response.success && response.data) {
+          return response.data
         }
       }
       catch {
