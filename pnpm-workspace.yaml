@@ -6,7 +6,7 @@ catalog:
   '@antfu/eslint-config': ^5.4.1
   handlebars: ^4.7.8
   web-tree-sitter: ^0.26.3
-  '@anthropic-ai/sdk': ^0.52.0
+  '@anthropic-ai/sdk': ^0.72.1
   '@changesets/cli': ^2.29.7
   '@commitlint/cli': ^19.8.1
   '@commitlint/config-conventional': ^19.8.1
@@ -30,7 +30,7 @@ catalog:
   concurrently: ^9.1.0
   consola: ^3.4.2
   dayjs: ^1.11.18
-  eslint: ^9.36.0
+  eslint: ^9.39.2
   eslint-config-next: 14.1.0
   eslint-plugin-format: ^1.0.2
   find-up-simple: ^1.0.1
@@ -63,8 +63,8 @@ catalog:
   tinyexec: ^1.0.1
   tinyglobby: ^0.2.15
   trash: ^10.0.0
-  tsx: ^4.20.5
-  typescript: ^5.9.2
+  tsx: ^4.7.2
+  typescript: ^5.3.3
   unbuild: ^3.6.1
   unocss: ^66.5.9
   uuid: ^11.0.5
@@ -78,9 +78,9 @@ catalogs:
   conflicts_conflicts_@types/node_h20_11_5_h22_18_6:
     '@types/node': ^22.18.6
   conflicts_conflicts_tsx_h4_7_2_h4_20_5:
-    tsx: ^4.20.5
+    tsx: ^4.7.2
   conflicts_conflicts_typescript_h5_3_3_h5_9_2:
-    typescript: ^5.9.2
+    typescript: ^5.3.3
   conflicts_tsx_h4_7_2:
     tsx: ^4.7.2
   conflicts_typescript_h5_3_3:
@@ -106,7 +106,7 @@ catalogs:
   conflicts_conflicts_chokidar_h3_5_3_h4_0_3:
     chokidar: ^4.0.3
   conflicts_conflicts_eslint_h8_0_0_h9_36_0:
-    eslint: ^9.36.0
+    eslint: ^9.39.2
   conflicts_conflicts_vitest_h1_0_0_h3_2_4:
     vitest: ^3.2.4
 
