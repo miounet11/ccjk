@@ -1956,20 +1956,75 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
  * 这是 CCJK 的主入口点，使用懒加载架构
  */
 export async function runLazyCli(): Promise<void> {
-  // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
-  // 在后台执行：设备注册、握手、自动同步、静默升级
-  bootstrapCloudServices()
+  // 🎯 立即显示启动提示，避免空白屏幕
+  const spinner = await showStartupSpinner()
 
-  // 🚀 快速启动检测：检查是否为供应商短码
-  const handled = await tryQuickProviderLaunch()
-  if (handled) {
-    return // 快速启动已处理，不进入常规 CLI
+  try {
+    // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
+    // 在后台执行：设备注册、握手、自动同步、静默升级
+    bootstrapCloudServices()
+
+    // 🚀 快速启动检测：检查是否为供应商短码
+    const handled = await tryQuickProviderLaunch()
+    if (handled) {
+      spinner?.stop()
+      return // 快速启动已处理，不进入常规 CLI
+    }
+
+    const cac = (await import('cac')).default
+    const cli = cac('ccjk')
+    await setupCommandsLazy(cli)
+
+    // 停止 spinner，准备显示菜单或执行命令
+    spinner?.stop()
+
+    cli.parse()
+  }
+  catch (error) {
+    spinner?.stop()
+    throw error
+  }
+}
+
+/**
+ * 显示启动 spinner
+ * 立即给用户视觉反馈，避免空白屏幕
+ */
+async function showStartupSpinner(): Promise<{ stop: () => void } | null> {
+  // 检查是否需要显示 spinner
+  // 如果是 --help, --version 等快速命令，不显示
+  const args = process.argv.slice(2)
+  const quickFlags = ['--help', '-h', '--version', '-v', '-V']
+  if (args.some(arg => quickFlags.includes(arg))) {
+    return null
   }
 
-  const cac = (await import('cac')).default
-  const cli = cac('ccjk')
-  await setupCommandsLazy(cli)
-  cli.parse()
+  try {
+    const ora = (await import('ora')).default
+    const isZh = process.env.CCJK_LANG === 'zh-CN' || process.env.LANG?.includes('zh')
+    const spinner = ora({
+      text: isZh ? '正在启动 CCJK...' : 'Starting CCJK...',
+      spinner: 'dots',
+    }).start()
+
+    return {
+      stop: () => {
+        spinner.stop()
+        spinner.clear()
+      },
+    }
+  }
+  catch {
+    // ora 加载失败时使用简单的文本提示
+    const isZh = process.env.CCJK_LANG === 'zh-CN' || process.env.LANG?.includes('zh')
+    process.stdout.write(isZh ? '正在启动 CCJK...\r' : 'Starting CCJK...\r')
+    return {
+      stop: () => {
+        // 清除行
+        process.stdout.write('\x1B[2K\r')
+      },
+    }
+  }
 }
 
 /**
