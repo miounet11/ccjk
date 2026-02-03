@@ -203,3 +203,18 @@ export {
   normalizeRecommendation,
   normalizeRecommendations,
 } from './i18n-helpers'
+
+// Capability discovery utilities
+export {
+  generateCompactWelcome,
+  generateRecommendations,
+  generateWelcome,
+  getCapabilitiesByType,
+  getCapability,
+  scanCapabilities,
+  type Capability,
+  type CapabilityScanResult,
+  type CapabilityStatus,
+  type CapabilityType,
+  type WelcomeOptions,
+} from './capability-discovery'

@@ -80,7 +80,7 @@ export function generateWelcome(
   } = options
 
   const lines: string[] = []
-  const width = compact ? 50 : 60
+  const width = compact ? 50 : 70
 
   // Header
   lines.push(createBorderLine(width, 'top'))
@@ -95,56 +95,95 @@ export function generateWelcome(
     lines.push(centerText(title, width))
   }
 
-  // Stats section
+  // Available capabilities section
   if (showStats && scanResult.total > 0) {
     lines.push(leftText('', width))
-    lines.push(leftText(ansis.bold('📦 Loaded Capabilities:'), width))
+    lines.push(leftText(ansis.bold('✨ Available Capabilities:'), width))
 
+    // Skills - show actual skill names
+    if (scanResult.skills.length > 0) {
+      const activeSkills = scanResult.skills.filter(c => c.status === 'active')
+      if (activeSkills.length > 0) {
+        lines.push(leftText('', width))
+        lines.push(leftText(ansis.bold.green('  📚 Skills:'), width))
+        activeSkills.slice(0, 5).forEach((skill) => {
+          const trigger = skill.triggers?.[0] || `/${skill.id}`
+          lines.push(leftText(`     ${ansis.cyan(trigger.padEnd(20))} ${ansis.dim(skill.description)}`, width))
+        })
+        if (activeSkills.length > 5) {
+          lines.push(leftText(`     ${ansis.dim(`... and ${activeSkills.length - 5} more`)}`, width))
+        }
+      }
+    }
+
+    // MCP Services - show actual service names
+    if (scanResult.mcpServices.length > 0) {
+      const activeMcp = scanResult.mcpServices.filter(c => c.status === 'active')
+      if (activeMcp.length > 0) {
+        lines.push(leftText('', width))
+        lines.push(leftText(ansis.bold.green('  🔌 MCP Services:'), width))
+        activeMcp.slice(0, 5).forEach((mcp) => {
+          lines.push(leftText(`     ${ansis.cyan(mcp.name.padEnd(20))} ${ansis.dim(mcp.description)}`, width))
+        })
+        if (activeMcp.length > 5) {
+          lines.push(leftText(`     ${ansis.dim(`... and ${activeMcp.length - 5} more`)}`, width))
+        }
+      }
+    }
+
+    // Agents - show actual agent names
+    if (scanResult.agents.length > 0) {
+      const activeAgents = scanResult.agents.filter(c => c.status === 'active')
+      if (activeAgents.length > 0) {
+        lines.push(leftText('', width))
+        lines.push(leftText(ansis.bold.green('  🤖 Agents:'), width))
+        activeAgents.forEach((agent) => {
+          const trigger = agent.triggers?.[0] || agent.id
+          lines.push(leftText(`     ${ansis.cyan(trigger.padEnd(20))} ${ansis.dim(agent.description)}`, width))
+        })
+      }
+    }
+
+    // Superpowers - show actual superpower names
+    if (scanResult.superpowers.length > 0) {
+      const activeSuperpowers = scanResult.superpowers.filter(c => c.status === 'active')
+      if (activeSuperpowers.length > 0) {
+        lines.push(leftText('', width))
+        lines.push(leftText(ansis.bold.green('  ⚡ Superpowers:'), width))
+        activeSuperpowers.slice(0, 3).forEach((sp) => {
+          lines.push(leftText(`     ${ansis.cyan(sp.name.padEnd(20))} ${ansis.dim(sp.description)}`, width))
+        })
+        if (activeSuperpowers.length > 3) {
+          lines.push(leftText(`     ${ansis.dim(`... and ${activeSuperpowers.length - 3} more`)}`, width))
+        }
+      }
+    }
+
+    // CCJK Commands summary (not detailed list to keep it clean)
     if (scanResult.commands.length > 0) {
       const activeCommands = scanResult.commands.filter(c => c.status === 'active').length
-      lines.push(leftText(`   ${ansis.green('•')} ${activeCommands} CCJK Command(s)`, width))
-    }
-
-    if (scanResult.skills.length > 0) {
-      const activeSkills = scanResult.skills.filter(c => c.status === 'active').length
-      lines.push(leftText(`   ${ansis.green('•')} ${activeSkills} Custom Skill(s)`, width))
-    }
-
-    if (scanResult.superpowers.length > 0) {
-      const activeSuperpowers = scanResult.superpowers.filter(c => c.status === 'active').length
-      lines.push(leftText(`   ${ansis.green('•')} ${activeSuperpowers} Superpower(s)`, width))
-    }
-
-    if (scanResult.agents.length > 0) {
-      const activeAgents = scanResult.agents.filter(c => c.status === 'active').length
-      lines.push(leftText(`   ${ansis.green('•')} ${activeAgents} Agent Tool(s)`, width))
-    }
-
-    if (scanResult.mcpServices.length > 0) {
-      const activeMcp = scanResult.mcpServices.filter(c => c.status === 'active').length
-      lines.push(leftText(`   ${ansis.green('•')} ${activeMcp} MCP Service(s)`, width))
+      lines.push(leftText('', width))
+      lines.push(leftText(`  ${ansis.green('•')} ${activeCommands} CCJK Command(s) available`, width))
     }
 
     // Error count
     if (scanResult.errorCount > 0) {
-      lines.push(leftText(`   ${ansis.red('⚠')} ${scanResult.errorCount} Error(s)`, width))
+      lines.push(leftText('', width))
+      lines.push(leftText(`  ${ansis.red('⚠')} ${scanResult.errorCount} capability error(s) detected`, width))
     }
   }
 
-  // Recommendations
+  // Quick start tips
   if (showRecommendations && !compact) {
     lines.push(leftText('', width))
-    lines.push(leftText(ansis.bold('💡 Quick Start:'), width))
-    lines.push(leftText(`   Type ${ansis.green('/ccjk:status')} to see all capabilities`, width))
+    lines.push(leftText(ansis.bold('💡 Quick Tips:'), width))
+    lines.push(leftText(`   ${ansis.green('/ccjk:status')} - View detailed capability status`, width))
+    lines.push(leftText(`   ${ansis.green('/ccjk:help')} - Get help and documentation`, width))
 
-    if (scanResult.commands.length > 0) {
-      const topCommand = scanResult.commands
-        .filter(c => c.status === 'active')
-        .sort((a, b) => b.priority - a.priority)[0]
-
-      if (topCommand && topCommand.triggers?.[0]) {
-        lines.push(leftText(`   Try ${ansis.green(topCommand.triggers[0])} for ${topCommand.name}`, width))
-      }
+    // Show a useful skill example if available
+    const activeSkills = scanResult.skills.filter(c => c.status === 'active')
+    if (activeSkills.length > 0 && activeSkills[0].triggers?.[0]) {
+      lines.push(leftText(`   ${ansis.green(activeSkills[0].triggers[0])} - Try this skill`, width))
     }
   }
 

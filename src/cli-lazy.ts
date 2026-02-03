@@ -2032,6 +2032,7 @@ async function tryQuickProviderLaunch(): Promise<boolean> {
  * - 后台静默升级检查（CCJK、Claude Code、CCR）
  * - 自动同步配置和技能
  * - Plan Mode 上下文同步初始化
+ * - 显示欢迎界面和可用能力
  *
  * 全程静默，不打扰用户，不阻塞 CLI
  */
@@ -2062,9 +2063,48 @@ function bootstrapCloudServices(): void {
         silent: false, // 显示智能路由信息
         fallbackToClaudeCode: true,
       })
+
+      // 5. 显示欢迎界面（仅在非命令模式下显示）
+      await showWelcomeIfNeeded()
     }
     catch {
       // 云服务错误静默处理，不影响用户使用
     }
   })
+}
+
+/**
+ * 显示欢迎界面（如果需要）
+ *
+ * 仅在以下情况显示：
+ * - 用户直接运行 `npx ccjk` 或 `ccjk` 进入主菜单
+ * - 不是执行特定命令（如 init, update 等）
+ */
+async function showWelcomeIfNeeded(): Promise<void> {
+  try {
+    const args = process.argv.slice(2)
+
+    // 如果有命令参数，不显示欢迎界面
+    if (args.length > 0 && !args[0].startsWith('-')) {
+      return
+    }
+
+    // 扫描可用能力
+    const { scanCapabilities } = await import('./utils/capability-discovery')
+    const scanResult = scanCapabilities()
+
+    // 生成并显示欢迎界面
+    const { generateWelcome } = await import('./utils/capability-discovery')
+    const welcome = generateWelcome(scanResult, {
+      showVersion: true,
+      showStats: true,
+      showRecommendations: true,
+      compact: false,
+    })
+
+    console.log(welcome)
+  }
+  catch {
+    // 欢迎界面显示失败不影响主流程
+  }
 }
