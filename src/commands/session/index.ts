@@ -178,6 +178,8 @@ export async function deleteSession(idOrName: string): Promise<void> {
 
 /**
  * Resume last session
+ * @deprecated This function is no longer called directly to avoid conflict with Claude Code's built-in /resume command.
+ * Use restoreSession() with interactive picker instead.
  */
 export async function resumeLastSession(): Promise<void> {
   const t = getTranslation()
@@ -310,9 +312,8 @@ export async function handleSessionCommand(args: string[]): Promise<void> {
       }
       await deleteSession(rest[0])
       break
-    case 'resume':
-      await resumeLastSession()
-      break
+    // Note: 'resume' subcommand removed to avoid conflict with Claude Code's built-in /resume command
+    // Use 'ccjk session restore' with interactive picker instead
     default:
       showSessionHelp()
   }
@@ -324,9 +325,8 @@ export async function handleSessionCommand(args: string[]): Promise<void> {
 function showSessionHelp(): void {
   console.log(ansis.green.bold('\n💾 Session Commands\n'))
   console.log(ansis.white('  ccjk session save [name]    ') + ansis.dim('Save current session'))
-  console.log(ansis.white('  ccjk session restore <id>   ') + ansis.dim('Restore session'))
+  console.log(ansis.white('  ccjk session restore [id]   ') + ansis.dim('Restore session (interactive picker if no id)'))
   console.log(ansis.white('  ccjk session list          ') + ansis.dim('List all sessions'))
   console.log(ansis.white('  ccjk session delete <id>    ') + ansis.dim('Delete session'))
-  console.log(ansis.white('  ccjk session resume        ') + ansis.dim('Resume last session'))
   console.log()
 }

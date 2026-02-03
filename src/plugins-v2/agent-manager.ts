@@ -6,10 +6,11 @@
 
 import type { AgentDefinition, CloudAgent } from '../types/agent'
 import { join } from 'pathe'
-import { homedir } from 'node:os'
 import { existsSync, readFileSync, writeFileSync, readdirSync } from 'node:fs'
+import { CLAUDE_AGENTS_DIR } from '../constants'
 
-const AGENTS_DIR = join(homedir(), '.ccjk', 'agents')
+/** Agents directory - uses ~/.claude/agents for Claude Code compatibility */
+const AGENTS_DIR = CLAUDE_AGENTS_DIR
 
 /**
  * Register an agent

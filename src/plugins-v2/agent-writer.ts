@@ -5,7 +5,7 @@
  *
  * Claude Code expects agents as Markdown files with YAML frontmatter in:
  * - Project-local: `.claude/agents/*.md`
- * - Global (legacy): `~/.ccjk/agents/*.json` (for backward compatibility)
+ * - Global: `~/.claude/agents/*.md` (Claude Code compatible)
  *
  * Format:
  * ```markdown
@@ -22,14 +22,17 @@
 
 import type { AgentDefinition } from './types'
 import { join } from 'pathe'
-import { homedir } from 'node:os'
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs'
+import { CLAUDE_AGENTS_DIR, CCJK_CONFIG_DIR } from '../constants'
 
 // Claude Code compatible location (project-local)
 const getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'agents')
 
-// Legacy CCJK location (global, for backward compatibility)
-const LEGACY_AGENTS_DIR = join(homedir(), '.ccjk', 'agents')
+// Global agents location - uses ~/.claude/agents for Claude Code compatibility
+const GLOBAL_AGENTS_DIR = CLAUDE_AGENTS_DIR
+
+// Legacy CCJK location (for backward compatibility during migration)
+const LEGACY_AGENTS_DIR = join(CCJK_CONFIG_DIR, 'agents')
 
 // Available colors for agents in Claude Code
 const AGENT_COLORS = ['blue', 'green', 'orange', 'purple', 'red', 'yellow', 'cyan', 'pink'] as const
@@ -180,7 +183,7 @@ export async function writeAgentFile(
   // Determine output directory
   const isGlobal = options?.global || false
   const agentsDir = isGlobal
-    ? LEGACY_AGENTS_DIR
+    ? GLOBAL_AGENTS_DIR
     : getProjectAgentsDir(options?.projectDir)
 
   // Determine file extension based on format
@@ -232,7 +235,7 @@ export async function updateAgentFile(
 ): Promise<boolean> {
   const isGlobal = options?.global || false
   const agentsDir = isGlobal
-    ? LEGACY_AGENTS_DIR
+    ? GLOBAL_AGENTS_DIR
     : getProjectAgentsDir(options?.projectDir)
 
   // Try markdown first (Claude Code format), then JSON (legacy)
@@ -310,7 +313,7 @@ export async function deleteAgentFile(
   const { unlink } = await import('node:fs/promises')
   const isGlobal = options?.global || false
   const agentsDir = isGlobal
-    ? LEGACY_AGENTS_DIR
+    ? GLOBAL_AGENTS_DIR
     : getProjectAgentsDir(options?.projectDir)
 
   // Try to delete both formats

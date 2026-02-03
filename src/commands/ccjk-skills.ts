@@ -504,7 +504,9 @@ async function installSkills(
   options: Required<CcjkSkillsOptions>,
 ): Promise<SkillInstallResult[]> {
   const results: SkillInstallResult[] = []
-  const skillsDir = join(process.env.HOME || homedir(), '.ccjk', 'skills')
+  // Write to Claude Code compatible location: ~/.claude/skills/
+  // (not ~/.ccjk/skills/ which Claude Code doesn't recognize)
+  const skillsDir = join(process.env.HOME || homedir(), '.claude', 'skills')
   const parser = getSkillParser()
 
   // Ensure skills directory exists

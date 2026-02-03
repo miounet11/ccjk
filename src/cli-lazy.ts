@@ -858,7 +858,7 @@ const COMMANDS: CommandDefinition[] = [
   },
   {
     name: 'session <action> [id]',
-    description: 'Session management (save, restore, list, delete, resume)',
+    description: 'Session management (save, restore, list, delete)',
     tier: 'extended',
     options: [
       { flags: '--name, -n <name>', description: 'Session name' },
@@ -2054,6 +2054,14 @@ function bootstrapCloudServices(): void {
       // 3. Superpower 零配置激活（自动安装和加载核心技能）
       const { activateSuperpowers } = await import('./utils/zero-config')
       await activateSuperpowers('zh-CN')
+
+      // 4. 🧠 Brain 系统初始化（零配置智能路由）
+      const { setupBrainHook } = await import('./brain/integration/cli-hook')
+      await setupBrainHook({
+        enabled: true,
+        silent: false, // 显示智能路由信息
+        fallbackToClaudeCode: true,
+      })
     }
     catch {
       // 云服务错误静默处理，不影响用户使用

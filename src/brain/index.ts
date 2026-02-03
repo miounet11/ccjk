@@ -927,3 +927,108 @@ export type {
  * - Multiple compaction strategies
  * - History preservation with summarization
  */
+
+// ============================================================================
+// GASTOWN-INSPIRED MULTI-AGENT ORCHESTRATION (v9.4)
+// ============================================================================
+
+/**
+ * Git-Backed State Persistence
+ *
+ * Crash-safe agent state management using Git as storage backend:
+ * - Git worktrees for isolated agent contexts
+ * - Automatic commits on state changes
+ * - State snapshots and rollback capability
+ * - Multi-device sync via Git remotes
+ */
+
+export {
+  GitBackedStateManager,
+  getGlobalStateManager,
+  resetGlobalStateManager,
+} from './persistence/git-backed-state'
+
+export type {
+  GitBackedStateConfig,
+  StateSnapshot,
+  StateHistory,
+} from './persistence/git-backed-state'
+
+/**
+ * Persistent Mailbox System
+ *
+ * Async message passing between agents:
+ * - Crash-safe message persistence
+ * - Priority-based message handling
+ * - Message expiration and archiving
+ * - Search and filtering capabilities
+ */
+
+export {
+  PersistentMailboxManager,
+  getGlobalMailboxManager,
+  resetGlobalMailboxManager,
+} from './messaging/persistent-mailbox'
+
+export type {
+  Message,
+  Mailbox,
+  SendMessageOptions,
+} from './messaging/persistent-mailbox'
+
+/**
+ * Convoy Task Management
+ *
+ * Group related tasks with dependency tracking:
+ * - Task grouping and progress tracking
+ * - Dependency-based execution order
+ * - Human notification on completion
+ * - Real-time progress visualization
+ */
+
+export {
+  ConvoyManager,
+  getGlobalConvoyManager,
+  resetGlobalConvoyManager,
+} from './convoy/convoy-manager'
+
+export type {
+  Convoy,
+  ConvoyTask,
+  ConvoyStatus,
+  CreateConvoyOptions,
+  CreateTaskOptions,
+} from './convoy/convoy-manager'
+
+export {
+  ProgressTracker,
+  createProgressCallback,
+} from './convoy/progress-tracker'
+
+export type {
+  ProgressUpdate,
+  ProgressTrackerConfig,
+} from './convoy/progress-tracker'
+
+/**
+ * Mayor Agent - AI Coordinator
+ *
+ * Intelligent task orchestration:
+ * - Natural language intent analysis
+ * - Automatic task plan generation
+ * - Worker agent spawning and coordination
+ * - Progress monitoring and reporting
+ */
+
+export {
+  MayorAgent,
+  getGlobalMayorAgent,
+  resetGlobalMayorAgent,
+} from './mayor/mayor-agent'
+
+export type {
+  Intent,
+  TaskPlan,
+  MayorResponse,
+  MayorAgentConfig,
+} from './mayor/mayor-agent'

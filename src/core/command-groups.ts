@@ -388,7 +388,7 @@ export const COMMAND_GROUPS: CommandGroup[] = [
         name: 'restore',
         description: 'Restore a session',
         handler: 'commands/session-resume',
-        aliases: ['resume'],
+        // Note: 'resume' alias removed to avoid conflict with Claude Code's built-in /resume command
       },
       {
         name: 'delete',

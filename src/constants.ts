@@ -6,6 +6,7 @@ import { i18n } from './i18n/index'
 export const CLAUDE_DIR = join(homedir(), '.claude')
 export const SETTINGS_FILE = join(CLAUDE_DIR, 'settings.json')
 export const CLAUDE_MD_FILE = join(CLAUDE_DIR, 'CLAUDE.md')
+export const CLAUDE_AGENTS_DIR = join(CLAUDE_DIR, 'agents')
 export const ClAUDE_CONFIG_FILE = join(homedir(), '.claude.json')
 export const CLAUDE_VSC_CONFIG_FILE = join(CLAUDE_DIR, 'config.json')
 
@@ -38,7 +39,8 @@ export const CCJK_CONFIG_DIR = join(homedir(), '.ccjk')
 export const CCJK_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'config.toml')
 export const STATE_FILE = join(CCJK_CONFIG_DIR, 'state.json')
 export const CCJK_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'plugins')
-export const CCJK_SKILLS_DIR = join(CCJK_CONFIG_DIR, 'skills')
+/** Skills directory - uses ~/.claude/skills for Claude Code compatibility */
+export const CCJK_SKILLS_DIR = join(CLAUDE_DIR, 'skills')
 export const CCJK_GROUPS_DIR = join(CCJK_CONFIG_DIR, 'groups')
 
 // Cloud plugins configuration paths

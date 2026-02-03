@@ -292,7 +292,6 @@ const COMPLETION_COMMANDS: CommandInfo[] = [
       { name: 'restore', description: 'Restore session' },
       { name: 'list', description: 'List sessions' },
       { name: 'delete', description: 'Delete session' },
-      { name: 'resume', description: 'Resume session' },
     ],
   },
 

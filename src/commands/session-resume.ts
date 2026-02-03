@@ -441,7 +441,7 @@ export async function resumeSessionByIdentifier(
 
     if (!session) {
       console.log(ansis.red(`\nSession not found: ${identifier}`))
-      console.log(ansis.gray('Use "ccjk resume" to browse available sessions\n'))
+      console.log(ansis.gray('Use "ccjk session restore" to browse available sessions\n'))
       return
     }
 
@@ -595,7 +595,7 @@ export async function forkSession(
       if (newSession.gitInfo?.branch) {
         console.log(ansis.gray(`  Branch: ${newSession.gitInfo.branch}`))
       }
-      console.log(ansis.gray(`\nRun: ccjk resume ${newSession.id}\n`))
+      console.log(ansis.gray(`\nRun: ccjk session restore ${newSession.id}\n`))
     }
     else {
       console.log(ansis.red('\nFailed to fork session\n'))

@@ -42,8 +42,8 @@ const DEFAULT_DEBOUNCE_DELAY = 300
 /** Default home skills directory */
 const DEFAULT_HOME_SKILLS_DIR = join(homedir(), '.claude', 'skills')
 
-/** Default CCJK skills directory */
-const DEFAULT_CCJK_SKILLS_DIR = join(homedir(), '.ccjk', 'skills')
+/** Default CCJK skills directory - uses ~/.claude/skills for Claude Code compatibility */
+const DEFAULT_CCJK_SKILLS_DIR = join(homedir(), '.claude', 'skills')
 
 /** Default local skills directory */
 const DEFAULT_LOCAL_SKILLS_DIR = '.claude/skills'

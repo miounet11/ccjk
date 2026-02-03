@@ -94,7 +94,7 @@ export const DEPRECATED_COMMANDS: Record<string, DeprecationWarning> = {
     command: 'session-resume',
     deprecatedIn: '3.9.0',
     removedIn: '4.0.0',
-    replacement: 'ccjk session resume',
+    replacement: 'ccjk session restore',
     reason: 'Consolidated into session command',
   },
   'mcp-doctor': {

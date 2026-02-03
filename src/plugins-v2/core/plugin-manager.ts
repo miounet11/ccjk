@@ -37,15 +37,19 @@ import { x } from 'tinyexec'
 import { getIntentEngine } from '../intent/intent-engine'
 import { getScriptRunner } from '../scripts/script-runner'
 import { getSkillParser } from '../skills/skill-parser'
+import { writeAgentFile, getAgentsDir } from '../agent-writer'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const PLUGINS_DIR = join(homedir(), '.ccjk', 'plugins')
-const SKILLS_DIR = join(homedir(), '.ccjk', 'skills')
-const AGENTS_DIR = join(homedir(), '.ccjk', 'agents')
-const CONFIG_FILE = join(homedir(), '.ccjk', 'plugins.json')
+import { CCJK_PLUGINS_DIR, CCJK_SKILLS_DIR, CLAUDE_AGENTS_DIR, CCJK_CONFIG_DIR } from '../../constants'
+
+const PLUGINS_DIR = CCJK_PLUGINS_DIR
+const SKILLS_DIR = CCJK_SKILLS_DIR
+/** Agents directory - uses ~/.claude/agents for Claude Code compatibility */
+const AGENTS_DIR = CLAUDE_AGENTS_DIR
+const CONFIG_FILE = join(CCJK_CONFIG_DIR, 'plugins.json')
 
 // ============================================================================
 // Plugin Manager Class
@@ -542,8 +546,11 @@ export class PluginManager {
 
   /**
    * Create an agent from skills and MCP servers
+   *
+   * Writes agent to project-local `.claude/agents/` in Markdown format
+   * for Claude Code compatibility.
    */
-  async createAgent(definition: AgentDefinition): Promise<void> {
+  async createAgent(definition: AgentDefinition, options?: { projectDir?: string; global?: boolean }): Promise<void> {
     // Validate skills exist
     for (const skillRef of definition.skills) {
       if (!this.plugins.has(skillRef.pluginId)) {
@@ -551,9 +558,12 @@ export class PluginManager {
       }
     }
 
-    // Save agent definition
-    const agentPath = join(AGENTS_DIR, `${definition.id}.json`)
-    writeFileSync(agentPath, JSON.stringify(definition, null, 2))
+    // Save agent definition using agent-writer (Markdown format for Claude Code)
+    await writeAgentFile(definition, {
+      format: 'markdown',
+      projectDir: options?.projectDir,
+      global: options?.global || false,
+    })
 
     this.agents.set(definition.id, definition)
     this.emit({ type: 'agent:created', agentId: definition.id })
@@ -574,20 +584,97 @@ export class PluginManager {
   }
 
   /**
-   * Load installed agents
+   * Load installed agents from both project-local and global directories
+   *
+   * Supports:
+   * - Project-local `.claude/agents/*.md` (Claude Code format)
+   * - Global `~/.claude/agents/*.md` (Claude Code compatible)
    */
   private async loadInstalledAgents(): Promise<void> {
-    if (!existsSync(AGENTS_DIR))
-      return
-
-    const entries = readdirSync(AGENTS_DIR, { withFileTypes: true })
-
-    for (const entry of entries) {
-      if (entry.isFile() && entry.name.endsWith('.json')) {
-        const content = readFileSync(join(AGENTS_DIR, entry.name), 'utf-8')
-        const agent = JSON.parse(content) as AgentDefinition
-        this.agents.set(agent.id, agent)
+    // Load from project-local directory (Claude Code format)
+    const projectAgentsDir = getAgentsDir()
+    if (existsSync(projectAgentsDir)) {
+      const entries = readdirSync(projectAgentsDir, { withFileTypes: true })
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name.endsWith('.md')) {
+          try {
+            const content = readFileSync(join(projectAgentsDir, entry.name), 'utf-8')
+            const agent = this.parseMarkdownAgent(content, entry.name)
+            if (agent) {
+              this.agents.set(agent.id, agent)
+            }
+          } catch {
+            // Skip invalid agent files
+          }
+        }
       }
+    }
+
+    // Load from global directory (legacy JSON format) for backward compatibility
+    if (existsSync(AGENTS_DIR)) {
+      const entries = readdirSync(AGENTS_DIR, { withFileTypes: true })
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name.endsWith('.json')) {
+          try {
+            const content = readFileSync(join(AGENTS_DIR, entry.name), 'utf-8')
+            const agent = JSON.parse(content) as AgentDefinition
+            // Don't override project-local agents
+            if (!this.agents.has(agent.id)) {
+              this.agents.set(agent.id, agent)
+            }
+          } catch {
+            // Skip invalid agent files
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Parse a Markdown agent file to AgentDefinition
+   */
+  private parseMarkdownAgent(content: string, filename: string): AgentDefinition | null {
+    // Extract frontmatter
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/)
+    if (!frontmatterMatch) return null
+
+    const frontmatter = frontmatterMatch[1]
+    const lines = frontmatter.split('\n')
+
+    let id = filename.replace(/\.md$/, '')
+    let name = id
+    let description = ''
+    const tools: string[] = []
+
+    for (const line of lines) {
+      const colonIndex = line.indexOf(':')
+      if (colonIndex === -1) continue
+
+      const key = line.slice(0, colonIndex).trim()
+      const value = line.slice(colonIndex + 1).trim()
+
+      if (key === 'name') {
+        id = value
+        name = value
+      } else if (key === 'description') {
+        description = value
+      } else if (key === 'tools') {
+        tools.push(...value.split(',').map(t => t.trim()).filter(Boolean))
+      }
+    }
+
+    // Extract body as persona/instructions
+    const bodyMatch = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/)
+    const persona = bodyMatch ? bodyMatch[1].trim() : ''
+
+    return {
+      id,
+      name: { en: name, 'zh-CN': name },
+      description: { en: description, 'zh-CN': description },
+      persona,
+      skills: [],
+      mcpServers: [],
+      capabilities: [],
     }
   }
 

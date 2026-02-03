@@ -139,7 +139,7 @@ export async function importSession(
         console.log(ansis.white(`Name: ${options.name}`))
       }
 
-      console.log(ansis.gray('\nUse "ccjk resume" to continue this session\n'))
+      console.log(ansis.gray('\nUse "ccjk session restore" to continue this session\n'))
     }
 
     if (result.imported !== undefined) {

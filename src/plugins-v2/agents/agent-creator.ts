@@ -27,11 +27,11 @@ import type {
   PluginPackage,
 } from '../types'
 import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
-import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { getPluginManager } from '../core/plugin-manager'
 import { getMcpServerManager } from '../mcp/mcp-integration'
 import { writeAgentFile, getAgentsDir, getLegacyAgentsDir } from '../agent-writer'
+import { CLAUDE_AGENTS_DIR, CCJK_CONFIG_DIR } from '../../constants'
 
 // ============================================================================
 // Constants
@@ -40,9 +40,9 @@ import { writeAgentFile, getAgentsDir, getLegacyAgentsDir } from '../agent-write
 // Claude Code compatible location (project-local)
 const getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'agents')
 
-// Legacy CCJK location (global, for backward compatibility)
-const LEGACY_AGENTS_DIR = join(homedir(), '.ccjk', 'agents')
-const AGENT_TEMPLATES_DIR = join(homedir(), '.ccjk', 'agent-templates')
+// Global agents location - uses ~/.claude/agents for Claude Code compatibility
+const GLOBAL_AGENTS_DIR = CLAUDE_AGENTS_DIR
+const AGENT_TEMPLATES_DIR = join(CCJK_CONFIG_DIR, 'agent-templates')
 
 // ============================================================================
 // Agent Builder

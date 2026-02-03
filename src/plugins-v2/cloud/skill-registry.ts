@@ -33,7 +33,8 @@ import { CCJK_CLOUD_PLUGINS_API } from '../../constants'
 
 const SKILLS_CACHE_DIR = join(homedir(), '.ccjk', 'skills-cache')
 const SKILLS_CACHE_FILE = join(SKILLS_CACHE_DIR, 'registry.json')
-const SKILLS_INSTALL_DIR = join(homedir(), '.ccjk', 'skills')
+/** Skills install to ~/.claude/skills for Claude Code compatibility */
+const SKILLS_INSTALL_DIR = join(homedir(), '.claude', 'skills')
 
 /** Cache TTL: 24 hours */
 const CACHE_TTL = 24 * 60 * 60 * 1000
