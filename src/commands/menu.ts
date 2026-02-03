@@ -9,16 +9,20 @@ import { displayBannerWithInfo } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
-import { changeScriptLanguageFeature } from '../utils/features'
+import {
+  changeScriptLanguageFeature,
+  configureAiMemoryFeature,
+  configureDefaultModelFeature,
+  configureEnvPermissionFeature,
+} from '../utils/features'
 import { normalizeMenuInput } from '../utils/input-normalizer'
 import { promptBoolean } from '../utils/toggle-prompt'
-import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../utils/tools'
+import { runCcrMenuFeature } from '../utils/tools'
 import { showApiConfigMenu } from './api-config-selector'
 import { ccjkAgents } from './ccjk-agents'
 import { ccjkMcp } from './ccjk-mcp'
 import { ccjkSkills } from './ccjk-skills'
 import { checkUpdates } from './check-updates'
-import { configSwitchCommand } from './config-switch'
 import { doctor } from './doctor'
 import { simplifiedInit } from './init'
 import { uninstall } from './uninstall'
@@ -127,86 +131,54 @@ function showHelpDocumentation(isZh: boolean): void {
 }
 
 /**
- * Show the simplified CCJK main menu (9 options + H + 0)
+ * Show the ZCF-style CCJK main menu
  */
 async function showSimplifiedMenu(): Promise<MenuResult> {
   const lang = i18n.language as SupportedLang
   const isZh = lang === 'zh-CN'
 
-  // Section titles - API 配置作为核心卖点放在第一位置
-  const coreTitle = isZh ? '🔑 核心功能 (Core)' : '🔑 Core Features'
-  const quickStartTitle = isZh ? '🚀 快速开始 (Quick Start)' : '🚀 Quick Start'
-  const advancedTitle = isZh ? '📦 高级功能 (Advanced)' : '📦 Advanced'
-  const systemTitle = isZh ? '⚙️ 系统设置 (System)' : '⚙️ System'
-
-  // Core items (1) - API 配置是核心卖点
-  const apiName = isZh ? '1. 🔑 API 配置' : '1. 🔑 API Config'
-  const apiDesc = isZh ? '一键配置 API (核心功能)' : 'One-click API setup (core feature)'
-
-  // Quick Start items (2-4)
-  const quickSetupName = isZh ? '2. ⚡ 一键初始化' : '2. ⚡ Quick Init'
-  const quickSetupDesc = isZh ? '初始化项目配置' : 'Initialize project config'
-  const doctorName = isZh ? '3. 🔧 一键体检' : '3. 🔧 Diagnostics'
-  const doctorDesc = isZh ? '诊断问题并自动修复' : 'Diagnose issues and auto-fix'
-  const updateName = isZh ? '4. 🔄 一键更新' : '4. 🔄 Update All'
-  const updateDesc = isZh ? '更新所有组件到最新版本' : 'Update all components to latest'
-
-  // Advanced items (5-8)
-  const skillsName = isZh ? '5. 📚 Skills 管理' : '5. 📚 Skills Manager'
-  const skillsDesc = isZh ? '安装/更新/删除工作流技能' : 'Install/update/remove workflow skills'
-  const mcpName = isZh ? '6. 🔌 MCP 管理' : '6. 🔌 MCP Manager'
-  const mcpDesc = isZh ? '配置 Model Context Protocol 服务' : 'Configure MCP services'
-  const agentsName = isZh ? '7. 🤖 Agents 管理' : '7. 🤖 Agents Manager'
-  const agentsDesc = isZh ? '创建/管理 AI 智能体' : 'Create/manage AI agents'
-  const moreName = isZh ? '8. 📋 更多功能' : '8. 📋 More Features'
-  const moreDesc = isZh ? 'CCR/CCUsage/配置切换/代码工具等' : 'CCR/CCUsage/Config Switch/Code Tools'
-
-  // System items (9, H, 0)
-  const languageName = isZh ? '9. 🌍 语言设置' : '9. 🌍 Language'
-  const languageDesc = isZh ? '切换界面语言' : 'Switch interface language'
-  const helpName = isZh ? 'H. ❓ 帮助文档' : 'H. ❓ Help'
-  const helpDesc = isZh ? '查看使用指南' : 'View user guide'
-  const exitText = isZh ? '0. 🚪 退出' : '0. 🚪 Exit'
-
-  // Display menu - API 配置作为核心卖点放在最显眼位置
+  // Display ZCF-style menu
   console.log('')
-  console.log(ansis.bold.yellow(coreTitle))
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log(`  ${ansis.yellow.bold(apiName)} ${ansis.dim(`- ${apiDesc}`)}`)
+  console.log(ansis.bold.yellow(isZh ? '请选择功能' : 'Select Feature'))
+
+  // -------- Claude Code --------
+  console.log(ansis.dim(`  -------- Claude Code --------`))
+  console.log(`  ${ansis.green('1.')} ${isZh ? '完整初始化' : 'Full Init'} ${ansis.dim(isZh ? '- 安装 Claude Code + 导入工作流 + 配置 API 或 CCR 代理 + 配置 MCP 服务' : '- Install Claude Code + Import workflows + Configure API or CCR proxy + Configure MCP')}`)
+  console.log(`  ${ansis.green('2.')} ${isZh ? '导入工作流' : 'Import Workflows'} ${ansis.dim(isZh ? '- 仅导入/更新工作流相关文件' : '- Import/update workflow files only')}`)
+  console.log(`  ${ansis.green('3.')} ${isZh ? '配置 API 或 CCR 代理' : 'Configure API or CCR Proxy'} ${ansis.dim(isZh ? '- 配置 API URL、认证信息或 CCR 代理' : '- Configure API URL, auth info or CCR proxy')}`)
+  console.log(`  ${ansis.green('4.')} ${isZh ? '配置 MCP' : 'Configure MCP'} ${ansis.dim(isZh ? '- 配置 MCP 服务（含 Windows 修复）' : '- Configure MCP services (with Windows fix)')}`)
+  console.log(`  ${ansis.green('5.')} ${isZh ? '配置默认模型' : 'Configure Default Model'} ${ansis.dim(isZh ? '- 设置默认模型（opus/sonnet/sonnet 1m/自定义）' : '- Set default model (opus/sonnet/sonnet 1m/custom)')}`)
+  console.log(`  ${ansis.green('6.')} ${isZh ? '配置 Claude 全局记忆' : 'Configure Claude Memory'} ${ansis.dim(isZh ? '- 配置 AI 输出语言和输出风格' : '- Configure AI output language and style')}`)
+  console.log(`  ${ansis.green('7.')} ${isZh ? '导入推荐环境变量和权限配置' : 'Import Recommended Env & Permissions'} ${ansis.dim(isZh ? '- 导入隐私保护环境变量和系统权限配置' : '- Import privacy env vars and system permissions')}`)
   console.log('')
 
-  console.log(ansis.bold.green(quickStartTitle))
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log(`  ${ansis.green(quickSetupName)} ${ansis.dim(`- ${quickSetupDesc}`)}`)
-  console.log(`  ${ansis.green(doctorName)} ${ansis.dim(`- ${doctorDesc}`)}`)
-  console.log(`  ${ansis.green(updateName)} ${ansis.dim(`- ${updateDesc}`)}`)
+  // --------- 其他工具 ----------
+  console.log(ansis.dim(`  --------- ${isZh ? '其他工具' : 'Other Tools'} ----------`))
+  console.log(`  ${ansis.green('K.')} ${isZh ? 'Skills 管理' : 'Skills Manager'} ${ansis.dim(isZh ? '- 安装/更新/删除工作流技能' : '- Install/update/remove workflow skills')}`)
+  console.log(`  ${ansis.green('M.')} ${isZh ? 'MCP 管理' : 'MCP Manager'} ${ansis.dim(isZh ? '- 配置 Model Context Protocol 服务' : '- Configure MCP services')}`)
+  console.log(`  ${ansis.green('A.')} ${isZh ? 'Agents 管理' : 'Agents Manager'} ${ansis.dim(isZh ? '- 创建/管理 AI 智能体' : '- Create/manage AI agents')}`)
+  console.log(`  ${ansis.green('R.')} ${isZh ? 'CCR' : 'CCR'} ${ansis.dim(isZh ? '- 配置 Claude Code Router 以使用多个 AI 模型' : '- Configure Claude Code Router for multiple AI models')}`)
   console.log('')
 
-  console.log(ansis.bold.green(advancedTitle))
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log(`  ${ansis.green(skillsName)} ${ansis.dim(`- ${skillsDesc}`)}`)
-  console.log(`  ${ansis.green(mcpName)} ${ansis.dim(`- ${mcpDesc}`)}`)
-  console.log(`  ${ansis.green(agentsName)} ${ansis.dim(`- ${agentsDesc}`)}`)
-  console.log(`  ${ansis.green(moreName)} ${ansis.dim(`- ${moreDesc}`)}`)
-  console.log('')
-
-  console.log(ansis.bold.green(systemTitle))
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log(`  ${ansis.green(languageName)} ${ansis.dim(`- ${languageDesc}`)}`)
-  console.log(`  ${ansis.green(helpName)} ${ansis.dim(`- ${helpDesc}`)}`)
-  console.log('')
-  console.log(`  ${ansis.green(exitText)}`)
+  // ------------ CCJK ------------
+  console.log(ansis.dim(`  ------------ CCJK ------------`))
+  console.log(`  ${ansis.green('0.')} ${isZh ? '更改显示语言 / Select display language' : 'Select display language'} ${ansis.dim(isZh ? '- 更改 CCJK 界面语言' : '- Change CCJK interface language')}`)
+  console.log(`  ${ansis.green('S.')} ${isZh ? '切换代码工具' : 'Switch Code Tool'} ${ansis.dim(isZh ? '- 在支持的代码工具之间切换 (Claude Code, Codex)' : '- Switch between supported code tools (Claude Code, Codex)')}`)
+  console.log(`  ${ansis.green('-.')} ${isZh ? '卸载和删除配置' : 'Uninstall & Remove Config'} ${ansis.dim(isZh ? '- 从系统中删除 Claude Code 配置和工具' : '- Remove Claude Code config and tools from system')}`)
+  console.log(`  ${ansis.green('+.')} ${isZh ? '检查更新' : 'Check Updates'} ${ansis.dim(isZh ? '- 检查并更新 Claude Code、CCR 的版本' : '- Check and update Claude Code, CCR versions')}`)
+  console.log(`  ${ansis.green('D.')} ${isZh ? '一键体检' : 'Diagnostics'} ${ansis.dim(isZh ? '- 诊断问题并自动修复' : '- Diagnose issues and auto-fix')}`)
+  console.log(`  ${ansis.green('H.')} ${isZh ? '帮助文档' : 'Help'} ${ansis.dim(isZh ? '- 查看使用指南' : '- View user guide')}`)
+  console.log(`  ${ansis.green('Q.')} ${isZh ? '退出' : 'Exit'}`)
   console.log('')
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
-    message: isZh ? '请输入选项 (0-9, H):' : 'Enter option (0-9, H):',
+    message: isZh ? '请输入选项:' : 'Enter option:',
     validate: (value) => {
-      // Normalize full-width input for CJK IME support (Claude Code 2.1.21 alignment)
       const normalized = normalizeMenuInput(value)
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'h', 'q']
-      return valid.includes(normalized) || (isZh ? '请输入有效选项 (支持全角数字)' : 'Please enter a valid option (full-width supported)')
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'k', 'm', 'a', 'r', 's', '-', '+', 'd', 'h', 'q']
+      return valid.includes(normalized) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
 
@@ -215,56 +187,75 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     return 'exit'
   }
 
-  // Normalize full-width characters for CJK IME support
   const normalized = normalizeMenuInput(choice)
 
   switch (normalized) {
-    // ═══════════════════════════════════════════════════
-    // 🔑 Core (1) - API 配置是核心卖点
-    // ═══════════════════════════════════════════════════
+    // -------- Claude Code --------
     case '1': {
-      // API Config - 核心功能，一键配置 API
+      // Full Init
       console.log('')
-      console.log(ansis.yellow.bold(isZh ? '🔑 API 配置...' : '🔑 API Config...'))
-      console.log('')
-      await showApiConfigMenu()
-      break
-    }
-
-    // ═══════════════════════════════════════════════════
-    // 🚀 Quick Start (2-4)
-    // ═══════════════════════════════════════════════════
-    case '2': {
-      // Quick Init - 初始化项目配置
-      console.log('')
-      console.log(ansis.green(isZh ? '⚡ 一键初始化...' : '⚡ Quick Init...'))
+      console.log(ansis.green(isZh ? '⚡ 完整初始化...' : '⚡ Full Init...'))
       console.log('')
       await simplifiedInit({ skipPrompt: false })
       break
     }
 
-    case '3': {
-      // Diagnostics
+    case '2': {
+      // Import Workflows
       console.log('')
-      console.log(ansis.green(isZh ? '🔧 一键体检...' : '🔧 Running Diagnostics...'))
-      console.log('')
-      await doctor()
-      break
-    }
-
-    case '4': {
-      // Update All
-      console.log('')
-      console.log(ansis.green(isZh ? '🔄 一键更新...' : '🔄 Updating All...'))
+      console.log(ansis.green(isZh ? '📚 导入工作流...' : '📚 Importing Workflows...'))
       console.log('')
       await update({ skipBanner: true })
       break
     }
 
-    // ═══════════════════════════════════════════════════
-    // 📦 Advanced (5-8)
-    // ═══════════════════════════════════════════════════
+    case '3': {
+      // Configure API or CCR Proxy
+      console.log('')
+      console.log(ansis.green(isZh ? '🔑 配置 API...' : '🔑 Configuring API...'))
+      console.log('')
+      await showApiConfigMenu()
+      break
+    }
+
+    case '4': {
+      // Configure MCP
+      console.log('')
+      console.log(ansis.green(isZh ? '🔌 配置 MCP...' : '🔌 Configuring MCP...'))
+      console.log('')
+      await ccjkMcp({} as any)
+      break
+    }
+
     case '5': {
+      // Configure Default Model
+      console.log('')
+      console.log(ansis.green(isZh ? '🤖 配置默认模型...' : '🤖 Configuring Default Model...'))
+      console.log('')
+      await configureDefaultModelFeature()
+      break
+    }
+
+    case '6': {
+      // Configure Claude Memory
+      console.log('')
+      console.log(ansis.green(isZh ? '🧠 配置 Claude 全局记忆...' : '🧠 Configuring Claude Memory...'))
+      console.log('')
+      await configureAiMemoryFeature()
+      break
+    }
+
+    case '7': {
+      // Import Recommended Env & Permissions
+      console.log('')
+      console.log(ansis.green(isZh ? '📦 导入推荐配置...' : '📦 Importing Recommended Config...'))
+      console.log('')
+      await configureEnvPermissionFeature()
+      break
+    }
+
+    // --------- 其他工具 ----------
+    case 'k': {
       // Skills Manager
       console.log('')
       console.log(ansis.green(isZh ? '📚 Skills 管理...' : '📚 Skills Manager...'))
@@ -273,7 +264,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       break
     }
 
-    case '6': {
+    case 'm': {
       // MCP Manager
       console.log('')
       console.log(ansis.green(isZh ? '🔌 MCP 管理...' : '🔌 MCP Manager...'))
@@ -282,7 +273,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       break
     }
 
-    case '7': {
+    case 'a': {
       // Agents Manager
       console.log('')
       console.log(ansis.green(isZh ? '🤖 Agents 管理...' : '🤖 Agents Manager...'))
@@ -291,20 +282,56 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       break
     }
 
-    case '8': {
-      // More Features - show advanced submenu
+    case 'r': {
+      // CCR
       console.log('')
-      await showAdvancedMenu()
+      console.log(ansis.green(isZh ? '🔄 CCR 代理管理...' : '🔄 CCR Proxy Manager...'))
+      console.log('')
+      await runCcrMenuFeature()
       break
     }
 
-    // ═══════════════════════════════════════════════════
-    // ⚙️ System (9, H, 0)
-    // ═══════════════════════════════════════════════════
-    case '9': {
+    // ------------ CCJK ------------
+    case '0': {
       // Language Settings
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)
+      break
+    }
+
+    case 's': {
+      // Switch Code Tool
+      console.log('')
+      console.log(ansis.green(isZh ? '🛠️ 切换代码工具...' : '🛠️ Switching Code Tool...'))
+      console.log('')
+      await handleCodeToolSwitch(getCurrentCodeTool())
+      break
+    }
+
+    case '-': {
+      // Uninstall
+      console.log('')
+      console.log(ansis.green(isZh ? '🗑️ 卸载 CCJK...' : '🗑️ Uninstalling CCJK...'))
+      console.log('')
+      await uninstall()
+      break
+    }
+
+    case '+': {
+      // Check Updates
+      console.log('')
+      console.log(ansis.green(isZh ? '📦 检查更新...' : '📦 Checking Updates...'))
+      console.log('')
+      await checkUpdates()
+      break
+    }
+
+    case 'd': {
+      // Diagnostics
+      console.log('')
+      console.log(ansis.green(isZh ? '🔧 一键体检...' : '🔧 Running Diagnostics...'))
+      console.log('')
+      await doctor()
       break
     }
 
@@ -314,7 +341,6 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       break
     }
 
-    case '0':
     case 'q': {
       // Exit
       console.log(ansis.green(isZh ? '👋 再见！' : '👋 Goodbye!'))
@@ -340,127 +366,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   return undefined
 }
 
-/**
- * Show the advanced features submenu (More Features)
- */
-async function showAdvancedMenu(): Promise<MenuResult> {
-  const isZh = i18n.language === 'zh-CN'
-
-  console.log(ansis.bold.cyan(isZh ? '📋 更多功能' : '📋 More Features'))
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log('')
-
-  const choices = [
-    {
-      name: isZh ? '1. 🔄 CCR 代理管理' : '1. 🔄 CCR Proxy Manager',
-      value: 'ccr',
-      short: 'CCR',
-    },
-    {
-      name: isZh ? '2. 📊 CCUsage 用量统计' : '2. 📊 CCUsage Statistics',
-      value: 'ccusage',
-      short: 'CCUsage',
-    },
-    {
-      name: isZh ? '3. 🌟 Cometix 增强' : '3. 🌟 Cometix Enhancement',
-      value: 'cometix',
-      short: 'Cometix',
-    },
-    {
-      name: isZh ? '4. 🔀 配置文件切换' : '4. 🔀 Config Profile Switch',
-      value: 'switch',
-      short: 'Config Switch',
-    },
-    {
-      name: isZh ? '5. 🛠️ 代码工具切换' : '5. 🛠️ Code Tool Switch',
-      value: 'codetool',
-      short: 'Code Tool',
-    },
-    {
-      name: isZh ? '6. 📦 检查更新' : '6. 📦 Check Updates',
-      value: 'updates',
-      short: 'Updates',
-    },
-    {
-      name: isZh ? '7. 🗑️ 卸载 CCJK' : '7. 🗑️ Uninstall CCJK',
-      value: 'uninstall',
-      short: 'Uninstall',
-    },
-    new inquirer.Separator(ansis.dim('─'.repeat(40))),
-    {
-      name: isZh ? '0. ↩️ 返回主菜单' : '0. ↩️ Back to Main Menu',
-      value: 'back',
-      short: 'Back',
-    },
-  ]
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'list',
-    name: 'choice',
-    message: isZh ? '选择功能:' : 'Select feature:',
-    choices,
-    pageSize: 12,
-  })
-
-  if (!choice || choice === 'back') {
-    return undefined
-  }
-
-  console.log('')
-
-  switch (choice) {
-    case 'ccr': {
-      console.log(ansis.green(isZh ? '🔄 CCR 代理管理...' : '🔄 CCR Proxy Manager...'))
-      console.log('')
-      await runCcrMenuFeature()
-      break
-    }
-
-    case 'ccusage': {
-      console.log(ansis.green(isZh ? '📊 CCUsage 用量统计...' : '📊 CCUsage Statistics...'))
-      console.log('')
-      await runCcusageFeature()
-      break
-    }
-
-    case 'cometix': {
-      console.log(ansis.green(isZh ? '🌟 Cometix 增强...' : '🌟 Cometix Enhancement...'))
-      console.log('')
-      await runCometixMenuFeature()
-      break
-    }
-
-    case 'switch': {
-      console.log(ansis.green(isZh ? '🔀 配置文件切换...' : '🔀 Config Profile Switch...'))
-      console.log('')
-      await configSwitchCommand({ codeType: 'claude-code' })
-      break
-    }
-
-    case 'codetool': {
-      console.log(ansis.green(isZh ? '🛠️ 代码工具切换...' : '🛠️ Code Tool Switch...'))
-      console.log('')
-      await handleCodeToolSwitch(getCurrentCodeTool())
-      break
-    }
-
-    case 'updates': {
-      console.log(ansis.green(isZh ? '📦 检查更新...' : '📦 Checking Updates...'))
-      console.log('')
-      await checkUpdates()
-      break
-    }
-
-    case 'uninstall': {
-      console.log(ansis.green(isZh ? '🗑️ 卸载 CCJK...' : '🗑️ Uninstalling CCJK...'))
-      console.log('')
-      await uninstall()
-      break
-    }
-  }
-
-  return undefined
-}
+// showAdvancedMenu removed - functionality merged into main menu
 
 /**
  * Check if this is a first-time user
@@ -477,51 +383,20 @@ async function isFirstTimeUser(): Promise<boolean> {
 }
 
 /**
- * Show welcome screen for new users
+ * Show welcome screen for new users (simplified - just show welcome message)
  */
-async function showNewUserWelcome(): Promise<'quick' | 'full'> {
+function showNewUserWelcome(): void {
   const isZh = i18n.language === 'zh-CN'
 
   console.log('')
-  console.log(ansis.bold.green('╔════════════════════════════════════════════════════════════════════════╗'))
-  console.log(`${ansis.bold.green('║')}                                                                        ${ansis.bold.green('║')}`)
-  console.log(ansis.bold.green('║') + ansis.white.bold('     ██████╗  ██████╗      ██╗██╗  ██╗                                 ') + ansis.bold.green('║'))
-  console.log(ansis.bold.green('║') + ansis.white.bold('    ██╔════╝ ██╔════╝      ██║██║ ██╔╝                                 ') + ansis.bold.green('║'))
-  console.log(ansis.bold.green('║') + ansis.white.bold('    ██║      ██║           ██║█████╔╝                                  ') + ansis.bold.green('║'))
-  console.log(ansis.bold.green('║') + ansis.white.bold('    ██║      ██║      ██   ██║██╔═██╗                                  ') + ansis.bold.green('║'))
-  console.log(ansis.bold.green('║') + ansis.white.bold('    ╚██████╗ ╚██████╗ ╚█████╔╝██║  ██╗                                 ') + ansis.bold.green('║'))
-  console.log(ansis.bold.green('║') + ansis.white.bold('     ╚═════╝  ╚═════╝  ╚════╝ ╚═╝  ╚═╝                                 ') + ansis.bold.green('║'))
-  console.log(`${ansis.bold.green('║')}                                                                        ${ansis.bold.green('║')}`)
-  console.log(ansis.bold.green('║') + ansis.gray('                    Claude Code JinKu                                  ') + ansis.bold.green('║'))
-  console.log(`${ansis.bold.green('║')}                                                                        ${ansis.bold.green('║')}`)
-  console.log(ansis.bold.green('╠════════════════════════════════════════════════════════════════════════╣'))
-  console.log(`${ansis.bold.green('║')}                                                                        ${ansis.bold.green('║')}`)
-  console.log(ansis.bold.green('║') + ansis.yellow.bold(`   ${isZh ? '欢迎使用 CCJK!' : 'Welcome to CCJK!'}`.padEnd(72)) + ansis.bold.green('║'))
-  console.log(`${ansis.bold.green('║')}                                                                        ${ansis.bold.green('║')}`)
-  console.log(ansis.bold.green('║') + ansis.white(`   ${isZh ? 'CCJK 是 Claude Code 的智能配置工具' : 'CCJK is the smart configuration tool for Claude Code'}`.padEnd(72)) + ansis.bold.green('║'))
-  console.log(ansis.bold.green('║') + ansis.white(`   ${isZh ? '让你的 AI 编程体验更加简单高效' : 'Making your AI coding experience simple and efficient'}`.padEnd(72)) + ansis.bold.green('║'))
-  console.log(`${ansis.bold.green('║')}                                                                        ${ansis.bold.green('║')}`)
-  console.log(ansis.bold.green('╚════════════════════════════════════════════════════════════════════════╝'))
+  console.log(ansis.bold.yellow(isZh ? '🎉 欢迎首次使用 CCJK!' : '🎉 Welcome to CCJK!'))
+  console.log(ansis.dim(isZh
+    ? '   CCJK 是 Claude Code 的智能配置工具，让你的 AI 编程体验更加简单高效'
+    : '   CCJK is the smart configuration tool for Claude Code'))
+  console.log(ansis.dim(isZh
+    ? '   建议首次使用选择 "1. 完整初始化" 进行一键配置'
+    : '   Recommended: Select "1. Full Init" for first-time setup'))
   console.log('')
-
-  const { mode } = await inquirer.prompt<{ mode: 'quick' | 'full' }>({
-    type: 'list',
-    name: 'mode',
-    message: isZh ? '选择开始方式:' : 'Choose how to start:',
-    choices: [
-      {
-        name: ansis.green.bold(isZh ? '⚡ 快速配置' : '⚡ Quick Setup') + ansis.dim(isZh ? ' - 自动完成所有配置 (推荐)' : ' - Auto-configure everything (recommended)'),
-        value: 'quick',
-      },
-      {
-        name: ansis.green(isZh ? '🔧 完整菜单' : '🔧 Full Menu') + ansis.dim(isZh ? ' - 查看所有功能选项' : ' - View all feature options'),
-        value: 'full',
-      },
-    ],
-    loop: false,
-  })
-
-  return mode
 }
 
 /**
@@ -529,15 +404,10 @@ async function showNewUserWelcome(): Promise<'quick' | 'full'> {
  */
 export async function showMainMenu(options: { codeType?: string } = {}): Promise<void> {
   try {
-    // New user detection - show welcome screen
-    if (await isFirstTimeUser()) {
-      const mode = await showNewUserWelcome()
-
-      if (mode === 'quick') {
-        await simplifiedInit({ skipPrompt: false })
-        return
-      }
-      // 'full' mode continues to normal menu
+    // New user detection - show welcome message
+    const isNewUser = await isFirstTimeUser()
+    if (isNewUser) {
+      showNewUserWelcome()
     }
 
     // Handle code type parameter if provided

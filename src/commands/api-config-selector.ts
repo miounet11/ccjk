@@ -11,12 +11,12 @@
 import type { CodeToolType } from '../constants'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { i18n } from '../i18n'
-import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
-import { configureApiFeature, handleCustomApiMode } from '../utils/features'
-import { configSwitchCommand } from './config-switch'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
+import { i18n } from '../i18n'
 import { readZcfConfig } from '../utils/ccjk-config'
+import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
+import { handleCustomApiMode } from '../utils/features'
+import { configSwitchCommand } from './config-switch'
 
 /**
  * API configuration mode selected by user
@@ -113,13 +113,15 @@ async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promi
       console.log(ansis.green(isZh ? '✅ 已切换到官方登录' : '✅ Switched to official login'))
       console.log('')
       return { mode: 'official', success: true, cancelled: false }
-    } else {
+    }
+    else {
       console.log('')
       console.log(ansis.red(isZh ? `❌ 切换失败: ${result.error}` : `❌ Failed to switch: ${result.error}`))
       console.log('')
       return { mode: 'official', success: false, cancelled: false }
     }
-  } else {
+  }
+  else {
     console.log('')
     console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'))
     console.log('')
@@ -130,12 +132,13 @@ async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promi
 /**
  * Handle custom API configuration
  */
-async function handleCustomConfig(isZh: boolean): Promise<ApiConfigResult> {
+async function handleCustomConfig(_isZh: boolean): Promise<ApiConfigResult> {
   try {
     // Directly call handleCustomApiMode to avoid duplicate menu
     await handleCustomApiMode()
     return { mode: 'custom', success: true, cancelled: false }
-  } catch {
+  }
+  catch {
     return { mode: 'custom', success: false, cancelled: false }
   }
 }
@@ -151,13 +154,15 @@ async function handleCcrProxy(codeTool: CodeToolType, isZh: boolean): Promise<Ap
       console.log(ansis.green(isZh ? '✅ 已切换到 CCR 代理' : '✅ Switched to CCR proxy'))
       console.log('')
       return { mode: 'ccr', success: true, cancelled: false }
-    } else {
+    }
+    else {
       console.log('')
       console.log(ansis.red(isZh ? `❌ 切换失败: ${result.error}` : `❌ Failed to switch: ${result.error}`))
       console.log('')
       return { mode: 'ccr', success: false, cancelled: false }
     }
-  } else {
+  }
+  else {
     console.log('')
     console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'))
     console.log('')
@@ -172,7 +177,8 @@ async function handleConfigSwitch(codeTool: CodeToolType): Promise<ApiConfigResu
   try {
     await configSwitchCommand({ codeType: codeTool })
     return { mode: 'switch', success: true, cancelled: false }
-  } catch {
+  }
+  catch {
     return { mode: 'switch', success: false, cancelled: false }
   }
 }
@@ -184,7 +190,8 @@ async function handleViewConfig(codeTool: CodeToolType): Promise<ApiConfigResult
   try {
     await configSwitchCommand({ codeType: codeTool, list: true })
     return { mode: 'view', success: true, cancelled: false }
-  } catch {
+  }
+  catch {
     return { mode: 'view', success: false, cancelled: false }
   }
 }
@@ -195,9 +202,11 @@ async function handleViewConfig(codeTool: CodeToolType): Promise<ApiConfigResult
  * Simplified version that only returns API key and provider
  * without full menu navigation
  *
- * @param skipPrompt - If true, use defaults without prompting
- * @param defaultProvider - Default provider to use
- * @param defaultApiKey - Default API key to use
+ * @param options - Configuration options
+ * @param options.skipPrompt - If true, use defaults without prompting
+ * @param options.defaultProvider - Default provider to use
+ * @param options.defaultApiKey - Default API key to use
+ * @param options.detectedApiKey - Detected API key from environment
  * @returns API key and provider, or undefined if skipped/cancelled
  */
 export async function quickApiConfig(options: {
@@ -205,7 +214,7 @@ export async function quickApiConfig(options: {
   defaultProvider?: string
   defaultApiKey?: string
   detectedApiKey?: string
-}): Promise<{ apiKey?: string; provider?: string } | undefined> {
+}): Promise<{ apiKey?: string, provider?: string } | undefined> {
   const isZh = i18n.language === 'zh-CN'
 
   // If default values provided and skipPrompt, use them
