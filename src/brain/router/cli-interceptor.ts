@@ -168,17 +168,43 @@ export class CliInterceptor extends EventEmitter {
   /**
    * Show intent message to user
    */
-  private showIntentMessage(input: string): void {\n    // This will be displayed to the user\n    console.log('\\n🧠 Analyzing your request...')\n    console.log('   System will automatically handle: skills, agents, MCP tools\\n')\n  }
+  private showIntentMessage(input: string): void {
+    // This will be displayed to the user
+    console.log('\n🧠 Analyzing your request...')
+    console.log('   System will automatically handle: skills, agents, MCP tools\n')
+  }
 
   /**
    * Enable interceptor
-   */\n  enable(): void {\n    this.config.enabled = true\n    this.emit('interceptor:enabled')\n  }
+   */
+  enable(): void {
+    this.config.enabled = true
+    this.emit('interceptor:enabled')
+  }
 
-  /**\n   * Disable interceptor\n   */\n  disable(): void {\n    this.config.enabled = false\n    this.emit('interceptor:disabled')\n  }
+  /**
+   * Disable interceptor
+   */
+  disable(): void {
+    this.config.enabled = false
+    this.emit('interceptor:disabled')
+  }
 
-  /**\n   * Check if interceptor is enabled\n   */\n  isEnabled(): boolean {\n    return this.config.enabled\n  }
+  /**
+   * Check if interceptor is enabled
+   */
+  isEnabled(): boolean {
+    return this.config.enabled
+  }
 
-  /**\n   * Log message if verbose\n   */\n  private log(message: string): void {\n    if (this.config.verbose) {\n      console.log(`[CliInterceptor] ${message}`)\n    }\n  }
+  /**
+   * Log message if verbose
+   */
+  private log(message: string): void {
+    if (this.config.verbose) {
+      console.log(`[CliInterceptor] ${message}`)
+    }
+  }
 }
 
 // Global singleton instance
