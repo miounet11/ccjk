@@ -5,13 +5,10 @@
  */
 
 import type { SupportedLang } from '../constants'
+import type { ProjectAnalysis as AnalyzerProjectAnalysis } from '../analyzers/types'
 
 // Re-export for convenience
 export type { SupportedLang }
-
-// ============================================================================
-// Project Analysis Types (for smart generation)
-// ============================================================================
 
 /**
  * Project type classification
@@ -44,7 +41,7 @@ export interface TechStack {
 }
 
 /**
- * Project analysis result
+ * Project analysis result for generation
  */
 export interface ProjectAnalysis {
   /** Project root directory */
@@ -72,6 +69,11 @@ export interface ProjectAnalysis {
   /** Package.json content (if available) */
   packageJson?: Record<string, unknown>
 }
+
+/**
+ * Re-export analyzer's ProjectAnalysis as a separate type
+ */
+export type { AnalyzerProjectAnalysis }
 
 // ============================================================================
 // Template Selection Types
@@ -298,10 +300,11 @@ export interface SkillRequirement {
 
 /**
  * Context for smart generation
+ * Uses the analyzer's ProjectAnalysis type for compatibility with analyzeProject()
  */
 export interface GenerationContext {
-  /** Project analysis results */
-  analysis: ProjectAnalysis
+  /** Project analysis results from the analyzer */
+  analysis: AnalyzerProjectAnalysis
   /** User preferences */
   preferences: GenerationPreferences
   /** Existing agents (to avoid duplicates) */

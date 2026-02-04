@@ -16,11 +16,13 @@ import { fork } from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import { existsSync, mkdirSync, rmSync } from 'node:fs'
 import { cpus } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { nanoid } from 'nanoid'
 
-// Default to current directory for __dirname in ESM
-const __dirname = '.'
+// ESM compatible __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 /**
  * Process specialization type

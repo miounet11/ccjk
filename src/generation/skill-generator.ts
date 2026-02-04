@@ -57,14 +57,14 @@ async function generateSkillsForCategory(
 
   for (const template of templates) {
     const skill: GeneratedSkill = {
-      id: template.id,
-      name: template.name,
-      description: template.description,
-      category: template.category,
-      triggers: template.triggers,
-      actions: template.actions,
+      id: template.id || `${category}-skill`,
+      name: template.name || { 'en': category, 'zh-CN': category },
+      description: template.description || { 'en': `Skill for ${category}`, 'zh-CN': `${category}技能` },
+      category: template.category || 'custom',
+      triggers: template.triggers || [],
+      actions: template.actions || [],
       requirements: template.requirements,
-      priority: template.priority,
+      priority: template.priority ?? 5,
       tags: buildSkillTags(category, analysis),
       source: 'smart-analysis',
     }

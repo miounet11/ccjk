@@ -1,7 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'pathe'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'pathe'
 import type { AgentTemplate, GeneratedConfig, SkillTemplate, TemplateSelection } from '../types'
+
+// ESM compatible __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 /**
  * Configuration generator for smart agent/skills generation

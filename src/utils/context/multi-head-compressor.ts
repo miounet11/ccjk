@@ -105,7 +105,7 @@ Input:
 
 Provide a concise summary (max 200 words) capturing the essential meaning. Use bullet points for clarity.`
 
-// @ts-expect-error Reserved for future API-based structural compression
+// Reserved for future API-based structural compression
 const _STRUCTURAL_PROMPT = `Analyze the following code-related context and extract the STRUCTURAL INFORMATION.
 
 Focus on:
@@ -119,7 +119,7 @@ Input:
 
 Provide a structured summary (max 150 words) of the code structure. Use code blocks where appropriate.`
 
-// @ts-expect-error Reserved for future API-based temporal compression
+// Reserved for future API-based temporal compression
 const _TEMPORAL_PROMPT = `Analyze the following conversation and create a TIMELINE of key events.
 
 Focus on:

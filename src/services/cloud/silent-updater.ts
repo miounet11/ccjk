@@ -19,7 +19,12 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { platform } from 'node:os'
 import process from 'node:process'
-import { join } from 'pathe'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'pathe'
+
+// ESM compatible __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 import { CCJK_CONFIG_DIR } from '../../constants'
 import { getCloudState, updateCloudState } from './auto-bootstrap'
 

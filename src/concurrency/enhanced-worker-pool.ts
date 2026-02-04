@@ -15,11 +15,13 @@ import type { TaskOptions } from '../brain/task-queue'
 import type { WorkerPoolStats, WorkerTask } from '../brain/worker-pool'
 import { EventEmitter } from 'node:events'
 import { cpus } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Worker } from 'node:worker_threads'
 
-// Default to current directory for __dirname in ESM
-const __dirname = '.'
+// ESM compatible __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 /**
  * Worker specialization type

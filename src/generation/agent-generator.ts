@@ -92,19 +92,19 @@ async function generateAgentForCategory(
 
   // Build agent from template
   const agent: GeneratedAgent = {
-    id: template.id,
-    name: template.name,
-    description: template.description,
+    id: template.id || `${category}-agent`,
+    name: template.name || category,
+    description: template.description || `Agent for ${category}`,
     model: template.model || preferences.defaultModel,
-    specialization: template.specialization,
-    competencies: template.competencies,
-    workflow: template.workflow,
+    specialization: template.specialization || category,
+    competencies: template.competencies || [],
+    workflow: template.workflow || [],
     outputFormat: template.outputFormat,
-    bestPractices: template.bestPractices,
+    bestPractices: template.bestPractices || [],
     integrationPoints: template.integrationPoints,
     qualityStandards: template.qualityStandards,
     category,
-    priority: template.priority,
+    priority: template.priority ?? 5,
     tags: buildTags(category, analysis),
     source: 'smart-analysis',
   }

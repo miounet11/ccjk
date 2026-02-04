@@ -42,7 +42,7 @@ export class ProjectAnalyzer {
       cicd,
       patterns,
       confidence,
-      packageJson,
+      packageJson: packageJson ?? undefined,
     }
   }
 

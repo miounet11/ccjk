@@ -17,10 +17,15 @@
 import type { SkillCategory } from '../types/skill-md'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
+import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
 import * as Handlebars from 'handlebars'
 import inquirer from 'inquirer'
-import { join } from 'pathe'
+import { dirname, join } from 'pathe'
+
+// ESM compatible __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 import { getPluginManager } from '../plugins-v2'
 
 // ============================================================================
@@ -147,116 +152,132 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
   const availableTemplates = getAvailableTemplates()
   const categories: SkillCategory[] = ['dev', 'git', 'review', 'testing', 'docs', 'devops', 'planning', 'debugging', 'custom']
 
-  // Interactive prompts
-  const answers = await inquirer.prompt<{
-    name: string
-    title: string
-    description: string
-    template: string
-    category: SkillCategory
-    use_when: string
-    auto_activate: boolean
-    context: string
-    tags: string
-    priority: number
-    hasArgs: boolean
-    argNames: string
-    targetDir: string
-  }>([
-    {
-      type: 'input',
-      name: 'name',
-      message: 'Skill name (kebab-case):',
-      default: name || 'my-skill',
-      validate: (input: string) => {
-        if (!/^[a-z][a-z0-9-]*$/.test(input)) {
-          return 'Name must be kebab-case (lowercase letters, numbers, hyphens)'
-        }
-        return true
-      },
+  // Interactive prompts - collect answers step by step for better type inference
+  const { name: skillName } = await inquirer.prompt<{ name: string }>({
+    type: 'input',
+    name: 'name',
+    message: 'Skill name (kebab-case):',
+    default: name || 'my-skill',
+    validate: (input: string) => {
+      if (!/^[a-z][a-z0-9-]*$/.test(input)) {
+        return 'Name must be kebab-case (lowercase letters, numbers, hyphens)'
+      }
+      return true
     },
-    {
-      type: 'input',
-      name: 'title',
-      message: 'Skill title:',
-      default: (ans: { name: string }) => ans.name.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+  })
+
+  const { title } = await inquirer.prompt<{ title: string }>({
+    type: 'input',
+    name: 'title',
+    message: 'Skill title:',
+    default: skillName.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+  })
+
+  const { description } = await inquirer.prompt<{ description: string }>({
+    type: 'input',
+    name: 'description',
+    message: 'Brief description:',
+    default: 'A custom skill for CCJK',
+  })
+
+  const { template: selectedTemplate } = await inquirer.prompt<{ template: string }>({
+    type: 'list',
+    name: 'template',
+    message: 'Select template:',
+    choices: availableTemplates.map(t => ({
+      name: t === 'basic' ? `${t} (blank template)` : t,
+      value: t,
+    })),
+    default: 'basic',
+  })
+
+  const { category } = await inquirer.prompt<{ category: SkillCategory }>({
+    type: 'list',
+    name: 'category',
+    message: 'Category:',
+    choices: categories,
+    default: 'custom',
+  })
+
+  const { use_when } = await inquirer.prompt<{ use_when: string }>({
+    type: 'input',
+    name: 'use_when',
+    message: 'When should this skill activate? (natural language):',
+    default: 'When user requests this functionality',
+  })
+
+  const { auto_activate } = await inquirer.prompt<{ auto_activate: boolean }>({
+    type: 'confirm',
+    name: 'auto_activate',
+    message: 'Auto-activate based on context?',
+    default: true,
+  })
+
+  const { context } = await inquirer.prompt<{ context: string }>({
+    type: 'list',
+    name: 'context',
+    message: 'Execution context:',
+    choices: [
+      { name: 'inherit - Share parent context', value: 'inherit' },
+      { name: 'fork - Isolated context', value: 'fork' },
+    ],
+    default: 'inherit',
+  })
+
+  const { priority } = await inquirer.prompt<{ priority: number }>({
+    type: 'number',
+    name: 'priority',
+    message: 'Priority (1-10, higher = more priority):',
+    default: 5,
+    validate: (input: number | undefined) => {
+      if (input === undefined) return 'Please enter a number'
+      return input >= 1 && input <= 10 ? true : 'Must be between 1 and 10'
     },
-    {
-      type: 'input',
-      name: 'description',
-      message: 'Brief description:',
-      default: 'A custom skill for CCJK',
-    },
-    {
-      type: 'list',
-      name: 'template',
-      message: 'Select template:',
-      choices: availableTemplates.map(t => ({
-        name: t === 'basic' ? `${t} (blank template)` : t,
-        value: t,
-      })),
-      default: 'basic',
-    },
-    {
-      type: 'list',
-      name: 'category',
-      message: 'Category:',
-      choices: categories,
-      default: 'custom',
-    },
-    {
-      type: 'input',
-      name: 'use_when',
-      message: 'When should this skill activate? (natural language):',
-      default: 'When user requests this functionality',
-    },
-    {
-      type: 'confirm',
-      name: 'auto_activate',
-      message: 'Auto-activate based on context?',
-      default: true,
-    },
-    {
-      type: 'list',
-      name: 'context',
-      message: 'Execution context:',
-      choices: [
-        { name: 'inherit - Share parent context', value: 'inherit' },
-        { name: 'fork - Isolated context', value: 'fork' },
-      ],
-      default: 'inherit',
-    },
-    {
-      type: 'number',
-      name: 'priority',
-      message: 'Priority (1-10, higher = more priority):',
-      default: 5,
-      validate: (input: number) => input >= 1 && input <= 10 ? true : 'Must be between 1 and 10',
-    },
-    {
-      type: 'confirm',
-      name: 'hasArgs',
-      message: 'Does this skill accept arguments ($0, $1, etc.)?',
-      default: false,
-    },
-    {
+  })
+
+  const { hasArgs } = await inquirer.prompt<{ hasArgs: boolean }>({
+    type: 'confirm',
+    name: 'hasArgs',
+    message: 'Does this skill accept arguments ($0, $1, etc.)?',
+    default: false,
+  })
+
+  let argNames = ''
+  if (hasArgs) {
+    const result = await inquirer.prompt<{ argNames: string }>({
       type: 'input',
       name: 'argNames',
       message: 'Argument names (comma-separated):',
-      when: (ans: { hasArgs: boolean }) => ans.hasArgs,
       default: 'file,options',
-    },
-    {
-      type: 'list',
-      name: 'targetDir',
-      message: 'Where to create the skill?',
-      choices: [
-        { name: `~/.claude/skills (global)`, value: join(homedir(), '.claude', 'skills') },
-        { name: `.claude/skills (project)`, value: join(process.cwd(), '.claude', 'skills') },
-      ],
-      default: join(homedir(), '.claude', 'skills'),
-    },
-  ])
+    })
+    argNames = result.argNames
+  }
+
+  const { targetDir } = await inquirer.prompt<{ targetDir: string }>({
+    type: 'list',
+    name: 'targetDir',
+    message: 'Where to create the skill?',
+    choices: [
+      { name: `~/.claude/skills (global)`, value: join(homedir(), '.claude', 'skills') },
+      { name: `.claude/skills (project)`, value: join(process.cwd(), '.claude', 'skills') },
+    ],
+    default: join(homedir(), '.claude', 'skills'),
+  })
+
+  const answers = {
+    name: skillName,
+    title,
+    description,
+    template: selectedTemplate,
+    category,
+    use_when,
+    auto_activate,
+    context,
+    priority,
+    hasArgs,
+    argNames,
+    targetDir,
+  }
 
   // Process arguments
   const args: Array<{ name: string, description: string, required: boolean }> | undefined = answers.hasArgs && answers.argNames
@@ -305,12 +326,12 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
   const skillPath = join(answers.targetDir, `${answers.name}.md`)
 
   if (existsSync(skillPath)) {
-    const { overwrite } = await inquirer.prompt([{
+    const { overwrite } = await inquirer.prompt<{ overwrite: boolean }>({
       type: 'confirm',
       name: 'overwrite',
       message: `Skill ${answers.name}.md already exists. Overwrite?`,
       default: false,
-    }])
+    })
 
     if (!overwrite) {
       console.log(ansis.yellow('\nSkill creation cancelled.'))

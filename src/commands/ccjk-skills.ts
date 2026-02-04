@@ -12,8 +12,13 @@ import type { SupportedLang } from '../constants'
 import type { SkillCategory, SkillInstallResult } from '../skills/types'
 import { promises as fs } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
+
+// ESM compatible __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 import consola from 'consola'
 import inquirer from 'inquirer'
 import { analyzeProject } from '../analyzers'
@@ -721,8 +726,9 @@ function getCategoryIcon(category: SkillCategory): string {
     review: '👀',
     seo: '🔍',
     devops: '🚀',
-    custom: '⚙️',
+    planning: '📋',
     debug: '🐛',
+    custom: '⚙️',
   }
   return icons[category] || '📦'
 }

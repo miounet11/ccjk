@@ -17,7 +17,12 @@ import { createReadStream, existsSync, readFileSync } from 'node:fs'
 import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { createInterface } from 'node:readline'
+import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
+
+// ESM compatible __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 import { getProjectIdentity } from './project-hash'
 
 /**
