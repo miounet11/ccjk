@@ -1,5 +1,15 @@
 import type { SupportedLang } from '../../constants'
-import { pathExists } from 'fs-extra'
+import { promises as fsp } from 'node:fs'
+
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p)
+    return true
+  }
+  catch {
+    return false
+  }
+}
 import { join } from 'pathe'
 import { CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_FILE, CODEX_DIR, CODEX_PROMPTS_DIR } from '../../constants'
 import { i18n } from '../../i18n'

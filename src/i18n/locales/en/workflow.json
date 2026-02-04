@@ -35,5 +35,21 @@
 
   "workflowOption.sixStepsWorkflow": "📝 Six-Step Structured Dev",
   "workflowStats.sixStepsWorkflow": "5.8K+ users | Code quality ↑35%",
-  "workflowDescription.sixStepsWorkflow": "Research→Ideate→Plan→Execute→Optimize→Review complete dev cycle"
+  "workflowDescription.sixStepsWorkflow": "Research→Ideate→Plan→Execute→Optimize→Review complete dev cycle",
+
+  "workflowOption.specFirstTDD": "🧪 SPEC-First TDD",
+  "workflowStats.specFirstTDD": "3.2K+ users | Test coverage ↑85%",
+  "workflowDescription.specFirstTDD": "SPEC-First + RED-GREEN-REFACTOR cycle, AI-driven test-driven development",
+
+  "workflowOption.continuousDelivery": "🚀 Continuous Delivery Pipeline",
+  "workflowStats.continuousDelivery": "4.5K+ users | Deploy frequency ↑300%",
+  "workflowDescription.continuousDelivery": "Automated build→test→deploy, software ready to release anytime",
+
+  "workflowOption.refactoringMaster": "♻️ Refactoring Master Mode",
+  "workflowStats.refactoringMaster": "2.9K+ users | Technical debt ↓60%",
+  "workflowDescription.refactoringMaster": "Martin Fowler refactoring patterns, small steps to improve code design",
+
+  "workflowOption.linearMethod": "⚡ Linear Quality Method",
+  "workflowStats.linearMethod": "6.1K+ users | Product quality ↑50%",
+  "workflowDescription.linearMethod": "Problem validation→Prioritization→Focused building, Linear team's quality philosophy"
 }

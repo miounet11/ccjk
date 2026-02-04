@@ -19,7 +19,7 @@ function getRootDir(): string {
 const DEFAULT_CODE_TOOL_TEMPLATE = 'claude-code'
 
 // Categories that use shared templates from common directory
-const COMMON_TEMPLATE_CATEGORIES = ['git', 'sixStep', 'essential', 'interview']
+const COMMON_TEMPLATE_CATEGORIES = ['git', 'sixStep', 'essential', 'interview', 'specFirstTDD', 'continuousDelivery', 'refactoringMaster', 'linearMethod']
 
 // Format tags for display with colors
 function formatTags(tags: WorkflowTag[]): string {
@@ -127,6 +127,10 @@ async function installWorkflowWithDependencies(
     sixStepsWorkflow: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
     gitWorkflow: i18n.t('workflow:workflowOption.gitWorkflow'),
     interviewWorkflow: i18n.t('workflow:workflowOption.interviewWorkflow'),
+    specFirstTDD: i18n.t('workflow:workflowOption.specFirstTDD'),
+    continuousDelivery: i18n.t('workflow:workflowOption.continuousDelivery'),
+    refactoringMaster: i18n.t('workflow:workflowOption.refactoringMaster'),
+    linearMethod: i18n.t('workflow:workflowOption.linearMethod'),
   } as const
 
   const workflowName = WORKFLOW_OPTION_KEYS[config.id as keyof typeof WORKFLOW_OPTION_KEYS] || config.id

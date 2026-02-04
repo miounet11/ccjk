@@ -171,6 +171,11 @@ export class MenuEngine {
         return 'continue'
 
       case 'select': {
+        // 检查是否是退出菜单项
+        if (item.id === 'exit') {
+          return 'exit'
+        }
+
         // 如果有子菜单，进入子菜单
         if (item.submenu && item.submenu.length > 0) {
           const label = getLocalizedLabel(item.label, this.renderer.getLocale())
@@ -228,6 +233,9 @@ export class MenuEngine {
         }
       }
     }
+
+    // 退出进程
+    process.exit(0)
   }
 
   /**

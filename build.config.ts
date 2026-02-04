@@ -11,6 +11,14 @@ export default defineBuildConfig({
     emitCJS: false,
     inlineDependencies: true,
   },
+  externals: [
+    'fs',
+    'node:fs',
+    'node:fs/promises',
+    'fdir',
+    'tinyglobby',
+    'glob',
+  ],
   // Copy i18n JSON files to dist
   hooks: {
     'build:done': async () => {

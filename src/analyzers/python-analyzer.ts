@@ -5,9 +5,24 @@
 
 import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
 import consola from 'consola'
-import fs from 'fs-extra'
+import { promises as fsp } from 'node:fs'
 import path from 'pathe'
 import { parse } from 'smol-toml'
+
+// fs-extra compatibility helpers
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p)
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+async function readFile(p: string): Promise<string> {
+  return fsp.readFile(p, 'utf-8')
+}
 
 const logger = consola.withTag('python-analyzer')
 
@@ -218,9 +233,9 @@ async function analyzeDependencies(
 
   // Check requirements.txt
   const requirementsPath = path.join(projectPath, 'requirements.txt')
-  if (files.includes('requirements.txt') && await fs.pathExists(requirementsPath)) {
+  if (files.includes('requirements.txt') && await pathExists(requirementsPath)) {
     try {
-      const content = await fs.readFile(requirementsPath, 'utf-8')
+      const content = await fsp.readFile(requirementsPath, 'utf-8')
       const lines = content.split('\n')
 
       for (const line of lines) {
@@ -241,9 +256,9 @@ async function analyzeDependencies(
 
   // Check pyproject.toml
   const pyprojectPath = path.join(projectPath, 'pyproject.toml')
-  if (files.includes('pyproject.toml') && await fs.pathExists(pyprojectPath)) {
+  if (files.includes('pyproject.toml') && await pathExists(pyprojectPath)) {
     try {
-      const content = await fs.readFile(pyprojectPath, 'utf-8')
+      const content = await fsp.readFile(pyprojectPath, 'utf-8')
       const parsed = parse(content)
 
       // Poetry dependencies
@@ -285,9 +300,9 @@ async function analyzeDependencies(
 
   // Check Pipfile
   const pipfilePath = path.join(projectPath, 'Pipfile')
-  if (files.includes('Pipfile') && await fs.pathExists(pipfilePath)) {
+  if (files.includes('Pipfile') && await pathExists(pipfilePath)) {
     try {
-      const content = await fs.readFile(pipfilePath, 'utf-8')
+      const content = await fsp.readFile(pipfilePath, 'utf-8')
       const lines = content.split('\n')
       let inPackages = false
 
@@ -319,9 +334,9 @@ async function analyzeDependencies(
 
   // Check setup.py
   const setupPath = path.join(projectPath, 'setup.py')
-  if (files.includes('setup.py') && await fs.pathExists(setupPath)) {
+  if (files.includes('setup.py') && await pathExists(setupPath)) {
     try {
-      const content = await fs.readFile(setupPath, 'utf-8')
+      const content = await fsp.readFile(setupPath, 'utf-8')
 
       // Simple regex to find install_requires
       const installRequiresMatch = content.match(/install_requires\s*=\s*\[([\s\S]*?)\]/)
@@ -344,9 +359,9 @@ async function analyzeDependencies(
 
   // Check environment.yml
   const envPath = path.join(projectPath, 'environment.yml')
-  if (files.includes('environment.yml') && await fs.pathExists(envPath)) {
+  if (files.includes('environment.yml') && await pathExists(envPath)) {
     try {
-      const content = await fs.readFile(envPath, 'utf-8')
+      const content = await fsp.readFile(envPath, 'utf-8')
       const parsed = parse(content)
 
       if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && 'dependencies' in parsed) {
@@ -416,9 +431,9 @@ async function detectAdditionalPatterns(
 ): Promise<void> {
   // Check for Python version
   const pythonVersionPath = path.join(projectPath, '.python-version')
-  if (files.includes('.python-version') && await fs.pathExists(pythonVersionPath)) {
+  if (files.includes('.python-version') && await pathExists(pythonVersionPath)) {
     try {
-      const version = await fs.readFile(pythonVersionPath, 'utf-8')
+      const version = await fsp.readFile(pythonVersionPath, 'utf-8')
       frameworks.push({
         name: 'python',
         category: 'language',

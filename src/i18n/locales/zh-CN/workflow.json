@@ -35,5 +35,21 @@
 
   "workflowOption.sixStepsWorkflow": "📝 六步结构化开发",
   "workflowStats.sixStepsWorkflow": "5.8K+ 用户 | 代码质量 ↑35%",
-  "workflowDescription.sixStepsWorkflow": "研究→构思→计划→执行→优化→评审 完整开发闭环"
+  "workflowDescription.sixStepsWorkflow": "研究→构思→计划→执行→优化→评审 完整开发闭环",
+
+  "workflowOption.specFirstTDD": "🧪 规格先行 TDD",
+  "workflowStats.specFirstTDD": "3.2K+ 用户 | 测试覆盖率 ↑85%",
+  "workflowDescription.specFirstTDD": "SPEC-First + 红绿重构循环，AI 驱动的测试驱动开发",
+
+  "workflowOption.continuousDelivery": "🚀 持续交付流水线",
+  "workflowStats.continuousDelivery": "4.5K+ 用户 | 部署频率 ↑300%",
+  "workflowDescription.continuousDelivery": "自动化构建→测试→部署，随时可发布的软件交付",
+
+  "workflowOption.refactoringMaster": "♻️ 重构大师模式",
+  "workflowStats.refactoringMaster": "2.9K+ 用户 | 技术债务 ↓60%",
+  "workflowDescription.refactoringMaster": "Martin Fowler 重构模式，小步快跑改善代码设计",
+
+  "workflowOption.linearMethod": "⚡ Linear 高质量方法",
+  "workflowStats.linearMethod": "6.1K+ 用户 | 产品质量 ↑50%",
+  "workflowDescription.linearMethod": "问题验证→优先级排序→专注构建，Linear 团队的质量哲学"
 }

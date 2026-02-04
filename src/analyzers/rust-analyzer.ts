@@ -5,9 +5,24 @@
 
 import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
 import consola from 'consola'
-import * as fs from 'fs-extra'
+import { promises as fsp } from 'node:fs'
 import path from 'pathe'
 import { parse } from 'smol-toml'
+
+// fs-extra compatibility helpers
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p)
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+async function readFile(p: string): Promise<string> {
+  return fsp.readFile(p, 'utf-8')
+}
 
 const logger = consola.withTag('rust-analyzer')
 
@@ -167,8 +182,8 @@ export async function analyzeRustProject(
   // Read Cargo.toml
   let cargoToml: any = null
   try {
-    if (await fs.pathExists(cargoTomlPath)) {
-      const content = await fs.readFile(cargoTomlPath, 'utf-8')
+    if (await pathExists(cargoTomlPath)) {
+      const content = await fsp.readFile(cargoTomlPath, 'utf-8')
       cargoToml = parse(content)
     }
   }
@@ -285,7 +300,7 @@ async function scanRustPatterns(
 
   for (const file of rustFiles) {
     try {
-      const content = await fs.readFile(path.join(projectPath, file), 'utf-8')
+      const content = await fsp.readFile(path.join(projectPath, file), 'utf-8')
 
       // Extract common patterns
       const patternRegex = /(\w+::|@\[|!\w+\()/g

@@ -33,8 +33,28 @@ import type {
   ProjectAnalysis,
 } from './types.js'
 import consola from 'consola'
-import fs from 'fs-extra'
+import { promises as fsp } from 'node:fs'
 import path from 'pathe'
+
+// fs-extra compatibility helpers
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p)
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+async function readJson(p: string): Promise<any> {
+  const content = await fsp.readFile(p, 'utf-8')
+  return JSON.parse(content)
+}
+
+async function readFile(p: string): Promise<string> {
+  return fsp.readFile(p, 'utf-8')
+}
 
 const logger = consola.withTag('dependency-resolver')
 
@@ -123,12 +143,12 @@ async function analyzeNpmDependencies(
 ): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
   const packageJsonPath = path.join(projectPath, 'package.json')
 
-  if (!await fs.pathExists(packageJsonPath)) {
+  if (!await pathExists(packageJsonPath)) {
     return { direct: [], all: [] }
   }
 
   try {
-    const packageJson = await fs.readJson(packageJsonPath)
+    const packageJson = await readJson(packageJsonPath)
     const direct: DependencyNode[] = []
 
     // Process dependencies
@@ -182,10 +202,10 @@ async function analyzePythonDependencies(
   // Try different file formats based on package manager
   if (packageManager === 'poetry') {
     const pyprojectPath = path.join(projectPath, 'pyproject.toml')
-    if (await fs.pathExists(pyprojectPath)) {
+    if (await pathExists(pyprojectPath)) {
       try {
         const { parse } = await import('smol-toml')
-        const content = await fs.readFile(pyprojectPath, 'utf-8')
+        const content = await fsp.readFile(pyprojectPath, 'utf-8')
         const pyproject = parse(content) as Record<string, any>
 
         const deps = (pyproject.tool?.poetry?.dependencies || {}) as Record<string, unknown>
@@ -220,10 +240,10 @@ async function analyzePythonDependencies(
   }
   else if (packageManager === 'pipenv') {
     const pipfilePath = path.join(projectPath, 'Pipfile')
-    if (await fs.pathExists(pipfilePath)) {
+    if (await pathExists(pipfilePath)) {
       try {
         const { parse } = await import('smol-toml')
-        const content = await fs.readFile(pipfilePath, 'utf-8')
+        const content = await fsp.readFile(pipfilePath, 'utf-8')
         const pipfile = parse(content) as Record<string, any>
 
         const deps = (pipfile.packages || {}) as Record<string, unknown>
@@ -259,9 +279,9 @@ async function analyzePythonDependencies(
   else {
     // Default to requirements.txt
     const requirementsPath = path.join(projectPath, 'requirements.txt')
-    if (await fs.pathExists(requirementsPath)) {
+    if (await pathExists(requirementsPath)) {
       try {
-        const content = await fs.readFile(requirementsPath, 'utf-8')
+        const content = await fsp.readFile(requirementsPath, 'utf-8')
         const lines = content.split('\n')
 
         for (const line of lines) {
@@ -299,12 +319,12 @@ async function analyzeGoDependencies(
 ): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
   const goModPath = path.join(projectPath, 'go.mod')
 
-  if (!await fs.pathExists(goModPath)) {
+  if (!await pathExists(goModPath)) {
     return { direct: [], all: [] }
   }
 
   try {
-    const content = await fs.readFile(goModPath, 'utf-8')
+    const content = await fsp.readFile(goModPath, 'utf-8')
     const lines = content.split('\n')
     const direct: DependencyNode[] = []
     let inRequireBlock = false
@@ -357,13 +377,13 @@ async function analyzeRustDependencies(
 ): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
   const cargoTomlPath = path.join(projectPath, 'Cargo.toml')
 
-  if (!await fs.pathExists(cargoTomlPath)) {
+  if (!await pathExists(cargoTomlPath)) {
     return { direct: [], all: [] }
   }
 
   try {
     const { parse } = await import('smol-toml')
-    const content = await fs.readFile(cargoTomlPath, 'utf-8')
+    const content = await fsp.readFile(cargoTomlPath, 'utf-8')
     const cargoToml = parse(content) as Record<string, any>
     const direct: DependencyNode[] = []
 

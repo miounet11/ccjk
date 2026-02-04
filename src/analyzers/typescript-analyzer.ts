@@ -5,8 +5,24 @@
 
 import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
 import consola from 'consola'
-import fs from 'fs-extra'
+import { promises as fsp } from 'node:fs'
 import path from 'pathe'
+
+// fs-extra compatibility helpers
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p)
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+async function readJson(p: string): Promise<any> {
+  const content = await fsp.readFile(p, 'utf-8')
+  return JSON.parse(content)
+}
 
 const logger = consola.withTag('typescript-analyzer')
 
@@ -160,8 +176,8 @@ export async function analyzeTypeScriptProject(
   // Read package.json
   let packageJson: any = null
   try {
-    if (await fs.pathExists(packageJsonPath)) {
-      packageJson = await fs.readJson(packageJsonPath)
+    if (await pathExists(packageJsonPath)) {
+      packageJson = await readJson(packageJsonPath)
     }
   }
   catch (error) {
@@ -184,7 +200,7 @@ export async function analyzeTypeScriptProject(
     // Check for directory indicators
     for (const indicator of patterns.indicators) {
       const indicatorPath = path.join(projectPath, indicator)
-      if (files.some(f => f.startsWith(indicator)) || await fs.pathExists(indicatorPath)) {
+      if (files.some(f => f.startsWith(indicator)) || await pathExists(indicatorPath)) {
         evidence.push(`Found ${indicator} directory`)
         confidence += 0.2
       }

@@ -1,6 +1,16 @@
 import type { SupportedLang } from '../constants'
 import { homedir } from 'node:os'
-import { pathExists } from 'fs-extra'
+import { promises as fsp } from 'node:fs'
+
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p)
+    return true
+  }
+  catch {
+    return false
+  }
+}
 import { join } from 'pathe'
 import { exec } from 'tinyexec'
 import { ZCF_CONFIG_FILE } from '../constants'

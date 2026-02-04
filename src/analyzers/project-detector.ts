@@ -4,9 +4,26 @@
 
 import type { BuildSystem, DetectorConfig, FrameworkDetectionResult, LanguageDetection, PackageManager, ProjectAnalysis } from './types.js'
 import consola from 'consola'
-import * as fs from 'fs-extra'
+import { existsSync } from 'node:fs'
+import { promises as fsp } from 'node:fs'
 import path from 'pathe'
 import { glob } from 'tinyglobby'
+
+// fs-extra compatibility helpers
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p)
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+async function readJson(p: string): Promise<any> {
+  const content = await fsp.readFile(p, 'utf-8')
+  return JSON.parse(content)
+}
 import { analyzeGoProject } from './go-analyzer.js'
 import { analyzePythonProject } from './python-analyzer.js'
 import { analyzeRustProject } from './rust-analyzer.js'
@@ -107,7 +124,7 @@ export async function detectProject(
   // Ensure path is absolute
   const absolutePath = path.resolve(projectPath)
 
-  if (!await fs.pathExists(absolutePath)) {
+  if (!await pathExists(absolutePath)) {
     throw new Error(`Project path does not exist: ${absolutePath}`)
   }
 
@@ -213,7 +230,7 @@ async function scanProjectFiles(
   const rootConfigFiles: string[] = []
   for (const configFile of ROOT_CONFIG_FILES) {
     const configPath = path.join(projectPath, configFile)
-    if (await fs.pathExists(configPath)) {
+    if (await pathExists(configPath)) {
       rootConfigFiles.push(configFile)
       logger.debug(`Found root config: ${configFile}`)
     }
@@ -292,7 +309,7 @@ async function detectLanguages(
 
     // Check for indicators
     for (const indicator of patterns.indicators) {
-      if (fileSet.has(indicator) || await fs.pathExists(path.join(projectPath, indicator))) {
+      if (fileSet.has(indicator) || await pathExists(path.join(projectPath, indicator))) {
         indicators.push(`Found ${indicator}`)
         languageCounts.set(language, (languageCounts.get(language) || 0) + 5)
       }
@@ -473,7 +490,7 @@ function detectImportantDirs(projectPath: string): string[] {
   const foundDirs: string[] = []
 
   for (const dir of importantDirs) {
-    if (fs.existsSync(path.join(projectPath, dir))) {
+    if (existsSync(path.join(projectPath, dir))) {
       foundDirs.push(dir)
     }
   }

@@ -20,21 +20,36 @@ export interface OutputStyle {
 }
 
 const OUTPUT_STYLES: OutputStyle[] = [
-  // Custom styles (have template files) - Efficiency-focused styles
+  // Custom styles (have template files) - 大神模式
   {
-    id: 'speed-coder',
+    id: 'linus-mode',
     isCustom: true,
-    filePath: 'speed-coder.md',
+    filePath: 'linus-mode.md',
   },
   {
-    id: 'senior-architect',
+    id: 'uncle-bob-mode',
     isCustom: true,
-    filePath: 'senior-architect.md',
+    filePath: 'uncle-bob-mode.md',
   },
   {
-    id: 'pair-programmer',
+    id: 'dhh-mode',
     isCustom: true,
-    filePath: 'pair-programmer.md',
+    filePath: 'dhh-mode.md',
+  },
+  {
+    id: 'carmack-mode',
+    isCustom: true,
+    filePath: 'carmack-mode.md',
+  },
+  {
+    id: 'jobs-mode',
+    isCustom: true,
+    filePath: 'jobs-mode.md',
+  },
+  {
+    id: 'evan-you-mode',
+    isCustom: true,
+    filePath: 'evan-you-mode.md',
   },
   // Built-in styles (no template files) - Claude Code native styles
   {
@@ -176,19 +191,34 @@ export async function configureOutputStyle(
       description: i18n.t('configuration:outputStyles.default.description'),
     },
     {
-      id: 'speed-coder',
-      name: i18n.t('configuration:outputStyles.speed-coder.name'),
-      description: i18n.t('configuration:outputStyles.speed-coder.description'),
+      id: 'linus-mode',
+      name: i18n.t('configuration:outputStyles.linus-mode.name'),
+      description: i18n.t('configuration:outputStyles.linus-mode.description'),
     },
     {
-      id: 'senior-architect',
-      name: i18n.t('configuration:outputStyles.senior-architect.name'),
-      description: i18n.t('configuration:outputStyles.senior-architect.description'),
+      id: 'uncle-bob-mode',
+      name: i18n.t('configuration:outputStyles.uncle-bob-mode.name'),
+      description: i18n.t('configuration:outputStyles.uncle-bob-mode.description'),
     },
     {
-      id: 'pair-programmer',
-      name: i18n.t('configuration:outputStyles.pair-programmer.name'),
-      description: i18n.t('configuration:outputStyles.pair-programmer.description'),
+      id: 'dhh-mode',
+      name: i18n.t('configuration:outputStyles.dhh-mode.name'),
+      description: i18n.t('configuration:outputStyles.dhh-mode.description'),
+    },
+    {
+      id: 'carmack-mode',
+      name: i18n.t('configuration:outputStyles.carmack-mode.name'),
+      description: i18n.t('configuration:outputStyles.carmack-mode.description'),
+    },
+    {
+      id: 'jobs-mode',
+      name: i18n.t('configuration:outputStyles.jobs-mode.name'),
+      description: i18n.t('configuration:outputStyles.jobs-mode.description'),
+    },
+    {
+      id: 'evan-you-mode',
+      name: i18n.t('configuration:outputStyles.evan-you-mode.name'),
+      description: i18n.t('configuration:outputStyles.evan-you-mode.description'),
     },
     {
       id: 'explanatory',
@@ -243,7 +273,7 @@ export async function configureOutputStyle(
         return {
           name: `${styleInfo?.name || style.id} - ${ansis.gray(styleInfo?.description || '')}`,
           value: style.id,
-          checked: false, // Let user choose, not pre-selected
+          checked: true, // Default to all selected
         }
       })),
       validate: async input => input.length > 0 || i18n.t('configuration:selectAtLeastOne'),
@@ -282,7 +312,7 @@ export async function configureOutputStyle(
             }
           }),
       ]),
-      default: selectedStyles.includes('senior-architect') ? 'senior-architect' : selectedStyles[0],
+      default: selectedStyles.includes('linus-mode') ? 'linus-mode' : selectedStyles[0],
     })
 
     if (!promptedDefault) {

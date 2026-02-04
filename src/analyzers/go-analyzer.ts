@@ -5,8 +5,23 @@
 
 import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
 import consola from 'consola'
-import fs from 'fs-extra'
+import { promises as fsp } from 'node:fs'
 import path from 'pathe'
+
+// fs-extra compatibility helpers
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p)
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+async function readFile(p: string): Promise<string> {
+  return fsp.readFile(p, 'utf-8')
+}
 
 const logger = consola.withTag('go-analyzer')
 
@@ -114,8 +129,8 @@ export async function analyzeGoProject(
   // Read go.mod
   let goMod: any = null
   try {
-    if (await fs.pathExists(goModPath)) {
-      const content = await fs.readFile(goModPath, 'utf-8')
+    if (await pathExists(goModPath)) {
+      const content = await fsp.readFile(goModPath, 'utf-8')
       goMod = parseGoMod(content)
     }
   }
@@ -220,7 +235,7 @@ async function scanGoImports(
 
   for (const file of goFiles) {
     try {
-      const content = await fs.readFile(path.join(projectPath, file), 'utf-8')
+      const content = await fsp.readFile(path.join(projectPath, file), 'utf-8')
       const fileImports = extractGoImports(content)
 
       for (const importPath of fileImports) {
@@ -309,9 +324,9 @@ async function detectAdditionalPatterns(
 ): Promise<void> {
   // Check for Go version
   const goModPath = path.join(projectPath, 'go.mod')
-  if (files.includes('go.mod') && await fs.pathExists(goModPath)) {
+  if (files.includes('go.mod') && await pathExists(goModPath)) {
     try {
-      const content = await fs.readFile(goModPath, 'utf-8')
+      const content = await fsp.readFile(goModPath, 'utf-8')
       const goVersionMatch = content.match(/^go\s+(\d+\.\d+)/m)
       if (goVersionMatch) {
         frameworks.push({
@@ -419,7 +434,7 @@ async function detectAdditionalPatterns(
 
   // Check for workspace
   const goWorkPath = path.join(projectPath, 'go.work')
-  if (files.includes('go.work') && await fs.pathExists(goWorkPath)) {
+  if (files.includes('go.work') && await pathExists(goWorkPath)) {
     frameworks.push({
       name: 'workspace',
       category: 'workspace',
