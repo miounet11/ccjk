@@ -7,19 +7,19 @@
  * They serve as a template for future integration tests.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, AssertionHelpers } from '../helpers'
-import { createTestTempDir } from '../setup'
 import type {
+  DualSkillConfig,
+  KeywordRoute,
+  ReasoningChain,
   SkillDSL,
   SkillExecution,
   SkillLayer,
-  ReasoningChain,
-  KeywordRoute,
-  DualSkillConfig,
 } from '@/types/skills-v2'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AssertionHelpers, MockFactory } from '../helpers'
+import { createTestTempDir } from '../setup'
 
-describe.skip('Skills DSL Integration', () => {
+describe.skip('skills DSL Integration', () => {
   let testDir: string
   let skillDSLParser: any
   let skillExecutor: any
@@ -111,7 +111,7 @@ describe.skip('Skills DSL Integration', () => {
     vi.clearAllMocks()
   })
 
-  describe('DSL Parsing', () => {
+  describe('dSL Parsing', () => {
     it('should parse basic skill DSL', async () => {
       // Arrange
       const dslCode = `
@@ -184,12 +184,12 @@ describe.skip('Skills DSL Integration', () => {
       `
 
       skillDSLParser.parse.mockRejectedValue(
-        new Error('Syntax error: Unexpected token at line 3')
+        new Error('Syntax error: Unexpected token at line 3'),
       )
 
       // Act & Assert
       await expect(skillDSLParser.parse(invalidDSL)).rejects.toThrow(
-        'Syntax error: Unexpected token at line 3'
+        'Syntax error: Unexpected token at line 3',
       )
     })
 
@@ -246,7 +246,7 @@ describe.skip('Skills DSL Integration', () => {
     })
   })
 
-  describe('Three-Layer Execution (L1→L3→L2)', () => {
+  describe('three-Layer Execution (L1→L3→L2)', () => {
     it('should execute L1 layer skills directly', async () => {
       // Arrange
       const l1Skill: SkillDSL = {
@@ -344,7 +344,7 @@ describe.skip('Skills DSL Integration', () => {
       // Act
       const chainResult = await skillExecutor.chainLayers(
         ['L1', 'L3', 'L2'],
-        input
+        input,
       )
 
       // Assert
@@ -359,17 +359,17 @@ describe.skip('Skills DSL Integration', () => {
     it('should handle layer execution failures gracefully', async () => {
       // Arrange
       skillExecutor.executeLayer.mockRejectedValueOnce(
-        new Error('L3 execution failed')
+        new Error('L3 execution failed'),
       )
 
       // Act & Assert
       await expect(
-        skillExecutor.executeLayer('L3', {}, {})
+        skillExecutor.executeLayer('L3', {}, {}),
       ).rejects.toThrow('L3 execution failed')
     })
   })
 
-  describe('Reasoning Chain Output', () => {
+  describe('reasoning Chain Output', () => {
     it('should generate reasoning chain for skill execution', async () => {
       // Arrange
       const execution: SkillExecution = {
@@ -488,7 +488,7 @@ describe.skip('Skills DSL Integration', () => {
     })
   })
 
-  describe('Keyword Routing', () => {
+  describe('keyword Routing', () => {
     it('should route based on keywords', async () => {
       // Arrange
       const userInput = 'Process this data and find patterns'
@@ -550,7 +550,7 @@ describe.skip('Skills DSL Integration', () => {
     })
   })
 
-  describe('Dual Skill Loading', () => {
+  describe('dual Skill Loading', () => {
     it('should load primary and secondary skills', async () => {
       // Arrange
       const config: DualSkillConfig = {
@@ -631,7 +631,7 @@ describe.skip('Skills DSL Integration', () => {
     })
   })
 
-  describe('Integration Scenarios', () => {
+  describe('integration Scenarios', () => {
     it('should execute complete skill workflow', async () => {
       // Arrange - Complete workflow
       const userInput = 'Analyze sales data for Q4 patterns'
@@ -707,7 +707,7 @@ describe.skip('Skills DSL Integration', () => {
     })
   })
 
-  describe('Performance Benchmarks', () => {
+  describe('performance Benchmarks', () => {
     it('should parse DSL within performance budget (<10ms)', async () => {
       // Arrange
       const dslCode = 'skill "Test" { layer: L1 }'
@@ -721,7 +721,7 @@ describe.skip('Skills DSL Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => skillDSLParser.parse(dslCode),
-        maxParseTime
+        maxParseTime,
       )
     })
 
@@ -741,12 +741,12 @@ describe.skip('Skills DSL Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => skillExecutor.chainLayers(layers, {}),
-        maxChainTime
+        maxChainTime,
       )
     })
   })
 
-  describe('Edge Cases and Error Handling', () => {
+  describe('edge Cases and Error Handling', () => {
     it('should handle circular skill dependencies', async () => {
       // Arrange
       const circularSkills = [
@@ -760,7 +760,7 @@ describe.skip('Skills DSL Integration', () => {
 
       // Act & Assert
       expect(() => skillExecutor.getExecutionPlan(circularSkills)).toThrow(
-        'Circular dependency detected: SkillA <-> SkillB'
+        'Circular dependency detected: SkillA <-> SkillB',
       )
     })
 
@@ -769,24 +769,24 @@ describe.skip('Skills DSL Integration', () => {
       const invalidDSL = { name: 'Invalid' }
 
       skillDSLParser.compile.mockRejectedValue(
-        new Error('Compilation failed: Invalid layer specification')
+        new Error('Compilation failed: Invalid layer specification'),
       )
 
       // Act & Assert
       await expect(skillDSLParser.compile(invalidDSL)).rejects.toThrow(
-        'Compilation failed: Invalid layer specification'
+        'Compilation failed: Invalid layer specification',
       )
     })
 
     it('should recover from dual skill loading failure', async () => {
       // Arrange
       dualSkillLoader.load.mockRejectedValue(
-        new Error('Both primary and secondary skills failed to load')
+        new Error('Both primary and secondary skills failed to load'),
       )
 
       // Act & Assert
       await expect(dualSkillLoader.load({})).rejects.toThrow(
-        'Both primary and secondary skills failed to load'
+        'Both primary and secondary skills failed to load',
       )
     })
   })

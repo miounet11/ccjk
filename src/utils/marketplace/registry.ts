@@ -449,7 +449,8 @@ export async function showMarketplaceMenu(): Promise<void> {
     ],
   }])
 
-  if (action === 'back') return
+  if (action === 'back')
+    return
 
   switch (action) {
     case 'search': {
@@ -499,10 +500,11 @@ export async function showMarketplaceMenu(): Promise<void> {
       const installed = await getInstalledPackages()
       if (installed.length === 0) {
         console.log(ansis.yellow('\nNo packages installed'))
-      } else {
+      }
+      else {
         console.log(ansis.green('\n📥 Installed packages:'))
         for (const pkg of installed) {
-          console.log(`  ${ansis.cyan(pkg.name)} v${pkg.version}`)
+          console.log(`  ${ansis.cyan(pkg.package.name)} v${pkg.package.version}`)
         }
       }
       break

@@ -68,7 +68,8 @@ export class FileIndexManager {
 
           if (entry.isDirectory()) {
             await walk(fullPath)
-          } else if (entry.isFile()) {
+          }
+          else if (entry.isFile()) {
             const stats = await fs.stat(fullPath)
             const indexEntry: FileIndexEntry = {
               path: fullPath,
@@ -82,7 +83,8 @@ export class FileIndexManager {
             fileCount++
           }
         }
-      } catch (error) {
+      }
+      catch (error) {
         // Skip directories we can't read
       }
     }
@@ -323,9 +325,7 @@ export class StartupOptimizer {
     ]
 
     await Promise.all(
-      critical.map(mod => this.lazyLoad(mod).catch(() => {}))
+      critical.map(mod => this.lazyLoad(mod).catch(() => {})),
     )
   }
 }
-
-export { FileIndexManager, MemoryManager, StartupOptimizer }

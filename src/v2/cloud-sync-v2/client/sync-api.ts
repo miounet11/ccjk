@@ -3,13 +3,13 @@
  * Handles skill synchronization, delta updates, and conflict resolution
  */
 
-import { APIClient } from './client.js'
-import {
-  SyncStatus,
+import type {
   ClientSkillState,
-  DeltaResponse,
   ConflictResolution,
+  DeltaResponse,
+  SyncStatus,
 } from './types.js'
+import { APIClient } from './client.js'
 import { API_PATHS } from './config.js'
 
 export class SyncAPIClient extends APIClient {
@@ -25,7 +25,7 @@ export class SyncAPIClient extends APIClient {
    */
   async getDeltaUpdates(
     lastSyncAt: Date,
-    clientState: ClientSkillState[]
+    clientState: ClientSkillState[],
   ): Promise<DeltaResponse> {
     return this.post<DeltaResponse>(API_PATHS.SYNC_DELTA, {
       lastSyncAt: lastSyncAt.toISOString(),

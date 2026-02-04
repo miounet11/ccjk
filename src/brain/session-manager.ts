@@ -86,7 +86,7 @@ export interface SessionForkOptions {
 // ============================================================================
 
 export class SessionManager {
-  private sessionsDir: string
+  readonly sessionsDir: string
   private autoCleanupDays: number
 
   constructor(options: SessionManagerOptions = {}) {
@@ -808,7 +808,7 @@ export class CrossSessionRecovery {
 
   constructor(sessionManager: SessionManager) {
     this.sessionManager = sessionManager
-    this.checkpointFile = path.join(sessionManager['sessionsDir'], '.recovery-checkpoints.json')
+    this.checkpointFile = path.join(sessionManager.sessionsDir, '.recovery-checkpoints.json')
   }
 
   /**

@@ -7,10 +7,10 @@ import type {
   UninstallResult,
   UpdateResult,
 } from '../types'
-import { BasePluginAdapter } from './base'
 import fs from 'node:fs/promises'
-import path from 'node:path'
 import os from 'node:os'
+import path from 'node:path'
+import { BasePluginAdapter } from './base'
 
 /**
  * Adapter for Claude Native Plugins
@@ -32,7 +32,8 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
   private async ensurePluginsDir(): Promise<void> {
     try {
       await fs.mkdir(this.pluginsDir, { recursive: true })
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to create plugins directory:', error)
     }
   }
@@ -70,7 +71,8 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
         updatedAt: manifest.updatedAt,
         marketplace: 'native',
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Failed to read manifest from ${pluginDir}:`, error)
       return null
     }
@@ -118,9 +120,9 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
 
     const query = options.query.toLowerCase()
     return installed.filter(plugin =>
-      plugin.name.toLowerCase().includes(query) ||
-      plugin.description?.toLowerCase().includes(query) ||
-      plugin.tags?.some(tag => tag.toLowerCase().includes(query))
+      plugin.name.toLowerCase().includes(query)
+      || plugin.description?.toLowerCase().includes(query)
+      || plugin.tags?.some(tag => tag.toLowerCase().includes(query)),
     )
   }
 
@@ -134,7 +136,8 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
     try {
       await fs.access(pluginDir)
       return await this.readPluginManifest(pluginDir)
-    } catch {
+    }
+    catch {
       return null
     }
   }
@@ -176,9 +179,10 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
         success: true,
         plugin,
       }
-    } catch (error) {
+    }
+    catch (error) {
       return this.createInstallError(
-        error instanceof Error ? error.message : 'Failed to install plugin'
+        error instanceof Error ? error.message : 'Failed to install plugin',
       )
     }
   }
@@ -193,7 +197,8 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
       // Check if plugin exists
       try {
         await fs.access(pluginDir)
-      } catch {
+      }
+      catch {
         return this.createUninstallError('Plugin is not installed')
       }
 
@@ -201,9 +206,10 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
       await fs.rm(pluginDir, { recursive: true, force: true })
 
       return { success: true }
-    } catch (error) {
+    }
+    catch (error) {
       return this.createUninstallError(
-        error instanceof Error ? error.message : 'Failed to uninstall plugin'
+        error instanceof Error ? error.message : 'Failed to uninstall plugin',
       )
     }
   }
@@ -233,9 +239,10 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
         newVersion,
         plugin,
       }
-    } catch (error) {
+    }
+    catch (error) {
       return this.createUpdateError(
-        error instanceof Error ? error.message : 'Failed to update plugin'
+        error instanceof Error ? error.message : 'Failed to update plugin',
       )
     }
   }
@@ -252,7 +259,7 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const plugin = await this.readPluginManifest(
-            path.join(this.pluginsDir, entry.name)
+            path.join(this.pluginsDir, entry.name),
           )
           if (plugin) {
             plugins.push(plugin)
@@ -261,7 +268,8 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
       }
 
       return plugins
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to list installed plugins:', error)
       return []
     }
@@ -275,7 +283,8 @@ export class ClaudeNativeAdapter extends BasePluginAdapter {
       const pluginDir = path.join(this.pluginsDir, id)
       await fs.access(pluginDir)
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }

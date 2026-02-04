@@ -61,7 +61,7 @@ export class AgentCommunication {
     from: string,
     to: string,
     type: string,
-    payload: unknown
+    payload: unknown,
   ): Promise<AgentMessage> {
     const message: AgentMessage = {
       id: this.generateMessageId(),
@@ -105,14 +105,14 @@ export class AgentCommunication {
     from: string,
     type: string,
     payload: unknown,
-    exclude: string[] = []
+    exclude: string[] = [],
   ): Promise<AgentMessage[]> {
     if (!this.config.enableBroadcasting) {
       throw new Error('Broadcasting is disabled')
     }
 
     const recipients = Array.from(this.handlers.keys()).filter(
-      agent => agent !== from && !exclude.includes(agent)
+      agent => agent !== from && !exclude.includes(agent),
     )
 
     const messages = await Promise.all(
@@ -121,8 +121,8 @@ export class AgentCommunication {
           ...(typeof payload === 'object' && payload !== null ? payload : { data: payload }),
           broadcast: true,
           recipientCount: recipients.length,
-        } as Record<string, unknown>)
-      )
+        } as Record<string, unknown>),
+      ),
     )
 
     return messages
@@ -192,7 +192,7 @@ export class AgentCommunication {
     originalMessageId: string,
     from: string,
     type: string,
-    payload: unknown
+    payload: unknown,
   ): Promise<AgentMessage> {
     const originalMessage = this.findMessage(originalMessageId)
     if (!originalMessage) {
@@ -272,9 +272,9 @@ export class AgentCommunication {
   async retryFailedMessages(agentId: string): Promise<void> {
     const messages = this.messageHistory.filter(
       (msg): msg is AgentMessage =>
-        (msg.to === agentId || msg.from === agentId) &&
-        msg.status === 'failed' &&
-        msg.retries < this.config.maxRetries
+        (msg.to === agentId || msg.from === agentId)
+        && msg.status === 'failed'
+        && msg.retries < this.config.maxRetries,
     )
 
     for (const message of messages) {
@@ -290,10 +290,11 @@ export class AgentCommunication {
   private deliver(message: OrchestratorMessage): void {
     const handlers = this.handlers.get(message.to)
     if (handlers) {
-      handlers.forEach(handler => {
+      handlers.forEach((handler) => {
         try {
           handler(message as AgentMessage)
-        } catch (error) {
+        }
+        catch (error) {
           console.error(`Handler error for agent ${message.to}:`, error)
         }
       })
@@ -309,7 +310,8 @@ export class AgentCommunication {
       for (const handler of handlers) {
         try {
           await handler(message)
-        } catch (error) {
+        }
+        catch (error) {
           console.error(`Handler error for agent ${agentId}:`, error)
           message.status = 'failed'
           message.error = error instanceof Error ? error.message : String(error)
@@ -337,11 +339,12 @@ export class AgentCommunication {
    */
   private calculateAverageDeliveryTime(messages: AgentMessage[]): number {
     const deliveredMessages = messages.filter(m => m.deliveredAt && m.timestamp)
-    if (deliveredMessages.length === 0) return 0
+    if (deliveredMessages.length === 0)
+      return 0
 
     const totalTime = deliveredMessages.reduce(
       (sum, m) => sum + (m.deliveredAt! - m.timestamp),
-      0
+      0,
     )
     return totalTime / deliveredMessages.length
   }

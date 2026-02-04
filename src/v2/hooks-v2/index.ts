@@ -3,8 +3,8 @@
  * Exports for external usage
  */
 
-export * from './types.js';
-export * from './enforcement.js';
+export * from './enforcement.js'
+export * from './types.js'
 
 // Additional exports for future modules
 // export * from './validator.js';

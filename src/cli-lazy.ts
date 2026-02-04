@@ -9,8 +9,8 @@
 
 import type { CAC } from 'cac'
 import type { SupportedLang } from './constants'
+import type { HookCategory, HookType } from './hooks/types'
 import type { SkillCategory } from './skills/types'
-import type { HookType, HookCategory } from './hooks/types'
 import process from 'node:process'
 
 // ============================================================================
@@ -100,6 +100,9 @@ const COMMANDS: CommandDefinition[] = [
       { flags: '--api-type, -t <type>', description: 'API type' },
       { flags: '--api-key, -k <key>', description: 'API key' },
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
+      { flags: '--smart', description: 'Smart generation mode - auto-detect project and generate agents/skills' },
+      { flags: '--dry-run', description: 'Preview changes without writing files' },
+      { flags: '--yes, -y', description: 'Skip confirmation prompts (auto-confirm)' },
     ],
     loader: async () => {
       const { init } = await import('./commands/init')
@@ -1268,7 +1271,8 @@ const COMMANDS: CommandDefinition[] = [
 
         if (options.json) {
           console.log(formatResultAsJson(result))
-        } else {
+        }
+        else {
           console.log(formatResultForConsole(result))
         }
       }

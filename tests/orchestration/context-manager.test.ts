@@ -3,14 +3,14 @@
  * Comprehensive test suite for context compression and management
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-import * as os from 'node:os'
-import { OrchestrationContextManager } from '../../src/orchestration/context-manager'
 import type { Message, SessionData } from '../../src/types/orchestration'
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { OrchestrationContextManager } from '../../src/orchestration/context-manager'
 
-describe('OrchestrationContextManager', () => {
+describe('orchestrationContextManager', () => {
   let manager: OrchestrationContextManager
   let testDir: string
 
@@ -25,7 +25,7 @@ describe('OrchestrationContextManager', () => {
     }
   })
 
-  describe('Token Estimation', () => {
+  describe('token Estimation', () => {
     it('should estimate tokens for English text', () => {
       const messages: Message[] = [
         {
@@ -87,7 +87,7 @@ describe('OrchestrationContextManager', () => {
     })
   })
 
-  describe('Context Compression', () => {
+  describe('context Compression', () => {
     it('should compress short conversations (< 10 messages) with 85%+ optimization', async () => {
       const messages: Message[] = Array.from({ length: 8 }, (_, i) => ({
         id: `${i}`,
@@ -219,7 +219,7 @@ describe('OrchestrationContextManager', () => {
     })
   })
 
-  describe('Session Persistence', () => {
+  describe('session Persistence', () => {
     it('should persist session to disk', async () => {
       const sessionData: SessionData = {
         id: 'test-session',
@@ -318,7 +318,7 @@ describe('OrchestrationContextManager', () => {
     })
   })
 
-  describe('Compression Metrics', () => {
+  describe('compression Metrics', () => {
     it('should get compression metrics', async () => {
       const messages: Message[] = Array.from({ length: 50 }, (_, i) => ({
         id: `${i}`,
@@ -365,7 +365,7 @@ describe('OrchestrationContextManager', () => {
     })
   })
 
-  describe('Compression Strategies', () => {
+  describe('compression Strategies', () => {
     it('should use aggressive strategy for large conversations', async () => {
       const messages: Message[] = Array.from({ length: 100 }, (_, i) => ({
         id: `${i}`,
@@ -406,7 +406,7 @@ describe('OrchestrationContextManager', () => {
     })
   })
 
-  describe('Edge Cases', () => {
+  describe('edge Cases', () => {
     it('should handle empty message list', async () => {
       const result = await manager.compress([])
 

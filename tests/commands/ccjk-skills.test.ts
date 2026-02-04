@@ -12,17 +12,17 @@ vi.mock('../../src/analyzers', () => ({
     frameworks: [{ name: 'react', category: 'frontend', confidence: 0.8, evidence: ['package.json'] }],
     packageManager: 'npm',
     configFiles: ['tsconfig.json', 'package.json'],
-    metadata: { confidence: 0.85, filesScanned: 150, duration: 100 }
-  })
+    metadata: { confidence: 0.85, filesScanned: 150, duration: 100 },
+  }),
 }))
 
 vi.mock('../../src/cloud-client', () => ({
   createCompleteCloudClient: vi.fn().mockReturnValue({
     analyzeProject: vi.fn().mockResolvedValue({
-      recommendations: []
+      recommendations: [],
     }),
-    getTemplate: vi.fn().mockResolvedValue(null)
-  })
+    getTemplate: vi.fn().mockResolvedValue(null),
+  }),
 }))
 
 describe('ccjk:skills', () => {
@@ -32,7 +32,7 @@ describe('ccjk:skills', () => {
     await ccjkSkills({
       interactive: false,
       json: false,
-      dryRun: true
+      dryRun: true,
     })
 
     expect(consoleSpy).toHaveBeenCalled()
@@ -49,12 +49,12 @@ describe('ccjk:skills', () => {
     await ccjkSkills({
       interactive: false,
       json: true,
-      dryRun: true
+      dryRun: true,
     })
 
     // Should output JSON
     const jsonOutput = consoleSpy.mock.calls.find(call =>
-      call[0].includes('status')
+      call[0].includes('status'),
     )
     expect(jsonOutput).toBeTruthy()
 

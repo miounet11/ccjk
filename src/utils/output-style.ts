@@ -8,8 +8,8 @@ import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { updateZcfConfig } from './ccjk-config'
 import { copyFile, ensureDir, exists, removeFile } from './fs-operations'
-import { mergeAndCleanPermissions } from './permission-cleaner'
 import { readJsonConfig, writeJsonConfig } from './json-config'
+import { mergeAndCleanPermissions } from './permission-cleaner'
 import { addNumbersToChoices } from './prompt-helpers'
 import { promptBoolean } from './toggle-prompt'
 
@@ -117,16 +117,16 @@ export function setGlobalDefaultOutputStyle(styleId: string): void {
  */
 function getTemplatePermissions(): string[] {
   try {
+    const { readFileSync } = require('node:fs')
     const { fileURLToPath } = require('node:url')
     const { dirname, join } = require('pathe')
-    const { readFileSync } = require('fs')
 
     const currentFilePath = fileURLToPath(import.meta.url)
     const distDir = dirname(dirname(currentFilePath))
     const rootDir = dirname(distDir)
     const templatePath = join(rootDir, 'templates', 'claude-code', 'common', 'settings.json')
 
-    if (require('fs').existsSync(templatePath)) {
+    if (require('node:fs').existsSync(templatePath)) {
       const template = JSON.parse(readFileSync(templatePath, 'utf-8'))
       return template.permissions?.allow || []
     }

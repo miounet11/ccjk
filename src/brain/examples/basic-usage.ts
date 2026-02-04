@@ -4,7 +4,7 @@
  * Demonstrates how to use the Brain system for multi-agent orchestration.
  */
 
-import { initializeBrain, createMayor } from '../index'
+import { initializeBrain } from '../index'
 
 async function main() {
   console.log('🧠 Brain System - Basic Usage Example\n')

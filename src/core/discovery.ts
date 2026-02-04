@@ -9,9 +9,9 @@
  * @module core/discovery
  */
 
-import type { CCJKHookType, HookContext, RegisteredHook } from './hook-skill-bridge'
-import { getHookSkillBridge } from './hook-skill-bridge'
+import type { CCJKHookType } from './hook-skill-bridge'
 import type { LifecycleState } from './lifecycle-hooks'
+import { getHookSkillBridge } from './hook-skill-bridge'
 import { getLifecycleManager } from './lifecycle-hooks'
 
 // ============================================================================
@@ -62,10 +62,10 @@ export interface DiscoveredSkill {
 export interface DiscoveredAgent {
   id: string
   name: string
-  description: string
+  description?: string
   model?: string
   capabilities: string[]
-  tools: string[]
+  tools?: string[]
   isBuiltin: boolean
 }
 
@@ -101,7 +101,6 @@ export interface DiscoveryOptions {
 export function discoverHooks(options: DiscoveryOptions = {}): DiscoveredHook[] {
   const bridge = getHookSkillBridge()
   const allHooks = bridge.getHooks()
-  const skillTriggers = bridge.getSkillTriggers()
 
   return allHooks
     .filter((hook) => {
@@ -119,14 +118,14 @@ export function discoverHooks(options: DiscoveryOptions = {}): DiscoveredHook[] 
       }
       return true
     })
-    .map((hook) => ({
+    .map(hook => ({
       id: hook.id,
       type: hook.type,
       priority: hook.priority,
       enabled: hook.enabled,
       source: hook.source,
       matcher: hook.matcher,
-      triggersSkill: skillTriggers.get(hook.id),
+      triggersSkill: hook.skillTrigger?.skillId,
     }))
 }
 
@@ -149,7 +148,7 @@ export async function discoverSkills(options: DiscoveryOptions = {}): Promise<Di
       }
       return true
     })
-    .map((skill) => ({
+    .map(skill => ({
       id: skill.id || skill.metadata.name,
       name: skill.metadata.name,
       description: skill.metadata.description,
@@ -197,13 +196,10 @@ export async function discoverAgents(options: DiscoveryOptions = {}): Promise<Di
       }
       return true
     })
-    .map((agent) => ({
+    .map(agent => ({
       id: agent.id,
       name: agent.name,
-      description: agent.description,
-      model: agent.model,
       capabilities: agent.expertise || [],
-      tools: agent.tools || [],
       isBuiltin: true, // All registry agents are builtin
     }))
 }
@@ -238,11 +234,10 @@ export async function discoverAll(options: DiscoveryOptions = {}): Promise<Disco
  */
 export function findHooksForSkill(skillId: string): DiscoveredHook[] {
   const bridge = getHookSkillBridge()
-  const skillTriggers = bridge.getSkillTriggers()
   const allHooks = bridge.getHooks()
 
   return allHooks
-    .filter(hook => skillTriggers.get(hook.id) === skillId)
+    .filter(hook => hook.skillTrigger?.skillId === skillId)
     .map(hook => ({
       id: hook.id,
       type: hook.type,
@@ -260,33 +255,33 @@ export function findHooksForSkill(skillId: string): DiscoveredHook[] {
 export async function findSkillsByTrigger(trigger: string): Promise<DiscoveredSkill[]> {
   const { getSkillRegistry } = await import('../brain/skill-registry')
   const registry = getSkillRegistry()
-  const skill = registry.findByTrigger(trigger)
+  const skills = registry.getByTrigger(trigger)
 
-  if (!skill) {
+  if (!skills || skills.length === 0) {
     return []
   }
 
-  return [{
+  return skills.map(skill => ({
     id: skill.id || skill.metadata.name,
     name: skill.metadata.name,
     description: skill.metadata.description,
     version: skill.metadata.version,
     category: skill.metadata.category,
     triggers: skill.metadata.triggers || [],
-    args: skill.metadata.args?.map(arg => ({
+    args: skill.metadata.args?.map((arg: any) => ({
       name: arg.name,
       description: arg.description,
       required: arg.required,
       default: arg.default,
     })),
-    hooks: skill.metadata.hooks?.map(hook => ({
+    hooks: skill.metadata.hooks?.map((hook: any) => ({
       type: hook.type,
       command: hook.command,
     })),
     userInvocable: skill.metadata.user_invocable ?? true,
     autoActivate: skill.metadata.auto_activate ?? false,
     priority: skill.metadata.priority ?? 50,
-  }]
+  }))
 }
 
 /**
@@ -299,10 +294,7 @@ export async function findAgentsByCapability(capability: string): Promise<Discov
   return agents.map(agent => ({
     id: agent.id,
     name: agent.name,
-    description: agent.description,
-    model: agent.model,
     capabilities: agent.expertise || [],
-    tools: agent.tools || [],
     isBuiltin: true, // All registry agents are builtin
   }))
 }

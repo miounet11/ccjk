@@ -150,11 +150,11 @@ export interface ToolResultContentBlock {
   isError?: boolean
 }
 
-export type ContentBlock =
-  | TextContentBlock
-  | ImageContentBlock
-  | ToolUseContentBlock
-  | ToolResultContentBlock
+export type ContentBlock
+  = | TextContentBlock
+    | ImageContentBlock
+    | ToolUseContentBlock
+    | ToolResultContentBlock
 
 /**
  * Tool use result
@@ -544,13 +544,13 @@ export interface CrashRecoveryAvailableEvent {
 /**
  * Auto save trigger types
  */
-export type AutoSaveTrigger =
-  | 'message_count'
-  | 'time_interval'
-  | 'exit'
-  | 'crash_recovery'
-  | 'manual'
-  | 'context_compact'
+export type AutoSaveTrigger
+  = | 'message_count'
+    | 'time_interval'
+    | 'exit'
+    | 'crash_recovery'
+    | 'manual'
+    | 'context_compact'
 
 /**
  * Crash recovery data
@@ -566,12 +566,12 @@ export interface CrashRecoveryData {
 /**
  * All WebSocket events
  */
-export type ContextWebSocketEvent =
-  | ContextWarningEvent
-  | ContextCriticalEvent
-  | SessionAutoSavedEvent
-  | SessionCompactedEvent
-  | CrashRecoveryAvailableEvent
+export type ContextWebSocketEvent
+  = | ContextWarningEvent
+    | ContextCriticalEvent
+    | SessionAutoSavedEvent
+    | SessionCompactedEvent
+    | CrashRecoveryAvailableEvent
 
 // ============================================================================
 // Error Types
@@ -580,18 +580,18 @@ export type ContextWebSocketEvent =
 /**
  * Context API error codes
  */
-export type ContextApiErrorCode =
-  | 'SESSION_NOT_FOUND'
-  | 'MESSAGE_NOT_FOUND'
-  | 'ARCHIVE_NOT_FOUND'
-  | 'SUMMARY_NOT_FOUND'
-  | 'CONTEXT_OVERFLOW'
-  | 'COMPACT_FAILED'
-  | 'INVALID_SESSION_STATUS'
-  | 'UNAUTHORIZED'
-  | 'NETWORK_ERROR'
-  | 'TIMEOUT'
-  | 'UNKNOWN_ERROR'
+export type ContextApiErrorCode
+  = | 'SESSION_NOT_FOUND'
+    | 'MESSAGE_NOT_FOUND'
+    | 'ARCHIVE_NOT_FOUND'
+    | 'SUMMARY_NOT_FOUND'
+    | 'CONTEXT_OVERFLOW'
+    | 'COMPACT_FAILED'
+    | 'INVALID_SESSION_STATUS'
+    | 'UNAUTHORIZED'
+    | 'NETWORK_ERROR'
+    | 'TIMEOUT'
+    | 'UNKNOWN_ERROR'
 
 /**
  * Context API error

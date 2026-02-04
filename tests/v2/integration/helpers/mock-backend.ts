@@ -3,8 +3,6 @@
  * Simulates CCJK backend services without external dependencies
  */
 
-import { vi } from 'vitest'
-
 export class MockBackend {
   private endpoints: Map<string, Function> = new Map()
   private authToken: string | null = null
@@ -76,7 +74,8 @@ export class MockBackend {
           ...result.headers,
         },
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         status: 500,
         data: { error: error.message },
@@ -490,7 +489,7 @@ export class MockWebSocketBackend {
   publish(channel: string, data: any): void {
     const subscribers = this.channels.get(channel)
     if (subscribers) {
-      subscribers.forEach(connectionId => {
+      subscribers.forEach((connectionId) => {
         const socket = this.connections.get(connectionId)
         if (socket) {
           socket.emit('message', { channel, data })

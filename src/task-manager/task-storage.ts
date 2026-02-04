@@ -6,16 +6,54 @@
  * @module task-manager
  */
 
+import type { Task, TaskManagerOptions, TaskSearchOptions, TaskStatus, TaskPriority } from './types'
 import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
 import * as os from 'node:os'
-import type { Task, TaskManagerOptions, TaskSearchOptions } from './types'
+import * as path from 'node:path'
+
+/**
+ * Cloud API response structure
+ */
+interface CloudApiResponse<T = any> {
+  code: number
+  message?: string
+  data?: T
+}
+
+/**
+ * Cloud task structure (from API)
+ */
+interface CloudTask {
+  id: string
+  name: string
+  description?: string
+  status: TaskStatus
+  priority: TaskPriority
+  depends_on?: string[]
+  dependents?: string[]
+  metadata?: Record<string, any>
+  created_at: string
+  updated_at: string
+  completed_at?: string
+  started_at?: string
+  duration?: number
+}
+
+/**
+ * Cloud task list response
+ */
+interface CloudTaskListResponse {
+  items: CloudTask[]
+  total: number
+  limit: number
+  offset: number
+}
 
 /**
  * Task Storage class
  */
 export class TaskStorage {
-  private storageType: 'local' | 'cloud'
+  public readonly storageType: 'local' | 'cloud'
   private storagePath: string
   private cloudEndpoint?: string
   private cache: Map<string, Task>
@@ -46,7 +84,8 @@ export class TaskStorage {
       this.cache.set(task.id, task)
       await this.saveToLocal()
       return task
-    } else {
+    }
+    else {
       // Always POST for now (creates new task)
       const savedTask = await this.saveToCloud(task)
       if (savedTask) {
@@ -63,13 +102,15 @@ export class TaskStorage {
   async updateTask(taskId: string, updates: Partial<Task>): Promise<Task | null> {
     if (this.storageType === 'local') {
       const existing = this.cache.get(taskId)
-      if (!existing) return null
+      if (!existing)
+        return null
 
       const updated = { ...existing, ...updates, updatedAt: new Date().toISOString() }
       this.cache.set(taskId, updated)
       await this.saveToLocal()
       return updated
-    } else {
+    }
+    else {
       return await this.updateInCloud(taskId, updates)
     }
   }
@@ -102,7 +143,8 @@ export class TaskStorage {
 
     if (this.storageType === 'local') {
       await this.saveToLocal()
-    } else {
+    }
+    else {
       await this.deleteFromCloud(taskId)
     }
 
@@ -135,8 +177,8 @@ export class TaskStorage {
     if (options?.nameContains) {
       const query = options.nameContains.toLowerCase()
       tasks = tasks.filter(t =>
-        t.name.toLowerCase().includes(query) ||
-        t.description?.toLowerCase().includes(query)
+        t.name.toLowerCase().includes(query)
+        || t.description?.toLowerCase().includes(query),
       )
     }
 
@@ -173,7 +215,8 @@ export class TaskStorage {
     const dir = path.dirname(this.storagePath)
     try {
       await fs.mkdir(dir, { recursive: true })
-    } catch (error) {
+    }
+    catch (error) {
       // Directory might already exist
     }
   }
@@ -189,7 +232,8 @@ export class TaskStorage {
       for (const task of tasks) {
         this.cache.set(task.id, task)
       }
-    } catch (error) {
+    }
+    catch (error) {
       // File doesn't exist or is invalid, start with empty cache
       this.cache.clear()
     }
@@ -233,14 +277,15 @@ export class TaskStorage {
         throw new Error(`Failed to save task to cloud: ${response.statusText}`)
       }
 
-      const result = await response.json()
+      const result = await response.json() as CloudApiResponse<CloudTask>
       if (result.code !== 0) {
         throw new Error(`Cloud API error: ${result.message}`)
       }
 
       // Transform response to match our Task interface
       const cloudTask = result.data
-      if (!cloudTask) return null
+      if (!cloudTask)
+        return null
 
       return {
         id: cloudTask.id,
@@ -257,7 +302,8 @@ export class TaskStorage {
         startedAt: cloudTask.started_at,
         duration: cloudTask.duration,
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error saving task to cloud:', error)
       throw error
     }
@@ -274,7 +320,7 @@ export class TaskStorage {
     try {
       const response = await fetch(`${this.cloudEndpoint}/api/v8/tasks/${taskId}`, {
         headers: {
-          'Authorization': `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
+          Authorization: `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
         },
       })
 
@@ -285,14 +331,15 @@ export class TaskStorage {
         throw new Error(`Failed to get task from cloud: ${response.statusText}`)
       }
 
-      const result = await response.json()
+      const result = await response.json() as CloudApiResponse<CloudTask>
       if (result.code !== 0) {
         throw new Error(`Cloud API error: ${result.message}`)
       }
 
       // Transform response data to match our Task interface
       const cloudTask = result.data
-      if (!cloudTask) return null
+      if (!cloudTask)
+        return null
 
       return {
         id: cloudTask.id,
@@ -309,7 +356,8 @@ export class TaskStorage {
         startedAt: cloudTask.started_at,
         duration: cloudTask.duration,
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error getting task from cloud:', error)
       return null
     }
@@ -327,7 +375,7 @@ export class TaskStorage {
       const response = await fetch(`${this.cloudEndpoint}/api/v8/tasks/${taskId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
+          Authorization: `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
         },
       })
 
@@ -335,11 +383,12 @@ export class TaskStorage {
         throw new Error(`Failed to delete task from cloud: ${response.statusText}`)
       }
 
-      const result = await response.json()
+      const result = await response.json() as CloudApiResponse
       if (result.code !== 0) {
         throw new Error(`Cloud API error: ${result.message}`)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error deleting task from cloud:', error)
       throw error
     }
@@ -381,7 +430,7 @@ export class TaskStorage {
 
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
+          Authorization: `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
         },
       })
 
@@ -389,7 +438,7 @@ export class TaskStorage {
         throw new Error(`Failed to search tasks from cloud: ${response.statusText}`)
       }
 
-      const result = await response.json()
+      const result = await response.json() as CloudApiResponse<CloudTaskListResponse>
       if (result.code !== 0) {
         throw new Error(`Cloud API error: ${result.message}`)
       }
@@ -398,7 +447,7 @@ export class TaskStorage {
       const cloudTasks = result.data?.items || []
 
       // Map database field names to our Task interface
-      return cloudTasks.map((task: any) => ({
+      return cloudTasks.map((task) => ({
         id: task.id,
         name: task.name,
         description: task.description || '',
@@ -413,7 +462,8 @@ export class TaskStorage {
         startedAt: task.started_at,
         duration: task.duration,
       }))
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error searching tasks from cloud:', error)
       return []
     }
@@ -441,17 +491,17 @@ export class TaskStorage {
         throw new Error(`Failed to update task in cloud: ${response.statusText}`)
       }
 
-      const result = await response.json()
+      const result = await response.json() as CloudApiResponse
       if (result.code !== 0) {
         throw new Error(`Cloud API error: ${result.message}`)
       }
 
       // Fetch the updated task to return full data
       return await this.getFromCloud(taskId)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error updating task in cloud:', error)
       throw error
     }
   }
 }
-

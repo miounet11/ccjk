@@ -522,7 +522,8 @@ export class MessageBus {
     this.stats.historySize = this.messageHistory.length
 
     // Trim history if needed
-    if (this.messageHistory.length > this.config.maxHistorySize) {
+    const maxHistorySize = this.config.maxHistorySize ?? 1000
+    if (this.messageHistory.length > maxHistorySize) {
       this.messageHistory.shift()
       this.stats.historySize = this.messageHistory.length
     }
@@ -562,7 +563,7 @@ export class MessageBus {
   private startCleanupInterval(): void {
     setInterval(() => {
       const now = Date.now()
-      const retentionTime = this.config.messageRetentionTime
+      const retentionTime = this.config.messageRetentionTime ?? 86400000 // Default 24 hours
 
       // Remove old messages from history
       this.messageHistory = this.messageHistory.filter(
@@ -608,7 +609,7 @@ export class MessageBus {
     }
 
     const levels = ['debug', 'info', 'warn', 'error']
-    const configLevel = levels.indexOf(this.config.logLevel)
+    const configLevel = levels.indexOf(this.config.logLevel ?? 'info')
     const messageLevel = levels.indexOf(level)
 
     if (messageLevel >= configLevel) {

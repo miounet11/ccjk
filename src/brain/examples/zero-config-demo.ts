@@ -12,7 +12,7 @@ import { processUserInput } from '../router'
  */
 async function demo() {
   console.log('🧠 Brain System - Zero-Config Demo\n')
-  console.log('=' .repeat(70))
+  console.log('='.repeat(70))
   console.log()
 
   // Example 1: Complex feature request
@@ -35,7 +35,7 @@ async function demo() {
   }
 
   console.log()
-  console.log('=' .repeat(70))
+  console.log('='.repeat(70))
   console.log()
 
   // Example 2: Architecture design
@@ -56,7 +56,7 @@ async function demo() {
   }
 
   console.log()
-  console.log('=' .repeat(70))
+  console.log('='.repeat(70))
   console.log()
 
   // Example 3: Simple question (bypassed)
@@ -72,7 +72,7 @@ async function demo() {
   }
 
   console.log()
-  console.log('=' .repeat(70))
+  console.log('='.repeat(70))
   console.log()
 
   // Example 4: Deployment task
@@ -94,7 +94,7 @@ async function demo() {
   }
 
   console.log()
-  console.log('=' .repeat(70))
+  console.log('='.repeat(70))
   console.log()
 
   console.log('🎉 Demo complete!')

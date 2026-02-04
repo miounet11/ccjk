@@ -1,36 +1,36 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join } from 'pathe';
-import { getPlatform } from '../utils/platform';
+import { existsSync, readFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { join } from 'pathe'
+import { getPlatform } from '../utils/platform'
 
 export interface SmartDefaults {
   // Environment detection
-  platform: string;
-  homeDir: string;
+  platform: string
+  homeDir: string
 
   // API configuration
-  apiProvider?: string;
-  apiKey?: string;
+  apiProvider?: string
+  apiKey?: string
 
   // Core services and tools
-  mcpServices: string[];
-  skills: string[];
-  agents: string[];
-  codeToolType?: string;
+  mcpServices: string[]
+  skills: string[]
+  agents: string[]
+  codeToolType?: string
 
   // Workflow preferences
   workflows: {
-    outputStyle: string;
-    gitWorkflow: string;
-    sixStepWorkflow: boolean;
-  };
+    outputStyle: string
+    gitWorkflow: string
+    sixStepWorkflow: boolean
+  }
 
   // Tool integrations
   tools: {
-    ccr: boolean;
-    cometix: boolean;
-    ccusage: boolean;
-  };
+    ccr: boolean
+    cometix: boolean
+    ccusage: boolean
+  }
 }
 
 /**
@@ -42,9 +42,9 @@ export class SmartDefaultsDetector {
    * Detect environment and generate smart defaults
    */
   async detect(): Promise<SmartDefaults> {
-    const platform = getPlatform();
-    const apiKey = this.detectApiKey();
-    const apiProvider = this.detectApiProvider(apiKey);
+    const platform = getPlatform()
+    const apiKey = this.detectApiKey()
+    const apiProvider = this.detectApiProvider(apiKey)
 
     return {
       // Environment detection
@@ -59,7 +59,7 @@ export class SmartDefaultsDetector {
       mcpServices: [
         'filesystem',
         'git',
-        'fetch'
+        'fetch',
       ],
 
       // Essential skills (common 5)
@@ -68,13 +68,13 @@ export class SmartDefaultsDetector {
         'ccjk:feat',
         'ccjk:workflow',
         'ccjk:init-project',
-        'ccjk:git-worktree'
+        'ccjk:git-worktree',
       ],
 
       // Core agents (universal 2)
       agents: [
         'typescript-cli-architect',
-        'ccjk-testing-specialist'
+        'ccjk-testing-specialist',
       ],
 
       // Code tool detection
@@ -84,16 +84,16 @@ export class SmartDefaultsDetector {
       workflows: {
         outputStyle: 'engineer-professional',
         gitWorkflow: 'conventional-commits',
-        sixStepWorkflow: true
+        sixStepWorkflow: true,
       },
 
       // Tool integrations
       tools: {
         ccr: this.shouldEnableCCR(),
         cometix: this.shouldEnableCometix(),
-        ccusage: this.shouldEnableCCUsage()
-      }
-    };
+        ccusage: this.shouldEnableCCUsage(),
+      },
+    }
   }
 
   /**
@@ -104,31 +104,32 @@ export class SmartDefaultsDetector {
     const envVars = [
       'ANTHROPIC_API_KEY',
       'CLAUDE_API_KEY',
-      'API_KEY'
-    ];
+      'API_KEY',
+    ]
 
     for (const envVar of envVars) {
-      const value = process.env[envVar];
+      const value = process.env[envVar]
       if (value && value.startsWith('sk-ant-')) {
-        return value;
+        return value
       }
     }
 
     // Check existing Claude Code config
-    const claudeConfigPath = join(homedir(), '.config', 'claude', 'config.json');
+    const claudeConfigPath = join(homedir(), '.config', 'claude', 'config.json')
     if (existsSync(claudeConfigPath)) {
       try {
-        const configContent = readFileSync(claudeConfigPath, 'utf-8');
-        const config = JSON.parse(configContent);
+        const configContent = readFileSync(claudeConfigPath, 'utf-8')
+        const config = JSON.parse(configContent)
         if (config.apiKey && config.apiKey.startsWith('sk-ant-')) {
-          return config.apiKey;
+          return config.apiKey
         }
-      } catch {
+      }
+      catch {
         // Ignore parsing errors
       }
     }
 
-    return undefined;
+    return undefined
   }
 
   /**
@@ -136,16 +137,16 @@ export class SmartDefaultsDetector {
    */
   private detectApiProvider(apiKey?: string): string {
     if (!apiKey) {
-      return 'anthropic'; // Default to official
+      return 'anthropic' // Default to official
     }
 
     // Anthropic official API key pattern
     if (apiKey.startsWith('sk-ant-')) {
-      return 'anthropic';
+      return 'anthropic'
     }
 
     // Default fallback
-    return 'anthropic';
+    return 'anthropic'
   }
 
   /**
@@ -153,19 +154,19 @@ export class SmartDefaultsDetector {
    */
   private detectCodeToolType(): string {
     // Check for Claude Code installation
-    const claudeCodePath = join(homedir(), '.config', 'claude');
+    const claudeCodePath = join(homedir(), '.config', 'claude')
     if (existsSync(claudeCodePath)) {
-      return 'claude-code';
+      return 'claude-code'
     }
 
     // Check for Codex installation
-    const codexPath = join(homedir(), '.codex');
+    const codexPath = join(homedir(), '.codex')
     if (existsSync(codexPath)) {
-      return 'codex';
+      return 'codex'
     }
 
     // Default to Claude Code
-    return 'claude-code';
+    return 'claude-code'
   }
 
   /**
@@ -176,10 +177,10 @@ export class SmartDefaultsDetector {
     const ccrPaths = [
       join(homedir(), '.local', 'bin', 'ccr'),
       join(homedir(), '.cargo', 'bin', 'ccr'),
-      '/usr/local/bin/ccr'
-    ];
+      '/usr/local/bin/ccr',
+    ]
 
-    return ccrPaths.some(path => existsSync(path));
+    return ccrPaths.some(path => existsSync(path))
   }
 
   /**
@@ -190,10 +191,10 @@ export class SmartDefaultsDetector {
     const cometixPaths = [
       join(homedir(), '.local', 'bin', 'cometix'),
       join(homedir(), '.cargo', 'bin', 'cometix'),
-      '/usr/local/bin/cometix'
-    ];
+      '/usr/local/bin/cometix',
+    ]
 
-    return cometixPaths.some(path => existsSync(path));
+    return cometixPaths.some(path => existsSync(path))
   }
 
   /**
@@ -204,32 +205,32 @@ export class SmartDefaultsDetector {
     const ccusagePaths = [
       join(homedir(), '.local', 'bin', 'ccusage'),
       join(homedir(), '.cargo', 'bin', 'ccusage'),
-      '/usr/local/bin/ccusage'
-    ];
+      '/usr/local/bin/ccusage',
+    ]
 
-    return ccusagePaths.some(path => existsSync(path));
+    return ccusagePaths.some(path => existsSync(path))
   }
 
   /**
    * Get recommended MCP services based on environment
    */
   getRecommendedMcpServices(platform: string): string[] {
-    const core = ['filesystem', 'git', 'fetch'];
+    const core = ['filesystem', 'git', 'fetch']
 
     // Add platform-specific services
     if (platform === 'darwin') {
-      return [...core, 'macos-shortcuts'];
+      return [...core, 'macos-shortcuts']
     }
 
     if (platform === 'linux') {
-      return [...core, 'linux-desktop'];
+      return [...core, 'linux-desktop']
     }
 
     if (platform === 'win32') {
-      return [...core, 'windows-registry'];
+      return [...core, 'windows-registry']
     }
 
-    return core;
+    return core
   }
 
   /**
@@ -238,15 +239,15 @@ export class SmartDefaultsDetector {
   getRecommendedSkills(userType: 'beginner' | 'intermediate' | 'advanced' = 'intermediate'): string[] {
     const core = [
       'ccjk:git-commit',
-      'ccjk:init-project'
-    ];
+      'ccjk:init-project',
+    ]
 
     if (userType === 'beginner') {
-      return [...core, 'ccjk:workflow'];
+      return [...core, 'ccjk:workflow']
     }
 
     if (userType === 'intermediate') {
-      return [...core, 'ccjk:feat', 'ccjk:workflow', 'ccjk:git-worktree'];
+      return [...core, 'ccjk:feat', 'ccjk:workflow', 'ccjk:git-worktree']
     }
 
     if (userType === 'advanced') {
@@ -256,38 +257,38 @@ export class SmartDefaultsDetector {
         'ccjk:workflow',
         'ccjk:git-worktree',
         'ccjk:git-rollback',
-        'ccjk:git-cleanBranches'
-      ];
+        'ccjk:git-cleanBranches',
+      ]
     }
 
-    return core;
+    return core
   }
 
   /**
    * Validate detected defaults
    */
-  validateDefaults(defaults: SmartDefaults): { valid: boolean; issues: string[] } {
-    const issues: string[] = [];
+  validateDefaults(defaults: SmartDefaults): { valid: boolean, issues: string[] } {
+    const issues: string[] = []
 
     // Check API key format
     if (defaults.apiKey && !defaults.apiKey.startsWith('sk-ant-')) {
-      issues.push('API key format appears invalid (should start with sk-ant-)');
+      issues.push('API key format appears invalid (should start with sk-ant-)')
     }
 
     // Check platform support
     if (!['darwin', 'linux', 'win32'].includes(defaults.platform)) {
-      issues.push(`Platform ${defaults.platform} may not be fully supported`);
+      issues.push(`Platform ${defaults.platform} may not be fully supported`)
     }
 
     // Check home directory access
     if (!existsSync(defaults.homeDir)) {
-      issues.push('Home directory is not accessible');
+      issues.push('Home directory is not accessible')
     }
 
     return {
       valid: issues.length === 0,
-      issues
-    };
+      issues,
+    }
   }
 }
 
@@ -296,8 +297,8 @@ export class SmartDefaultsDetector {
  * @returns SmartDefaults object with detected values
  */
 export async function detectSmartDefaults(): Promise<SmartDefaults> {
-  const detector = new SmartDefaultsDetector();
-  return detector.detect();
+  const detector = new SmartDefaultsDetector()
+  return detector.detect()
 }
 
 /**
@@ -306,8 +307,8 @@ export async function detectSmartDefaults(): Promise<SmartDefaults> {
  * @returns true if API key prompt is needed
  */
 export function needsApiKeyPrompt(defaults: SmartDefaults): boolean {
-  return !defaults.apiProvider || !defaults.apiKey;
+  return !defaults.apiProvider || !defaults.apiKey
 }
 
 // Export singleton instance
-export const smartDefaults = new SmartDefaultsDetector();
+export const smartDefaults = new SmartDefaultsDetector()

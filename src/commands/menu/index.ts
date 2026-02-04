@@ -27,7 +27,7 @@
  */
 
 import type { CodeToolType, SupportedLang } from '../../constants'
-import type { MenuDefinition, MenuItem, MenuLevel, MenuResult } from './types'
+import type { MenuItem, MenuLevel, MenuResult } from './types'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
@@ -56,9 +56,8 @@ import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from '../mc
 import { notificationCommand } from '../notification'
 import { uninstall } from '../uninstall'
 import { update } from '../update'
-import { getVisibleItems, legacyKeyToItemId } from './main-menu'
-import { determineAutoLevel, getItemsForLevel, getTransitionMessage, levelDefinitions, levelSelectionItems, saveLevelPreference } from './progressive'
-import { createAllSections, filterSectionsByItemLimit, findItemByInput, getItemByNumber, getItemNumber, getVisibleItemCount, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu } from './renderer'
+import { getItemsForLevel, levelDefinitions } from './progressive'
+import { createAllSections, filterSectionsByItemLimit, findItemByInput, getVisibleItemCount, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu } from './renderer'
 
 /**
  * Default menu configuration
@@ -135,7 +134,7 @@ function attachHandlers(items: MenuItem[]): MenuItem[] {
         return { ...item, handler: async () => await (await import('../config')).configCommand('set', ['memory'], {}) }
 
       case 'permission-config':
-        return { ...item, handler: async () => await (await import('../permissions')).listPermissions({})  }
+        return { ...item, handler: async () => await (await import('../permissions')).listPermissions({}) }
 
       case 'config-switch':
         return { ...item, handler: async () => await configSwitchCommand({ codeType: 'claude-code' }) }

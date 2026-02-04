@@ -63,7 +63,8 @@ export function detectIntent(input: string, skills: CcjkSkill[]): IntentMatch[] 
   const lowerInput = input.toLowerCase()
 
   for (const skill of skills) {
-    if (!skill.enabled) continue
+    if (!skill.enabled)
+      continue
 
     // Check direct trigger match (highest confidence)
     for (const trigger of skill.triggers) {
@@ -99,7 +100,7 @@ export function detectIntent(input: string, skills: CcjkSkill[]): IntentMatch[] 
   return matches
     .sort((a, b) => b.confidence - a.confidence)
     .filter((match, index, self) =>
-      index === self.findIndex(m => m.skill.id === match.skill.id)
+      index === self.findIndex(m => m.skill.id === match.skill.id),
     )
 }
 
@@ -107,7 +108,8 @@ export function detectIntent(input: string, skills: CcjkSkill[]): IntentMatch[] 
  * Get skill recommendation message
  */
 export function getRecommendationMessage(matches: IntentMatch[], lang: 'en' | 'zh-CN' = 'en'): string {
-  if (matches.length === 0) return ''
+  if (matches.length === 0)
+    return ''
 
   const topMatch = matches[0]
   const skillName = typeof topMatch.skill.name === 'string'

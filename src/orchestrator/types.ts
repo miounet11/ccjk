@@ -25,13 +25,13 @@ export type TaskType = 'skill' | 'agent' | 'workflow' | 'hook' | 'mcp'
 /**
  * Task execution status
  */
-export type TaskStatus =
-  | 'pending'    // Task is queued but not started
-  | 'running'    // Task is currently executing
-  | 'completed'  // Task finished successfully
-  | 'failed'     // Task encountered an error
-  | 'cancelled'  // Task was cancelled before completion
-  | 'skipped'    // Task was skipped due to conditions
+export type TaskStatus
+  = | 'pending' // Task is queued but not started
+    | 'running' // Task is currently executing
+    | 'completed' // Task finished successfully
+    | 'failed' // Task encountered an error
+    | 'cancelled' // Task was cancelled before completion
+    | 'skipped' // Task was skipped due to conditions
 
 /**
  * Task priority levels
@@ -83,6 +83,15 @@ export interface Task {
 
   /** Condition for task execution */
   condition?: TaskCondition
+
+  /** Task parameters (for specific task types) */
+  params?: Record<string, unknown>
+
+  /** Workflow definition (for workflow tasks) */
+  workflow?: {
+    steps: Task[]
+    parallel?: boolean
+  }
 }
 
 /**
@@ -169,21 +178,21 @@ export interface TaskCondition {
 /**
  * Agent role in the orchestrator
  */
-export type AgentRole =
-  | 'coordinator'  // Manages overall workflow
-  | 'executor'     // Executes specific tasks
-  | 'monitor'      // Monitors execution and health
-  | 'optimizer'    // Optimizes performance and resources
+export type AgentRole
+  = | 'coordinator' // Manages overall workflow
+    | 'executor' // Executes specific tasks
+    | 'monitor' // Monitors execution and health
+    | 'optimizer' // Optimizes performance and resources
 
 /**
  * Agent status
  */
-export type AgentStatus =
-  | 'idle'         // Agent is available
-  | 'busy'         // Agent is executing a task
-  | 'paused'       // Agent is temporarily paused
-  | 'stopped'      // Agent is stopped
-  | 'error'        // Agent encountered an error
+export type AgentStatus
+  = | 'idle' // Agent is available
+    | 'busy' // Agent is executing a task
+    | 'paused' // Agent is temporarily paused
+    | 'stopped' // Agent is stopped
+    | 'error' // Agent encountered an error
 
 /**
  * Agent capability
@@ -287,22 +296,22 @@ export interface AgentStats {
 /**
  * Workflow execution strategy
  */
-export type WorkflowStrategy =
-  | 'sequential'   // Execute tasks one by one
-  | 'parallel'     // Execute all tasks concurrently
-  | 'dag'          // Execute based on dependency graph
-  | 'dynamic'      // Determine execution order dynamically
+export type WorkflowStrategy
+  = | 'sequential' // Execute tasks one by one
+    | 'parallel' // Execute all tasks concurrently
+    | 'dag' // Execute based on dependency graph
+    | 'dynamic' // Determine execution order dynamically
 
 /**
  * Workflow status
  */
-export type WorkflowStatus =
-  | 'pending'      // Workflow not started
-  | 'running'      // Workflow is executing
-  | 'completed'    // Workflow finished successfully
-  | 'failed'       // Workflow encountered an error
-  | 'cancelled'    // Workflow was cancelled
-  | 'paused'       // Workflow is paused
+export type WorkflowStatus
+  = | 'pending' // Workflow not started
+    | 'running' // Workflow is executing
+    | 'completed' // Workflow finished successfully
+    | 'failed' // Workflow encountered an error
+    | 'cancelled' // Workflow was cancelled
+    | 'paused' // Workflow is paused
 
 /**
  * Workflow definition
@@ -480,11 +489,11 @@ export interface TaskResult {
 /**
  * Hook execution phase
  */
-export type HookPhase =
-  | 'before'       // Before main action
-  | 'after'        // After main action
-  | 'error'        // On error
-  | 'finally'      // Always executed
+export type HookPhase
+  = | 'before' // Before main action
+    | 'after' // After main action
+    | 'error' // On error
+    | 'finally' // Always executed
 
 /**
  * Hook definition
@@ -646,19 +655,19 @@ export interface OrchestratorStats {
 /**
  * Orchestrator event types
  */
-export type OrchestratorEventType =
-  | 'workflow:start'
-  | 'workflow:complete'
-  | 'workflow:error'
-  | 'workflow:cancel'
-  | 'task:start'
-  | 'task:complete'
-  | 'task:error'
-  | 'task:retry'
-  | 'agent:register'
-  | 'agent:unregister'
-  | 'agent:status'
-  | 'hook:execute'
+export type OrchestratorEventType
+  = | 'workflow:start'
+    | 'workflow:complete'
+    | 'workflow:error'
+    | 'workflow:cancel'
+    | 'task:start'
+    | 'task:complete'
+    | 'task:error'
+    | 'task:retry'
+    | 'agent:register'
+    | 'agent:unregister'
+    | 'agent:status'
+    | 'hook:execute'
 
 /**
  * Orchestrator event
@@ -802,6 +811,18 @@ export interface Context {
 
   /** Context metadata */
   metadata?: Record<string, unknown>
+
+  /** Shared state across orchestrator components */
+  shared: {
+    /** Skills execution results */
+    skills: Map<string, SkillResult>
+    /** Agents state and results */
+    agents: Map<string, AgentState>
+    /** MCP service call results */
+    mcp: Map<string, MCPResponse>
+    /** Custom shared data */
+    custom: Map<string, unknown>
+  }
 }
 
 /**
@@ -825,16 +846,16 @@ export interface SharedState {
 /**
  * Lifecycle phase
  */
-export type LifecyclePhase =
-  | 'initializing'
-  | 'ready'
-  | 'running'
-  | 'pausing'
-  | 'paused'
-  | 'resuming'
-  | 'stopping'
-  | 'stopped'
-  | 'error'
+export type LifecyclePhase
+  = | 'initializing'
+    | 'ready'
+    | 'running'
+    | 'pausing'
+    | 'paused'
+    | 'resuming'
+    | 'stopping'
+    | 'stopped'
+    | 'error'
 
 /**
  * Lifecycle state
@@ -916,18 +937,18 @@ export type DependencyResolverFn = (
 /**
  * Event type (extended from OrchestratorEventType)
  */
-export type EventType =
-  | OrchestratorEventType
-  | 'context:update'
-  | 'context:snapshot'
-  | 'lifecycle:change'
-  | 'dependency:resolve'
-  | 'dependency:error'
-  | 'skill:execute'
-  | 'skill:complete'
-  | 'mcp:call'
-  | 'mcp:response'
-  | string // Allow custom event types
+export type EventType
+  = | OrchestratorEventType
+    | 'context:update'
+    | 'context:snapshot'
+    | 'lifecycle:change'
+    | 'dependency:resolve'
+    | 'dependency:error'
+    | 'skill:execute'
+    | 'skill:complete'
+    | 'mcp:call'
+    | 'mcp:response'
+    | string // Allow custom event types
 
 /**
  * Event payload
@@ -964,14 +985,23 @@ export type EventListener<T = unknown> = (
  * Agent state (runtime state of an agent)
  */
 export interface AgentState {
+  /** Agent name */
+  agentName: string
+
   /** Agent ID */
-  agentId: string
+  agentId?: string
 
   /** Current status */
-  status: AgentStatus
+  status: AgentStatus | string
 
   /** Active task IDs */
-  activeTasks: string[]
+  activeTasks?: string[]
+
+  /** Agent messages */
+  messages: unknown[]
+
+  /** Agent result */
+  result?: unknown
 
   /** Last activity timestamp */
   lastActivity?: Date
@@ -980,7 +1010,31 @@ export interface AgentState {
   error?: Error
 
   /** Agent statistics */
-  stats: AgentStats
+  stats?: AgentStats
+}
+
+// ============================================================================
+// Skill Result Types
+// ============================================================================
+
+/**
+ * Skill execution result
+ */
+export interface SkillResult {
+  /** Skill name */
+  skillName: string
+
+  /** Execution success status */
+  success: boolean
+
+  /** Result output */
+  output: unknown
+
+  /** Error if failed */
+  error?: Error
+
+  /** Execution duration in milliseconds */
+  duration?: number
 }
 
 // ============================================================================
@@ -991,14 +1045,23 @@ export interface AgentState {
  * MCP response
  */
 export interface MCPResponse<T = unknown> {
+  /** MCP service name */
+  service: string
+
+  /** MCP method name */
+  method: string
+
   /** Response success status */
   success: boolean
 
   /** Response data */
   data?: T
 
-  /** Error message if failed */
-  error?: string
+  /** Error if failed */
+  error?: Error
+
+  /** Execution duration in milliseconds */
+  duration?: number
 
   /** Response metadata */
   metadata?: Record<string, unknown>
@@ -1030,19 +1093,19 @@ export interface OrchestratorOptions {
  */
 export interface IEventBus {
   /** Subscribe to an event */
-  on<T = unknown>(event: EventType, listener: EventListener<T>): void
+  on: <T = unknown>(event: EventType, listener: EventListener<T>) => void
 
   /** Unsubscribe from an event */
-  off<T = unknown>(event: EventType, listener: EventListener<T>): void
+  off: <T = unknown>(event: EventType, listener: EventListener<T>) => void
 
   /** Emit an event */
-  emit<T = unknown>(event: EventType, data: T): void
+  emit: <T = unknown>(event: EventType, data: T) => void
 
   /** Subscribe to an event once */
-  once<T = unknown>(event: EventType, listener: EventListener<T>): void
+  once: <T = unknown>(event: EventType, listener: EventListener<T>) => void
 
   /** Remove all listeners for an event */
-  removeAllListeners(event?: EventType): void
+  removeAllListeners: (event?: EventType) => void
 }
 
 /**
@@ -1050,37 +1113,37 @@ export interface IEventBus {
  */
 export interface IContextStore {
   /** Create a new context */
-  create(data?: ContextData): Promise<string>
+  create: (data?: ContextData) => Promise<string>
 
   /** Get context data by ID */
-  get(id: string): Promise<ContextData | null>
+  get: (id: string) => Promise<ContextData | null>
 
   /** Update context data (deep merge) */
-  update(id: string, data: Partial<ContextData>): Promise<boolean>
+  update: (id: string, data: Partial<ContextData>) => Promise<boolean>
 
   /** Set context data (replace) */
-  set(id: string, data: ContextData): Promise<boolean>
+  set: (id: string, data: ContextData) => Promise<boolean>
 
   /** Delete a context */
-  delete(id: string): Promise<boolean>
+  delete: (id: string) => Promise<boolean>
 
   /** Check if context exists */
-  has(id: string): Promise<boolean>
+  has: (id: string) => Promise<boolean>
 
   /** Get number of contexts */
-  size(): Promise<number>
+  size: () => Promise<number>
 
   /** Clear all contexts */
-  clear(): Promise<void>
+  clear: () => Promise<void>
 
   /** Get all context IDs */
-  keys(): Promise<string[]>
+  keys: () => Promise<string[]>
 
   /** Create a snapshot */
-  snapshot(id: string): Promise<ContextSnapshot | null>
+  snapshot: (id: string) => Promise<ContextSnapshot | null>
 
   /** Restore from snapshot */
-  restore(id: string, snapshot: ContextSnapshot): Promise<boolean>
+  restore: (id: string, snapshot: ContextSnapshot) => Promise<boolean>
 }
 
 /**
@@ -1093,13 +1156,13 @@ export type TaskExecutor = (task: Task, context: Context) => Promise<unknown>
  */
 export interface ILifecycleManager {
   /** Execute a task with full lifecycle */
-  execute(task: Task, context: Context): Promise<TaskResult>
+  execute: (task: Task, context: Context) => Promise<TaskResult>
 
   /** Cleanup a context */
-  cleanup(context: Context): Promise<void>
+  cleanup: (context: Context) => Promise<void>
 
   /** Register a task executor */
-  registerExecutor(type: string, executor: TaskExecutor): void
+  registerExecutor: (type: string, executor: TaskExecutor) => void
 }
 
 /**
@@ -1107,13 +1170,13 @@ export interface ILifecycleManager {
  */
 export interface IDependencyResolver {
   /** Resolve dependencies */
-  resolve(deps: Dependency[]): Promise<ResolvedDependency[]>
+  resolve: (deps: Dependency[]) => Promise<ResolvedDependency[]>
 
   /** Register a resolver for a dependency type */
-  registerResolver(type: string, resolver: DependencyResolverFn): void
+  registerResolver: (type: string, resolver: DependencyResolverFn) => void
 
   /** Clear the dependency cache */
-  clearCache(): void
+  clearCache: () => void
 }
 
 /**
@@ -1121,26 +1184,26 @@ export interface IDependencyResolver {
  */
 export interface IOrchestrator {
   /** Initialize the orchestrator */
-  initialize(): Promise<void>
+  initialize: () => Promise<void>
 
   /** Execute a task */
-  execute(task: Task): Promise<TaskResult>
+  execute: (task: Task) => Promise<TaskResult>
 
   /** Execute multiple tasks */
-  executeBatch(tasks: Task[]): Promise<TaskResult[]>
+  executeBatch: (tasks: Task[]) => Promise<TaskResult[]>
 
   /** Register a task executor */
-  registerExecutor(type: string, executor: TaskExecutor): void
+  registerExecutor: (type: string, executor: TaskExecutor) => void
 
   /** Subscribe to an event */
-  on(event: EventType | string, listener: (payload: unknown) => void | Promise<void>): void
+  on: (event: EventType | string, listener: (payload: unknown) => void | Promise<void>) => void
 
   /** Unsubscribe from an event */
-  off(event: EventType | string, listener: (payload: unknown) => void | Promise<void>): void
+  off: (event: EventType | string, listener: (payload: unknown) => void | Promise<void>) => void
 
   /** Get context data by ID */
-  getContext(id: string): Promise<ContextData | null>
+  getContext: (id: string) => Promise<ContextData | null>
 
   /** Destroy the orchestrator */
-  destroy(): Promise<void>
+  destroy: () => Promise<void>
 }

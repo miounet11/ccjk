@@ -4,7 +4,7 @@
  */
 
 import type { CodeToolType } from '../constants'
-import { existsSync, readdirSync, readFileSync, copyFileSync, mkdirSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'

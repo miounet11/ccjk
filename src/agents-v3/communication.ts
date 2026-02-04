@@ -7,9 +7,6 @@
  * @module agents-v3/communication
  */
 
-import { EventEmitter } from 'node:events'
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto'
-import { nanoid } from 'nanoid'
 import type {
   AgentId,
   ChannelId,
@@ -21,6 +18,9 @@ import type {
   Subscription,
   SubscriptionOptions,
 } from './types.js'
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto'
+import { EventEmitter } from 'node:events'
+import { nanoid } from 'nanoid'
 
 /**
  * Communication configuration
@@ -538,15 +538,17 @@ export class Communication extends EventEmitter {
 
           // Handle async or sync
           if (subscription.options.async) {
-            Promise.resolve(subscription.handler(deliveredMessage)).catch(err => {
+            Promise.resolve(subscription.handler(deliveredMessage)).catch((err) => {
               this.emit('message:error', message.id, err.message)
             })
-          } else {
+          }
+          else {
             subscription.handler(deliveredMessage)
           }
 
           delivered = true
-        } catch (error) {
+        }
+        catch (error) {
           this.emit('message:error', message.id, (error as Error).message)
         }
       }
@@ -554,7 +556,8 @@ export class Communication extends EventEmitter {
 
     if (delivered) {
       this.emit('message:delivered', message.id)
-    } else {
+    }
+    else {
       // Queue message for later delivery
       if (channel.messageQueue.length < this.config.maxPendingMessages) {
         channel.messageQueue.push(message)
@@ -637,7 +640,8 @@ export class Communication extends EventEmitter {
             deliveredMessage = this.decryptMessage(message)
           }
           subscription.handler(deliveredMessage)
-        } catch (error) {
+        }
+        catch (error) {
           this.emit('message:error', message.id, (error as Error).message)
         }
       }
@@ -707,7 +711,7 @@ export class Communication extends EventEmitter {
     return {
       ...message,
       payload: {
-        encrypted: encrypted,
+        encrypted,
         iv: iv.toString('hex'),
         authTag: authTag.toString('hex'),
       } as unknown as T,
@@ -769,7 +773,7 @@ export class Communication extends EventEmitter {
     }
 
     if (options.to) {
-      messages = messages.filter(m => {
+      messages = messages.filter((m) => {
         if (Array.isArray(m.to)) {
           return m.to.includes(options.to!)
         }

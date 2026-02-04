@@ -7,12 +7,12 @@
  * @module commands/quick-provider
  */
 
+import type { ProviderRegistry, QuickLaunchConfig, QuickLaunchOptions } from '../types/provider'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import ora from 'ora'
-import type { ProviderRegistry, QuickLaunchConfig, QuickLaunchOptions } from '../types/provider'
-import { isValidApiUrl } from '../types/provider'
 import { getProviderRegistry } from '../services/provider-registry'
+import { isValidApiUrl } from '../types/provider'
 
 // ============================================================================
 // Constants
@@ -20,27 +20,92 @@ import { getProviderRegistry } from '../services/provider-registry'
 
 const KNOWN_COMMANDS = new Set([
   // Core commands
-  '', 'init', 'update', 'doctor', 'help', 'menu',
+  '',
+  'init',
+  'update',
+  'doctor',
+  'help',
+  'menu',
   // Quick setup commands (must be before 'quick' deprecated)
-  'quick-setup', 'quick', 'qs',
+  'quick-setup',
+  'quick',
+  'qs',
   // Extended commands
-  'serve', 'mcp', 'browser', 'interview', 'commit', 'config',
-  'daemon', 'providers', 'task', 'tasks', 'keybinding', 'kb',
-  'history', 'hist', 'ccr', 'vim', 'permissions', 'perm',
-  'skills', 'sk', 'skill', 'agent', 'ag', 'ccu', 'stats',
-  'uninstall', 'check-updates', 'check', 'config-switch', 'cs',
-  'workflows', 'wf', 'notification', 'notify', 'session',
-  'context', 'ctx', 'api', 'team', 'thinking', 'think',
-  'postmortem', 'pm', 'claude', 'monitor',
+  'serve',
+  'mcp',
+  'browser',
+  'interview',
+  'commit',
+  'config',
+  'daemon',
+  'providers',
+  'task',
+  'tasks',
+  'keybinding',
+  'kb',
+  'history',
+  'hist',
+  'ccr',
+  'vim',
+  'permissions',
+  'perm',
+  'skills',
+  'sk',
+  'skill',
+  'agent',
+  'ag',
+  'ccu',
+  'stats',
+  'uninstall',
+  'check-updates',
+  'check',
+  'config-switch',
+  'cs',
+  'workflows',
+  'wf',
+  'notification',
+  'notify',
+  'session',
+  'context',
+  'ctx',
+  'api',
+  'team',
+  'thinking',
+  'think',
+  'postmortem',
+  'pm',
+  'claude',
+  'monitor',
   // CCJK v8 commands
-  'ccjk:mcp', 'ccjk-mcp', 'ccjk:skills', 'ccjk-skills',
-  'ccjk:agents', 'ccjk-agents', 'ccjk:hooks', 'ccjk-hooks',
-  'ccjk:all', 'ccjk-all', 'ccjk:setup', 'ccjk-setup',
+  'ccjk:mcp',
+  'ccjk-mcp',
+  'ccjk:skills',
+  'ccjk-skills',
+  'ccjk:agents',
+  'ccjk-agents',
+  'ccjk:hooks',
+  'ccjk-hooks',
+  'ccjk:all',
+  'ccjk-all',
+  'ccjk:setup',
+  'ccjk-setup',
   // Special commands
-  'cloud', 'system', 'sys', 'plugin', 'completion',
+  'cloud',
+  'system',
+  'sys',
+  'plugin',
+  'completion',
   // Deprecated but still recognized
-  'skills-sync', 'agents-sync', 'marketplace', 'deep',
-  'setup', 'sync', 'versions', 'upgrade', 'config-scan', 'workspace',
+  'skills-sync',
+  'agents-sync',
+  'marketplace',
+  'deep',
+  'setup',
+  'sync',
+  'versions',
+  'upgrade',
+  'config-scan',
+  'workspace',
 ])
 
 // ============================================================================
@@ -51,8 +116,10 @@ const KNOWN_COMMANDS = new Set([
  * Check if a string is a known CLI command
  */
 export function isKnownCommand(arg: string): boolean {
-  if (!arg) return true
-  if (arg.startsWith('-')) return true // Options are not shortcodes
+  if (!arg)
+    return true
+  if (arg.startsWith('-'))
+    return true // Options are not shortcodes
   return KNOWN_COMMANDS.has(arg.toLowerCase())
 }
 
@@ -60,9 +127,12 @@ export function isKnownCommand(arg: string): boolean {
  * Check if a string could be a provider shortcode
  */
 export function couldBeShortcode(arg: string): boolean {
-  if (!arg) return false
-  if (arg.startsWith('-')) return false
-  if (isKnownCommand(arg)) return false
+  if (!arg)
+    return false
+  if (arg.startsWith('-'))
+    return false
+  if (isKnownCommand(arg))
+    return false
   // Basic format check (2-20 chars, alphanumeric with hyphens)
   return /^[a-z0-9][a-z0-9-]{0,18}[a-z0-9]?$/i.test(arg)
 }
@@ -205,8 +275,10 @@ async function handleNewProvider(
       message: '供应商名称:',
       default: shortcode.toUpperCase(),
       validate: (value: string) => {
-        if (!value.trim()) return '名称不能为空'
-        if (value.length > 50) return '名称过长（最多50字符）'
+        if (!value.trim())
+          return '名称不能为空'
+        if (value.length > 50)
+          return '名称过长（最多50字符）'
         return true
       },
     },
@@ -215,8 +287,10 @@ async function handleNewProvider(
       name: 'apiUrl',
       message: 'API URL (如 https://api.example.com/v1):',
       validate: (value: string) => {
-        if (!value.trim()) return 'URL 不能为空'
-        if (!isValidApiUrl(value)) return '请输入有效的 URL（http:// 或 https://）'
+        if (!value.trim())
+          return 'URL 不能为空'
+        if (!isValidApiUrl(value))
+          return '请输入有效的 URL（http:// 或 https://）'
         return true
       },
     },
@@ -306,8 +380,10 @@ async function configureProvider(
       message: 'API Key:',
       mask: '*',
       validate: (value: string) => {
-        if (!value.trim()) return 'API Key 不能为空'
-        if (value.length < 10) return 'API Key 格式不正确'
+        if (!value.trim())
+          return 'API Key 不能为空'
+        if (value.length < 10)
+          return 'API Key 格式不正确'
         return true
       },
     },
@@ -343,7 +419,8 @@ async function configureProvider(
           name: 'customModel',
           message: '输入模型名称:',
           validate: (value: string) => {
-            if (!value.trim()) return '模型名称不能为空'
+            if (!value.trim())
+              return '模型名称不能为空'
             return true
           },
         },
@@ -363,7 +440,8 @@ async function configureProvider(
         message: '模型名称 (如 gpt-4, claude-3-opus):',
         default: 'gpt-4',
         validate: (value: string) => {
-          if (!value.trim()) return '模型名称不能为空'
+          if (!value.trim())
+            return '模型名称不能为空'
           return true
         },
       },

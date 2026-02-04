@@ -1,5 +1,5 @@
-import { expect } from 'vitest'
 import type { MockedFunction } from 'vitest'
+import { expect } from 'vitest'
 
 /**
  * Enhanced assertion helpers for CCJK v2.0 tests
@@ -20,7 +20,7 @@ export class AssertionHelpers {
    */
   static expectCalledTimes<T extends (...args: any[]) => any>(
     mock: MockedFunction<T>,
-    times: number
+    times: number,
   ) {
     expect(mock).toHaveBeenCalledTimes(times)
   }
@@ -29,7 +29,7 @@ export class AssertionHelpers {
    * Assert that a function was never called
    */
   static expectNotCalled<T extends (...args: any[]) => any>(
-    mock: MockedFunction<T>
+    mock: MockedFunction<T>,
   ) {
     expect(mock).not.toHaveBeenCalled()
   }
@@ -39,7 +39,7 @@ export class AssertionHelpers {
    */
   static async expectResolves<T>(
     promise: Promise<T>,
-    expectedValue: T
+    expectedValue: T,
   ) {
     await expect(promise).resolves.toEqual(expectedValue)
   }
@@ -49,11 +49,12 @@ export class AssertionHelpers {
    */
   static async expectRejects(
     promise: Promise<any>,
-    expectedError?: string | RegExp | Error
+    expectedError?: string | RegExp | Error,
   ) {
     if (expectedError) {
       await expect(promise).rejects.toThrow(expectedError)
-    } else {
+    }
+    else {
       await expect(promise).rejects.toThrow()
     }
   }
@@ -63,9 +64,9 @@ export class AssertionHelpers {
    */
   static expectObjectToHaveProperties(
     obj: any,
-    properties: string[]
+    properties: string[],
   ) {
-    properties.forEach(prop => {
+    properties.forEach((prop) => {
       expect(obj).toHaveProperty(prop)
     })
   }
@@ -75,7 +76,7 @@ export class AssertionHelpers {
    */
   static expectObjectToMatchPartial(
     obj: any,
-    partial: any
+    partial: any,
   ) {
     expect(obj).toMatchObject(partial)
   }
@@ -85,9 +86,9 @@ export class AssertionHelpers {
    */
   static expectArrayToContain<T>(
     array: T[],
-    items: T[]
+    items: T[],
   ) {
-    items.forEach(item => {
+    items.forEach((item) => {
       expect(array).toContain(item)
     })
   }
@@ -97,7 +98,7 @@ export class AssertionHelpers {
    */
   static expectArrayLength<T>(
     array: T[],
-    length: number
+    length: number,
   ) {
     expect(array).toHaveLength(length)
   }
@@ -107,7 +108,7 @@ export class AssertionHelpers {
    */
   static expectStringToMatch(
     str: string,
-    pattern: string | RegExp
+    pattern: string | RegExp,
   ) {
     expect(str).toMatch(pattern)
   }
@@ -117,7 +118,7 @@ export class AssertionHelpers {
    */
   static expectStringToContain(
     str: string,
-    substring: string
+    substring: string,
   ) {
     expect(str).toContain(substring)
   }
@@ -128,7 +129,7 @@ export class AssertionHelpers {
   static expectNumberInRange(
     num: number,
     min: number,
-    max: number
+    max: number,
   ) {
     expect(num).toBeGreaterThanOrEqual(min)
     expect(num).toBeLessThanOrEqual(max)
@@ -139,7 +140,7 @@ export class AssertionHelpers {
    */
   static expectType(
     value: any,
-    type: 'string' | 'number' | 'boolean' | 'object' | 'function' | 'undefined'
+    type: 'string' | 'number' | 'boolean' | 'object' | 'function' | 'undefined',
   ) {
     expect(typeof value).toBe(type)
   }
@@ -178,7 +179,7 @@ export class AssertionHelpers {
   static expectFileContent(
     filePath: string,
     expectedContent: string,
-    fs: any
+    fs: any,
   ) {
     const content = fs.readFileSync(filePath, 'utf8')
     expect(content).toContain(expectedContent)
@@ -190,7 +191,7 @@ export class AssertionHelpers {
   static expectJSONFileStructure(
     filePath: string,
     expectedStructure: any,
-    fs: any
+    fs: any,
   ) {
     const content = fs.readFileSync(filePath, 'utf8')
     const json = JSON.parse(content)
@@ -218,11 +219,12 @@ export class AssertionHelpers {
       stderr: string
       exitCode: number
     },
-    expectedExitCode?: number
+    expectedExitCode?: number,
   ) {
     if (expectedExitCode !== undefined) {
       expect(result.exitCode).toBe(expectedExitCode)
-    } else {
+    }
+    else {
       expect(result.exitCode).not.toBe(0)
     }
   }
@@ -275,7 +277,7 @@ export class AssertionHelpers {
    */
   static expectErrorWithProperties(
     error: Error,
-    properties: { message?: string; code?: string; cause?: any }
+    properties: { message?: string, code?: string, cause?: any },
   ) {
     expect(error).toBeInstanceOf(Error)
 
@@ -296,8 +298,8 @@ export class AssertionHelpers {
    * Assert that a performance metric is within acceptable bounds
    */
   static expectPerformanceWithinBounds(
-    metrics: { duration: number; memory: number },
-    bounds: { maxDuration: number; maxMemory: number }
+    metrics: { duration: number, memory: number },
+    bounds: { maxDuration: number, maxMemory: number },
   ) {
     expect(metrics.duration).toBeLessThanOrEqual(bounds.maxDuration)
     expect(metrics.memory).toBeLessThanOrEqual(bounds.maxMemory)
@@ -319,20 +321,23 @@ export class AssertionHelpers {
   static expectDeepEqualWithTolerance(
     actual: any,
     expected: any,
-    tolerance = 0.001
+    tolerance = 0.001,
   ) {
     if (typeof actual === 'number' && typeof expected === 'number') {
       expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
-    } else if (Array.isArray(actual) && Array.isArray(expected)) {
+    }
+    else if (Array.isArray(actual) && Array.isArray(expected)) {
       expect(actual).toHaveLength(expected.length)
       actual.forEach((item, index) => {
         this.expectDeepEqualWithTolerance(item, expected[index], tolerance)
       })
-    } else if (typeof actual === 'object' && typeof expected === 'object') {
-      Object.keys(expected).forEach(key => {
+    }
+    else if (typeof actual === 'object' && typeof expected === 'object') {
+      Object.keys(expected).forEach((key) => {
         this.expectDeepEqualWithTolerance(actual[key], expected[key], tolerance)
       })
-    } else {
+    }
+    else {
       expect(actual).toEqual(expected)
     }
   }
@@ -342,7 +347,7 @@ export class AssertionHelpers {
    */
   static async expectCompletesWithinTime<T>(
     fn: () => Promise<T>,
-    maxTime: number
+    maxTime: number,
   ): Promise<T> {
     const start = Date.now()
     const result = await fn()
@@ -357,7 +362,7 @@ export class AssertionHelpers {
    */
   static expectAllConditions(
     conditions: Array<() => boolean>,
-    message?: string
+    message?: string,
   ) {
     const results = conditions.map((condition, index) => ({
       index,
@@ -367,8 +372,8 @@ export class AssertionHelpers {
     const failures = results.filter(r => !r.result)
 
     if (failures.length > 0) {
-      const failureMessage = message ||
-        `Conditions failed at indices: ${failures.map(f => f.index).join(', ')}`
+      const failureMessage = message
+        || `Conditions failed at indices: ${failures.map(f => f.index).join(', ')}`
       throw new Error(failureMessage)
     }
   }
@@ -378,7 +383,7 @@ export class AssertionHelpers {
    */
   static expectAnyCondition(
     conditions: Array<() => boolean>,
-    message?: string
+    message?: string,
   ) {
     const results = conditions.map(condition => condition())
     const hasTrue = results.some(result => result)

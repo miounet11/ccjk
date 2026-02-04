@@ -1,4 +1,4 @@
-import type { SetupResult, SetupReport } from '../orchestrators/setup-orchestrator'
+import type { SetupReport, SetupResult } from '../orchestrators/setup-orchestrator'
 import dayjs from 'dayjs'
 
 export function generateReport(result: SetupResult): string {
@@ -121,22 +121,22 @@ function generateNextSteps(result: SetupResult): string[] {
     steps.push('Start coding: Your CCJK configuration is ready to use')
 
     const agentsPhase = result.phases.find(p => p.phase === 'agents')
-    if (agentsPhase?.installed > 0) {
+    if (agentsPhase?.installed && agentsPhase.installed > 0) {
       steps.push('Run an agent: ccjk agent run <agent-name>')
     }
 
     const skillsPhase = result.phases.find(p => p.phase === 'skills')
-    if (skillsPhase?.installed > 0) {
+    if (skillsPhase?.installed && skillsPhase.installed > 0) {
       steps.push('View available skills: ccjk skills list')
     }
 
     const mcpPhase = result.phases.find(p => p.phase === 'mcp')
-    if (mcpPhase?.installed > 0) {
+    if (mcpPhase?.installed && mcpPhase.installed > 0) {
       steps.push('Check MCP services: ccjk mcp list')
     }
 
     const hooksPhase = result.phases.find(p => p.phase === 'hooks')
-    if (hooksPhase?.installed > 0) {
+    if (hooksPhase?.installed && hooksPhase.installed > 0) {
       steps.push('Verify hooks: ccjk hooks list')
     }
   }

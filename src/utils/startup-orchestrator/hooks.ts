@@ -38,10 +38,12 @@ export class StartupHooks {
    */
   off(event: StartupEvent, handler: StartupHandler): boolean {
     const handlers = this.handlers.get(event)
-    if (!handlers) return false
+    if (!handlers)
+      return false
 
     const index = handlers.indexOf(handler)
-    if (index === -1) return false
+    if (index === -1)
+      return false
 
     handlers.splice(index, 1)
     return true

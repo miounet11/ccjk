@@ -2,8 +2,9 @@
  * Test for ccjk:mcp command
  */
 
+import type { CcjkMcpOptions, CcjkMcpResult } from '../../src/commands/ccjk-mcp'
 import { describe, expect, it, vi } from 'vitest'
-import { ccjkMcp, CcjkMcpOptions, CcjkMcpResult } from '../../src/commands/ccjk-mcp'
+import { ccjkMcp } from '../../src/commands/ccjk-mcp'
 
 vi.mock('../../src/analyzers', () => ({
   analyzeProject: vi.fn().mockResolvedValue({
@@ -17,19 +18,19 @@ vi.mock('../../src/analyzers', () => ({
       duration: 1000,
       filesScanned: 500,
       confidence: 0.9,
-      version: '1.0.0'
-    }
-  })
+      version: '1.0.0',
+    },
+  }),
 }))
 
 vi.mock('../../src/config/mcp-templates', () => ({
   mcpServiceTemplates: {
     'typescript-language-server': {
       id: 'typescript-language-server',
-      name: { en: 'TypeScript Language Server', 'zh-CN': 'TypeScript 语言服务器' },
+      name: { 'en': 'TypeScript Language Server', 'zh-CN': 'TypeScript 语言服务器' },
       description: {
-        en: 'Provides TypeScript/JavaScript language support',
-        'zh-CN': '提供 TypeScript/JavaScript 语言支持'
+        'en': 'Provides TypeScript/JavaScript language support',
+        'zh-CN': '提供 TypeScript/JavaScript 语言支持',
       },
       type: 'stdio',
       command: 'typescript-language-server',
@@ -41,14 +42,14 @@ vi.mock('../../src/config/mcp-templates', () => ({
       installCommand: 'npm install -g typescript-language-server typescript',
       category: 'language',
       platforms: ['windows', 'macos', 'linux'],
-      requiredCommands: ['node', 'npm']
+      requiredCommands: ['node', 'npm'],
     },
     'eslint-mcp': {
       id: 'eslint-mcp',
-      name: { en: 'ESLint MCP Server', 'zh-CN': 'ESLint MCP 服务器' },
+      name: { 'en': 'ESLint MCP Server', 'zh-CN': 'ESLint MCP 服务器' },
       description: {
-        en: 'JavaScript/TypeScript linting through MCP protocol',
-        'zh-CN': '通过 MCP 协议提供 JavaScript/TypeScript 代码检查'
+        'en': 'JavaScript/TypeScript linting through MCP protocol',
+        'zh-CN': '通过 MCP 协议提供 JavaScript/TypeScript 代码检查',
       },
       type: 'stdio',
       command: 'npx',
@@ -60,16 +61,16 @@ vi.mock('../../src/config/mcp-templates', () => ({
       installCommand: 'npm install -g @modelcontextprotocol/server-eslint',
       category: 'tooling',
       platforms: ['windows', 'macos', 'linux'],
-      requiredCommands: ['node', 'npm']
-    }
+      requiredCommands: ['node', 'npm'],
+    },
   },
   getCompatibleMcpServiceTemplates: vi.fn().mockReturnValue([
     {
       id: 'typescript-language-server',
-      name: { en: 'TypeScript Language Server', 'zh-CN': 'TypeScript 语言服务器' },
+      name: { 'en': 'TypeScript Language Server', 'zh-CN': 'TypeScript 语言服务器' },
       description: {
-        en: 'Provides TypeScript/JavaScript language support',
-        'zh-CN': '提供 TypeScript/JavaScript 语言支持'
+        'en': 'Provides TypeScript/JavaScript language support',
+        'zh-CN': '提供 TypeScript/JavaScript 语言支持',
       },
       type: 'stdio',
       command: 'typescript-language-server',
@@ -81,14 +82,14 @@ vi.mock('../../src/config/mcp-templates', () => ({
       installCommand: 'npm install -g typescript-language-server typescript',
       category: 'language',
       platforms: ['windows', 'macos', 'linux'],
-      requiredCommands: ['node', 'npm']
+      requiredCommands: ['node', 'npm'],
     },
     {
       id: 'eslint-mcp',
-      name: { en: 'ESLint MCP Server', 'zh-CN': 'ESLint MCP 服务器' },
+      name: { 'en': 'ESLint MCP Server', 'zh-CN': 'ESLint MCP 服务器' },
       description: {
-        en: 'JavaScript/TypeScript linting through MCP protocol',
-        'zh-CN': '通过 MCP 协议提供 JavaScript/TypeScript 代码检查'
+        'en': 'JavaScript/TypeScript linting through MCP protocol',
+        'zh-CN': '通过 MCP 协议提供 JavaScript/TypeScript 代码检查',
       },
       type: 'stdio',
       command: 'npx',
@@ -100,9 +101,9 @@ vi.mock('../../src/config/mcp-templates', () => ({
       installCommand: 'npm install -g @modelcontextprotocol/server-eslint',
       category: 'tooling',
       platforms: ['windows', 'macos', 'linux'],
-      requiredCommands: ['node', 'npm']
-    }
-  ])
+      requiredCommands: ['node', 'npm'],
+    },
+  ]),
 }))
 
 vi.mock('../../src/utils/claude-config', () => {
@@ -111,19 +112,19 @@ vi.mock('../../src/utils/claude-config', () => {
     readMcpConfig: vi.fn(() => config),
     writeMcpConfig: vi.fn((newConfig) => { config = newConfig }),
     mergeMcpServers: vi.fn().mockImplementation((existing, newServers) => ({
-      mcpServers: { ...existing?.mcpServers, ...newServers }
+      mcpServers: { ...existing?.mcpServers, ...newServers },
     })),
-    backupMcpConfig: vi.fn()
+    backupMcpConfig: vi.fn(),
   }
 })
 
 vi.mock('../../src/utils/platform', () => ({
   commandExists: vi.fn().mockReturnValue(false),
-  isWindows: vi.fn().mockReturnValue(false)
+  isWindows: vi.fn().mockReturnValue(false),
 }))
 
 vi.mock('../../src/constants', () => ({
-  CLAUDE_DIR: '/test/.claude'
+  CLAUDE_DIR: '/test/.claude',
 }))
 
 vi.mock('../../src/i18n', () => ({
@@ -131,8 +132,8 @@ vi.mock('../../src/i18n', () => ({
   i18n: {
     language: 'en',
     changeLanguage: vi.fn(),
-    t: vi.fn((key: string) => key)
-  }
+    t: vi.fn((key: string) => key),
+  },
 }))
 
 describe('ccjk:mcp command', () => {
@@ -140,7 +141,7 @@ describe('ccjk:mcp command', () => {
     const options: CcjkMcpOptions = {
       interactive: false,
       dryRun: true,
-      json: true
+      json: true,
     }
 
     const result = await ccjkMcp(options)
@@ -157,7 +158,7 @@ describe('ccjk:mcp command', () => {
     const options: CcjkMcpOptions = {
       interactive: false,
       tier: 'core',
-      dryRun: true
+      dryRun: true,
     }
 
     const result = await ccjkMcp(options)
@@ -170,7 +171,7 @@ describe('ccjk:mcp command', () => {
     const options: CcjkMcpOptions = {
       interactive: false,
       services: ['typescript-language-server'],
-      dryRun: true
+      dryRun: true,
     }
 
     const result = await ccjkMcp(options)
@@ -185,7 +186,7 @@ describe('ccjk:mcp command', () => {
     // Run with dry-run to see what would be installed
     const options: CcjkMcpOptions = {
       interactive: false,
-      dryRun: true
+      dryRun: true,
     }
 
     const result = await ccjkMcp(options)
@@ -201,7 +202,7 @@ describe('ccjk:mcp command', () => {
     const options: CcjkMcpOptions = {
       interactive: false,
       dryRun: true,
-      force: true
+      force: true,
     }
 
     const result = await ccjkMcp(options)
@@ -215,7 +216,7 @@ describe('ccjk:mcp command', () => {
     const options: CcjkMcpOptions = {
       interactive: false,
       dryRun: true,
-      exclude: ['eslint-mcp']
+      exclude: ['eslint-mcp'],
     }
 
     const result = await ccjkMcp(options)
@@ -230,20 +231,20 @@ describe('ccjk:mcp command', () => {
       project: {
         type: 'typescript',
         languages: ['typescript'],
-        frameworks: ['react']
+        frameworks: ['react'],
       },
       services: [
         {
           id: 'typescript-language-server',
           name: 'TypeScript Language Server',
-          status: 'installed'
-        }
+          status: 'installed',
+        },
       ],
       installed: ['typescript-language-server'],
       skipped: [],
       failed: [],
       duration: 5000,
-      configPath: '/test/.claude/mcp.json'
+      configPath: '/test/.claude/mcp.json',
     }
 
     const { formatResultAsJson } = await import('../../src/commands/ccjk-mcp')

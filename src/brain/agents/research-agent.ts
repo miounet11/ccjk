@@ -705,7 +705,7 @@ export class ResearchAgent extends BaseAgent {
   /**
    * Handle errors
    */
-  async handleError(error: Error): Promise<AgentResult> {
+  override async handleError(error: Error): Promise<AgentResult> {
     this.setState(AgentState.ERROR)
     this.log(`Error: ${error.message}`, 'error')
 

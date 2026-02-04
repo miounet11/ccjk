@@ -9,7 +9,6 @@
 
 import type {
   DependencyResolution,
-  RegistryEvents,
   RegistryLookupOptions,
   RegistryStats,
   SkillCategory,
@@ -118,7 +117,8 @@ export class SkillRegistry extends EventEmitter {
    */
   unregister(id: string): boolean {
     const entry = this.skills.get(id)
-    if (!entry) return false
+    if (!entry)
+      return false
 
     // Check for dependents
     if (entry.dependents.size > 0) {
@@ -147,7 +147,8 @@ export class SkillRegistry extends EventEmitter {
    */
   unregisterByPath(filePath: string): boolean {
     const id = this.filePathIndex.get(filePath)
-    if (!id) return false
+    if (!id)
+      return false
     return this.unregister(id)
   }
 
@@ -175,7 +176,8 @@ export class SkillRegistry extends EventEmitter {
    */
   getByTrigger(trigger: string): SkillRegistryEntry[] {
     const ids = this.triggerIndex.get(trigger)
-    if (!ids) return []
+    if (!ids)
+      return []
 
     return Array.from(ids)
       .map(id => this.skills.get(id))
@@ -188,7 +190,8 @@ export class SkillRegistry extends EventEmitter {
    */
   getByCategory(category: SkillCategory): SkillRegistryEntry[] {
     const ids = this.categoryIndex.get(category)
-    if (!ids) return []
+    if (!ids)
+      return []
 
     return Array.from(ids)
       .map(id => this.skills.get(id))
@@ -299,7 +302,8 @@ export class SkillRegistry extends EventEmitter {
    */
   enable(id: string): boolean {
     const entry = this.skills.get(id)
-    if (!entry || entry.enabled) return false
+    if (!entry || entry.enabled)
+      return false
 
     entry.enabled = true
     this.emit('skill:enabled', entry)
@@ -311,7 +315,8 @@ export class SkillRegistry extends EventEmitter {
    */
   disable(id: string): boolean {
     const entry = this.skills.get(id)
-    if (!entry || !entry.enabled) return false
+    if (!entry || !entry.enabled)
+      return false
 
     entry.enabled = false
     this.emit('skill:disabled', entry)
@@ -323,7 +328,8 @@ export class SkillRegistry extends EventEmitter {
    */
   toggle(id: string): boolean {
     const entry = this.skills.get(id)
-    if (!entry) return false
+    if (!entry)
+      return false
 
     entry.enabled = !entry.enabled
     this.emit(entry.enabled ? 'skill:enabled' : 'skill:disabled', entry)
@@ -414,7 +420,8 @@ export class SkillRegistry extends EventEmitter {
         return false
       }
 
-      if (visited.has(id)) return true
+      if (visited.has(id))
+        return true
 
       visiting.add(id)
       const entry = this.skills.get(id)

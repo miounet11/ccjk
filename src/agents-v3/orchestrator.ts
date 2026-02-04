@@ -7,30 +7,30 @@
  * @module agents-v3/orchestrator
  */
 
-import type { EventEmitter } from 'node:events'
-import { nanoid } from 'nanoid'
+import type { AgentPool } from './agent-pool.js'
+import type { Communication } from './communication.js'
+import { createCommunication } from './communication.js'
+import type { ErrorRecovery } from './error-recovery.js'
+import type { TaskScheduler } from './task-scheduler.js'
 import type {
   AgentConfig,
   AgentId,
   AgentInstance,
-  AgentPoolConfig,
   AgentStatus,
   DeepPartial,
   Message,
-  MessageId,
   OrchestratorConfig,
   OrchestratorStatus,
   OrchestratorStatusInfo,
   RecoveryStrategy,
-  SchedulerConfig,
   Task,
   TaskId,
   TaskResult,
 } from './types.js'
-import { AgentPool, createAgentPool, type AgentPoolEvents } from './agent-pool.js'
-import { Communication, createCommunication, type CommunicationEvents, type CommunicationConfig } from './communication.js'
-import { ErrorRecovery, createErrorRecovery, type ErrorRecoveryEvents, type ErrorRecoveryConfig } from './error-recovery.js'
-import { TaskScheduler, createTaskScheduler, type TaskSchedulerEvents } from './task-scheduler.js'
+import { nanoid } from 'nanoid'
+import { createAgentPool } from './agent-pool.js'
+import { createErrorRecovery } from './error-recovery.js'
+import { createTaskScheduler } from './task-scheduler.js'
 
 // ============================================================================
 // Default Configuration
@@ -155,7 +155,7 @@ export class OrchestratorV3 {
   private status: OrchestratorStatus = 'idle'
   private startedAt = 0
   private readonly taskExecutors: Map<string, (task: Task, agent: AgentInstance) => Promise<TaskResult>> = new Map()
-  private lastError?: { message: string; timestamp: number }
+  private lastError?: { message: string, timestamp: number }
 
   constructor(config: DeepPartial<OrchestratorConfig> = {}) {
     // Merge configuration
@@ -208,7 +208,8 @@ export class OrchestratorV3 {
       this.emit('orchestrator:started')
       this.emit('orchestrator:status', 'running')
       this.log('info', 'Orchestrator V3 started')
-    } catch (error) {
+    }
+    catch (error) {
       this.status = 'error'
       this.handleError(error as Error)
       throw error
@@ -238,7 +239,8 @@ export class OrchestratorV3 {
       this.emit('orchestrator:stopped')
       this.emit('orchestrator:status', 'idle')
       this.log('info', 'Orchestrator V3 stopped')
-    } catch (error) {
+    }
+    catch (error) {
       this.status = 'error'
       this.handleError(error as Error)
       throw error
@@ -306,7 +308,7 @@ export class OrchestratorV3 {
   /**
    * Dispatch a task for execution
    */
-  dispatch(task: Partial<Task> & { name: string; type: string }): Task {
+  dispatch(task: Partial<Task> & { name: string, type: string }): Task {
     if (!this.isRunning) {
       throw new Error('Orchestrator is not running')
     }
@@ -330,7 +332,7 @@ export class OrchestratorV3 {
    * Dispatch a task and wait for result
    */
   async dispatchAndWait(
-    task: Partial<Task> & { name: string; type: string },
+    task: Partial<Task> & { name: string, type: string },
     timeout?: number,
   ): Promise<TaskResult> {
     const scheduledTask = this.dispatch(task)
@@ -609,7 +611,8 @@ export class OrchestratorV3 {
         durationMs: Date.now() - startTime,
         retryCount: task.retryCount,
       }
-    } catch (error) {
+    }
+    catch (error) {
       const err = error as Error
 
       // Handle error through recovery
@@ -671,29 +674,29 @@ export class OrchestratorV3 {
    */
   private setupEventForwarding(): void {
     // Pool events
-    this.pool.on('agent:created', (agent) => this.emit('agent:spawned', agent))
+    this.pool.on('agent:created', agent => this.emit('agent:spawned', agent))
     this.pool.on('agent:terminated', (id, reason) => this.emit('agent:terminated', id, reason))
     this.pool.on('agent:error', (id, error) => {
       this.emit('agent:error', id, new Error(error.message))
     })
-    this.pool.on('agent:recovered', (id) => this.emit('agent:recovered', id))
+    this.pool.on('agent:recovered', id => this.emit('agent:recovered', id))
 
     // Scheduler events
-    this.scheduler.on('task:started', (task) => this.emit('task:started', task))
-    this.scheduler.on('task:completed', (result) => this.emit('task:completed', result))
+    this.scheduler.on('task:started', task => this.emit('task:started', task))
+    this.scheduler.on('task:completed', result => this.emit('task:completed', result))
     this.scheduler.on('task:failed', (id, error) => this.emit('task:failed', id, error))
-    this.scheduler.on('task:timeout', (id) => this.emit('task:timeout', id))
-    this.scheduler.on('task:cancelled', (id) => this.emit('task:cancelled', id))
+    this.scheduler.on('task:timeout', id => this.emit('task:timeout', id))
+    this.scheduler.on('task:cancelled', id => this.emit('task:cancelled', id))
     this.scheduler.on('task:retrying', (id, attempt) => this.emit('task:retrying', id, attempt))
 
     // Recovery events
     this.recovery.on('recovery:started', (id, strategy) => this.emit('recovery:started', id, strategy))
-    this.recovery.on('recovery:success', (id) => this.emit('recovery:success', id))
+    this.recovery.on('recovery:success', id => this.emit('recovery:success', id))
     this.recovery.on('recovery:failed', (id, reason) => this.emit('recovery:failed', id, reason))
 
     // Communication events
-    this.communication.on('message:sent', (msg) => this.emit('message:sent', msg))
-    this.communication.on('message:received', (msg) => this.emit('message:received', msg))
+    this.communication.on('message:sent', msg => this.emit('message:sent', msg))
+    this.communication.on('message:received', msg => this.emit('message:received', msg))
   }
 
   /**
@@ -746,7 +749,8 @@ export class OrchestratorV3 {
 
     if (this.config.logging.verbose) {
       console.log(`${prefix} ${new Date().toISOString()} ${message}`)
-    } else {
+    }
+    else {
       console.log(`${prefix} ${message}`)
     }
   }
@@ -776,8 +780,8 @@ export function createOrchestrator(config?: DeepPartial<OrchestratorConfig>): Or
 // Re-exports
 // ============================================================================
 
-export * from './types.js'
 export * from './agent-pool.js'
-export * from './task-scheduler.js'
-export * from './error-recovery.js'
 export * from './communication.js'
+export * from './error-recovery.js'
+export * from './task-scheduler.js'
+export * from './types.js'

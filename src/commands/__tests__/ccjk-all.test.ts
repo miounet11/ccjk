@@ -2,9 +2,9 @@
  * CCJK All Command Tests
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ccjkAll } from '../ccjk-all'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CloudSetupOrchestrator } from '../../orchestrators/cloud-setup-orchestrator'
+import { ccjkAll } from '../ccjk-all'
 
 // Mock dependencies
 vi.mock('../../cloud-client', () => ({

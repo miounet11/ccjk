@@ -20,8 +20,40 @@
  * @module core/lifecycle-hooks
  */
 
-import type { CCJKHookType, HookContext, HookHandler, RegisteredHook } from './hook-skill-bridge'
+import type { CCJKHookType, HookHandler, HookContext as BridgeHookContext } from './hook-skill-bridge'
 import { getHookSkillBridge, triggerHooks } from './hook-skill-bridge'
+
+// Re-export HookContext from hook-skill-bridge for convenience
+export type { HookContext } from './hook-skill-bridge'
+
+// ============================================================================
+// Hook Types for Lifecycle Integration
+// ============================================================================
+
+/**
+ * Hook execution phase
+ */
+export type HookPhase = 'pre-execution' | 'post-execution' | 'on-error'
+
+/**
+ * Hook execution result
+ */
+export interface HookResult {
+  success: boolean
+  message?: string
+  data?: Record<string, unknown>
+  error?: Error
+}
+
+/**
+ * Lifecycle hook interface
+ */
+export interface LifecycleHook {
+  readonly name: string
+  readonly phase: HookPhase
+  readonly priority?: number
+  execute(context: BridgeHookContext): Promise<HookResult>
+}
 
 // ============================================================================
 // Types
@@ -30,12 +62,12 @@ import { getHookSkillBridge, triggerHooks } from './hook-skill-bridge'
 /**
  * Lifecycle phase
  */
-export type LifecyclePhase =
-  | 'startup'
-  | 'ready'
-  | 'running'
-  | 'shutting_down'
-  | 'shutdown'
+export type LifecyclePhase
+  = | 'startup'
+    | 'ready'
+    | 'running'
+    | 'shutting_down'
+    | 'shutdown'
 
 /**
  * Lifecycle state

@@ -4,13 +4,13 @@
  * Comprehensive tests for intent detection and orchestration planning.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { IntentDetector, detectIntent, analyzeIntent } from '../../src/orchestration/intent-detector'
-import { AutoOrchestrator, createPlan, detectAndPlan } from '../../src/orchestration/auto-orchestrator'
 import type { DetectionContext } from '../../src/types/orchestration'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { AutoOrchestrator, createPlan, detectAndPlan } from '../../src/orchestration/auto-orchestrator'
+import { detectIntent, IntentDetector } from '../../src/orchestration/intent-detector'
 import { IntentType } from '../../src/types/orchestration'
 
-describe('IntentDetector', () => {
+describe('intentDetector', () => {
   let detector: IntentDetector
 
   beforeEach(() => {
@@ -198,7 +198,7 @@ describe('IntentDetector', () => {
   })
 })
 
-describe('AutoOrchestrator', () => {
+describe('autoOrchestrator', () => {
   let orchestrator: AutoOrchestrator
 
   beforeEach(() => {
@@ -438,7 +438,7 @@ describe('AutoOrchestrator', () => {
   })
 })
 
-describe('Integration Tests', () => {
+describe('integration Tests', () => {
   it('should handle complete workflow: detect -> create plan', () => {
     const input = 'Implement user authentication feature'
 
@@ -496,7 +496,7 @@ describe('Integration Tests', () => {
   })
 })
 
-describe('Edge Cases', () => {
+describe('edge Cases', () => {
   it('should handle ambiguous input', () => {
     const input = 'Check the code'
 

@@ -4,22 +4,22 @@
  * @module brain/__tests__/thinking-mode.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { ThinkingModeSettings } from '../../types/thinking'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  ThinkingModeManager,
+  createThinkingSettings,
+  DEFAULT_BUDGET_TOKENS,
+  DEFAULT_THINKING_CONFIG,
   getThinkingManager,
+  MAX_BUDGET_TOKENS,
+  migrateLegacySettings,
+  MIN_BUDGET_TOKENS,
   resetThinkingManager,
   shouldUseThinkingMode,
-  createThinkingSettings,
-  validateThinkingConfig,
-  migrateLegacySettings,
-  DEFAULT_BUDGET_TOKENS,
-  MIN_BUDGET_TOKENS,
-  MAX_BUDGET_TOKENS,
-  DEFAULT_THINKING_CONFIG,
   THINKING_SUPPORTED_MODELS,
+  ThinkingModeManager,
+  validateThinkingConfig,
 } from '../thinking-mode'
-import type { ThinkingModeSettings } from '../../types/thinking'
 
 // Mock i18n - use vi.hoisted to ensure mockI18n is available when mock is hoisted
 const mockI18n = vi.hoisted(() => ({ language: 'en' }))
@@ -40,7 +40,7 @@ vi.mock('../../utils/json-config', () => ({
   }),
 }))
 
-describe('ThinkingModeManager', () => {
+describe('thinkingModeManager', () => {
   let manager: ThinkingModeManager
 
   beforeEach(() => {
@@ -65,7 +65,7 @@ describe('ThinkingModeManager', () => {
   // Normal Flow Tests
   // ===========================================================================
 
-  describe('Normal Flow', () => {
+  describe('normal Flow', () => {
     it('should create manager with default config', () => {
       const defaultManager = new ThinkingModeManager()
 
@@ -171,7 +171,7 @@ describe('ThinkingModeManager', () => {
   // Budget Token Tests
   // ===========================================================================
 
-  describe('Budget Token Management', () => {
+  describe('budget Token Management', () => {
     it('should set valid budget tokens', () => {
       const result = manager.setBudgetTokens(50000)
 
@@ -237,7 +237,7 @@ describe('ThinkingModeManager', () => {
   // Sub-Agent Reduction Tests
   // ===========================================================================
 
-  describe('Sub-Agent Reduction', () => {
+  describe('sub-Agent Reduction', () => {
     it('should set valid reduction factor', () => {
       const result = manager.setSubAgentReduction(0.7)
 
@@ -282,7 +282,7 @@ describe('ThinkingModeManager', () => {
   // Model Support Tests
   // ===========================================================================
 
-  describe('Model Support', () => {
+  describe('model Support', () => {
     it('should identify supported models', () => {
       expect(manager.isModelSupported('claude-3-7-opus-20250219')).toBe(true)
       expect(manager.isModelSupported('claude-opus-4')).toBe(true)
@@ -306,7 +306,7 @@ describe('ThinkingModeManager', () => {
   // CLI Flags Generation Tests
   // ===========================================================================
 
-  describe('CLI Flags Generation', () => {
+  describe('cLI Flags Generation', () => {
     it('should generate flags when enabled', () => {
       manager.setEnabled(true)
       manager.setBudgetTokens(30000)
@@ -338,7 +338,7 @@ describe('ThinkingModeManager', () => {
   // Configuration Management Tests
   // ===========================================================================
 
-  describe('Configuration Management', () => {
+  describe('configuration Management', () => {
     it('should save configuration', () => {
       manager.setEnabled(false)
       manager.setBudgetTokens(15000)
@@ -374,7 +374,7 @@ describe('ThinkingModeManager', () => {
   // Utility Function Tests
   // ===========================================================================
 
-  describe('Utility Functions', () => {
+  describe('utility Functions', () => {
     it('should get global thinking manager', () => {
       const global1 = getThinkingManager()
       const global2 = getThinkingManager()
@@ -442,7 +442,7 @@ describe('ThinkingModeManager', () => {
   // Validation Tests
   // ===========================================================================
 
-  describe('Validation', () => {
+  describe('validation', () => {
     it('should validate correct configuration', () => {
       const config: Partial<ThinkingModeSettings> = {
         enabled: true,
@@ -504,7 +504,7 @@ describe('ThinkingModeManager', () => {
   // Legacy Migration Tests
   // ===========================================================================
 
-  describe('Legacy Migration', () => {
+  describe('legacy Migration', () => {
     it('should migrate legacy enabled setting', () => {
       const legacySettings = {
         thinkingModeEnabled: true,
@@ -565,7 +565,7 @@ describe('ThinkingModeManager', () => {
   // Status Display Tests
   // ===========================================================================
 
-  describe('Status Display', () => {
+  describe('status Display', () => {
     it('should show enabled status summary', () => {
       manager.setEnabled(true)
 
@@ -604,7 +604,7 @@ describe('ThinkingModeManager', () => {
   // Edge Cases
   // ===========================================================================
 
-  describe('Edge Cases', () => {
+  describe('edge Cases', () => {
     it('should handle zero budget tokens gracefully', () => {
       const result = manager.setBudgetTokens(0)
 
@@ -650,7 +650,7 @@ describe('ThinkingModeManager', () => {
   // Concurrent Access Tests
   // ===========================================================================
 
-  describe('Concurrent Access', () => {
+  describe('concurrent Access', () => {
     it('should handle concurrent config reads', () => {
       const configs = Array.from({ length: 10 }, () => manager.getConfig())
 

@@ -10,9 +10,9 @@
  * - actionbook: Code precomputation
  */
 
-import { performance } from 'node:perf_hooks'
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { performance } from 'node:perf_hooks'
 
 // ============================================================================
 // Types
@@ -184,7 +184,7 @@ class BenchmarkRunner {
     console.log('║          CCJK 2.0 Performance Benchmarks                      ║')
     console.log('╚══════════════════════════════════════════════════════════════╝\n')
 
-    const modules = [...new Set(this.results.map(r => r.module))]
+    const modules = Array.from(new Set(this.results.map(r => r.module)))
 
     for (const module of modules) {
       console.log(`📦 ${module}`)
@@ -234,8 +234,7 @@ async function benchmarkHooksV2(runner: BenchmarkRunner) {
     async () => {
       // Simulate hook registration
       const hook = mockHooks[Math.floor(Math.random() * mockHooks.length)]
-      const matched = hook.matcher.test('test0')
-      return matched
+      hook.matcher.test('test0')
     },
     { iterations: 1000, target: 1 },
   )
@@ -246,8 +245,7 @@ async function benchmarkHooksV2(runner: BenchmarkRunner) {
     'execute',
     async () => {
       // Simulate hook execution
-      const hooks = mockHooks.filter(h => h.matcher.test('test0'))
-      return hooks.length > 0
+      mockHooks.filter(h => h.matcher.test('test0'))
     },
     { iterations: 1000, target: 1 },
   )
@@ -258,8 +256,7 @@ async function benchmarkHooksV2(runner: BenchmarkRunner) {
     'enforce-l3',
     async () => {
       // Simulate L3 critical enforcement
-      const isL3 = mockHooks.some(h => h.level === 'L3' && h.matcher.test('test0'))
-      return isL3
+      mockHooks.some(h => h.level === 'L3' && h.matcher.test('test0'))
     },
     { iterations: 1000, target: 0.5 },
   )
@@ -285,8 +282,7 @@ async function benchmarkBrainV2(runner: BenchmarkRunner) {
     async () => {
       // Simulate error classification
       const error = mockErrors[Math.floor(Math.random() * mockErrors.length)]
-      const category = error.code.startsWith('E') ? 'rust' : 'typescript'
-      return category
+      error.code.startsWith('E') ? 'rust' : 'typescript'
     },
     { iterations: 1000, target: 0.1 },
   )
@@ -300,8 +296,7 @@ async function benchmarkBrainV2(runner: BenchmarkRunner) {
       const error = mockErrors[0]
       const l1 = error.code
       const l3 = error.domain
-      const l2 = l3 === 'rust' ? 'Arc' : 'Interface'
-      return { l1, l3, l2 }
+      l3 === 'rust' ? 'Arc' : 'Interface'
     },
     { iterations: 500, target: 0.5 },
   )
@@ -330,8 +325,7 @@ async function benchmarkSkillsV2(runner: BenchmarkRunner) {
     'parse',
     async () => {
       // Simulate JSON parsing
-      const parsed = JSON.parse(JSON.stringify(mockProtocol))
-      return parsed
+      JSON.parse(JSON.stringify(mockProtocol))
     },
     { iterations: 1000, target: 0.05 },
   )
@@ -343,8 +337,7 @@ async function benchmarkSkillsV2(runner: BenchmarkRunner) {
     async () => {
       // Simulate keyword matching
       const keywords = mockProtocol.layers.L1.keywords
-      const matched = keywords.some(k => 'error'.includes(k))
-      return matched
+      keywords.some(k => 'error'.includes(k))
     },
     { iterations: 1000, target: 0.05 },
   )
@@ -355,10 +348,9 @@ async function benchmarkSkillsV2(runner: BenchmarkRunner) {
     'execute',
     async () => {
       // Simulate L1→L3→L2 execution
-      const l1 = mockProtocol.layers.L1
-      const l3 = mockProtocol.layers.L3
-      const l2 = mockProtocol.layers.L2
-      return { l1, l3, l2 }
+      mockProtocol.layers.L1
+      mockProtocol.layers.L3
+      mockProtocol.layers.L2
     },
     { iterations: 500, target: 0.1 },
   )
@@ -384,7 +376,7 @@ async function benchmarkAgentsV2(runner: BenchmarkRunner) {
     async () => {
       // Simulate agent registration
       const agent = mockAgents[Math.floor(Math.random() * mockAgents.length)]
-      return agent.id
+      agent.id
     },
     { iterations: 1000, target: 0.5 },
   )
@@ -395,8 +387,7 @@ async function benchmarkAgentsV2(runner: BenchmarkRunner) {
     'route',
     async () => {
       // Simulate message routing
-      const agent = mockAgents.find(a => a.domains.includes('code'))
-      return agent?.id
+      mockAgents.find(a => a.domains.includes('code'))
     },
     { iterations: 1000, target: 0.05 },
   )
@@ -407,8 +398,7 @@ async function benchmarkAgentsV2(runner: BenchmarkRunner) {
     'broadcast',
     async () => {
       // Simulate pub-sub broadcast
-      const recipients = mockAgents.filter(a => a.capabilities.includes('typescript'))
-      return recipients.length
+      mockAgents.filter(a => a.capabilities.includes('typescript'))
     },
     { iterations: 1000, target: 0.1 },
   )
@@ -433,8 +423,7 @@ async function benchmarkWorkflowV2(runner: BenchmarkRunner) {
     'select-fragments',
     async () => {
       // Simulate fragment selection
-      const fragments = mockFragments.filter(f => f.type === 'setup')
-      return fragments
+      mockFragments.filter(f => f.type === 'setup')
     },
     { iterations: 500, target: 0.1 },
   )
@@ -445,8 +434,7 @@ async function benchmarkWorkflowV2(runner: BenchmarkRunner) {
     'compose',
     async () => {
       // Simulate workflow composition
-      const workflow = mockFragments.map(f => f.content).join('\n')
-      return workflow
+      mockFragments.map(f => f.content).join('\n')
     },
     { iterations: 100, target: 1 },
   )
@@ -475,7 +463,7 @@ async function benchmarkActionbook(runner: BenchmarkRunner) {
     async () => {
       // Simulate AST parsing
       const lines = mockCode.split('\n')
-      return lines.length
+      lines.length
     },
     { iterations: 100, target: 1 },
   )
@@ -487,7 +475,7 @@ async function benchmarkActionbook(runner: BenchmarkRunner) {
     async () => {
       // Simulate symbol extraction
       const symbols = mockCode.match(/function|example|console/g) || []
-      return symbols.length
+      symbols.length
     },
     { iterations: 1000, target: 0.1 },
   )
@@ -498,8 +486,7 @@ async function benchmarkActionbook(runner: BenchmarkRunner) {
     'query',
     async () => {
       // Simulate LevelDB query
-      const result = mockCode.includes('example')
-      return result
+      mockCode.includes('example')
     },
     { iterations: 1000, target: 0.01 },
   )
@@ -543,11 +530,14 @@ async function runAllBenchmarks(): Promise<void> {
 }
 
 // Run if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runAllBenchmarks().catch((error) => {
-    console.error('❌ Benchmark failed:', error)
-    process.exit(1)
-  })
+if (typeof process !== 'undefined' && process.argv[1]) {
+  const isMainModule = process.argv[1].endsWith('benchmarks.ts') || process.argv[1].endsWith('benchmarks.js')
+  if (isMainModule) {
+    runAllBenchmarks().catch((error) => {
+      console.error('❌ Benchmark failed:', error)
+      process.exit(1)
+    })
+  }
 }
 
 export { BenchmarkRunner, runAllBenchmarks }

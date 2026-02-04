@@ -3,7 +3,7 @@
  * Executes commands and captures output
  */
 
-import type { Task, TaskResult } from '../types'
+import type { Task, TaskResult } from './types'
 import { exec } from 'tinyexec'
 
 export class TaskExecutor {
@@ -29,7 +29,9 @@ export class TaskExecutor {
 
       // Execute command
       const result = await exec(command, args, {
-        cwd: task.projectPath,
+        nodeOptions: {
+          cwd: task.projectPath,
+        },
         timeout: this.timeout,
       })
 

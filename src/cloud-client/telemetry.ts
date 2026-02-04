@@ -6,9 +6,9 @@
  */
 
 import type { CloudClient } from './client'
-import type { UsageReport, UsageReportResponse, MetricType, TelemetryEvent, TelemetryConfig } from './types'
-import consola from 'consola'
+import type { MetricType, TelemetryConfig, TelemetryEvent, UsageReport } from './types'
 import { randomUUID } from 'node:crypto'
+import consola from 'consola'
 
 /**
  * Default telemetry configuration
@@ -60,7 +60,7 @@ export class TelemetryReporter {
   private startFlushTimer(): void {
     this.flushTimer = setInterval(() => {
       if (this.events.length > 0) {
-        this.flush().catch(error => {
+        this.flush().catch((error) => {
           consola.warn('Failed to flush telemetry events:', error)
         })
       }
@@ -118,7 +118,7 @@ export class TelemetryReporter {
 
     // Flush if batch size reached
     if (this.events.length >= this.config.batchSize) {
-      this.flush().catch(error => {
+      this.flush().catch((error) => {
         consola.warn('Failed to flush telemetry events:', error)
       })
     }
@@ -256,7 +256,7 @@ export class TelemetryReporter {
   /**
    * Get telemetry status
    */
-  getStatus(): { enabled: boolean; queueSize: number; userId: string } {
+  getStatus(): { enabled: boolean, queueSize: number, userId: string } {
     return {
       enabled: this.isEnabled(),
       queueSize: this.getQueueSize(),

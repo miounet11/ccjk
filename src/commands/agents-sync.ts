@@ -15,7 +15,7 @@
  */
 
 import type { CAC } from 'cac'
-import type { AgentTemplate, CloudAgent, InstalledAgent } from '../types/agent.js'
+import type { AgentTemplate, CloudAgent, InstalledAgent, LocalizedString } from '../types/agent.js'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import ora from 'ora'
@@ -57,7 +57,7 @@ interface AgentsSyncOptions {
 /**
  * Get description in current language
  */
-function getDescription(descriptions: Record<string, string>): string {
+function getDescription(descriptions: LocalizedString): string {
   const lang = i18n.language as 'en' | 'zh-CN'
   return descriptions[lang] || descriptions.en || Object.values(descriptions)[0]
 }
@@ -66,7 +66,7 @@ function getDescription(descriptions: Record<string, string>): string {
  * Format agent for display
  */
 function formatAgent(agent: CloudAgent | InstalledAgent, index?: number): string {
-  const agentData = 'agent' in agent ? agent.agent : agent
+  const agentData: CloudAgent = 'agent' in agent ? agent.agent : agent
   const isInstalled = 'agent' in agent
 
   const installedMark = isInstalled ? ansis.green('✓') : ansis.gray('○')
@@ -94,8 +94,8 @@ function formatTemplate(template: AgentTemplate, index?: number): string {
   const lines = [
     `${indexStr} ${ansis.bold(template.name)} ${ansis.gray(`v${template.version}`)}`,
     `   ${getDescription(template.description)}`,
-    `   ${ansis.gray(i18n.t('agents:info.category'))}: ${template.category} | ${ansis.gray(i18n.t('agents:info.author'))}: ${template.author}`,
-    `   ${ansis.gray(i18n.t('agents:templates.variables'))}: ${template.variables.length}`,
+    `   ${ansis.gray(i18n.t('agents:info.category'))}: ${template.category} | ${ansis.gray(i18n.t('agents:info.author'))}: ${template.author || 'Unknown'}`,
+    `   ${ansis.gray(i18n.t('agents:templates.variables'))}: ${template.variables?.length || 0}`,
   ]
 
   return lines.join('\n')
@@ -182,9 +182,9 @@ async function searchCommand(query: string, options: AgentsSyncOptions): Promise
   try {
     const result = await searchAgents({
       query,
-      category: options.category as any,
+      category: options.category,
       limit: options.limit || 10,
-      lang: options.lang as any,
+      lang: options.lang as 'en' | 'zh-CN' | undefined,
     })
 
     spinner.succeed(i18n.t('agents:search.found', { count: result.total, query }))
@@ -227,7 +227,7 @@ async function installCommand(agentId: string, options: AgentsSyncOptions): Prom
 
     const result = await installAgent(agent, {
       force: options.force,
-      lang: options.lang as any,
+      lang: options.lang as 'en' | 'zh-CN' | undefined,
     })
 
     if (result.success) {
@@ -243,7 +243,7 @@ async function installCommand(agentId: string, options: AgentsSyncOptions): Prom
         result.warnings.forEach(w => console.log(`  - ${w}`))
       }
 
-      console.log(ansis.gray(`\n${i18n.t('agents:install.location')}: ${result.installedPath}`))
+      console.log(ansis.gray(`\n${i18n.t('agents:install.location')}: ${result.installedPath || ''}`))
     }
     else {
       spinner.fail(i18n.t('agents:install.failed', { name: agent.name }))
@@ -322,7 +322,7 @@ async function syncCommand(options: AgentsSyncOptions): Promise<void> {
       direction: options.direction,
       force: options.force,
       dryRun: options.dryRun,
-      lang: options.lang as any,
+      lang: options.lang as 'en' | 'zh-CN' | undefined,
     })
 
     if (result.success) {
@@ -423,7 +423,7 @@ async function createCommand(templateId: string, options: AgentsSyncOptions): Pr
     // Prompt for variables
     const variables: Record<string, any> = {}
 
-    for (const variable of template.variables) {
+    for (const variable of template.variables || []) {
       const label = getDescription(variable.label)
       const description = getDescription(variable.description)
 
@@ -441,7 +441,7 @@ async function createCommand(templateId: string, options: AgentsSyncOptions): Pr
         variables[variable.name] = value
       }
       else if (variable.type === 'multiselect') {
-        const { value } = await inquirer.prompt({
+        const { value } = await inquirer.prompt([{
           type: 'checkbox' as const,
           name: 'value',
           message: `${label} - ${description}`,
@@ -450,20 +450,20 @@ async function createCommand(templateId: string, options: AgentsSyncOptions): Pr
             value: opt.value,
           })) || [],
           default: variable.default as string[] | undefined,
-        })
+        }])
         variables[variable.name] = value
       }
       else if (variable.type === 'boolean') {
-        const { value } = await inquirer.prompt({
+        const { value } = await inquirer.prompt([{
           type: 'confirm' as const,
           name: 'value',
           message: `${label} - ${description}`,
           default: variable.default as boolean | undefined,
-        })
+        }])
         variables[variable.name] = value
       }
       else {
-        const { value } = await inquirer.prompt({
+        const { value } = await inquirer.prompt([{
           type: 'input' as const,
           name: 'value',
           message: `${label} - ${description}`,
@@ -477,7 +477,7 @@ async function createCommand(templateId: string, options: AgentsSyncOptions): Pr
             }
             return true
           },
-        })
+        }])
         variables[variable.name] = variable.type === 'number' ? Number(value) : value
       }
     }
@@ -487,7 +487,7 @@ async function createCommand(templateId: string, options: AgentsSyncOptions): Pr
 
     const agent = await createAgentFromTemplate(templateId, variables, agentName)
     const result = await installAgent(agent, {
-      lang: options.lang as any,
+      lang: options.lang as 'en' | 'zh-CN' | undefined,
     })
 
     if (result.success) {

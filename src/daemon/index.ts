@@ -13,9 +13,9 @@ import type { CloudCommand, CloudCommandResult, DaemonConfig, DaemonStatus, Task
 import process from 'node:process'
 import { nanoid } from 'nanoid'
 import { CloudClient } from './cloud-client'
-import { EmailChecker } from './email-checker'
-import { MobileControlClient } from './mobile-control'
-import { ResultSender } from './result-sender'
+import { EmailChecker } from './email-checker.js'
+import { MobileControlClient } from './mobile-control.js'
+import { ResultSender } from './result-sender.js'
 import { TaskExecutor } from './task-executor'
 import { SecurityManager } from './utils/security'
 import { DaemonLogStreamer } from './ws-log-streamer'
@@ -70,7 +70,7 @@ export class CcjkDaemon {
       const deviceInfo = this.cloudClient.getDeviceInfo()
       if (deviceInfo) {
         this.logStreamer = new DaemonLogStreamer({
-          deviceId: deviceInfo.id,
+          deviceId: deviceInfo.device.id,
           token: this.config.cloudToken,
           debug: this.config.debug,
         })
@@ -106,13 +106,13 @@ export class CcjkDaemon {
 
       if (registrationResult.success) {
         const deviceInfo = this.cloudClient.getDeviceInfo()
-        console.log(`✅ Cloud connected - Device ID: ${deviceInfo?.id}`)
-        console.log(`   Device name: ${deviceInfo?.name}`)
+        console.log(`✅ Cloud connected - Device ID: ${deviceInfo?.device.id}`)
+        console.log(`   Device name: ${deviceInfo?.device.name}`)
 
         // Initialize log streamer after we have device info
         if (!this.logStreamer && deviceInfo) {
           this.logStreamer = new DaemonLogStreamer({
-            deviceId: deviceInfo.id,
+            deviceId: deviceInfo.device.id,
             token: this.config.cloudToken!,
             debug: this.config.debug,
           })
@@ -443,6 +443,7 @@ export class CcjkDaemon {
       config: {
         email: {
           email: this.config.email.email,
+          password: '***',
           imapHost: this.config.email.imapHost,
           smtpHost: this.config.email.smtpHost,
         },
@@ -452,8 +453,8 @@ export class CcjkDaemon {
         projectPath: this.config.projectPath,
         mode: this.mode,
         cloudConnected: this.cloudClient?.isConnected() ?? false,
-        cloudDeviceId: deviceInfo?.id,
-        cloudDeviceName: deviceInfo?.name,
+        cloudDeviceId: deviceInfo?.device.id,
+        cloudDeviceName: deviceInfo?.device.name,
         activeTasksCount: this.cloudClient?.getActiveTasksCount(),
       },
     }
@@ -501,7 +502,7 @@ export class CcjkDaemon {
     }
 
     return this.mobileControl.sendCard({
-      deviceId: deviceInfo.id,
+      deviceId: deviceInfo.device.id,
       channel,
       templateId,
       message,

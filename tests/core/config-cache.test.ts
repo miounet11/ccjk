@@ -4,7 +4,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearCache, ConfigCache, getCacheStats, getConfigCache, invalidateCache } from '../../src/core/config-cache'
+import { ConfigCache } from '../../src/core/config-cache'
 
 describe('configCache', () => {
   let cache: ConfigCache

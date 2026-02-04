@@ -3,8 +3,8 @@
  * Tests for CloudMCPRegistry, CacheManager, and ServiceFetcher
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { CloudAPIConfig, MCPService, MCPServiceDetail, SearchFilters } from '../types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CacheManager } from '../registry/cache-manager'
 import { CloudMCPRegistry } from '../registry/cloud-registry'
 import { ServiceFetcher } from '../registry/service-fetcher'

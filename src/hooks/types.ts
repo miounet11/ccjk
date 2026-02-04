@@ -10,20 +10,20 @@ export interface HookConfig {
   metadata?: HookMetadata
 }
 
-export type HookType =
-  | 'pre-commit'
-  | 'post-commit'
-  | 'pre-push'
-  | 'post-push'
-  | 'pre-test'
-  | 'post-test'
-  | 'pre-build'
-  | 'post-build'
-  | 'pre-install'
-  | 'post-install'
-  | 'pre-start'
-  | 'post-start'
-  | 'custom'
+export type HookType
+  = | 'pre-commit'
+    | 'post-commit'
+    | 'pre-push'
+    | 'post-push'
+    | 'pre-test'
+    | 'post-test'
+    | 'pre-build'
+    | 'post-build'
+    | 'pre-install'
+    | 'post-install'
+    | 'pre-start'
+    | 'post-start'
+    | 'custom'
 
 export type HookCategory = 'pre-commit' | 'post-test' | 'lifecycle' | 'custom'
 

@@ -187,7 +187,7 @@ function createEmptyTranslationFile(sourceFile: TranslationFile, targetDir: stri
 
   // Create file with TODO markers
   const emptyContent = createEmptyStructure(sourceFile.content)
-  fs.writeFileSync(targetPath, JSON.stringify(emptyContent, null, 2) + '\n', 'utf-8')
+  fs.writeFileSync(targetPath, `${JSON.stringify(emptyContent, null, 2)}\n`, 'utf-8')
 }
 
 function createEmptyStructure(obj: Record<string, unknown>): Record<string, unknown> {

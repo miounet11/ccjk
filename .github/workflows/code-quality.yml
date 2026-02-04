@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0'  # Every Sunday at midnight
+    - cron: '0 0 * * 0' # Every Sunday at midnight
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,7 +30,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -44,7 +44,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-review
-          eslint_flags: 'src/'
+          eslint_flags: src/
 
   prettier:
     name: Prettier Format Check
@@ -62,7 +62,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -93,7 +93,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Run pnpm audit
         run: pnpm audit --audit-level moderate
@@ -127,7 +127,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -169,7 +169,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -180,7 +180,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:javascript"
+          category: '/language:javascript'
 
   dependency-review:
     name: Dependency Review
@@ -212,7 +212,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -245,7 +245,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -253,10 +253,10 @@ jobs:
       - name: Run jscpd (copy/paste detector)
         uses: jscpd/scanner-action@v1
         with:
-          path: './src'
-          format: 'typescript'
+          path: ./src
+          format: typescript
           threshold: 5
-          reporters: 'json'
+          reporters: json
 
       - name: Upload duplicate code report
         uses: actions/upload-artifact@v4
@@ -284,7 +284,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

@@ -6,22 +6,22 @@
  */
 
 import type { $Fetch } from 'ofetch'
-import { ofetch } from 'ofetch'
-import consola from 'consola'
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type {
+  BatchTemplateRequest,
+  BatchTemplateResponse,
+  CloudClientConfig,
+  HealthCheckResponse,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
   TemplateResponse,
-  BatchTemplateRequest,
-  BatchTemplateResponse,
   UsageReport,
   UsageReportResponse,
-  HealthCheckResponse,
-  CloudClientConfig,
 } from './types'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import consola from 'consola'
+import { ofetch } from 'ofetch'
 import { CloudClientError } from './types'
 
 // Read version from package.json
@@ -30,7 +30,8 @@ let CCJK_VERSION = '9.0.0' // fallback
 try {
   const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'))
   CCJK_VERSION = packageJson.version
-} catch {
+}
+catch {
   // Use fallback version
 }
 
@@ -66,7 +67,7 @@ export class CloudClient {
         ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
       },
       retry: this.config.enableRetry ? this.config.maxRetries : 0,
-      retryDelay: (context) => this.calculateRetryDelay(context.options.retry || 0),
+      retryDelay: context => this.calculateRetryDelay(context.options.retry || 0),
     })
   }
 
@@ -102,7 +103,7 @@ export class CloudClient {
 
       // Extract HTTP status code from error message
       const statusMatch = errorMessage.match(/(\d{3})\s+/)
-      const statusCode = statusMatch ? parseInt(statusMatch[1]) : undefined
+      const statusCode = statusMatch ? Number.parseInt(statusMatch[1]) : undefined
 
       // Try to parse response body from error
       let responseDetails = errorMessage
@@ -114,7 +115,8 @@ export class CloudClient {
             responseDetails = parts.slice(1).join(':').trim()
           }
         }
-      } catch {
+      }
+      catch {
         // Ignore parsing errors
       }
 
@@ -300,7 +302,7 @@ export class CloudClient {
           ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
         },
         retry: this.config.enableRetry ? this.config.maxRetries : 0,
-        retryDelay: (context) => this.calculateRetryDelay(context.options.retry || 0),
+        retryDelay: context => this.calculateRetryDelay(context.options.retry || 0),
       })
     }
   }

@@ -5,8 +5,8 @@
  * @description AES-256-GCM 加密实现，支持 PBKDF2 密钥派生
  */
 
-import * as crypto from 'node:crypto'
 import type { EncryptedData, EncryptionConfig, IEncryptionService } from './types'
+import * as crypto from 'node:crypto'
 
 /**
  * 默认加密配置
@@ -217,7 +217,7 @@ export class EncryptionService implements IEncryptionService {
     }
 
     // 验证 Base64 字符串
-    const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/
+    const base64Regex = /^[A-Z0-9+/]*={0,2}$/i
     if (
       !base64Regex.test(encrypted.iv)
       || !base64Regex.test(encrypted.ciphertext)

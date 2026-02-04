@@ -16,19 +16,19 @@ coverage:
         informational: true
 
 comment:
-  layout: "reach,diff,flags,files,footer"
+  layout: 'reach,diff,flags,files,footer'
   behavior: default
   require_changes: false
   require_base: false
   require_head: true
 
 ignore:
-  - "**/*.test.ts"
-  - "**/*.spec.ts"
-  - "**/node_modules/**"
-  - "**/dist/**"
-  - "**/templates/**"
-  - "**/tests/**"
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/templates/**'
+  - '**/tests/**'
 
 flags:
   unittests:

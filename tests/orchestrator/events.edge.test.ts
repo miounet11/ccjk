@@ -4,17 +4,17 @@
  * Tests for boundary conditions, error scenarios, and edge cases
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EventBus } from '../../src/orchestrator/events'
 
-describe('EventBus Edge Cases', () => {
+describe('eventBus Edge Cases', () => {
   let eventBus: EventBus
 
   beforeEach(() => {
     eventBus = new EventBus()
   })
 
-  describe('Empty and Null Cases', () => {
+  describe('empty and Null Cases', () => {
     it('should handle emitting to event with no listeners', async () => {
       await expect(
         eventBus.emit('workflow:start', { workflowId: 'test' }),
@@ -42,14 +42,13 @@ describe('EventBus Edge Cases', () => {
     })
   })
 
-  describe('Concurrent Operations', () => {
+  describe('concurrent Operations', () => {
     it('should handle concurrent event emissions', async () => {
       const listener = vi.fn()
       eventBus.on('task:start', listener)
 
       const promises = Array.from({ length: 100 }, (_, i) =>
-        eventBus.emit('task:start', { taskId: `task-${i}` }),
-      )
+        eventBus.emit('task:start', { taskId: `task-${i}` }))
 
       await Promise.all(promises)
 
@@ -59,7 +58,7 @@ describe('EventBus Edge Cases', () => {
     it('should handle concurrent subscriptions', () => {
       const listeners = Array.from({ length: 50 }, () => vi.fn())
 
-      listeners.forEach(listener => {
+      listeners.forEach((listener) => {
         eventBus.on('workflow:start', listener)
       })
 
@@ -68,8 +67,7 @@ describe('EventBus Edge Cases', () => {
 
     it('should handle concurrent unsubscriptions', async () => {
       const subscriptions = Array.from({ length: 50 }, () =>
-        eventBus.on('task:complete', vi.fn()),
-      )
+        eventBus.on('task:complete', vi.fn()))
 
       subscriptions.forEach(sub => sub.unsubscribe())
 
@@ -77,7 +75,7 @@ describe('EventBus Edge Cases', () => {
     })
   })
 
-  describe('Memory and Performance', () => {
+  describe('memory and Performance', () => {
     it('should handle large number of events', async () => {
       const listener = vi.fn()
       eventBus.on('task:start', listener)
@@ -121,7 +119,7 @@ describe('EventBus Edge Cases', () => {
     })
   })
 
-  describe('Complex Wildcard Patterns', () => {
+  describe('complex Wildcard Patterns', () => {
     it('should handle multiple wildcards', async () => {
       const listener = vi.fn()
       eventBus.on('*:*', listener)
@@ -155,7 +153,7 @@ describe('EventBus Edge Cases', () => {
     })
   })
 
-  describe('Error Recovery', () => {
+  describe('error Recovery', () => {
     it('should continue executing listeners after one fails', async () => {
       const failingListener = vi.fn(() => {
         throw new Error('Listener failed')
@@ -204,7 +202,7 @@ describe('EventBus Edge Cases', () => {
     })
   })
 
-  describe('Subscription Management', () => {
+  describe('subscription Management', () => {
     it('should handle multiple unsubscribe calls', () => {
       const subscription = eventBus.on('workflow:start', vi.fn())
 
@@ -246,7 +244,7 @@ describe('EventBus Edge Cases', () => {
     })
   })
 
-  describe('Priority Edge Cases', () => {
+  describe('priority Edge Cases', () => {
     it('should handle same priority listeners', async () => {
       const listener1 = vi.fn()
       const listener2 = vi.fn()
@@ -288,7 +286,7 @@ describe('EventBus Edge Cases', () => {
     })
   })
 
-  describe('Scoped EventBus Edge Cases', () => {
+  describe('scoped EventBus Edge Cases', () => {
     it('should handle nested scopes', async () => {
       const listener = vi.fn()
       // Create nested scope by using dot notation in namespace
@@ -361,7 +359,7 @@ describe('EventBus Edge Cases', () => {
     })
   })
 
-  describe('History Edge Cases', () => {
+  describe('history Edge Cases', () => {
     it('should handle history with maxHistorySize of 0', async () => {
       const bus = new EventBus({ maxHistorySize: 0 })
 

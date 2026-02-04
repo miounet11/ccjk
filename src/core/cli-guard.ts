@@ -13,7 +13,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import ansis from 'ansis'
 import { join } from 'pathe'
 import { exists } from '../utils/fs-operations'
-import { getHomeDir } from '../utils/platform'
+import { getHomeDir } from '../utils/platform/paths'
 
 const LOCK_TIMEOUT = 5 * 60 * 1000 // 5 minutes
 
@@ -121,7 +121,8 @@ export class CliGuard {
   static async releaseLock(): Promise<void> {
     try {
       if (exists(getLockFilePath())) {
-        await import('node:fs/promises').unlink(getLockFilePath())
+        const fsp = await import('node:fs/promises')
+        await fsp.unlink(getLockFilePath())
       }
     }
     catch {
@@ -150,10 +151,11 @@ export class CliGuard {
       // Clean up temporary files in .ccjk/tmp/
       const tmpDir = join(getHomeDir(), '.ccjk', 'tmp')
       if (exists(tmpDir)) {
-        const tmpFiles = await import('node:fs/promises').readdir(tmpDir)
+        const fsp = await import('node:fs/promises')
+        const tmpFiles = await fsp.readdir(tmpDir)
         for (const file of tmpFiles) {
           const filePath = join(tmpDir, file)
-          const stats = await import('node:fs/promises').stat(filePath)
+          const stats = await fsp.stat(filePath)
           // Remove files older than 1 hour
           if (Date.now() - stats.mtimeMs > 60 * 60 * 1000) {
             orphaned.push(filePath)
@@ -162,8 +164,9 @@ export class CliGuard {
       }
 
       // Remove orphaned files
+      const fsExtra = await import('fs-extra')
       for (const file of orphaned) {
-        await import('fs-extra').remove(file)
+        await fsExtra.remove(file)
       }
     }
     catch {
@@ -319,5 +322,6 @@ function getCommandVersion(command: string): string | null {
  * mkdir utility
  */
 async function mkdir(path: string, options?: any): Promise<void> {
-  await import('fs-extra').mkdir(path, options)
+  const fsExtra = await import('fs-extra')
+  await fsExtra.mkdir(path, options)
 }

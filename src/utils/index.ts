@@ -39,6 +39,21 @@ export {
   waitFor,
 } from './async/helpers'
 
+// Capability discovery utilities
+export {
+  type Capability,
+  type CapabilityScanResult,
+  type CapabilityStatus,
+  type CapabilityType,
+  generateCompactWelcome,
+  generateRecommendations,
+  generateWelcome,
+  getCapabilitiesByType,
+  getCapability,
+  scanCapabilities,
+  type WelcomeOptions,
+} from './capability-discovery'
+
 // Command execution utilities
 export * as command from './command'
 
@@ -62,6 +77,10 @@ export { ConfigValidator, createValidator, validators } from './config/validator
 // Error utilities
 export * as error from './error'
 
+/**
+ * Re-export commonly used utilities for convenience
+ */
+
 // Error
 export {
   BaseError,
@@ -77,13 +96,9 @@ export {
   ValidationError,
   wrapError,
 } from './error/errors'
-
-/**
- * Re-export commonly used utilities for convenience
- */
-
 // File system utilities
 export * as fs from './file-system'
+
 // File System
 export {
   copyFile,
@@ -101,9 +116,20 @@ export {
   writeFile,
   writeJSON,
 } from './file-system/operations'
+// I18n helpers for cloud API multilingual data
+export * as i18nHelpers from './i18n-helpers'
+
+export {
+  extractDisplayName,
+  extractString,
+  type MultilingualString,
+  normalizeRecommendation,
+  normalizeRecommendations,
+} from './i18n-helpers'
 
 // Logger utilities
 export * as loggerUtils from './logger'
+
 // Logger
 export { createLogger, Logger, logger } from './logger/logger'
 
@@ -192,29 +218,3 @@ export {
   isString,
   isURL,
 } from './validation/validators'
-
-// I18n helpers for cloud API multilingual data
-export * as i18nHelpers from './i18n-helpers'
-
-export {
-  extractDisplayName,
-  extractString,
-  type MultilingualString,
-  normalizeRecommendation,
-  normalizeRecommendations,
-} from './i18n-helpers'
-
-// Capability discovery utilities
-export {
-  generateCompactWelcome,
-  generateRecommendations,
-  generateWelcome,
-  getCapabilitiesByType,
-  getCapability,
-  scanCapabilities,
-  type Capability,
-  type CapabilityScanResult,
-  type CapabilityStatus,
-  type CapabilityType,
-  type WelcomeOptions,
-} from './capability-discovery'

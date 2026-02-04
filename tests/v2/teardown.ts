@@ -1,5 +1,5 @@
-import { afterAll } from 'vitest'
 import { existsSync, rmSync } from 'node:fs'
+import { afterAll } from 'vitest'
 import { getTestEnvironment, restoreConsole, restoreProcessExit } from './setup'
 
 /**
@@ -24,19 +24,20 @@ afterAll(async () => {
       try {
         rmSync(testEnv.tempDir, { recursive: true, force: true })
         console.log(`✅ Final cleanup completed: ${testEnv.tempDir}`)
-      } catch (error) {
+      }
+      catch (error) {
         console.warn(`⚠️ Final cleanup warning: ${error}`)
       }
     }
 
     // Clear any remaining environment variables
     const testEnvVars = Object.keys(process.env).filter(key =>
-      key.startsWith('CCJK_TEST_') ||
-      key.startsWith('VITEST_') ||
-      key === 'NODE_ENV' && process.env[key] === 'test'
+      key.startsWith('CCJK_TEST_')
+      || key.startsWith('VITEST_')
+      || key === 'NODE_ENV' && process.env[key] === 'test',
     )
 
-    testEnvVars.forEach(key => {
+    testEnvVars.forEach((key) => {
       delete process.env[key]
     })
 
@@ -50,7 +51,8 @@ afterAll(async () => {
     }
 
     console.log('🎉 CCJK v2.0 Test Suite - Teardown Complete')
-  } catch (error) {
+  }
+  catch (error) {
     console.error('❌ Error during final teardown:', error)
   }
 })
@@ -66,7 +68,8 @@ export function emergencyCleanup() {
     }
     restoreConsole()
     restoreProcessExit()
-  } catch (error) {
+  }
+  catch (error) {
     console.error('❌ Emergency cleanup failed:', error)
   }
 }

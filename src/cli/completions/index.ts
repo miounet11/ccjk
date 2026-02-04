@@ -5,6 +5,6 @@
  */
 
 export { generateBashCompletion } from './bash'
-export { generateZshCompletion } from './zsh'
 export { generateFishCompletion } from './fish'
 export { generatePowerShellCompletion } from './powershell'
+export { generateZshCompletion } from './zsh'

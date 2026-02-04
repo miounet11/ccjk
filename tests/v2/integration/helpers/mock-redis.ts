@@ -34,7 +34,8 @@ export class MockRedis {
    * Get value by key
    */
   async get(key: string): Promise<string | null> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     return this.data.get(key) || null
   }
 
@@ -42,7 +43,8 @@ export class MockRedis {
    * Set key-value pair
    */
   async set(key: string, value: string, options?: any): Promise<string> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     this.data.set(key, value)
 
     if (options?.EX) {
@@ -56,7 +58,8 @@ export class MockRedis {
    * Delete key
    */
   async del(key: string): Promise<number> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     return this.data.delete(key) ? 1 : 0
   }
 
@@ -64,7 +67,8 @@ export class MockRedis {
    * Set hash field
    */
   async hset(key: string, field: string, value: any): Promise<number> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     if (!this.hashes.has(key)) {
       this.hashes.set(key, new Map())
     }
@@ -78,7 +82,8 @@ export class MockRedis {
    * Get hash field
    */
   async hget(key: string, field: string): Promise<any> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     const hash = this.hashes.get(key)
     return hash ? hash.get(field) : null
   }
@@ -87,9 +92,11 @@ export class MockRedis {
    * Get all hash fields
    */
   async hgetall(key: string): Promise<Record<string, any>> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     const hash = this.hashes.get(key)
-    if (!hash) return {}
+    if (!hash)
+      return {}
 
     const result: Record<string, any> = {}
     hash.forEach((value, field) => {
@@ -102,12 +109,13 @@ export class MockRedis {
    * Publish message to channel
    */
   async publish(channel: string, message: string): Promise<number> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     const subscribers = this.pubsub.get(channel) || []
 
     // Simulate async message delivery
     setImmediate(() => {
-      subscribers.forEach(listener => {
+      subscribers.forEach((listener) => {
         listener(channel, message)
       })
     })
@@ -119,7 +127,8 @@ export class MockRedis {
    * Subscribe to channel
    */
   async subscribe(channel: string, listener: Function): Promise<string> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     if (!this.pubsub.has(channel)) {
       this.pubsub.set(channel, [])
     }
@@ -131,16 +140,19 @@ export class MockRedis {
    * Unsubscribe from channel
    */
   async unsubscribe(channel: string, listener?: Function): Promise<boolean> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     const subscribers = this.pubsub.get(channel)
-    if (!subscribers) return false
+    if (!subscribers)
+      return false
 
     if (listener) {
       const index = subscribers.indexOf(listener)
       if (index > -1) {
         subscribers.splice(index, 1)
       }
-    } else {
+    }
+    else {
       this.pubsub.delete(channel)
     }
 
@@ -151,8 +163,9 @@ export class MockRedis {
    * Increment counter
    */
   async incr(key: string): Promise<number> {
-    if (!this.connected) throw new Error('Redis not connected')
-    const current = parseInt(this.data.get(key) || '0')
+    if (!this.connected)
+      throw new Error('Redis not connected')
+    const current = Number.parseInt(this.data.get(key) || '0')
     const next = current + 1
     this.data.set(key, next.toString())
     return next
@@ -162,7 +175,8 @@ export class MockRedis {
    * Set key expiration
    */
   async expire(key: string, seconds: number): Promise<boolean> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     setTimeout(() => this.data.delete(key), seconds * 1000)
     return true
   }
@@ -171,7 +185,8 @@ export class MockRedis {
    * Ping Redis
    */
   async ping(): Promise<string> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     return 'PONG'
   }
 
@@ -179,7 +194,8 @@ export class MockRedis {
    * Flush database
    */
   async flushdb(): Promise<string> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     this.data.clear()
     this.hashes.clear()
     this.pubsub.clear()
@@ -222,7 +238,8 @@ role:master
    * Get all keys
    */
   async keys(pattern: string): Promise<string[]> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     const regex = new RegExp(pattern.replace('*', '.*'))
     return Array.from(this.data.keys()).filter(key => regex.test(key))
   }
@@ -231,9 +248,11 @@ role:master
    * Get memory usage
    */
   async memoryUsage(key: string): Promise<number> {
-    if (!this.connected) throw new Error('Redis not connected')
+    if (!this.connected)
+      throw new Error('Redis not connected')
     const value = this.data.get(key)
-    if (!value) return 0
+    if (!value)
+      return 0
     return Buffer.byteLength(value, 'utf8')
   }
 

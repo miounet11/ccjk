@@ -44,7 +44,7 @@ export class BindClient {
       method: 'POST',
     }, true)
 
-    return response.json()
+    return response.json() as Promise<GenerateBindCodeResponse>
   }
 
   /**
@@ -59,7 +59,7 @@ export class BindClient {
       body: JSON.stringify(request),
     })
 
-    return response.json()
+    return response.json() as Promise<UseBindCodeResponse>
   }
 
   /**
@@ -70,7 +70,7 @@ export class BindClient {
    */
   async getStatus(code: string): Promise<GetBindCodeStatusResponse> {
     const response = await this.fetch(`/bind/status/${code}`, {}, true)
-    return response.json()
+    return response.json() as Promise<GetBindCodeStatusResponse>
   }
 
   /**
@@ -80,7 +80,7 @@ export class BindClient {
    */
   async getDevices(): Promise<GetDevicesResponse> {
     const response = await this.fetch('/bind/devices', {}, true)
-    return response.json()
+    return response.json() as Promise<GetDevicesResponse>
   }
 
   /**
@@ -94,7 +94,7 @@ export class BindClient {
       method: 'DELETE',
     }, true)
 
-    return response.json()
+    return response.json() as Promise<DeleteDeviceResponse>
   }
 
   /**
@@ -162,7 +162,7 @@ export class BindClient {
     let message = response.statusText
 
     try {
-      const body = await response.json()
+      const body = await response.json() as { error?: string }
       if (body.error) {
         message = body.error
       }

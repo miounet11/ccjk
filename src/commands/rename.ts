@@ -9,7 +9,7 @@ import type { SupportedLang } from '../constants'
 import type { Session } from '../session-manager'
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { cwd, homedir } from 'node:os'
+import { homedir } from 'node:os'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
@@ -60,7 +60,7 @@ function getGitBranch(): string | null {
     const branch = execSync('git rev-parse --abbrev-ref HEAD', {
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'ignore'],
-      cwd: cwd(),
+      cwd: process.cwd(),
     }).trim()
 
     return branch === 'HEAD' ? null : branch
@@ -76,7 +76,7 @@ function getGitBranch(): string | null {
 function getWorkingDirName(): string | null {
   try {
     const { dirname } = require('node:path')
-    const currentDir = cwd()
+    const currentDir = process.cwd()
     return dirname(currentDir).split('/').pop() || null
   }
   catch {
@@ -190,7 +190,7 @@ export async function renameCurrentSession(options: {
       return
     }
 
-    await renameSession(currentSession.id, options)
+    await renameSession(currentSession.id!, options)
   }
   catch (error) {
     console.error(ansis.red(i18n.t('rename:error') || 'Failed to rename session:'), error)
@@ -322,7 +322,7 @@ export async function renameSessionInteractive(options: {
     const choices = sessions.map((session) => {
       const name = session.name || ansis.gray('(unnamed)')
       const id = ansis.gray(`[${session.id.substring(0, 8)}]`)
-      const branch = session.gitInfo?.branch ? ansis.dim(`(${session.gitInfo.branch})`) : ''
+      const branch = (session.metadata as any)?.gitInfo?.branch ? ansis.dim(`(${(session.metadata as any).gitInfo.branch})`) : ''
       const pinned = session.metadata?.pinned ? ansis.yellow('📌') : ''
 
       return {
@@ -359,7 +359,7 @@ export async function quickRename(name: string): Promise<boolean> {
     }
 
     const sessionManager = getSessionManager()
-    return await sessionManager.renameSession(currentSession.id, name)
+    return await sessionManager.renameSession(currentSession.id!, name)
   }
   catch {
     return false
@@ -428,7 +428,6 @@ export async function listSessionNames(options: {
     const sessions = await sessionManager.listSessions({
       sortBy: 'lastUsedAt',
       order: 'desc',
-      branch: options.branch,
     })
 
     if (sessions.length === 0) {
@@ -443,7 +442,7 @@ export async function listSessionNames(options: {
     byBranch.set('no-branch', [])
 
     for (const session of sessions) {
-      const branch = session.gitInfo?.branch || 'no-branch'
+      const branch = (session.metadata as any)?.gitInfo?.branch || 'no-branch'
       if (!byBranch.has(branch)) {
         byBranch.set(branch, [])
       }

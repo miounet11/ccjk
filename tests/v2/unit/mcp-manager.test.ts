@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, TestDataGenerator, AssertionHelpers } from '@helpers'
+import { AssertionHelpers, MockFactory, TestDataGenerator } from '@helpers'
 import { createTestTempDir } from '@v2/setup'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * Test suite for CCJK MCP (Model Context Protocol) service management
@@ -8,7 +8,7 @@ import { createTestTempDir } from '@v2/setup'
  * NOTE: These tests are skipped because they test mock objects rather than real code.
  * They serve as a template for future integration tests.
  */
-describe.skip('CCJK MCP Service Management', () => {
+describe.skip('cCJK MCP Service Management', () => {
   let mockSuite: any
   let testDir: string
   let mcpManager: any
@@ -59,7 +59,7 @@ describe.skip('CCJK MCP Service Management', () => {
     vi.clearAllMocks()
   })
 
-  describe('MCP Service Installation', () => {
+  describe('mCP Service Installation', () => {
     it('should install MCP service successfully', async () => {
       // Arrange
       mcpManager.install.mockResolvedValue({
@@ -88,7 +88,7 @@ describe.skip('CCJK MCP Service Management', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         mcpManager.install(invalidService),
-        /Invalid MCP service configuration/
+        /Invalid MCP service configuration/,
       )
 
       MockFactory.MockVerifier.expectCalled(mcpManager.validate)
@@ -102,7 +102,7 @@ describe.skip('CCJK MCP Service Management', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         mcpManager.install(testMCPService),
-        /already installed/
+        /already installed/,
       )
     })
 
@@ -114,7 +114,7 @@ describe.skip('CCJK MCP Service Management', () => {
         TestDataGenerator.generateMCPService({ id: 'test-db-mcp', category: 'database' }),
       ]
 
-      mcpManager.install.mockImplementation(async (service) => ({
+      mcpManager.install.mockImplementation(async service => ({
         success: true,
         serviceId: service.id,
         configPath: `/path/to/mcp/${service.id}.json`,
@@ -134,7 +134,7 @@ describe.skip('CCJK MCP Service Management', () => {
     })
   })
 
-  describe('MCP Service Management', () => {
+  describe('mCP Service Management', () => {
     beforeEach(() => {
       // Setup installed service
       mcpManager.list.mockResolvedValue([testMCPService])
@@ -216,7 +216,7 @@ describe.skip('CCJK MCP Service Management', () => {
     })
   })
 
-  describe('MCP Service Configuration', () => {
+  describe('mCP Service Configuration', () => {
     it('should get MCP service configuration', async () => {
       // Arrange
       mcpManager.getConfig.mockResolvedValue(testMCPService)
@@ -253,7 +253,7 @@ describe.skip('CCJK MCP Service Management', () => {
       MockFactory.MockVerifier.expectCalledWith(
         mcpManager.updateConfig,
         testMCPService.id,
-        updatedConfig
+        updatedConfig,
       )
     })
 
@@ -266,12 +266,12 @@ describe.skip('CCJK MCP Service Management', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         mcpManager.updateConfig(testMCPService.id, invalidUpdate),
-        /Invalid configuration/
+        /Invalid configuration/,
       )
     })
   })
 
-  describe('MCP Service Health Monitoring', () => {
+  describe('mCP Service Health Monitoring', () => {
     it('should check MCP service health', async () => {
       // Arrange
       mcpManager.health.mockResolvedValue({
@@ -334,7 +334,7 @@ describe.skip('CCJK MCP Service Management', () => {
     })
   })
 
-  describe('MCP Service Uninstallation', () => {
+  describe('mCP Service Uninstallation', () => {
     it('should uninstall MCP service', async () => {
       // Arrange
       mcpManager.uninstall.mockResolvedValue({
@@ -383,12 +383,12 @@ describe.skip('CCJK MCP Service Management', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         mcpManager.uninstall('non-existent-service'),
-        /not found/
+        /not found/,
       )
     })
   })
 
-  describe('Performance and Error Handling', () => {
+  describe('performance and Error Handling', () => {
     it('should handle MCP service timeouts', async () => {
       // Arrange
       const timeoutError = new Error('Operation timed out')
@@ -397,7 +397,7 @@ describe.skip('CCJK MCP Service Management', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         mcpManager.start(testMCPService.id),
-        /timed out/
+        /timed out/,
       )
     })
 
@@ -412,7 +412,7 @@ describe.skip('CCJK MCP Service Management', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => mcpManager.install(testMCPService),
-        maxTime
+        maxTime,
       )
     })
   })

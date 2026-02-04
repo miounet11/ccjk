@@ -7,12 +7,12 @@
 // API 适配器
 export {
   detectApiStatus,
-  getApiStatusSummary,
   getApiConfigOptions,
-  showApiConfigMenu,
-  quickApiSetup,
-  needsApiSetup,
+  getApiStatusSummary,
   getRecommendedSetupMethod,
+  needsApiSetup,
+  quickApiSetup,
+  showApiConfigMenu,
 } from './api-adapter.js'
 
 export type { ApiConfigOption } from './api-adapter.js'
@@ -24,9 +24,11 @@ export async function getInstalledSkills(): Promise<string[]> {
   try {
     const { checkSuperpowersInstalled, getSuperpowersSkills } = await import('../../utils/superpowers/index.js')
     const status = await checkSuperpowersInstalled()
-    if (!status.installed) return []
+    if (!status.installed)
+      return []
     return await getSuperpowersSkills()
-  } catch {
+  }
+  catch {
     return []
   }
 }
@@ -36,7 +38,8 @@ export async function installSkill(skillName: string): Promise<boolean> {
     // TODO: 实现技能安装
     console.log(`Installing skill: ${skillName}`)
     return true
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -44,14 +47,15 @@ export async function installSkill(skillName: string): Promise<boolean> {
 /**
  * MCP 适配器
  */
-export async function getInstalledMcpServers(): Promise<Array<{ name: string; enabled: boolean }>> {
+export async function getInstalledMcpServers(): Promise<Array<{ name: string, enabled: boolean }>> {
   try {
     const { existsSync, readFileSync } = await import('node:fs')
     const { join } = await import('pathe')
     const homeDir = process.env.HOME || process.env.USERPROFILE || ''
     const mcpConfigPath = join(homeDir, '.claude', 'mcp.json')
 
-    if (!existsSync(mcpConfigPath)) return []
+    if (!existsSync(mcpConfigPath))
+      return []
 
     const content = readFileSync(mcpConfigPath, 'utf-8')
     const config = JSON.parse(content)
@@ -61,18 +65,20 @@ export async function getInstalledMcpServers(): Promise<Array<{ name: string; en
       name,
       enabled: serverConfig.enabled !== false,
     }))
-  } catch {
+  }
+  catch {
     return []
   }
 }
 
-export async function searchMcpServers(query: string): Promise<Array<{ name: string; description: string }>> {
+export async function searchMcpServers(query: string): Promise<Array<{ name: string, description: string }>> {
   try {
     const { mcpSearch } = await import('../../commands/mcp-market.js')
     // mcpSearch 直接打印结果，这里返回空数组
     await mcpSearch(query)
     return []
-  } catch {
+  }
+  catch {
     return []
   }
 }
@@ -87,12 +93,14 @@ export async function getInstalledAgents(): Promise<string[]> {
     const homeDir = process.env.HOME || process.env.USERPROFILE || ''
     const agentsDir = join(homeDir, '.claude', 'agents')
 
-    if (!existsSync(agentsDir)) return []
+    if (!existsSync(agentsDir))
+      return []
 
     return readdirSync(agentsDir)
       .filter(f => f.endsWith('.md'))
       .map(f => f.replace('.md', ''))
-  } catch {
+  }
+  catch {
     return []
   }
 }
@@ -100,19 +108,20 @@ export async function getInstalledAgents(): Promise<string[]> {
 /**
  * Hooks 适配器
  */
-export async function getInstalledHooks(): Promise<Array<{ name: string; type: string }>> {
+export async function getInstalledHooks(): Promise<Array<{ name: string, type: string }>> {
   try {
     const { existsSync, readFileSync } = await import('node:fs')
     const { join } = await import('pathe')
     const homeDir = process.env.HOME || process.env.USERPROFILE || ''
     const hooksConfigPath = join(homeDir, '.claude', 'hooks.json')
 
-    if (!existsSync(hooksConfigPath)) return []
+    if (!existsSync(hooksConfigPath))
+      return []
 
     const content = readFileSync(hooksConfigPath, 'utf-8')
     const config = JSON.parse(content)
 
-    const hooks: Array<{ name: string; type: string }> = []
+    const hooks: Array<{ name: string, type: string }> = []
 
     for (const [type, hookList] of Object.entries(config)) {
       if (Array.isArray(hookList)) {
@@ -126,7 +135,8 @@ export async function getInstalledHooks(): Promise<Array<{ name: string; type: s
     }
 
     return hooks
-  } catch {
+  }
+  catch {
     return []
   }
 }
@@ -134,7 +144,7 @@ export async function getInstalledHooks(): Promise<Array<{ name: string; type: s
 /**
  * Session 适配器
  */
-export async function getRecentSessions(): Promise<Array<{ id: string; name: string; date: string }>> {
+export async function getRecentSessions(): Promise<Array<{ id: string, name: string, date: string }>> {
   // TODO: 实现会话历史获取
   return []
 }
@@ -159,11 +169,13 @@ export async function getContextFiles(): Promise<string[]> {
     const cwd = process.cwd()
     const claudeDir = join(cwd, '.claude')
 
-    if (!existsSync(claudeDir)) return []
+    if (!existsSync(claudeDir))
+      return []
 
     return readdirSync(claudeDir)
       .filter(f => f.endsWith('.md') || f.endsWith('.txt'))
-  } catch {
+  }
+  catch {
     return []
   }
 }
@@ -175,9 +187,9 @@ export async function runDiagnostics(): Promise<{
   passed: number
   failed: number
   warnings: number
-  details: Array<{ name: string; status: 'pass' | 'fail' | 'warn'; message: string }>
+  details: Array<{ name: string, status: 'pass' | 'fail' | 'warn', message: string }>
 }> {
-  const details: Array<{ name: string; status: 'pass' | 'fail' | 'warn'; message: string }> = []
+  const details: Array<{ name: string, status: 'pass' | 'fail' | 'warn', message: string }> = []
 
   // 检查 API 配置
   const { detectApiStatus } = await import('./api-adapter.js')
@@ -201,7 +213,7 @@ export async function runDiagnostics(): Promise<{
 
   // 检查 Node.js 版本
   const nodeVersion = process.version
-  const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0], 10)
+  const majorVersion = Number.parseInt(nodeVersion.slice(1).split('.')[0], 10)
   details.push({
     name: 'Node.js Version',
     status: majorVersion >= 18 ? 'pass' : 'fail',
@@ -235,7 +247,8 @@ export async function checkForUpdates(): Promise<{
       currentVersion: version,
       latestVersion: version,
     }
-  } catch {
+  }
+  catch {
     return {
       hasUpdates: false,
       currentVersion: 'unknown',

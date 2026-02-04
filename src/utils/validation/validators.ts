@@ -77,7 +77,7 @@ export function isFunction(value: any): value is Function {
  * Check if value is a promise
  */
 export function isPromise(value: any): value is Promise<any> {
-  return value instanceof Promise || (isObject(value) && isFunction(value.then))
+  return value instanceof Promise || (isObject(value) && isFunction((value as any).then))
 }
 
 /**

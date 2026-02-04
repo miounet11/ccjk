@@ -58,7 +58,7 @@ export interface CollectedOutput {
   stdout: string
   stderr: string
   combined: string
-  exitCode: number | null
+  exitCode: number | null | undefined
   duration: number
   lines: {
     stdout: string[]
@@ -210,7 +210,7 @@ export class TaskOutputTool extends EventEmitter {
 
       child.stdout?.on('data', (data) => {
         const text = data.toString()
-        const lines = text.split('\n').filter(l => l.trim())
+        const lines = text.split('\n').filter((l: string) => l.trim())
 
         for (const line of lines) {
           stdoutLines.push(line)
@@ -227,7 +227,7 @@ export class TaskOutputTool extends EventEmitter {
 
       child.stderr?.on('data', (data) => {
         const text = data.toString()
-        const lines = text.split('\n').filter(l => l.trim())
+        const lines = text.split('\n').filter((l: string) => l.trim())
 
         for (const line of lines) {
           stderrLines.push(line)
@@ -252,7 +252,7 @@ export class TaskOutputTool extends EventEmitter {
             source: 'bash',
             level: code === 0 ? 'success' : 'error',
             content: `Command completed with exit code ${code}`,
-            metadata: { taskId, exitCode: code, duration },
+            metadata: { taskId, exitCode: code ?? undefined, duration },
           })
         }
 
@@ -260,7 +260,7 @@ export class TaskOutputTool extends EventEmitter {
           stdout: stdoutLines.join('\n'),
           stderr: stderrLines.join('\n'),
           combined: combinedLines.join('\n'),
-          exitCode: code,
+          exitCode: code ?? undefined,
           duration,
           lines: {
             stdout: stdoutLines,
@@ -318,7 +318,7 @@ export class TaskOutputTool extends EventEmitter {
 
     child.stdout?.on('data', (data) => {
       const text = data.toString(encoding)
-      const lines = text.split('\n').filter(l => l.trim())
+      const lines = text.split('\n').filter((l: string) => l.trim())
 
       for (const line of lines) {
         stdoutLines.push(line)
@@ -339,7 +339,7 @@ export class TaskOutputTool extends EventEmitter {
 
     child.stderr?.on('data', (data) => {
       const text = data.toString(encoding)
-      const lines = text.split('\n').filter(l => l.trim())
+      const lines = text.split('\n').filter((l: string) => l.trim())
 
       for (const line of lines) {
         stderrLines.push(line)
@@ -372,7 +372,7 @@ export class TaskOutputTool extends EventEmitter {
           stdout: stdoutLines.join('\n'),
           stderr: stderrLines.join('\n'),
           combined: combinedLines.join('\n'),
-          exitCode: code,
+          exitCode: code ?? undefined,
           duration,
           lines: {
             stdout: stdoutLines,

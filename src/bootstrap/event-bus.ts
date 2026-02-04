@@ -28,7 +28,7 @@ export interface EventHandlerRegistration {
 export interface EventEmitResult {
   event: StartupEvent
   handlersExecuted: number
-  errors: Array<{ handler: string; error: Error }>
+  errors: Array<{ handler: string, error: Error }>
   duration: number
 }
 
@@ -112,10 +112,12 @@ export class StartupEventBus {
    */
   off(event: StartupEvent, handler: StartupHandler): boolean {
     const handlers = this.handlers.get(event)
-    if (!handlers) return false
+    if (!handlers)
+      return false
 
     const index = handlers.findIndex(reg => reg.handler === handler)
-    if (index === -1) return false
+    if (index === -1)
+      return false
 
     handlers.splice(index, 1)
     return true

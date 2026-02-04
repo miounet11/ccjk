@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, TestDataGenerator, AssertionHelpers } from '@helpers'
+import { AssertionHelpers, MockFactory, TestDataGenerator } from '@helpers'
 import { createTestTempDir } from '@v2/setup'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * Test suite for CCJK workflow execution engine
@@ -8,7 +8,7 @@ import { createTestTempDir } from '@v2/setup'
  * NOTE: These tests are skipped because they test mock objects rather than real code.
  * They serve as a template for future integration tests.
  */
-describe.skip('CCJK Workflow Execution Engine', () => {
+describe.skip('cCJK Workflow Execution Engine', () => {
   let mockSuite: any
   let testDir: string
   let workflowEngine: any
@@ -75,7 +75,7 @@ describe.skip('CCJK Workflow Execution Engine', () => {
     vi.clearAllMocks()
   })
 
-  describe('Workflow Validation', () => {
+  describe('workflow Validation', () => {
     it('should validate workflow structure', () => {
       // Arrange
       const validWorkflow = testWorkflow
@@ -104,7 +104,7 @@ describe.skip('CCJK Workflow Execution Engine', () => {
         // Simulate circular dependency detection
         const stepIds = workflow.steps.map(s => s.id)
         const hasCycle = workflow.steps.some(step =>
-          step.dependsOn?.some(dep => dep === step.id)
+          step.dependsOn?.includes(step.id),
         )
         return !hasCycle
       })
@@ -117,7 +117,7 @@ describe.skip('CCJK Workflow Execution Engine', () => {
     })
   })
 
-  describe('Workflow Execution', () => {
+  describe('workflow Execution', () => {
     it('should execute workflow steps in correct order', async () => {
       // Arrange
       const executionResults = []
@@ -168,7 +168,8 @@ describe.skip('CCJK Workflow Execution Engine', () => {
               timestamp: Date.now(),
             })
             break // Stop execution on failure
-          } else {
+          }
+          else {
             results.push({
               stepId: step.id,
               status: 'completed',
@@ -227,7 +228,7 @@ describe.skip('CCJK Workflow Execution Engine', () => {
     })
   })
 
-  describe('Workflow Status and Control', () => {
+  describe('workflow Status and Control', () => {
     it('should track workflow execution status', async () => {
       // Arrange
       const statusUpdates = ['pending', 'running', 'completed']
@@ -274,7 +275,7 @@ describe.skip('CCJK Workflow Execution Engine', () => {
     })
   })
 
-  describe('Performance and Resource Management', () => {
+  describe('performance and Resource Management', () => {
     it('should complete workflow execution within reasonable time', async () => {
       // Arrange
       const maxExecutionTime = 5000 // 5 seconds
@@ -286,7 +287,7 @@ describe.skip('CCJK Workflow Execution Engine', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => workflowEngine.execute(testWorkflow),
-        maxExecutionTime
+        maxExecutionTime,
       )
     })
 
@@ -323,7 +324,7 @@ describe.skip('CCJK Workflow Execution Engine', () => {
     })
   })
 
-  describe('Event Handling and Monitoring', () => {
+  describe('event Handling and Monitoring', () => {
     it('should emit events during workflow execution', async () => {
       // Arrange
       const events = []
@@ -336,8 +337,10 @@ describe.skip('CCJK Workflow Execution Engine', () => {
         const stepStartCallback = events.find(e => e.event === 'step:start')?.callback
         const stepCompleteCallback = events.find(e => e.event === 'step:complete')?.callback
 
-        if (stepStartCallback) stepStartCallback({ stepId: 'step-1' })
-        if (stepCompleteCallback) stepCompleteCallback({ stepId: 'step-1', status: 'completed' })
+        if (stepStartCallback)
+          stepStartCallback({ stepId: 'step-1' })
+        if (stepCompleteCallback)
+          stepCompleteCallback({ stepId: 'step-1', status: 'completed' })
 
         return { status: 'success', results: [] }
       })

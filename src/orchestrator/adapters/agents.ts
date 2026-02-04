@@ -3,9 +3,8 @@
  * 将 Agents 系统集成到 Orchestrator
  */
 
-import type { Task, Context, AgentState, EventType } from '../types'
 import type { TaskExecutor } from '../lifecycle'
-import type { IEventBus } from '../types'
+import type { AgentState, Context, EventType, IEventBus, Task } from '../types'
 
 /**
  * Agent 配置
@@ -178,7 +177,8 @@ export class AgentsAdapter {
         }
 
         return instance
-      } catch (error) {
+      }
+      catch (error) {
         // 终止 Agent
         await this.terminateAgent(task.name, context)
         throw error
@@ -199,7 +199,8 @@ export class AgentsAdapter {
 
     try {
       await instance.terminate()
-    } finally {
+    }
+    finally {
       this.instances.delete(name)
 
       // 更新上下文中的 Agent 状态

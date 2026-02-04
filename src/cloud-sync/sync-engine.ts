@@ -1055,8 +1055,9 @@ export class SyncEngine {
       'mcp-configs': 2,
       'skills': 3,
       'workflows': 4,
+      'memories': 5,
     }
-    return priorities[item.type] || 5
+    return priorities[item.type] || 6
   }
 
   /**

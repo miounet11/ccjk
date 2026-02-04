@@ -5,72 +5,73 @@
  * and semantic validation.
  */
 
-import {
-  DSLNode,
-  DSLNodeType,
-  ProtocolNode,
-  LayerNode,
+import type {
+  CognitiveProtocol,
   ConstraintNode,
-  PatternNode,
-  TransformNode,
-  TraceNode,
-  ReferenceNode,
-  SourceLocation,
+  LayerNode,
   ParserConfig,
+  PatternNode,
+  ProtocolNode,
+  ReferenceNode,
   Skill,
   SkillMetadata,
+  SourceLocation,
+  TraceNode,
+} from './types.js'
+import {
+  DSLNodeType,
   Layer,
   SkillError,
   SkillErrorType,
-} from './types.js';
+} from './types.js'
 
 /**
  * JSON-based DSL structure
  */
 interface ProtocolJSON {
-  name: string;
-  coreQuestion: string;
-  layers: LayerJSON[];
-  traces: TraceJSON[];
-  references: Record<string, string>;
+  name: string
+  coreQuestion: string
+  layers: LayerJSON[]
+  traces: TraceJSON[]
+  references: Record<string, string>
 }
 
 interface LayerJSON {
-  layer: string;
-  transforms?: TransformJSON[];
-  constraints?: ConstraintJSON[];
-  patterns?: PatternJSON[];
+  layer: string
+  transforms?: TransformJSON[]
+  constraints?: ConstraintJSON[]
+  patterns?: PatternJSON[]
 }
 
 interface TransformJSON {
-  from: string;
-  to: string;
-  rule?: string;
+  from: string
+  to: string
+  rule?: string
 }
 
 interface ConstraintJSON {
-  condition: string;
-  validation?: string;
-  message?: string;
+  condition: string
+  validation?: string
+  message?: string
 }
 
 interface PatternJSON {
-  name: string;
-  implementation?: string;
-  examples?: string[];
+  name: string
+  implementation?: string
+  examples?: string[]
 }
 
 interface TraceJSON {
-  direction: 'up' | 'down';
-  steps: string[];
+  direction: 'up' | 'down'
+  steps: string[]
 }
 
 /**
  * Simplified parser for JSON-based DSL
  */
 export class Parser {
-  private config: ParserConfig;
-  private input: string;
+  private config: ParserConfig
+  private input: string
 
   constructor(
     input: string,
@@ -79,31 +80,32 @@ export class Parser {
       allowUnknownNodes: false,
       validateSemantics: true,
       maxDepth: 10,
-    }
+    },
   ) {
-    this.input = input.trim();
-    this.config = config;
+    this.input = input.trim()
+    this.config = config
   }
 
   parse(filename?: string): ProtocolNode {
     try {
       // Try to parse as JSON
-      const json = JSON.parse(this.input) as ProtocolJSON;
+      const json = JSON.parse(this.input) as ProtocolJSON
 
       // Validate structure
-      this.validateProtocol(json);
+      this.validateProtocol(json)
 
       // Build AST
-      return this.buildAST(json, filename);
-    } catch (error) {
+      return this.buildAST(json, filename)
+    }
+    catch (error) {
       if (error instanceof SyntaxError) {
         throw new SkillError(
           SkillErrorType.PARSE_ERROR,
           `Invalid JSON syntax: ${error.message}`,
-          { line: 1, column: 1, file: filename }
-        );
+          { line: 1, column: 1, file: filename },
+        )
       }
-      throw error;
+      throw error
     }
   }
 
@@ -112,24 +114,24 @@ export class Parser {
       throw new SkillError(
         SkillErrorType.PARSE_ERROR,
         'Protocol must have a name',
-        { line: 1, column: 1 }
-      );
+        { line: 1, column: 1 },
+      )
     }
 
     if (!json.coreQuestion || typeof json.coreQuestion !== 'string') {
       throw new SkillError(
         SkillErrorType.PARSE_ERROR,
         'Protocol must have a coreQuestion',
-        { line: 1, column: 1 }
-      );
+        { line: 1, column: 1 },
+      )
     }
 
     if (!Array.isArray(json.layers)) {
       throw new SkillError(
         SkillErrorType.PARSE_ERROR,
         'Protocol must have layers array',
-        { line: 1, column: 1 }
-      );
+        { line: 1, column: 1 },
+      )
     }
   }
 
@@ -138,19 +140,19 @@ export class Parser {
       line: 1,
       column: 1,
       file: filename,
-    };
+    }
 
-    const layers: LayerNode[] = json.layers.map((layerJson) =>
-      this.buildLayerNode(layerJson, location)
-    );
+    const layers: LayerNode[] = json.layers.map(layerJson =>
+      this.buildLayerNode(layerJson, location),
+    )
 
-    const traces: TraceNode[] = (json.traces || []).map((traceJson) =>
-      this.buildTraceNode(traceJson, location)
-    );
+    const traces: TraceNode[] = (json.traces || []).map(traceJson =>
+      this.buildTraceNode(traceJson, location),
+    )
 
-    const references: ReferenceNode[] = Object.keys(json.references || {}).map((key) =>
-      this.buildReferenceNode(key, json.references![key], location)
-    );
+    const references: ReferenceNode[] = Object.keys(json.references || {}).map(key =>
+      this.buildReferenceNode(key, json.references![key], location),
+    )
 
     return {
       type: DSLNodeType.PROTOCOL,
@@ -160,19 +162,19 @@ export class Parser {
       layers,
       traces,
       references,
-    };
+    }
   }
 
   private buildLayerNode(json: LayerJSON, location: SourceLocation): LayerNode {
-    const layer = json.layer as Layer;
+    const layer = json.layer as Layer
 
-    const constraints: ConstraintNode[] = (json.constraints || []).map((c) =>
-      this.buildConstraintNode(c, location)
-    );
+    const constraints: ConstraintNode[] = (json.constraints || []).map(c =>
+      this.buildConstraintNode(c, location),
+    )
 
-    const patterns: PatternNode[] = (json.patterns || []).map((p) =>
-      this.buildPatternNode(p, location)
-    );
+    const patterns: PatternNode[] = (json.patterns || []).map(p =>
+      this.buildPatternNode(p, location),
+    )
 
     return {
       type: DSLNodeType.LAYER,
@@ -181,7 +183,7 @@ export class Parser {
       layer,
       constraints,
       patterns,
-    };
+    }
   }
 
   private buildConstraintNode(json: ConstraintJSON, location: SourceLocation): ConstraintNode {
@@ -192,7 +194,7 @@ export class Parser {
       condition: json.condition,
       validation: json.validation || '',
       errorMessage: json.message || '',
-    };
+    }
   }
 
   private buildPatternNode(json: PatternJSON, location: SourceLocation): PatternNode {
@@ -203,7 +205,7 @@ export class Parser {
       pattern: json.name,
       implementation: json.implementation || '',
       examples: json.examples || [],
-    };
+    }
   }
 
   private buildTraceNode(json: TraceJSON, location: SourceLocation): TraceNode {
@@ -214,7 +216,7 @@ export class Parser {
       direction: json.direction,
       target: '',
       steps: json.steps,
-    };
+    }
   }
 
   private buildReferenceNode(key: string, value: string, location: SourceLocation): ReferenceNode {
@@ -225,7 +227,7 @@ export class Parser {
       key,
       value,
       description: '',
-    };
+    }
   }
 }
 
@@ -244,11 +246,11 @@ export function createSkill(ast: ProtocolNode, source: string): Skill {
     layer: Layer.L2, // Default to L2
     priority: 50,
     dependencies: [],
-  };
+  }
 
   // Determine primary layer from layers
   if (ast.layers.length > 0) {
-    metadata.layer = ast.layers[0].layer;
+    metadata.layer = ast.layers[0].layer
   }
 
   // Create cognitive protocol
@@ -257,20 +259,21 @@ export function createSkill(ast: ProtocolNode, source: string): Skill {
     traceUp: '',
     traceDown: '',
     quickReference: {},
-  };
+  }
 
   // Extract trace information
   for (const trace of ast.traces) {
     if (trace.direction === 'up') {
-      protocol.traceUp = trace.steps.join(' → ');
-    } else if (trace.direction === 'down') {
-      protocol.traceDown = trace.steps.join(' → ');
+      protocol.traceUp = trace.steps.join(' → ')
+    }
+    else if (trace.direction === 'down') {
+      protocol.traceDown = trace.steps.join(' → ')
     }
   }
 
   // Extract references
   for (const ref of ast.references) {
-    protocol.quickReference[ref.key] = ref.value;
+    protocol.quickReference[ref.key] = ref.value
   }
 
   return {
@@ -278,5 +281,5 @@ export function createSkill(ast: ProtocolNode, source: string): Skill {
     protocol,
     ast,
     source,
-  };
+  }
 }

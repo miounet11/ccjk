@@ -11,9 +11,9 @@
  */
 
 import type {
-  OrchestratorEventType,
-  OrchestratorEvent,
   ExecutionContext,
+  OrchestratorEvent,
+  OrchestratorEventType,
 } from './types'
 
 /**
@@ -227,7 +227,7 @@ export class EventBus {
     }
 
     // Wildcard match
-    for (const [pattern, listeners] of this.listeners.entries()) {
+    for (const [pattern, listeners] of Array.from(this.listeners.entries())) {
       if (typeof pattern === 'string' && pattern.includes('*')) {
         if (this.matchWildcard(event, pattern)) {
           matching.push(...listeners)
@@ -398,7 +398,7 @@ export class ScopedEventBus {
   /**
    * Get scoped event name
    */
-  private getScopedEvent(event: EventType | string): string {
+  private getScopedEvent(event: OrchestratorEventType | string): string {
     return `${this.namespace}.${event}`
   }
 

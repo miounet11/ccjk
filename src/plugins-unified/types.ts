@@ -150,21 +150,21 @@ export interface UpdateResult {
  */
 export interface PluginSourceAdapter {
   /** Get the source type this adapter handles */
-  getSourceType(): PluginSourceType
+  getSourceType: () => PluginSourceType
   /** Search for plugins */
-  search(options: SearchOptions): Promise<UnifiedPlugin[]>
+  search: (options: SearchOptions) => Promise<UnifiedPlugin[]>
   /** Get a specific plugin by ID */
-  getPlugin(id: string): Promise<UnifiedPlugin | null>
+  getPlugin: (id: string) => Promise<UnifiedPlugin | null>
   /** Install a plugin */
-  install(id: string, options: InstallOptions): Promise<InstallResult>
+  install: (id: string, options: InstallOptions) => Promise<InstallResult>
   /** Uninstall a plugin */
-  uninstall(id: string): Promise<UninstallResult>
+  uninstall: (id: string) => Promise<UninstallResult>
   /** Update a plugin */
-  update(id: string): Promise<UpdateResult>
+  update: (id: string) => Promise<UpdateResult>
   /** List installed plugins from this source */
-  listInstalled(): Promise<UnifiedPlugin[]>
+  listInstalled: () => Promise<UnifiedPlugin[]>
   /** Check if a plugin is installed */
-  isInstalled(id: string): Promise<boolean>
+  isInstalled: (id: string) => Promise<boolean>
 }
 
 /**

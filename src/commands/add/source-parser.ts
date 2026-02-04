@@ -7,8 +7,8 @@
  * - Local: ./path, ../path, /absolute/path, ~/path
  */
 
-import path from 'node:path'
 import os from 'node:os'
+import path from 'node:path'
 
 export type SourceType = 'github' | 'npm' | 'local'
 
@@ -90,7 +90,7 @@ function parseGitHubSource(source: string): GitHubSourceInfo | null {
   }
 
   // 格式: owner/repo (简写，需要确认不是本地路径)
-  const shortMatch = source.match(/^([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_.-]+)(?:#(.+))?$/)
+  const shortMatch = source.match(/^([\w-]+)\/([\w.-]+)(?:#(.+))?$/)
   if (shortMatch && !source.startsWith('.') && !source.startsWith('/') && !source.startsWith('~')) {
     return {
       type: 'github',
@@ -110,10 +110,10 @@ function parseGitHubSource(source: string): GitHubSourceInfo | null {
 function parseLocalSource(source: string): LocalSourceInfo | null {
   // 检查是否是本地路径特征
   if (
-    source.startsWith('./') ||
-    source.startsWith('../') ||
-    source.startsWith('/') ||
-    source.startsWith('~/')
+    source.startsWith('./')
+    || source.startsWith('../')
+    || source.startsWith('/')
+    || source.startsWith('~/')
   ) {
     let absolutePath: string
 
@@ -135,7 +135,7 @@ function parseLocalSource(source: string): LocalSourceInfo | null {
   }
 
   // 检查是否是 Windows 绝对路径 (C:\path)
-  if (/^[a-zA-Z]:[\\/]/.test(source)) {
+  if (/^[a-z]:[\\/]/i.test(source)) {
     return {
       type: 'local',
       absolutePath: path.resolve(source),
@@ -186,8 +186,8 @@ function parseNpmSource(source: string): NpmSourceInfo {
  * 验证 GitHub 仓库格式
  */
 export function isValidGitHubRepo(owner: string, repo: string): boolean {
-  const ownerRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/
-  const repoRegex = /^[a-zA-Z0-9._-]+$/
+  const ownerRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i
+  const repoRegex = /^[\w.-]+$/
   return ownerRegex.test(owner) && repoRegex.test(repo)
 }
 

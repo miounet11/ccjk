@@ -58,7 +58,7 @@ export class TemplatesClient {
     const path = query ? `/api/v8/templates?${query}` : '/api/v8/templates'
 
     const response = await this.fetch(path)
-    return response.json()
+    return response.json() as Promise<ListTemplatesResponse>
   }
 
   /**
@@ -69,7 +69,7 @@ export class TemplatesClient {
    */
   async get(templateId: string): Promise<GetTemplateResponse> {
     const response = await this.fetch(`/api/v8/templates/${templateId}`)
-    return response.json()
+    return response.json() as Promise<GetTemplateResponse>
   }
 
   /**
@@ -84,7 +84,7 @@ export class TemplatesClient {
       body: JSON.stringify(request),
     })
 
-    return response.json()
+    return response.json() as Promise<BatchGetTemplatesResponse>
   }
 
   /**
@@ -103,7 +103,7 @@ export class TemplatesClient {
       searchParams.set('limit', String(params.limit))
 
     const response = await this.fetch(`/api/v8/templates/search?${searchParams}`)
-    return response.json()
+    return response.json() as Promise<ListTemplatesResponse>
   }
 
   /**
@@ -114,7 +114,7 @@ export class TemplatesClient {
    */
   async featured(limit = 10): Promise<ListTemplatesResponse> {
     const response = await this.fetch(`/api/v8/templates/featured?limit=${limit}`)
-    return response.json()
+    return response.json() as Promise<ListTemplatesResponse>
   }
 
   /**
@@ -125,7 +125,7 @@ export class TemplatesClient {
    */
   async popular(limit = 20): Promise<ListTemplatesResponse> {
     const response = await this.fetch(`/api/v8/templates/popular?limit=${limit}`)
-    return response.json()
+    return response.json() as Promise<ListTemplatesResponse>
   }
 
   /**
@@ -211,8 +211,8 @@ export class TemplatesClient {
     let message = response.statusText
 
     try {
-      const body = await response.json()
-      if (body.message) {
+      const body = await response.json() as { message?: string }
+      if (body && typeof body === 'object' && 'message' in body && body.message) {
         message = body.message
       }
     }

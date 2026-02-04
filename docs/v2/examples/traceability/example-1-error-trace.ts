@@ -4,7 +4,7 @@
  * Demonstrates how to trace errors through the three-layer framework
  */
 
-import { TraceabilityAnalyzer, ErrorLayer, DomainConstraint, SolutionPattern } from '@ccjk/v2/brain'
+import { ErrorLayer, TraceabilityAnalyzer } from '@ccjk/v2/brain'
 
 /**
  * Example: Analyzing a TypeScript compilation error
@@ -14,7 +14,7 @@ export async function errorTraceExample() {
 
   // Simulated TypeScript error
   const error = {
-    message: "TypeError: Cannot read property 'map' of undefined",
+    message: 'TypeError: Cannot read property \'map\' of undefined',
     stack: `
       at processFiles (src/utils/file-processor.ts:42:15)
       at main (src/index.ts:18:5)

@@ -40,7 +40,7 @@ export async function executeCommand(
       cwd: options.cwd,
       env: { ...process.env, ...options.env },
       timeout: options.timeout,
-      shell: options.shell,
+      shell: typeof options.shell === 'string' ? options.shell : (options.shell ? '/bin/sh' : undefined),
       encoding: options.encoding || 'utf8',
       maxBuffer: options.maxBuffer || 1024 * 1024 * 10, // 10MB default
     }

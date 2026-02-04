@@ -190,11 +190,17 @@ export class ErrorBoundary {
   static getSuggestion(error: CcjkError): string {
     const suggestions: Record<ErrorCode, string> = {
       CONFIG_INVALID: 'Run `ccjk doctor` to diagnose configuration issues',
+      CONFIG_MISSING: 'Run `ccjk init` to create a configuration file',
       API_KEY_MISSING: 'Run `ccjk api` to configure API key',
+      API_KEY_INVALID: 'Check your API key and run `ccjk api` to reconfigure',
       NETWORK_ERROR: 'Check your internet connection and try again',
+      NETWORK_TIMEOUT: 'The request timed out, check your connection and try again',
       FILE_NOT_FOUND: 'Verify the file path and run `ccjk doctor`',
+      FILE_READ_ERROR: 'Check file permissions and try again',
+      FILE_WRITE_ERROR: 'Check file permissions and disk space',
       PARSE_ERROR: 'The configuration file is corrupted, run `ccjk doctor --fix`',
       VALIDATION_ERROR: 'Check your input and try again',
+      PERMISSION_DENIED: 'Check file permissions or run with appropriate privileges',
       LOCK_FILE_EXISTS: 'Another CCJK instance is running, wait a moment or run `ccjk --force-unlock`',
       VERSION_INCOMPATIBLE: `Update CCJK: npm update -g ccjk`,
       DEPENDENCY_MISSING: 'Run `ccjk doctor` to check dependencies',

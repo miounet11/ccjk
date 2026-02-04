@@ -2,11 +2,12 @@
  * Tests for AgentOrchestrator
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AgentOrchestrator, type Agent } from '../../src/agents/orchestrator'
+import type { Agent } from '../../src/agents/orchestrator'
 import type { Task } from '../../src/types/agent'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { AgentOrchestrator } from '../../src/agents/orchestrator'
 
-describe('AgentOrchestrator', () => {
+describe('agentOrchestrator', () => {
   let orchestrator: AgentOrchestrator
 
   beforeEach(() => {
@@ -51,7 +52,7 @@ describe('AgentOrchestrator', () => {
       expect(agents.length).toBeGreaterThan(0)
       // Should include an agent with typescript/cli capabilities
       const hasRelevantAgent = agents.some(a =>
-        a.capabilities.some(c => c.includes('typescript') || c.includes('cli'))
+        a.capabilities.some(c => c.includes('typescript') || c.includes('cli')),
       )
       expect(hasRelevantAgent).toBe(true)
     })
@@ -70,7 +71,7 @@ describe('AgentOrchestrator', () => {
       expect(agents.length).toBeGreaterThan(0)
       // Should include an agent with i18n capabilities
       const hasI18nAgent = agents.some(a =>
-        a.capabilities.some(c => c.toLowerCase().includes('i18n') || c.toLowerCase().includes('translation'))
+        a.capabilities.some(c => c.toLowerCase().includes('i18n') || c.toLowerCase().includes('translation')),
       )
       expect(hasI18nAgent).toBe(true)
     })
@@ -237,7 +238,7 @@ describe('AgentOrchestrator', () => {
       // Create orchestrator that will fail
       const failingOrchestrator = new AgentOrchestrator()
       vi.spyOn(failingOrchestrator as any, 'executeAgents').mockRejectedValue(
-        new Error('Agent execution failed')
+        new Error('Agent execution failed'),
       )
 
       const agents: Agent[] = [

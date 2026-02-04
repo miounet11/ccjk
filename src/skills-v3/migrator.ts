@@ -10,17 +10,16 @@
 
 import type {
   LocalizedString,
-  MigrationResult,
   MigrationReport,
+  MigrationResult,
   SkillCategory,
   SkillV1,
   SkillV2,
   SkillV3,
   SkillVersion,
 } from './types'
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
-import { dirname, join, basename } from 'pathe'
-import { SkillError, SkillErrorType } from './types'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { basename, dirname, join } from 'pathe'
 
 // ============================================================================
 // Constants
@@ -61,13 +60,13 @@ export class SkillMigrator {
     try {
       // Convert name from V1 format (Record<SupportedLang, string>) to V3 format
       const name: LocalizedString = {
-        en: typeof v1Skill.name === 'string' ? v1Skill.name : (v1Skill.name.en || ''),
+        'en': typeof v1Skill.name === 'string' ? v1Skill.name : (v1Skill.name.en || ''),
         'zh-CN': typeof v1Skill.name === 'string' ? v1Skill.name : (v1Skill.name['zh-CN'] || ''),
       }
 
       // Convert description
       const description: LocalizedString = {
-        en: typeof v1Skill.description === 'string'
+        'en': typeof v1Skill.description === 'string'
           ? v1Skill.description
           : (v1Skill.description.en || ''),
         'zh-CN': typeof v1Skill.description === 'string'
@@ -124,11 +123,11 @@ export class SkillMigrator {
         version: meta.version || '1.0.0',
         metadata: {
           name: {
-            en: meta.name,
+            'en': meta.name,
             'zh-CN': meta.name,
           },
           description: {
-            en: meta.description,
+            'en': meta.description,
             'zh-CN': meta.description,
           },
           category: this.v2LayerToCategory(meta.layer),
@@ -238,7 +237,6 @@ export class SkillMigrator {
     }
   }
 
-
   /**
    * Migrate directory of skills
    */
@@ -340,9 +338,12 @@ export class SkillMigrator {
 
     // Other metadata
     lines.push(`category: ${skill.metadata.category}`)
-    if (skill.metadata.author) lines.push(`author: ${skill.metadata.author}`)
-    if (skill.metadata.difficulty) lines.push(`difficulty: ${skill.metadata.difficulty}`)
-    if (skill.metadata.priority) lines.push(`priority: ${skill.metadata.priority}`)
+    if (skill.metadata.author)
+      lines.push(`author: ${skill.metadata.author}`)
+    if (skill.metadata.difficulty)
+      lines.push(`difficulty: ${skill.metadata.difficulty}`)
+    if (skill.metadata.priority)
+      lines.push(`priority: ${skill.metadata.priority}`)
     if (skill.metadata.autoActivate !== undefined) {
       lines.push(`auto_activate: ${skill.metadata.autoActivate}`)
     }
@@ -456,8 +457,10 @@ export class SkillMigrator {
    * Convert V2 priority to V3 priority
    */
   private v2PriorityToV3(priority: number): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 {
-    if (priority < 1) return 1
-    if (priority > 10) return 10
+    if (priority < 1)
+      return 1
+    if (priority > 10)
+      return 10
     return priority as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
   }
 
@@ -535,4 +538,3 @@ export async function migrateDirectory(
 ): Promise<MigrationReport> {
   return getSkillMigrator().migrateDirectory(dirPath, options)
 }
-

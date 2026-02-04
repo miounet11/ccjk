@@ -3,10 +3,10 @@
  * Detects frameworks like React, Next.js, Vue, Angular, NestJS, etc.
  */
 
+import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
+import consola from 'consola'
 import fs from 'fs-extra'
 import path from 'pathe'
-import consola from 'consola'
-import type { LanguageDetection, FrameworkDetectionResult } from './types.js'
 
 const logger = consola.withTag('typescript-analyzer')
 
@@ -163,7 +163,8 @@ export async function analyzeTypeScriptProject(
     if (await fs.pathExists(packageJsonPath)) {
       packageJson = await fs.readJson(packageJsonPath)
     }
-  } catch (error) {
+  }
+  catch (error) {
     logger.warn('Failed to read package.json:', error)
   }
 
@@ -245,12 +246,29 @@ export async function analyzeTypeScriptProject(
 function getFrameworkCategory(framework: string): string {
   const categories = {
     frontend: [
-      'next.js', 'nuxt', 'sveltekit', 'astro', 'solidstart', 'qwik',
-      'remix', 'gatsby', 'vue', 'angular', 'react', 'preact',
-      'solidjs', 'svelte', 'ionic',
+      'next.js',
+      'nuxt',
+      'sveltekit',
+      'astro',
+      'solidstart',
+      'qwik',
+      'remix',
+      'gatsby',
+      'vue',
+      'angular',
+      'react',
+      'preact',
+      'solidjs',
+      'svelte',
+      'ionic',
     ],
     backend: [
-      'nest.js', 'express', 'fastify', 'koa', 'adonisjs', 'feathers',
+      'nest.js',
+      'express',
+      'fastify',
+      'koa',
+      'adonisjs',
+      'feathers',
       'meteor',
     ],
     desktop: ['electron'],

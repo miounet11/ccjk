@@ -5,9 +5,11 @@
  * 集成 Plan 持久化和上下文清理建议
  */
 
-import { getCompactAdvisor, type ContextState } from '../context/compact-advisor.js'
+import type { ContextState } from '../context/compact-advisor.js'
+import type { PlanDocument, PlanTask } from './plan-persistence.js'
+import { getCompactAdvisor } from '../context/compact-advisor.js'
 import { estimateTokens } from '../utils/context/token-estimator.js'
-import { getPlanPersistenceManager, type PlanDocument, type PlanTask } from './plan-persistence.js'
+import { getPlanPersistenceManager } from './plan-persistence.js'
 
 // ============================================================================
 // Types
@@ -150,7 +152,7 @@ export function extractTasksFromPlan(content: string): PlanTask[] {
   // 匹配 Markdown 任务列表格式
   // - [ ] 任务标题
   // - [x] 已完成任务
-  const taskPattern = /^[-*]\s*\[([ xX])\]\s*(.+)$/gm
+  const taskPattern = /^[-*]\s*\[([ x])\]\s*(.+)$/gim
   let match
 
   while ((match = taskPattern.exec(content)) !== null) {
@@ -170,7 +172,7 @@ export function extractTasksFromPlan(content: string): PlanTask[] {
     }
 
     tasks.push({
-      title: title.replace(/\((high|medium|low|高|中|低)\)/gi, '').trim(),
+      title: title.replace(/\((high|medium|low|[高中低])\)/gi, '').trim(),
       completed,
       priority,
     })

@@ -8,7 +8,6 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { version } from '../../package.json'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
-import { detectSmartDefaults, needsApiKeyPrompt } from '../config/smart-defaults'
 import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
 import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
@@ -66,6 +65,8 @@ export interface InitOptions {
   skipBanner?: boolean
   skipPrompt?: boolean
   codeType?: CodeToolType | string // Accept abbreviations like 'cc', 'cx'
+  smart?: boolean // New: Enable smart generation mode
+  yes?: boolean // Skip confirmation prompts
   // Non-interactive parameters
   configAction?: 'new' | 'backup' | 'merge' | 'docs-only' | 'skip'
   apiType?: 'auth_token' | 'api_key' | 'ccr_proxy' | 'skip'
@@ -289,91 +290,94 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
  */
 export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
   try {
-    console.log(ansis.bold.green('\n🚀 CCJK One-Click Installation\n'));
+    console.log(ansis.bold.green('\n🚀 CCJK One-Click Installation\n'))
 
     // Step 1: Detect smart defaults
-    const { smartDefaults } = await import('../config/smart-defaults');
-    const defaults = await smartDefaults.detect();
+    const { smartDefaults } = await import('../config/smart-defaults')
+    const defaults = await smartDefaults.detect()
 
     // Step 2: Validate detected defaults
-    const validation = smartDefaults.validateDefaults(defaults);
+    const validation = smartDefaults.validateDefaults(defaults)
     if (!validation.valid) {
-      console.log(ansis.yellow('⚠ Environment issues detected:'));
-      validation.issues.forEach(issue => {
-        console.log(ansis.gray(`  • ${issue}`));
-      });
-      console.log('');
+      console.log(ansis.yellow('⚠ Environment issues detected:'))
+      validation.issues.forEach((issue) => {
+        console.log(ansis.gray(`  • ${issue}`))
+      })
+      console.log('')
     }
 
     // Step 3: Only prompt for API key if needed
     if (!defaults.apiKey && !options.skipPrompt) {
-      console.log(ansis.yellow('⚠ No API key detected in environment'));
-      console.log(ansis.gray('Please provide your Anthropic API key to continue:\n'));
+      console.log(ansis.yellow('⚠ No API key detected in environment'))
+      console.log(ansis.gray('Please provide your Anthropic API key to continue:\n'))
 
       const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
         type: 'password',
         name: 'apiKey',
         message: 'Enter your Anthropic API key:',
         validate: (value: string) => {
-          if (!value) return 'API key is required';
-          if (!value.startsWith('sk-ant-')) return 'API key should start with sk-ant-';
-          return true;
+          if (!value)
+            return 'API key is required'
+          if (!value.startsWith('sk-ant-'))
+            return 'API key should start with sk-ant-'
+          return true
         },
-      });
+      })
 
-      defaults.apiKey = apiKey;
-      defaults.apiProvider = 'anthropic';
+      defaults.apiKey = apiKey
+      defaults.apiProvider = 'anthropic'
     }
 
     // Step 4: Set up options with smart defaults
-    options.skipPrompt = true;
-    options.skipBanner = true;
-    options.apiType = 'api_key';
-    options.apiKey = defaults.apiKey;
-    options.mcpServices = defaults.mcpServices;
-    options.workflows = defaults.skills.map(skill => skill.replace('ccjk:', '')); // Remove ccjk: prefix
-    options.codeType = defaults.codeToolType || 'claude-code';
-    options.configAction = 'backup';
-    options.installCometixLine = defaults.tools.cometix;
-    options.installSuperpowers = false;
-    options.outputStyles = ['senior-architect']; // Use valid output style
-    options.defaultOutputStyle = 'senior-architect';
+    options.skipPrompt = true
+    options.skipBanner = true
+    options.apiType = 'api_key'
+    options.apiKey = defaults.apiKey
+    options.mcpServices = defaults.mcpServices
+    options.workflows = defaults.skills.map(skill => skill.replace('ccjk:', '')) // Remove ccjk: prefix
+    options.codeType = defaults.codeToolType || 'claude-code'
+    options.configAction = 'backup'
+    options.installCometixLine = defaults.tools.cometix
+    options.installSuperpowers = false
+    options.outputStyles = ['senior-architect'] // Use valid output style
+    options.defaultOutputStyle = 'senior-architect'
 
     // Step 5: Display installation summary
-    console.log(ansis.gray('📋 Installation Summary:'));
-    console.log(ansis.gray(`  • Platform: ${defaults.platform}`));
-    console.log(ansis.gray(`  • Code Tool: ${defaults.codeToolType}`));
-    console.log(ansis.gray(`  • API Provider: ${defaults.apiProvider}`));
-    console.log(ansis.gray(`  • MCP Services: ${defaults.mcpServices.join(', ')}`));
-    console.log(ansis.gray(`  • Skills: ${defaults.skills.length} selected`));
-    console.log(ansis.gray(`  • Agents: ${defaults.agents.length} selected`));
-    console.log('');
+    console.log(ansis.gray('📋 Installation Summary:'))
+    console.log(ansis.gray(`  • Platform: ${defaults.platform}`))
+    console.log(ansis.gray(`  • Code Tool: ${defaults.codeToolType}`))
+    console.log(ansis.gray(`  • API Provider: ${defaults.apiProvider}`))
+    console.log(ansis.gray(`  • MCP Services: ${defaults.mcpServices.join(', ')}`))
+    console.log(ansis.gray(`  • Skills: ${defaults.skills.length} selected`))
+    console.log(ansis.gray(`  • Agents: ${defaults.agents.length} selected`))
+    console.log('')
 
     // Step 6: Run full init with smart defaults
-    console.log(ansis.gray('🔧 Installing with smart defaults...\n'));
+    console.log(ansis.gray('🔧 Installing with smart defaults...\n'))
 
-    const startTime = Date.now();
-    await init(options);
-    const duration = Math.round((Date.now() - startTime) / 1000);
+    const startTime = Date.now()
+    await init(options)
+    const duration = Math.round((Date.now() - startTime) / 1000)
 
     // Step 7: Success message with timing
-    console.log('');
-    console.log(ansis.bold.green('✅ Installation Complete!'));
-    console.log(ansis.gray(`⏱️  Completed in ${duration} seconds\n`));
+    console.log('')
+    console.log(ansis.bold.green('✅ Installation Complete!'))
+    console.log(ansis.gray(`⏱️  Completed in ${duration} seconds\n`))
 
-    console.log(ansis.bold.cyan('🎯 Quick Start:'));
-    console.log(ansis.gray('  1. Open your project directory'));
-    console.log(ansis.gray('  2. Run: claude'));
-    console.log(ansis.gray('  3. Start coding with AI assistance!\n'));
+    console.log(ansis.bold.cyan('🎯 Quick Start:'))
+    console.log(ansis.gray('  1. Open your project directory'))
+    console.log(ansis.gray('  2. Run: claude'))
+    console.log(ansis.gray('  3. Start coding with AI assistance!\n'))
 
-    console.log(ansis.gray('💡 Advanced Options:'));
-    console.log(ansis.gray('  • npx ccjk menu    - Interactive configuration'));
-    console.log(ansis.gray('  • npx ccjk update  - Update workflows'));
-    console.log(ansis.gray('  • npx ccjk ccr     - Configure proxy'));
-    console.log('');
-  } catch (error) {
-    console.error(ansis.red('❌ Installation failed:'), error instanceof Error ? error.message : error);
-    throw error;
+    console.log(ansis.gray('💡 Advanced Options:'))
+    console.log(ansis.gray('  • npx ccjk menu    - Interactive configuration'))
+    console.log(ansis.gray('  • npx ccjk update  - Update workflows'))
+    console.log(ansis.gray('  • npx ccjk ccr     - Configure proxy'))
+    console.log('')
+  }
+  catch (error) {
+    console.error(ansis.red('❌ Installation failed:'), error instanceof Error ? error.message : error)
+    throw error
   }
 }
 
@@ -444,6 +448,11 @@ async function handleSuperpowersInstallation(options: InitOptions): Promise<void
 }
 
 export async function init(options: InitOptions = {}): Promise<void> {
+  // Handle smart generation mode
+  if (options.smart) {
+    return await smartInit(options)
+  }
+
   // Validate options if in skip-prompt mode (outside try-catch to allow errors to propagate in tests)
   if (options.skipPrompt) {
     await validateSkipPromptOptions(options)
@@ -1649,5 +1658,114 @@ async function convertToCodexProvider(config: ApiConfigDefinition): Promise<Code
     tempEnvKey: `${displayName}_API_KEY`.replace(/\W/g, '_').toUpperCase(),
     requiresOpenaiAuth: false,
     model,
+  }
+}
+
+/**
+ * Smart initialization with project analysis and template generation
+ * @param options - Init options
+ */
+export async function smartInit(options: InitOptions = {}): Promise<void> {
+  try {
+    console.log(ansis.bold.green('\n🧠 Smart Initialization Mode\n'))
+    console.log(ansis.gray('Analyzing your project to generate optimal configuration...\n'))
+
+    // Step 1: Analyze project
+    const { analyzeProject } = await import('../generation')
+    const analysis = await analyzeProject()
+
+    console.log(ansis.cyan('📊 Project Analysis:'))
+    console.log(ansis.gray(`  • Type: ${analysis.projectType}`))
+    console.log(ansis.gray(`  • Languages: ${analysis.techStack.languages.join(', ')}`))
+    console.log(ansis.gray(`  • Runtime: ${analysis.techStack.runtime}`))
+    if (analysis.frameworks.length > 0) {
+      console.log(ansis.gray(`  • Frameworks: ${analysis.frameworks.join(', ')}`))
+    }
+    if (analysis.buildTool) {
+      console.log(ansis.gray(`  • Build Tool: ${analysis.buildTool}`))
+    }
+    console.log(ansis.gray(`  • Has Tests: ${analysis.hasTests ? 'Yes' : 'No'}`))
+    console.log(ansis.gray(`  • Has Database: ${analysis.hasDatabase ? 'Yes' : 'No'}`))
+    console.log(ansis.gray(`  • Has API: ${analysis.hasApi ? 'Yes' : 'No'}`))
+    if (analysis.cicd.length > 0) {
+      console.log(ansis.gray(`  • CI/CD: ${analysis.cicd.join(', ')}`))
+    }
+    console.log('')
+
+    // Step 2: Select templates
+    const { selectTemplates } = await import('../generation')
+    const selection = await selectTemplates(analysis)
+
+    console.log(ansis.cyan('🎯 Template Selection:'))
+    console.log(ansis.gray(`  • Agents: ${selection.agents.length} selected`))
+    for (const agent of selection.agents) {
+      console.log(ansis.gray(`    - ${agent.name} (${agent.category})`))
+    }
+    console.log(ansis.gray(`  • Skills: ${selection.skills.length} selected`))
+    for (const skill of selection.skills) {
+      console.log(ansis.gray(`    - ${skill.name} (${skill.category})`))
+    }
+    console.log('')
+
+    console.log(ansis.cyan('💡 Reasoning:'))
+    console.log(ansis.gray(selection.reasoning.split('\n').map(line => `  ${line}`).join('\n')))
+    console.log('')
+
+    // Step 3: Confirm with user (unless skip-prompt or --yes)
+    if (!options.skipPrompt && !options.yes) {
+      const shouldContinue = await promptBoolean({
+        message: 'Proceed with this configuration?',
+        defaultValue: true,
+      })
+
+      if (!shouldContinue) {
+        console.log(ansis.yellow('Smart initialization cancelled.'))
+        return
+      }
+    }
+
+    // Step 4: Generate and install configurations
+    console.log(ansis.gray('\n🔧 Generating configurations...\n'))
+
+    const { generateConfigs, writeConfigs } = await import('../generation')
+    const config = await generateConfigs(selection)
+
+    // Write configurations
+    await writeConfigs(config)
+
+    console.log(ansis.green('✔ Configurations generated successfully!'))
+    console.log(ansis.gray(`  • ${config.agents.length} agents installed`))
+    console.log(ansis.gray(`  • ${config.skills.length} skills installed`))
+    console.log('')
+
+    // Step 5: Run standard init with smart defaults
+    console.log(ansis.gray('Running standard initialization...\n'))
+
+    // Set smart defaults for standard init
+    options.smart = false // Disable smart mode to avoid recursion
+    options.skipPrompt = options.skipPrompt ?? false // Keep interactive unless explicitly disabled
+
+    // Run standard init
+    await init(options)
+
+    // Step 6: Success message
+    console.log('')
+    console.log(ansis.bold.green('✅ Smart Initialization Complete!'))
+    console.log('')
+    console.log(ansis.cyan('🎯 What was configured:'))
+    console.log(ansis.gray('  • Project-specific agents and skills'))
+    console.log(ansis.gray('  • Claude Code base configuration'))
+    console.log(ansis.gray('  • MCP services'))
+    console.log(ansis.gray('  • Workflows and output styles'))
+    console.log('')
+    console.log(ansis.cyan('🚀 Next Steps:'))
+    console.log(ansis.gray('  1. Run: claude'))
+    console.log(ansis.gray('  2. Start coding with AI assistance!'))
+    console.log(ansis.gray('  3. Use generated skills with their triggers'))
+    console.log('')
+  }
+  catch (error) {
+    console.error(ansis.red('❌ Smart initialization failed:'), error instanceof Error ? error.message : error)
+    throw error
   }
 }

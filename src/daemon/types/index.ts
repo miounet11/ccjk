@@ -130,7 +130,12 @@ export interface DaemonStatus {
   /** Last check time */
   lastCheckTime?: Date
   /** Configuration */
-  config?: Partial<DaemonConfig>
+  config?: Partial<DaemonConfig> & {
+    cloudConnected?: boolean
+    cloudDeviceId?: string
+    cloudDeviceName?: string
+    activeTasksCount?: number
+  }
 }
 
 /**

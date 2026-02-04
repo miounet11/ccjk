@@ -4,7 +4,8 @@
  * Demonstrates how to register and enforce a basic hook
  */
 
-import { HookEnforcer, HookMatcher, HookExecutor } from '@ccjk/v2/hooks'
+import type { HookExecutor, HookMatcher } from '@ccjk/v2/hooks'
+import { HookEnforcer } from '@ccjk/v2/hooks'
 import { EnforcementLevel } from '@ccjk/v2/types'
 
 /**

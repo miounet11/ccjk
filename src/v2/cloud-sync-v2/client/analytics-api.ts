@@ -3,12 +3,12 @@
  * Handles analytics events and reporting
  */
 
-import { APIClient } from './client.js'
-import {
+import type {
   AnalyticsEvent,
   SkillAnalytics,
   UserAnalytics,
 } from './types.js'
+import { APIClient } from './client.js'
 import { API_PATHS } from './config.js'
 
 export class AnalyticsAPIClient extends APIClient {
@@ -105,7 +105,7 @@ export class AnalyticsAPIClient extends APIClient {
    */
   async getSkillAnalytics(
     skillId: string,
-    period: 'daily' | 'weekly' | 'monthly' = 'weekly'
+    period: 'daily' | 'weekly' | 'monthly' = 'weekly',
   ): Promise<SkillAnalytics> {
     return this.get<SkillAnalytics>(API_PATHS.ANALYTICS_SKILL(skillId), {
       params: { period },
@@ -118,7 +118,7 @@ export class AnalyticsAPIClient extends APIClient {
    */
   async getUserAnalytics(
     userId: string,
-    period: 'daily' | 'weekly' | 'monthly' = 'weekly'
+    period: 'daily' | 'weekly' | 'monthly' = 'weekly',
   ): Promise<UserAnalytics> {
     return this.get<UserAnalytics>(API_PATHS.ANALYTICS_USER(userId), {
       params: { period },
@@ -132,7 +132,7 @@ export class AnalyticsAPIClient extends APIClient {
   async getSkillDownloadTrends(
     skillId: string,
     period: 'daily' | 'weekly' | 'monthly' = 'daily',
-    days: number = 30
+    days: number = 30,
   ): Promise<{
     skillId: string
     period: string
@@ -153,7 +153,7 @@ export class AnalyticsAPIClient extends APIClient {
   async getSkillViewTrends(
     skillId: string,
     period: 'daily' | 'weekly' | 'monthly' = 'daily',
-    days: number = 30
+    days: number = 30,
   ): Promise<{
     skillId: string
     period: string
@@ -173,7 +173,7 @@ export class AnalyticsAPIClient extends APIClient {
    */
   async getSkillRatingTrends(
     skillId: string,
-    days: number = 30
+    days: number = 30,
   ): Promise<{
     skillId: string
     data: Array<{
@@ -355,7 +355,7 @@ export class AnalyticsAPIClient extends APIClient {
   async trackCustomEvent(
     eventType: string,
     data: Record<string, any>,
-    userId?: string
+    userId?: string,
   ): Promise<void> {
     await this.trackEvent({
       eventType: eventType as any,

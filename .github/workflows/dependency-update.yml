@@ -2,7 +2,7 @@ name: Dependency Update
 
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
+    - cron: '0 9 * * 1' # Every Monday at 9 AM UTC
   workflow_dispatch:
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Update dependencies
         run: |

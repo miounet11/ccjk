@@ -5,9 +5,9 @@
  * Uses chokidar for efficient cross-platform file watching.
  */
 
-import chokidar from 'chokidar'
 import type { FSWatcher } from 'chokidar'
 import { EventEmitter } from 'node:events'
+import chokidar from 'chokidar'
 import { IncrementalIndexer } from './incremental.js'
 
 /**
@@ -58,7 +58,7 @@ export class FileWatcher extends EventEmitter {
 
     const watcherOptions = {
       ignored: [
-        /(^|[\\/\\])\../, // dot files
+        /(^|[\\/])\../, // dot files
         '**/node_modules/**',
         '**/.git/**',
         '**/dist/**',

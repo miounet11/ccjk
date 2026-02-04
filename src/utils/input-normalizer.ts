@@ -128,7 +128,8 @@ const FULLWIDTH_TO_HALFWIDTH: Record<string, string> = {
  * ```
  */
 export function normalizeFullWidth(input: string): string {
-  if (!input) return input
+  if (!input)
+    return input
 
   let result = ''
   for (const char of input) {
@@ -156,7 +157,8 @@ export function normalizeFullWidth(input: string): string {
  * ```
  */
 export function normalizeMenuInput(input: string): string {
-  if (!input) return input
+  if (!input)
+    return input
   return normalizeFullWidth(input.trim()).toLowerCase()
 }
 
@@ -179,7 +181,8 @@ export function isFullWidthDigit(char: string): boolean {
  * @returns True if the string contains any full-width characters
  */
 export function hasFullWidthChars(input: string): boolean {
-  if (!input) return false
+  if (!input)
+    return false
   for (const char of input) {
     if (FULLWIDTH_TO_HALFWIDTH[char]) {
       return true

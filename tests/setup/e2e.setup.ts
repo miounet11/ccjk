@@ -3,8 +3,8 @@
  * Sets up full application environment for end-to-end testing
  */
 
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
 import { resolve } from 'pathe'
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest'
 
 // Global test setup for E2E tests
 beforeAll(async () => {
@@ -57,7 +57,7 @@ async function waitForAllServices(): Promise<void> {
   const services = [
     { name: 'PostgreSQL', check: checkPostgresService },
     { name: 'Redis', check: checkRedisService },
-    { name: 'Elasticsearch', check: checkElasticsearchService }
+    { name: 'Elasticsearch', check: checkElasticsearchService },
   ]
 
   console.log('⏳ Waiting for services to be ready...')
@@ -71,7 +71,8 @@ async function waitForAllServices(): Promise<void> {
         await service.check()
         console.log(`✅ ${service.name} is ready`)
         break
-      } catch (error) {
+      }
+      catch (error) {
         attempts++
         if (attempts === maxAttempts) {
           throw new Error(`❌ ${service.name} failed to start after ${maxAttempts} attempts`)
@@ -165,12 +166,12 @@ async function setupTestData(): Promise<void> {
   const testData = {
     users: [
       { id: 'test-user-1', name: 'Test User 1' },
-      { id: 'test-user-2', name: 'Test User 2' }
+      { id: 'test-user-2', name: 'Test User 2' },
     ],
     configurations: [
       { id: 'test-config-1', name: 'Test Config 1' },
-      { id: 'test-config-2', name: 'Test Config 2' }
-    ]
+      { id: 'test-config-2', name: 'Test Config 2' },
+    ],
   }
 
   // Simulate data creation
@@ -190,7 +191,7 @@ async function setupTestEnvironment(): Promise<void> {
     resolve(process.cwd(), 'tmp/e2e'),
     resolve(process.cwd(), 'tmp/e2e/configs'),
     resolve(process.cwd(), 'tmp/e2e/logs'),
-    resolve(process.cwd(), 'tmp/e2e/cache')
+    resolve(process.cwd(), 'tmp/e2e/cache'),
   ]
 
   // This would create actual directories
@@ -310,19 +311,19 @@ export const E2ETestUtils = {
   async readFile(path: string): Promise<string> {
     // This would read actual file content
     return `Simulated content of ${path}`
-  }
+  },
 }
 
 // Export utilities for use in E2E tests
 export {
-  waitForAllServices,
+  checkElasticsearchService,
   checkPostgresService,
   checkRedisService,
-  checkElasticsearchService,
+  cleanupTestApplication,
+  cleanupTestData,
+  cleanupTestEnvironment,
   setupTestApplication,
   setupTestData,
   setupTestEnvironment,
-  cleanupTestApplication,
-  cleanupTestData,
-  cleanupTestEnvironment
+  waitForAllServices,
 }

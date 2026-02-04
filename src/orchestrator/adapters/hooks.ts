@@ -3,8 +3,7 @@
  * 将 Hooks 系统集成到 Orchestrator
  */
 
-import type { Task, Context, EventType } from '../types'
-import type { IEventBus } from '../types'
+import type { Context, EventType, IEventBus, Task } from '../types'
 
 /**
  * Hook 触发时机
@@ -143,9 +142,12 @@ export class HooksAdapter {
     const matching: HookDefinition[] = []
 
     for (const hook of this.hooks.values()) {
-      if (!hook.enabled) continue
-      if (hook.timing !== timing) continue
-      if (!this.matchTarget(hook.target, target)) continue
+      if (!hook.enabled)
+        continue
+      if (hook.timing !== timing)
+        continue
+      if (!this.matchTarget(hook.target, target))
+        continue
 
       matching.push(hook)
     }
@@ -165,7 +167,7 @@ export class HooksAdapter {
     timing: HookTiming,
     task: Task,
     context: Context,
-    extra?: { result?: unknown; error?: Error }
+    extra?: { result?: unknown, error?: Error },
   ): Promise<void> {
     const target = `${task.type}:${task.name}`
     const hooks = this.getMatchingHooks(timing, target)
@@ -190,7 +192,8 @@ export class HooksAdapter {
         }
 
         await hook.handler(hookContext)
-      } catch (error) {
+      }
+      catch (error) {
         console.error(`Hook ${hook.name} failed:`, error)
         // Hook 错误不应该中断主流程
       }
@@ -204,10 +207,12 @@ export class HooksAdapter {
    */
   private matchTarget(pattern: string, target: string): boolean {
     // 完全匹配
-    if (pattern === target) return true
+    if (pattern === target)
+      return true
 
     // 通配符匹配
-    if (pattern === '*') return true
+    if (pattern === '*')
+      return true
 
     // 前缀通配符 (e.g., "skill:*")
     if (pattern.endsWith('*')) {
@@ -228,21 +233,22 @@ export class HooksAdapter {
    * 注册事件处理器
    */
   private registerEventHandlers(): void {
-    if (!this.eventBus) return
+    if (!this.eventBus)
+      return
 
     // 监听任务生命周期事件
     this.eventBus.on('task:before' as EventType, async (payload) => {
-      const { task, context } = payload as { task: Task; context: Context }
+      const { task, context } = payload as unknown as { task: Task, context: Context }
       await this.executeHooks('before', task, context)
     })
 
     this.eventBus.on('task:after' as EventType, async (payload) => {
-      const { task, context, result } = payload as { task: Task; context: Context; result: unknown }
+      const { task, context, result } = payload as unknown as { task: Task, context: Context, result: unknown }
       await this.executeHooks('after', task, context, { result })
     })
 
     this.eventBus.on('task:error' as EventType, async (payload) => {
-      const { task, context, error } = payload as { task: Task; context: Context; error: Error }
+      const { task, context, error } = payload as unknown as { task: Task, context: Context, error: Error }
       await this.executeHooks('error', task, context, { error })
     })
   }

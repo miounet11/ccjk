@@ -10,10 +10,9 @@
  * @module brain/thinking-mode
  */
 
-import type { SupportedLang } from '../constants'
 import type { ThinkingModeConfig, ThinkingModeSettings } from '../types/thinking'
 import { SETTINGS_FILE } from '../constants'
-import { ensureI18nInitialized, i18n } from '../i18n'
+import { i18n } from '../i18n'
 import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
 
 /**

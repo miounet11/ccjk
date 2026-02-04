@@ -6,7 +6,8 @@
  */
 
 import type { Task } from '../types/agent.js'
-import { AGENT_REGISTRY, type ExtendedAgentCapability } from './registry.js'
+import type { ExtendedAgentCapability } from './registry.js'
+import { AGENT_REGISTRY } from './registry.js'
 
 // Types for orchestration system (local definitions to avoid circular dependencies)
 export interface Agent {
@@ -86,7 +87,7 @@ export class AgentOrchestrator {
    * Select appropriate agents for a given task
    */
   async selectAgents(task: Task): Promise<Agent[]> {
-    const taskKeywords = this.extractKeywords(task.description + ' ' + task.requiredCapabilities.join(' '))
+    const taskKeywords = this.extractKeywords(`${task.description} ${task.requiredCapabilities.join(' ')}`)
     const scoredAgents = this.registry.map(agent => ({
       agent,
       score: this.calculateRelevanceScore(agent, taskKeywords),
@@ -97,7 +98,7 @@ export class AgentOrchestrator {
 
     // Filter by cost threshold (but keep even zero-score agents for minAgents requirement)
     const affordableAgents = scoredAgents.filter(
-      ({ agent }) => agent.cost <= this.config.costThreshold
+      ({ agent }) => agent.cost <= this.config.costThreshold,
     )
 
     // Select agents ensuring minAgents is met
@@ -107,7 +108,8 @@ export class AgentOrchestrator {
     const positiveScoreAgents = affordableAgents.filter(({ score }) => score > 0)
     if (positiveScoreAgents.length < this.config.minAgents) {
       selectedCount = Math.min(this.config.maxAgents, affordableAgents.length)
-    } else {
+    }
+    else {
       selectedCount = Math.min(this.config.maxAgents, Math.max(this.config.minAgents, positiveScoreAgents.length))
     }
 
@@ -147,7 +149,8 @@ export class AgentOrchestrator {
           status: 'pending',
           dependencies: [],
         }))
-      } else {
+      }
+      else {
         // All agents work on the same task
         subtasks = agents.map(agent => ({
           agentId: agent.id,
@@ -184,7 +187,8 @@ export class AgentOrchestrator {
           conflictResolution: this.config.conflictResolution,
         },
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         success: false,
         finalResult: '',
@@ -221,9 +225,9 @@ export class AgentOrchestrator {
    * Aggregate results from multiple agents
    */
   private aggregateResults(
-    results: Array<{ agentId: string; result: string; confidence: number }>,
-    agents: Agent[]
-  ): { content: string; confidence: number } {
+    results: Array<{ agentId: string, result: string, confidence: number }>,
+    agents: Agent[],
+  ): { content: string, confidence: number } {
     if (results.length === 0) {
       return { content: '', confidence: 0 }
     }
@@ -256,9 +260,9 @@ export class AgentOrchestrator {
    * Detect conflicts between agent results
    */
   private detectConflicts(
-    results: Array<{ agentId: string; result: string; confidence: number }>
-  ): Array<{ type: string; description: string }> {
-    const conflicts: Array<{ type: string; description: string }> = []
+    results: Array<{ agentId: string, result: string, confidence: number }>,
+  ): Array<{ type: string, description: string }> {
+    const conflicts: Array<{ type: string, description: string }> = []
 
     // Simple conflict detection based on content similarity
     // In real implementation, this would use more sophisticated NLP
@@ -281,13 +285,13 @@ export class AgentOrchestrator {
    * Resolve conflicts between agent results
    */
   private resolveConflict(
-    results: Array<{ agentId: string; result: string; confidence: number }>,
-    agents: Agent[]
-  ): { content: string; confidence: number } {
+    results: Array<{ agentId: string, result: string, confidence: number }>,
+    agents: Agent[],
+  ): { content: string, confidence: number } {
     switch (this.config.conflictResolution) {
       case 'vote':
         // Weighted voting based on confidence and agent cost
-        const weightedResults = results.map(r => {
+        const weightedResults = results.map((r) => {
           const agent = agents.find(a => a.id === r.agentId)
           const weight = r.confidence * (agent?.costPerToken || 1)
           return { ...r, weight }
@@ -295,7 +299,7 @@ export class AgentOrchestrator {
 
         const totalWeight = weightedResults.reduce((sum, r) => sum + r.weight, 0)
         const bestResult = weightedResults.reduce((best, current) =>
-          current.weight > best.weight ? current : best
+          current.weight > best.weight ? current : best,
         )
 
         return {
@@ -305,7 +309,7 @@ export class AgentOrchestrator {
 
       case 'highest_confidence':
         const highestConfidence = results.reduce((best, current) =>
-          current.confidence > best.confidence ? current : best
+          current.confidence > best.confidence ? current : best,
         )
         return {
           content: highestConfidence.result,

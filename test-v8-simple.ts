@@ -19,7 +19,8 @@ async function test() {
   try {
     const added = await taskManager.addDependency(t2.id, t1.id)
     console.log('Dependency added:', added)
-  } catch (e) {
+  }
+  catch (e) {
     console.error('Add dependency failed:', e)
   }
 
@@ -27,7 +28,8 @@ async function test() {
   try {
     const graph = await taskManager.getDependencyGraph(t2.id)
     console.log('Graph nodes:', graph.nodes.length)
-  } catch (e) {
+  }
+  catch (e) {
     console.error('Get graph failed:', e)
   }
 
@@ -35,7 +37,8 @@ async function test() {
   try {
     const deleted = await taskManager.deleteTask(t1.id)
     console.log('Deleted:', deleted)
-  } catch (e) {
+  }
+  catch (e) {
     console.error('Delete failed:', e)
   }
 

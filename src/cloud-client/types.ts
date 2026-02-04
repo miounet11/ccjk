@@ -135,12 +135,12 @@ export interface BatchTemplateResponse {
 /**
  * Usage metric type
  */
-export type MetricType =
-  | 'template_download'
-  | 'recommendation_shown'
-  | 'recommendation_accepted'
-  | 'analysis_completed'
-  | 'error_occurred'
+export type MetricType
+  = | 'template_download'
+    | 'recommendation_shown'
+    | 'recommendation_accepted'
+    | 'analysis_completed'
+    | 'error_occurred'
 
 /**
  * Usage report payload
@@ -193,15 +193,15 @@ export interface HealthCheckResponse {
 /**
  * Cloud client error types
  */
-export type CloudClientErrorType =
-  | 'NETWORK_ERROR'
-  | 'TIMEOUT_ERROR'
-  | 'API_ERROR'
-  | 'VALIDATION_ERROR'
-  | 'AUTH_ERROR'
-  | 'RATE_LIMIT_ERROR'
-  | 'SERVER_ERROR'
-  | 'UNKNOWN_ERROR'
+export type CloudClientErrorType
+  = | 'NETWORK_ERROR'
+    | 'TIMEOUT_ERROR'
+    | 'API_ERROR'
+    | 'VALIDATION_ERROR'
+    | 'AUTH_ERROR'
+    | 'RATE_LIMIT_ERROR'
+    | 'SERVER_ERROR'
+    | 'UNKNOWN_ERROR'
 
 /**
  * Cloud client error class
@@ -233,10 +233,14 @@ export class CloudClientError extends Error {
   static fromResponse(statusCode: number, message: string): CloudClientError {
     let type: CloudClientErrorType
 
-    if (statusCode === 401) type = 'AUTH_ERROR'
-    else if (statusCode === 429) type = 'RATE_LIMIT_ERROR'
-    else if (statusCode >= 500) type = 'SERVER_ERROR'
-    else if (statusCode >= 400) type = 'API_ERROR'
+    if (statusCode === 401)
+      type = 'AUTH_ERROR'
+    else if (statusCode === 429)
+      type = 'RATE_LIMIT_ERROR'
+    else if (statusCode >= 500)
+      type = 'SERVER_ERROR'
+    else if (statusCode >= 400)
+      type = 'API_ERROR'
     else type = 'UNKNOWN_ERROR'
 
     return new CloudClientError(type, message, statusCode)
@@ -294,6 +298,8 @@ export interface CloudClientConfig {
   enableTelemetry?: boolean
   /** API key if required */
   apiKey?: string
+  /** Language for API responses */
+  language?: string
 }
 
 /**

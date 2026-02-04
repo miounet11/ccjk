@@ -106,15 +106,15 @@ export interface Fragment {
 /**
  * Fragment categories
  */
-export type FragmentCategory =
-  | 'setup'
-  | 'develop'
-  | 'test'
-  | 'deploy'
-  | 'debug'
-  | 'maintenance'
-  | 'integration'
-  | 'custom'
+export type FragmentCategory
+  = | 'setup'
+    | 'develop'
+    | 'test'
+    | 'deploy'
+    | 'debug'
+    | 'maintenance'
+    | 'integration'
+    | 'custom'
 
 /**
  * Fragment compatibility information

@@ -4,13 +4,13 @@
  * 从 npm 安装插件
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
+import type { AddResult } from './index'
 import type { NpmSourceInfo } from './source-parser'
 import type { PluginType } from './type-detector'
-import type { AddResult } from './index'
+import { exec } from 'node:child_process'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { promisify } from 'node:util'
 import { getInstallPath } from './utils'
 
 const execAsync = promisify(exec)
@@ -120,7 +120,7 @@ export async function installFromNpm(
 async function fetchPackageInfo(
   packageName: string,
   version?: string,
-): Promise<{ version: string; description?: string; files?: string[] }> {
+): Promise<{ version: string, description?: string, files?: string[] }> {
   const url = version
     ? `https://registry.npmjs.org/${packageName}/${version}`
     : `https://registry.npmjs.org/${packageName}/latest`
@@ -134,7 +134,7 @@ async function fetchPackageInfo(
     throw new Error(`Failed to fetch package info: ${response.statusText}`)
   }
 
-  const data = await response.json() as { version: string; description?: string; files?: string[] }
+  const data = await response.json() as { version: string, description?: string, files?: string[] }
   return {
     version: data.version,
     description: data.description,
@@ -253,7 +253,8 @@ async function listInstalledFiles(dir: string): Promise<string[]> {
       const entries = await fs.readdir(currentDir, { withFileTypes: true })
       for (const entry of entries) {
         // 跳过 node_modules
-        if (entry.name === 'node_modules') continue
+        if (entry.name === 'node_modules')
+          continue
 
         const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name
         if (entry.isDirectory()) {

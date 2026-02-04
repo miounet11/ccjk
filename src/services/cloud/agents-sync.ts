@@ -35,9 +35,9 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
 import { join } from 'pathe'
+import { CCJK_CONFIG_DIR, CLAUDE_AGENTS_DIR } from '../../constants'
 import agentTemplatesData from '../../data/agent-templates.json'
 import { writeFileAtomic } from '../../utils/fs-operations'
-import { CLAUDE_AGENTS_DIR, CCJK_CONFIG_DIR } from '../../constants'
 
 // ============================================================================
 // Constants

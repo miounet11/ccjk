@@ -391,7 +391,8 @@ export async function showQuickActionsMenu(): Promise<void> {
     ],
   }])
 
-  if (action === 0) return
+  if (action === 0)
+    return
 
   const selectedAction = getActionByNumber(action)
   if (selectedAction) {
@@ -461,10 +462,11 @@ export async function showWorkflowsAndSkillsMenu(): Promise<void> {
     ],
   }])
 
-  if (action === 'back') return
+  if (action === 'back')
+    return
 
   // Show skills in selected category
-  const categorySkills = QUICK_ACTIONS.filter(a => {
+  const categorySkills = QUICK_ACTIONS.filter((a) => {
     switch (action) {
       case 'dev': return [4, 6].includes(a.id) // Plan, Brainstorm
       case 'review': return [2, 7].includes(a.id) // Review, Verify
@@ -502,7 +504,8 @@ export async function showOutputStylesMenu(): Promise<void> {
     ],
   }])
 
-  if (style === 'back') return
+  if (style === 'back')
+    return
 
   console.log(ansis.green(`\n✓ Output style set to: ${style}`))
 }

@@ -144,7 +144,7 @@ export interface OrchestrationMetrics {
 
 /** Localized string for multi-language support */
 export interface LocalizedString {
-  en: string
+  'en': string
   'zh-CN'?: string
 }
 
@@ -159,10 +159,11 @@ export interface AgentVariable {
   name: string
   label: LocalizedString
   description: LocalizedString
-  type: 'text' | 'select' | 'number' | 'boolean'
+  type: 'text' | 'select' | 'multiselect' | 'number' | 'boolean'
   required: boolean
-  default?: string | number | boolean
+  default?: string | number | boolean | string[]
   options?: AgentVariableOption[]
+  pattern?: string
 }
 
 /** Agent definition containing role and behavior */
@@ -207,29 +208,37 @@ export interface CloudAgent {
   id: string
   name: string
   version: string
-  category?: string
-  description?: LocalizedString | string
   definition: AgentDefinition
-  variables?: AgentVariable[]
-  tags?: string[]
-  metadata?: AgentMetadata
+  metadata: {
+    description: LocalizedString
+    author: string
+    category: string
+    tags?: string[]
+    license?: string
+    homepage?: string
+    repository?: string
+    keywords?: string[]
+    createdAt: string
+    updatedAt: string
+    usageCount: number
+    rating: number
+    ratingCount: number
+  }
+  privacy?: 'public' | 'private'
   cloudId?: string
   publishedAt?: string
   downloads?: number
-  rating?: number
 }
 
 /** Installed agent record */
 export interface InstalledAgent {
-  id: string
-  name: string
-  version: string
-  cloudId?: string
+  agent: CloudAgent
+  path: string
   installedAt: string
   updatedAt?: string
-  filePath: string
   source: 'cloud' | 'local' | 'template'
-  autoUpdate?: boolean
+  enabled?: boolean
+  usageCount?: number
 }
 
 // ============================================================================
@@ -244,6 +253,7 @@ export interface AgentSearchOptions {
   author?: string
   limit?: number
   offset?: number
+  lang?: 'en' | 'zh-CN'
   sortBy?: 'downloads' | 'rating' | 'updated' | 'name'
   sortOrder?: 'asc' | 'desc'
 }
@@ -252,9 +262,13 @@ export interface AgentSearchOptions {
 export interface AgentSearchResult {
   agents: CloudAgent[]
   total: number
-  page: number
-  pageSize: number
-  hasMore: boolean
+  offset?: number
+  limit?: number
+  query?: string
+  filters?: AgentSearchOptions
+  page?: number
+  pageSize?: number
+  hasMore?: boolean
 }
 
 /** Agent install options */
@@ -262,14 +276,19 @@ export interface AgentInstallOptions {
   force?: boolean
   autoUpdate?: boolean
   variables?: Record<string, string | number | boolean>
+  lang?: 'en' | 'zh-CN'
+  targetDir?: string
 }
 
 /** Agent install result */
 export interface AgentInstallResult {
   success: boolean
-  agent?: InstalledAgent
+  agent: CloudAgent
+  installedPath?: string
+  alreadyInstalled?: boolean
   error?: string
   warnings?: string[]
+  durationMs?: number
 }
 
 // ============================================================================
@@ -282,6 +301,15 @@ export interface AgentSyncOptions {
   force?: boolean
   dryRun?: boolean
   includeLocal?: boolean
+  includePrivate?: boolean
+  agentIds?: string[]
+  lang?: 'en' | 'zh-CN'
+}
+
+/** Agent sync conflict */
+export interface AgentSyncConflict {
+  agentId: string
+  reason: string
 }
 
 /** Agent sync result */
@@ -289,8 +317,11 @@ export interface AgentSyncResult {
   success: boolean
   pushed: string[]
   pulled: string[]
-  conflicts: string[]
-  errors: string[]
+  conflicts: AgentSyncConflict[]
+  skipped: string[]
+  errors?: string[]
+  error?: string
+  durationMs?: number
 }
 
 // ============================================================================
@@ -320,8 +351,10 @@ export interface AgentUpdateInfo {
   agentId: string
   currentVersion: string
   latestVersion: string
-  hasUpdate: boolean
+  hasUpdate?: boolean
+  breaking?: boolean
   changelog?: string
+  releaseDate?: string
   publishedAt?: string
 }
 
@@ -357,11 +390,16 @@ export interface AgentExportOptions {
   format?: 'json' | 'yaml' | 'markdown'
   includeMetadata?: boolean
   outputPath?: string
+  pretty?: boolean
 }
 
 /** Agent import options */
 export interface AgentImportOptions {
+  sourcePath: string
+  format?: 'json' | 'yaml' | 'markdown'
   force?: boolean
+  overwrite?: boolean
   validate?: boolean
   autoInstall?: boolean
+  lang?: 'en' | 'zh-CN'
 }

@@ -6,10 +6,10 @@
  * @module cloud-api/credentials
  */
 
+import type { CloudCredentials } from '../types/cloud-api'
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import type { CloudCredentials } from '../types/cloud-api'
 
 /**
  * Get credentials file path

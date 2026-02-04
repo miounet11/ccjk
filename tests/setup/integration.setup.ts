@@ -3,7 +3,7 @@
  * Sets up database connections, Redis, and other services for integration testing
  */
 
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest'
 
 // Global test setup for integration tests
 beforeAll(async () => {
@@ -52,7 +52,7 @@ async function waitForServices(): Promise<void> {
   const services = [
     { name: 'PostgreSQL', check: checkPostgres },
     { name: 'Redis', check: checkRedis },
-    { name: 'Elasticsearch', check: checkElasticsearch }
+    { name: 'Elasticsearch', check: checkElasticsearch },
   ]
 
   for (const service of services) {
@@ -64,7 +64,8 @@ async function waitForServices(): Promise<void> {
         await service.check()
         console.log(`✅ ${service.name} is ready`)
         break
-      } catch (error) {
+      }
+      catch (error) {
         attempts++
         if (attempts === maxAttempts) {
           throw new Error(`❌ ${service.name} failed to start after ${maxAttempts} attempts`)
@@ -117,7 +118,8 @@ async function checkElasticsearch(): Promise<void> {
     if (!esUrl.includes('9200')) {
       throw new Error('Elasticsearch not configured')
     }
-  } catch (error) {
+  }
+  catch (error) {
     throw new Error('Elasticsearch health check failed')
   }
 }
@@ -212,14 +214,14 @@ async function cleanupTestElasticsearch(): Promise<void> {
 
 // Export utilities for use in tests
 export {
-  waitForServices,
+  checkElasticsearch,
   checkPostgres,
   checkRedis,
-  checkElasticsearch,
-  setupTestDatabase,
-  setupTestRedis,
-  setupTestElasticsearch,
   cleanupTestDatabase,
+  cleanupTestElasticsearch,
   cleanupTestRedis,
-  cleanupTestElasticsearch
+  setupTestDatabase,
+  setupTestElasticsearch,
+  setupTestRedis,
+  waitForServices,
 }

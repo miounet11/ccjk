@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import * as dayjs from 'dayjs'
 import { join } from 'pathe'
 // JSON utilities use English messages
 import { copyFile, ensureDir, exists, readFile, writeFile, writeFileAtomic } from './fs-operations'

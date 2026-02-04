@@ -2,8 +2,8 @@
  * Auto-trigger tests
  */
 
-import { describe, expect, it, beforeEach } from 'vitest'
 import type { CcjkSkill } from '../../src/skills/types'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   configureAutoTrigger,
   getAutoTriggerConfig,
@@ -11,12 +11,12 @@ import {
   shouldAutoTrigger,
 } from '../../src/skills/auto-trigger'
 
-describe('Auto-trigger', () => {
+describe('auto-trigger', () => {
   const mockSkills: CcjkSkill[] = [
     {
       id: 'git-commit',
-      name: { en: 'Git Commit', 'zh-CN': 'Git 提交' },
-      description: { en: 'Smart commit', 'zh-CN': '智能提交' },
+      name: { 'en': 'Git Commit', 'zh-CN': 'Git 提交' },
+      description: { 'en': 'Smart commit', 'zh-CN': '智能提交' },
       category: 'git',
       triggers: ['/commit', '/git-commit'],
       template: '# Git Commit',
@@ -26,8 +26,8 @@ describe('Auto-trigger', () => {
     },
     {
       id: 'code-review',
-      name: { en: 'Code Review', 'zh-CN': '代码审查' },
-      description: { en: 'Review code', 'zh-CN': '审查代码' },
+      name: { 'en': 'Code Review', 'zh-CN': '代码审查' },
+      description: { 'en': 'Review code', 'zh-CN': '审查代码' },
       category: 'review',
       triggers: ['/review', '/code-review'],
       template: '# Code Review',

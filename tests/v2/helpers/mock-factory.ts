@@ -1,6 +1,5 @@
-import { vi, type MockedFunction } from 'vitest'
-import type { ExecaChildProcess } from 'execa'
-import type { Ora } from 'ora'
+import type { MockedFunction } from 'vitest'
+import { vi } from 'vitest'
 
 /**
  * Mock factory for creating consistent mocks across tests
@@ -241,7 +240,7 @@ export class MockFactory {
       delay?: number
       shouldReject?: boolean
       rejectionReason?: any
-    } = {}
+    } = {},
   ) {
     const { delay = 0, shouldReject = false, rejectionReason = new Error('Mock rejection') } = options
 
@@ -262,7 +261,7 @@ export class MockFactory {
    * Create a spy that tracks method calls
    */
   static createSpy<T extends (...args: any[]) => any>(
-    implementation?: T
+    implementation?: T,
   ): MockedFunction<T> {
     return vi.fn(implementation) as MockedFunction<T>
   }
@@ -356,7 +355,7 @@ export type MockedType<T> = {
  * Helper to create a partial mock of an object
  */
 export function createPartialMock<T>(
-  partial: Partial<MockedType<T>>
+  partial: Partial<MockedType<T>>,
 ): MockedType<T> {
   return partial as MockedType<T>
 }
@@ -367,11 +366,12 @@ export function createPartialMock<T>(
 export class MockVerifier {
   static expectCalled<T extends (...args: any[]) => any>(
     mock: MockedFunction<T>,
-    times?: number
+    times?: number,
   ) {
     if (times !== undefined) {
       expect(mock).toHaveBeenCalledTimes(times)
-    } else {
+    }
+    else {
       expect(mock).toHaveBeenCalled()
     }
   }
@@ -385,13 +385,13 @@ export class MockVerifier {
 
   static expectCalledTimes<T extends (...args: any[]) => any>(
     mock: MockedFunction<T>,
-    times: number
+    times: number,
   ) {
     expect(mock).toHaveBeenCalledTimes(times)
   }
 
   static expectNotCalled<T extends (...args: any[]) => any>(
-    mock: MockedFunction<T>
+    mock: MockedFunction<T>,
   ) {
     expect(mock).not.toHaveBeenCalled()
   }

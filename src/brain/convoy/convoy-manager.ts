@@ -7,9 +7,10 @@
  * @module brain/convoy/convoy-manager
  */
 
+import type { GitBackedStateManager } from '../persistence/git-backed-state'
 import { EventEmitter } from 'node:events'
 import { nanoid } from 'nanoid'
-import { getGlobalStateManager, type GitBackedStateManager } from '../persistence/git-backed-state'
+import { getGlobalStateManager } from '../persistence/git-backed-state'
 
 /**
  * Convoy status
@@ -213,7 +214,8 @@ export class ConvoyManager extends EventEmitter {
    * Initialize convoy manager
    */
   async initialize(): Promise<void> {
-    if (this.initialized) return
+    if (this.initialized)
+      return
 
     await this.stateManager.initialize()
     await this.loadConvoys()
@@ -583,10 +585,12 @@ export class ConvoyManager extends EventEmitter {
    */
   getNextTasks(convoyId: string): ConvoyTask[] {
     const convoy = this.convoys.get(convoyId)
-    if (!convoy) return []
+    if (!convoy)
+      return []
 
     return convoy.tasks.filter((task) => {
-      if (task.status !== 'pending') return false
+      if (task.status !== 'pending')
+        return false
       return this.getUnmetDependencies(convoy, task).length === 0
     })
   }
@@ -596,7 +600,8 @@ export class ConvoyManager extends EventEmitter {
    */
   getSummary(convoyId: string): string {
     const convoy = this.convoys.get(convoyId)
-    if (!convoy) return 'Convoy not found'
+    if (!convoy)
+      return 'Convoy not found'
 
     const lines = [
       `Convoy: ${convoy.name} (${convoy.id})`,
@@ -627,7 +632,8 @@ export class ConvoyManager extends EventEmitter {
     await this.ensureInitialized()
 
     const convoy = this.convoys.get(convoyId)
-    if (!convoy) return false
+    if (!convoy)
+      return false
 
     this.convoys.delete(convoyId)
     // Note: We don't delete from git to preserve history

@@ -143,21 +143,17 @@ export class LazyLoader {
   static async preloadCommonCommands(): Promise<void> {
     const commonCommands = ['init', 'menu', 'config']
 
-    // Use requestIdleCallback if available, otherwise setTimeout
-    const schedulePreload = () => setTimeout(() => {
+    // Use setTimeout for scheduling (requestIdleCallback is not available in Node.js)
+    const schedulePreload = () => {
       commonCommands.forEach((cmd) => {
         this.loadCommand(cmd).catch(() => {
           // Ignore preload failures
         })
       })
-    }, 100)
+    }
 
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(schedulePreload)
-    }
-    else {
-      schedulePreload()
-    }
+    // Schedule preload after a short delay
+    setTimeout(schedulePreload, 100)
   }
 
   /**

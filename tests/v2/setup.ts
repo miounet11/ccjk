@@ -1,8 +1,7 @@
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
-import { resolve } from 'pathe'
 import { existsSync, mkdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'pathe'
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest'
 
 // Test environment configuration
 export interface TestEnvironment {
@@ -63,7 +62,8 @@ afterAll(async () => {
     try {
       rmSync(testEnv.tempDir, { recursive: true, force: true })
       console.log(`✅ Cleaned up test directory: ${testEnv.tempDir}`)
-    } catch (error) {
+    }
+    catch (error) {
       console.warn(`⚠️ Failed to clean up test directory: ${error}`)
     }
   }
@@ -77,7 +77,7 @@ afterAll(async () => {
  */
 beforeEach(async (context) => {
   // Create isolated test directory for each test
-  const testId = context.task.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
+  const testId = context.task.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()
   const testDir = join(testEnv.tempDir, testId)
 
   if (!existsSync(testDir)) {

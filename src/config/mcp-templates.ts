@@ -22,13 +22,13 @@ export interface McpServiceTemplate {
 
   /** Service name in multiple languages */
   name: {
-    en: string
+    'en': string
     'zh-CN': string
   }
 
   /** Service description in multiple languages */
   description: {
-    en: string
+    'en': string
     'zh-CN': string
   }
 
@@ -81,12 +81,12 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
   'typescript-language-server': {
     id: 'typescript-language-server',
     name: {
-      en: 'TypeScript Language Server',
-      'zh-CN': 'TypeScript 语言服务器'
+      'en': 'TypeScript Language Server',
+      'zh-CN': 'TypeScript 语言服务器',
     },
     description: {
-      en: 'Provides TypeScript/JavaScript language support with IntelliSense, error checking, and refactoring',
-      'zh-CN': '提供 TypeScript/JavaScript 语言支持，包括智能感知、错误检查和重构功能'
+      'en': 'Provides TypeScript/JavaScript language support with IntelliSense, error checking, and refactoring',
+      'zh-CN': '提供 TypeScript/JavaScript 语言支持，包括智能感知、错误检查和重构功能',
     },
     type: 'stdio',
     command: 'typescript-language-server',
@@ -98,18 +98,18 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'npm install -g typescript-language-server typescript',
     category: 'language',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['node', 'npm']
+    requiredCommands: ['node', 'npm'],
   },
 
   'python-lsp-server': {
     id: 'python-lsp-server',
     name: {
-      en: 'Python LSP Server',
-      'zh-CN': 'Python LSP 服务器'
+      'en': 'Python LSP Server',
+      'zh-CN': 'Python LSP 服务器',
     },
     description: {
-      en: 'Python Language Server Protocol implementation with linting, formatting, and code completion',
-      'zh-CN': 'Python 语言服务器协议实现，提供代码检查、格式化和自动补全功能'
+      'en': 'Python Language Server Protocol implementation with linting, formatting, and code completion',
+      'zh-CN': 'Python 语言服务器协议实现，提供代码检查、格式化和自动补全功能',
     },
     type: 'stdio',
     command: 'pylsp',
@@ -121,18 +121,18 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'pip install python-lsp-server[all]',
     category: 'language',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['python', 'pip']
+    requiredCommands: ['python', 'pip'],
   },
 
   'gopls': {
     id: 'gopls',
     name: {
-      en: 'Go Language Server',
-      'zh-CN': 'Go 语言服务器'
+      'en': 'Go Language Server',
+      'zh-CN': 'Go 语言服务器',
     },
     description: {
-      en: 'Official Go language server providing code intelligence, navigation, and refactoring',
-      'zh-CN': '官方 Go 语言服务器，提供代码智能、导航和重构功能'
+      'en': 'Official Go language server providing code intelligence, navigation, and refactoring',
+      'zh-CN': '官方 Go 语言服务器，提供代码智能、导航和重构功能',
     },
     type: 'stdio',
     command: 'gopls',
@@ -144,18 +144,18 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'go install golang.org/x/tools/gopls@latest',
     category: 'language',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['go']
+    requiredCommands: ['go'],
   },
 
   'rust-analyzer': {
     id: 'rust-analyzer',
     name: {
-      en: 'Rust Analyzer',
-      'zh-CN': 'Rust 分析器'
+      'en': 'Rust Analyzer',
+      'zh-CN': 'Rust 分析器',
     },
     description: {
-      en: 'Fast and feature-rich language server for Rust with real-time diagnostics and code assistance',
-      'zh-CN': '快速且功能丰富的 Rust 语言服务器，提供实时诊断和代码辅助'
+      'en': 'Fast and feature-rich language server for Rust with real-time diagnostics and code assistance',
+      'zh-CN': '快速且功能丰富的 Rust 语言服务器，提供实时诊断和代码辅助',
     },
     type: 'stdio',
     command: 'rust-analyzer',
@@ -167,7 +167,7 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'rustup component add rust-analyzer',
     category: 'language',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['rustup', 'cargo']
+    requiredCommands: ['rustup', 'cargo'],
   },
 
   // ============================================================================
@@ -177,12 +177,12 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
   'eslint-mcp': {
     id: 'eslint-mcp',
     name: {
-      en: 'ESLint MCP Server',
-      'zh-CN': 'ESLint MCP 服务器'
+      'en': 'ESLint MCP Server',
+      'zh-CN': 'ESLint MCP 服务器',
     },
     description: {
-      en: 'JavaScript/TypeScript linting and code quality analysis through MCP protocol',
-      'zh-CN': '通过 MCP 协议提供 JavaScript/TypeScript 代码检查和质量分析'
+      'en': 'JavaScript/TypeScript linting and code quality analysis through MCP protocol',
+      'zh-CN': '通过 MCP 协议提供 JavaScript/TypeScript 代码检查和质量分析',
     },
     type: 'stdio',
     command: 'npx',
@@ -194,18 +194,18 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'npm install -g @modelcontextprotocol/server-eslint',
     category: 'tooling',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['node', 'npm']
+    requiredCommands: ['node', 'npm'],
   },
 
   'prettier-mcp': {
     id: 'prettier-mcp',
     name: {
-      en: 'Prettier MCP Server',
-      'zh-CN': 'Prettier MCP 服务器'
+      'en': 'Prettier MCP Server',
+      'zh-CN': 'Prettier MCP 服务器',
     },
     description: {
-      en: 'Code formatting service for multiple languages through MCP protocol',
-      'zh-CN': '通过 MCP 协议为多种语言提供代码格式化服务'
+      'en': 'Code formatting service for multiple languages through MCP protocol',
+      'zh-CN': '通过 MCP 协议为多种语言提供代码格式化服务',
     },
     type: 'stdio',
     command: 'npx',
@@ -217,7 +217,7 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'npm install -g @modelcontextprotocol/server-prettier',
     category: 'tooling',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['node', 'npm']
+    requiredCommands: ['node', 'npm'],
   },
 
   // ============================================================================
@@ -227,12 +227,12 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
   'git-mcp': {
     id: 'git-mcp',
     name: {
-      en: 'Git MCP Server',
-      'zh-CN': 'Git MCP 服务器'
+      'en': 'Git MCP Server',
+      'zh-CN': 'Git MCP 服务器',
     },
     description: {
-      en: 'Git repository operations and version control through MCP protocol',
-      'zh-CN': '通过 MCP 协议提供 Git 仓库操作和版本控制功能'
+      'en': 'Git repository operations and version control through MCP protocol',
+      'zh-CN': '通过 MCP 协议提供 Git 仓库操作和版本控制功能',
     },
     type: 'stdio',
     command: 'npx',
@@ -244,7 +244,7 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'npm install -g @modelcontextprotocol/server-git',
     category: 'git',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['git', 'node', 'npm']
+    requiredCommands: ['git', 'node', 'npm'],
   },
 
   // ============================================================================
@@ -254,12 +254,12 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
   'playwright-mcp': {
     id: 'playwright-mcp',
     name: {
-      en: 'Playwright MCP Server',
-      'zh-CN': 'Playwright MCP 服务器'
+      'en': 'Playwright MCP Server',
+      'zh-CN': 'Playwright MCP 服务器',
     },
     description: {
-      en: 'End-to-end testing and browser automation through MCP protocol',
-      'zh-CN': '通过 MCP 协议提供端到端测试和浏览器自动化功能'
+      'en': 'End-to-end testing and browser automation through MCP protocol',
+      'zh-CN': '通过 MCP 协议提供端到端测试和浏览器自动化功能',
     },
     type: 'stdio',
     command: 'npx',
@@ -272,7 +272,7 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     category: 'testing',
     platforms: ['windows', 'macos', 'linux'],
     requiresGui: false, // Can run headless
-    requiredCommands: ['node', 'npm']
+    requiredCommands: ['node', 'npm'],
   },
 
   // ============================================================================
@@ -282,12 +282,12 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
   'puppeteer-mcp': {
     id: 'puppeteer-mcp',
     name: {
-      en: 'Puppeteer MCP Server',
-      'zh-CN': 'Puppeteer MCP 服务器'
+      'en': 'Puppeteer MCP Server',
+      'zh-CN': 'Puppeteer MCP 服务器',
     },
     description: {
-      en: 'Chrome/Chromium browser automation and web scraping through MCP protocol',
-      'zh-CN': '通过 MCP 协议提供 Chrome/Chromium 浏览器自动化和网页抓取功能'
+      'en': 'Chrome/Chromium browser automation and web scraping through MCP protocol',
+      'zh-CN': '通过 MCP 协议提供 Chrome/Chromium 浏览器自动化和网页抓取功能',
     },
     type: 'stdio',
     command: 'npx',
@@ -300,7 +300,7 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     category: 'browser',
     platforms: ['windows', 'macos', 'linux'],
     requiresGui: false, // Can run headless
-    requiredCommands: ['node', 'npm']
+    requiredCommands: ['node', 'npm'],
   },
 
   // ============================================================================
@@ -310,12 +310,12 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
   'vscode-json-language-server': {
     id: 'vscode-json-language-server',
     name: {
-      en: 'JSON Language Server',
-      'zh-CN': 'JSON 语言服务器'
+      'en': 'JSON Language Server',
+      'zh-CN': 'JSON 语言服务器',
     },
     description: {
-      en: 'JSON schema validation, completion, and formatting support',
-      'zh-CN': '提供 JSON 模式验证、自动补全和格式化支持'
+      'en': 'JSON schema validation, completion, and formatting support',
+      'zh-CN': '提供 JSON 模式验证、自动补全和格式化支持',
     },
     type: 'stdio',
     command: 'vscode-json-language-server',
@@ -327,18 +327,18 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'npm install -g vscode-langservers-extracted',
     category: 'language',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['node', 'npm']
+    requiredCommands: ['node', 'npm'],
   },
 
   'yaml-language-server': {
     id: 'yaml-language-server',
     name: {
-      en: 'YAML Language Server',
-      'zh-CN': 'YAML 语言服务器'
+      'en': 'YAML Language Server',
+      'zh-CN': 'YAML 语言服务器',
     },
     description: {
-      en: 'YAML schema validation, completion, and syntax highlighting',
-      'zh-CN': '提供 YAML 模式验证、自动补全和语法高亮'
+      'en': 'YAML schema validation, completion, and syntax highlighting',
+      'zh-CN': '提供 YAML 模式验证、自动补全和语法高亮',
     },
     type: 'stdio',
     command: 'yaml-language-server',
@@ -350,8 +350,8 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     installCommand: 'npm install -g yaml-language-server',
     category: 'language',
     platforms: ['windows', 'macos', 'linux', 'wsl'],
-    requiredCommands: ['node', 'npm']
-  }
+    requiredCommands: ['node', 'npm'],
+  },
 }
 
 /**
@@ -380,7 +380,7 @@ export function getAllMcpServiceTemplates(): McpServiceTemplate[] {
  * @returns Array of service templates in the specified category
  */
 export function getMcpServiceTemplatesByCategory(
-  category: McpServiceTemplate['category']
+  category: McpServiceTemplate['category'],
 ): McpServiceTemplate[] {
   return Object.values(mcpServiceTemplates).filter(template => template.category === category)
 }
@@ -393,7 +393,7 @@ export function getMcpServiceTemplatesByCategory(
  */
 export function getRequiredMcpServiceTemplates(projectType: string): McpServiceTemplate[] {
   return Object.values(mcpServiceTemplates).filter(template =>
-    template.requiredFor.includes(projectType)
+    template.requiredFor.includes(projectType),
   )
 }
 
@@ -405,7 +405,7 @@ export function getRequiredMcpServiceTemplates(projectType: string): McpServiceT
  */
 export function getOptionalMcpServiceTemplates(projectType: string): McpServiceTemplate[] {
   return Object.values(mcpServiceTemplates).filter(template =>
-    template.optionalFor.includes(projectType) || template.optionalFor.includes('all')
+    template.optionalFor.includes(projectType) || template.optionalFor.includes('all'),
   )
 }
 
@@ -420,7 +420,7 @@ export function templateToMcpServerConfig(template: McpServiceTemplate): McpServ
     type: template.type,
     command: template.command,
     args: template.args,
-    env: template.env
+    env: template.env,
   }
 }
 
@@ -433,7 +433,7 @@ export function templateToMcpServerConfig(template: McpServiceTemplate): McpServ
  */
 export function isTemplateCompatible(
   template: McpServiceTemplate,
-  platform?: 'windows' | 'macos' | 'linux' | 'wsl' | 'termux'
+  platform?: 'windows' | 'macos' | 'linux' | 'wsl' | 'termux',
 ): boolean {
   // If no platform restrictions, assume compatible
   if (!template.platforms || template.platforms.length === 0) {
@@ -443,12 +443,13 @@ export function isTemplateCompatible(
   // Auto-detect platform if not provided
   if (!platform) {
     const process = globalThis.process
-    if (!process) return true // Browser environment, assume compatible
+    if (!process)
+      return true // Browser environment, assume compatible
 
     const platformMap: Record<string, 'windows' | 'macos' | 'linux'> = {
-      'win32': 'windows',
-      'darwin': 'macos',
-      'linux': 'linux'
+      win32: 'windows',
+      darwin: 'macos',
+      linux: 'linux',
     }
 
     platform = platformMap[process.platform] || 'linux'
@@ -469,10 +470,10 @@ export function isTemplateCompatible(
  * @returns Array of compatible service templates
  */
 export function getCompatibleMcpServiceTemplates(
-  platform?: 'windows' | 'macos' | 'linux' | 'wsl' | 'termux'
+  platform?: 'windows' | 'macos' | 'linux' | 'wsl' | 'termux',
 ): McpServiceTemplate[] {
   return Object.values(mcpServiceTemplates).filter(template =>
-    isTemplateCompatible(template, platform)
+    isTemplateCompatible(template, platform),
   )
 }
 
@@ -481,25 +482,25 @@ export function getCompatibleMcpServiceTemplates(
  */
 export const MCP_SERVICE_CATEGORIES = {
   language: {
-    en: 'Language Servers',
-    'zh-CN': '语言服务器'
+    'en': 'Language Servers',
+    'zh-CN': '语言服务器',
   },
   tooling: {
-    en: 'Development Tools',
-    'zh-CN': '开发工具'
+    'en': 'Development Tools',
+    'zh-CN': '开发工具',
   },
   testing: {
-    en: 'Testing Frameworks',
-    'zh-CN': '测试框架'
+    'en': 'Testing Frameworks',
+    'zh-CN': '测试框架',
   },
   git: {
-    en: 'Version Control',
-    'zh-CN': '版本控制'
+    'en': 'Version Control',
+    'zh-CN': '版本控制',
   },
   browser: {
-    en: 'Browser Automation',
-    'zh-CN': '浏览器自动化'
-  }
+    'en': 'Browser Automation',
+    'zh-CN': '浏览器自动化',
+  },
 } as const
 
 /**
@@ -526,7 +527,7 @@ export const PROJECT_TYPES = [
   'microservices',
   'backend',
   'frontend',
-  'fullstack'
+  'fullstack',
 ] as const
 
 export type ProjectType = typeof PROJECT_TYPES[number]

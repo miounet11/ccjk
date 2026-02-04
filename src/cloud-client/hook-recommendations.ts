@@ -10,7 +10,7 @@ export async function getCloudRecommendedHooks(
     includeCommunity?: boolean
     includePremium?: boolean
     limit?: number
-  } = {}
+  } = {},
 ): Promise<HookTemplate[]> {
   const { includeCommunity = true, includePremium = false, limit = 10 } = options
 
@@ -19,11 +19,12 @@ export async function getCloudRecommendedHooks(
     const recommendations = await fetchCloudRecommendations(projectInfo, {
       includeCommunity,
       includePremium,
-      limit
+      limit,
     })
 
     return recommendations
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to fetch cloud recommendations:', error)
     // Return empty array to fallback to local templates
     return []
@@ -39,7 +40,7 @@ async function fetchCloudRecommendations(
     includeCommunity: boolean
     includePremium: boolean
     limit: number
-  }
+  },
 ): Promise<HookTemplate[]> {
   // Mock cloud recommendations based on project analysis
   const recommendations: HookTemplate[] = []
@@ -99,19 +100,19 @@ function getBaseRecommendations(projectInfo: ProjectAnalysis): HookTemplate[] {
         category: 'pre-commit',
         projectTypes: ['typescript', 'javascript'],
         trigger: {
-          matcher: 'git:pre-commit'
+          matcher: 'git:pre-commit',
         },
         action: {
           command: 'ccjk-cloud',
           args: ['scan', 'security', '--staged'],
-          timeout: 60000
+          timeout: 60000,
         },
         enabled: true,
         priority: 200,
         metadata: {
           tags: ['official', 'security', 'cloud'],
-          version: '1.0.0'
-        }
+          version: '1.0.0',
+        },
       },
       {
         name: 'cloud-dependency-check',
@@ -121,20 +122,20 @@ function getBaseRecommendations(projectInfo: ProjectAnalysis): HookTemplate[] {
         projectTypes: ['typescript', 'javascript'],
         trigger: {
           matcher: 'git:pre-commit',
-          condition: 'package-lock.json || yarn.lock || pnpm-lock.yaml'
+          condition: 'package-lock.json || yarn.lock || pnpm-lock.yaml',
         },
         action: {
           command: 'ccjk-cloud',
           args: ['audit', 'dependencies'],
-          timeout: 30000
+          timeout: 30000,
         },
         enabled: true,
         priority: 190,
         metadata: {
           tags: ['official', 'security', 'cloud'],
-          version: '1.0.0'
-        }
-      }
+          version: '1.0.0',
+        },
+      },
     )
   }
 
@@ -148,20 +149,20 @@ function getBaseRecommendations(projectInfo: ProjectAnalysis): HookTemplate[] {
         category: 'pre-commit',
         projectTypes: ['python'],
         trigger: {
-          matcher: 'git:pre-commit'
+          matcher: 'git:pre-commit',
         },
         action: {
           command: 'ccjk-cloud',
           args: ['scan', 'python-security'],
-          timeout: 45000
+          timeout: 45000,
         },
         enabled: true,
         priority: 200,
         metadata: {
           tags: ['official', 'security', 'cloud'],
-          version: '1.0.0'
-        }
-      }
+          version: '1.0.0',
+        },
+      },
     )
   }
 
@@ -176,20 +177,20 @@ function getBaseRecommendations(projectInfo: ProjectAnalysis): HookTemplate[] {
         projectTypes: ['rust'],
         trigger: {
           matcher: 'git:pre-commit',
-          condition: 'Cargo.lock'
+          condition: 'Cargo.lock',
         },
         action: {
           command: 'ccjk-cloud',
           args: ['audit', 'cargo'],
-          timeout: 30000
+          timeout: 30000,
         },
         enabled: true,
         priority: 200,
         metadata: {
           tags: ['official', 'security', 'cloud'],
-          version: '1.0.0'
-        }
-      }
+          version: '1.0.0',
+        },
+      },
     )
   }
 
@@ -215,20 +216,20 @@ function getFrameworkRecommendations(projectInfo: ProjectAnalysis): HookTemplate
           category: 'lifecycle',
           projectTypes: ['typescript', 'javascript'],
           trigger: {
-            matcher: 'command:*build*'
+            matcher: 'command:*build*',
           },
           action: {
             command: 'ccjk-cloud',
             args: ['analyze', 'react-bundle'],
-            timeout: 30000
+            timeout: 30000,
           },
           enabled: true,
           priority: 150,
           metadata: {
             tags: ['official', 'react', 'performance', 'cloud'],
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       )
     }
 
@@ -242,20 +243,20 @@ function getFrameworkRecommendations(projectInfo: ProjectAnalysis): HookTemplate
           category: 'pre-commit',
           projectTypes: ['typescript', 'javascript'],
           trigger: {
-            matcher: 'git:pre-commit'
+            matcher: 'git:pre-commit',
           },
           action: {
             command: 'ccjk-cloud',
             args: ['analyze', 'vue'],
-            timeout: 20000
+            timeout: 20000,
           },
           enabled: true,
           priority: 150,
           metadata: {
             tags: ['official', 'vue', 'cloud'],
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       )
     }
 
@@ -270,20 +271,20 @@ function getFrameworkRecommendations(projectInfo: ProjectAnalysis): HookTemplate
           projectTypes: ['python'],
           trigger: {
             matcher: 'git:pre-commit',
-            condition: '*.py'
+            condition: '*.py',
           },
           action: {
             command: 'ccjk-cloud',
             args: ['django', 'checks'],
-            timeout: 15000
+            timeout: 15000,
           },
           enabled: true,
           priority: 150,
           metadata: {
             tags: ['official', 'django', 'cloud'],
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       )
     }
   }
@@ -307,19 +308,19 @@ function getToolRecommendations(projectInfo: ProjectAnalysis): HookTemplate[] {
       category: 'pre-commit',
       projectTypes: ['typescript', 'javascript'],
       trigger: {
-        matcher: 'git:pre-commit'
+        matcher: 'git:pre-commit',
       },
       action: {
         command: 'ccjk-cloud',
         args: ['lint', 'eslint', '--advanced'],
-        timeout: 25000
+        timeout: 25000,
       },
       enabled: true,
       priority: 140,
       metadata: {
         tags: ['official', 'eslint', 'cloud'],
-        version: '1.0.0'
-      }
+        version: '1.0.0',
+      },
     })
   }
 
@@ -332,19 +333,19 @@ function getToolRecommendations(projectInfo: ProjectAnalysis): HookTemplate[] {
       category: 'pre-commit',
       projectTypes: ['typescript', 'javascript'],
       trigger: {
-        matcher: 'git:pre-commit'
+        matcher: 'git:pre-commit',
       },
       action: {
         command: 'ccjk-cloud',
         args: ['test', 'intelligent'],
-        timeout: 120000
+        timeout: 120000,
       },
       enabled: true,
       priority: 160,
       metadata: {
         tags: ['official', 'testing', 'cloud', 'intelligent'],
-        version: '1.0.0'
-      }
+        version: '1.0.0',
+      },
     })
   }
 
@@ -357,13 +358,14 @@ function getToolRecommendations(projectInfo: ProjectAnalysis): HookTemplate[] {
 export async function submitHookAnalytics(
   hookName: string,
   projectInfo: ProjectAnalysis,
-  result: 'installed' | 'skipped' | 'error'
+  result: 'installed' | 'skipped' | 'error',
 ): Promise<void> {
   try {
     // Mock analytics submission
     console.log(`Analytics: Hook ${hookName} ${result} for ${projectInfo.projectType} project`)
     // In real implementation, this would send to analytics service
-  } catch (error) {
+  }
+  catch (error) {
     // Fail silently for analytics
   }
 }
@@ -373,7 +375,7 @@ export async function submitHookAnalytics(
  */
 export async function getCommunityHooks(
   limit: number = 10,
-  category?: string
+  category?: string,
 ): Promise<HookTemplate[]> {
   // Mock community hooks
   const communityHooks: HookTemplate[] = [
@@ -384,20 +386,20 @@ export async function getCommunityHooks(
       category: 'lifecycle',
       projectTypes: ['typescript', 'javascript', 'python'],
       trigger: {
-        matcher: 'git:post-commit'
+        matcher: 'git:post-commit',
       },
       action: {
         command: 'ccjk-community',
         args: ['commit-emoji'],
-        timeout: 5000
+        timeout: 5000,
       },
       enabled: true,
       priority: 100,
       metadata: {
         tags: ['community', 'git', 'fun'],
         author: 'ccjk-user-123',
-        version: '1.0.0'
-      }
+        version: '1.0.0',
+      },
     },
     {
       name: 'community-code-poetry',
@@ -406,21 +408,21 @@ export async function getCommunityHooks(
       category: 'lifecycle',
       projectTypes: ['typescript', 'javascript', 'python'],
       trigger: {
-        matcher: 'git:post-commit'
+        matcher: 'git:post-commit',
       },
       action: {
         command: 'ccjk-community',
         args: ['code-poetry'],
-        timeout: 10000
+        timeout: 10000,
       },
       enabled: false,
       priority: 50,
       metadata: {
         tags: ['community', 'fun', 'ai'],
         author: 'poet-coder',
-        version: '1.0.0'
-      }
-    }
+        version: '1.0.0',
+      },
+    },
   ]
 
   let filtered = communityHooks

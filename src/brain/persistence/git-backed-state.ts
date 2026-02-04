@@ -11,9 +11,9 @@ import type { AgentState } from '../types'
 import { EventEmitter } from 'node:events'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
+import { nanoid } from 'nanoid'
 import { join } from 'pathe'
 import { x } from 'tinyexec'
-import { nanoid } from 'nanoid'
 
 /**
  * Git-backed state configuration
@@ -108,7 +108,8 @@ export class GitBackedStateManager extends EventEmitter {
    * Initialize the workspace with Git
    */
   async initialize(): Promise<void> {
-    if (this.initialized) return
+    if (this.initialized)
+      return
 
     const { workspaceRoot } = this.config
 

@@ -33,7 +33,7 @@ class LocalEmbedding {
 
     for (const doc of documents) {
       const tokens = new Set(this.tokenize(doc))
-      for (const token of tokens) {
+      for (const token of Array.from(tokens)) {
         if (!this.vocabulary.has(token)) {
           this.vocabulary.set(token, this.vocabulary.size)
         }
@@ -41,7 +41,7 @@ class LocalEmbedding {
       }
     }
 
-    for (const [token, freq] of docFrequency) {
+    for (const [token, freq] of Array.from(docFrequency.entries())) {
       this.idf.set(token, Math.log(this.documentCount / freq))
     }
   }
@@ -51,14 +51,14 @@ class LocalEmbedding {
    */
   embed(text: string): number[] {
     const tokens = this.tokenize(text)
-    const vector = Array.from({ length: Math.min(this.vocabulary.size, 384) }).fill(0)
+    const vector: number[] = Array.from({ length: Math.min(this.vocabulary.size, 384) }, () => 0)
 
     const termFreq = new Map<string, number>()
     for (const token of tokens) {
       termFreq.set(token, (termFreq.get(token) || 0) + 1)
     }
 
-    for (const [token, freq] of termFreq) {
+    for (const [token, freq] of Array.from(termFreq.entries())) {
       const idx = this.vocabulary.get(token)
       const idf = this.idf.get(token) || 0
       if (idx !== undefined && idx < vector.length) {

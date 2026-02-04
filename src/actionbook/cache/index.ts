@@ -5,9 +5,10 @@
  * Provides intelligent cache management with automatic promotion/demotion.
  */
 
-import { MemoryCache, getGlobalCache } from './memory.js'
+import type { CacheEntry } from '../types.js'
+import type { MemoryCache } from './memory.js'
+import { getGlobalCache } from './memory.js'
 import { LevelDBStorage } from './storage.js'
-import type { CacheEntry, PrecomputedData } from '../types.js'
 
 /**
  * Cache level configuration

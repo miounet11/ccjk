@@ -16,17 +16,17 @@ import type { SupportedLang } from '../constants'
 /**
  * Skill category types for organization and discovery
  */
-export type SkillCategory =
-  | 'dev'       // Development workflows
-  | 'git'       // Git operations
-  | 'review'    // Code review
-  | 'testing'   // Testing workflows
-  | 'docs'      // Documentation
-  | 'devops'    // DevOps operations
-  | 'planning'  // Planning and design
-  | 'debugging' // Debugging workflows
-  | 'seo'       // SEO optimization
-  | 'custom'    // User-defined
+export type SkillCategory
+  = | 'dev' // Development workflows
+    | 'git' // Git operations
+    | 'review' // Code review
+    | 'testing' // Testing workflows
+    | 'docs' // Documentation
+    | 'devops' // DevOps operations
+    | 'planning' // Planning and design
+    | 'debugging' // Debugging workflows
+    | 'seo' // SEO optimization
+    | 'custom' // User-defined
 
 /**
  * Skill source types
@@ -51,12 +51,12 @@ export type SkillDifficulty = 'beginner' | 'intermediate' | 'advanced'
 /**
  * Hot reload event types
  */
-export type HotReloadEventType =
-  | 'add'
-  | 'change'
-  | 'unlink'
-  | 'error'
-  | 'ready'
+export type HotReloadEventType
+  = | 'add'
+    | 'change'
+    | 'unlink'
+    | 'error'
+    | 'ready'
 
 // ============================================================================
 // Core Interfaces
@@ -658,12 +658,12 @@ export interface RegistryEvents {
  * Hot reload event types
  */
 export interface HotReloadEvents {
-  'add': (event: HotReloadEvent) => void
-  'change': (event: HotReloadEvent) => void
-  'unlink': (event: HotReloadEvent) => void
-  'error': (event: HotReloadEvent) => void
-  'ready': (event: HotReloadEvent) => void
-  'event': (event: HotReloadEvent) => void
+  add: (event: HotReloadEvent) => void
+  change: (event: HotReloadEvent) => void
+  unlink: (event: HotReloadEvent) => void
+  error: (event: HotReloadEvent) => void
+  ready: (event: HotReloadEvent) => void
+  event: (event: HotReloadEvent) => void
 }
 
 // ============================================================================

@@ -10,11 +10,11 @@ import type { MenuConfig, MenuGroup, MenuItem } from './types.js'
 export const apiConfigMenu: MenuItem = {
   id: 'api-config',
   label: {
-    en: 'API Configuration',
+    'en': 'API Configuration',
     'zh-CN': 'API 配置管理',
   },
   description: {
-    en: 'One-click API setup, start using Claude',
+    'en': 'One-click API setup, start using Claude',
     'zh-CN': '一键配置 API，开始使用 Claude',
   },
   icon: '🔑',
@@ -24,11 +24,11 @@ export const apiConfigMenu: MenuItem = {
     {
       id: 'api-official',
       label: {
-        en: 'Use Official Login (No API needed)',
+        'en': 'Use Official Login (No API needed)',
         'zh-CN': '使用官方登录（不配置 API）',
       },
       description: {
-        en: 'Recommended for new users',
+        'en': 'Recommended for new users',
         'zh-CN': '推荐新用户使用',
       },
       icon: '✨',
@@ -38,11 +38,11 @@ export const apiConfigMenu: MenuItem = {
     {
       id: 'api-custom',
       label: {
-        en: 'Custom API Configuration',
+        'en': 'Custom API Configuration',
         'zh-CN': '自定义 API 配置',
       },
       description: {
-        en: 'Configure API Key and URL',
+        'en': 'Configure API Key and URL',
         'zh-CN': '配置 API Key 和 URL',
       },
       icon: '⚙️',
@@ -52,11 +52,11 @@ export const apiConfigMenu: MenuItem = {
     {
       id: 'api-ccr',
       label: {
-        en: 'Use CCR Proxy',
+        'en': 'Use CCR Proxy',
         'zh-CN': '使用 CCR 代理',
       },
       description: {
-        en: 'Access API through proxy',
+        'en': 'Access API through proxy',
         'zh-CN': '通过代理访问 API',
       },
       icon: '🌐',
@@ -66,11 +66,11 @@ export const apiConfigMenu: MenuItem = {
     {
       id: 'api-switch',
       label: {
-        en: 'Switch API Configuration',
+        'en': 'Switch API Configuration',
         'zh-CN': '切换 API 配置',
       },
       description: {
-        en: 'Switch between configurations',
+        'en': 'Switch between configurations',
         'zh-CN': '在多个配置间切换',
       },
       icon: '🔄',
@@ -80,11 +80,11 @@ export const apiConfigMenu: MenuItem = {
     {
       id: 'api-status',
       label: {
-        en: 'View Current Configuration',
+        'en': 'View Current Configuration',
         'zh-CN': '查看当前配置',
       },
       description: {
-        en: 'Show current API settings',
+        'en': 'Show current API settings',
         'zh-CN': '显示当前 API 设置',
       },
       icon: '📋',
@@ -94,11 +94,11 @@ export const apiConfigMenu: MenuItem = {
     {
       id: 'api-skip',
       label: {
-        en: 'Skip API Configuration',
+        'en': 'Skip API Configuration',
         'zh-CN': '跳过 API 配置',
       },
       description: {
-        en: 'Configure later',
+        'en': 'Configure later',
         'zh-CN': '稍后配置',
       },
       icon: '⏭️',
@@ -114,7 +114,7 @@ export const apiConfigMenu: MenuItem = {
 export const quickStartGroup: MenuGroup = {
   id: 'quick-start',
   label: {
-    en: 'Quick Start',
+    'en': 'Quick Start',
     'zh-CN': '快速开始',
   },
   icon: '🚀',
@@ -123,11 +123,11 @@ export const quickStartGroup: MenuGroup = {
     {
       id: 'init-project',
       label: {
-        en: 'Initialize Project',
+        'en': 'Initialize Project',
         'zh-CN': '初始化项目',
       },
       description: {
-        en: 'Configure CCJK for current project',
+        'en': 'Configure CCJK for current project',
         'zh-CN': '为当前项目配置 CCJK',
       },
       icon: '📦',
@@ -136,11 +136,11 @@ export const quickStartGroup: MenuGroup = {
     {
       id: 'install-skills',
       label: {
-        en: 'Install Skills',
+        'en': 'Install Skills',
         'zh-CN': '安装技能',
       },
       description: {
-        en: 'One-click install common skill packs',
+        'en': 'One-click install common skill packs',
         'zh-CN': '一键安装常用技能包',
       },
       icon: '🎯',
@@ -149,11 +149,11 @@ export const quickStartGroup: MenuGroup = {
     {
       id: 'setup-mcp',
       label: {
-        en: 'Setup MCP Services',
+        'en': 'Setup MCP Services',
         'zh-CN': '配置 MCP 服务',
       },
       description: {
-        en: 'Configure MCP service connections',
+        'en': 'Configure MCP service connections',
         'zh-CN': '设置 MCP 服务连接',
       },
       icon: '🔌',
@@ -168,7 +168,7 @@ export const quickStartGroup: MenuGroup = {
 export const projectManagementGroup: MenuGroup = {
   id: 'project-management',
   label: {
-    en: 'Project Management',
+    'en': 'Project Management',
     'zh-CN': '项目管理',
   },
   icon: '🛠️',
@@ -177,11 +177,11 @@ export const projectManagementGroup: MenuGroup = {
     {
       id: 'skills-management',
       label: {
-        en: 'Skills Management',
+        'en': 'Skills Management',
         'zh-CN': 'Skills 技能管理',
       },
       description: {
-        en: 'Install, view, remove skills',
+        'en': 'Install, view, remove skills',
         'zh-CN': '安装、查看、删除技能',
       },
       icon: '🎯',
@@ -190,11 +190,11 @@ export const projectManagementGroup: MenuGroup = {
     {
       id: 'mcp-management',
       label: {
-        en: 'MCP Services',
+        'en': 'MCP Services',
         'zh-CN': 'MCP 服务管理',
       },
       description: {
-        en: 'Configure, test MCP services',
+        'en': 'Configure, test MCP services',
         'zh-CN': '配置、测试 MCP 服务',
       },
       icon: '🔌',
@@ -203,11 +203,11 @@ export const projectManagementGroup: MenuGroup = {
     {
       id: 'agents-management',
       label: {
-        en: 'Agents Management',
+        'en': 'Agents Management',
         'zh-CN': 'Agents 代理管理',
       },
       description: {
-        en: 'Create, edit AI agents',
+        'en': 'Create, edit AI agents',
         'zh-CN': '创建、编辑 AI 代理',
       },
       icon: '🤖',
@@ -216,11 +216,11 @@ export const projectManagementGroup: MenuGroup = {
     {
       id: 'hooks-management',
       label: {
-        en: 'Hooks Management',
+        'en': 'Hooks Management',
         'zh-CN': 'Hooks 钩子管理',
       },
       description: {
-        en: 'Configure Git hooks',
+        'en': 'Configure Git hooks',
         'zh-CN': '配置 Git 钩子',
       },
       icon: '🪝',
@@ -235,7 +235,7 @@ export const projectManagementGroup: MenuGroup = {
 export const sessionManagementGroup: MenuGroup = {
   id: 'session-management',
   label: {
-    en: 'Session & Context',
+    'en': 'Session & Context',
     'zh-CN': '会话管理',
   },
   icon: '💬',
@@ -244,11 +244,11 @@ export const sessionManagementGroup: MenuGroup = {
     {
       id: 'session-create',
       label: {
-        en: 'Create New Session',
+        'en': 'Create New Session',
         'zh-CN': '创建新会话',
       },
       description: {
-        en: 'Start a new conversation session',
+        'en': 'Start a new conversation session',
         'zh-CN': '开始新的对话会话',
       },
       icon: '➕',
@@ -257,11 +257,11 @@ export const sessionManagementGroup: MenuGroup = {
     {
       id: 'session-restore',
       label: {
-        en: 'Restore Session',
+        'en': 'Restore Session',
         'zh-CN': '恢复会话',
       },
       description: {
-        en: 'Continue from history',
+        'en': 'Continue from history',
         'zh-CN': '从历史会话继续',
       },
       icon: '🔄',
@@ -270,11 +270,11 @@ export const sessionManagementGroup: MenuGroup = {
     {
       id: 'session-list',
       label: {
-        en: 'Session List',
+        'en': 'Session List',
         'zh-CN': '会话列表',
       },
       description: {
-        en: 'View all saved sessions',
+        'en': 'View all saved sessions',
         'zh-CN': '查看所有保存的会话',
       },
       icon: '📋',
@@ -283,11 +283,11 @@ export const sessionManagementGroup: MenuGroup = {
     {
       id: 'context-management',
       label: {
-        en: 'Context Management',
+        'en': 'Context Management',
         'zh-CN': '上下文管理',
       },
       description: {
-        en: 'Compact, clean context',
+        'en': 'Compact, clean context',
         'zh-CN': '压缩、清理上下文',
       },
       icon: '📊',
@@ -296,11 +296,11 @@ export const sessionManagementGroup: MenuGroup = {
     {
       id: 'session-export',
       label: {
-        en: 'Export Session',
+        'en': 'Export Session',
         'zh-CN': '导出会话',
       },
       description: {
-        en: 'Export as Markdown',
+        'en': 'Export as Markdown',
         'zh-CN': '导出为 Markdown',
       },
       icon: '📤',
@@ -309,11 +309,11 @@ export const sessionManagementGroup: MenuGroup = {
     {
       id: 'session-cleanup',
       label: {
-        en: 'Cleanup Cache',
+        'en': 'Cleanup Cache',
         'zh-CN': '清理缓存',
       },
       description: {
-        en: 'Clean session cache data',
+        'en': 'Clean session cache data',
         'zh-CN': '清理会话缓存数据',
       },
       icon: '🧹',
@@ -328,7 +328,7 @@ export const sessionManagementGroup: MenuGroup = {
 export const settingsGroup: MenuGroup = {
   id: 'settings',
   label: {
-    en: 'Settings',
+    'en': 'Settings',
     'zh-CN': '系统设置',
   },
   icon: '⚙️',
@@ -337,11 +337,11 @@ export const settingsGroup: MenuGroup = {
     {
       id: 'language-setting',
       label: {
-        en: 'Language',
+        'en': 'Language',
         'zh-CN': '语言设置',
       },
       description: {
-        en: 'Switch interface language',
+        'en': 'Switch interface language',
         'zh-CN': '切换界面语言 (en/zh-CN)',
       },
       icon: '🌐',
@@ -350,11 +350,11 @@ export const settingsGroup: MenuGroup = {
     {
       id: 'advanced-setting',
       label: {
-        en: 'Advanced Settings',
+        'en': 'Advanced Settings',
         'zh-CN': '高级设置',
       },
       description: {
-        en: 'Debug, logs, performance',
+        'en': 'Debug, logs, performance',
         'zh-CN': '调试、日志、性能',
       },
       icon: '🔧',
@@ -363,11 +363,11 @@ export const settingsGroup: MenuGroup = {
     {
       id: 'reset-setting',
       label: {
-        en: 'Reset Settings',
+        'en': 'Reset Settings',
         'zh-CN': '重置设置',
       },
       description: {
-        en: 'Restore default settings',
+        'en': 'Restore default settings',
         'zh-CN': '恢复默认设置',
       },
       icon: '↩️',
@@ -382,7 +382,7 @@ export const settingsGroup: MenuGroup = {
 export const helpGroup: MenuGroup = {
   id: 'help',
   label: {
-    en: 'Help & Documentation',
+    'en': 'Help & Documentation',
     'zh-CN': '帮助文档',
   },
   icon: '📚',
@@ -391,11 +391,11 @@ export const helpGroup: MenuGroup = {
     {
       id: 'command-reference',
       label: {
-        en: 'Command Reference',
+        'en': 'Command Reference',
         'zh-CN': '命令参考',
       },
       description: {
-        en: 'Detailed command documentation',
+        'en': 'Detailed command documentation',
         'zh-CN': '所有命令的详细说明',
       },
       icon: '📖',
@@ -404,11 +404,11 @@ export const helpGroup: MenuGroup = {
     {
       id: 'quick-tutorial',
       label: {
-        en: 'Quick Tutorial',
+        'en': 'Quick Tutorial',
         'zh-CN': '快速教程',
       },
       description: {
-        en: '5-minute getting started guide',
+        'en': '5-minute getting started guide',
         'zh-CN': '5 分钟上手指南',
       },
       icon: '🎓',
@@ -417,11 +417,11 @@ export const helpGroup: MenuGroup = {
     {
       id: 'faq',
       label: {
-        en: 'FAQ',
+        'en': 'FAQ',
         'zh-CN': '常见问题',
       },
       description: {
-        en: 'FAQ and troubleshooting',
+        'en': 'FAQ and troubleshooting',
         'zh-CN': 'FAQ 和故障排除',
       },
       icon: '❓',
@@ -430,11 +430,11 @@ export const helpGroup: MenuGroup = {
     {
       id: 'about',
       label: {
-        en: 'About CCJK',
+        'en': 'About CCJK',
         'zh-CN': '关于 CCJK',
       },
       description: {
-        en: 'Version info and credits',
+        'en': 'Version info and credits',
         'zh-CN': '版本信息和致谢',
       },
       icon: 'ℹ️',
@@ -448,7 +448,7 @@ export const helpGroup: MenuGroup = {
  */
 export const mainMenuConfig: MenuConfig = {
   title: {
-    en: 'CCJK - Claude Code JK',
+    'en': 'CCJK - Claude Code JK',
     'zh-CN': 'CCJK - Claude Code JK',
   },
   groups: [
@@ -456,7 +456,7 @@ export const mainMenuConfig: MenuConfig = {
     {
       id: 'core',
       label: {
-        en: 'Core Features',
+        'en': 'Core Features',
         'zh-CN': '核心功能',
       },
       icon: '★',
@@ -474,7 +474,7 @@ export const mainMenuConfig: MenuConfig = {
     {
       id: 'exit',
       label: {
-        en: 'Exit',
+        'en': 'Exit',
         'zh-CN': '退出',
       },
       icon: '🚪',
@@ -489,10 +489,10 @@ export const mainMenuConfig: MenuConfig = {
  */
 export function getLocalizedLabel(
   label: string | Record<string, string>,
-  locale: string = 'zh-CN'
+  locale: string = 'zh-CN',
 ): string {
   if (typeof label === 'string') {
     return label
   }
-  return label[locale] || label['en'] || Object.values(label)[0] || ''
+  return label[locale] || label.en || Object.values(label)[0] || ''
 }

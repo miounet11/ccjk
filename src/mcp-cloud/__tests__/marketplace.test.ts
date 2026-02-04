@@ -3,9 +3,9 @@
  * Tests for SearchEngine, ServiceBrowser, and TrendingTracker
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { CloudMCPRegistry } from '../registry/cloud-registry'
-import type { MCPService, MarketplaceState, SearchFilters } from '../types'
+import type { MCPService, SearchFilters } from '../types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SearchEngine } from '../marketplace/search-engine'
 import { ServiceBrowser } from '../marketplace/service-browser'
 import { TrendingTracker } from '../marketplace/trending-tracker'

@@ -102,8 +102,8 @@ function calculateCognitiveComplexity(ast: ASTNode, nestingLevel = 0): number {
 function calculateHalsteadMetrics(ast: ASTNode): HalsteadMetrics {
   const operators = new Set<string>()
   const operands = new Set<string>()
-  let totalOperators = 0
-  let totalOperands = 0
+  const totalOperators = 0
+  const totalOperands = 0
 
   extractHalsteadTokens(ast, operators, operands, totalOperators, totalOperands)
 

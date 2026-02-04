@@ -3,12 +3,10 @@
  * Sends task results via email
  */
 
-import type { Transporter } from 'nodemailer'
-import type { EmailConfig, TaskResult } from '../types'
-import nodemailer from 'nodemailer'
+import type { EmailConfig, TaskResult } from './types/index.js'
 
 export class ResultSender {
-  private transporter: Transporter
+  private transporter: any
   private config: EmailConfig
 
   constructor(config: EmailConfig) {
@@ -19,15 +17,23 @@ export class ResultSender {
       ...config,
     }
 
-    this.transporter = nodemailer.createTransport({
-      host: this.config.smtpHost,
-      port: this.config.smtpPort,
-      secure: false, // Use STARTTLS
-      auth: {
-        user: this.config.email,
-        pass: this.config.password,
-      },
-    })
+    // Lazy load nodemailer package
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const nodemailer = require('nodemailer')
+      this.transporter = nodemailer.createTransport({
+        host: this.config.smtpHost,
+        port: this.config.smtpPort,
+        secure: false, // Use STARTTLS
+        auth: {
+          user: this.config.email,
+          pass: this.config.password,
+        },
+      })
+    }
+    catch (error) {
+      throw new Error('nodemailer package is not installed. Install it with: pnpm add nodemailer @types/nodemailer')
+    }
   }
 
   /**

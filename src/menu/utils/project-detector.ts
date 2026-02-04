@@ -4,9 +4,9 @@
  * 按需分析当前项目的类型、语言、配置等信息
  */
 
-import { existsSync, readFileSync } from 'node:fs'
-import { join, basename } from 'pathe'
 import type { ProjectInfo } from '../types.js'
+import { existsSync, readFileSync } from 'node:fs'
+import { basename, join } from 'pathe'
 
 /**
  * 检测项目信息
@@ -43,7 +43,7 @@ export async function detectProjectInfo(cwd: string = process.cwd()): Promise<Pr
 /**
  * 检测项目类型
  */
-async function detectProjectType(cwd: string): Promise<{ type?: string; language?: string }> {
+async function detectProjectType(cwd: string): Promise<{ type?: string, language?: string }> {
   // 检测 package.json (Node.js/JavaScript/TypeScript)
   const packageJsonPath = join(cwd, 'package.json')
   if (existsSync(packageJsonPath)) {
@@ -54,25 +54,37 @@ async function detectProjectType(cwd: string): Promise<{ type?: string; language
       // 检测框架
       const deps = { ...pkg.dependencies, ...pkg.devDependencies }
 
-      if (deps['next']) return { type: 'Next.js', language: 'TypeScript' }
-      if (deps['nuxt']) return { type: 'Nuxt', language: 'TypeScript' }
-      if (deps['vue']) return { type: 'Vue', language: 'TypeScript' }
-      if (deps['react']) return { type: 'React', language: 'TypeScript' }
-      if (deps['@angular/core']) return { type: 'Angular', language: 'TypeScript' }
-      if (deps['svelte']) return { type: 'Svelte', language: 'TypeScript' }
-      if (deps['express']) return { type: 'Express', language: 'JavaScript' }
-      if (deps['fastify']) return { type: 'Fastify', language: 'TypeScript' }
-      if (deps['nest']) return { type: 'NestJS', language: 'TypeScript' }
-      if (deps['electron']) return { type: 'Electron', language: 'TypeScript' }
-      if (deps['tauri']) return { type: 'Tauri', language: 'TypeScript' }
+      if (deps.next)
+        return { type: 'Next.js', language: 'TypeScript' }
+      if (deps.nuxt)
+        return { type: 'Nuxt', language: 'TypeScript' }
+      if (deps.vue)
+        return { type: 'Vue', language: 'TypeScript' }
+      if (deps.react)
+        return { type: 'React', language: 'TypeScript' }
+      if (deps['@angular/core'])
+        return { type: 'Angular', language: 'TypeScript' }
+      if (deps.svelte)
+        return { type: 'Svelte', language: 'TypeScript' }
+      if (deps.express)
+        return { type: 'Express', language: 'JavaScript' }
+      if (deps.fastify)
+        return { type: 'Fastify', language: 'TypeScript' }
+      if (deps.nest)
+        return { type: 'NestJS', language: 'TypeScript' }
+      if (deps.electron)
+        return { type: 'Electron', language: 'TypeScript' }
+      if (deps.tauri)
+        return { type: 'Tauri', language: 'TypeScript' }
 
       // 检测语言
-      const hasTypeScript = existsSync(join(cwd, 'tsconfig.json')) || deps['typescript']
+      const hasTypeScript = existsSync(join(cwd, 'tsconfig.json')) || deps.typescript
       return {
         type: 'Node.js',
         language: hasTypeScript ? 'TypeScript' : 'JavaScript',
       }
-    } catch {
+    }
+    catch {
       // 忽略解析错误
     }
   }
@@ -160,7 +172,8 @@ async function detectCcjkConfig(cwd: string): Promise<{
         const content = readFileSync(mcpConfigPath, 'utf-8')
         const config = JSON.parse(content)
         mcpCount = Object.keys(config.mcpServers || {}).length
-      } catch {
+      }
+      catch {
         // 忽略解析错误
       }
     }
@@ -176,7 +189,8 @@ async function findFiles(dir: string, pattern: string): Promise<string[]> {
   try {
     const { glob } = await import('glob')
     return await glob(pattern, { cwd: dir, absolute: true })
-  } catch {
+  }
+  catch {
     return []
   }
 }

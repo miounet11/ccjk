@@ -6,15 +6,15 @@
  * @module keybinding
  */
 
-export { KeybindingManager } from './keybinding-manager'
 export { DEFAULT_KEYBINDINGS } from './defaults'
+export { KeybindingManager } from './keybinding-manager'
 
 export type {
   Keybinding,
   KeybindingConfig,
-  KeyEvent,
+  KeybindingConflict,
   KeybindingContext,
   KeybindingManagerOptions,
-  KeybindingConflict,
+  KeyEvent,
   KeyModifier,
 } from './types'

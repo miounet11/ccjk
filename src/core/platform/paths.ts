@@ -8,11 +8,11 @@
  * @since v8.3.0
  */
 
-import * as fs from 'node:fs'
-import * as nodePath from 'node:path'
-
-import { getPlatformInfo, isWSL } from './detector'
 import type { PathConversionOptions, PathInfo, WslPathMapping } from './types'
+import * as fs from 'node:fs'
+
+import * as nodePath from 'node:path'
+import { getPlatformInfo, isWSL } from './detector'
 
 // ============================================================================
 // Constants
@@ -46,9 +46,10 @@ const TERMUX_STORAGE_PATH = '/data/data/com.termux/files'
  */
 export function normalizePath(
   inputPath: string,
-  options: PathConversionOptions = {}
+  options: PathConversionOptions = {},
 ): string {
-  if (!inputPath) return inputPath
+  if (!inputPath)
+    return inputPath
 
   const platform = getPlatformInfo()
   const targetStyle = options.style || (platform.os === 'windows' ? 'windows' : 'posix')
@@ -63,7 +64,8 @@ export function normalizePath(
     if (options.longPath && result.length > WINDOWS_MAX_PATH) {
       result = toWindowsLongPath(result)
     }
-  } else {
+  }
+  else {
     // Convert backslashes to forward slashes
     result = result.replace(/\\/g, '/')
   }
@@ -82,7 +84,8 @@ export function normalizePath(
  * @returns Long path format
  */
 export function toWindowsLongPath(inputPath: string): string {
-  if (!inputPath) return inputPath
+  if (!inputPath)
+    return inputPath
 
   // Already a long path
   if (inputPath.startsWith(WINDOWS_LONG_PATH_PREFIX)) {
@@ -106,7 +109,8 @@ export function toWindowsLongPath(inputPath: string): string {
  * @returns Path without prefix
  */
 export function fromWindowsLongPath(inputPath: string): string {
-  if (!inputPath) return inputPath
+  if (!inputPath)
+    return inputPath
 
   // Handle UNC long paths
   if (inputPath.startsWith(`${WINDOWS_LONG_PATH_PREFIX}UNC\\`)) {
@@ -134,15 +138,16 @@ export function fromWindowsLongPath(inputPath: string): string {
  */
 export function windowsToWslPath(
   windowsPath: string,
-  mountPoint: string = WSL_DEFAULT_MOUNT
+  mountPoint: string = WSL_DEFAULT_MOUNT,
 ): string {
-  if (!windowsPath) return windowsPath
+  if (!windowsPath)
+    return windowsPath
 
   // Remove long path prefix if present
-  let path = fromWindowsLongPath(windowsPath)
+  const path = fromWindowsLongPath(windowsPath)
 
   // Check for drive letter pattern (C:\ or C:/)
-  const driveMatch = path.match(/^([A-Za-z]):[/\\](.*)$/)
+  const driveMatch = path.match(/^([A-Z]):[/\\](.*)$/i)
   if (driveMatch) {
     const [, drive, rest] = driveMatch
     const wslPath = `${mountPoint}/${drive.toLowerCase()}/${rest}`
@@ -168,9 +173,10 @@ export function windowsToWslPath(
  */
 export function wslToWindowsPath(
   wslPath: string,
-  mountPoint: string = WSL_DEFAULT_MOUNT
+  mountPoint: string = WSL_DEFAULT_MOUNT,
 ): string {
-  if (!wslPath) return wslPath
+  if (!wslPath)
+    return wslPath
 
   // Check for WSL mount pattern (/mnt/c/...)
   const mountPattern = new RegExp(`^${mountPoint}/([a-z])/(.*)$`, 'i')
@@ -198,14 +204,15 @@ export function wslToWindowsPath(
  * @returns Path in the appropriate format for current environment
  */
 export function convertWslPath(inputPath: string): string {
-  if (!inputPath) return inputPath
+  if (!inputPath)
+    return inputPath
 
   const platform = getPlatformInfo()
 
   // In WSL, convert Windows paths to WSL paths
   if (platform.variant === 'wsl') {
     // Check if it's a Windows path
-    if (/^[A-Za-z]:[/\\]/.test(inputPath)) {
+    if (/^[A-Z]:[/\\]/i.test(inputPath)) {
       return windowsToWslPath(inputPath)
     }
   }
@@ -247,12 +254,14 @@ export function getWslDriveMappings(): WslPathMapping[] {
               mountPoint: fullPath,
             })
           }
-        } catch {
+        }
+        catch {
           // Skip inaccessible mounts
         }
       }
     }
-  } catch {
+  }
+  catch {
     // /mnt doesn't exist or isn't accessible
   }
 
@@ -270,7 +279,8 @@ export function getWslDriveMappings(): WslPathMapping[] {
  * @returns Termux-compatible path
  */
 export function toTermuxPath(linuxPath: string): string {
-  if (!linuxPath) return linuxPath
+  if (!linuxPath)
+    return linuxPath
 
   const platform = getPlatformInfo()
   if (platform.variant !== 'termux') {
@@ -332,7 +342,8 @@ export function getPathInfo(inputPath: string): PathInfo {
   try {
     fs.accessSync(normalized)
     exists = true
-  } catch {
+  }
+  catch {
     // Path doesn't exist
   }
 
@@ -355,12 +366,13 @@ export function getPathInfo(inputPath: string): PathInfo {
  * @returns True if path is absolute
  */
 export function isAbsolutePath(inputPath: string): boolean {
-  if (!inputPath) return false
+  if (!inputPath)
+    return false
 
   const platform = getPlatformInfo()
 
   // Windows absolute paths
-  if (platform.os === 'windows' || /^[A-Za-z]:[/\\]/.test(inputPath)) {
+  if (platform.os === 'windows' || /^[A-Z]:[/\\]/i.test(inputPath)) {
     return nodePath.win32.isAbsolute(inputPath)
   }
 
@@ -376,7 +388,8 @@ export function isAbsolutePath(inputPath: string): boolean {
  * @returns Absolute path
  */
 export function toAbsolutePath(inputPath: string, basePath?: string): string {
-  if (!inputPath) return inputPath
+  if (!inputPath)
+    return inputPath
 
   if (isAbsolutePath(inputPath)) {
     return normalizePath(inputPath, { normalize: true })
@@ -394,7 +407,8 @@ export function toAbsolutePath(inputPath: string, basePath?: string): string {
  * @returns Relative path
  */
 export function toRelativePath(inputPath: string, basePath?: string): string {
-  if (!inputPath) return inputPath
+  if (!inputPath)
+    return inputPath
 
   const base = basePath || process.cwd()
   const absolute = toAbsolutePath(inputPath, base)
@@ -447,15 +461,16 @@ export function resolvePath(...segments: string[]): string {
  * @returns True if path is valid
  */
 export function isValidPath(inputPath: string): boolean {
-  if (!inputPath) return false
+  if (!inputPath)
+    return false
 
   const platform = getPlatformInfo()
 
   if (platform.os === 'windows') {
     // Windows invalid characters: < > : " | ? * and control characters
     // Note: : is allowed after drive letter
-    const withoutDrive = inputPath.replace(/^[A-Za-z]:/, '')
-    return !/[<>"|?*\x00-\x1f]/.test(withoutDrive)
+    const withoutDrive = inputPath.replace(/^[A-Z]:/i, '')
+    return !/[<>"|?*\x00-\x1F]/.test(withoutDrive)
   }
 
   // Unix: only null character is invalid
@@ -470,22 +485,23 @@ export function isValidPath(inputPath: string): boolean {
  * @returns Sanitized path
  */
 export function sanitizePath(inputPath: string, replacement: string = '_'): string {
-  if (!inputPath) return inputPath
+  if (!inputPath)
+    return inputPath
 
   const platform = getPlatformInfo()
 
   if (platform.os === 'windows') {
     // Preserve drive letter
-    const driveMatch = inputPath.match(/^([A-Za-z]:)(.*)$/)
+    const driveMatch = inputPath.match(/^([A-Z]:)(.*)$/i)
     if (driveMatch) {
       const [, drive, rest] = driveMatch
-      return drive + rest.replace(/[<>"|?*\x00-\x1f]/g, replacement)
+      return drive + rest.replace(/[<>"|?*\x00-\x1F]/g, replacement)
     }
-    return inputPath.replace(/[<>:"|?*\x00-\x1f]/g, replacement)
+    return inputPath.replace(/[<>:"|?*\x00-\x1F]/g, replacement)
   }
 
   // Unix: only null character is invalid
-  return inputPath.replace(/\x00/g, replacement)
+  return inputPath.replace(/\0/g, replacement)
 }
 
 // ============================================================================
@@ -499,7 +515,8 @@ export function sanitizePath(inputPath: string, replacement: string = '_'): stri
  * @returns Expanded path
  */
 export function expandTilde(inputPath: string): string {
-  if (!inputPath) return inputPath
+  if (!inputPath)
+    return inputPath
 
   const platform = getPlatformInfo()
 

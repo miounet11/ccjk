@@ -3,8 +3,8 @@
  * 将 Skills 系统集成到 Orchestrator
  */
 
-import type { Task, Context, TaskResult } from '../types'
 import type { TaskExecutor } from '../lifecycle'
+import type { Context, Task } from '../types'
 
 /**
  * Skill 定义接口
@@ -87,16 +87,20 @@ export class SkillsAdapter {
 
         // 存储结果到上下文
         context.shared.skills.set(task.name, {
+          skillName: task.name,
           success: true,
-          data: result,
+          output: result,
           duration: Date.now() - startTime,
         })
 
         return result
-      } catch (error) {
+      }
+      catch (error) {
         // 存储错误到上下文
         context.shared.skills.set(task.name, {
+          skillName: task.name,
           success: false,
+          output: undefined,
           error: error as Error,
           duration: Date.now() - startTime,
         })
@@ -117,7 +121,8 @@ export class SkillsAdapter {
 
       if (Array.isArray(skills)) {
         this.registerAll(skills)
-      } else if (typeof skills === 'object') {
+      }
+      else if (typeof skills === 'object') {
         // 支持对象格式 { skillName: skillDefinition }
         for (const [name, definition] of Object.entries(skills)) {
           if (typeof definition === 'object' && definition !== null) {
@@ -128,7 +133,8 @@ export class SkillsAdapter {
           }
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Failed to load skills from ${modulePath}:`, error)
       throw error
     }

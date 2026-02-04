@@ -9,7 +9,7 @@
  * @module utils/code-parser
  */
 
-import type { Language, Parser as TreeSitterParser, Tree } from 'web-tree-sitter'
+import type { Language, Tree, Parser as TreeSitterParser } from 'web-tree-sitter'
 import { existsSync, readFileSync } from 'node:fs'
 import { extname } from 'pathe'
 
@@ -20,13 +20,13 @@ import { extname } from 'pathe'
 /**
  * Supported programming languages
  */
-export type SupportedLanguage =
-  | 'typescript'
-  | 'javascript'
-  | 'python'
-  | 'go'
-  | 'rust'
-  | 'java'
+export type SupportedLanguage
+  = | 'typescript'
+    | 'javascript'
+    | 'python'
+    | 'go'
+    | 'rust'
+    | 'java'
 
 /**
  * Code structure node
@@ -178,10 +178,17 @@ export class CodeParser {
       // Dynamic import for web-tree-sitter
       const TreeSitterModule = await import('web-tree-sitter')
       const TreeSitter = TreeSitterModule.default || TreeSitterModule
-      await TreeSitter.init()
 
-      this.parser = new TreeSitter()
-      this.initialized = true
+      // Check if TreeSitter has init method
+      if (typeof TreeSitter === 'function' && 'init' in TreeSitter) {
+        await (TreeSitter as any).init()
+      }
+
+      // Create parser instance
+      if (typeof TreeSitter === 'function') {
+        this.parser = new (TreeSitter as any)()
+        this.initialized = true
+      }
     }
     catch (error) {
       console.warn('Tree-sitter initialization failed:', error)
@@ -581,7 +588,7 @@ export class CodeParser {
           import: /^\s*import\s/,
           defaultImport: /import\s+\w+\s+from/,
           namespaceImport: /import\s+\*\s+as/,
-          function: /(?:function|const|let|var)\s+(\w+)\s*[=:]?\s*(?:async\s+)?(?:function)?\s*\(/,
+          function: /(?:function|const|let|var)\s+(\w+)\s*(?:[=:]\s*)?(?:async\s+)?(?:function)?\s*\(/,
           class: /class\s+(\w+)/,
         }
 
@@ -609,7 +616,7 @@ export class CodeParser {
       case 'java':
         return {
           import: /^\s*import\s/,
-          function: /(?:public|private|protected)?\s*(?:static)?\s*\w+\s+(\w+)\s*\(/,
+          function: /(?:public|private|protected)?\s*(?:static\s*)?\w+\s+(\w+)\s*\(/,
           class: /class\s+(\w+)/,
         }
 
@@ -638,23 +645,15 @@ export class CodeParser {
     ]
 
     if (analysis.imports.length > 0) {
-      lines.push(`Imports (${analysis.imports.length}):`,
-        ...analysis.imports.slice(0, 5).map(i => `  - ${i.source}`),
-        analysis.imports.length > 5 ? `  ... and ${analysis.imports.length - 5} more` : '',
-      )
+      lines.push(`Imports (${analysis.imports.length}):`, ...analysis.imports.slice(0, 5).map(i => `  - ${i.source}`), analysis.imports.length > 5 ? `  ... and ${analysis.imports.length - 5} more` : '')
     }
 
     if (analysis.classes.length > 0) {
-      lines.push('', `Classes (${analysis.classes.length}):`,
-        ...analysis.classes.map(c => `  - ${c.name}${c.extends ? ` extends ${c.extends}` : ''}`),
-      )
+      lines.push('', `Classes (${analysis.classes.length}):`, ...analysis.classes.map(c => `  - ${c.name}${c.extends ? ` extends ${c.extends}` : ''}`))
     }
 
     if (analysis.functions.length > 0) {
-      lines.push('', `Functions (${analysis.functions.length}):`,
-        ...analysis.functions.slice(0, 10).map(f => `  - ${f.isAsync ? 'async ' : ''}${f.name}(${f.params.join(', ')})`),
-        analysis.functions.length > 10 ? `  ... and ${analysis.functions.length - 10} more` : '',
-      )
+      lines.push('', `Functions (${analysis.functions.length}):`, ...analysis.functions.slice(0, 10).map(f => `  - ${f.isAsync ? 'async ' : ''}${f.name}(${f.params.join(', ')})`), analysis.functions.length > 10 ? `  ... and ${analysis.functions.length - 10} more` : '')
     }
 
     if (analysis.exports.length > 0) {

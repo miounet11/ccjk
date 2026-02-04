@@ -12,9 +12,9 @@
  * The system automatically decides and executes.
  */
 
+import type { ExecutionResult } from './auto-executor'
 import { EventEmitter } from 'node:events'
 import { getGlobalAutoExecutor } from './auto-executor'
-import type { ExecutionResult } from './auto-executor'
 
 /**
  * Interceptor configuration
@@ -50,15 +50,105 @@ export class CliInterceptor extends EventEmitter {
     verbose: false,
   })
 
-  // Commands that should bypass interception
+  // Claude Code native commands that should bypass interception
+  // Reference: https://deepwiki.com/FlorianBruniaux/claude-code-ultimate-guide/16-command-reference
   private readonly systemCommands = [
+    // Session Management
     '/help',
     '/clear',
     '/exit',
     '/quit',
+    '/resume',
+
+    // Context Management
+    '/compact',
+    '/context',
+    '/status',
+
+    // Mode Control
+    '/plan',
+    '/execute',
+
+    // History
+    '/rewind',
+
+    // Diagnostic
+    '/mcp',
+    '/doctor',
+
+    // Configuration
     '/settings',
     '/config',
     '/version',
+
+    // Extension System
+    '/agents',
+    '/skills',
+    '/commands',
+
+    // Plugin/Marketplace - CCJK 接管，不在此列表
+    // '/plugin',
+    // '/plugins',
+
+    // Tasks
+    '/tasks',
+
+    // Memory
+    '/memory',
+    '/memories',
+
+    // Model
+    '/model',
+
+    // Cost
+    '/cost',
+
+    // Permissions
+    '/permissions',
+
+    // Hooks
+    '/hooks',
+
+    // Init
+    '/init',
+
+    // Login/Logout
+    '/login',
+    '/logout',
+
+    // Bug report
+    '/bug',
+
+    // Terminal
+    '/terminal',
+
+    // IDE
+    '/ide',
+
+    // Review
+    '/review',
+
+    // PR
+    '/pr',
+
+    // Vim mode
+    '/vim',
+
+    // Listen mode
+    '/listen',
+
+    // Add files
+    '/add',
+
+    // Install
+    '/install',
+
+    // Allowed tools
+    '/allowed-tools',
+
+    // Thinking
+    '/think',
+    '/thinking',
   ]
 
   // Simple queries that don't need interception
@@ -138,7 +228,7 @@ export class CliInterceptor extends EventEmitter {
   /**
    * Check if input should bypass interception
    */
-  private shouldBypass(input: string): { bypass: boolean; reason: string } {
+  private shouldBypass(input: string): { bypass: boolean, reason: string } {
     const normalized = input.trim().toLowerCase()
 
     // System commands bypass

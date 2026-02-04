@@ -6,13 +6,12 @@
  */
 
 import { setTimeout } from 'node:timers/promises'
-import {
-  getPerformanceTracker,
-  getMetricsCollector,
-  createDashboard,
-  createReporter,
-} from '../src/monitoring'
 import ansis from 'ansis'
+import {
+  createReporter,
+  getMetricsCollector,
+  getPerformanceTracker,
+} from '../src/monitoring'
 
 console.log(ansis.bold.cyan('CCJK Monitoring System Demo'))
 console.log(ansis.dim('─'.repeat(60)))

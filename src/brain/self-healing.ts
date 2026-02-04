@@ -5,7 +5,8 @@
 
 import type { HealthMonitor } from './health-monitor'
 import type { MetricsCollector } from './metrics'
-import type { AgentMetrics, RecoveryAction, RecoveryStrategy, SelfHealingConfig } from './types'
+import type { RecoveryAction, RecoveryStrategy, SelfHealingConfig } from './types'
+import type { AgentMetrics } from './orchestrator-types'
 
 export interface FaultDetectionResult {
   agentId: string
@@ -51,12 +52,14 @@ export class SelfHealingSystem {
     this.metricsCollector = metricsCollector
 
     this.config = {
-      enableAutoRecovery: config.enableAutoRecovery ?? true,
+      enabled: config.enabled ?? true,
+      healthCheckInterval: config.healthCheckInterval ?? 5000,
+      errorRateThreshold: config.errorRateThreshold ?? 0.2,
+      cpuThreshold: config.cpuThreshold ?? 90,
+      memoryThreshold: config.memoryThreshold ?? 90,
+      strategies: config.strategies ?? [],
+      autoRecover: config.autoRecover ?? true,
       maxRecoveryAttempts: config.maxRecoveryAttempts ?? 3,
-      recoveryTimeout: config.recoveryTimeout ?? 30000, // 30 seconds
-      degradationThreshold: config.degradationThreshold ?? 0.5, // 50% performance
-      alertThreshold: config.alertThreshold ?? 'warning',
-      enableDegradation: config.enableDegradation ?? true,
     }
 
     // Subscribe to health status changes
@@ -78,31 +81,29 @@ export class SelfHealingSystem {
         faultType: 'timeout',
         severity: 'critical',
         description: `Agent has not responded for ${Math.round(healthStatus.timeSinceLastHeartbeat / 1000)}s`,
-        metrics,
         timestamp: Date.now(),
       })
     }
 
-    // Check for high error rate
-    if (metrics.errorRate > 0.2) {
+    // Check for high error rate (using successRate: 0-1)
+    const errorRate = 1 - metrics.successRate
+    if (errorRate > this.config.errorRateThreshold) {
       faults.push({
         agentId,
         faultType: 'high_error_rate',
-        severity: metrics.errorRate > 0.5 ? 'critical' : 'high',
-        description: `High error rate: ${(metrics.errorRate * 100).toFixed(1)}%`,
-        metrics,
+        severity: errorRate > 0.5 ? 'critical' : 'high',
+        description: `High error rate: ${(errorRate * 100).toFixed(1)}%`,
         timestamp: Date.now(),
       })
     }
 
-    // Check for resource exhaustion
-    if (metrics.memoryUsage > 0.9 || metrics.cpuUsage > 0.9) {
+    // Check for slow performance
+    if (metrics.avgTaskDuration > 30000) { // 30 seconds
       faults.push({
         agentId,
-        faultType: 'resource_exhaustion',
-        severity: 'high',
-        description: `Resource exhaustion - CPU: ${(metrics.cpuUsage * 100).toFixed(1)}%, Memory: ${(metrics.memoryUsage * 100).toFixed(1)}%`,
-        metrics,
+        faultType: 'performance_degradation',
+        severity: 'medium',
+        description: `Slow performance - Avg duration: ${(metrics.avgTaskDuration / 1000).toFixed(1)}s`,
         timestamp: Date.now(),
       })
     }
@@ -114,7 +115,6 @@ export class SelfHealingSystem {
         faultType: 'performance_degradation',
         severity: 'medium',
         description: 'Agent performance is degraded',
-        metrics,
         timestamp: Date.now(),
       })
     }
@@ -126,7 +126,7 @@ export class SelfHealingSystem {
    * Attempt to recover agent
    */
   async recover(agentId: string, strategy?: RecoveryStrategy): Promise<boolean> {
-    if (!this.config.enableAutoRecovery) {
+    if (!this.config.autoRecover) {
       return false
     }
 
@@ -192,7 +192,7 @@ export class SelfHealingSystem {
    * Enable degradation mode for agent
    */
   enableDegradation(agentId: string): void {
-    if (!this.config.enableDegradation) {
+    if (!this.config.enabled) {
       return
     }
 
@@ -246,7 +246,7 @@ export class SelfHealingSystem {
     // Check alert threshold
     const levels = ['info', 'warning', 'error', 'critical']
     const notificationLevel = levels.indexOf(notification.level)
-    const thresholdLevel = levels.indexOf(this.config.alertThreshold)
+    const thresholdLevel = levels.indexOf('warning') // Default threshold
 
     if (notificationLevel < thresholdLevel) {
       return // Below threshold
@@ -351,18 +351,23 @@ export class SelfHealingSystem {
       actions.push('restart')
     }
     else if (highFaults.some(f => f.faultType === 'resource_exhaustion')) {
-      actions.push('clear_cache', 'restart')
+      actions.push('throttle', 'restart')
     }
     else if (highFaults.some(f => f.faultType === 'high_error_rate')) {
-      actions.push('reset_state', 'restart')
+      actions.push('retry', 'restart')
     }
     else {
-      actions.push('reset_state')
+      actions.push('retry')
     }
 
     return {
+      name: 'auto-recovery',
       actions,
-      timeout: this.config.recoveryTimeout,
+      maxRetries: this.config.maxRecoveryAttempts,
+      backoffMultiplier: 2,
+      initialDelay: 1000,
+      maxDelay: 30000,
+      conditions: {},
     }
   }
 
@@ -378,29 +383,47 @@ export class SelfHealingSystem {
           await this.simulateDelay(1000)
           return true
 
-        case 'reset_state':
-          // Placeholder for state reset logic
-          console.log(`[SelfHealing] Resetting state for agent ${agentId}`)
+        case 'retry':
+          // Placeholder for retry logic
+          console.log(`[SelfHealing] Retrying for agent ${agentId}`)
           this.clearRecoveryHistory(agentId)
           await this.simulateDelay(500)
           return true
 
-        case 'clear_cache':
-          // Placeholder for cache clearing logic
-          console.log(`[SelfHealing] Clearing cache for agent ${agentId}`)
+        case 'skip':
+          // Placeholder for skip logic
+          console.log(`[SelfHealing] Skipping for agent ${agentId}`)
+          await this.simulateDelay(100)
+          return true
+
+        case 'escalate':
+          // Placeholder for escalate logic
+          console.log(`[SelfHealing] Escalating for agent ${agentId}`)
           await this.simulateDelay(300)
           return true
 
-        case 'scale_resources':
-          // Placeholder for resource scaling logic
-          console.log(`[SelfHealing] Scaling resources for agent ${agentId}`)
+        case 'rollback':
+          // Placeholder for rollback logic
+          console.log(`[SelfHealing] Rolling back for agent ${agentId}`)
+          await this.simulateDelay(1000)
+          return true
+
+        case 'throttle':
+          // Placeholder for throttle logic
+          console.log(`[SelfHealing] Throttling agent ${agentId}`)
+          await this.simulateDelay(500)
+          return true
+
+        case 'scale_down':
+          // Placeholder for scale down logic
+          console.log(`[SelfHealing] Scaling down agent ${agentId}`)
           await this.simulateDelay(2000)
           return true
 
-        case 'failover':
-          // Placeholder for failover logic
-          console.log(`[SelfHealing] Initiating failover for agent ${agentId}`)
-          await this.simulateDelay(1500)
+        case 'notify':
+          // Placeholder for notify logic
+          console.log(`[SelfHealing] Notifying about agent ${agentId}`)
+          await this.simulateDelay(100)
           return true
 
         default:

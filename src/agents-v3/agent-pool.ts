@@ -7,8 +7,6 @@
  * @module agents-v3/agent-pool
  */
 
-import { EventEmitter } from 'node:events'
-import { nanoid } from 'nanoid'
 import type {
   AgentConfig,
   AgentError,
@@ -20,6 +18,8 @@ import type {
   AgentStatus,
   TaskId,
 } from './types.js'
+import { EventEmitter } from 'node:events'
+import { nanoid } from 'nanoid'
 
 /**
  * Default pool configuration
@@ -240,7 +240,8 @@ export class AgentPool extends EventEmitter {
     // Handle idle timeout
     if (status === 'idle') {
       this.startIdleTimer(agentId)
-    } else {
+    }
+    else {
       this.clearIdleTimer(agentId)
     }
 
@@ -278,15 +279,16 @@ export class AgentPool extends EventEmitter {
     agent.metrics.tasksExecuted++
     if (success) {
       agent.metrics.tasksSucceeded++
-    } else {
+    }
+    else {
       agent.metrics.tasksFailed++
     }
 
     agent.metrics.totalExecutionTime += durationMs
-    agent.metrics.avgTaskDuration =
-      agent.metrics.totalExecutionTime / agent.metrics.tasksExecuted
-    agent.metrics.successRate =
-      agent.metrics.tasksSucceeded / agent.metrics.tasksExecuted
+    agent.metrics.avgTaskDuration
+      = agent.metrics.totalExecutionTime / agent.metrics.tasksExecuted
+    agent.metrics.successRate
+      = agent.metrics.tasksSucceeded / agent.metrics.tasksExecuted
     agent.metrics.lastUpdated = Date.now()
 
     // Remove task from queue
@@ -391,9 +393,11 @@ export class AgentPool extends EventEmitter {
 
       if (agent.status === 'idle') {
         stats.idleAgents++
-      } else if (agent.status === 'busy') {
+      }
+      else if (agent.status === 'busy') {
         stats.busyAgents++
-      } else if (agent.status === 'error') {
+      }
+      else if (agent.status === 'error') {
         stats.errorAgents++
       }
 
@@ -425,7 +429,8 @@ export class AgentPool extends EventEmitter {
           capabilities: [],
         })
         created.push(agent)
-      } catch (error) {
+      }
+      catch (error) {
         // Log error but continue
         console.error('Failed to create agent during scale up:', error)
       }
@@ -612,7 +617,8 @@ export class AgentPool extends EventEmitter {
     // Auto-scale based on load
     if (stats.avgLoad > this.config.scaleUpThreshold) {
       this.scaleUp(1)
-    } else if (stats.avgLoad < this.config.scaleDownThreshold) {
+    }
+    else if (stats.avgLoad < this.config.scaleDownThreshold) {
       this.scaleDown(1)
     }
 
@@ -637,7 +643,8 @@ export class AgentPool extends EventEmitter {
       agent.taskQueue = []
       this.updateAgentStatus(agentId, 'idle')
       this.emit('agent:recovered', agentId)
-    } else {
+    }
+    else {
       // Too many recovery attempts, terminate
       await this.terminateAgent(agentId, 'recovery_failed')
     }

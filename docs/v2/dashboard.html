@@ -1,454 +1,606 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CCJK 2.0 Performance Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 20px;
-      min-height: 100vh;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .header {
-      background: white;
-      border-radius: 10px;
-      padding: 30px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .header h1 {
-      font-size: 32px;
-      color: #333;
-      margin-bottom: 10px;
-    }
-
-    .header .subtitle {
-      color: #666;
-      font-size: 14px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    .stat-card .value {
-      font-size: 36px;
-      font-weight: bold;
-      color: #667eea;
-      margin-bottom: 5px;
-    }
-
-    .stat-card .label {
-      font-size: 14px;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .stat-card.pass .value { color: #10b981; }
-    .stat-card.warn .value { color: #f59e0b; }
-    .stat-card.fail .value { color: #ef4444; }
-
-    .charts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .chart-card {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .chart-card h3 {
-      font-size: 18px;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    .results-section {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .results-section h2 {
-      font-size: 24px;
-      color: #333;
-      margin-bottom: 20px;
-    }
-
-    .module-section {
-      margin-bottom: 30px;
-    }
-
-    .module-section h3 {
-      font-size: 20px;
-      color: #667eea;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #667eea;
-    }
-
-    .result-item {
-      display: flex;
-      align-items: center;
-      padding: 15px;
-      margin-bottom: 10px;
-      background: #f7fafc;
-      border-radius: 8px;
-      border-left: 4px solid #cbd5e0;
-    }
-
-    .result-item.pass { border-left-color: #10b981; }
-    .result-item.warn { border-left-color: #f59e0b; }
-    .result-item.fail { border-left-color: #ef4444; }
-
-    .result-status {
-      font-size: 24px;
-      margin-right: 15px;
-    }
-
-    .result-content {
-      flex: 1;
-    }
-
-    .result-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 5px;
-    }
-
-    .result-metrics {
-      font-size: 14px;
-      color: #666;
-    }
-
-    .result-target {
-      font-size: 12px;
-      color: #999;
-      margin-top: 5px;
-    }
-
-    .timestamp {
-      text-align: center;
-      color: #999;
-      font-size: 12px;
-      margin-top: 20px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <h1>🚀 CCJK 2.0 Performance Dashboard</h1>
-      <p class="subtitle">Real-time performance monitoring and benchmarking</p>
-      <p class="subtitle" id="systemInfo"></p>
-    </div>
-
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="value" id="totalTests">0</div>
-        <div class="label">Total Tests</div>
-      </div>
-      <div class="stat-card pass">
-        <div class="value" id="passedTests">0</div>
-        <div class="label">Passed</div>
-      </div>
-      <div class="stat-card warn">
-        <div class="value" id="warnedTests">0</div>
-        <div class="label">Warnings</div>
-      </div>
-      <div class="stat-card fail">
-        <div class="value" id="failedTests">0</div>
-        <div class="label">Failed</div>
-      </div>
-    </div>
-
-    <!-- Charts -->
-    <div class="charts-grid">
-      <div class="chart-card">
-        <h3>📊 Average Response Time by Module</h3>
-        <canvas id="avgTimeChart"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>⚡ Throughput by Module</h3>
-        <canvas id="throughputChart"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>🎯 Target vs Actual Performance</h3>
-        <canvas id="targetChart"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>📈 P95 Latency Distribution</h3>
-        <canvas id="p95Chart"></canvas>
-      </div>
-    </div>
-
-    <!-- Detailed Results -->
-    <div class="results-section">
-      <h2>📋 Detailed Results</h2>
-      <div id="resultsContent"></div>
-      <p class="timestamp" id="timestamp"></p>
-    </div>
-  </div>
-
-  <script>
-    let benchmarkData = null;
-
-    // Load benchmark data
-    async function loadBenchmarkData() {
-      try {
-        const response = await fetch('/benchmark-results.json');
-        benchmarkData = await response.json();
-        updateDashboard();
-      } catch (error) {
-        console.error('Failed to load benchmark data:', error);
-        // Show demo data if no benchmark data available
-        showDemoData();
-      }
-    }
-
-    // Show demo data
-    function showDemoData() {
-      benchmarkData = {
-        timestamp: new Date().toISOString(),
-        summary: { total: 18, passed: 15, warned: 2, failed: 1 },
-        results: [
-          // hooks-v2
-          { name: 'Hook Registration', module: 'hooks-v2', avgTime: 0.5, target: 1, status: 'pass', throughput: 2000, p95: 0.8 },
-          { name: 'Hook Execution', module: 'hooks-v2', avgTime: 0.6, target: 1, status: 'pass', throughput: 1666, p95: 1.0 },
-          { name: 'L3 Enforcement', module: 'hooks-v2', avgTime: 0.3, target: 0.5, status: 'pass', throughput: 3333, p95: 0.5 },
-          // brain-v2
-          { name: 'Error Classification', module: 'brain-v2', avgTime: 0.05, target: 0.1, status: 'pass', throughput: 20000, p95: 0.08 },
-          { name: 'Three-Layer Traceability', module: 'brain-v2', avgTime: 0.3, target: 0.5, status: 'pass', throughput: 3333, p95: 0.5 },
-          // skills-v2
-          { name: 'DSL Parsing', module: 'skills-v2', avgTime: 0.02, target: 0.05, status: 'pass', throughput: 50000, p95: 0.03 },
-          { name: 'Keyword Matching', module: 'skills-v2', avgTime: 0.03, target: 0.05, status: 'pass', throughput: 33333, p95: 0.05 },
-          { name: 'Three-Layer Execution', module: 'skills-v2', avgTime: 0.08, target: 0.1, status: 'pass', throughput: 12500, p95: 0.12 },
-          // agents-v2
-          { name: 'Agent Registration', module: 'agents-v2', avgTime: 0.3, target: 0.5, status: 'pass', throughput: 3333, p95: 0.5 },
-          { name: 'Message Routing', module: 'agents-v2', avgTime: 0.02, target: 0.05, status: 'pass', throughput: 50000, p95: 0.03 },
-          { name: 'Pub-Sub Broadcast', module: 'agents-v2', avgTime: 0.08, target: 0.1, status: 'pass', throughput: 12500, p95: 0.12 },
-          // workflow-v2
-          { name: 'Fragment Selection', module: 'workflow-v2', avgTime: 0.08, target: 0.1, status: 'pass', throughput: 12500, p95: 0.12 },
-          { name: 'Workflow Composition', module: 'workflow-v2', avgTime: 0.8, target: 1, status: 'pass', throughput: 1250, p95: 1.2 },
-          // actionbook
-          { name: 'AST Parsing', module: 'actionbook', avgTime: 0.5, target: 1, status: 'pass', throughput: 2000, p95: 0.8 },
-          { name: 'Symbol Extraction', module: 'actionbook', avgTime: 0.05, target: 0.1, status: 'pass', throughput: 20000, p95: 0.08 },
-          { name: 'Query Execution', module: 'actionbook', avgTime: 0.005, target: 0.01, status: 'pass', throughput: 200000, p95: 0.008 },
-        ]
-      };
-      updateDashboard();
-    }
-
-    // Update dashboard
-    function updateDashboard() {
-      if (!benchmarkData) return;
-
-      // Update stats
-      document.getElementById('totalTests').textContent = benchmarkData.summary.total;
-      document.getElementById('passedTests').textContent = benchmarkData.summary.passed;
-      document.getElementById('warnedTests').textContent = benchmarkData.summary.warned;
-      document.getElementById('failedTests').textContent = benchmarkData.summary.failed;
-
-      // Update system info
-      if (benchmarkData.system) {
-        document.getElementById('systemInfo').textContent =
-          `${benchmarkData.system.platform} | Node.js ${benchmarkData.system.nodeVersion} | ${benchmarkData.system.cpu}`;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CCJK 2.0 Performance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      // Update timestamp
-      document.getElementById('timestamp').textContent =
-        `Last updated: ${new Date(benchmarkData.timestamp).toLocaleString()}`;
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
 
-      // Update charts
-      updateCharts();
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
 
-      // Update detailed results
-      updateDetailedResults();
-    }
+      .header {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
 
-    // Update charts
-    function updateCharts() {
-      const modules = [...new Set(benchmarkData.results.map(r => r.module))];
+      .header h1 {
+        font-size: 32px;
+        color: #333;
+        margin-bottom: 10px;
+      }
 
-      // Calculate averages per module
-      const avgTimeData = modules.map(module => {
-        const moduleResults = benchmarkData.results.filter(r => r.module === module);
-        return {
-          module,
-          avgTime: moduleResults.reduce((sum, r) => sum + r.avgTime, 0) / moduleResults.length
-        };
-      });
+      .header .subtitle {
+        color: #666;
+        font-size: 14px;
+      }
 
-      const throughputData = modules.map(module => {
-        const moduleResults = benchmarkData.results.filter(r => r.module === module);
-        return {
-          module,
-          throughput: moduleResults.reduce((sum, r) => sum + r.throughput, 0) / moduleResults.length
-        };
-      });
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
 
-      const targetData = benchmarkData.results.filter(r => r.target).map(r => ({
-        name: r.name,
-        actual: r.avgTime,
-        target: r.target
-      }));
+      .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
 
-      const p95Data = modules.map(module => {
-        const moduleResults = benchmarkData.results.filter(r => r.module === module);
-        return {
-          module,
-          p95: moduleResults.reduce((sum, r) => sum + r.p95, 0) / moduleResults.length
-        };
-      });
+      .stat-card .value {
+        font-size: 36px;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 5px;
+      }
 
-      // Average Time Chart
-      new Chart(document.getElementById('avgTimeChart'), {
-        type: 'bar',
-        data: {
-          labels: avgTimeData.map(d => d.module),
-          datasets: [{
-            label: 'Avg Time (ms)',
-            data: avgTimeData.map(d => d.avgTime),
-            backgroundColor: 'rgba(102, 126, 234, 0.8)',
-            borderColor: 'rgba(102, 126, 234, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
-          }
+      .stat-card .label {
+        font-size: 14px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .stat-card.pass .value {
+        color: #10b981;
+      }
+      .stat-card.warn .value {
+        color: #f59e0b;
+      }
+      .stat-card.fail .value {
+        color: #ef4444;
+      }
+
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .chart-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .chart-card h3 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .results-section {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .results-section h2 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .module-section {
+        margin-bottom: 30px;
+      }
+
+      .module-section h3 {
+        font-size: 20px;
+        color: #667eea;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+      }
+
+      .result-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #f7fafc;
+        border-radius: 8px;
+        border-left: 4px solid #cbd5e0;
+      }
+
+      .result-item.pass {
+        border-left-color: #10b981;
+      }
+      .result-item.warn {
+        border-left-color: #f59e0b;
+      }
+      .result-item.fail {
+        border-left-color: #ef4444;
+      }
+
+      .result-status {
+        font-size: 24px;
+        margin-right: 15px;
+      }
+
+      .result-content {
+        flex: 1;
+      }
+
+      .result-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .result-metrics {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .result-target {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+      }
+
+      .timestamp {
+        text-align: center;
+        color: #999;
+        font-size: 12px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>🚀 CCJK 2.0 Performance Dashboard</h1>
+        <p class="subtitle">Real-time performance monitoring and benchmarking</p>
+        <p class="subtitle" id="systemInfo"></p>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="value" id="totalTests">0</div>
+          <div class="label">Total Tests</div>
+        </div>
+        <div class="stat-card pass">
+          <div class="value" id="passedTests">0</div>
+          <div class="label">Passed</div>
+        </div>
+        <div class="stat-card warn">
+          <div class="value" id="warnedTests">0</div>
+          <div class="label">Warnings</div>
+        </div>
+        <div class="stat-card fail">
+          <div class="value" id="failedTests">0</div>
+          <div class="label">Failed</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>📊 Average Response Time by Module</h3>
+          <canvas id="avgTimeChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>⚡ Throughput by Module</h3>
+          <canvas id="throughputChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>🎯 Target vs Actual Performance</h3>
+          <canvas id="targetChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>📈 P95 Latency Distribution</h3>
+          <canvas id="p95Chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Detailed Results -->
+      <div class="results-section">
+        <h2>📋 Detailed Results</h2>
+        <div id="resultsContent"></div>
+        <p class="timestamp" id="timestamp"></p>
+      </div>
+    </div>
+
+    <script>
+      let benchmarkData = null
+
+      // Load benchmark data
+      async function loadBenchmarkData() {
+        try {
+          const response = await fetch('/benchmark-results.json')
+          benchmarkData = await response.json()
+          updateDashboard()
+        } catch (error) {
+          console.error('Failed to load benchmark data:', error)
+          // Show demo data if no benchmark data available
+          showDemoData()
         }
-      });
+      }
 
-      // Throughput Chart
-      new Chart(document.getElementById('throughputChart'), {
-        type: 'bar',
-        data: {
-          labels: throughputData.map(d => d.module),
-          datasets: [{
-            label: 'Throughput (ops/sec)',
-            data: throughputData.map(d => d.throughput),
-            backgroundColor: 'rgba(16, 185, 129, 0.8)',
-            borderColor: 'rgba(16, 185, 129, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
-
-      // Target vs Actual Chart
-      new Chart(document.getElementById('targetChart'), {
-        type: 'bar',
-        data: {
-          labels: targetData.map(d => d.name),
-          datasets: [
+      // Show demo data
+      function showDemoData() {
+        benchmarkData = {
+          timestamp: new Date().toISOString(),
+          summary: { total: 18, passed: 15, warned: 2, failed: 1 },
+          results: [
+            // hooks-v2
             {
-              label: 'Actual (ms)',
-              data: targetData.map(d => d.actual),
-              backgroundColor: 'rgba(102, 126, 234, 0.8)'
+              name: 'Hook Registration',
+              module: 'hooks-v2',
+              avgTime: 0.5,
+              target: 1,
+              status: 'pass',
+              throughput: 2000,
+              p95: 0.8,
             },
             {
-              label: 'Target (ms)',
-              data: targetData.map(d => d.target),
-              backgroundColor: 'rgba(245, 158, 11, 0.8)'
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
-          }
+              name: 'Hook Execution',
+              module: 'hooks-v2',
+              avgTime: 0.6,
+              target: 1,
+              status: 'pass',
+              throughput: 1666,
+              p95: 1.0,
+            },
+            {
+              name: 'L3 Enforcement',
+              module: 'hooks-v2',
+              avgTime: 0.3,
+              target: 0.5,
+              status: 'pass',
+              throughput: 3333,
+              p95: 0.5,
+            },
+            // brain-v2
+            {
+              name: 'Error Classification',
+              module: 'brain-v2',
+              avgTime: 0.05,
+              target: 0.1,
+              status: 'pass',
+              throughput: 20000,
+              p95: 0.08,
+            },
+            {
+              name: 'Three-Layer Traceability',
+              module: 'brain-v2',
+              avgTime: 0.3,
+              target: 0.5,
+              status: 'pass',
+              throughput: 3333,
+              p95: 0.5,
+            },
+            // skills-v2
+            {
+              name: 'DSL Parsing',
+              module: 'skills-v2',
+              avgTime: 0.02,
+              target: 0.05,
+              status: 'pass',
+              throughput: 50000,
+              p95: 0.03,
+            },
+            {
+              name: 'Keyword Matching',
+              module: 'skills-v2',
+              avgTime: 0.03,
+              target: 0.05,
+              status: 'pass',
+              throughput: 33333,
+              p95: 0.05,
+            },
+            {
+              name: 'Three-Layer Execution',
+              module: 'skills-v2',
+              avgTime: 0.08,
+              target: 0.1,
+              status: 'pass',
+              throughput: 12500,
+              p95: 0.12,
+            },
+            // agents-v2
+            {
+              name: 'Agent Registration',
+              module: 'agents-v2',
+              avgTime: 0.3,
+              target: 0.5,
+              status: 'pass',
+              throughput: 3333,
+              p95: 0.5,
+            },
+            {
+              name: 'Message Routing',
+              module: 'agents-v2',
+              avgTime: 0.02,
+              target: 0.05,
+              status: 'pass',
+              throughput: 50000,
+              p95: 0.03,
+            },
+            {
+              name: 'Pub-Sub Broadcast',
+              module: 'agents-v2',
+              avgTime: 0.08,
+              target: 0.1,
+              status: 'pass',
+              throughput: 12500,
+              p95: 0.12,
+            },
+            // workflow-v2
+            {
+              name: 'Fragment Selection',
+              module: 'workflow-v2',
+              avgTime: 0.08,
+              target: 0.1,
+              status: 'pass',
+              throughput: 12500,
+              p95: 0.12,
+            },
+            {
+              name: 'Workflow Composition',
+              module: 'workflow-v2',
+              avgTime: 0.8,
+              target: 1,
+              status: 'pass',
+              throughput: 1250,
+              p95: 1.2,
+            },
+            // actionbook
+            {
+              name: 'AST Parsing',
+              module: 'actionbook',
+              avgTime: 0.5,
+              target: 1,
+              status: 'pass',
+              throughput: 2000,
+              p95: 0.8,
+            },
+            {
+              name: 'Symbol Extraction',
+              module: 'actionbook',
+              avgTime: 0.05,
+              target: 0.1,
+              status: 'pass',
+              throughput: 20000,
+              p95: 0.08,
+            },
+            {
+              name: 'Query Execution',
+              module: 'actionbook',
+              avgTime: 0.005,
+              target: 0.01,
+              status: 'pass',
+              throughput: 200000,
+              p95: 0.008,
+            },
+          ],
         }
-      });
+        updateDashboard()
+      }
 
-      // P95 Chart
-      new Chart(document.getElementById('p95Chart'), {
-        type: 'line',
-        data: {
-          labels: p95Data.map(d => d.module),
-          datasets: [{
-            label: 'P95 Latency (ms)',
-            data: p95Data.map(d => d.p95),
-            borderColor: 'rgba(239, 68, 68, 1)',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            fill: true,
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
-          }
+      // Update dashboard
+      function updateDashboard() {
+        if (!benchmarkData) return
+
+        // Update stats
+        document.getElementById('totalTests').textContent = benchmarkData.summary.total
+        document.getElementById('passedTests').textContent = benchmarkData.summary.passed
+        document.getElementById('warnedTests').textContent = benchmarkData.summary.warned
+        document.getElementById('failedTests').textContent = benchmarkData.summary.failed
+
+        // Update system info
+        if (benchmarkData.system) {
+          document.getElementById('systemInfo').textContent =
+            `${benchmarkData.system.platform} | Node.js ${benchmarkData.system.nodeVersion} | ${benchmarkData.system.cpu}`
         }
-      });
-    }
 
-    // Update detailed results
-    function updateDetailedResults() {
-      const container = document.getElementById('resultsContent');
-      const modules = [...new Set(benchmarkData.results.map(r => r.module))];
+        // Update timestamp
+        document.getElementById('timestamp').textContent =
+          `Last updated: ${new Date(benchmarkData.timestamp).toLocaleString()}`
 
-      container.innerHTML = modules.map(module => {
-        const moduleResults = benchmarkData.results.filter(r => r.module === module);
-        const moduleIcon = {
-          'hooks-v2': '🔗',
-          'brain-v2': '🧠',
-          'skills-v2': '📚',
-          'agents-v2': '🤖',
-          'workflow-v2': '🔄',
-          'actionbook': '⚡'
-        }[module] || '📦';
+        // Update charts
+        updateCharts()
 
-        return `
+        // Update detailed results
+        updateDetailedResults()
+      }
+
+      // Update charts
+      function updateCharts() {
+        const modules = [...new Set(benchmarkData.results.map((r) => r.module))]
+
+        // Calculate averages per module
+        const avgTimeData = modules.map((module) => {
+          const moduleResults = benchmarkData.results.filter((r) => r.module === module)
+          return {
+            module,
+            avgTime: moduleResults.reduce((sum, r) => sum + r.avgTime, 0) / moduleResults.length,
+          }
+        })
+
+        const throughputData = modules.map((module) => {
+          const moduleResults = benchmarkData.results.filter((r) => r.module === module)
+          return {
+            module,
+            throughput: moduleResults.reduce((sum, r) => sum + r.throughput, 0) / moduleResults.length,
+          }
+        })
+
+        const targetData = benchmarkData.results
+          .filter((r) => r.target)
+          .map((r) => ({
+            name: r.name,
+            actual: r.avgTime,
+            target: r.target,
+          }))
+
+        const p95Data = modules.map((module) => {
+          const moduleResults = benchmarkData.results.filter((r) => r.module === module)
+          return {
+            module,
+            p95: moduleResults.reduce((sum, r) => sum + r.p95, 0) / moduleResults.length,
+          }
+        })
+
+        // Average Time Chart
+        new Chart(document.getElementById('avgTimeChart'), {
+          type: 'bar',
+          data: {
+            labels: avgTimeData.map((d) => d.module),
+            datasets: [
+              {
+                label: 'Avg Time (ms)',
+                data: avgTimeData.map((d) => d.avgTime),
+                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                borderColor: 'rgba(102, 126, 234, 1)',
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        })
+
+        // Throughput Chart
+        new Chart(document.getElementById('throughputChart'), {
+          type: 'bar',
+          data: {
+            labels: throughputData.map((d) => d.module),
+            datasets: [
+              {
+                label: 'Throughput (ops/sec)',
+                data: throughputData.map((d) => d.throughput),
+                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        })
+
+        // Target vs Actual Chart
+        new Chart(document.getElementById('targetChart'), {
+          type: 'bar',
+          data: {
+            labels: targetData.map((d) => d.name),
+            datasets: [
+              {
+                label: 'Actual (ms)',
+                data: targetData.map((d) => d.actual),
+                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+              },
+              {
+                label: 'Target (ms)',
+                data: targetData.map((d) => d.target),
+                backgroundColor: 'rgba(245, 158, 11, 0.8)',
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        })
+
+        // P95 Chart
+        new Chart(document.getElementById('p95Chart'), {
+          type: 'line',
+          data: {
+            labels: p95Data.map((d) => d.module),
+            datasets: [
+              {
+                label: 'P95 Latency (ms)',
+                data: p95Data.map((d) => d.p95),
+                borderColor: 'rgba(239, 68, 68, 1)',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                fill: true,
+                tension: 0.4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        })
+      }
+
+      // Update detailed results
+      function updateDetailedResults() {
+        const container = document.getElementById('resultsContent')
+        const modules = [...new Set(benchmarkData.results.map((r) => r.module))]
+
+        container.innerHTML = modules
+          .map((module) => {
+            const moduleResults = benchmarkData.results.filter((r) => r.module === module)
+            const moduleIcon =
+              {
+                'hooks-v2': '🔗',
+                'brain-v2': '🧠',
+                'skills-v2': '📚',
+                'agents-v2': '🤖',
+                'workflow-v2': '🔄',
+                actionbook: '⚡',
+              }[module] || '📦'
+
+            return `
           <div class="module-section">
             <h3>${moduleIcon} ${module}</h3>
-            ${moduleResults.map(result => `
+            ${moduleResults
+              .map(
+                (result) => `
               <div class="result-item ${result.status}">
                 <div class="result-status">
                   ${result.status === 'pass' ? '✅' : result.status === 'warn' ? '⚠️' : '❌'}
@@ -461,17 +613,20 @@
                   ${result.target ? `<div class="result-target">Target: ${result.target}ms</div>` : ''}
                 </div>
               </div>
-            `).join('')}
+            `,
+              )
+              .join('')}
           </div>
-        `;
-      }).join('');
-    }
+        `
+          })
+          .join('')
+      }
 
-    // Auto-refresh every 30 seconds
-    setInterval(loadBenchmarkData, 30000);
+      // Auto-refresh every 30 seconds
+      setInterval(loadBenchmarkData, 30000)
 
-    // Initial load
-    loadBenchmarkData();
-  </script>
-</body>
+      // Initial load
+      loadBenchmarkData()
+    </script>
+  </body>
 </html>

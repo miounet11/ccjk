@@ -8,9 +8,29 @@
  */
 
 import type { AgentCapability, CloudAgent } from '../types/agent.js'
+
+/**
+ * Convert AgentCapability array to string array of capability IDs
+ */
+function fromAgentCapabilities(capabilities: AgentCapability[]): string[] {
+  return capabilities.map(cap => cap.id)
+}
+
+/**
+ * Convert string array of capability IDs to AgentCapability array
+ */
+function toAgentCapabilities(capabilities: string[]): AgentCapability[] {
+  return capabilities.map(id => ({
+    id,
+    name: id,
+    model: 'sonnet' as const,
+    specialties: [id],
+    strength: 0.8,
+    costFactor: 1.0,
+  }))
+}
 import type { SkillMdFile } from '../types/skill-md.js'
 import type {
-  AgentDispatchConfig,
   AgentDispatcherOptions,
   ParallelAgentExecution,
   ParallelExecutionResult,
@@ -23,7 +43,6 @@ import type {
 import type {
   AgentInstance,
   AgentSelectionCriteria,
-  AgentSelectionResult,
   DecompositionStrategy,
   OrchestrationMetrics,
   OrchestrationPlan,
@@ -37,8 +56,8 @@ import type {
 import type { AgentRole } from './types.js'
 import { EventEmitter } from 'node:events'
 import { nanoid } from 'nanoid'
-import { AgentDispatcher, getGlobalDispatcher } from './agent-dispatcher.js'
-import { AgentForkManager, getGlobalForkManager } from './agent-fork.js'
+import { AgentDispatcher } from './agent-dispatcher.js'
+import { AgentForkManager } from './agent-fork.js'
 import { ResultAggregator } from './result-aggregator.js'
 import { TaskDecomposer } from './task-decomposer.js'
 
@@ -440,7 +459,8 @@ export class BrainOrchestrator extends EventEmitter {
     const agentEntries = Array.from(this.availableAgents.entries())
     for (const [role, agent] of agentEntries) {
       // Check if agent has required capabilities
-      const hasCapabilities = task.requiredCapabilities.every(cap =>
+      const requiredCaps = fromAgentCapabilities(task.requiredCapabilities)
+      const hasCapabilities = requiredCaps.every(cap =>
         agent.definition.capabilities.includes(cap),
       )
 
@@ -564,7 +584,7 @@ export class BrainOrchestrator extends EventEmitter {
       agent,
       status: 'idle',
       taskHistory: [],
-      capabilities: agent.definition.capabilities,
+      capabilities: toAgentCapabilities(agent.definition.capabilities),
       metrics: {
         tasksExecuted: 0,
         tasksSucceeded: 0,

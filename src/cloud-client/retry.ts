@@ -7,8 +7,8 @@
 
 import type { CloudClient } from './client'
 import type { RetryConfig } from './types'
-import { CloudClientError } from './types'
 import consola from 'consola'
+import { CloudClientError } from './types'
 
 /**
  * Default retry configuration
@@ -50,13 +50,13 @@ export async function withRetry<T>(
 
       // Calculate delay
       const delay = Math.min(
-        retryConfig.initialDelay * Math.pow(retryConfig.multiplier, attempt),
+        retryConfig.initialDelay * retryConfig.multiplier ** attempt,
         retryConfig.maxDelay,
       )
 
       consola.warn(
-        `Request failed (attempt ${attempt + 1}/${retryConfig.maxAttempts}), ` +
-        `retrying in ${delay}ms:`,
+        `Request failed (attempt ${attempt + 1}/${retryConfig.maxAttempts}), `
+        + `retrying in ${delay}ms:`,
         error instanceof Error ? error.message : error,
       )
 
@@ -105,11 +105,11 @@ function shouldRetry(error: unknown, config: RetryConfig, attempt: number): bool
   if (error instanceof Error) {
     const message = error.message.toLowerCase()
     if (
-      message.includes('network') ||
-      message.includes('connection') ||
-      message.includes('timeout') ||
-      message.includes('econnrefused') ||
-      message.includes('enotfound')
+      message.includes('network')
+      || message.includes('connection')
+      || message.includes('timeout')
+      || message.includes('econnrefused')
+      || message.includes('enotfound')
     ) {
       return true
     }
@@ -209,7 +209,7 @@ export const retryUtils = {
    */
   calculateDelay(attempt: number, initialDelay = 100, multiplier = 2, maxDelay = 800): number {
     return Math.min(
-      initialDelay * Math.pow(multiplier, attempt),
+      initialDelay * multiplier ** attempt,
       maxDelay,
     )
   },
@@ -219,18 +219,18 @@ export const retryUtils = {
    */
   isRetryable(error: unknown): boolean {
     if (error instanceof CloudClientError) {
-      return error.type === 'NETWORK_ERROR' ||
-             error.type === 'TIMEOUT_ERROR' ||
-             (error.statusCode !== undefined && [500, 502, 503, 504, 408, 429].includes(error.statusCode))
+      return error.type === 'NETWORK_ERROR'
+        || error.type === 'TIMEOUT_ERROR'
+        || (error.statusCode !== undefined && [500, 502, 503, 504, 408, 429].includes(error.statusCode))
     }
 
     if (error instanceof Error) {
       const message = error.message.toLowerCase()
-      return message.includes('network') ||
-             message.includes('connection') ||
-             message.includes('timeout') ||
-             message.includes('econnrefused') ||
-             message.includes('enotfound')
+      return message.includes('network')
+        || message.includes('connection')
+        || message.includes('timeout')
+        || message.includes('econnrefused')
+        || message.includes('enotfound')
     }
 
     return false

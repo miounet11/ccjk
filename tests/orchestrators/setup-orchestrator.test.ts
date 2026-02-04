@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { SetupOrchestrator } from '../../src/orchestrators/setup-orchestrator'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProjectAnalyzer } from '../../src/analyzers'
-import { createBackup } from '../../src/utils/backup'
-import { ccjkSkills } from '../../src/commands/ccjk-skills'
-import { ccjkMcp } from '../../src/commands/ccjk-mcp'
 import { ccjkAgents } from '../../src/commands/ccjk-agents'
 import { ccjkHooks } from '../../src/commands/ccjk-hooks'
+import { ccjkMcp } from '../../src/commands/ccjk-mcp'
+import { ccjkSkills } from '../../src/commands/ccjk-skills'
+import { SetupOrchestrator } from '../../src/orchestrators/setup-orchestrator'
+import { createBackup } from '../../src/utils/backup'
 
 vi.mock('../../src/analyzers')
 vi.mock('../../src/utils/backup')
@@ -14,7 +14,7 @@ vi.mock('../../src/commands/ccjk-mcp')
 vi.mock('../../src/commands/ccjk-agents')
 vi.mock('../../src/commands/ccjk-hooks')
 vi.mock('../../src/utils/report-generator', () => ({
-  generateReport: vi.fn().mockReturnValue('# Setup Report\n\nReport content here')
+  generateReport: vi.fn().mockReturnValue('# Setup Report\n\nReport content here'),
 }))
 
 vi.mock('node:fs/promises', () => ({
@@ -28,7 +28,7 @@ vi.mock('node:fs/promises', () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
 }))
 
-describe('SetupOrchestrator', () => {
+describe('setupOrchestrator', () => {
   let analyzer: ProjectAnalyzer
   let orchestrator: SetupOrchestrator
 
@@ -234,7 +234,7 @@ describe('SetupOrchestrator', () => {
     it('should execute skills phase', async () => {
       const result = await orchestrator.executeSkillsPhase(
         { enabled: true, resources: [{ id: 'test-skill', priority: 'high' }] },
-        { lang: 'en', verbose: false }
+        { lang: 'en', verbose: false },
       )
 
       expect(result.phase).toBe('skills')
@@ -246,14 +246,14 @@ describe('SetupOrchestrator', () => {
           install: true,
           lang: 'en',
           verbose: false,
-        })
+        }),
       )
     })
 
     it('should execute MCP phase', async () => {
       const result = await orchestrator.executeMcpPhase(
         { enabled: true, resources: [{ id: 'test-mcp', priority: 'high' }] },
-        { lang: 'en', verbose: false }
+        { lang: 'en', verbose: false },
       )
 
       expect(result.phase).toBe('mcp')
@@ -265,14 +265,14 @@ describe('SetupOrchestrator', () => {
           install: true,
           lang: 'en',
           verbose: false,
-        })
+        }),
       )
     })
 
     it('should execute agents phase', async () => {
       const result = await orchestrator.executeAgentsPhase(
         { enabled: true, resources: [{ id: 'test-agent', priority: 'high' }] },
-        { lang: 'en', verbose: false }
+        { lang: 'en', verbose: false },
       )
 
       expect(result.phase).toBe('agents')
@@ -284,14 +284,14 @@ describe('SetupOrchestrator', () => {
           create: true,
           lang: 'en',
           verbose: false,
-        })
+        }),
       )
     })
 
     it('should execute hooks phase', async () => {
       const result = await orchestrator.executeHooksPhase(
         { enabled: true, resources: [{ id: 'test-hook', priority: 'high' }] },
-        { lang: 'en', verbose: false }
+        { lang: 'en', verbose: false },
       )
 
       expect(result.phase).toBe('hooks')
@@ -303,14 +303,14 @@ describe('SetupOrchestrator', () => {
           install: true,
           lang: 'en',
           verbose: false,
-        })
+        }),
       )
     })
 
     it('should handle disabled phases', async () => {
       const result = await orchestrator.executeSkillsPhase(
         { enabled: false, resources: [] },
-        { lang: 'en', verbose: false }
+        { lang: 'en', verbose: false },
       )
 
       expect(result.installed).toBe(0)
@@ -323,7 +323,7 @@ describe('SetupOrchestrator', () => {
     it('should handle empty phases', async () => {
       const result = await orchestrator.executeSkillsPhase(
         { enabled: true, resources: [] },
-        { lang: 'en', verbose: false }
+        { lang: 'en', verbose: false },
       )
 
       expect(result.installed).toBe(0)

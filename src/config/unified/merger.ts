@@ -7,7 +7,7 @@
 
 import type { ClaudeSettings } from '../../types/config'
 import type { DeepMergeOptions } from '../../utils/object-utils'
-import type { CcjkConfig, ConfigMergeOptions, ConfigPriority, ConfigValidationError, MergeStrategy, ValidationResult } from './types'
+import type { CcjkConfig, ConfigMergeOptions, ConfigValidationError, MergeStrategy, ValidationResult } from './types'
 
 import { deepMerge, isPlainObject } from '../../utils/object-utils'
 
@@ -198,11 +198,12 @@ export function mergeCcjkConfig(
   const opts = { ...DEFAULT_MERGE_OPTIONS, ...options }
 
   // For CCJK config, preserve user's general settings
-  const mergeResult = mergeConfigs(base || {} as CcjkConfig, source || {}, opts)
+  const mergeResult = mergeConfigs<Record<string, unknown>>((base || {}) as Record<string, unknown>, (source || {}) as Record<string, unknown>, opts)
 
   // Ensure general section preserves user preferences
   if (base?.general && source?.general) {
-    mergeResult.result.general = {
+    const result = mergeResult.result as unknown as CcjkConfig
+    result.general = {
       ...source.general,
       // Preserve these user preferences
       preferredLang: base.general.preferredLang,
@@ -210,7 +211,7 @@ export function mergeCcjkConfig(
     }
   }
 
-  return mergeResult as MergeResult<CcjkConfig>
+  return mergeResult as unknown as MergeResult<CcjkConfig>
 }
 
 /**
@@ -305,6 +306,9 @@ export class SchemaValidator<T extends Record<string, unknown>> implements Confi
 
     for (const key in this.schema) {
       const fieldSchema = this.schema[key]
+      if (!fieldSchema) {
+        continue
+      }
 
       // Check required
       if (fieldSchema.required && !(key in config)) {
@@ -343,7 +347,7 @@ export class SchemaValidator<T extends Record<string, unknown>> implements Confi
 
       // Custom validator
       if (fieldSchema.validator) {
-        const result = fieldSchema.validator(value, config)
+        const result = fieldSchema.validator(value as any, config as any)
         if (!result.valid) {
           errors.push({
             path: key,

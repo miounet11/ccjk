@@ -13,7 +13,7 @@
  */
 
 import type { MenuItem, MenuLevel } from '../types'
-import { getItemsByCategory, getVisibleItems } from '../main-menu'
+import { getVisibleItems } from '../main-menu'
 
 /**
  * Level definitions with descriptions
@@ -26,7 +26,7 @@ export const levelDefinitions = {
     icon: '🌱',
     categories: ['quick', 'config'],
     features: [
-      'API config',      // #1 Core feature - one-click API setup
+      'API config', // #1 Core feature - one-click API setup
       'One-click setup',
       'Diagnostics',
       'Update all',

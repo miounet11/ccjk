@@ -226,7 +226,7 @@ export class SchemaValidator {
       }
 
       if ('properties' in current && current.properties) {
-        current = current.properties[part] as SchemaField
+        current = (current.properties as Record<string, SchemaField>)[part] as SchemaField
       }
       else if (part in current) {
         current = (current as Record<string, SchemaField>)[part]
@@ -434,7 +434,7 @@ export class SchemaValidator {
         break
 
       case 'email':
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        if (!/^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(value)) {
           this.addError(path, `Invalid email format`, 'INVALID_FORMAT', value)
         }
         break
@@ -445,8 +445,10 @@ export class SchemaValidator {
    * Get JavaScript type of value
    */
   private getType(value: unknown): string {
-    if (value === null) return 'null'
-    if (Array.isArray(value)) return 'array'
+    if (value === null)
+      return 'null'
+    if (Array.isArray(value))
+      return 'array'
     return typeof value
   }
 

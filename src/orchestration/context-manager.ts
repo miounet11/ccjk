@@ -4,10 +4,6 @@
  * Target: 95% token optimization with <2s processing for 100 messages
  */
 
-import * as crypto from 'node:crypto'
-import * as fs from 'node:fs'
-import * as os from 'node:os'
-import * as path from 'node:path'
 import type {
   CodeSnippet,
   CompressedContext,
@@ -21,6 +17,10 @@ import type {
   SessionData,
   TokenEstimate,
 } from '../types/orchestration'
+import * as crypto from 'node:crypto'
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
 
 /**
  * Context Manager for orchestration
@@ -421,7 +421,7 @@ export class OrchestrationContextManager {
   }
 
   private extractFilename(content: string): string | null {
-    const match = content.match(/(?:file|文件)[:：]\s*([^\s]+)|`([^`]+\.\w+)`/)
+    const match = content.match(/(?:file|文件)[:：]\s*(\S+)|`([^`]+\.\w+)`/)
     return match?.[1] || match?.[2] || null
   }
 

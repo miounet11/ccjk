@@ -9,19 +9,17 @@
  * - /teleport qr - Generate QR code for mobile transfer
  */
 
-import type { TeleportOptions } from '../cloud-sync/remote-client'
-import type { TeleportSession } from '../cloud-sync/teleport'
+import type { TeleportOptions } from '../cloud-sync/teleport'
 import type { SupportedLang } from '../constants'
 import type { Session } from '../session-manager'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { createCustomClient, createRemoteClient } from '../cloud-sync/remote-client'
+import { createRemoteClient } from '../cloud-sync/remote-client'
 import {
   exportSessionTeleport,
   generateTeleportUrl,
   importSessionTeleport,
   listTeleportTransfers,
-  parseTeleportUrl,
 
 } from '../cloud-sync/teleport'
 import { i18n } from '../i18n'

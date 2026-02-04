@@ -8,8 +8,97 @@
  * @module brain/orchestrator-types
  */
 
-import type { AgentCapability, CloudAgent } from '../types/agent.js'
+import type { AgentCapability as AgentCapabilityFromTypes, CloudAgent } from '../types/agent.js'
 import type { AgentRole } from './types.js'
+
+// ============================================================================
+// Agent Communication Types
+// ============================================================================
+
+/**
+ * Agent message for inter-agent communication
+ *
+ * Used for communication between agents in the orchestration system.
+ */
+export interface AgentMessage {
+  /** Unique message identifier */
+  id: string
+
+  /** Message role */
+  role: 'user' | 'agent' | 'system'
+
+  /** Message content */
+  content: string
+
+  /** Message timestamp */
+  timestamp: number
+
+  /** Additional metadata */
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Agent execution result
+ */
+export interface AgentResult<T = unknown> {
+  success: boolean
+  data?: T
+  error?: Error
+  message?: string
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Agent state enumeration
+ */
+export type AgentState = 'idle' | 'busy' | 'error' | 'offline'
+
+/**
+ * Agent execution context
+ *
+ * Provides context information for agent execution.
+ */
+export interface AgentContext {
+  /** Working directory for agent operations */
+  workingDirectory: string
+
+  /** Project root directory */
+  projectRoot: string
+
+  /** Programming language context */
+  language: string
+
+  /** Environment variables */
+  environment: Record<string, string>
+
+  /** Message history */
+  history: AgentMessage[]
+}
+
+/**
+ * Agent capability definition for orchestration
+ *
+ * Defines a specific capability that an agent possesses.
+ * This is the orchestration-level capability (from types/agent.ts).
+ */
+export type AgentCapability = AgentCapabilityFromTypes
+
+/**
+ * Base agent capability definition
+ *
+ * Defines a capability at the base agent level.
+ * Used by individual agent implementations.
+ */
+export interface BaseAgentCapability {
+  /** Capability name */
+  name: string
+
+  /** Capability description */
+  description: string
+
+  /** Optional parameters */
+  parameters?: Record<string, unknown>
+}
 
 /**
  * Task priority levels
@@ -431,6 +520,24 @@ export interface AgentMetrics {
 
   /** Last updated timestamp */
   lastUpdated: string
+
+  /** CPU usage percentage (0-100) */
+  cpuUsage?: number
+
+  /** Memory usage percentage (0-100) */
+  memoryUsage?: number
+
+  /** Average response time in ms */
+  avgResponseTime?: number
+
+  /** Error rate (0-1) */
+  errorRate?: number
+
+  /** Task count */
+  taskCount?: number
+
+  /** Timestamp */
+  timestamp?: number
 }
 
 /**

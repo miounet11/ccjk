@@ -9,6 +9,10 @@
 import type { DaemonConfig } from '../../src/daemon/types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Now we can safely import modules that depend on imap
+import { CcjkDaemon } from '../../src/daemon'
+import { PRESET_TEMPLATES } from '../../src/daemon/mobile-control'
+
 // Mock email-related modules before any imports that depend on them
 // These packages are optional dependencies not installed in the test environment
 vi.mock('imap', () => {
@@ -36,10 +40,6 @@ vi.mock('nodemailer', () => ({
     })),
   },
 }))
-
-// Now we can safely import modules that depend on imap
-import { CcjkDaemon } from '../../src/daemon'
-import { PRESET_TEMPLATES } from '../../src/daemon/mobile-control'
 
 // Mock fetch for API calls
 globalThis.fetch = vi.fn()

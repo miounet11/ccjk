@@ -5,16 +5,13 @@
  * into a single unified MCP command with subcommands
  */
 
-import type { SupportedLang } from '../../constants'
-import type { ClaudeConfiguration, McpServerConfig } from '../../types/claude-code-config'
+import type { ClaudeConfiguration } from '../../types'
 
 import { existsSync } from 'node:fs'
 import ansis from 'ansis'
 import { cac } from 'cac'
-import { join } from 'pathe'
-import { CLAUDE_DIR, SETTINGS_FILE } from '../../constants'
+import { SETTINGS_FILE } from '../../constants'
 import { getTranslation } from '../../i18n'
-import { showDeprecationWarning } from '../../utils/deprecation'
 import { readJsonConfig } from '../../utils/json-config'
 
 /**

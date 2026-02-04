@@ -5,7 +5,7 @@
  * Identifies entry points and call dependencies between functions.
  */
 
-import type { ASTNode, CallGraph, CallNode, CallEdge } from '../types.js'
+import type { ASTNode, CallEdge, CallGraph, CallNode } from '../types.js'
 
 /**
  * Generate call graph from AST
@@ -19,7 +19,7 @@ export function generateCallGraph(filePath: string, ast: ASTNode): CallGraph {
   }
 
   const functionStack: string[] = []
-  let nodeIdCounter = 0
+  const nodeIdCounter = 0
 
   // Extract all functions first
   extractFunctions(ast, callGraph, functionStack, nodeIdCounter)

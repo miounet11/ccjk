@@ -108,33 +108,33 @@ export interface ICredentialManager {
    * @param value - 凭证值
    * @param type - 凭证类型
    */
-  store(key: string, value: string, type?: CredentialType): Promise<void>
+  store: (key: string, value: string, type?: CredentialType) => Promise<void>
 
   /**
    * 获取凭证
    * @param key - 凭证键名
    * @returns 凭证值，如果不存在则返回 null
    */
-  retrieve(key: string): Promise<string | null>
+  retrieve: (key: string) => Promise<string | null>
 
   /**
    * 删除凭证
    * @param key - 凭证键名
    * @returns 是否删除成功
    */
-  delete(key: string): Promise<boolean>
+  delete: (key: string) => Promise<boolean>
 
   /**
    * 列出所有凭证键名
    * @returns 凭证键名列表
    */
-  list(): Promise<string[]>
+  list: () => Promise<string[]>
 
   /**
    * 轮换凭证 (重新加密)
    * @param key - 凭证键名
    */
-  rotate(key: string): Promise<void>
+  rotate: (key: string) => Promise<void>
 }
 
 /**
@@ -145,7 +145,7 @@ export interface IKeychainBackend {
   readonly type: StorageBackend
 
   /** 是否可用 */
-  isAvailable(): Promise<boolean>
+  isAvailable: () => Promise<boolean>
 
   /**
    * 存储密钥
@@ -153,7 +153,7 @@ export interface IKeychainBackend {
    * @param account - 账户名称
    * @param password - 密码/密钥
    */
-  setPassword(service: string, account: string, password: string): Promise<void>
+  setPassword: (service: string, account: string, password: string) => Promise<void>
 
   /**
    * 获取密钥
@@ -161,7 +161,7 @@ export interface IKeychainBackend {
    * @param account - 账户名称
    * @returns 密码/密钥，如果不存在则返回 null
    */
-  getPassword(service: string, account: string): Promise<string | null>
+  getPassword: (service: string, account: string) => Promise<string | null>
 
   /**
    * 删除密钥
@@ -169,14 +169,14 @@ export interface IKeychainBackend {
    * @param account - 账户名称
    * @returns 是否删除成功
    */
-  deletePassword(service: string, account: string): Promise<boolean>
+  deletePassword: (service: string, account: string) => Promise<boolean>
 
   /**
    * 列出服务下的所有账户
    * @param service - 服务名称
    * @returns 账户名称列表
    */
-  listAccounts(service: string): Promise<string[]>
+  listAccounts: (service: string) => Promise<string[]>
 }
 
 /**
@@ -189,7 +189,7 @@ export interface IEncryptionService {
    * @param masterKey - 主密钥
    * @returns 加密后的数据
    */
-  encrypt(plaintext: string, masterKey: string): Promise<EncryptedData>
+  encrypt: (plaintext: string, masterKey: string) => Promise<EncryptedData>
 
   /**
    * 解密数据
@@ -197,21 +197,21 @@ export interface IEncryptionService {
    * @param masterKey - 主密钥
    * @returns 明文
    */
-  decrypt(encrypted: EncryptedData, masterKey: string): Promise<string>
+  decrypt: (encrypted: EncryptedData, masterKey: string) => Promise<string>
 
   /**
    * 生成随机密钥
    * @param length - 密钥长度 (字节)
    * @returns Base64 编码的密钥
    */
-  generateKey(length?: number): string
+  generateKey: (length?: number) => string
 
   /**
    * 验证加密数据完整性
    * @param encrypted - 加密后的数据
    * @returns 是否有效
    */
-  validate(encrypted: EncryptedData): boolean
+  validate: (encrypted: EncryptedData) => boolean
 }
 
 /**
@@ -233,12 +233,12 @@ export interface EncryptionConfig {
 /**
  * 凭证存储事件
  */
-export type CredentialEvent =
-  | { type: 'stored'; key: string }
-  | { type: 'retrieved'; key: string }
-  | { type: 'deleted'; key: string }
-  | { type: 'rotated'; key: string }
-  | { type: 'error'; key: string; error: Error }
+export type CredentialEvent
+  = | { type: 'stored', key: string }
+    | { type: 'retrieved', key: string }
+    | { type: 'deleted', key: string }
+    | { type: 'rotated', key: string }
+    | { type: 'error', key: string, error: Error }
 
 /**
  * 凭证事件监听器

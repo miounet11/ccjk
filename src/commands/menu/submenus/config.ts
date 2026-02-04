@@ -11,9 +11,7 @@
  * - Context management
  */
 
-import type { SupportedLang } from '../../../constants'
 import type { MenuDefinition, MenuItem } from '../types'
-import { i18n } from '../../../i18n/index'
 import { configureAiMemoryFeature, configureApiFeature, configureDefaultModelFeature, configureEnvPermissionFeature, configureMcpFeature } from '../../../utils/features'
 import { showContextMenu } from '../../context-menu'
 

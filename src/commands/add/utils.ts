@@ -4,10 +4,10 @@
  * 共享的工具函数
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import os from 'node:os'
 import type { PluginType } from './type-detector'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 
 /**
  * 获取 CCJK 配置目录

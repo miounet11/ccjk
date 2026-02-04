@@ -39,7 +39,7 @@ function isCommandGroup(entry: CommandEntry): entry is CommandGroup {
 /**
  * 解析命令行参数
  */
-function parseArgs(argv: string[]): { command: string[]; options: Record<string, string | boolean> } {
+function parseArgs(argv: string[]): { command: string[], options: Record<string, string | boolean> } {
   const args = argv.slice(2) // 跳过 node 和脚本路径
   const command: string[] = []
   const options: Record<string, string | boolean> = {}
@@ -52,19 +52,23 @@ function parseArgs(argv: string[]): { command: string[]; options: Record<string,
       if (nextArg && !nextArg.startsWith('-')) {
         options[key] = nextArg
         i++
-      } else {
+      }
+      else {
         options[key] = true
       }
-    } else if (arg.startsWith('-')) {
+    }
+    else if (arg.startsWith('-')) {
       const key = arg.slice(1)
       const nextArg = args[i + 1]
       if (nextArg && !nextArg.startsWith('-')) {
         options[key] = nextArg
         i++
-      } else {
+      }
+      else {
         options[key] = true
       }
-    } else {
+    }
+    else {
       command.push(arg)
     }
   }
@@ -298,11 +302,13 @@ async function defaultAction(): Promise<void> {
 
     if (action === 'setup') {
       await quickApiSetup('zh-CN')
-    } else if (action === 'menu') {
+    }
+    else if (action === 'menu') {
       const { startMenu } = await import('./index.js')
       await startMenu()
     }
-  } else {
+  }
+  else {
     // API 已配置，直接进入菜单
     const { startMenu } = await import('./index.js')
     await startMenu()
@@ -364,7 +370,8 @@ export async function runCli(): Promise<void> {
     }
 
     await subCmdDef.action(command.slice(2))
-  } else {
+  }
+  else {
     // 单个命令
     await cmdEntry.action(command.slice(1))
   }

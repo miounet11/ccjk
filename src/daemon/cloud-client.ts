@@ -6,8 +6,8 @@
  * API Path: /api/control/*
  */
 
-import os from 'node:os'
-import { version } from '../../package.json'
+import * as os from 'node:os'
+import packageJson from '../../package.json'
 
 /**
  * Default cloud API base URL
@@ -130,7 +130,7 @@ export class CloudClient {
   private config: CloudClientConfig
   private heartbeatTimer?: NodeJS.Timeout
   private currentTasks: Set<string> = new Set()
-  private deviceInfo?: DeviceRegistrationResponse['data']['device']
+  private deviceInfo?: DeviceRegistrationResponse['data']
 
   constructor(config: CloudClientConfig) {
     this.config = {
@@ -175,7 +175,7 @@ export class CloudClient {
         name: info?.name || `CCJK Device (${os.hostname()})`,
         platform: os.platform() as any,
         hostname: os.hostname(),
-        version: info?.version || version,
+        version: info?.version || packageJson.version,
       }
 
       this.debugLog(`Registering device: ${deviceInfo.name}`)
@@ -188,8 +188,8 @@ export class CloudClient {
 
       const result = await response.json() as DeviceRegistrationResponse
 
-      if (result.success && result.data?.device) {
-        this.deviceInfo = result.data.device
+      if (result.success && result.data) {
+        this.deviceInfo = result.data
         this.debugLog(`Device registered: ${result.data.device.id}`)
       }
 
@@ -215,7 +215,7 @@ export class CloudClient {
         timestamp: new Date().toISOString(),
       }
 
-      this.debugLog(`Sending heartbeat: ${status}, tasks: ${request.currentTasks.length}`)
+      this.debugLog(`Sending heartbeat: ${status}, tasks: ${request.currentTasks?.length || 0}`)
 
       const response = await fetch(`${this.getApiBase()}/devices/heartbeat`, {
         method: 'POST',
@@ -369,7 +369,7 @@ export class CloudClient {
   /**
    * Get registered device info
    */
-  getDeviceInfo(): DeviceRegistrationResponse['data']['device'] | undefined {
+  getDeviceInfo(): DeviceRegistrationResponse['data'] | undefined {
     return this.deviceInfo
   }
 

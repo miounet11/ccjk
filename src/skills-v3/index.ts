@@ -11,47 +11,53 @@
 // Types
 // ============================================================================
 
-export * from './types'
+export {
+  getHotReloadManager,
+  getHotReloadStats,
+  HotReloadManager,
+  hotReloadManager,
+  resetHotReloadManager,
+  startHotReload,
+  stopHotReload,
+} from './hot-reload'
 
 // ============================================================================
 // Parser
 // ============================================================================
 
 export {
-  SkillParser,
-  getSkillParser,
-  resetSkillParser,
-  parseSkillFile,
-  parseSkillContent,
-  isSkillFile,
-} from './parser'
+  getSkillMigrator,
+  migrateDirectory,
+  migrateFile,
+  resetSkillMigrator,
+  SkillMigrator,
+} from './migrator'
 
 // ============================================================================
 // Registry
 // ============================================================================
 
 export {
-  SkillRegistry,
-  getSkillRegistry,
-  resetSkillRegistry,
-  registerSkill,
-  lookupSkills,
-  getSkillById,
-  getSkillsByTrigger,
-} from './skill-registry'
+  getSkillParser,
+  isSkillFile,
+  parseSkillContent,
+  parseSkillFile,
+  resetSkillParser,
+  SkillParser,
+} from './parser'
 
 // ============================================================================
 // Loader
 // ============================================================================
 
 export {
-  SkillLoader,
-  getSkillLoader,
-  resetSkillLoader,
-  loadAllSkills,
-  loadSkillsFromDirectory,
-  loadAndRegisterSkills,
   getDefaultSkillDirectories,
+  getSkillLoader,
+  loadAllSkills,
+  loadAndRegisterSkills,
+  loadSkillsFromDirectory,
+  resetSkillLoader,
+  SkillLoader,
 } from './skill-loader'
 
 // ============================================================================
@@ -59,44 +65,38 @@ export {
 // ============================================================================
 
 export {
-  SkillMigrator,
-  getSkillMigrator,
-  resetSkillMigrator,
-  migrateFile,
-  migrateDirectory,
-} from './migrator'
+  disableSkill,
+  enableSkill,
+  getSkillManager,
+  getSkillStats,
+  getSkill as getSkillV3,
+  listSkills,
+  loadAllSkills as loadAllSkillsV3,
+  registerSkill as registerSkillV3,
+  resetSkillManager,
+  searchSkills,
+  SkillManager,
+} from './skill-manager'
 
 // ============================================================================
 // Hot Reload
 // ============================================================================
 
 export {
-  HotReloadManager,
-  getHotReloadManager,
-  resetHotReloadManager,
-  startHotReload,
-  stopHotReload,
-  getHotReloadStats,
-  hotReloadManager,
-} from './hot-reload'
+  getSkillById,
+  getSkillRegistry,
+  getSkillsByTrigger,
+  lookupSkills,
+  registerSkill,
+  resetSkillRegistry,
+  SkillRegistry,
+} from './skill-registry'
 
 // ============================================================================
 // Manager
 // ============================================================================
 
-export {
-  SkillManager,
-  getSkillManager,
-  resetSkillManager,
-  registerSkill as registerSkillV3,
-  getSkill as getSkillV3,
-  searchSkills,
-  listSkills,
-  enableSkill,
-  disableSkill,
-  loadAllSkills as loadAllSkillsV3,
-  getSkillStats,
-} from './skill-manager'
+export * from './types'
 
 // ============================================================================
 // Convenience Re-exports
@@ -104,17 +104,17 @@ export {
 
 // Re-export commonly used types for direct import
 export type {
-  SkillV3,
-  SkillV3Metadata,
-  SkillV3Config,
-  SkillRegistryEntry,
-  ParseResult,
-  MigrationResult,
-  MigrationReport,
-  LoadResult,
   DependencyResolution,
-  RegistryStats,
   HotReloadEvent,
   HotReloadStats,
+  LoadResult,
   LocalizedString,
+  MigrationReport,
+  MigrationResult,
+  ParseResult,
+  RegistryStats,
+  SkillRegistryEntry,
+  SkillV3,
+  SkillV3Config,
+  SkillV3Metadata,
 } from './types'

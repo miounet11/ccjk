@@ -2,9 +2,9 @@
  * Context Analyzer - Analyze project context to recommend skills
  */
 
+import type { CcjkSkill } from './types'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
-import type { CcjkSkill } from './types'
 
 export interface ProjectContext {
   hasGit: boolean
@@ -30,11 +30,14 @@ export function analyzeProjectContext(cwd: string = process.cwd()): ProjectConte
   // Detect package manager
   if (existsSync(join(cwd, 'pnpm-lock.yaml'))) {
     context.packageManager = 'pnpm'
-  } else if (existsSync(join(cwd, 'yarn.lock'))) {
+  }
+  else if (existsSync(join(cwd, 'yarn.lock'))) {
     context.packageManager = 'yarn'
-  } else if (existsSync(join(cwd, 'bun.lockb'))) {
+  }
+  else if (existsSync(join(cwd, 'bun.lockb'))) {
     context.packageManager = 'bun'
-  } else if (existsSync(join(cwd, 'package-lock.json'))) {
+  }
+  else if (existsSync(join(cwd, 'package-lock.json'))) {
     context.packageManager = 'npm'
   }
 
@@ -59,23 +62,30 @@ export function analyzeProjectContext(cwd: string = process.cwd()): ProjectConte
       const pkg = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf-8'))
       const deps = { ...pkg.dependencies, ...pkg.devDependencies }
 
-      if (deps.react) context.frameworks.push('react')
-      if (deps.vue) context.frameworks.push('vue')
-      if (deps.next) context.frameworks.push('next')
-      if (deps.nuxt) context.frameworks.push('nuxt')
-      if (deps.express) context.frameworks.push('express')
-      if (deps.fastify) context.frameworks.push('fastify')
-    } catch {}
+      if (deps.react)
+        context.frameworks.push('react')
+      if (deps.vue)
+        context.frameworks.push('vue')
+      if (deps.next)
+        context.frameworks.push('next')
+      if (deps.nuxt)
+        context.frameworks.push('nuxt')
+      if (deps.express)
+        context.frameworks.push('express')
+      if (deps.fastify)
+        context.frameworks.push('fastify')
+    }
+    catch {}
   }
 
   // Detect tests
   context.hasTests = files.some(f =>
-    f.includes('test') || f.includes('spec') || f === 'vitest.config.ts' || f === 'jest.config.js'
+    f.includes('test') || f.includes('spec') || f === 'vitest.config.ts' || f === 'jest.config.js',
   )
 
   // Detect docs
   context.hasDocs = files.some(f =>
-    f.toLowerCase() === 'readme.md' || f === 'docs' || f === 'documentation'
+    f.toLowerCase() === 'readme.md' || f === 'docs' || f === 'documentation',
   )
 
   return context
@@ -88,7 +98,8 @@ export function recommendSkillsForContext(context: ProjectContext, skills: CcjkS
   const recommended: CcjkSkill[] = []
 
   for (const skill of skills) {
-    if (!skill.enabled) continue
+    if (!skill.enabled)
+      continue
 
     // Git-related skills
     if (context.hasGit && skill.category === 'git') {

@@ -31,25 +31,25 @@ export type AgentStatus = 'idle' | 'busy' | 'paused' | 'error' | 'terminated'
 /**
  * Task status
  */
-export type TaskStatus =
-  | 'pending'
-  | 'queued'
-  | 'running'
-  | 'completed'
-  | 'failed'
-  | 'cancelled'
-  | 'timeout'
-  | 'retrying'
+export type TaskStatus
+  = | 'pending'
+    | 'queued'
+    | 'running'
+    | 'completed'
+    | 'failed'
+    | 'cancelled'
+    | 'timeout'
+    | 'retrying'
 
 /**
  * Orchestrator status
  */
-export type OrchestratorStatus =
-  | 'idle'
-  | 'running'
-  | 'paused'
-  | 'shutting_down'
-  | 'error'
+export type OrchestratorStatus
+  = | 'idle'
+    | 'running'
+    | 'paused'
+    | 'shutting_down'
+    | 'error'
 
 // ============================================================================
 // Agent Types
@@ -58,18 +58,18 @@ export type OrchestratorStatus =
 /**
  * Agent capabilities
  */
-export type AgentCapability =
-  | 'code-generation'
-  | 'code-review'
-  | 'testing'
-  | 'documentation'
-  | 'research'
-  | 'analysis'
-  | 'refactoring'
-  | 'debugging'
-  | 'deployment'
-  | 'monitoring'
-  | string
+export type AgentCapability
+  = | 'code-generation'
+    | 'code-review'
+    | 'testing'
+    | 'documentation'
+    | 'research'
+    | 'analysis'
+    | 'refactoring'
+    | 'debugging'
+    | 'deployment'
+    | 'monitoring'
+    | string
 
 /**
  * Agent configuration
@@ -391,15 +391,15 @@ export interface TaskResult {
 /**
  * Message types for communication
  */
-export type MessageType =
-  | 'request'
-  | 'response'
-  | 'event'
-  | 'broadcast'
-  | 'command'
-  | 'notification'
-  | 'heartbeat'
-  | 'error'
+export type MessageType
+  = | 'request'
+    | 'response'
+    | 'event'
+    | 'broadcast'
+    | 'command'
+    | 'notification'
+    | 'heartbeat'
+    | 'error'
 
 /**
  * Message structure
@@ -508,15 +508,15 @@ export interface Subscription {
 /**
  * Recovery action types
  */
-export type RecoveryAction =
-  | 'retry'
-  | 'restart_agent'
-  | 'reassign_task'
-  | 'checkpoint_restore'
-  | 'graceful_degrade'
-  | 'dead_letter'
-  | 'escalate'
-  | 'ignore'
+export type RecoveryAction
+  = | 'retry'
+    | 'restart_agent'
+    | 'reassign_task'
+    | 'checkpoint_restore'
+    | 'graceful_degrade'
+    | 'dead_letter'
+    | 'escalate'
+    | 'ignore'
 
 /**
  * Recovery strategy

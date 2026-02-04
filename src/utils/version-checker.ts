@@ -4,7 +4,7 @@ import * as nodeFs from 'node:fs'
 import * as nodePath from 'node:path'
 import process from 'node:process'
 import { promisify } from 'node:util'
-import semver from 'semver'
+import * as semver from 'semver'
 import {
   detectSourceFromPath,
   findInstallationByCommonPaths,

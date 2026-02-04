@@ -1,3 +1,4 @@
+import type { Skill, SkillCategory, UserSkill } from '../../cloud-client/skills-marketplace-types'
 import type {
   InstallOptions,
   InstallResult,
@@ -7,10 +8,8 @@ import type {
   UninstallResult,
   UpdateResult,
 } from '../types'
-import { BasePluginAdapter } from './base'
 import { skillsMarketplaceApi } from '../../cloud-client/skills-marketplace-api'
-import { userSkillsApi } from '../../cloud-client/user-skills-api'
-import type { Skill, UserSkill, SkillCategory } from '../../cloud-client/skills-marketplace-types'
+import { BasePluginAdapter } from './base'
 
 /**
  * Adapter for CCJK Skills Marketplace
@@ -66,21 +65,23 @@ export class CcjkAdapter extends BasePluginAdapter {
       })
 
       // Get user's installed skills to mark status
-      let userSkills: UserSkill[] = []
+      const userSkills: UserSkill[] = []
       try {
         // TODO: Get userId from auth context
         // const userSkillsResponse = await userSkillsApi.getUserSkills(userId, { token })
         // userSkills = userSkillsResponse.skills
-      } catch {
+      }
+      catch {
         // User might not be authenticated, continue without user skills
       }
 
       const userSkillsMap = new Map(userSkills.map(s => [s.skillId, s]))
 
       return response.results.map(skill =>
-        this.convertToUnifiedPlugin(skill, userSkillsMap.get(skill.skillId))
+        this.convertToUnifiedPlugin(skill, userSkillsMap.get(skill.skillId)),
       )
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to search CCJK marketplace:', error)
       return []
     }
@@ -108,12 +109,14 @@ export class CcjkAdapter extends BasePluginAdapter {
         // TODO: Get userId from auth context
         // const userSkillsResponse = await userSkillsApi.getUserSkills(userId, { token })
         // userSkill = userSkillsResponse.skills.find(s => s.skillId === id)
-      } catch {
+      }
+      catch {
         // User might not be authenticated
       }
 
       return this.convertToUnifiedPlugin(skill, userSkill)
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Failed to get plugin ${id}:`, error)
       return null
     }
@@ -155,9 +158,10 @@ export class CcjkAdapter extends BasePluginAdapter {
       //   success: true,
       //   plugin,
       // }
-    } catch (error) {
+    }
+    catch (error) {
       return this.createInstallError(
-        error instanceof Error ? error.message : 'Failed to install plugin'
+        error instanceof Error ? error.message : 'Failed to install plugin',
       )
     }
   }
@@ -173,9 +177,10 @@ export class CcjkAdapter extends BasePluginAdapter {
 
       // await userSkillsApi.uninstallSkill(userId, id, { token })
       // return { success: true }
-    } catch (error) {
+    }
+    catch (error) {
       return this.createUninstallError(
-        error instanceof Error ? error.message : 'Failed to uninstall plugin'
+        error instanceof Error ? error.message : 'Failed to uninstall plugin',
       )
     }
   }
@@ -229,9 +234,10 @@ export class CcjkAdapter extends BasePluginAdapter {
       //   newVersion,
       //   plugin: updatedPlugin ?? currentPlugin,
       // }
-    } catch (error) {
+    }
+    catch (error) {
       return this.createUpdateError(
-        error instanceof Error ? error.message : 'Failed to update plugin'
+        error instanceof Error ? error.message : 'Failed to update plugin',
       )
     }
   }
@@ -276,7 +282,8 @@ export class CcjkAdapter extends BasePluginAdapter {
       // )
 
       // return plugins
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to list installed plugins:', error)
       return []
     }
@@ -293,7 +300,8 @@ export class CcjkAdapter extends BasePluginAdapter {
 
       // const userSkillsResponse = await userSkillsApi.getUserSkills(userId, { token })
       // return userSkillsResponse.skills.some(skill => skill.skillId === id)
-    } catch {
+    }
+    catch {
       return false
     }
   }

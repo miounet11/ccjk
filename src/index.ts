@@ -3,7 +3,10 @@
  */
 
 export * from './code-tools'
-export * from './utils'
-
 // 菜单系统
 export * from './menu'
+
+export * from './utils'
+
+// Actionbook precomputation engine
+export * from './actionbook'

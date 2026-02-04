@@ -1,9 +1,9 @@
 /**
  * 菜单系统基础测试
  */
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-describe('Menu System', () => {
+describe('menu System', () => {
   it('should export menu engine', async () => {
     const { MenuEngine } = await import('../menu-engine.js')
     expect(MenuEngine).toBeDefined()

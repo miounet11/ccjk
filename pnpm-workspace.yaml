@@ -4,8 +4,6 @@ packages:
 
 catalog:
   '@antfu/eslint-config': ^5.4.1
-  handlebars: ^4.7.8
-  web-tree-sitter: ^0.26.3
   '@anthropic-ai/sdk': ^0.52.0
   '@changesets/cli': ^2.29.7
   '@commitlint/cli': ^19.8.1
@@ -16,6 +14,8 @@ catalog:
   '@types/inquirer': ^9.0.9
   '@types/node': ^22.18.6
   '@types/react': ^18
+  handlebars: ^4.7.8
+  web-tree-sitter: ^0.26.3
   '@types/react-dom': ^18
   '@types/uuid': ^11.0.0
   '@typescript-eslint/eslint-plugin': ^6.0.0
@@ -75,38 +75,38 @@ catalog:
 catalogs:
   conflicts_@types/node_h20_11_5:
     '@types/node': ^20.11.5
+  conflicts_chokidar_h3_5_3:
+    chokidar: ^3.5.3
+  conflicts_conflicts_@types/node_h20_11_5_h20:
+    '@types/node': ^20
+  conflicts_conflicts_@types/node_h20_11_5_h20_0_0:
+    '@types/node': ^20.0.0
   conflicts_conflicts_@types/node_h20_11_5_h22_18_6:
     '@types/node': ^22.18.6
+  conflicts_conflicts_chokidar_h3_5_3_h4_0_3:
+    chokidar: ^4.0.3
+  conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0:
+    tsx: ^4.0.0
+  conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5:
+    typescript: ^5
+  conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_0_0:
+    typescript: ^5.0.0
+  conflicts_conflicts_eslint_h8_0_0_h8:
+    eslint: ^8
+  conflicts_conflicts_eslint_h8_0_0_h9_36_0:
+    eslint: ^9.36.0
   conflicts_conflicts_tsx_h4_7_2_h4_20_5:
     tsx: ^4.20.5
   conflicts_conflicts_typescript_h5_3_3_h5_9_2:
     typescript: ^5.9.2
+  conflicts_eslint_h8_0_0:
+    eslint: ^8.0.0
   conflicts_tsx_h4_7_2:
     tsx: ^4.7.2
   conflicts_typescript_h5_3_3:
     typescript: ^5.3.3
-  conflicts_chokidar_h3_5_3:
-    chokidar: ^3.5.3
-  conflicts_conflicts_@types/node_h20_11_5_h20_0_0:
-    '@types/node': ^20.0.0
-  conflicts_eslint_h8_0_0:
-    eslint: ^8.0.0
-  conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0:
-    tsx: ^4.0.0
-  conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_0_0:
-    typescript: ^5.0.0
   conflicts_vitest_h1_0_0:
     vitest: ^1.0.0
-  conflicts_conflicts_@types/node_h20_11_5_h20:
-    '@types/node': ^20
-  conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5:
-    typescript: ^5
-  conflicts_conflicts_eslint_h8_0_0_h8:
-    eslint: ^8
-  conflicts_conflicts_chokidar_h3_5_3_h4_0_3:
-    chokidar: ^4.0.3
-  conflicts_conflicts_eslint_h8_0_0_h9_36_0:
-    eslint: ^9.36.0
   conflicts_conflicts_vitest_h1_0_0_h3_2_4:
     vitest: ^3.2.4
 

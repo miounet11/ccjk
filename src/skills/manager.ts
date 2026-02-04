@@ -161,7 +161,7 @@ export function searchSkills(options: SkillSearchOptions): CcjkSkill[] {
 
   if (options.query) {
     const query = options.query.toLowerCase()
-    skills = skills.filter(s => {
+    skills = skills.filter((s) => {
       // Handle both string and multilingual object for name
       const nameEn = typeof s.name === 'string' ? s.name : (s.name?.en || '')
       const nameZh = typeof s.name === 'string' ? s.name : (s.name?.['zh-CN'] || '')
@@ -415,8 +415,10 @@ export function createBatchSkills(options: BatchSkillOptions): SkillInstallResul
 
   // Helper to safely extract string from name/description
   const extractStr = (val: string | Record<string, string> | undefined, fallback: string): string => {
-    if (!val) return fallback
-    if (typeof val === 'string') return val
+    if (!val)
+      return fallback
+    if (typeof val === 'string')
+      return val
     return val.en || val['zh-CN'] || Object.values(val)[0] || fallback
   }
 
@@ -539,7 +541,7 @@ function skillToMarkdown(skill: CcjkSkill): string {
     body.push(skill.template)
   }
 
-  return frontmatter.join('\n') + body.join('\n') + '\n'
+  return `${frontmatter.join('\n') + body.join('\n')}\n`
 }
 
 /**
@@ -551,7 +553,7 @@ function skillToMarkdown(skill: CcjkSkill): string {
  */
 export function writeSkillToClaudeCode(
   skill: CcjkSkill,
-  options?: SkillWriteOptions
+  options?: SkillWriteOptions,
 ): string {
   const isGlobal = options?.global || false
   const commandsDir = isGlobal
@@ -580,7 +582,7 @@ export function writeSkillToClaudeCode(
  */
 export function writeSkillsToClaudeCode(
   skills: CcjkSkill[],
-  options?: SkillWriteOptions
+  options?: SkillWriteOptions,
 ): string[] {
   return skills.map(skill => writeSkillToClaudeCode(skill, options))
 }

@@ -58,6 +58,32 @@ import type { WorkflowPhase, WorkflowSession } from './types'
 import { getScheduler as _getScheduler } from './scheduler'
 import { getWorkflowStateMachine as _getWorkflowStateMachine } from './state-machine'
 
+// Plan Complete Handler
+export {
+  extractDecisionsFromPlan,
+  extractFilesFromPlan,
+  extractTasksFromPlan,
+  handlePlanComplete,
+} from './plan-complete-handler'
+
+export type {
+  PlanCompleteOptions,
+  PlanCompleteResult,
+} from './plan-complete-handler'
+
+// Plan Persistence
+export {
+  getPlanPersistenceManager,
+  PlanPersistenceManager,
+  resetPlanPersistenceManager,
+} from './plan-persistence'
+
+export type {
+  PlanDocument,
+  PlanSaveOptions,
+  PlanTask,
+} from './plan-persistence'
+
 export {
   canRetryReview,
   createTaskReview,
@@ -100,32 +126,6 @@ export {
 } from './state-machine'
 
 export type { StateMachineOptions } from './state-machine'
-
-// Plan Persistence
-export {
-  getPlanPersistenceManager,
-  PlanPersistenceManager,
-  resetPlanPersistenceManager,
-} from './plan-persistence'
-
-export type {
-  PlanDocument,
-  PlanSaveOptions,
-  PlanTask,
-} from './plan-persistence'
-
-// Plan Complete Handler
-export {
-  extractDecisionsFromPlan,
-  extractFilesFromPlan,
-  extractTasksFromPlan,
-  handlePlanComplete,
-} from './plan-complete-handler'
-
-export type {
-  PlanCompleteOptions,
-  PlanCompleteResult,
-} from './plan-complete-handler'
 
 // Types
 export type {

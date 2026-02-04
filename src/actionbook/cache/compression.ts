@@ -5,8 +5,8 @@
  * Supports multiple compression algorithms and automatic level selection.
  */
 
-import * as zlib from 'node:zlib'
 import { promisify } from 'node:util'
+import * as zlib from 'node:zlib'
 
 const gzip = promisify(zlib.gzip)
 const gunzip = promisify(zlib.gunzip)
@@ -220,11 +220,11 @@ export async function compressAuto(data: string | Buffer): Promise<CompressionRe
  * Batch compress multiple items
  */
 export async function compressBatch(
-  items: Array<{ key: string; data: string | Buffer }>,
+  items: Array<{ key: string, data: string | Buffer }>,
   config?: CompressionConfig,
-): Promise<Array<{ key: string; result: CompressionResult }>> {
+): Promise<Array<{ key: string, result: CompressionResult }>> {
   const results = await Promise.all(
-    items.map(async (item) => ({
+    items.map(async item => ({
       key: item.key,
       result: await compressData(item.data, config),
     })),
@@ -237,10 +237,10 @@ export async function compressBatch(
  * Batch decompress multiple items
  */
 export async function decompressBatch(
-  items: Array<{ key: string; data: Buffer; algorithm: CompressionAlgorithm }>,
-): Promise<Array<{ key: string; result: Buffer }>> {
+  items: Array<{ key: string, data: Buffer, algorithm: CompressionAlgorithm }>,
+): Promise<Array<{ key: string, result: Buffer }>> {
   const results = await Promise.all(
-    items.map(async (item) => ({
+    items.map(async item => ({
       key: item.key,
       result: await decompressData(item.data, item.algorithm),
     })),
@@ -259,16 +259,19 @@ export function getCompressionStats(result: CompressionResult): {
   efficiency: string
 } {
   const savedBytes = result.originalSize - result.compressedSize
-  const savedPercent = ((1 - result.ratio) * 100).toFixed(2)
+  const savedPercent = Number.parseFloat(((1 - result.ratio) * 100).toFixed(2))
 
   let efficiency = 'poor'
-  if (result.ratio < 0.4) efficiency = 'excellent'
-  else if (result.ratio < 0.6) efficiency = 'good'
-  else if (result.ratio < 0.8) efficiency = 'fair'
+  if (result.ratio < 0.4)
+    efficiency = 'excellent'
+  else if (result.ratio < 0.6)
+    efficiency = 'good'
+  else if (result.ratio < 0.8)
+    efficiency = 'fair'
 
   return {
     savedBytes,
-    savedPercent: `${savedPercent}%`,
+    savedPercent,
     algorithm: result.algorithm,
     efficiency,
   }

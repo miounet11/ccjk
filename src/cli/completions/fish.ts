@@ -188,7 +188,7 @@ function generateFishOption(
   if (aliases) {
     for (const alias of aliases) {
       const aliasCondition = `__fish_ccjk_using_command ${alias}`
-      let aliasOptSpec = optSpec.replace(condition, aliasCondition)
+      const aliasOptSpec = optSpec.replace(condition, aliasCondition)
       lines.push(`complete -c ccjk ${aliasOptSpec}`)
     }
   }
@@ -243,7 +243,7 @@ function generateFishSubcommandOption(
   if (aliases) {
     for (const alias of aliases) {
       const aliasCondition = `__fish_ccjk_using_subcommand ${alias} ${subName}`
-      let aliasOptSpec = optSpec.replace(condition, aliasCondition)
+      const aliasOptSpec = optSpec.replace(condition, aliasCondition)
       lines.push(`complete -c ccjk ${aliasOptSpec}`)
     }
   }

@@ -2,8 +2,8 @@
  * Multi-Agent Orchestrator Tests
  */
 
-import { describe, expect, it } from 'vitest'
 import type { Task } from '../../src/types/agent.js'
+import { describe, expect, it } from 'vitest'
 import { AGENT_CAPABILITIES, agentCapabilityMap } from '../../src/agents/capability-map.js'
 import { MultiAgentOrchestrator } from '../../src/agents/multi-agent-orchestrator.js'
 

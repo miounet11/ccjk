@@ -11,9 +11,9 @@
  */
 
 import type { SupportedLang } from '../constants'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import ansis from 'ansis'
 import { i18n } from '../i18n'
 
@@ -44,11 +44,11 @@ export interface SubcommandInfo {
 }
 
 export interface CompletionProvider {
-  getCommands(): CommandInfo[]
-  getOptions(command: string): OptionInfo[]
-  getSubcommands(command: string): SubcommandInfo[]
-  getValues(command: string, option: string): Promise<string[]>
-  generateScript(shell: ShellType): Promise<string>
+  getCommands: () => CommandInfo[]
+  getOptions: (command: string) => OptionInfo[]
+  getSubcommands: (command: string) => SubcommandInfo[]
+  getValues: (command: string, option: string) => Promise<string[]>
+  generateScript: (shell: ShellType) => Promise<string>
 }
 
 export interface CompletionOptions {

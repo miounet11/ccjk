@@ -7,21 +7,17 @@
  * @module cloud-sync-v2/stream-transfer
  */
 
-import { createHash } from 'node:crypto'
-import { createReadStream, createWriteStream } from 'node:fs'
-import { mkdir, stat, unlink } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
-import { pipeline, Readable, Transform, Writable } from 'node:stream'
-import { promisify } from 'node:util'
-import { createGzip, createGunzip } from 'node:zlib'
 import type {
   ChunkMetadata,
   ProgressCallback,
   StreamTransferConfig,
   TransferProgress,
   TransferState,
-  Timestamp,
 } from './types'
+import { createHash } from 'node:crypto'
+import { pipeline, Transform } from 'node:stream'
+import { promisify } from 'node:util'
+import { createGunzip, createGzip } from 'node:zlib'
 import { DEFAULT_TRANSFER_CONFIG } from './types'
 
 const pipelineAsync = promisify(pipeline)
@@ -139,7 +135,7 @@ export function createProgressTracker(
 ): Transform {
   let bytesTransferred = 0
   let currentChunk = 0
-  let startTime = Date.now()
+  const startTime = Date.now()
   let lastUpdateTime = startTime
   let lastBytes = 0
 
@@ -236,7 +232,8 @@ export class TransferStateManager {
    */
   updateProgress(id: string, chunkIndex: number, bytesTransferred: number): void {
     const state = this.states.get(id)
-    if (!state) return
+    if (!state)
+      return
 
     if (!state.completedChunks.includes(chunkIndex)) {
       state.completedChunks.push(chunkIndex)
@@ -251,7 +248,8 @@ export class TransferStateManager {
    */
   completeTransfer(id: string): void {
     const state = this.states.get(id)
-    if (!state) return
+    if (!state)
+      return
 
     state.status = 'completed'
     state.lastActivityAt = Date.now()
@@ -262,7 +260,8 @@ export class TransferStateManager {
    */
   failTransfer(id: string, error: string): void {
     const state = this.states.get(id)
-    if (!state) return
+    if (!state)
+      return
 
     state.status = 'failed'
     state.error = error
@@ -274,7 +273,8 @@ export class TransferStateManager {
    */
   pauseTransfer(id: string): void {
     const state = this.states.get(id)
-    if (!state) return
+    if (!state)
+      return
 
     state.status = 'paused'
     state.lastActivityAt = Date.now()
@@ -285,7 +285,8 @@ export class TransferStateManager {
    */
   resumeTransfer(id: string): void {
     const state = this.states.get(id)
-    if (!state || state.status !== 'paused') return
+    if (!state || state.status !== 'paused')
+      return
 
     state.status = 'active'
     state.lastActivityAt = Date.now()
@@ -296,7 +297,8 @@ export class TransferStateManager {
    */
   getMissingChunks(id: string): number[] {
     const state = this.states.get(id)
-    if (!state) return []
+    if (!state)
+      return []
 
     const missing: number[] = []
     for (let i = 0; i < state.totalChunks; i++) {
@@ -312,7 +314,8 @@ export class TransferStateManager {
    */
   canResume(id: string): boolean {
     const state = this.states.get(id)
-    if (!state) return false
+    if (!state)
+      return false
 
     return state.status === 'paused' || state.status === 'failed'
   }

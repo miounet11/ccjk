@@ -5,17 +5,17 @@
  * Provides high-level API for indexing, querying, and managing precomputed data.
  */
 
+import type { QueryAPIRouter } from './api/router.js'
+import type { DependencyTracker } from './indexer/dependency.js'
+import type { IncrementalIndexer } from './indexer/incremental.js'
+import type { FileWatcher } from './indexer/watcher.js'
+import type { IndexingStats, PrecomputedData, QueryAPI } from './types.js'
 import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
-import { QueryAPIRouter, getQueryAPI } from './api/router.js'
-import { IncrementalIndexer, getGlobalIndexer } from './indexer/incremental.js'
-import { FileWatcher, getGlobalWatcher } from './indexer/watcher.js'
-import { DependencyTracker, getGlobalTracker } from './indexer/dependency.js'
-import { getGlobalIndex, closeGlobalIndex } from './cache/index.js'
-import { closeGlobalWatcher } from './indexer/watcher.js'
-import { resetGlobalIndexer } from './indexer/incremental.js'
-import { resetGlobalTracker } from './indexer/dependency.js'
-import type { PrecomputedData, IndexingStats, QueryAPI } from './types.js'
+import { getQueryAPI } from './api/router.js'
+import { closeGlobalIndex, getGlobalIndex } from './cache/index.js'
+import { getGlobalTracker, resetGlobalTracker } from './indexer/dependency.js'
+import { getGlobalIndexer, resetGlobalIndexer } from './indexer/incremental.js'
+import { closeGlobalWatcher, getGlobalWatcher } from './indexer/watcher.js'
 
 /**
  * Actionbook engine configuration
@@ -134,7 +134,7 @@ export class ActionbookEngine {
    * Get cache statistics
    */
   async getCacheStats(): Promise<{
-    l1: { hits: number; misses: number; size: number; hitRate: number }
+    l1: { hits: number, misses: number, size: number, hitRate: number }
     l2: { size: number }
     combined: { hitRate: number }
   }> {
@@ -299,15 +299,15 @@ export function createEngine(config?: ActionbookConfig): ActionbookEngine {
   return new ActionbookEngine(config)
 }
 
+export * from './api/router.js'
+export * from './cache/index.js'
+export * from './indexer/dependency.js'
+export * from './indexer/incremental.js'
+export * from './indexer/watcher.js'
 /**
  * Export all types and utilities
  */
 export * from './types.js'
-export * from './api/router.js'
-export * from './indexer/incremental.js'
-export * from './indexer/watcher.js'
-export * from './indexer/dependency.js'
-export * from './cache/index.js'
 
 /**
  * Default export

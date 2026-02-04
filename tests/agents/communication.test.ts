@@ -2,11 +2,10 @@
  * Tests for Agent Communication Protocol
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentCommunication, createCommunication, MESSAGE_TYPES } from '../../src/agents/communication'
-import type { AgentMessage } from '../../src/types/agent'
 
-describe('AgentCommunication', () => {
+describe('agentCommunication', () => {
   let communication: AgentCommunication
   let handler1: ReturnType<typeof vi.fn>
   let handler2: ReturnType<typeof vi.fn>
@@ -76,7 +75,7 @@ describe('AgentCommunication', () => {
         'agent-1',
         'broadcast',
         { data: 'test' },
-        ['agent-2']
+        ['agent-2'],
       )
 
       expect(messages.every(m => m.to !== 'agent-2')).toBe(true)
@@ -85,7 +84,7 @@ describe('AgentCommunication', () => {
     it('should include broadcast flag in payload', async () => {
       const messages = await communication.broadcastMessage('agent-1', 'broadcast', { data: 'test' })
 
-      messages.forEach(message => {
+      messages.forEach((message) => {
         expect(message.payload).toHaveProperty('broadcast', true)
       })
     })
@@ -94,7 +93,7 @@ describe('AgentCommunication', () => {
       const noBroadcastComm = new AgentCommunication({ enableBroadcasting: false })
 
       await expect(
-        noBroadcastComm.broadcastMessage('agent-1', 'broadcast', { data: 'test' })
+        noBroadcastComm.broadcastMessage('agent-1', 'broadcast', { data: 'test' }),
       ).rejects.toThrow('Broadcasting is disabled')
     })
   })
@@ -196,7 +195,7 @@ describe('AgentCommunication', () => {
 
     it('should throw for non-existent message', async () => {
       await expect(
-        communication.replyToMessage('non-existent-id', 'agent-2', 'reply', { data: 'reply' })
+        communication.replyToMessage('non-existent-id', 'agent-2', 'reply', { data: 'reply' }),
       ).rejects.toThrow('Message non-existent-id not found')
     })
   })
@@ -319,7 +318,7 @@ describe('AgentCommunication', () => {
     })
   })
 
-  describe('MESSAGE_TYPES', () => {
+  describe('mESSAGE_TYPES', () => {
     it('should have all required message types', () => {
       expect(MESSAGE_TYPES).toHaveProperty('TASK_REQUEST')
       expect(MESSAGE_TYPES).toHaveProperty('TASK_RESPONSE')

@@ -219,7 +219,7 @@ export class SupplierAnalyticsEngine {
       .slice(0, limit)
       .map(e => ({
         timestamp: e.timestamp,
-        type: e.eventType,
+        type: e.eventType === 'request' ? 'usage' as const : e.eventType === 'error' ? 'usage' as const : e.eventType as 'setup' | 'switch',
         userId: e.userId,
         details: this.formatEventDetails(e),
         success: e.success,

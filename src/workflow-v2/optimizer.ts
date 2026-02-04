@@ -6,11 +6,11 @@
  */
 
 import type {
+  Improvement,
+  OptimizationResult,
+  ProjectContext,
   Workflow,
   WorkflowStep,
-  OptimizationResult,
-  Improvement,
-  ProjectContext,
 } from './types.js'
 
 interface OptimizationRule {

@@ -6,21 +6,21 @@
  * @module task-manager
  */
 
-export { TaskManager } from './task-manager'
 export { TaskDependencyTracker } from './dependency-tracker'
+export { TaskManager } from './task-manager'
 export { TaskScheduler } from './task-scheduler'
 export { TaskStorage } from './task-storage'
 
 export type {
+  CreateTaskOptions,
   Task,
-  TaskStatus,
-  TaskPriority,
   TaskDependency,
   TaskGraphNode,
-  TaskSchedule,
-  CreateTaskOptions,
-  UpdateTaskOptions,
   TaskManagerOptions,
+  TaskPriority,
+  TaskSchedule,
   TaskSearchOptions,
   TaskStats,
+  TaskStatus,
+  UpdateTaskOptions,
 } from './types'

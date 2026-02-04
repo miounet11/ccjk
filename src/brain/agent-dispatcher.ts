@@ -10,13 +10,9 @@
 
 import type { AgentCapability, CloudAgent } from '../types/agent'
 import type { SkillMdFile, SubagentContextMode } from '../types/skill-md'
-import type { ForkContextConfig } from './agent-fork'
 import type {
   AgentInstance,
   AgentMetrics,
-  AgentSelectionCriteria,
-  AgentSelectionResult,
-  AgentStatus,
   OrchestrationResult,
   Task,
   TaskOutput,
@@ -210,38 +206,38 @@ interface AgentRegistryEntry {
  * Default agent type mappings for CCJK
  */
 const DEFAULT_AGENT_TYPE_MAPPINGS: Record<string, AgentRole> = {
-  'typescript': 'typescript-cli-architect',
-  'typescript-cli': 'typescript-cli-architect',
-  'ts-cli-architect': 'typescript-cli-architect',
-  'ts-architect': 'typescript-cli-architect',
+  'typescript': 'coder',
+  'typescript-cli': 'coder',
+  'ts-cli-architect': 'architect',
+  'ts-architect': 'architect',
 
-  'i18n': 'ccjk-i18n-specialist',
-  'internationalization': 'ccjk-i18n-specialist',
-  'i18n-specialist': 'ccjk-i18n-specialist',
+  'i18n': 'specialist',
+  'internationalization': 'specialist',
+  'i18n-specialist': 'specialist',
 
-  'tools': 'ccjk-tools-integration-specialist',
-  'integration': 'ccjk-tools-integration-specialist',
-  'tools-integration': 'ccjk-tools-integration-specialist',
+  'tools': 'specialist',
+  'integration': 'specialist',
+  'tools-integration': 'specialist',
 
-  'template': 'ccjk-template-engine',
-  'templating': 'ccjk-template-engine',
-  'template-engine': 'ccjk-template-engine',
+  'template': 'specialist',
+  'templating': 'specialist',
+  'template-engine': 'specialist',
 
-  'config': 'ccjk-config-architect',
-  'configuration': 'ccjk-config-architect',
-  'config-architect': 'ccjk-config-architect',
+  'config': 'architect',
+  'configuration': 'architect',
+  'config-architect': 'architect',
 
-  'testing': 'ccjk-testing-specialist',
-  'test': 'ccjk-testing-specialist',
-  'testing-specialist': 'ccjk-testing-specialist',
+  'testing': 'tester',
+  'test': 'tester',
+  'testing-specialist': 'tester',
 
-  'devops': 'ccjk-devops-engineer',
-  'deployment': 'ccjk-devops-engineer',
-  'devops-engineer': 'ccjk-devops-engineer',
+  'devops': 'specialist',
+  'deployment': 'specialist',
+  'devops-engineer': 'specialist',
 
-  'code': 'typescript-cli-architect',
-  'general': 'system',
-  'default': 'system',
+  'code': 'coder',
+  'general': 'coordinator',
+  'default': 'coordinator',
 }
 
 /**
@@ -530,7 +526,7 @@ export class AgentDispatcher {
     const softTimer = setTimeout(() => {
       softTimeoutReached = true
       console.log(`\n⚠️ 任务执行时间较长 (已超过 ${Math.floor(softTimeout / 1000)}s)，可能需要：`)
-      console.log('   1. 等待完成（剩余约 ' + Math.floor((timeout - softTimeout) / 1000) + 's）')
+      console.log(`   1. 等待完成（剩余约 ${Math.floor((timeout - softTimeout) / 1000)}s）`)
       console.log('   2. 使用 Ctrl+C 中断后执行 /compact 清理上下文')
       console.log('   3. 将任务分解为更小的步骤\n')
     }, softTimeout)
@@ -556,10 +552,10 @@ export class AgentDispatcher {
       // 如果是超时错误，提供更友好的提示
       if (error instanceof Error && error.message === 'Agent execution timeout') {
         const friendlyError = new Error(
-          `任务执行超时 (${Math.floor(timeout / 1000)}s)。建议：\n` +
-          `  1. 使用 /compact 清理上下文后重试\n` +
-          `  2. 将任务分解为更小的步骤\n` +
-          `  3. 检查网络连接是否稳定`,
+          `任务执行超时 (${Math.floor(timeout / 1000)}s)。建议：\n`
+          + `  1. 使用 /compact 清理上下文后重试\n`
+          + `  2. 将任务分解为更小的步骤\n`
+          + `  3. 检查网络连接是否稳定`,
         )
         friendlyError.name = 'TimeoutError'
         throw friendlyError
@@ -617,15 +613,16 @@ export class AgentDispatcher {
 
     // Check if it's already a valid AgentRole
     const validRoles: AgentRole[] = [
-      'typescript-cli-architect',
-      'ccjk-i18n-specialist',
-      'ccjk-tools-integration-specialist',
-      'ccjk-template-engine',
-      'ccjk-config-architect',
-      'ccjk-testing-specialist',
-      'ccjk-devops-engineer',
-      'system',
-      'user',
+      'researcher',
+      'architect',
+      'coder',
+      'debugger',
+      'tester',
+      'reviewer',
+      'writer',
+      'analyst',
+      'coordinator',
+      'specialist',
     ]
 
     if (validRoles.includes(agentType as AgentRole)) {
@@ -714,13 +711,23 @@ export class AgentDispatcher {
   private createAgentInstance(cloudAgent: CloudAgent, config: AgentDispatchConfig): AgentInstance {
     const now = new Date()
 
+    // Convert string capabilities to AgentCapability objects
+    const capabilities: AgentCapability[] = cloudAgent.definition.capabilities.map((cap, index) => ({
+      id: `${cloudAgent.id}-cap-${index}`,
+      name: cap,
+      model: 'inherit' as const,
+      specialties: [cap],
+      strength: 1.0,
+      costFactor: 1.0,
+    }))
+
     return {
       id: nanoid(),
-      role: this.mapAgentTypeToRole(config.agentType) || 'system',
+      role: this.mapAgentTypeToRole(config.agentType) || 'coordinator',
       agent: cloudAgent,
       status: 'idle',
       taskHistory: [],
-      capabilities: cloudAgent.definition.capabilities,
+      capabilities,
       metrics: this.createEmptyMetrics(),
       createdAt: now.toISOString(),
       config: {
@@ -742,7 +749,7 @@ export class AgentDispatcher {
 
     return {
       id: nanoid(),
-      role: config.agentRole || 'system',
+      role: config.agentRole || 'coordinator',
       agent: {
         id: config.agentType,
         name: config.agentType,
@@ -757,7 +764,6 @@ export class AgentDispatcher {
         metadata: {
           author: 'CCJK',
           description: { 'en': config.agentType, 'zh-CN': config.agentType },
-          tags: [],
           category: 'general',
           createdAt: now.toISOString(),
           updatedAt: now.toISOString(),
@@ -965,7 +971,7 @@ export class AgentDispatcher {
     // Check capabilities
     if (criteria.capabilities && criteria.capabilities.length > 0) {
       const hasAllCapabilities = criteria.capabilities.every(cap =>
-        agent.definition.capabilities.includes(cap),
+        agent.definition.capabilities.includes(cap.name),
       )
       if (!hasAllCapabilities) {
         return false

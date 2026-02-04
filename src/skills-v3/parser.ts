@@ -22,7 +22,6 @@ import type {
 } from './types'
 import { readFileSync, statSync } from 'node:fs'
 import { extname } from 'pathe'
-import { SkillError, SkillErrorType } from './types'
 
 // ============================================================================
 // Constants
@@ -39,8 +38,16 @@ const VALID_EXTENSIONS = ['.md', '.MD', '.markdown', '.json']
 
 /** Valid skill categories */
 const VALID_CATEGORIES: SkillCategory[] = [
-  'dev', 'git', 'review', 'testing', 'docs',
-  'devops', 'planning', 'debugging', 'seo', 'custom',
+  'dev',
+  'git',
+  'review',
+  'testing',
+  'docs',
+  'devops',
+  'planning',
+  'debugging',
+  'seo',
+  'custom',
 ]
 
 /** Required V3 fields */
@@ -48,8 +55,13 @@ const REQUIRED_FIELDS = ['id', 'version', 'triggers', 'template'] as const
 
 /** Valid hook types */
 const VALID_HOOK_TYPES = [
-  'PreToolUse', 'PostToolUse', 'SubagentStart', 'SubagentStop',
-  'PermissionRequest', 'SkillActivate', 'SkillComplete',
+  'PreToolUse',
+  'PostToolUse',
+  'SubagentStart',
+  'SubagentStop',
+  'PermissionRequest',
+  'SkillActivate',
+  'SkillComplete',
 ]
 
 // ============================================================================
@@ -282,7 +294,8 @@ export class SkillParser {
       const trimmed = line.trim()
 
       // Skip empty lines and comments
-      if (!trimmed || trimmed.startsWith('#')) continue
+      if (!trimmed || trimmed.startsWith('#'))
+        continue
 
       // Array item
       if (trimmed.startsWith('- ')) {
@@ -336,14 +349,18 @@ export class SkillParser {
     value = value.trim()
 
     // Boolean
-    if (value === 'true' || value === 'yes') return true
-    if (value === 'false' || value === 'no') return false
+    if (value === 'true' || value === 'yes')
+      return true
+    if (value === 'false' || value === 'no')
+      return false
 
     // Null
-    if (value === 'null' || value === '~' || value === '') return null
+    if (value === 'null' || value === '~' || value === '')
+      return null
 
     // Number
-    if (/^-?\d+(\.\d+)?$/.test(value)) return Number.parseFloat(value)
+    if (/^-?\d+(\.\d+)?$/.test(value))
+      return Number.parseFloat(value)
 
     // Quoted string
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith('\'') && value.endsWith('\''))) {
@@ -382,14 +399,22 @@ export class SkillParser {
     }
 
     // Optional metadata fields
-    if (fm.author !== undefined) metadata.author = String(fm.author)
-    if (fm.difficulty !== undefined) metadata.difficulty = this.parseDifficulty(fm.difficulty, warnings)
-    if (fm.priority !== undefined) metadata.priority = this.parsePriority(fm.priority, warnings)
-    if (fm.use_when !== undefined) metadata.useWhen = this.parseStringArray(fm.use_when, 'use_when', warnings)
-    if (fm.auto_activate !== undefined) metadata.autoActivate = Boolean(fm.auto_activate)
-    if (fm.user_invocable !== undefined) metadata.userInvocable = Boolean(fm.user_invocable)
-    if (fm.related_skills !== undefined) metadata.relatedSkills = this.parseStringArray(fm.related_skills, 'related_skills', warnings)
-    if (fm.ccjk_version !== undefined) metadata.ccjkVersion = String(fm.ccjk_version)
+    if (fm.author !== undefined)
+      metadata.author = String(fm.author)
+    if (fm.difficulty !== undefined)
+      metadata.difficulty = this.parseDifficulty(fm.difficulty, warnings)
+    if (fm.priority !== undefined)
+      metadata.priority = this.parsePriority(fm.priority, warnings)
+    if (fm.use_when !== undefined)
+      metadata.useWhen = this.parseStringArray(fm.use_when, 'use_when', warnings)
+    if (fm.auto_activate !== undefined)
+      metadata.autoActivate = Boolean(fm.auto_activate)
+    if (fm.user_invocable !== undefined)
+      metadata.userInvocable = Boolean(fm.user_invocable)
+    if (fm.related_skills !== undefined)
+      metadata.relatedSkills = this.parseStringArray(fm.related_skills, 'related_skills', warnings)
+    if (fm.ccjk_version !== undefined)
+      metadata.ccjkVersion = String(fm.ccjk_version)
 
     // Build config
     const config: SkillV3Config = {}
@@ -509,10 +534,14 @@ export class SkillParser {
    */
   private validateSkill(skill: SkillV3): string | undefined {
     // Check required fields
-    if (!skill.id) return 'Missing required field: id'
-    if (!skill.version) return 'Missing required field: version'
-    if (!skill.triggers || skill.triggers.length === 0) return 'triggers array cannot be empty'
-    if (!skill.template) return 'Missing required field: template'
+    if (!skill.id)
+      return 'Missing required field: id'
+    if (!skill.version)
+      return 'Missing required field: version'
+    if (!skill.triggers || skill.triggers.length === 0)
+      return 'triggers array cannot be empty'
+    if (!skill.template)
+      return 'Missing required field: template'
 
     // Validate id format (kebab-case)
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(skill.id)) {
@@ -548,32 +577,35 @@ export class SkillParser {
     warnings: string[],
   ): LocalizedString {
     if (!value) {
-      return { en: '', 'zh-CN': '' }
+      return { 'en': '', 'zh-CN': '' }
     }
 
     if (typeof value === 'string') {
-      return { en: value, 'zh-CN': value }
+      return { 'en': value, 'zh-CN': value }
     }
 
     if (typeof value === 'object') {
       const obj = value as Record<string, string>
       return {
-        en: obj.en || obj['en'] || '',
+        'en': obj.en || obj.en || '',
         'zh-CN': obj['zh-CN'] || obj.zh || obj['zh-CN'] || '',
       }
     }
 
     warnings.push(`Invalid ${field} format, expected string or localized object`)
-    return { en: String(value), 'zh-CN': String(value) }
+    return { 'en': String(value), 'zh-CN': String(value) }
   }
 
   /**
    * Parse string array
    */
   private parseStringArray(value: unknown, field: string, warnings: string[]): string[] {
-    if (!value) return []
-    if (Array.isArray(value)) return value.map(String)
-    if (typeof value === 'string') return [value]
+    if (!value)
+      return []
+    if (Array.isArray(value))
+      return value.map(String)
+    if (typeof value === 'string')
+      return [value]
     warnings.push(`Invalid ${field} format, expected array`)
     return []
   }
@@ -625,7 +657,8 @@ export class SkillParser {
 
     const hooks: SkillHook[] = []
     for (const item of value) {
-      if (typeof item !== 'object' || !item) continue
+      if (typeof item !== 'object' || !item)
+        continue
 
       const hook = item as Record<string, unknown>
       const type = String(hook.type || '')
@@ -658,7 +691,8 @@ export class SkillParser {
 
     const outputs: SkillOutput[] = []
     for (const item of value) {
-      if (typeof item !== 'object' || !item) continue
+      if (typeof item !== 'object' || !item)
+        continue
 
       const output = item as Record<string, unknown>
       const name = String(output.name || '')

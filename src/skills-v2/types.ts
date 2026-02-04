@@ -19,16 +19,16 @@ export enum Layer {
  */
 export interface CognitiveProtocol {
   /** The fundamental question this protocol addresses */
-  coreQuestion: string;
+  coreQuestion: string
 
   /** How to trace up to higher-level concepts */
-  traceUp: string;
+  traceUp: string
 
   /** How to trace down to implementation details */
-  traceDown: string;
+  traceDown: string
 
   /** Quick reference for protocol usage */
-  quickReference: Record<string, any>;
+  quickReference: Record<string, any>
 }
 
 /**
@@ -36,13 +36,13 @@ export interface CognitiveProtocol {
  */
 export interface ReasoningChain {
   /** L1: Language/Syntax level - what goes wrong at language level */
-  layer1: string;
+  layer1: string
 
   /** L3: Domain constraints - what business rules apply */
-  layer3: string;
+  layer3: string
 
   /** L2: Design pattern - what architectural solution to use */
-  layer2: string;
+  layer2: string
 }
 
 /**
@@ -62,221 +62,221 @@ export enum DSLNodeType {
  * Base interface for all DSL nodes
  */
 export interface DSLNode {
-  type: DSLNodeType;
-  name: string;
-  location: SourceLocation;
+  type: DSLNodeType
+  name: string
+  location: SourceLocation
 }
 
 /**
  * Source location for error reporting
  */
 export interface SourceLocation {
-  line: number;
-  column: number;
-  file?: string;
+  line: number
+  column: number
+  file?: string
 }
 
 /**
  * Protocol definition node
  */
 export interface ProtocolNode extends DSLNode {
-  type: DSLNodeType.PROTOCOL;
-  coreQuestion: string;
-  layers: LayerNode[];
-  traces: TraceNode[];
-  references: ReferenceNode[];
+  type: DSLNodeType.PROTOCOL
+  coreQuestion: string
+  layers: LayerNode[]
+  traces: TraceNode[]
+  references: ReferenceNode[]
 }
 
 /**
  * Layer definition node
  */
 export interface LayerNode extends DSLNode {
-  type: DSLNodeType.LAYER;
-  layer: Layer;
-  constraints: ConstraintNode[];
-  patterns: PatternNode[];
+  type: DSLNodeType.LAYER
+  layer: Layer
+  constraints: ConstraintNode[]
+  patterns: PatternNode[]
 }
 
 /**
  * Constraint definition node (L3)
  */
 export interface ConstraintNode extends DSLNode {
-  type: DSLNodeType.CONSTRAINT;
-  condition: string;
-  validation: string;
-  errorMessage: string;
+  type: DSLNodeType.CONSTRAINT
+  condition: string
+  validation: string
+  errorMessage: string
 }
 
 /**
  * Pattern definition node (L2)
  */
 export interface PatternNode extends DSLNode {
-  type: DSLNodeType.PATTERN;
-  pattern: string;
-  implementation: string;
-  examples: string[];
+  type: DSLNodeType.PATTERN
+  pattern: string
+  implementation: string
+  examples: string[]
 }
 
 /**
  * Transform definition node (L1)
  */
 export interface TransformNode extends DSLNode {
-  type: DSLNodeType.TRANSFORM;
-  from: string;
-  to: string;
-  rule: string;
+  type: DSLNodeType.TRANSFORM
+  from: string
+  to: string
+  rule: string
 }
 
 /**
  * Trace definition node
  */
 export interface TraceNode extends DSLNode {
-  type: DSLNodeType.TRACE;
-  direction: 'up' | 'down';
-  target: string;
-  steps: string[];
+  type: DSLNodeType.TRACE
+  direction: 'up' | 'down'
+  target: string
+  steps: string[]
 }
 
 /**
  * Reference definition node
  */
 export interface ReferenceNode extends DSLNode {
-  type: DSLNodeType.REFERENCE;
-  key: string;
-  value: any;
-  description?: string;
+  type: DSLNodeType.REFERENCE
+  key: string
+  value: any
+  description?: string
 }
 
 /**
  * Skill metadata
  */
 export interface SkillMetadata {
-  id: string;
-  name: string;
-  version: string;
-  description: string;
-  author: string;
-  tags: string[];
-  layer: Layer;
-  priority: number;
-  dependencies: string[];
+  id: string
+  name: string
+  version: string
+  description: string
+  author: string
+  tags: string[]
+  layer: Layer
+  priority: number
+  dependencies: string[]
 }
 
 /**
  * Parsed skill definition
  */
 export interface Skill {
-  metadata: SkillMetadata;
-  protocol: CognitiveProtocol;
-  ast: ProtocolNode;
-  source: string;
+  metadata: SkillMetadata
+  protocol: CognitiveProtocol
+  ast: ProtocolNode
+  source: string
 }
 
 /**
  * Skill execution context
  */
 export interface ExecutionContext {
-  skill: Skill;
-  input: any;
-  reasoningChain: ReasoningChain;
-  trace: ExecutionTrace;
+  skill: Skill
+  input: any
+  reasoningChain: ReasoningChain
+  trace: ExecutionTrace
 }
 
 /**
  * Execution trace for debugging
  */
 export interface ExecutionTrace {
-  startTime: Date;
-  endTime?: Date;
-  steps: ExecutionStep[];
-  errors: ExecutionError[];
+  startTime: Date
+  endTime?: Date
+  steps: ExecutionStep[]
+  errors: ExecutionError[]
 }
 
 /**
  * Single execution step
  */
 export interface ExecutionStep {
-  timestamp: Date;
-  layer: Layer;
-  action: string;
-  result: any;
-  metadata?: Record<string, any>;
+  timestamp: Date
+  layer: Layer
+  action: string
+  result: any
+  metadata?: Record<string, any>
 }
 
 /**
  * Execution error
  */
 export interface ExecutionError {
-  timestamp: Date;
-  layer: Layer;
-  error: string;
-  recovery?: string;
+  timestamp: Date
+  layer: Layer
+  error: string
+  recovery?: string
 }
 
 /**
  * Router match result
  */
 export interface RouterMatch {
-  skill: Skill;
-  score: number;
-  keywords: string[];
-  confidence: number;
+  skill: Skill
+  score: number
+  keywords: string[]
+  confidence: number
 }
 
 /**
  * Router configuration
  */
 export interface RouterConfig {
-  minConfidence: number;
-  maxResults: number;
-  keywordWeights: Record<string, number>;
-  layerWeights: Record<Layer, number>;
+  minConfidence: number
+  maxResults: number
+  keywordWeights: Record<string, number>
+  layerWeights: Record<Layer, number>
 }
 
 /**
  * Parser configuration
  */
 export interface ParserConfig {
-  strict: boolean;
-  allowUnknownNodes: boolean;
-  validateSemantics: boolean;
-  maxDepth: number;
+  strict: boolean
+  allowUnknownNodes: boolean
+  validateSemantics: boolean
+  maxDepth: number
 }
 
 /**
  * Runtime configuration
  */
 export interface RuntimeConfig {
-  enforceReasoningChain: boolean;
-  traceExecution: boolean;
-  maxExecutionTime: number;
-  allowFallback: boolean;
-  outputFormat: 'json' | 'text' | 'structured';
+  enforceReasoningChain: boolean
+  traceExecution: boolean
+  maxExecutionTime: number
+  allowFallback: boolean
+  outputFormat: 'json' | 'text' | 'structured'
 }
 
 /**
  * Skill loading options
  */
 export interface SkillLoadOptions {
-  layer?: Layer;
-  tags?: string[];
-  priority?: number;
-  hotReload?: boolean;
+  layer?: Layer
+  tags?: string[]
+  priority?: number
+  hotReload?: boolean
 }
 
 /**
  * Skill execution result
  */
 export interface ExecutionResult {
-  success: boolean;
-  output: any;
-  reasoningChain: ReasoningChain;
-  trace: ExecutionTrace;
+  success: boolean
+  output: any
+  reasoningChain: ReasoningChain
+  trace: ExecutionTrace
   metadata: {
-    executionTime: number;
-    tokensUsed: number;
-    layerAccessed: Layer[];
-  };
+    executionTime: number
+    tokensUsed: number
+    layerAccessed: Layer[]
+  }
 }
 
 /**
@@ -299,27 +299,31 @@ export class SkillError extends Error {
     public message: string,
     public location?: SourceLocation,
     public layer?: Layer,
-    public originalError?: Error
+    public originalError?: Error,
   ) {
-    super(message);
-    this.name = 'SkillError';
+    super(message)
+    this.name = 'SkillError'
   }
 }
 
 /**
  * Type guards
  */
-export const isProtocolNode = (node: DSLNode): node is ProtocolNode =>
-  node.type === DSLNodeType.PROTOCOL;
+export function isProtocolNode(node: DSLNode): node is ProtocolNode {
+  return node.type === DSLNodeType.PROTOCOL
+}
 
-export const isLayerNode = (node: DSLNode): node is LayerNode =>
-  node.type === DSLNodeType.LAYER;
+export function isLayerNode(node: DSLNode): node is LayerNode {
+  return node.type === DSLNodeType.LAYER
+}
 
-export const isConstraintNode = (node: DSLNode): node is ConstraintNode =>
-  node.type === DSLNodeType.CONSTRAINT;
+export function isConstraintNode(node: DSLNode): node is ConstraintNode {
+  return node.type === DSLNodeType.CONSTRAINT
+}
 
-export const isPatternNode = (node: DSLNode): node is PatternNode =>
-  node.type === DSLNodeType.PATTERN;
+export function isPatternNode(node: DSLNode): node is PatternNode {
+  return node.type === DSLNodeType.PATTERN
+}
 
 /**
  * Example DSL syntax:

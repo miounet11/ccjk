@@ -38,81 +38,81 @@
 // Type Exports
 // ============================================================================
 
-export type {
-  // Platform detection types
-  Architecture,
-  OSType,
-  PlatformCapabilities,
-  PlatformInfo,
-  PlatformVariant,
-  ShellType,
+// ============================================================================
+// Convenience Namespace Export
+// ============================================================================
 
-  // Path types
-  PathConversionOptions,
-  PathInfo,
-  WslPathMapping,
+import * as commands from './commands'
+import * as detector from './detector'
+import * as filesystem from './filesystem'
+import * as paths from './paths'
 
-  // Command types
-  CommandMapping,
-  CommandOptions,
-  CommandResult,
-  ShellEscapeOptions,
+export {
+  buildCommand,
+  buildCommandWithEnv,
+  buildEnvAssignment,
+  // Command utilities
+  commandExists,
 
-  // File system types
-  AtomicWriteOptions,
-  FileCopyOptions,
-  MkdirOptions,
-  PermissionCheckResult,
-  PlatformError,
-  PlatformErrorCode,
-  SafeDeleteOptions,
-  WatchEvent,
-  WatchOptions,
+  commandExistsSync,
+  escapeArgs,
 
-  // Utility types
-  EnvVarDefinition,
-  PlatformSpecific,
-} from './types'
+  // Shell escaping
+  escapeShell,
+  // Command execution
+  executeCommand,
+  executeCommandSync,
+
+  // Command mapping
+  getCommand,
+  getCommandMappings,
+  getCommandPath,
+
+  // Environment variables
+  getEnvVarRef,
+  registerCommandMapping,
+  spawnCommand,
+} from './commands'
 
 // ============================================================================
 // Platform Detection Exports
 // ============================================================================
 
 export {
-  // Main detection functions
-  getPlatformInfo,
-  getPlatformCapabilities,
   clearPlatformCache,
-
-  // OS detection
-  detectOS,
-  isWindows,
-  isMacOS,
-  isLinux,
-  isUnix,
-
-  // Variant detection
-  detectVariant,
-  isWSL,
-  isTermux,
-  isDocker,
-  isCI,
-
   // Other detection
   detectArchitecture,
+  // OS detection
+  detectOS,
+
   detectShell,
-  hasGui,
-  isElevated,
+  // Variant detection
+  detectVariant,
+  getCacheDir,
+  getConfigDir,
+  getDataDir,
 
   // Directory detection
   getHomeDir,
-  getTempDir,
-  getConfigDir,
-  getDataDir,
-  getCacheDir,
-
+  getPlatformCapabilities,
+  // Main detection functions
+  getPlatformInfo,
   // Utility
   getPlatformValue,
+  getTempDir,
+
+  hasGui,
+  isCI,
+  isDocker,
+  isElevated,
+
+  isLinux,
+  isMacOS,
+  isTermux,
+  isUnix,
+  isWindows,
+
+  isWSL,
 } from './detector'
 
 // ============================================================================
@@ -120,119 +120,119 @@ export {
 // ============================================================================
 
 export {
-  // Path normalization
-  normalizePath,
-  toWindowsLongPath,
-  fromWindowsLongPath,
-
-  // WSL path conversion
-  windowsToWslPath,
-  wslToWindowsPath,
-  convertWslPath,
-  getWslDriveMappings,
-
-  // Termux paths
-  toTermuxPath,
-  getTermuxStoragePath,
-
-  // Path info and validation
-  getPathInfo,
-  isAbsolutePath,
-  toAbsolutePath,
-  toRelativePath,
-  isValidPath,
-  sanitizePath,
-
-  // Path operations
-  joinPath,
-  resolvePath,
-  expandTilde,
-
-  // CCJK-specific paths
-  getCcjkConfigPath,
-  getCcjkDataPath,
-  getCcjkCachePath,
-} from './paths'
-
-// ============================================================================
-// Command Execution Exports
-// ============================================================================
-
-export {
-  // Command mapping
-  getCommand,
-  getCommandMappings,
-  registerCommandMapping,
-  buildCommand,
-
-  // Shell escaping
-  escapeShell,
-  escapeArgs,
-
-  // Environment variables
-  getEnvVarRef,
-  buildEnvAssignment,
-  buildCommandWithEnv,
-
-  // Command execution
-  executeCommand,
-  executeCommandSync,
-  spawnCommand,
-
-  // Command utilities
-  commandExists,
-  commandExistsSync,
-  getCommandPath,
-} from './commands'
-
-// ============================================================================
-// File System Exports
-// ============================================================================
-
-export {
   // Atomic write
   atomicWrite,
   atomicWriteSync,
-
-  // Safe delete
-  safeDelete,
-  safeDeleteSync,
 
   // Permission checking
   checkPermissions,
   checkPermissionsSync,
 
+  copyDirectory,
   // File copy
   copyFile,
-  copyDirectory,
 
-  // Directory operations
-  mkdir,
-  mkdirSync,
   createTempDir,
   createTempDirSync,
 
   // Existence checks
   exists,
   existsSync,
-  isFile,
   isDirectory,
+  isFile,
 
+  // Directory operations
+  mkdir,
+  mkdirSync,
+  readJson,
   // File reading/writing helpers
   readText,
-  readJson,
-  writeText,
+
+  // Safe delete
+  safeDelete,
+  safeDeleteSync,
   writeJson,
+  writeText,
 } from './filesystem'
 
 // ============================================================================
-// Convenience Namespace Export
+// Command Execution Exports
 // ============================================================================
 
-import * as detector from './detector'
-import * as paths from './paths'
-import * as commands from './commands'
-import * as filesystem from './filesystem'
+export {
+  convertWslPath,
+  expandTilde,
+  fromWindowsLongPath,
+
+  getCcjkCachePath,
+  // CCJK-specific paths
+  getCcjkConfigPath,
+  getCcjkDataPath,
+  // Path info and validation
+  getPathInfo,
+
+  getTermuxStoragePath,
+  getWslDriveMappings,
+
+  isAbsolutePath,
+  isValidPath,
+  // Path operations
+  joinPath,
+  // Path normalization
+  normalizePath,
+  resolvePath,
+  sanitizePath,
+
+  toAbsolutePath,
+  toRelativePath,
+  // Termux paths
+  toTermuxPath,
+
+  toWindowsLongPath,
+  // WSL path conversion
+  windowsToWslPath,
+  wslToWindowsPath,
+} from './paths'
+
+// ============================================================================
+// File System Exports
+// ============================================================================
+
+export type {
+  // Platform detection types
+  Architecture,
+  // File system types
+  AtomicWriteOptions,
+  // Command types
+  CommandMapping,
+  CommandOptions,
+  CommandResult,
+  // Utility types
+  EnvVarDefinition,
+
+  FileCopyOptions,
+  MkdirOptions,
+  OSType,
+
+  // Path types
+  PathConversionOptions,
+  PathInfo,
+  PermissionCheckResult,
+  PlatformCapabilities,
+
+  PlatformError,
+  PlatformErrorCode,
+  PlatformInfo,
+  PlatformSpecific,
+  PlatformVariant,
+  SafeDeleteOptions,
+  ShellEscapeOptions,
+  ShellType,
+  WatchEvent,
+
+  WatchOptions,
+  WslPathMapping,
+} from './types'
 
 /**
  * Platform abstraction namespace

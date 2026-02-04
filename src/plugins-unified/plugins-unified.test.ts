@@ -3,13 +3,13 @@
  * Run with: npm test -- plugins-unified.test.ts
  */
 
+import type { UnifiedPlugin } from './types'
 import { describe, expect, it } from 'vitest'
 import { AdapterFactory } from './adapters/factory'
 import { ConflictResolver, ConflictType, ResolutionStrategy } from './conflict-resolver'
-import type { UnifiedPlugin } from './types'
 
-describe('Unified Plugin System', () => {
-  describe('AdapterFactory', () => {
+describe('unified Plugin System', () => {
+  describe('adapterFactory', () => {
     it('should create CCJK adapter', () => {
       const adapter = AdapterFactory.getAdapter('ccjk')
       expect(adapter).toBeDefined()
@@ -42,7 +42,7 @@ describe('Unified Plugin System', () => {
     })
   })
 
-  describe('ConflictResolver', () => {
+  describe('conflictResolver', () => {
     const resolver = new ConflictResolver()
 
     const createPlugin = (id: string, name: string, commands: string[] = []): UnifiedPlugin => ({

@@ -9,7 +9,7 @@ import type { CodeToolType, SupportedLang } from '../../constants'
 import type { CacheState, PartialRuntimeState, RuntimeState, SessionState, UpdateState } from './types'
 
 import { join } from 'pathe'
-import { CCJK_CONFIG_DIR, CCJK_CONFIG_FILE } from '../../constants'
+import { CCJK_CONFIG_DIR } from '../../constants'
 import { ensureDir, exists } from '../../utils/fs-operations'
 import { readJsonConfig, writeJsonConfig } from '../../utils/json-config'
 
@@ -250,7 +250,7 @@ export function updateCacheState(
   updates: Partial<CacheState>,
   statePath: string = STATE_FILE,
 ): void {
-  updateState({ cache: updates }, statePath)
+  updateState({ cache: updates as CacheState & Partial<CacheState> }, statePath)
 }
 
 /**
@@ -278,7 +278,7 @@ export function updateUpdateState(
   updates: Partial<UpdateState>,
   statePath: string = STATE_FILE,
 ): void {
-  updateState({ updates }, statePath)
+  updateState({ updates: updates as UpdateState & Partial<UpdateState> }, statePath)
 }
 
 /**

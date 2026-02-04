@@ -18,15 +18,11 @@ import type { FSWatcher } from 'chokidar'
 import type {
   HotReloadConfig,
   HotReloadEvent,
-  HotReloadEventType,
-  HotReloadEvents,
   HotReloadStats,
-  ParseResult,
-  SkillRegistryEntry,
   SkillSource,
 } from './types'
-import { homedir } from 'node:os'
 import { EventEmitter } from 'node:events'
+import { homedir } from 'node:os'
 import chokidar from 'chokidar'
 import { join } from 'pathe'
 import { parseSkillFile } from './parser'
@@ -228,7 +224,8 @@ export class HotReloadManager extends EventEmitter {
    * Stop watching
    */
   async stop(): Promise<void> {
-    if (!this.watcher) return
+    if (!this.watcher)
+      return
 
     this.log('Stopping hot reload...')
 
@@ -295,7 +292,8 @@ export class HotReloadManager extends EventEmitter {
    */
   getWatchedPaths(): string[] {
     const watched = this.watcher?.getWatched()
-    if (Array.isArray(watched)) return watched
+    if (Array.isArray(watched))
+      return watched
     return watched ? Object.values(watched).flat() : []
   }
 
@@ -360,7 +358,8 @@ export class HotReloadManager extends EventEmitter {
    * Set up chokidar event handlers
    */
   private setupWatchHandlers(): void {
-    if (!this.watcher) return
+    if (!this.watcher)
+      return
 
     // File added
     this.watcher.on('add', (filePath) => {
@@ -434,7 +433,8 @@ export class HotReloadManager extends EventEmitter {
    * Handle file add event
    */
   private async handleFileAdd(filePath: string): Promise<void> {
-    if (!this.isSkillFile(filePath)) return
+    if (!this.isSkillFile(filePath))
+      return
 
     this.log(`Skill file added: ${filePath}`)
 
@@ -470,7 +470,8 @@ export class HotReloadManager extends EventEmitter {
    * Handle file change event
    */
   private async handleFileChange(filePath: string): Promise<void> {
-    if (!this.isSkillFile(filePath)) return
+    if (!this.isSkillFile(filePath))
+      return
 
     this.log(`Skill file changed: ${filePath}`)
 
@@ -507,7 +508,8 @@ export class HotReloadManager extends EventEmitter {
    * Handle file unlink event
    */
   private async handleFileUnlink(filePath: string): Promise<void> {
-    if (!this.isSkillFile(filePath)) return
+    if (!this.isSkillFile(filePath))
+      return
 
     this.log(`Skill file removed: ${filePath}`)
 

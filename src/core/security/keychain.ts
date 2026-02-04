@@ -5,12 +5,12 @@
  * @description 系统密钥链集成 (macOS Keychain, Windows Credential Manager, Linux Secret Service)
  */
 
+import type { IKeychainBackend, Platform, StorageBackend } from './types'
 import { exec } from 'node:child_process'
 import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
 import * as path from 'node:path'
 import { promisify } from 'node:util'
-import type { IKeychainBackend, Platform, StorageBackend } from './types'
 import { EncryptionService } from './encryption'
 
 const execAsync = promisify(exec)
@@ -46,9 +46,9 @@ export class MacOSKeychainBackend implements IKeychainBackend {
       // 忽略删除失败
     }
 
-    const escapedPassword = password.replace(/'/g, "'\\''")
-    const escapedService = service.replace(/'/g, "'\\''")
-    const escapedAccount = account.replace(/'/g, "'\\''")
+    const escapedPassword = password.replace(/'/g, '\'\\\'\'')
+    const escapedService = service.replace(/'/g, '\'\\\'\'')
+    const escapedAccount = account.replace(/'/g, '\'\\\'\'')
 
     try {
       await execAsync(
@@ -61,8 +61,8 @@ export class MacOSKeychainBackend implements IKeychainBackend {
   }
 
   async getPassword(service: string, account: string): Promise<string | null> {
-    const escapedService = service.replace(/'/g, "'\\''")
-    const escapedAccount = account.replace(/'/g, "'\\''")
+    const escapedService = service.replace(/'/g, '\'\\\'\'')
+    const escapedAccount = account.replace(/'/g, '\'\\\'\'')
 
     try {
       const { stdout } = await execAsync(
@@ -76,8 +76,8 @@ export class MacOSKeychainBackend implements IKeychainBackend {
   }
 
   async deletePassword(service: string, account: string): Promise<boolean> {
-    const escapedService = service.replace(/'/g, "'\\''")
-    const escapedAccount = account.replace(/'/g, "'\\''")
+    const escapedService = service.replace(/'/g, '\'\\\'\'')
+    const escapedAccount = account.replace(/'/g, '\'\\\'\'')
 
     try {
       await execAsync(
@@ -91,7 +91,7 @@ export class MacOSKeychainBackend implements IKeychainBackend {
   }
 
   async listAccounts(service: string): Promise<string[]> {
-    const escapedService = service.replace(/'/g, "'\\''")
+    const escapedService = service.replace(/'/g, '\'\\\'\'')
 
     try {
       const { stdout } = await execAsync(
@@ -466,7 +466,7 @@ export class FileStorageBackend implements IKeychainBackend {
    * 清理文件名中的特殊字符
    */
   private sanitize(name: string): string {
-    return name.replace(/[^a-zA-Z0-9_-]/g, '_')
+    return name.replace(/[^\w-]/g, '_')
   }
 }
 

@@ -4,7 +4,7 @@
  * Query interface for symbol table data.
  */
 
-import type { SymbolTable, Symbol, Import } from '../../types.js'
+import type { Import, Symbol, SymbolTable } from '../../types.js'
 import { getGlobalIndex } from '../../cache/index.js'
 
 /**
@@ -83,7 +83,7 @@ export async function querySymbolAtPosition(
     return null
   }
 
-  return symbolTable.symbols.find(symbol => {
+  return symbolTable.symbols.find((symbol) => {
     const isBefore = line < symbol.range.start.line
       || (line === symbol.range.start.line && column < symbol.range.start.column)
     const isAfter = line > symbol.range.end.line

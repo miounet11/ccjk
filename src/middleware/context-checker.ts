@@ -369,9 +369,9 @@ export async function ensureContextAvailable(
 
   if (!result.canProceed) {
     throw new Error(
-      `上下文使用率过高 (${result.usagePercent.toFixed(1)}%)。\n` +
-      `请执行 /compact 清理上下文后重试。\n` +
-      (result.statePath ? `状态已保存到: ${result.statePath}` : ''),
+      `上下文使用率过高 (${result.usagePercent.toFixed(1)}%)。\n`
+      + `请执行 /compact 清理上下文后重试。\n${
+        result.statePath ? `状态已保存到: ${result.statePath}` : ''}`,
     )
   }
 }

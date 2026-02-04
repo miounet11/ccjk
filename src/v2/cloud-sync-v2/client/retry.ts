@@ -2,7 +2,7 @@
  * Retry logic for API requests
  */
 
-import { RetryConfig } from './types.js'
+import type { RetryConfig } from './types.js'
 
 export class RetryManager {
   constructor(private config: RetryConfig) {}
@@ -16,7 +16,7 @@ export class RetryManager {
       retries?: number
       delay?: number
       onRetry?: (error: Error, attempt: number) => void
-    }
+    },
   ): Promise<T> {
     const maxRetries = options?.retries ?? this.config.maxRetries
     const initialDelay = options?.delay ?? this.config.initialDelay
@@ -26,7 +26,8 @@ export class RetryManager {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await fn()
-      } catch (error) {
+      }
+      catch (error) {
         lastError = error as Error
 
         // Check if error is retryable
@@ -41,8 +42,8 @@ export class RetryManager {
 
         // Calculate delay with exponential backoff
         const delay = Math.min(
-          initialDelay * Math.pow(this.config.backoffMultiplier, attempt),
-          this.config.maxDelay
+          initialDelay * this.config.backoffMultiplier ** attempt,
+          this.config.maxDelay,
         )
 
         // Call retry callback if provided
@@ -75,11 +76,11 @@ export class RetryManager {
     if (error.message) {
       const message = error.message.toLowerCase()
       return (
-        message.includes('timeout') ||
-        message.includes('rate limit') ||
-        message.includes('server error') ||
-        message.includes('network') ||
-        message.includes('connection')
+        message.includes('timeout')
+        || message.includes('rate limit')
+        || message.includes('server error')
+        || message.includes('network')
+        || message.includes('connection')
       )
     }
 
@@ -103,7 +104,7 @@ export function withRetry<T extends (...args: any[]) => Promise<any>>(
   options?: {
     context?: string
     onRetry?: (error: Error, attempt: number) => void
-  }
+  },
 ): T {
   const retryManager = new RetryManager(retryConfig)
 
@@ -115,7 +116,7 @@ export function withRetry<T extends (...args: any[]) => Promise<any>>(
           console.warn(`[${options?.context ?? fn.name}] Retry attempt ${attempt} after error:`, error.message)
           options?.onRetry?.(error, attempt)
         },
-      }
+      },
     )
   }) as T
 }
@@ -133,14 +134,15 @@ export class CircuitBreaker {
       failureThreshold: number
       resetTimeout: number // milliseconds
       halfOpenRequests: number
-    }
+    },
   ) {}
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (this.state === 'open') {
       if (Date.now() - this.lastFailureTime > this.config.resetTimeout) {
         this.state = 'half-open'
-      } else {
+      }
+      else {
         throw new Error('Circuit breaker is open')
       }
     }
@@ -149,7 +151,8 @@ export class CircuitBreaker {
       const result = await fn()
       this.onSuccess()
       return result
-    } catch (error) {
+    }
+    catch (error) {
       this.onFailure()
       throw error
     }
@@ -178,10 +181,10 @@ export function calculateBackoffDelay(
   baseDelay: number,
   maxDelay: number,
   multiplier: number,
-  jitter: boolean = true
+  jitter: boolean = true,
 ): number {
   // Calculate exponential backoff
-  let delay = baseDelay * Math.pow(multiplier, attempt)
+  let delay = baseDelay * multiplier ** attempt
 
   // Apply max delay cap
   delay = Math.min(delay, maxDelay)
@@ -206,7 +209,7 @@ export class RetryQueue {
     private config: {
       concurrency: number
       retryConfig: RetryConfig
-    }
+    },
   ) {}
 
   add<T>(fn: () => Promise<T>): Promise<T> {
@@ -215,7 +218,8 @@ export class RetryQueue {
         try {
           const result = await fn()
           resolve(result)
-        } catch (error) {
+        }
+        catch (error) {
           reject(error)
         }
       })
@@ -227,7 +231,8 @@ export class RetryQueue {
   }
 
   private async process(): Promise<void> {
-    if (this.processing) return
+    if (this.processing)
+      return
     this.processing = true
 
     const retryManager = new RetryManager(this.config.retryConfig)
@@ -242,10 +247,11 @@ export class RetryQueue {
               onRetry: (error, attempt) => {
                 console.warn(`[RetryQueue] Retry attempt ${attempt} after error:`, error.message)
               },
-            })
-          )
+            }),
+          ),
         )
-      } catch (error) {
+      }
+      catch (error) {
         console.error('[RetryQueue] Batch processing failed:', error)
       }
     }

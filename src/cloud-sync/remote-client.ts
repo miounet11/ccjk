@@ -151,7 +151,7 @@ export class RemoteClient {
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' })) as { error?: string }
         return {
           success: false,
           error: errorData.error || `HTTP ${response.status}`,
@@ -159,7 +159,7 @@ export class RemoteClient {
         }
       }
 
-      const data = await response.json()
+      const data = await response.json() as T
       return {
         success: true,
         data,
@@ -434,9 +434,11 @@ export function createCustomClient(
 export class MockRemoteClient extends RemoteClient {
   private mockSessions: Map<string, SessionData> = new Map()
   private mockAttributions: Map<string, SessionAttribution> = new Map()
+  private mockDeviceId: string
 
   constructor() {
     super({ baseUrl: 'mock://api' })
+    this.mockDeviceId = 'mock-device-id'
   }
 
   async uploadSession(request: SessionSyncRequest): Promise<ApiResponse<SessionSyncResponse>> {
@@ -518,7 +520,7 @@ export class MockRemoteClient extends RemoteClient {
       data: {
         connected: true,
         version: 'mock-v1',
-        deviceId: this.deviceId,
+        deviceId: this.mockDeviceId,
         features: ['upload', 'download', 'attributions'],
       },
     }

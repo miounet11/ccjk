@@ -36,7 +36,8 @@ export class UnifiedRegistry {
    */
   async unregister(name: string): Promise<void> {
     const plugin = this.plugins.get(name)
-    if (!plugin) return
+    if (!plugin)
+      return
 
     // Remove from command index
     for (const cmd of plugin.commands || []) {

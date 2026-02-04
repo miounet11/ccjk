@@ -10,7 +10,7 @@ import type { MenuConfig, MenuGroup } from '../types'
 const coreGroup: MenuGroup = {
   id: 'core',
   label: {
-    en: 'Core Features',
+    'en': 'Core Features',
     'zh-CN': '核心功能',
   },
   icon: '⭐',
@@ -19,11 +19,11 @@ const coreGroup: MenuGroup = {
     {
       id: 'api-config',
       label: {
-        en: '🔑 API Configuration',
+        'en': '🔑 API Configuration',
         'zh-CN': '🔑 API 配置管理',
       },
       description: {
-        en: 'One-click setup for AI providers (Anthropic, OpenAI, Azure, etc.)',
+        'en': 'One-click setup for AI providers (Anthropic, OpenAI, Azure, etc.)',
         'zh-CN': '一键配置 AI 服务提供商（Anthropic、OpenAI、Azure 等）',
       },
       shortcut: 'a',
@@ -42,7 +42,7 @@ const coreGroup: MenuGroup = {
 const featuresGroup: MenuGroup = {
   id: 'features',
   label: {
-    en: 'Features',
+    'en': 'Features',
     'zh-CN': '功能模块',
   },
   icon: '🛠️',
@@ -51,11 +51,11 @@ const featuresGroup: MenuGroup = {
     {
       id: 'skills',
       label: {
-        en: '📚 Skills Management',
+        'en': '📚 Skills Management',
         'zh-CN': '📚 Skills 管理',
       },
       description: {
-        en: 'Manage and configure AI skill templates',
+        'en': 'Manage and configure AI skill templates',
         'zh-CN': '管理和配置 AI 技能模板',
       },
       shortcut: 's',
@@ -68,11 +68,11 @@ const featuresGroup: MenuGroup = {
     {
       id: 'mcp',
       label: {
-        en: '🔌 MCP Servers',
+        'en': '🔌 MCP Servers',
         'zh-CN': '🔌 MCP 服务器',
       },
       description: {
-        en: 'Configure Model Context Protocol servers',
+        'en': 'Configure Model Context Protocol servers',
         'zh-CN': '配置 Model Context Protocol 服务器',
       },
       shortcut: 'm',
@@ -85,11 +85,11 @@ const featuresGroup: MenuGroup = {
     {
       id: 'session',
       label: {
-        en: '💾 Session Management',
+        'en': '💾 Session Management',
         'zh-CN': '💾 Session 管理',
       },
       description: {
-        en: 'Manage session history and recovery',
+        'en': 'Manage session history and recovery',
         'zh-CN': '管理会话历史和恢复',
       },
       shortcut: 'e',
@@ -108,7 +108,7 @@ const featuresGroup: MenuGroup = {
 const settingsGroup: MenuGroup = {
   id: 'settings',
   label: {
-    en: 'Settings',
+    'en': 'Settings',
     'zh-CN': '系统设置',
   },
   icon: '⚙️',
@@ -117,11 +117,11 @@ const settingsGroup: MenuGroup = {
     {
       id: 'settings',
       label: {
-        en: '⚙️ Settings',
+        'en': '⚙️ Settings',
         'zh-CN': '⚙️ 设置',
       },
       description: {
-        en: 'Configure CCJK global settings',
+        'en': 'Configure CCJK global settings',
         'zh-CN': '配置 CCJK 全局设置',
       },
       shortcut: 't',
@@ -141,11 +141,11 @@ const footerItems = [
   {
     id: 'help',
     label: {
-      en: '❓ Help',
+      'en': '❓ Help',
       'zh-CN': '❓ 帮助',
     },
     description: {
-      en: 'View help information and documentation',
+      'en': 'View help information and documentation',
       'zh-CN': '查看帮助信息和文档',
     },
     shortcut: 'h',
@@ -158,11 +158,11 @@ const footerItems = [
   {
     id: 'exit',
     label: {
-      en: '🚪 Exit',
+      'en': '🚪 Exit',
       'zh-CN': '🚪 退出',
     },
     description: {
-      en: 'Exit CCJK menu',
+      'en': 'Exit CCJK menu',
       'zh-CN': '退出 CCJK 菜单',
     },
     shortcut: 'q',
@@ -179,7 +179,7 @@ const footerItems = [
  */
 export const mainMenuConfig: MenuConfig = {
   title: {
-    en: 'CCJK - Claude Code Chinese Enhanced',
+    'en': 'CCJK - Claude Code Chinese Enhanced',
     'zh-CN': 'CCJK - Claude Code 中文增强版',
   },
   groups: [coreGroup, featuresGroup, settingsGroup],

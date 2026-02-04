@@ -104,7 +104,7 @@ export function getAgentById(id: string): ExtendedAgentCapability | undefined {
  */
 export function getAgentsByExpertise(expertise: string): ExtendedAgentCapability[] {
   return AGENT_REGISTRY.filter(agent =>
-    agent.expertise.some(e => e.toLowerCase().includes(expertise.toLowerCase()))
+    agent.expertise.some(e => e.toLowerCase().includes(expertise.toLowerCase())),
   )
 }
 
@@ -113,7 +113,8 @@ export function getAgentsByExpertise(expertise: string): ExtendedAgentCapability
  */
 export function getCollaborators(agentId: string): ExtendedAgentCapability[] {
   const agent = getAgentById(agentId)
-  if (!agent) return []
+  if (!agent)
+    return []
 
   return agent.canCollaborate
     .map(id => getAgentById(id))

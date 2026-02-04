@@ -2,9 +2,9 @@
  * Cloud Setup Orchestrator Tests
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { CloudSetupOrchestrator } from '../cloud-setup-orchestrator'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createCompleteCloudClient } from '../../cloud-client'
+import { CloudSetupOrchestrator } from '../cloud-setup-orchestrator'
 
 // Mock dependencies
 const mockInquirer = {
@@ -53,7 +53,7 @@ vi.mock('../../commands/ccjk-hooks', () => ({
   ccjkHooks: vi.fn(),
 }))
 
-describe('CloudSetupOrchestrator', () => {
+describe('cloudSetupOrchestrator', () => {
   let orchestrator: CloudSetupOrchestrator
   let mockCloudClient: any
 

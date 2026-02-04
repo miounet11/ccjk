@@ -5,4 +5,13 @@
  */
 
 export * from './manager'
-export * from './types'
+export type {
+  Credential,
+  CredentialWithValue,
+  EncryptedCredentialStorage,
+  EncryptedCredential,
+  CredentialStorageOptions,
+  CredentialQueryOptions,
+  KeyDerivationOptions,
+} from './types'
+export { DEFAULT_KEY_DERIVATION } from './types'

@@ -16,13 +16,9 @@
  */
 
 import type { McpToolSearchConfig } from '../types'
-import { readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
 
-import { join } from 'node:path'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { readMcpConfig, writeMcpConfig } from '../utils/claude-config'
-import { exists } from '../utils/fs-operations'
 
 // Re-export the type from types.ts for convenience
 export type { McpToolSearchConfig } from '../types'
@@ -546,7 +542,7 @@ export function configureAutoMode(options: {
     // Initialize mcpToolSearch if not present
     if (!config.mcpToolSearch) {
       config.mcpToolSearch = {
-        autoEnableThreshold: threshold,
+        mcpAutoEnableThreshold: threshold,
         dynamicServiceDiscovery: enableDynamicDiscovery,
         listChangedNotifications: enableListChanged,
         excludedServices,
@@ -555,8 +551,8 @@ export function configureAutoMode(options: {
     }
     else {
       // Update existing config
-      if (config.mcpToolSearch.autoEnableThreshold !== threshold) {
-        config.mcpToolSearch.autoEnableThreshold = threshold
+      if (config.mcpToolSearch.mcpAutoEnableThreshold !== threshold) {
+        config.mcpToolSearch.mcpAutoEnableThreshold = threshold
         appliedChanges.push(i18n.t('mcp:search.updatedThreshold', { threshold: formatAutoMode(threshold) }))
       }
 
@@ -612,7 +608,7 @@ export function getToolSearchConfig(): McpToolSearchConfig {
 
   if (!config?.mcpToolSearch) {
     return {
-      autoEnableThreshold: DEFAULT_THRESHOLD,
+      mcpAutoEnableThreshold: DEFAULT_THRESHOLD,
       dynamicServiceDiscovery: true,
       listChangedNotifications: true,
       excludedServices: [...CORE_SERVICES],
@@ -639,7 +635,7 @@ export function isAutoModeEnabled(): boolean {
  */
 export function getCurrentThreshold(): McpAutoThreshold {
   const config = getToolSearchConfig()
-  return config.autoEnableThreshold
+  return config.mcpAutoEnableThreshold ?? DEFAULT_THRESHOLD
 }
 
 // ============================================================================
@@ -734,7 +730,7 @@ export function setDynamicServiceDiscovery(enable: boolean): {
 
     if (!config.mcpToolSearch) {
       config.mcpToolSearch = {
-        autoEnableThreshold: DEFAULT_THRESHOLD,
+        mcpAutoEnableThreshold: DEFAULT_THRESHOLD,
         dynamicServiceDiscovery: enable,
         listChangedNotifications: true,
         excludedServices: [...CORE_SERVICES],
@@ -825,7 +821,7 @@ export function generateSearchReport(): string {
   const analysis = analyzeContextWindowUsage({
     mcpServers: config?.mcpServers,
     excludedServices: mcpConfig?.excludedServices,
-    threshold: mcpConfig?.autoEnableThreshold,
+    threshold: mcpConfig?.mcpAutoEnableThreshold,
   })
 
   const lines: string[] = []
@@ -841,7 +837,8 @@ export function generateSearchReport(): string {
 
   if (mcpConfig) {
     // Threshold
-    lines.push(`${isZh ? '阈值' : 'Threshold'}: ${formatAutoMode(mcpConfig.autoEnableThreshold)}`)
+    const threshold = mcpConfig.mcpAutoEnableThreshold ?? DEFAULT_THRESHOLD
+    lines.push(`${isZh ? '阈值' : 'Threshold'}: ${formatAutoMode(threshold)}`)
     lines.push('')
 
     // Dynamic discovery
@@ -853,9 +850,10 @@ export function generateSearchReport(): string {
     lines.push('')
 
     // Excluded services
-    if (mcpConfig.excludedServices.length > 0) {
+    const excludedServices = mcpConfig.excludedServices ?? []
+    if (excludedServices.length > 0) {
       lines.push(`${isZh ? '排除服务' : 'Excluded Services'}:`)
-      for (const svc of mcpConfig.excludedServices) {
+      for (const svc of excludedServices) {
         lines.push(`  - ${svc}`)
       }
       lines.push('')

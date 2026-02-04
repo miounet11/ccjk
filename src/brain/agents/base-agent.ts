@@ -3,27 +3,13 @@
  * Provides core Agent interface, lifecycle management, and state handling
  */
 
-export interface AgentMessage {
-  id: string
-  role: 'user' | 'agent' | 'system'
-  content: string
-  timestamp: number
-  metadata?: Record<string, unknown>
-}
+import type { AgentContext, AgentMessage, BaseAgentCapability } from '../orchestrator-types.js'
 
-export interface AgentContext {
-  workingDirectory: string
-  projectRoot: string
-  language: string
-  environment: Record<string, string>
-  history: AgentMessage[]
-}
+// Re-export for convenience
+export type { AgentContext, AgentMessage, BaseAgentCapability }
 
-export interface AgentCapability {
-  name: string
-  description: string
-  parameters?: Record<string, unknown>
-}
+// Alias for backward compatibility
+export type AgentCapability = BaseAgentCapability
 
 export enum AgentState {
   IDLE = 'idle',
@@ -243,10 +229,16 @@ export abstract class BaseAgent {
   abstract cleanup(): Promise<void>
 
   /**
-   * Abstract method: Handle errors
-   * Must be implemented by subclasses
+   * Handle errors - can be overridden by subclasses
    */
-  abstract handleError(error: Error): Promise<AgentResult>
+  async handleError(error: Error): Promise<AgentResult> {
+    this.log(`Error: ${error.message}`, 'error')
+    return {
+      success: false,
+      error,
+      message: error.message,
+    }
+  }
 }
 
 /**

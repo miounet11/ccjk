@@ -1,17 +1,13 @@
-import type { CommandContext } from '../types/index.js'
+import type { HookCategory, HookConfig, HookTemplate, HookType } from '../hooks/types.js'
+import { performance } from 'node:perf_hooks'
 import { consola } from 'consola'
-import { existsSync, readFileSync } from 'node:fs'
-import { join, resolve } from 'pathe'
+import inquirer from 'inquirer'
 import { ProjectAnalyzer } from '../analyzers/index.js'
+import { getTemplatesClient } from '../cloud-client'
 import { hookManager } from '../hooks/hook-manager.js'
 import { loadHookTemplates } from '../hooks/template-loader.js'
-import { getTemplatesClient, type Template } from '../cloud-client'
-import { writeFile, ensureDir } from 'fs-extra'
-import inquirer from 'inquirer'
-import { i18n } from '../i18n/index.js'
 import { validateHookTrigger } from '../hooks/trigger-validator.js'
-import { performance } from 'node:perf_hooks'
-import type { HookConfig, HookType, HookCategory } from '../hooks/types.js'
+import { i18n } from '../i18n/index.js'
 
 export interface CcjkHooksOptions {
   type?: HookType | 'all'
@@ -26,7 +22,6 @@ export interface CcjkHooksOptions {
 
 export async function ccjkHooks(
   options: CcjkHooksOptions = {},
-  context: CommandContext = {}
 ) {
   const startTime = performance.now()
   const { json = false, dryRun = false } = options
@@ -47,12 +42,12 @@ export async function ccjkHooks(
     if (!json) {
       consola.success(i18n.t('hooks.projectDetected', {
         type: projectType,
-        framework
+        framework,
       }))
     }
 
     // Step 2: Get recommended hooks
-    let recommendedHooks: HookConfig[] = []
+    let recommendedHooks: HookTemplate[] = []
     const isZh = i18n.language === 'zh-CN'
 
     try {
@@ -67,24 +62,23 @@ export async function ccjkHooks(
         const languages = projectInfo.languages?.map(l => l.language.toLowerCase()) || []
         const frameworks = projectInfo.frameworks?.map(f => f.name.toLowerCase()) || []
 
-        const relevantHooks = cloudHooks.filter(hook => {
+        const relevantHooks = cloudHooks.filter((hook) => {
           const tags = hook.tags || []
           const category = hook.category || ''
           const compatibility = hook.compatibility || {}
 
           // Check if hook matches project
           return (
-            tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag)) ||
-            (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase())) ||
-            (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase())) ||
-            category === 'pre-commit' || category === 'commit-msg' // Always include common hooks
+            tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag))
+            || (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase()))
+            || (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase()))
+            || category === 'pre-commit' || category === 'commit-msg' // Always include common hooks
           )
         })
 
-        // Convert cloud templates to HookConfig format
+        // Convert cloud templates to HookTemplate format
         for (const hook of (relevantHooks.length > 0 ? relevantHooks : cloudHooks.slice(0, 10))) {
-          const hookConfig: HookConfig = {
-            id: hook.id || hook.name_en.toLowerCase().replace(/\s+/g, '-'),
+          const hookConfig: HookTemplate = {
             name: hook.name_zh_cn && isZh ? hook.name_zh_cn : hook.name_en,
             description: hook.description_zh_cn && isZh ? hook.description_zh_cn : (hook.description_en || ''),
             type: (hook.category || 'pre-commit') as HookType,
@@ -92,25 +86,26 @@ export async function ccjkHooks(
             projectTypes: ['all'],
             trigger: {
               matcher: `git:${hook.category || 'pre-commit'}`,
-              condition: undefined
+              condition: undefined,
             },
             action: {
               command: hook.install_command || 'echo',
               args: [hook.name_en],
-              timeout: 30000
+              timeout: 30000,
             },
             enabled: true,
-            priority: hook.rating_average ? Math.round(hook.rating_average * 20) : 50
+            priority: hook.rating_average ? Math.round(hook.rating_average * 20) : 50,
           }
           recommendedHooks.push(hookConfig)
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       // Fallback to local templates
       consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
       const templates = await loadHookTemplates()
       recommendedHooks = templates.filter(template =>
-        template.projectTypes.includes(projectType)
+        template.projectTypes.includes(projectType),
       )
     }
 
@@ -118,7 +113,7 @@ export async function ccjkHooks(
     if (recommendedHooks.length === 0) {
       const templates = await loadHookTemplates()
       recommendedHooks = templates.filter(template =>
-        template.projectTypes.includes(projectType)
+        template.projectTypes.includes(projectType),
       )
     }
 
@@ -146,7 +141,7 @@ export async function ccjkHooks(
         type: 'confirm',
         name: 'shouldInstall',
         message: i18n.t('hooks.installPrompt', { count: filteredHooks.length }),
-        default: true
+        default: true,
       }])
 
       if (!shouldInstall) {
@@ -161,14 +156,15 @@ export async function ccjkHooks(
     }
 
     const installedHooks: string[] = []
-    const errors: Array<{ hook: string; error: string }> = []
+    const errors: Array<{ hook: string, error: string }> = []
 
     for (const hook of filteredHooks) {
       try {
         if (dryRun) {
           if (json) {
             installedHooks.push(hook.name)
-          } else {
+          }
+          else {
             consola.log(`  ${i18n.t('hooks.wouldInstall', { name: hook.name })}`)
           }
           continue
@@ -189,7 +185,7 @@ export async function ccjkHooks(
           timeout: hook.action.timeout || 5000,
           workingDir: hook.action.workingDirectory,
           env: hook.action.environment,
-          description: hook.description
+          description: hook.description,
         }
 
         // Register with hook manager
@@ -200,7 +196,8 @@ export async function ccjkHooks(
         if (!json) {
           consola.success(`  ${i18n.t('hooks.installed', { name: hook.name })}`)
         }
-      } catch (error) {
+      }
+      catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
         errors.push({ hook: hook.name, error: errorMessage })
 
@@ -219,7 +216,7 @@ export async function ccjkHooks(
         installed: installedHooks,
         errors,
         duration,
-        hooks: installedHooks.map(name => ({ name, status: 'installed' }))
+        hooks: installedHooks.map(name => ({ name, status: 'installed' })),
       }
     }
 
@@ -227,8 +224,8 @@ export async function ccjkHooks(
       consola.success(
         i18n.t('hooks.installSuccess', {
           count: installedHooks.length,
-          duration
-        })
+          duration,
+        }),
       )
     }
 
@@ -236,8 +233,8 @@ export async function ccjkHooks(
       consola.warn(
         i18n.t('hooks.installPartial', {
           failed: errors.length,
-          total: filteredHooks.length
-        })
+          total: filteredHooks.length,
+        }),
       )
     }
 
@@ -245,15 +242,15 @@ export async function ccjkHooks(
     if (installedHooks.length > 0 && !dryRun) {
       displayTestingInstructions(hooksByCategory)
     }
-
-  } catch (error) {
+  }
+  catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
 
     if (json) {
       return {
         success: false,
         error: errorMessage,
-        hooks: []
+        hooks: [],
       }
     }
 
@@ -278,7 +275,7 @@ function filterHooks(hooks: HookConfig[], options: CcjkHooksOptions): HookConfig
   // Filter by exclude list
   if (options.exclude && options.exclude.length > 0) {
     filtered = filtered.filter(hook =>
-      !options.exclude!.includes(hook.name)
+      !options.exclude!.includes(hook.name),
     )
   }
 
@@ -303,7 +300,7 @@ function groupHooksByCategory(hooks: HookConfig[]): Record<string, HookConfig[]>
   const groups: Record<string, HookConfig[]> = {
     'pre-commit': [],
     'post-test': [],
-    'lifecycle': []
+    'lifecycle': [],
   }
 
   for (const hook of hooks) {
@@ -320,7 +317,7 @@ function groupHooksByCategory(hooks: HookConfig[]): Record<string, HookConfig[]>
 
 function displayHooks(
   hooksByCategory: Record<string, HookConfig[]>,
-  options: CcjkHooksOptions
+  options: CcjkHooksOptions,
 ): void {
   const totalHooks = Object.values(hooksByCategory).flat().length
 
@@ -328,7 +325,8 @@ function displayHooks(
   consola.log('')
 
   for (const [category, hooks] of Object.entries(hooksByCategory)) {
-    if (hooks.length === 0) continue
+    if (hooks.length === 0)
+      continue
 
     consola.log(`${i18n.t(`hooks.category.${category}`)}:`)
 
@@ -346,9 +344,8 @@ function displayHooks(
   }
 }
 
-
 function displayTestingInstructions(
-  hooksByCategory: Record<string, HookConfig[]>
+  hooksByCategory: Record<string, HookConfig[]>,
 ): void {
   consola.log('')
   consola.info(i18n.t('hooks.testingInstructions'))
@@ -362,7 +359,7 @@ function displayTestingInstructions(
     consola.log(`  • ${i18n.t('hooks.testPostTest')}`)
   }
 
-  if (hooksByCategory['lifecycle'].length > 0) {
+  if (hooksByCategory.lifecycle.length > 0) {
     consola.log(`  • ${i18n.t('hooks.testLifecycle')}`)
   }
 

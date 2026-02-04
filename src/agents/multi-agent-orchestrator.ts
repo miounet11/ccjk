@@ -2,8 +2,9 @@
  * Multi-agent orchestration system for coordinating AI agent collaboration
  */
 
-import type { AgentCapability, AgentAssignment, OrchestrationResult, OrchestrationOptions, Task } from '../types/agent'
-import { AgentCapabilityMap, agentCapabilityMap } from './capability-map'
+import type { AgentAssignment, AgentCapability, OrchestrationOptions, OrchestrationResult, Task } from '../types/agent'
+import type { AgentCapabilityMap } from './capability-map'
+import { agentCapabilityMap } from './capability-map'
 
 export class MultiAgentOrchestrator {
   private capabilityMap: AgentCapabilityMap
@@ -76,7 +77,8 @@ export class MultiAgentOrchestrator {
     const agentTasksMap = new Map<string, Task[]>()
     for (const [taskId, agents] of taskAgentMap.entries()) {
       const task = tasks.find(t => t.id === taskId)
-      if (!task) continue
+      if (!task)
+        continue
 
       for (const agent of agents) {
         if (!agentTasksMap.has(agent.id)) {

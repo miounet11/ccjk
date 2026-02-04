@@ -1,8 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CcjkSetupCommand } from '../../src/commands/ccjk-setup'
 import { SetupOrchestrator } from '../../src/orchestrators/setup-orchestrator'
-import { ProjectAnalyzer } from '../../src/analyzers/project-analyzer'
-import { i18n } from '../../src/i18n'
 
 vi.mock('../../src/orchestrators/setup-orchestrator')
 vi.mock('../../src/analyzers/project-analyzer')

@@ -102,7 +102,7 @@ export class ServiceFetcher {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
 
-        return await response.json()
+        return await response.json() as T
       }
       catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error')

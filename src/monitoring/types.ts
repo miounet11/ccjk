@@ -46,14 +46,14 @@ export interface AggregatedMetric {
 /**
  * Metric categories
  */
-export type MetricCategory =
-  | 'command'      // Command execution metrics
-  | 'memory'       // Memory usage metrics
-  | 'api'          // API call metrics
-  | 'cache'        // Cache performance metrics
-  | 'error'        // Error rate metrics
-  | 'agent'        // Agent task metrics
-  | 'system'       // System-level metrics
+export type MetricCategory
+  = | 'command' // Command execution metrics
+    | 'memory' // Memory usage metrics
+    | 'api' // API call metrics
+    | 'cache' // Cache performance metrics
+    | 'error' // Error rate metrics
+    | 'agent' // Agent task metrics
+    | 'system' // System-level metrics
 
 /**
  * Metric definition
@@ -350,10 +350,10 @@ export type ExportFormat = 'json' | 'csv' | 'html'
  * Dashboard interface
  */
 export interface Dashboard {
-  show(): void
-  refresh(): void
-  export(format: ExportFormat): string
-  stop(): void
+  show: () => void
+  refresh: () => void
+  export: (format: ExportFormat) => string
+  stop: () => void
 }
 
 // ============================================================================
@@ -471,17 +471,17 @@ export interface PersistedMetrics {
 /**
  * Metric event types
  */
-export type MetricEventType =
-  | 'command:start'
-  | 'command:end'
-  | 'api:start'
-  | 'api:end'
-  | 'cache:operation'
-  | 'error:recorded'
-  | 'agent:task:start'
-  | 'agent:task:end'
-  | 'memory:snapshot'
-  | 'threshold:exceeded'
+export type MetricEventType
+  = | 'command:start'
+    | 'command:end'
+    | 'api:start'
+    | 'api:end'
+    | 'cache:operation'
+    | 'error:recorded'
+    | 'agent:task:start'
+    | 'agent:task:end'
+    | 'memory:snapshot'
+    | 'threshold:exceeded'
 
 /**
  * Metric event

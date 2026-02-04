@@ -11,20 +11,19 @@
  *   ccjk ccjk:agents --json             - JSON output for automation
  */
 
-import type { AgentDefinition, AgentCapability } from '../plugins-v2/types'
 import type { SupportedLang } from '../constants'
-import consola from 'consola'
-import process from 'node:process'
-import { cwd } from 'node:process'
-import { ProjectAnalyzer } from '../analyzers'
+import type { AgentCapability, AgentDefinition } from '../plugins-v2/types'
 import type { AgentRecommendation } from '../templates/agents'
-import { loadAgentTemplates } from '../templates/agents'
-import { registerAgent } from '../plugins-v2/agent-manager'
-import { getTemplatesClient, type Template } from '../cloud-client'
+import process, { cwd } from 'node:process'
+import consola from 'consola'
+import { ProjectAnalyzer } from '../analyzers'
+import { getTemplatesClient } from '../cloud-client'
 import { i18n } from '../i18n'
+import { registerAgent } from '../plugins-v2/agent-manager'
 import { validateAgentDefinition } from '../plugins-v2/agent-validator'
 import { writeAgentFile } from '../plugins-v2/agent-writer'
-import { extractString, extractDisplayName } from '../utils/i18n-helpers'
+import { loadAgentTemplates } from '../templates/agents'
+import { extractDisplayName, extractString } from '../utils/i18n-helpers'
 
 /**
  * Command options interface
@@ -120,16 +119,16 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
       const cloudAgents = await templatesClient.getSpecialistAgents()
 
       // Filter by project relevance
-      const relevantAgents = cloudAgents.filter(agent => {
+      const relevantAgents = cloudAgents.filter((agent) => {
         const tags = agent.tags || []
         const category = agent.category || ''
         const compatibility = agent.compatibility || {}
 
         // Check if agent matches project frameworks or languages
         return (
-          frameworks.some(fw => tags.includes(fw.toLowerCase()) || category.includes(fw.toLowerCase())) ||
-          languages.some(lang => tags.includes(lang.toLowerCase()) || (compatibility.languages || []).includes(lang.toLowerCase())) ||
-          tags.includes(projectType.toLowerCase())
+          frameworks.some(fw => tags.includes(fw.toLowerCase()) || category.includes(fw.toLowerCase()))
+          || languages.some(lang => tags.includes(lang.toLowerCase()) || (compatibility.languages || []).includes(lang.toLowerCase()))
+          || tags.includes(projectType.toLowerCase())
         )
       })
 
@@ -143,13 +142,14 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
         persona: agent.name_en,
         capabilities: [],
         confidence: agent.rating_average / 5 || 0.8,
-        reason: `${isZh ? '推荐理由' : 'Recommended'}: ${agent.category}`
+        reason: `${isZh ? '推荐理由' : 'Recommended'}: ${agent.category}`,
       }))
 
       if (recommendations.length > 0) {
         consola.success(isZh ? `从云端获取 ${recommendations.length} 个专业代理` : `Fetched ${recommendations.length} specialist agents from cloud`)
       }
-    } catch (error) {
+    }
+    catch (error) {
       consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
     }
 
@@ -158,15 +158,15 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
       const templates = await loadAgentTemplates()
       recommendations = templates.filter(t =>
         t.skills.some(skill =>
-          frameworks.includes(skill) ||
-          languages.includes(skill) ||
-          projectType.includes(skill)
-        ) ||
-        t.capabilities.some(cap =>
-          frameworks.includes(cap) ||
-          languages.includes(cap) ||
-          projectType.includes(cap)
+          frameworks.includes(skill)
+          || languages.includes(skill)
+          || projectType.includes(skill),
         )
+        || t.capabilities.some(cap =>
+          frameworks.includes(cap)
+          || languages.includes(cap)
+          || projectType.includes(cap),
+        ),
       )
     }
 
@@ -198,9 +198,11 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
     if (!options.mode) {
       if (options.all) {
         options.mode = 'auto'
-      } else if (options.template || options.skills || options.persona) {
+      }
+      else if (options.template || options.skills || options.persona) {
         options.mode = 'custom'
-      } else {
+      }
+      else {
         // Default to auto mode
         options.mode = 'auto'
       }
@@ -257,19 +259,22 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
         consola.success(`${isZh ? '✅ 成功创建' : '✅ Successfully created'} ${createdAgents.length} ${isZh ? '个代理' : 'agent(s)'}`)
         consola.log('')
         consola.info(isZh ? '用法:' : 'Usage:')
-        createdAgents.forEach(agent => {
+        createdAgents.forEach((agent) => {
           consola.log(`  /agent ${agent}`)
         })
         consola.log(`  ${isZh ? '查看所有代理' : 'List all agents'}: /agent list`)
-      } else {
+      }
+      else {
         consola.warn(isZh ? '未创建任何代理' : 'No agents created')
       }
-    } else {
+    }
+    else {
       consola.log('')
       consola.info(isZh ? '🔍 Dry run 完成' : '🔍 Dry run complete')
     }
-
-  } catch (error) {
+  }
+  catch (error) {
+    const isZh = i18n.language === 'zh-CN'
     consola.error(isZh ? '代理创建失败' : 'Agent creation failed', error)
     process.exit(1)
   }
@@ -301,37 +306,37 @@ async function listAgents(): Promise<void> {
  */
 async function createAgent(
   recommendation: AgentRecommendation,
-  options: CcjkAgentsOptions
+  options: CcjkAgentsOptions,
 ): Promise<string | null> {
   try {
     const isZh = i18n.language === 'zh-CN'
 
     // Use shared extractString helper for multilingual support
     // Cloud API returns { en: '...', 'zh-CN': '...' }, local templates return string
-    const agentName = extractString(recommendation.name as any, recommendation.id || 'unknown-agent')
+    const agentName = extractString(recommendation.name as any, 'unknown-agent')
     const agentDescription = extractString(recommendation.description as any, 'No description available')
 
     // Convert recommendation to agent definition
     const agentDef: AgentDefinition = {
       id: agentName.toLowerCase().replace(/\s+/g, '-'),
       name: {
-        en: agentName,
-        'zh-CN': agentName
+        'en': agentName,
+        'zh-CN': agentName,
       },
       description: {
-        en: agentDescription,
-        'zh-CN': agentDescription
+        'en': agentDescription,
+        'zh-CN': agentDescription,
       },
       persona: recommendation.persona || agentName,
       instructions: agentDescription,
       skills: (recommendation.skills || []).map(skill => ({
         pluginId: 'local-agent',
-        skillId: skill
+        skillId: skill,
       })),
       mcpServers: (recommendation.mcpServers || []).map(server => ({
-        serverName: server
+        serverName: server,
       })),
-      capabilities: (recommendation.capabilities || []) as AgentCapability[]
+      capabilities: (recommendation.capabilities || []) as AgentCapability[],
     }
 
     // Validate agent definition
@@ -353,7 +358,8 @@ async function createAgent(
     await registerAgent(agentDef)
 
     return agentName
-  } catch (error) {
+  }
+  catch (error) {
     const isZh = i18n.language === 'zh-CN'
     // Use shared extractString helper for error logging
     const errorName = extractString(recommendation.name as any, 'unknown')
@@ -366,7 +372,7 @@ async function createAgent(
  * Create a custom agent
  */
 async function createCustomAgent(
-  options: CcjkAgentsOptions
+  options: CcjkAgentsOptions,
 ): Promise<string | null> {
   try {
     const isZh = i18n.language === 'zh-CN'
@@ -390,21 +396,21 @@ async function createCustomAgent(
     const agentDef: AgentDefinition = {
       id: agentName.toLowerCase().replace(/\s+/g, '-'),
       name: {
-        en: agentName,
-        'zh-CN': agentName
+        'en': agentName,
+        'zh-CN': agentName,
       },
       description: {
-        en: description,
-        'zh-CN': description
+        'en': description,
+        'zh-CN': description,
       },
       persona: options.persona || agentName,
       instructions: description,
       skills: skills.map(skill => ({
         pluginId: 'local-agent',
-        skillId: skill
+        skillId: skill,
       })),
       mcpServers: mcpServers.map(server => ({
-        serverName: server
+        serverName: server,
       })),
       capabilities: options.capabilities || [],
     }
@@ -426,7 +432,8 @@ async function createCustomAgent(
     await registerAgent(agentDef)
 
     return agentName
-  } catch (error) {
+  }
+  catch (error) {
     const isZh = i18n.language === 'zh-CN'
     consola.error(isZh ? '自定义代理创建失败' : 'Custom agent creation failed', error)
     return null

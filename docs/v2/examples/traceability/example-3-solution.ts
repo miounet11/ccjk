@@ -4,7 +4,8 @@
  * Demonstrates how the system matches errors to known solution patterns
  */
 
-import { TraceabilityAnalyzer, SolutionPattern, PatternCategory } from '@ccjk/v2/brain'
+import type { SolutionPattern } from '@ccjk/v2/brain'
+import { PatternCategory, TraceabilityAnalyzer } from '@ccjk/v2/brain'
 
 /**
  * Example: Pattern matching for common errors
@@ -14,7 +15,7 @@ export async function solutionPatternExample() {
 
   // Scenario 1: Null reference error
   const error1 = {
-    message: "Cannot read property 'length' of null",
+    message: 'Cannot read property \'length\' of null',
     code: 'E1001',
     file: 'src/utils/validator.ts',
     line: 23,
@@ -66,7 +67,7 @@ export async function solutionPatternExample() {
 
   // Scenario 2: Type casting error
   const error2 = {
-    message: "Type 'string' is not assignable to type 'number'",
+    message: 'Type \'string\' is not assignable to type \'number\'',
     code: 'TS2322',
     file: 'src/calculator.ts',
     context: {

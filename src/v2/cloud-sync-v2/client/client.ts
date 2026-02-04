@@ -3,23 +3,33 @@
  * Handles common HTTP operations, retry logic, caching, and error handling
  */
 
-import {
-  ApiResponse,
-  APIError,
-  RequestOptions,
-  RetryConfig,
+import type {
   CacheConfig,
+  RetryConfig,
+} from './types.js'
+
+interface RequestOptions {
+  headers?: Record<string, string>
+  timeout?: number
+  retries?: number
+  cache?: boolean
+  signal?: AbortSignal
+  params?: Record<string, any>
+  body?: any
+}
+import { AuthManager } from './auth.js'
+import { CacheKeyBuilder, parseCacheHeaders, ResponseCacheImpl } from './cache.js'
+import { DEFAULT_CONFIG } from './config.js'
+import { RetryManager } from './retry.js'
+import {
+  APIError,
   AuthenticationError,
   AuthorizationError,
   NotFoundError,
-  ValidationError,
   RateLimitError,
   ServerError,
+  ValidationError,
 } from './types.js'
-import { AuthManager } from './auth.js'
-import { RetryManager } from './retry.js'
-import { ResponseCacheImpl, CacheKeyBuilder, parseCacheHeaders, TTL_STRATEGIES } from './cache.js'
-import { API_PATHS, DEFAULT_CONFIG } from './config.js'
 
 export interface ClientConfig {
   baseURL?: string
@@ -50,7 +60,7 @@ export class APIClient {
       if (config.auth.accessToken && config.auth.refreshToken) {
         this.auth.setTokens(
           config.auth.accessToken,
-          config.auth.refreshToken
+          config.auth.refreshToken,
         )
       }
       if (config.auth.apiKey) {
@@ -76,7 +86,7 @@ export class APIClient {
    */
   protected async get<T>(
     path: string,
-    options?: RequestOptions & { params?: Record<string, any> }
+    options?: RequestOptions & { params?: Record<string, any> },
   ): Promise<T> {
     let fullPath = path
 
@@ -101,7 +111,7 @@ export class APIClient {
   protected async post<T>(
     path: string,
     body?: any,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
     return this.request<T>('POST', path, body, options)
   }
@@ -112,7 +122,7 @@ export class APIClient {
   protected async put<T>(
     path: string,
     body?: any,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
     return this.request<T>('PUT', path, body, options)
   }
@@ -123,7 +133,7 @@ export class APIClient {
   protected async patch<T>(
     path: string,
     body?: any,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
     return this.request<T>('PATCH', path, body, options)
   }
@@ -133,9 +143,10 @@ export class APIClient {
    */
   protected async delete<T>(
     path: string,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
-    return this.request<T>('DELETE', path, undefined, options)
+    const body = options?.body
+    return this.request<T>('DELETE', path, body, options)
   }
 
   /**
@@ -145,7 +156,7 @@ export class APIClient {
     method: string,
     path: string,
     body?: any,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
     const baseURL = DEFAULT_CONFIG.baseURL
     const url = `${baseURL}${path}`
@@ -154,8 +165,8 @@ export class APIClient {
     // Check cache for GET requests
     if (method === 'GET' && options?.cache !== false) {
       const cacheKey = CacheKeyBuilder.from(path)
-        .withQuery(options.params ?? {})
-        .withHeaders(options.headers ?? {})
+        .withQuery(options?.params ?? {})
+        .withHeaders(options?.headers ?? {})
         .build()
 
       const cached = await this.cache.get<T>(cacheKey)
@@ -172,8 +183,8 @@ export class APIClient {
     // Cache successful GET responses
     if (method === 'GET' && options?.cache !== false && result.headers) {
       const cacheKey = CacheKeyBuilder.from(path)
-        .withQuery(options.params ?? {})
-        .withHeaders(options.headers ?? {})
+        .withQuery(options?.params ?? {})
+        .withHeaders(options?.headers ?? {})
         .build()
 
       const cacheHeaders = parseCacheHeaders(result.headers)
@@ -193,8 +204,8 @@ export class APIClient {
     url: string,
     body: any,
     options?: RequestOptions,
-    timeout?: number
-  ): Promise<{ data: T; headers?: Headers }> {
+    timeout?: number,
+  ): Promise<{ data: T, headers?: Headers }> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout)
 
@@ -218,12 +229,18 @@ export class APIClient {
         signal: controller.signal,
       }
 
-      if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
-        if (body instanceof Buffer || body instanceof Uint8Array) {
-          // Binary data
+      if (body && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+        if (typeof Buffer !== 'undefined' && body instanceof Buffer) {
+          // Binary data (Node.js)
           headers.delete('Content-Type')
-          requestInit.body = body as BodyInit
-        } else {
+          requestInit.body = body as any
+        }
+        else if (body instanceof Uint8Array) {
+          // Binary data (browser)
+          headers.delete('Content-Type')
+          requestInit.body = body as any
+        }
+        else {
           // JSON data
           requestInit.body = JSON.stringify(body)
         }
@@ -240,24 +257,25 @@ export class APIClient {
       }
 
       // Parse response
-      const data = await response.json()
+      const data = await response.json() as T
 
       return { data, headers: response.headers }
-    } catch (error) {
+    }
+    catch (error) {
       clearTimeout(timeoutId)
 
       if (error instanceof APIError) {
         throw error
       }
 
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new APIError('Request timeout', 408, 'TIMEOUT_ERROR')
       }
 
       throw new APIError(
         error instanceof Error ? error.message : 'Unknown error',
         0,
-        'NETWORK_ERROR'
+        'NETWORK_ERROR',
       )
     }
   }
@@ -270,7 +288,8 @@ export class APIClient {
 
     try {
       errorData = await response.json()
-    } catch {
+    }
+    catch {
       // Ignore parse errors
     }
 
@@ -293,8 +312,8 @@ export class APIClient {
       case 429:
         const retryAfter = response.headers.get('retry-after')
         throw new RateLimitError(
-          retryAfter ? parseInt(retryAfter, 10) : 60,
-          message
+          retryAfter ? Number.parseInt(retryAfter, 10) : 60,
+          message,
         )
 
       case 500:
@@ -319,7 +338,7 @@ export class APIClient {
       filename?: string
       contentType?: string
       onProgress?: (loaded: number, total: number) => void
-    }
+    },
   ): Promise<T> {
     const baseURL = DEFAULT_CONFIG.baseURL
     const url = `${baseURL}${path}`
@@ -330,7 +349,8 @@ export class APIClient {
 
     if (file instanceof Blob) {
       formData.append('file', file, options?.filename ?? 'file')
-    } else {
+    }
+    else {
       const blob = new Blob([file], { type: options?.contentType ?? 'application/octet-stream' })
       formData.append('file', blob, options?.filename ?? 'file')
     }
@@ -364,22 +384,23 @@ export class APIClient {
           await this.handleErrorResponse(response)
         }
 
-        return await response.json()
-      } catch (error) {
+        return await response.json() as T
+      }
+      catch (error) {
         clearTimeout(timeoutId)
 
         if (error instanceof APIError) {
           throw error
         }
 
-        if (error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') {
           throw new APIError('Upload timeout', 408, 'TIMEOUT_ERROR')
         }
 
         throw new APIError(
           error instanceof Error ? error.message : 'Upload failed',
           0,
-          'UPLOAD_ERROR'
+          'UPLOAD_ERROR',
         )
       }
     })
@@ -390,7 +411,7 @@ export class APIClient {
    */
   protected async download(
     path: string,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<Buffer> {
     const baseURL = DEFAULT_CONFIG.baseURL
     const url = `${baseURL}${path}`
@@ -422,21 +443,22 @@ export class APIClient {
 
         const arrayBuffer = await response.arrayBuffer()
         return Buffer.from(arrayBuffer)
-      } catch (error) {
+      }
+      catch (error) {
         clearTimeout(timeoutId)
 
         if (error instanceof APIError) {
           throw error
         }
 
-        if (error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') {
           throw new APIError('Download timeout', 408, 'TIMEOUT_ERROR')
         }
 
         throw new APIError(
           error instanceof Error ? error.message : 'Download failed',
           0,
-          'DOWNLOAD_ERROR'
+          'DOWNLOAD_ERROR',
         )
       }
     })

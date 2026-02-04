@@ -6,9 +6,9 @@
  * Usage: node scripts/quality-check.mjs [--fix] [--verbose]
  */
 
-import { execSync, spawn } from 'node:child_process'
+import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -16,21 +16,21 @@ const rootDir = join(__dirname, '..')
 
 // ANSI colors
 const colors = {
-  reset: '\x1b[0m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  cyan: '\x1b[36m',
-  bold: '\x1b[1m',
+  reset: '\x1B[0m',
+  red: '\x1B[31m',
+  green: '\x1B[32m',
+  yellow: '\x1B[33m',
+  blue: '\x1B[34m',
+  cyan: '\x1B[36m',
+  bold: '\x1B[1m',
 }
 
 const log = {
-  info: (msg) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
-  success: (msg) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
-  warn: (msg) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  error: (msg) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
-  title: (msg) => console.log(`\n${colors.bold}${colors.cyan}${msg}${colors.reset}\n`),
+  info: msg => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
+  success: msg => console.log(`${colors.green}✓${colors.reset} ${msg}`),
+  warn: msg => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
+  error: msg => console.log(`${colors.red}✗${colors.reset} ${msg}`),
+  title: msg => console.log(`\n${colors.bold}${colors.cyan}${msg}${colors.reset}\n`),
 }
 
 const args = process.argv.slice(2)
@@ -50,7 +50,8 @@ function run(cmd, options = {}) {
       ...options,
     })
     return { success: true, output: result }
-  } catch (error) {
+  }
+  catch (error) {
     return { success: false, output: error.stdout || error.message }
   }
 }
@@ -62,9 +63,11 @@ async function checkBuild() {
   if (result.success) {
     log.success('Build successful')
     passed++
-  } else {
+  }
+  else {
     log.error('Build failed')
-    if (verbose) console.log(result.output)
+    if (verbose)
+      console.log(result.output)
     failed++
   }
 }
@@ -77,14 +80,15 @@ async function checkTypes() {
   // Check for critical errors (excluding actionbook)
   const output = result.output || ''
   const criticalErrors = output.split('\n').filter(line =>
-    line.includes('error TS') &&
-    !line.includes('actionbook')
+    line.includes('error TS')
+    && !line.includes('actionbook'),
   )
 
   if (criticalErrors.length === 0) {
     log.success('No critical type errors')
     passed++
-  } else {
+  }
+  else {
     log.error(`Found ${criticalErrors.length} critical type errors`)
     criticalErrors.forEach(e => console.log(`  ${e}`))
     failed++
@@ -92,7 +96,7 @@ async function checkTypes() {
 
   // Check for actionbook warnings
   const actionbookErrors = output.split('\n').filter(line =>
-    line.includes('actionbook')
+    line.includes('actionbook'),
   )
   if (actionbookErrors.length > 0) {
     log.warn(`${actionbookErrors.length} pre-existing actionbook errors (non-blocking)`)
@@ -108,13 +112,15 @@ async function checkTests() {
   if (result.success) {
     log.success('All tests passed')
     passed++
-  } else {
+  }
+  else {
     // Check if it's just a timeout or actual failures
     const output = result.output || ''
     if (output.includes('FAIL') || output.includes('failed')) {
       log.error('Some tests failed')
       failed++
-    } else {
+    }
+    else {
       log.warn('Tests may have timed out')
       warnings++
     }
@@ -130,11 +136,13 @@ async function checkLint() {
   if (result.success) {
     log.success('No lint errors')
     passed++
-  } else {
+  }
+  else {
     if (shouldFix) {
       log.warn('Some lint issues could not be auto-fixed')
       warnings++
-    } else {
+    }
+    else {
       log.error('Lint errors found (run with --fix to auto-fix)')
       failed++
     }
@@ -157,7 +165,8 @@ async function checkCLI() {
   if (helpResult.success) {
     log.success('CLI --help works')
     passed++
-  } else {
+  }
+  else {
     log.error('CLI --help failed')
     failed++
   }
@@ -167,7 +176,8 @@ async function checkCLI() {
   if (versionResult.success) {
     log.success('CLI --version works')
     passed++
-  } else {
+  }
+  else {
     log.error('CLI --version failed')
     failed++
   }
@@ -184,7 +194,8 @@ async function checkPackageJson() {
   if (pkgStr.includes('catalog:')) {
     log.error('package.json contains catalog: protocol (run fix-package-catalog.mjs)')
     failed++
-  } else {
+  }
+  else {
     log.success('No catalog: protocol issues')
     passed++
   }
@@ -196,7 +207,8 @@ async function checkPackageJson() {
   if (missingFields.length === 0) {
     log.success('All required fields present')
     passed++
-  } else {
+  }
+  else {
     log.error(`Missing fields: ${missingFields.join(', ')}`)
     failed++
   }
@@ -211,7 +223,8 @@ async function checkDependencies() {
   if (result.success || !result.output.includes('WARN')) {
     log.success('Dependencies are healthy')
     passed++
-  } else {
+  }
+  else {
     log.warn('Some dependency warnings')
     warnings++
   }
@@ -226,7 +239,8 @@ async function checkI18n() {
   if (existsSync(zhDir) && existsSync(enDir)) {
     log.success('i18n locales exist')
     passed++
-  } else {
+  }
+  else {
     log.error('Missing i18n locales')
     failed++
   }
@@ -263,18 +277,20 @@ ${colors.bold}${colors.cyan}╔════════════════�
     console.log(`${colors.red}${colors.bold}Quality check FAILED${colors.reset}`)
     console.log(`Please fix the ${failed} issue(s) before release.\n`)
     process.exit(1)
-  } else if (warnings > 0) {
+  }
+  else if (warnings > 0) {
     console.log(`${colors.yellow}${colors.bold}Quality check PASSED with warnings${colors.reset}`)
     console.log(`Consider addressing the ${warnings} warning(s).\n`)
     process.exit(0)
-  } else {
+  }
+  else {
     console.log(`${colors.green}${colors.bold}Quality check PASSED${colors.reset}`)
     console.log(`Ready for release! 🚀\n`)
     process.exit(0)
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   log.error(`Quality check crashed: ${error.message}`)
   process.exit(1)
 })

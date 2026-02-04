@@ -47,7 +47,7 @@ export class AuthClient {
       body: JSON.stringify(request),
     })
 
-    return response.json()
+    return response.json() as Promise<LoginResponse>
   }
 
   /**
@@ -64,7 +64,7 @@ export class AuthClient {
       body: JSON.stringify(request),
     })
 
-    return response.json()
+    return response.json() as Promise<VerifyResponse>
   }
 
   /**
@@ -74,7 +74,7 @@ export class AuthClient {
    */
   async me(): Promise<GetMeResponse> {
     const response = await this.fetch('/auth/me', {}, true)
-    return response.json()
+    return response.json() as Promise<GetMeResponse>
   }
 
   /**
@@ -87,7 +87,7 @@ export class AuthClient {
       method: 'POST',
     }, true)
 
-    return response.json()
+    return response.json() as Promise<LogoutResponse>
   }
 
   /**
@@ -155,7 +155,7 @@ export class AuthClient {
     let message = response.statusText
 
     try {
-      const body = await response.json()
+      const body = await response.json() as { error?: string }
       if (body.error) {
         message = body.error
       }

@@ -8,11 +8,6 @@
  * @since v8.3.0
  */
 
-import * as fs from 'node:fs'
-import * as os from 'node:os'
-import * as path from 'node:path'
-import * as process from 'node:process'
-
 import type {
   Architecture,
   OSType,
@@ -21,6 +16,11 @@ import type {
   PlatformVariant,
   ShellType,
 } from './types'
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
+
+import * as process from 'node:process'
 
 // ============================================================================
 // Platform Detection Cache
@@ -72,7 +72,8 @@ export function isWSL(): boolean {
     if (procVersion.includes('microsoft') || procVersion.includes('wsl')) {
       return true
     }
-  } catch {
+  }
+  catch {
     // Ignore read errors
   }
 
@@ -84,7 +85,8 @@ export function isWSL(): boolean {
   // Check for /mnt/c (common WSL mount point)
   try {
     return fs.existsSync('/mnt/c/Windows')
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -99,9 +101,9 @@ export function isTermux(): boolean {
 
   // Check for Termux-specific paths and environment
   return !!(
-    process.env.TERMUX_VERSION ||
-    process.env.PREFIX?.includes('com.termux') ||
-    fs.existsSync('/data/data/com.termux')
+    process.env.TERMUX_VERSION
+    || process.env.PREFIX?.includes('com.termux')
+    || fs.existsSync('/data/data/com.termux')
   )
 }
 
@@ -120,7 +122,8 @@ export function isDocker(): boolean {
     if (cgroup.includes('docker') || cgroup.includes('kubepods')) {
       return true
     }
-  } catch {
+  }
+  catch {
     // Ignore read errors
   }
 
@@ -137,17 +140,17 @@ export function isDocker(): boolean {
  */
 export function isCI(): boolean {
   return !!(
-    process.env.CI ||
-    process.env.CONTINUOUS_INTEGRATION ||
-    process.env.GITHUB_ACTIONS ||
-    process.env.GITLAB_CI ||
-    process.env.CIRCLECI ||
-    process.env.TRAVIS ||
-    process.env.JENKINS_URL ||
-    process.env.BUILDKITE ||
-    process.env.TEAMCITY_VERSION ||
-    process.env.TF_BUILD || // Azure Pipelines
-    process.env.BITBUCKET_BUILD_NUMBER
+    process.env.CI
+    || process.env.CONTINUOUS_INTEGRATION
+    || process.env.GITHUB_ACTIONS
+    || process.env.GITLAB_CI
+    || process.env.CIRCLECI
+    || process.env.TRAVIS
+    || process.env.JENKINS_URL
+    || process.env.BUILDKITE
+    || process.env.TEAMCITY_VERSION
+    || process.env.TF_BUILD // Azure Pipelines
+    || process.env.BITBUCKET_BUILD_NUMBER
   )
 }
 
@@ -156,10 +159,14 @@ export function isCI(): boolean {
  */
 export function detectVariant(): PlatformVariant {
   // Check in order of specificity
-  if (isCI()) return 'ci'
-  if (isDocker()) return 'docker'
-  if (isWSL()) return 'wsl'
-  if (isTermux()) return 'termux'
+  if (isCI())
+    return 'ci'
+  if (isDocker())
+    return 'docker'
+  if (isWSL())
+    return 'wsl'
+  if (isTermux())
+    return 'termux'
   return 'standard'
 }
 
@@ -369,7 +376,8 @@ export function isElevated(): boolean {
     try {
       fs.accessSync('C:\\Windows\\System32\\config', fs.constants.R_OK)
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }

@@ -8,9 +8,9 @@
  */
 
 import type { SupportedLang } from '../constants'
-import type { LspServerId, LspStatusInfo } from '../types/lsp'
+import type { LspServerId } from '../types/lsp'
 import ansis from 'ansis'
-import { getAutoStartLspServers, getEnabledLspServers, LSP_SERVER_CONFIGS } from '../config/lsp-servers'
+import { LSP_SERVER_CONFIGS } from '../config/lsp-servers'
 import { getLspManager } from '../core/lsp-manager'
 import { i18n } from '../i18n'
 

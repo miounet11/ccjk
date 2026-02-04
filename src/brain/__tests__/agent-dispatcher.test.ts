@@ -4,20 +4,20 @@
  * @module brain/__tests__/agent-dispatcher.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { AgentCapability, AgentTool, CloudAgent } from '../../types/agent'
+import type { SkillMdFile } from '../../types/skill-md'
+import type {
+  AgentDispatchConfig,
+  ParallelAgentExecution,
+} from '../agent-dispatcher'
+import type { OrchestrationResult, Task } from '../orchestrator-types'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   AgentDispatcher,
   createAgentDispatcher,
   getGlobalDispatcher,
   resetGlobalDispatcher,
 } from '../agent-dispatcher'
-import type {
-  AgentDispatchConfig,
-  ParallelAgentExecution,
-} from '../agent-dispatcher'
-import type { Task, OrchestrationResult } from '../orchestrator-types'
-import type { CloudAgent, AgentCapability, AgentTool } from '../../types/agent'
-import type { SkillMdFile, SkillCategory } from '../../types/skill-md'
 
 /**
  * Create a mock task for testing
@@ -59,7 +59,7 @@ function createMockCloudAgent(overrides: Partial<CloudAgent> = {}): CloudAgent {
     },
     metadata: {
       author: 'Test',
-      description: { en: 'Test agent', 'zh-CN': 'Test agent' },
+      description: { 'en': 'Test agent', 'zh-CN': 'Test agent' },
       tags: [],
       category: 'testing',
       createdAt: new Date().toISOString(),
@@ -132,7 +132,7 @@ function createMockOrchestrationResult(
   }
 }
 
-describe('AgentDispatcher', () => {
+describe('agentDispatcher', () => {
   let dispatcher: AgentDispatcher
 
   beforeEach(() => {
@@ -155,7 +155,7 @@ describe('AgentDispatcher', () => {
   // Normal Flow Tests
   // ===========================================================================
 
-  describe('Normal Flow', () => {
+  describe('normal Flow', () => {
     it('should create dispatcher with default options', () => {
       const defaultDispatcher = createAgentDispatcher()
 
@@ -254,7 +254,7 @@ describe('AgentDispatcher', () => {
   // Parallel Dispatch Tests
   // ===========================================================================
 
-  describe('Parallel Dispatch', () => {
+  describe('parallel Dispatch', () => {
     it('should dispatch multiple tasks in parallel', async () => {
       const agent = createMockCloudAgent()
       dispatcher.registerCloudAgent('typescript', agent)
@@ -392,7 +392,7 @@ describe('AgentDispatcher', () => {
   // Agent Selection Tests
   // ===========================================================================
 
-  describe('Agent Selection', () => {
+  describe('agent Selection', () => {
     it('should select agent from cache when available', async () => {
       const agent = createMockCloudAgent()
       dispatcher.registerCloudAgent('typescript', agent)
@@ -500,7 +500,7 @@ describe('AgentDispatcher', () => {
   // Tool Filtering Tests
   // ===========================================================================
 
-  describe('Tool Filtering', () => {
+  describe('tool Filtering', () => {
     it('should extract disallowed tools from skill metadata', () => {
       const skill = createMockSkill({
         metadata: {
@@ -558,7 +558,7 @@ describe('AgentDispatcher', () => {
   // Cache Management Tests
   // ===========================================================================
 
-  describe('Cache Management', () => {
+  describe('cache Management', () => {
     it('should clear expired cached agents', () => {
       // Create dispatcher with very short cache TTL
       const shortCacheDispatcher = new AgentDispatcher({
@@ -596,7 +596,7 @@ describe('AgentDispatcher', () => {
   // Error Handling Tests
   // ===========================================================================
 
-  describe('Error Handling', () => {
+  describe('error Handling', () => {
     it('should handle dispatch failure gracefully', async () => {
       const skill = createMockSkill()
       const task = createMockTask()
@@ -684,7 +684,7 @@ describe('AgentDispatcher', () => {
   // Global Dispatcher Tests
   // ===========================================================================
 
-  describe('Global Dispatcher', () => {
+  describe('global Dispatcher', () => {
     it('should get or create global dispatcher', () => {
       const global1 = getGlobalDispatcher()
       const global2 = getGlobalDispatcher()
@@ -705,7 +705,7 @@ describe('AgentDispatcher', () => {
   // Concurrent Dispatch Tests
   // ===========================================================================
 
-  describe('Concurrent Dispatch', () => {
+  describe('concurrent Dispatch', () => {
     it('should handle multiple concurrent dispatches', async () => {
       const agent = createMockCloudAgent()
       dispatcher.registerCloudAgent('typescript', agent)
@@ -714,8 +714,7 @@ describe('AgentDispatcher', () => {
       const executeFn = vi.fn().mockResolvedValue(createMockOrchestrationResult())
 
       const dispatches = Array.from({ length: 5 }, (_, i) =>
-        dispatcher.dispatch(createMockTask({ id: `concurrent-${i}` }), skill, executeFn),
-      )
+        dispatcher.dispatch(createMockTask({ id: `concurrent-${i}` }), skill, executeFn))
 
       const results = await Promise.all(dispatches)
 
@@ -747,7 +746,7 @@ describe('AgentDispatcher', () => {
   // Edge Cases
   // ===========================================================================
 
-  describe('Edge Cases', () => {
+  describe('edge Cases', () => {
     it('should handle empty parallel execution', async () => {
       const execution: ParallelAgentExecution = {
         id: 'empty-parallel',

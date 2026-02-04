@@ -22,7 +22,7 @@ export class TestServer {
     // Mock implementation
     this.server = {
       listen: vi.fn((port, callback) => callback()),
-      close: vi.fn((callback) => callback()),
+      close: vi.fn(callback => callback()),
     }
     return this.port || Math.floor(Math.random() * 10000) + 10000
   }
@@ -77,11 +77,13 @@ export class TestServer {
   static createMockHttpServer(): any {
     const mockServer = {
       listen: vi.fn((port, callback) => {
-        if (callback) callback()
+        if (callback)
+          callback()
         return { port: port || 3000 }
       }),
       close: vi.fn((callback) => {
-        if (callback) callback()
+        if (callback)
+          callback()
       }),
       on: vi.fn(),
       emit: vi.fn(),

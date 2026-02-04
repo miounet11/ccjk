@@ -3,29 +3,24 @@
  * Tests the complete initialization flow for new and existing installations
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  runCcjk,
-  assertSuccess,
-  assertFailure,
   assertOutputContains,
-  assertFile,
-  waitForFile,
+  assertSuccess,
   createFile,
   readJsonFile,
+  runCcjk,
   writeJsonFile,
-  sleep,
 } from './helpers'
 import {
-  getE2EEnvironment,
   createTestProject,
   getTestConfigDir,
   getTestHomeDir,
 } from './setup'
 
-describe.skip('E2E: Initialization Workflow', () => {
+describe.skip('e2E: Initialization Workflow', () => {
   let testProjectDir: string
 
   beforeEach(async () => {
@@ -41,7 +36,7 @@ describe.skip('E2E: Initialization Workflow', () => {
   // Fresh Installation Tests
   // ==========================================================================
 
-  describe('Fresh Installation', () => {
+  describe('fresh Installation', () => {
     it('should display version information', async () => {
       const result = await runCcjk(['--version'])
 
@@ -109,7 +104,7 @@ describe.skip('E2E: Initialization Workflow', () => {
   // Configuration Migration Tests
   // ==========================================================================
 
-  describe('Configuration Migration', () => {
+  describe('configuration Migration', () => {
     it('should detect and migrate legacy configuration', async () => {
       // Create legacy config structure
       const legacyConfigDir = join(getTestHomeDir(), '.ccjk-legacy')
@@ -196,13 +191,13 @@ describe.skip('E2E: Initialization Workflow', () => {
   // Interactive Setup Tests
   // ==========================================================================
 
-  describe('Interactive Setup', () => {
+  describe('interactive Setup', () => {
     it('should prompt for cloud sync configuration', async () => {
       const result = await runCcjk(['init'], {
         input: [
-          'y',  // Enable cloud sync
-          '1',  // Select provider (e.g., GitHub Gist)
-          'n',  // Skip authentication for now
+          'y', // Enable cloud sync
+          '1', // Select provider (e.g., GitHub Gist)
+          'n', // Skip authentication for now
         ],
         timeout: 60000,
       })
@@ -214,9 +209,9 @@ describe.skip('E2E: Initialization Workflow', () => {
     it('should allow skipping optional features', async () => {
       const result = await runCcjk(['init'], {
         input: [
-          'n',  // Skip cloud sync
-          'n',  // Skip MCP setup
-          'n',  // Skip analytics
+          'n', // Skip cloud sync
+          'n', // Skip MCP setup
+          'n', // Skip analytics
         ],
         timeout: 60000,
       })
@@ -227,8 +222,8 @@ describe.skip('E2E: Initialization Workflow', () => {
     it('should validate user input', async () => {
       const result = await runCcjk(['init'], {
         input: [
-          'invalid',  // Invalid input
-          'y',        // Retry with valid input
+          'invalid', // Invalid input
+          'y', // Retry with valid input
         ],
         timeout: 60000,
       })
@@ -242,7 +237,7 @@ describe.skip('E2E: Initialization Workflow', () => {
   // Project Detection Tests
   // ==========================================================================
 
-  describe('Project Detection', () => {
+  describe('project Detection', () => {
     it('should detect Node.js project', async () => {
       // package.json already exists from createTestProject
       const result = await runCcjk(['init', '--skip-prompts'], {
@@ -291,11 +286,11 @@ describe.skip('E2E: Initialization Workflow', () => {
 
       createFile(
         join(testProjectDir, 'packages', 'core', 'package.json'),
-        JSON.stringify({ name: '@test/core', version: '1.0.0' })
+        JSON.stringify({ name: '@test/core', version: '1.0.0' }),
       )
       createFile(
         join(testProjectDir, 'packages', 'cli', 'package.json'),
-        JSON.stringify({ name: '@test/cli', version: '1.0.0' })
+        JSON.stringify({ name: '@test/cli', version: '1.0.0' }),
       )
 
       const result = await runCcjk(['init', '--skip-prompts'], {
@@ -310,7 +305,7 @@ describe.skip('E2E: Initialization Workflow', () => {
   // Error Recovery Tests
   // ==========================================================================
 
-  describe('Error Recovery', () => {
+  describe('error Recovery', () => {
     it('should recover from interrupted initialization', async () => {
       // Create partial config (simulating interrupted init)
       const configDir = getTestConfigDir()
@@ -361,7 +356,7 @@ describe.skip('E2E: Initialization Workflow', () => {
   // Idempotency Tests
   // ==========================================================================
 
-  describe('Idempotency', () => {
+  describe('idempotency', () => {
     it('should be safe to run init multiple times', async () => {
       // First init
       const result1 = await runCcjk(['init', '--skip-prompts'], {
@@ -419,7 +414,7 @@ describe.skip('E2E: Initialization Workflow', () => {
   // Environment Variable Tests
   // ==========================================================================
 
-  describe('Environment Variables', () => {
+  describe('environment Variables', () => {
     it('should respect CCJK_CONFIG_DIR', async () => {
       const customConfigDir = join(testProjectDir, 'custom-config')
       mkdirSync(customConfigDir, { recursive: true })

@@ -7,10 +7,9 @@
  * - Memory-efficient file operations
  */
 
-import { createReadStream, createWriteStream, promises as fs } from 'node:fs'
+import { createReadStream, promises as fs } from 'node:fs'
 import { Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
-import { join } from 'pathe'
 
 /**
  * Chunk processing options
@@ -39,15 +38,16 @@ export async function processLargeFile(
   processor: (chunk: Buffer, index: number) => void | Promise<void>,
   options: ChunkProcessorOptions = {},
 ): Promise<void> {
-  const { chunkSize = DEFAULT_CHUNK_SIZE, encoding = 'utf8' as BufferEncoding } = options
+  const { chunkSize = DEFAULT_CHUNK_SIZE, encoding = 'utf8' } = options
 
   return new Promise<void>((resolve, reject) => {
-    const stream = createReadStream(filePath, { encoding })
+    const stream = createReadStream(filePath, { encoding: encoding as BufferEncoding })
     const chunks: Buffer[] = []
     let chunkIndex = 0
 
-    stream.on('data', (chunk: Buffer) => {
-      chunks.push(chunk)
+    stream.on('data', (chunk: string | Buffer) => {
+      const buffer = typeof chunk === 'string' ? Buffer.from(chunk, encoding as BufferEncoding) : chunk
+      chunks.push(buffer)
 
       // Process accumulated chunks when threshold reached
       if (chunks.length * chunkSize >= chunkSize) {
@@ -80,26 +80,17 @@ export async function streamJSON<T = any>(
   const chunks: Buffer[] = []
 
   await pipeline(
-    createReadStream(filePath, { encoding: 'utf8' } as BufferEncoding),
+    createReadStream(filePath, { encoding: 'utf8' }),
     new Transform({
       transform(chunk: Buffer, _, callback) {
         chunks.push(chunk)
         callback()
       },
     }),
-    async function writeToMemory(this: Transform, _, callback) {
-      try {
-        const content = Buffer.concat(chunks).toString('utf8')
-        const data = JSON.parse(content) as T
-        callback(null, data)
-      }
-      catch (error) {
-        callback(error, null)
-      }
-    },
   )
 
-  return null
+  const content = Buffer.concat(chunks).toString('utf8')
+  return JSON.parse(content) as T
 }
 
 /**
@@ -120,7 +111,8 @@ export async function processLineByLine(
   filePath: string,
   processor: (line: string, index: number) => void | Promise<void>,
 ): Promise<void> {
-  const rl = await import('node:readline').createInterface({
+  const readline = await import('node:readline')
+  const rl = readline.createInterface({
     input: createReadStream(filePath, { encoding: 'utf8' }),
     crlfDelay: Number.MAX_VALUE, // Treat \r\n as single character
   })
@@ -130,7 +122,7 @@ export async function processLineByLine(
     await Promise.resolve(processor(line, index++))
   }
 
-  await rl.close()
+  rl.close()
 }
 
 /**
@@ -181,7 +173,7 @@ export async function batchProcessFiles<T = any>(
         results.set(file, result)
       }
       catch (error) {
-        results.set(file, null)
+        results.set(file, null as any)
       }
       finally {
         processing.delete(file)
@@ -228,16 +220,15 @@ export async function getFileInfo(
   filePath: string,
   options: StreamProcessorOptions = {},
 ): Promise<FileInfo> {
-  const [size, lines] = await Promise.all([
-    getFileSize(filePath),
-    isLargeFile(filePath) ? countLines(filePath) : Promise.resolve(0),
-  ])
+  const size = await getFileSize(filePath)
+  const isLarge = size > (options.chunkSize || DEFAULT_CHUNK_SIZE)
+  const lines = isLarge ? await countLines(filePath) : 0
 
   return {
     path: filePath,
     size,
     lines,
-    isLarge: size > (options.chunkSize || DEFAULT_CHUNK_SIZE),
+    isLarge,
     encoding: (options.encoding as BufferEncoding | null) || null,
   }
 }

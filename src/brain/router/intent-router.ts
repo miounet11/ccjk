@@ -15,14 +15,14 @@ import { EventEmitter } from 'node:events'
 /**
  * Intent types that the router can detect
  */
-export type IntentType =
-  | 'mayor' // Complex multi-agent task requiring orchestration
-  | 'plan' // Architectural planning needed
-  | 'feature' // Single feature implementation
-  | 'bug_fix' // Bug fix task
-  | 'refactor' // Code refactoring
-  | 'question' // User asking a question
-  | 'direct' // Direct command execution
+export type IntentType
+  = | 'mayor' // Complex multi-agent task requiring orchestration
+    | 'plan' // Architectural planning needed
+    | 'feature' // Single feature implementation
+    | 'bug_fix' // Bug fix task
+    | 'refactor' // Code refactoring
+    | 'question' // User asking a question
+    | 'direct' // Direct command execution
 
 /**
  * Complexity levels
@@ -64,34 +64,91 @@ export class IntentRouter extends EventEmitter {
 
   // Keywords for intent detection
   private readonly mayorKeywords = [
-    'implement', 'build', 'create', 'add', 'develop', 'integrate',
-    'system', 'architecture', 'multiple', 'complex', 'full',
-    'authentication', 'authorization', 'api', 'database', 'backend',
-    'frontend', 'ui', 'ux', 'design', 'workflow',
+    'implement',
+    'build',
+    'create',
+    'add',
+    'develop',
+    'integrate',
+    'system',
+    'architecture',
+    'multiple',
+    'complex',
+    'full',
+    'authentication',
+    'authorization',
+    'api',
+    'database',
+    'backend',
+    'frontend',
+    'ui',
+    'ux',
+    'design',
+    'workflow',
   ]
 
   private readonly planKeywords = [
-    'plan', 'design', 'architect', 'structure', 'organize',
-    'refactor', 'restructure', 'reorganize', 'improve',
-    'how to', 'approach', 'strategy', 'best way',
+    'plan',
+    'design',
+    'architect',
+    'structure',
+    'organize',
+    'refactor',
+    'restructure',
+    'reorganize',
+    'improve',
+    'how to',
+    'approach',
+    'strategy',
+    'best way',
   ]
 
   private readonly featureKeywords = [
-    'add', 'create', 'implement', 'build', 'make',
-    'feature', 'function', 'component', 'module',
-    'button', 'form', 'page', 'endpoint', 'route',
+    'add',
+    'create',
+    'implement',
+    'build',
+    'make',
+    'feature',
+    'function',
+    'component',
+    'module',
+    'button',
+    'form',
+    'page',
+    'endpoint',
+    'route',
   ]
 
   private readonly bugFixKeywords = [
-    'fix', 'bug', 'error', 'issue', 'problem',
-    'broken', 'not working', 'crash', 'fail',
-    'debug', 'resolve', 'solve',
+    'fix',
+    'bug',
+    'error',
+    'issue',
+    'problem',
+    'broken',
+    'not working',
+    'crash',
+    'fail',
+    'debug',
+    'resolve',
+    'solve',
   ]
 
   private readonly questionKeywords = [
-    'what', 'how', 'why', 'when', 'where', 'which',
-    'explain', 'tell me', 'show me', 'help',
-    'can you', 'could you', 'would you',
+    'what',
+    'how',
+    'why',
+    'when',
+    'where',
+    'which',
+    'explain',
+    'tell me',
+    'show me',
+    'help',
+    'can you',
+    'could you',
+    'would you',
   ]
 
   constructor(config: Partial<IntentRouterConfig> = {}) {
@@ -229,9 +286,20 @@ export class IntentRouter extends EventEmitter {
 
     // Technical terms
     const technicalTerms = [
-      'authentication', 'authorization', 'middleware', 'validation',
-      'encryption', 'jwt', 'oauth', 'websocket', 'graphql', 'rest',
-      'microservice', 'docker', 'kubernetes', 'ci/cd',
+      'authentication',
+      'authorization',
+      'middleware',
+      'validation',
+      'encryption',
+      'jwt',
+      'oauth',
+      'websocket',
+      'graphql',
+      'rest',
+      'microservice',
+      'docker',
+      'kubernetes',
+      'ci/cd',
     ]
     const mentionedTerms = technicalTerms.filter(t => input.includes(t)).length
     score += mentionedTerms * 2
@@ -326,8 +394,13 @@ export class IntentRouter extends EventEmitter {
 
     // Need planning for complex architectural changes
     const architecturalKeywords = [
-      'architecture', 'structure', 'design', 'refactor',
-      'reorganize', 'restructure', 'system',
+      'architecture',
+      'structure',
+      'design',
+      'refactor',
+      'reorganize',
+      'restructure',
+      'system',
     ]
     if (this.matchesKeywords(input, architecturalKeywords))
       return true
@@ -494,7 +567,7 @@ export class IntentRouter extends EventEmitter {
     reasons.push(`Estimated ${estimatedSteps} steps`)
 
     // Route reasoning
-    const routeReasons = {
+    const routeReasons: Record<string, string> = {
       mayor: 'Using Mayor Agent for orchestration',
       plan: 'Using Plan Mode for architectural design',
       feature: 'Using Feature Mode for implementation',

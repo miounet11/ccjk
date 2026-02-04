@@ -7,18 +7,18 @@
  * They serve as a template for future integration tests.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, AssertionHelpers } from '../helpers'
-import { createTestTempDir } from '../setup'
 import type {
   Agent,
   AgentMessage,
-  RequestResponse,
-  PubSubEvent,
   AgentNetworkMetrics,
+  PubSubEvent,
+  RequestResponse,
 } from '@/types/agents-v2'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AssertionHelpers } from '../helpers'
+import { createTestTempDir } from '../setup'
 
-describe.skip('Agents Network Integration', () => {
+describe.skip('agents Network Integration', () => {
   let testDir: string
   let agentRegistry: any
   let redisBus: any
@@ -123,7 +123,7 @@ describe.skip('Agents Network Integration', () => {
     vi.clearAllMocks()
   })
 
-  describe('Agent Registration', () => {
+  describe('agent Registration', () => {
     it('should register agent successfully', async () => {
       // Arrange
       const agent: Agent = {
@@ -167,12 +167,12 @@ describe.skip('Agents Network Integration', () => {
       }
 
       agentRegistry.register.mockRejectedValue(
-        new Error('Agent already registered: agent-duplicate-001')
+        new Error('Agent already registered: agent-duplicate-001'),
       )
 
       // Act & Assert
       await expect(agentRegistry.register(agent)).rejects.toThrow(
-        'Agent already registered: agent-duplicate-001'
+        'Agent already registered: agent-duplicate-001',
       )
     })
 
@@ -261,7 +261,7 @@ describe.skip('Agents Network Integration', () => {
     })
   })
 
-  describe('Redis Message Passing', () => {
+  describe('redis Message Passing', () => {
     it('should send message to specific agent', async () => {
       // Arrange
       const message: AgentMessage = {
@@ -326,12 +326,12 @@ describe.skip('Agents Network Integration', () => {
       }
 
       redisBus.send.mockRejectedValue(
-        new Error('Agent not found: agent-offline')
+        new Error('Agent not found: agent-offline'),
       )
 
       // Act & Assert
       await expect(redisBus.send(message.to, message)).rejects.toThrow(
-        'Agent not found: agent-offline'
+        'Agent not found: agent-offline',
       )
     })
 
@@ -357,7 +357,7 @@ describe.skip('Agents Network Integration', () => {
     })
   })
 
-  describe('Request-Response Pattern', () => {
+  describe('request-Response Pattern', () => {
     it('should send request and receive response', async () => {
       // Arrange
       const request: RequestResponse = {
@@ -410,13 +410,13 @@ describe.skip('Agents Network Integration', () => {
 
       requestHandler.sendRequest.mockResolvedValue({ sent: true })
       requestHandler.waitForResponse.mockRejectedValue(
-        new Error('Request timeout: req-timeout-001')
+        new Error('Request timeout: req-timeout-001'),
       )
 
       // Act & Assert
       await requestHandler.sendRequest(request)
       await expect(
-        requestHandler.waitForResponse(request.id, request.timeout)
+        requestHandler.waitForResponse(request.id, request.timeout),
       ).rejects.toThrow('Request timeout: req-timeout-001')
     })
 
@@ -439,7 +439,7 @@ describe.skip('Agents Network Integration', () => {
     })
   })
 
-  describe('Pub-Sub Broadcasting', () => {
+  describe('pub-Sub Broadcasting', () => {
     it('should publish event to channel', async () => {
       // Arrange
       const event: PubSubEvent = {
@@ -548,7 +548,7 @@ describe.skip('Agents Network Integration', () => {
     })
   })
 
-  describe('Performance Benchmarks', () => {
+  describe('performance Benchmarks', () => {
     it('should complete message passing within 50ms', async () => {
       // Arrange
       const maxLatency = 50 // 50ms
@@ -569,7 +569,7 @@ describe.skip('Agents Network Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => redisBus.send(message.to, message),
-        maxLatency
+        maxLatency,
       )
     })
 
@@ -590,7 +590,7 @@ describe.skip('Agents Network Integration', () => {
       // Act
       const startTime = Date.now()
       const results = await Promise.all(
-        messages.map(msg => redisBus.send(msg.to, msg))
+        messages.map(msg => redisBus.send(msg.to, msg)),
       )
       const totalTime = Date.now() - startTime
 
@@ -646,18 +646,18 @@ describe.skip('Agents Network Integration', () => {
     })
   })
 
-  describe('Edge Cases and Error Handling', () => {
+  describe('edge Cases and Error Handling', () => {
     it('should handle Redis connection failure', async () => {
       // Arrange
       mockRedis.connect.mockRejectedValue(
-        new Error('ECONNREFUSED: Redis connection refused')
+        new Error('ECONNREFUSED: Redis connection refused'),
       )
 
       redisBus.connect.mockImplementation(() => mockRedis.connect())
 
       // Act & Assert
       await expect(redisBus.connect()).rejects.toThrow(
-        'ECONNREFUSED: Redis connection refused'
+        'ECONNREFUSED: Redis connection refused',
       )
     })
 
@@ -671,12 +671,12 @@ describe.skip('Agents Network Integration', () => {
       }
 
       redisBus.send.mockRejectedValue(
-        new Error('Invalid message: missing required fields')
+        new Error('Invalid message: missing required fields'),
       )
 
       // Act & Assert
       await expect(
-        redisBus.send(malformedMessage.to, malformedMessage)
+        redisBus.send(malformedMessage.to, malformedMessage),
       ).rejects.toThrow('Invalid message: missing required fields')
     })
 
@@ -692,7 +692,7 @@ describe.skip('Agents Network Integration', () => {
           type: 'concurrent-test',
           payload: { index: i },
           timestamp: new Date(),
-        })
+        }),
       )
 
       let processingCount = 0
@@ -705,7 +705,7 @@ describe.skip('Agents Network Integration', () => {
 
       // Act
       const results = await Promise.all(
-        messages.map(msg => redisBus.send(msg.to, msg))
+        messages.map(msg => redisBus.send(msg.to, msg)),
       )
 
       // Assert
@@ -736,7 +736,8 @@ describe.skip('Agents Network Integration', () => {
           payload: {},
           timestamp: new Date(),
         })
-      } catch (error) {
+      }
+      catch (error) {
         // Expected error on first attempt
       }
 
@@ -755,7 +756,7 @@ describe.skip('Agents Network Integration', () => {
     })
   })
 
-  describe('Agent Lifecycle Management', () => {
+  describe('agent Lifecycle Management', () => {
     it('should update agent status', async () => {
       // Arrange
       const agentId = 'agent-001'

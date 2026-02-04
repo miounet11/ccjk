@@ -10,7 +10,8 @@
  * - /bg clean - Clean up old tasks
  */
 
-import type { BackgroundTask, cancelBackgroundTask, executeAgentBackground, executeBackground, getBackgroundManager, listBackgroundTasks, type TaskOptions, TaskOutput } from '../brain/background-manager'
+import type { BackgroundTask, TaskOptions, TaskOutput } from '../brain/background-manager'
+import { cancelBackgroundTask, executeBackground, getBackgroundManager } from '../brain/background-manager'
 import type { SupportedLang } from '../constants'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
@@ -178,7 +179,7 @@ export async function listBackgroundTasks(options: {
     console.log(formatTask(tasks[i], i))
 
     if (tasks[i].metadata?.name) {
-      console.log(`     ${ansis.gray.dim(`Name: ${tasks[i].metadata.name}`)}`)
+      console.log(`     ${ansis.gray.dim(`Name: ${tasks[i].metadata?.name}`)}`)
     }
   }
 
@@ -440,7 +441,7 @@ export async function bgCommand(args: string[], options: {
         console.log(ansis.red('\nUsage: ccjk bg run <command> [args...]\n'))
         return
       }
-      await runBackgroundCommand(command, args.slice(2), { lang: options.lang })
+      await runBackgroundCommand(command, args.slice(2))
       break
     }
 
@@ -460,7 +461,7 @@ export async function bgCommand(args: string[], options: {
 
     default: {
       // Treat as command to run
-      await runBackgroundCommand(action, args.slice(1), { lang: options.lang })
+      await runBackgroundCommand(action, args.slice(1))
     }
   }
 }

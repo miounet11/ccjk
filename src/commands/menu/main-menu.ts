@@ -10,7 +10,6 @@
  * - expert: All available options including experimental features
  */
 
-import type { CodeToolType } from '../../constants'
 import type { MenuCategory, MenuItem } from './types'
 
 /**

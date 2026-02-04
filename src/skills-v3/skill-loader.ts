@@ -14,7 +14,7 @@ import type {
   SkillSource,
   SkillV3,
 } from './types'
-import { existsSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { extname, join } from 'pathe'
 import { migrateFile } from './migrator'

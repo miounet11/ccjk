@@ -5,7 +5,6 @@
  * API calls, cache operations, errors, and agent tasks.
  */
 
-import { nanoid } from 'nanoid'
 import type {
   AgentStats,
   AgentTaskRecord,
@@ -28,6 +27,7 @@ import type {
   ThresholdAlert,
   ThresholdConfig,
 } from './types'
+import { nanoid } from 'nanoid'
 
 // ============================================================================
 // Default Configuration
@@ -90,7 +90,8 @@ export class MetricsCollector {
    */
   endCommand(id: string, status: 'success' | 'failed' | 'timeout', error?: string): void {
     const execution = this.commands.get(id)
-    if (!execution) return
+    if (!execution)
+      return
 
     execution.endTime = Date.now()
     execution.duration = execution.endTime - execution.startTime
@@ -128,8 +129,10 @@ export class MetricsCollector {
       }
 
       stats.totalExecutions++
-      if (exec.status === 'success') stats.successCount++
-      else if (exec.status === 'failed' || exec.status === 'timeout') stats.failureCount++
+      if (exec.status === 'success')
+        stats.successCount++
+      else if (exec.status === 'failed' || exec.status === 'timeout')
+        stats.failureCount++
 
       if (exec.duration !== undefined) {
         stats.minDuration = Math.min(stats.minDuration, exec.duration)
@@ -150,7 +153,8 @@ export class MetricsCollector {
         stats.p95Duration = this.calculatePercentile(durations, 95)
       }
 
-      if (stats.minDuration === Infinity) stats.minDuration = 0
+      if (stats.minDuration === Infinity)
+        stats.minDuration = 0
     }
 
     return Array.from(statsMap.values())
@@ -194,7 +198,8 @@ export class MetricsCollector {
     } = {},
   ): void {
     const record = this.apiCalls.get(id)
-    if (!record) return
+    if (!record)
+      return
 
     record.endTime = Date.now()
     record.latency = record.endTime - record.startTime
@@ -240,7 +245,8 @@ export class MetricsCollector {
       }
 
       stats.totalCalls++
-      if (call.status === 'success') stats.successCount++
+      if (call.status === 'success')
+        stats.successCount++
       else stats.failureCount++
 
       if (call.latency !== undefined) {
@@ -248,8 +254,10 @@ export class MetricsCollector {
         stats.maxLatency = Math.max(stats.maxLatency, call.latency)
       }
 
-      if (call.tokensUsed) stats.totalTokens += call.tokensUsed
-      if (call.cached) stats.cacheHits++
+      if (call.tokensUsed)
+        stats.totalTokens += call.tokensUsed
+      if (call.cached)
+        stats.cacheHits++
       else stats.cacheMisses++
     }
 
@@ -265,7 +273,8 @@ export class MetricsCollector {
         stats.p95Latency = this.calculatePercentile(latencies, 95)
       }
 
-      if (stats.minLatency === Infinity) stats.minLatency = 0
+      if (stats.minLatency === Infinity)
+        stats.minLatency = 0
       stats.errorRate = stats.totalCalls > 0 ? stats.failureCount / stats.totalCalls : 0
     }
 
@@ -436,7 +445,8 @@ export class MetricsCollector {
     } = {},
   ): void {
     const record = this.agentTasks.get(id)
-    if (!record) return
+    if (!record)
+      return
 
     record.endTime = Date.now()
     record.duration = record.endTime - record.startTime
@@ -474,10 +484,13 @@ export class MetricsCollector {
       }
 
       stats.totalTasks++
-      if (task.status === 'success') stats.successCount++
-      else if (task.status === 'failed') stats.failureCount++
+      if (task.status === 'success')
+        stats.successCount++
+      else if (task.status === 'failed')
+        stats.failureCount++
 
-      if (task.tokensUsed) stats.totalTokens += task.tokensUsed
+      if (task.tokensUsed)
+        stats.totalTokens += task.tokensUsed
       stats.lastActive = task.endTime || task.startTime
     }
 
@@ -559,8 +572,10 @@ export class MetricsCollector {
       const last = recent[recent.length - 1].heapUsed
       const change = (last - first) / first
 
-      if (change > 0.1) trend = 'increasing'
-      else if (change < -0.1) trend = 'decreasing'
+      if (change > 0.1)
+        trend = 'increasing'
+      else if (change < -0.1)
+        trend = 'decreasing'
     }
 
     return {
@@ -598,7 +613,7 @@ export class MetricsCollector {
    */
   private emit(type: MetricEventType, data: unknown): void {
     const event: MetricEvent = { type, timestamp: Date.now(), data }
-    this.eventListeners.get(type)?.forEach(listener => {
+    this.eventListeners.get(type)?.forEach((listener) => {
       try {
         listener(event)
       }
@@ -631,7 +646,8 @@ export class MetricsCollector {
    */
   private checkThresholds(metric: string, value: number): void {
     for (const threshold of this.thresholds) {
-      if (threshold.metric !== metric) continue
+      if (threshold.metric !== metric)
+        continue
 
       let exceeded = false
       let level: 'warning' | 'critical' = 'warning'
@@ -677,7 +693,8 @@ export class MetricsCollector {
    * Calculate percentile from sorted array
    */
   private calculatePercentile(sortedValues: number[], percentile: number): number {
-    if (sortedValues.length === 0) return 0
+    if (sortedValues.length === 0)
+      return 0
     const index = Math.ceil((percentile / 100) * sortedValues.length) - 1
     return sortedValues[Math.max(0, index)]
   }
@@ -685,7 +702,7 @@ export class MetricsCollector {
   /**
    * Trim history arrays to max records
    */
-  private trimHistory<T extends { timestamp?: number; startTime?: number }>(array: T[]): void {
+  private trimHistory<T extends { timestamp?: number, startTime?: number }>(array: T[]): void {
     const cutoff = Date.now() - this.config.retentionPeriod
 
     // Remove old records

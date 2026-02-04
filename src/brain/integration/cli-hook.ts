@@ -10,9 +10,9 @@
  * 3. All user input will be automatically intercepted and routed
  */
 
+import type { ExecutionResult } from '../router'
 import { EventEmitter } from 'node:events'
 import { processUserInput } from '../router'
-import type { ExecutionResult } from '../router'
 
 /**
  * Hook configuration
@@ -162,7 +162,7 @@ export class BrainCliHook extends EventEmitter {
    * Display execution result to user
    */
   private displayResult(result: ExecutionResult): void {
-    console.log('\n' + '='.repeat(60))
+    console.log(`\n${'='.repeat(60)}`)
     console.log('🧠 Brain System Result')
     console.log('='.repeat(60))
     console.log()

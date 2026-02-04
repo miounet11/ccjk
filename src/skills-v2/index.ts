@@ -10,36 +10,36 @@
  * - Three-layer architecture: Language (L1), Design (L2), Domain (L3)
  */
 
-// Types
-export * from './types.js';
-
 // Parser
 export {
-  Parser,
   createSkill,
-} from './parser.js';
-
-// Runtime
-export {
-  Runtime,
-  createRuntime,
-} from './runtime.js';
+  Parser,
+} from './parser.js'
 
 // Router
 export {
-  Router,
   createRouter,
-} from './router.js';
+  Router,
+} from './router.js'
+
+// Runtime
+export {
+  createRuntime,
+  Runtime,
+} from './runtime.js'
+
+// Types
+export * from './types.js'
 
 // Re-export main interfaces for convenience
 export type {
   CognitiveProtocol,
-  ReasoningChain,
-  Skill,
-  Layer,
   ExecutionResult,
+  Layer,
+  ReasoningChain,
   RouterMatch,
-} from './types.js';
+  Skill,
+} from './types.js'
 
 /**
  * Example usage:

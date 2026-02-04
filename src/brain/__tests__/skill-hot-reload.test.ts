@@ -4,18 +4,17 @@
  * @module brain/__tests__/skill-hot-reload.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { EventEmitter } from 'node:events'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  SkillHotReload,
   createSkillHotReload,
   getSkillHotReload,
+  getSkillHotReloadStats,
   resetSkillHotReload,
+  SkillHotReload,
   startSkillHotReload,
   stopSkillHotReload,
-  getSkillHotReloadStats,
 } from '../skill-hot-reload'
-import type { HotReloadEvent, HotReloadOptions } from '../skill-hot-reload'
 
 // Mock chokidar - use hoisted mock to avoid initialization order issues
 const { mockWatcher } = vi.hoisted(() => {
@@ -79,7 +78,7 @@ vi.mock('glob', () => ({
   glob: vi.fn().mockResolvedValue([]),
 }))
 
-describe('SkillHotReload', () => {
+describe('skillHotReload', () => {
   let hotReload: SkillHotReload
 
   beforeEach(async () => {
@@ -118,7 +117,7 @@ describe('SkillHotReload', () => {
   // Normal Flow Tests
   // ===========================================================================
 
-  describe('Normal Flow', () => {
+  describe('normal Flow', () => {
     it('should create hot reload instance with default options', () => {
       hotReload = new SkillHotReload()
 
@@ -268,7 +267,7 @@ describe('SkillHotReload', () => {
   // Event Handling Tests
   // ===========================================================================
 
-  describe('Event Handling', () => {
+  describe('event Handling', () => {
     it('should emit add event when skill file is added', async () => {
       hotReload = new SkillHotReload({
         ignoreInitial: true,
@@ -411,7 +410,7 @@ describe('SkillHotReload', () => {
   // Error Handling Tests
   // ===========================================================================
 
-  describe('Error Handling', () => {
+  describe('error Handling', () => {
     it('should emit error event on parse failure', async () => {
       // Mock parser to return failure
       const { getSkillParser } = await import('../skill-parser')
@@ -501,7 +500,7 @@ describe('SkillHotReload', () => {
   // File Detection Tests
   // ===========================================================================
 
-  describe('File Detection', () => {
+  describe('file Detection', () => {
     it('should detect SKILL.md files', async () => {
       hotReload = new SkillHotReload({
         ignoreInitial: true,
@@ -632,7 +631,7 @@ describe('SkillHotReload', () => {
   // Debounce Tests
   // ===========================================================================
 
-  describe('Debounce', () => {
+  describe('debounce', () => {
     it('should debounce rapid file changes', async () => {
       hotReload = new SkillHotReload({
         ignoreInitial: true,
@@ -707,7 +706,7 @@ describe('SkillHotReload', () => {
   // Singleton and Factory Tests
   // ===========================================================================
 
-  describe('Singleton and Factory', () => {
+  describe('singleton and Factory', () => {
     it('should get singleton instance', async () => {
       await resetSkillHotReload()
 
@@ -778,7 +777,7 @@ describe('SkillHotReload', () => {
   // Configuration Tests
   // ===========================================================================
 
-  describe('Configuration', () => {
+  describe('configuration', () => {
     it('should use custom watch paths', () => {
       hotReload = new SkillHotReload({
         watchPaths: ['/custom/path1', '/custom/path2'],
@@ -819,7 +818,7 @@ describe('SkillHotReload', () => {
   // Edge Cases
   // ===========================================================================
 
-  describe('Edge Cases', () => {
+  describe('edge Cases', () => {
     it('should handle no watch paths', async () => {
       hotReload = new SkillHotReload({
         watchPaths: [],

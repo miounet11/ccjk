@@ -100,7 +100,8 @@ export class ConflictResolver {
 
     // Build command map
     for (const plugin of plugins) {
-      if (!plugin.enabled) continue
+      if (!plugin.enabled)
+        continue
 
       for (const command of plugin.commands || []) {
         if (!commandMap.has(command)) {
@@ -135,7 +136,8 @@ export class ConflictResolver {
 
     // Build skill map
     for (const plugin of plugins) {
-      if (!plugin.enabled) continue
+      if (!plugin.enabled)
+        continue
 
       for (const skill of plugin.skills || []) {
         if (!skillMap.has(skill)) {
@@ -170,7 +172,8 @@ export class ConflictResolver {
 
     // Build feature map
     for (const plugin of plugins) {
-      if (!plugin.enabled) continue
+      if (!plugin.enabled)
+        continue
 
       for (const feature of plugin.features || []) {
         if (!featureMap.has(feature)) {
@@ -205,7 +208,8 @@ export class ConflictResolver {
 
     // Build dependency version map
     for (const plugin of plugins) {
-      if (!plugin.enabled) continue
+      if (!plugin.enabled)
+        continue
 
       for (const dep of plugin.dependencies || []) {
         // Parse dependency (format: "name@version" or "name")
@@ -224,7 +228,7 @@ export class ConflictResolver {
     for (const [dep, versions] of dependencyMap) {
       if (versions.size > 1) {
         const conflictingPlugins = plugins.filter(p =>
-          p.enabled && p.dependencies?.some(d => d.startsWith(`${dep}@`))
+          p.enabled && p.dependencies?.some(d => d.startsWith(`${dep}@`)),
         )
 
         conflicts.push({
@@ -246,7 +250,7 @@ export class ConflictResolver {
   resolveConflicts(
     conflicts: PluginConflict[],
     strategy: ResolutionStrategy,
-    preferredSource?: string
+    preferredSource?: string,
   ): ResolutionResult {
     const enabled = new Set<UnifiedPlugin>()
     const disabled = new Set<UnifiedPlugin>()
@@ -260,7 +264,8 @@ export class ConflictResolver {
         resolution.enabled.forEach(p => enabled.add(p))
         resolution.disabled.forEach(p => disabled.add(p))
         actions.push(...resolution.actions)
-      } else {
+      }
+      else {
         unresolved.push(conflict)
       }
     }
@@ -280,7 +285,7 @@ export class ConflictResolver {
   private resolveConflict(
     conflict: PluginConflict,
     strategy: ResolutionStrategy,
-    preferredSource?: string
+    preferredSource?: string,
   ): ResolutionResult {
     const { plugins } = conflict
 
@@ -297,13 +302,13 @@ export class ConflictResolver {
 
       case ResolutionStrategy.KEEP_HIGHEST_RATED:
         winner = plugins.reduce((best, current) =>
-          (current.rating || 0) > (best.rating || 0) ? current : best
+          (current.rating || 0) > (best.rating || 0) ? current : best,
         )
         break
 
       case ResolutionStrategy.KEEP_MOST_POPULAR:
         winner = plugins.reduce((best, current) =>
-          (current.stats?.downloads || 0) > (best.stats?.downloads || 0) ? current : best
+          (current.stats?.downloads || 0) > (best.stats?.downloads || 0) ? current : best,
         )
         break
 
@@ -314,7 +319,8 @@ export class ConflictResolver {
       case ResolutionStrategy.KEEP_PREFERRED_SOURCE:
         if (preferredSource) {
           winner = plugins.find(p => p.source === preferredSource) || plugins[0]
-        } else {
+        }
+        else {
           winner = plugins[0]
         }
         break
@@ -370,7 +376,7 @@ export class ConflictResolver {
     const lines = [
       `Found ${conflicts.length} conflict(s):`,
       ...Array.from(byType.entries()).map(
-        ([type, count]) => `  ${type}: ${count}`
+        ([type, count]) => `  ${type}: ${count}`,
       ),
     ]
 

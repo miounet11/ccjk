@@ -12,30 +12,30 @@
  * - 📚 帮助文档 - 命令参考、教程、关于
  */
 
-// 类型导出
-export * from './types.js'
+// 新菜单系统导出（CLI 入口）
+export { runCli } from './cli.js'
+
+export { mainMenuConfig as newMainMenuConfig } from './config/main-menu.js'
 
 // 菜单配置导出
 export {
-  mainMenuConfig,
   apiConfigMenu,
-  quickStartGroup,
+  getLocalizedLabel,
+  helpGroup,
+  mainMenuConfig,
   projectManagementGroup,
+  quickStartGroup,
   sessionManagementGroup,
   settingsGroup,
-  helpGroup,
-  getLocalizedLabel,
 } from './menu-config.js'
 
-// 菜单渲染器导出
-export { MenuRenderer, createMenuRenderer } from './menu-renderer.js'
-
 // 菜单引擎导出
-export { MenuEngine, createMenuEngine } from './menu-engine.js'
+export { createMenuEngine, MenuEngine } from './menu-engine.js'
 
-// 新菜单系统导出（CLI 入口）
-export { runCli } from './cli.js'
-export { mainMenuConfig as newMainMenuConfig } from './config/main-menu.js'
+// 菜单渲染器导出
+export { createMenuRenderer, MenuRenderer } from './menu-renderer.js'
+// 类型导出
+export * from './types.js'
 
 /**
  * 显示交互式菜单（新版本）

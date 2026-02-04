@@ -3,7 +3,6 @@
  * Tests for centralized error handling system
  */
 
-import ansis from 'ansis'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   ApiKeyError,

@@ -5,8 +5,8 @@
  */
 
 import type { AgentDefinition, CloudAgent } from '../types/agent'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
-import { existsSync, readFileSync, writeFileSync, readdirSync } from 'node:fs'
 import { CLAUDE_AGENTS_DIR } from '../constants'
 
 /** Agents directory - uses ~/.claude/agents for Claude Code compatibility */
@@ -32,7 +32,8 @@ export async function registerAgent(agent: Partial<CloudAgent> | AgentDefinition
   if (existsSync(registryPath)) {
     try {
       registry = JSON.parse(readFileSync(registryPath, 'utf-8'))
-    } catch {
+    }
+    catch {
       // Invalid registry, start fresh
     }
   }
@@ -58,7 +59,8 @@ export function listAgents(): string[] {
   try {
     const registry = JSON.parse(readFileSync(registryPath, 'utf-8'))
     return Object.keys(registry)
-  } catch {
+  }
+  catch {
     return []
   }
 }
@@ -75,7 +77,8 @@ export function getAgent(agentId: string): Partial<CloudAgent> | null {
 
   try {
     return JSON.parse(readFileSync(agentPath, 'utf-8'))
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -94,12 +97,13 @@ export async function unregisterAgent(agentId: string): Promise<void> {
     const registry = JSON.parse(readFileSync(registryPath, 'utf-8'))
     delete registry[agentId]
     writeFileSync(registryPath, JSON.stringify(registry, null, 2))
-  } catch {
+  }
+  catch {
     // Ignore errors
   }
 }
 
 function generateAgentId(agent: any): string {
   const name = agent.name || agent.role || 'agent'
-  return name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
+  return `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
 }

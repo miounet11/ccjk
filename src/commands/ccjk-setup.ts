@@ -11,12 +11,13 @@
  */
 
 import type { SupportedLang } from '../constants'
-import { i18n } from '../i18n'
-import { consola } from 'consola'
-import ansis from 'ansis'
+import type { SetupOrchestratorOptions, SetupResult } from '../orchestrators/setup-orchestrator'
 import { cwd } from 'node:process'
+import ansis from 'ansis'
+import { consola } from 'consola'
 import { ProjectAnalyzer } from '../analyzers'
-import { SetupOrchestrator, type SetupOrchestratorOptions, type SetupResult } from '../orchestrators/setup-orchestrator'
+import { i18n } from '../i18n'
+import { SetupOrchestrator } from '../orchestrators/setup-orchestrator'
 
 /**
  * Command options interface
@@ -49,7 +50,6 @@ export async function ccjkSetup(options: CcjkSetupOptions = {}): Promise<number>
       ...options,
       showProgress: false,
       interactive: false,
-      projectPath: cwd(),
       lang,
     })
 
@@ -67,7 +67,6 @@ export async function ccjkSetup(options: CcjkSetupOptions = {}): Promise<number>
     // Run setup
     const result = await orchestrator.execute({
       ...options,
-      projectPath: cwd(),
       lang,
     })
 
@@ -75,7 +74,8 @@ export async function ccjkSetup(options: CcjkSetupOptions = {}): Promise<number>
     await showResults(result, options, logger)
 
     return result.success ? 0 : 1
-  } catch (error) {
+  }
+  catch (error) {
     logger.error(isZh ? '设置失败' : 'Setup failed')
     if (options.verbose) {
       logger.error(error)
@@ -97,11 +97,16 @@ async function showResults(result: SetupResult, options: CcjkSetupOptions, logge
     logger.log('')
 
     // Summary
+    const skillsPhase = result.phases.find(p => p.phase === 'skills')
+    const mcpPhase = result.phases.find(p => p.phase === 'mcp')
+    const agentsPhase = result.phases.find(p => p.phase === 'agents')
+    const hooksPhase = result.phases.find(p => p.phase === 'hooks')
+
     const summary = [
-      `${isZh ? '技能' : 'Skills'}: ${result.phases.skills?.installed?.length || 0} ${isZh ? '已安装' : 'installed'}`,
-      `${isZh ? 'MCP' : 'MCP'}: ${result.phases.mcp?.installed?.length || 0} ${isZh ? '已安装' : 'installed'}`,
-      `${isZh ? '代理' : 'Agents'}: ${result.phases.agents?.installed?.length || 0} ${isZh ? '已创建' : 'created'}`,
-      `${isZh ? '钩子' : 'Hooks'}: ${result.phases.hooks?.installed?.length || 0} ${isZh ? '已配置' : 'configured'}`,
+      `${isZh ? '技能' : 'Skills'}: ${skillsPhase?.installed || 0} ${isZh ? '已安装' : 'installed'}`,
+      `${isZh ? 'MCP' : 'MCP'}: ${mcpPhase?.installed || 0} ${isZh ? '已安装' : 'installed'}`,
+      `${isZh ? '代理' : 'Agents'}: ${agentsPhase?.installed || 0} ${isZh ? '已创建' : 'created'}`,
+      `${isZh ? '钩子' : 'Hooks'}: ${hooksPhase?.installed || 0} ${isZh ? '已配置' : 'configured'}`,
     ]
     logger.log(ansis.bold(isZh ? '摘要:' : 'Summary:'))
     summary.forEach(line => logger.log(`  ${line}`))
@@ -112,7 +117,8 @@ async function showResults(result: SetupResult, options: CcjkSetupOptions, logge
     logger.log(`  • ${isZh ? '使用 /ccjk:all 获取云AI推荐' : 'Use /ccjk:all for cloud AI recommendations'}`)
     logger.log(`  • ${isZh ? '重启 Claude Code 以应用更改' : 'Restart Claude Code to apply changes'}`)
     logger.log('')
-  } else {
+  }
+  else {
     logger.log(ansis.yellow(ansis.bold(isZh ? '⚠️ 设置部分失败' : '⚠️ Setup Partially Failed')))
     logger.log('')
 
@@ -127,10 +133,10 @@ async function showResults(result: SetupResult, options: CcjkSetupOptions, logge
     }
   }
 
-  if (options.report && result.report) {
+  if (options.report && result.reportPath) {
     logger.log(ansis.bold(isZh ? '📊 详细报告:' : '📊 Detailed Report:'))
     logger.log('')
-    logger.log(result.report)
+    logger.log(ansis.gray(`Report saved to: ${result.reportPath}`))
   }
 }
 

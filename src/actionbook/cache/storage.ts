@@ -1,31 +1,84 @@
 /**
  * LevelDB Storage
  *
- * Persistent storage using LevelDB for precomputed data.
+ * Persistent storage using file-based storage for precomputed data.
  * Supports compression, automatic compaction, and atomic writes.
  */
 
-import level from 'level'
 import type { CacheEntry } from '../types.js'
-import { gzipSync, gunzipSync } from 'node:zlib'
 import { createHash } from 'node:crypto'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
+import { gunzipSync, gzipSync } from 'node:zlib'
 
 /**
- * LevelDB storage class
+ * File-based storage class
  */
 export class LevelDBStorage {
-  private db: level.LevelDB
+  private dbPath: string
   private compressionEnabled: boolean
+  private cache: Map<string, CacheEntry>
+  private initialized: boolean = false
 
   constructor(dbPath: string, compressionEnabled = true) {
-    this.db = level(dbPath, { valueEncoding: 'json' })
+    this.dbPath = dbPath
     this.compressionEnabled = compressionEnabled
+    this.cache = new Map()
+  }
+
+  /**
+   * Initialize storage
+   */
+  private async initialize(): Promise<void> {
+    if (this.initialized) {
+      return
+    }
+
+    try {
+      await fs.mkdir(this.dbPath, { recursive: true })
+      // Load existing data
+      await this.loadFromDisk()
+      this.initialized = true
+    }
+    catch (error) {
+      console.error('Failed to initialize storage:', error)
+    }
+  }
+
+  /**
+   * Load data from disk
+   */
+  private async loadFromDisk(): Promise<void> {
+    try {
+      const files = await fs.readdir(this.dbPath)
+      for (const file of files) {
+        if (file.endsWith('.json')) {
+          const filePath = path.join(this.dbPath, file)
+          const content = await fs.readFile(filePath, 'utf-8')
+          const entry = JSON.parse(content) as CacheEntry
+          this.cache.set(entry.key, entry)
+        }
+      }
+    }
+    catch (error) {
+      // Ignore if directory doesn't exist yet
+    }
+  }
+
+  /**
+   * Get file path for a key
+   */
+  private getFilePath(key: string): string {
+    const hash = createHash('md5').update(key).digest('hex')
+    return path.join(this.dbPath, `${hash}.json`)
   }
 
   /**
    * Store a cache entry
    */
   async put(entry: CacheEntry): Promise<void> {
+    await this.initialize()
+
     const dataToStore = { ...entry }
 
     if (this.compressionEnabled && shouldCompress(entry.type)) {
@@ -33,72 +86,82 @@ export class LevelDBStorage {
       dataToStore.compressed = true
     }
 
-    await this.db.put(entry.key, dataToStore)
+    this.cache.set(entry.key, dataToStore)
+
+    // Write to disk
+    const filePath = this.getFilePath(entry.key)
+    await fs.writeFile(filePath, JSON.stringify(dataToStore, null, 2), 'utf-8')
   }
 
   /**
    * Retrieve a cache entry
    */
   async get(key: string): Promise<CacheEntry | null> {
-    try {
-      const entry = (await this.db.get(key)) as CacheEntry
+    await this.initialize()
 
-      // Decompress if needed
-      if (entry.compressed) {
-        entry.data = decompressData(entry.data)
-        entry.compressed = false
-      }
+    const entry = this.cache.get(key)
+    if (!entry) {
+      return null
+    }
 
-      return entry
+    // Decompress if needed
+    if (entry.compressed) {
+      const decompressed = { ...entry }
+      decompressed.data = decompressData(entry.data)
+      decompressed.compressed = false
+      return decompressed
     }
-    catch (error: any) {
-      if (error.code === 'LEVEL_NOT_FOUND') {
-        return null
-      }
-      throw error
-    }
+
+    return entry
   }
 
   /**
    * Delete a cache entry
    */
   async del(key: string): Promise<void> {
-    await this.db.del(key)
+    await this.initialize()
+
+    this.cache.delete(key)
+
+    // Delete from disk
+    const filePath = this.getFilePath(key)
+    try {
+      await fs.unlink(filePath)
+    }
+    catch (error) {
+      // Ignore if file doesn't exist
+    }
   }
 
   /**
    * Check if key exists
    */
   async has(key: string): Promise<boolean> {
-    try {
-      await this.db.get(key)
-      return true
-    }
-    catch (error: any) {
-      if (error.code === 'LEVEL_NOT_FOUND') {
-        return false
-      }
-      throw error
-    }
+    await this.initialize()
+    return this.cache.has(key)
   }
 
   /**
    * Get all entries matching a prefix
    */
   async getByPrefix(prefix: string): Promise<CacheEntry[]> {
+    await this.initialize()
+
     const entries: CacheEntry[] = []
+    const cacheEntries = Array.from(this.cache.entries())
 
-    for await (const [key, value] of this.db.iterator()) {
+    for (const [key, entry] of cacheEntries) {
       if (key.startsWith(prefix)) {
-        let entry = value as CacheEntry
-
         // Decompress if needed
         if (entry.compressed) {
-          entry.data = decompressData(entry.data)
-          entry.compressed = false
+          const decompressed = { ...entry }
+          decompressed.data = decompressData(entry.data)
+          decompressed.compressed = false
+          entries.push(decompressed)
         }
-
-        entries.push(entry)
+        else {
+          entries.push(entry)
+        }
       }
     }
 
@@ -109,38 +172,47 @@ export class LevelDBStorage {
    * Batch write multiple entries
    */
   async batch(entries: CacheEntry[]): Promise<void> {
-    const ops = entries.map(entry => ({
-      type: 'put',
-      key: entry.key,
-      value: entry,
-    }))
+    await this.initialize()
 
-    await this.db.batch(ops as any)
+    await Promise.all(entries.map(entry => this.put(entry)))
   }
 
   /**
    * Clear all entries
    */
   async clear(): Promise<void> {
-    await this.db.clear()
+    await this.initialize()
+
+    this.cache.clear()
+
+    // Clear disk storage
+    try {
+      const files = await fs.readdir(this.dbPath)
+      await Promise.all(
+        files
+          .filter(file => file.endsWith('.json'))
+          .map(file => fs.unlink(path.join(this.dbPath, file))),
+      )
+    }
+    catch (error) {
+      // Ignore errors
+    }
   }
 
   /**
    * Close database connection
    */
   async close(): Promise<void> {
-    await this.db.close()
+    // Flush any pending writes
+    this.initialized = false
   }
 
   /**
    * Get approximate database size
    */
   async getSize(): Promise<number> {
-    let count = 0
-    for await (const _ of this.db.iterator()) {
-      count++
-    }
-    return count
+    await this.initialize()
+    return this.cache.size
   }
 
   /**

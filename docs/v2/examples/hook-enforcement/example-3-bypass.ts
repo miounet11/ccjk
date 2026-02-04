@@ -4,7 +4,8 @@
  * Demonstrates how to implement bypass mechanisms for hooks
  */
 
-import { HookEnforcer, HookMatcher, HookExecutor } from '@ccjk/v2/hooks'
+import type { HookExecutor, HookMatcher } from '@ccjk/v2/hooks'
+import { HookEnforcer } from '@ccjk/v2/hooks'
 import { EnforcementLevel } from '@ccjk/v2/types'
 
 /**
@@ -93,7 +94,7 @@ export async function bypassExample() {
     'Deep scan all files in the project',
     {
       userId: 'user-123',
-    }
+    },
   )
   console.log('Result:', result1)
 
@@ -104,7 +105,7 @@ export async function bypassExample() {
     {
       userId: 'user-123',
       bypassHooks: ['expensive-operation-check'],
-    }
+    },
   )
   console.log('Result:', result2)
 
@@ -114,7 +115,7 @@ export async function bypassExample() {
     'Check syntax',
     {
       userId: 'user-123',
-    }
+    },
   )
   console.log('Result:', result3)
 

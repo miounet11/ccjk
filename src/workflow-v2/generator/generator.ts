@@ -6,16 +6,15 @@
  */
 
 import type {
+  GeneratorConfig,
+  ProjectContext,
   Workflow,
   WorkflowGenerationRequest,
   WorkflowGenerationResult,
-  GenerationMetadata,
-  GeneratorConfig,
-  ProjectContext,
 } from '../types.js'
 import { ContextBuilder } from './context-builder.js'
-import { PromptTemplates } from './prompt-templates.js'
 import { PostProcessor } from './post-processor.js'
+import { PromptTemplates } from './prompt-templates.js'
 
 interface AnthropicMessage {
   role: 'user' | 'assistant'
@@ -23,7 +22,7 @@ interface AnthropicMessage {
 }
 
 interface AnthropicResponse {
-  content: Array<{ type: string; text: string }>
+  content: Array<{ type: string, text: string }>
   usage?: {
     input_tokens: number
     output_tokens: number
@@ -35,7 +34,7 @@ export class WorkflowGenerator {
   private contextBuilder: ContextBuilder
   private promptTemplates: PromptTemplates
   private postProcessor: PostProcessor
-  private cache: Map<string, { workflow: Workflow; timestamp: number }>
+  private cache: Map<string, { workflow: Workflow, timestamp: number }>
 
   constructor(config: GeneratorConfig = {}) {
     this.config = {
@@ -238,8 +237,8 @@ export class WorkflowGenerator {
   private parseWorkflowResponse(text: string): Workflow {
     try {
       // Extract JSON from markdown code blocks if present
-      const jsonMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/) ||
-                       text.match(/(\{[\s\S]*\})/)
+      const jsonMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
+        || text.match(/(\{[\s\S]*\})/)
 
       if (!jsonMatch) {
         throw new Error('No JSON found in response')
@@ -313,7 +312,7 @@ export class WorkflowGenerator {
   /**
    * Get cache statistics
    */
-  getCacheStats(): { size: number; keys: string[] } {
+  getCacheStats(): { size: number, keys: string[] } {
     return {
       size: this.cache.size,
       keys: Array.from(this.cache.keys()),

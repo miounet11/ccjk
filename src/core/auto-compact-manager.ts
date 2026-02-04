@@ -12,8 +12,8 @@
  * @module core/auto-compact-manager
  */
 
-import type { SessionHistoryEntry } from '../brain/session-manager'
 import type { UsageStats } from '../brain/context-overflow-detector'
+import type { SessionHistoryEntry } from '../brain/session-manager'
 import { EventEmitter } from 'node:events'
 import { getAutoSessionSaver } from '../brain/auto-session-saver'
 
@@ -24,11 +24,11 @@ import { getAutoSessionSaver } from '../brain/auto-session-saver'
 /**
  * Compact strategy types
  */
-export type CompactStrategy =
-  | 'preserve_recent'      // Keep recent N turns, summarize rest
-  | 'summarize_all'        // Summarize everything
-  | 'sliding_window'       // Keep sliding window of context
-  | 'importance_based'     // Keep important messages based on scoring
+export type CompactStrategy
+  = | 'preserve_recent' // Keep recent N turns, summarize rest
+    | 'summarize_all' // Summarize everything
+    | 'sliding_window' // Keep sliding window of context
+    | 'importance_based' // Keep important messages based on scoring
 
 /**
  * Message importance level
@@ -546,7 +546,8 @@ export class AutoCompactManager extends EventEmitter {
    * Estimate tokens for text
    */
   private estimateTokensForText(text: string): number {
-    if (!text) return 0
+    if (!text)
+      return 0
     return Math.ceil(text.length / this.config.charsPerToken)
   }
 
@@ -562,8 +563,8 @@ export class AutoCompactManager extends EventEmitter {
     this.stats.lastCompactionTime = Date.now()
 
     // Calculate running average
-    this.stats.averageTokenReduction =
-      this.stats.totalTokensSaved / this.stats.totalCompactions
+    this.stats.averageTokenReduction
+      = this.stats.totalTokensSaved / this.stats.totalCompactions
   }
 
   // ==========================================================================

@@ -13,9 +13,8 @@ import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import dayjs from 'dayjs'
 import { join } from 'pathe'
-import { parse, stringify } from 'smol-toml'
+import { parse } from 'smol-toml'
 import {
-  CCJK_CONFIG_DIR,
   CCJK_CONFIG_FILE,
   CLAUDE_DIR,
   LEGACY_ZCF_CONFIG_FILES,
@@ -23,7 +22,7 @@ import {
 } from '../../../constants'
 import { copyFile, ensureDir, readFile } from '../../../utils/fs-operations'
 import { readJsonConfig } from '../../../utils/json-config'
-import { createDefaultCcjkConfig, writeCcjkConfig } from '../ccjk-config'
+import { writeCcjkConfig } from '../ccjk-config'
 import { writeClaudeConfig } from '../claude-config'
 import { createDefaultState, STATE_FILE, writeState } from '../state-manager'
 
@@ -190,7 +189,7 @@ export async function migrateZcfTomlToCcjk(
   try {
     // Read legacy TOML config
     const content = readFile(legacyPath)
-    const legacyData = parse(content) as ZcfTomlConfig
+    const legacyData = parse(content) as unknown as ZcfTomlConfig
 
     if (!legacyData) {
       return {
@@ -321,13 +320,14 @@ export async function runMigrations(
     return {
       success: true,
       migratedScopes: [],
+      errors: [],
       warnings,
     }
   }
 
   // Create backup
   const backupPath = options.backup !== false
-    ? createMigrationBackup(['ccjk', 'claude', 'state'])
+    ? createMigrationBackup(['ccjk', 'claude', 'state']) ?? undefined
     : undefined
 
   // Run migrations for each legacy config
@@ -366,7 +366,7 @@ export async function runMigrations(
   return {
     success: errors.length === 0,
     migratedScopes,
-    backupPath,
+    backupPath: backupPath ?? undefined,
     errors,
     warnings,
   }

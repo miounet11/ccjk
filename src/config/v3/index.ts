@@ -43,42 +43,11 @@
 // Type Exports
 // ============================================================================
 
-export type {
-  // Core types
-  ConfigChangeEvent,
-  ConfigChangeHandler,
-  ConfigDiff,
-  ConfigV3,
-  DiffEntry,
-  Environment,
-  IConfigManagerV3,
-  MigrationResult,
-  PartialConfigV3,
-  ValidationError,
-  ValidationErrorCode,
-  ValidationResult,
-  ValidationWarning,
-
-  // Schema types
-  ConfigSchema,
-  SchemaField,
-  SchemaFieldType,
-
-  // Config section types
-  ApiConfigV3,
-  ApiEndpointConfig,
-  ClaudeCodeConfigV3,
-  CodexConfigV3,
-  FeaturesConfigV3,
-  GeneralConfigV3,
-  ProfileConfigV3,
-  ToolConfigBase,
-  ToolsConfigV3,
-} from './types'
-
 // ============================================================================
-// Core Manager Exports
+// Default Export - Singleton Instance
 // ============================================================================
+
+import { getConfigManager } from './config-manager'
 
 export {
   ConfigManagerV3,
@@ -96,16 +65,23 @@ export {
 } from './config-manager'
 
 // ============================================================================
-// Schema Validator Exports
+// Core Manager Exports
 // ============================================================================
 
 export {
-  CONFIG_SCHEMA,
-  createValidator,
-  isValidConfig,
-  SchemaValidator,
-  validateConfig,
-} from './schema-validator'
+  createHotReloadManager,
+  getHotReloadManager,
+  HotReloadManager,
+  onConfigChange,
+  startHotReload,
+  stopHotReload,
+} from './hot-reload'
+
+// ============================================================================
+// Schema Validator Exports
+// ============================================================================
+
+export type { HotReloadOptions } from './hot-reload'
 
 // ============================================================================
 // Migration Exports
@@ -125,21 +101,45 @@ export {
 // ============================================================================
 
 export {
-  createHotReloadManager,
-  getHotReloadManager,
-  HotReloadManager,
-  onConfigChange,
-  startHotReload,
-  stopHotReload,
-} from './hot-reload'
+  CONFIG_SCHEMA,
+  createValidator,
+  isValidConfig,
+  SchemaValidator,
+  validateConfig,
+} from './schema-validator'
 
-export type { HotReloadOptions } from './hot-reload'
+export type {
+  // Config section types
+  ApiConfigV3,
+  ApiEndpointConfig,
+  ClaudeCodeConfigV3,
+  CodexConfigV3,
+  // Core types
+  ConfigChangeEvent,
+  ConfigChangeHandler,
+  ConfigDiff,
+  // Schema types
+  ConfigSchema,
+  ConfigV3,
+  DiffEntry,
+  Environment,
+  FeaturesConfigV3,
+  GeneralConfigV3,
 
-// ============================================================================
-// Default Export - Singleton Instance
-// ============================================================================
+  IConfigManagerV3,
+  MigrationResult,
+  PartialConfigV3,
 
-import { getConfigManager } from './config-manager'
+  ProfileConfigV3,
+  SchemaField,
+  SchemaFieldType,
+  ToolConfigBase,
+  ToolsConfigV3,
+  ValidationError,
+  ValidationErrorCode,
+  ValidationResult,
+  ValidationWarning,
+} from './types'
 
 /**
  * Default configuration manager instance

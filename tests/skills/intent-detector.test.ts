@@ -2,16 +2,16 @@
  * Intent detector tests
  */
 
-import { describe, expect, it } from 'vitest'
 import type { CcjkSkill } from '../../src/skills/types'
+import { describe, expect, it } from 'vitest'
 import { detectIntent, getRecommendationMessage } from '../../src/skills/intent-detector'
 
-describe('Intent Detector', () => {
+describe('intent Detector', () => {
   const mockSkills: CcjkSkill[] = [
     {
       id: 'git-commit',
-      name: { en: 'Git Commit', 'zh-CN': 'Git 提交' },
-      description: { en: 'Smart commit', 'zh-CN': '智能提交' },
+      name: { 'en': 'Git Commit', 'zh-CN': 'Git 提交' },
+      description: { 'en': 'Smart commit', 'zh-CN': '智能提交' },
       category: 'git',
       triggers: ['/commit', '/git-commit'],
       template: '# Git Commit',
@@ -21,8 +21,8 @@ describe('Intent Detector', () => {
     },
     {
       id: 'code-review',
-      name: { en: 'Code Review', 'zh-CN': '代码审查' },
-      description: { en: 'Review code', 'zh-CN': '审查代码' },
+      name: { 'en': 'Code Review', 'zh-CN': '代码审查' },
+      description: { 'en': 'Review code', 'zh-CN': '审查代码' },
       category: 'review',
       triggers: ['/review', '/code-review'],
       template: '# Code Review',
@@ -32,8 +32,8 @@ describe('Intent Detector', () => {
     },
     {
       id: 'debug-issue',
-      name: { en: 'Debug Issue', 'zh-CN': '调试问题' },
-      description: { en: 'Debug code', 'zh-CN': '调试代码' },
+      name: { 'en': 'Debug Issue', 'zh-CN': '调试问题' },
+      description: { 'en': 'Debug code', 'zh-CN': '调试代码' },
       category: 'debug',
       triggers: ['/debug', '/fix'],
       template: '# Debug',

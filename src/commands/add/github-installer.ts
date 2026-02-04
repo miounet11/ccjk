@@ -4,13 +4,13 @@
  * 从 GitHub 仓库安装插件
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import os from 'node:os'
+import type { AddResult } from './index'
 import type { GitHubSourceInfo } from './source-parser'
 import type { PluginType } from './type-detector'
-import type { AddResult } from './index'
-import { getInstallPath, copyDirectory, downloadFile } from './utils'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import { copyDirectory, downloadFile, getInstallPath } from './utils'
 
 export interface InstallOptions {
   force?: boolean
@@ -120,11 +120,11 @@ export async function installFromGitHub(
 async function fetchRepoInfo(
   owner: string,
   repo: string,
-): Promise<{ default_branch?: string; description?: string }> {
+): Promise<{ default_branch?: string, description?: string }> {
   const url = `https://api.github.com/repos/${owner}/${repo}`
   const response = await fetch(url, {
     headers: {
-      Accept: 'application/vnd.github.v3+json',
+      'Accept': 'application/vnd.github.v3+json',
       'User-Agent': 'ccjk-cli',
     },
   })
@@ -136,7 +136,7 @@ async function fetchRepoInfo(
     throw new Error(`Failed to fetch repository info: ${response.statusText}`)
   }
 
-  return response.json() as Promise<{ default_branch?: string; description?: string }>
+  return response.json() as Promise<{ default_branch?: string, description?: string }>
 }
 
 /**
@@ -153,7 +153,7 @@ async function listRepoFiles(
 
   const response = await fetch(url, {
     headers: {
-      Accept: 'application/vnd.github.v3+json',
+      'Accept': 'application/vnd.github.v3+json',
       'User-Agent': 'ccjk-cli',
     },
   })
@@ -162,11 +162,11 @@ async function listRepoFiles(
     return []
   }
 
-  const data = await response.json() as { tree?: Array<{ path: string; type: string }> }
+  const data = await response.json() as { tree?: Array<{ path: string, type: string }> }
   const files = (data.tree || [])
-    .filter((item) => item.type === 'blob')
-    .map((item) => item.path)
-    .filter((filePath) => !treePath || filePath.startsWith(treePath))
+    .filter(item => item.type === 'blob')
+    .map(item => item.path)
+    .filter(filePath => !treePath || filePath.startsWith(treePath))
 
   return files
 }
@@ -222,7 +222,7 @@ async function extractZip(zipPath: string, destDir: string): Promise<string> {
 
   // 找到解压后的目录（GitHub zip 会创建 repo-ref 目录）
   const entries = await fs.readdir(destDir)
-  const extractedDir = entries.find((entry) => !entry.endsWith('.zip'))
+  const extractedDir = entries.find(entry => !entry.endsWith('.zip'))
 
   if (!extractedDir) {
     throw new Error('Failed to find extracted directory')

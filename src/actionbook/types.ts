@@ -86,20 +86,20 @@ export interface Symbol {
 /**
  * Symbol kinds
  */
-export type SymbolKind =
-  | 'function'
-  | 'class'
-  | 'interface'
-  | 'type'
-  | 'variable'
-  | 'constant'
-  | 'parameter'
-  | 'method'
-  | 'property'
-  | 'enum'
-  | 'enumMember'
-  | 'module'
-  | 'namespace'
+export type SymbolKind
+  = | 'function'
+    | 'class'
+    | 'interface'
+    | 'type'
+    | 'variable'
+    | 'constant'
+    | 'parameter'
+    | 'method'
+    | 'property'
+    | 'enum'
+    | 'enumMember'
+    | 'module'
+    | 'namespace'
 
 /**
  * Reference to a symbol
@@ -217,23 +217,23 @@ export interface Pattern {
 /**
  * Pattern types
  */
-export type PatternType =
-  | 'anti-pattern'
-  | 'code-smell'
-  | 'security-risk'
-  | 'performance-issue'
-  | 'best-practice'
-  | 'architecture-pattern'
+export type PatternType
+  = | 'anti-pattern'
+    | 'code-smell'
+    | 'security-risk'
+    | 'performance-issue'
+    | 'best-practice'
+    | 'architecture-pattern'
 
 /**
  * Query API interface
  */
 export interface QueryAPI {
-  queryAST(filePath: string, offset?: number): Promise<ASTNode | null>
-  querySymbols(filePath: string): Promise<SymbolTable | null>
-  queryCallGraph(filePath: string): Promise<CallGraph | null>
-  queryComplexity(filePath: string): Promise<ComplexityMetrics | null>
-  queryPatterns(filePath: string): Promise<Pattern[] | null>
+  queryAST: (filePath: string, offset?: number) => Promise<ASTNode | null>
+  querySymbols: (filePath: string) => Promise<SymbolTable | null>
+  queryCallGraph: (filePath: string) => Promise<CallGraph | null>
+  queryComplexity: (filePath: string) => Promise<ComplexityMetrics | null>
+  queryPatterns: (filePath: string) => Promise<Pattern[] | null>
 }
 
 /**

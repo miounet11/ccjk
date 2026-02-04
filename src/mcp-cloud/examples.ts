@@ -468,7 +468,7 @@ async function example11_CompleteWorkflow() {
 
   // 2. Search for services
   console.log('Step 2: Search for database services')
-  const results = await manager.search('database')
+  const results = await manager.searchServices('database')
   console.log(`✓ Found ${results.length} services\n`)
 
   // 3. Get recommendations

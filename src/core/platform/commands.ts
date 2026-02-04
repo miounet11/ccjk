@@ -8,18 +8,18 @@
  * @since v8.3.0
  */
 
-import { exec, execSync, spawn, type SpawnOptions } from 'node:child_process'
-import { promisify } from 'node:util'
-
-import { getPlatformInfo } from './detector'
+import type { SpawnOptions } from 'node:child_process'
 import type {
   CommandMapping,
   CommandOptions,
   CommandResult,
-  OSType,
   ShellEscapeOptions,
   ShellType,
 } from './types'
+import { exec, execSync, spawn } from 'node:child_process'
+
+import { promisify } from 'node:util'
+import { getPlatformInfo } from './detector'
 
 const execAsync = promisify(exec)
 
@@ -137,7 +137,7 @@ const COMMAND_MAPPINGS: CommandMapping[] = [
  */
 export function getCommand(commandName: string): string | null {
   const platform = getPlatformInfo()
-  const mapping = COMMAND_MAPPINGS.find((m) => m.name === commandName)
+  const mapping = COMMAND_MAPPINGS.find(m => m.name === commandName)
 
   if (!mapping) {
     return null
@@ -161,10 +161,11 @@ export function getCommandMappings(): CommandMapping[] {
  * @param mapping - Command mapping to register
  */
 export function registerCommandMapping(mapping: CommandMapping): void {
-  const existingIndex = COMMAND_MAPPINGS.findIndex((m) => m.name === mapping.name)
+  const existingIndex = COMMAND_MAPPINGS.findIndex(m => m.name === mapping.name)
   if (existingIndex >= 0) {
     COMMAND_MAPPINGS[existingIndex] = mapping
-  } else {
+  }
+  else {
     COMMAND_MAPPINGS.push(mapping)
   }
 }
@@ -182,9 +183,10 @@ export function registerCommandMapping(mapping: CommandMapping): void {
  */
 export function escapeShell(
   value: string,
-  options: ShellEscapeOptions = { shell: 'bash' }
+  options: ShellEscapeOptions = { shell: 'bash' },
 ): string {
-  if (!value) return value
+  if (!value)
+    return value
 
   const { shell, quote = true, doubleQuoted = false } = options
 
@@ -216,7 +218,7 @@ function escapeBash(value: string, quote: boolean, doubleQuoted: boolean): strin
   // Single quotes preserve everything except single quotes themselves
   if (quote) {
     // Replace ' with '\'' (end quote, escaped quote, start quote)
-    const escaped = value.replace(/'/g, "'\\''")
+    const escaped = value.replace(/'/g, '\'\\\'\'')
     return `'${escaped}'`
   }
 
@@ -275,7 +277,7 @@ function escapeCmd(value: string, quote: boolean): string {
  */
 export function escapeArgs(args: string[], shell?: ShellType): string {
   const targetShell = shell || getPlatformInfo().shell
-  return args.map((arg) => escapeShell(arg, { shell: targetShell })).join(' ')
+  return args.map(arg => escapeShell(arg, { shell: targetShell })).join(' ')
 }
 
 // ============================================================================
@@ -331,7 +333,7 @@ export function buildEnvAssignment(name: string, value: string): string {
  */
 export function buildCommandWithEnv(
   command: string,
-  env: Record<string, string>
+  env: Record<string, string>,
 ): string {
   const platform = getPlatformInfo()
   const entries = Object.entries(env)
@@ -372,7 +374,7 @@ export function buildCommandWithEnv(
  * @param shell - Shell type
  * @returns Shell command and flag for executing commands
  */
-function getShellCommand(shell: ShellType): { cmd: string; flag: string } {
+function getShellCommand(shell: ShellType): { cmd: string, flag: string } {
   switch (shell) {
     case 'powershell':
       return { cmd: 'powershell.exe', flag: '-Command' }
@@ -399,7 +401,7 @@ function getShellCommand(shell: ShellType): { cmd: string; flag: string } {
  */
 export async function executeCommand(
   command: string,
-  options: CommandOptions = {}
+  options: CommandOptions = {},
 ): Promise<CommandResult> {
   const platform = getPlatformInfo()
   const startTime = Date.now()
@@ -440,7 +442,8 @@ export async function executeCommand(
       success: true,
       durationMs: Date.now() - startTime,
     }
-  } catch (error: unknown) {
+  }
+  catch (error: unknown) {
     const execError = error as {
       code?: number
       stdout?: string
@@ -477,7 +480,7 @@ export async function executeCommand(
  */
 export function executeCommandSync(
   command: string,
-  options: CommandOptions = {}
+  options: CommandOptions = {},
 ): CommandResult {
   const startTime = Date.now()
 
@@ -517,7 +520,8 @@ export function executeCommandSync(
       success: true,
       durationMs: Date.now() - startTime,
     }
-  } catch (error: unknown) {
+  }
+  catch (error: unknown) {
     const execError = error as {
       status?: number
       stdout?: Buffer
@@ -555,7 +559,7 @@ export function executeCommandSync(
 export function spawnCommand(
   command: string,
   args: string[] = [],
-  options: CommandOptions = {}
+  options: CommandOptions = {},
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now()
@@ -616,7 +620,8 @@ export function spawnCommand(
         const err = new Error(`Command failed: ${command}`)
         Object.assign(err, result)
         reject(err)
-      } else {
+      }
+      else {
         resolve(result)
       }
     })
@@ -636,7 +641,8 @@ export function spawnCommand(
 
       if (throwOnError) {
         reject(error)
-      } else {
+      }
+      else {
         resolve(result)
       }
     })
@@ -660,7 +666,8 @@ export async function commandExists(command: string): Promise<boolean> {
   try {
     const result = await executeCommand(`${whichCmd} ${escapeShell(command, { shell: platform.shell })}`)
     return result.success
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -678,7 +685,8 @@ export function commandExistsSync(command: string): boolean {
   try {
     const result = executeCommandSync(`${whichCmd} ${escapeShell(command, { shell: platform.shell })}`)
     return result.success
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -700,7 +708,8 @@ export async function getCommandPath(command: string): Promise<string | null> {
       return result.stdout.trim().split('\n')[0].trim()
     }
     return null
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -714,7 +723,7 @@ export async function getCommandPath(command: string): Promise<string | null> {
  */
 export function buildCommand(commandName: string, args: string[] = []): string {
   const platform = getPlatformInfo()
-  const mapping = COMMAND_MAPPINGS.find((m) => m.name === commandName)
+  const mapping = COMMAND_MAPPINGS.find(m => m.name === commandName)
 
   let cmd: string
   let finalArgs = args
@@ -724,7 +733,8 @@ export function buildCommand(commandName: string, args: string[] = []): string {
     if (mapping.transformArgs) {
       finalArgs = mapping.transformArgs(args, platform.os)
     }
-  } else {
+  }
+  else {
     cmd = commandName
   }
 

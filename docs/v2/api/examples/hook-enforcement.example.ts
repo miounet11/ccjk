@@ -14,7 +14,7 @@ async function hookEnforcementExample() {
   const enforcer = new HookEnforcer({
     strictMode: true,
     auditLogPath: './audit.log',
-    maxHistorySize: 1000
+    maxHistorySize: 1000,
   })
 
   // Register L1 hook (logging only)
@@ -31,7 +31,7 @@ async function hookEnforcementExample() {
       metrics.histogram(context.metricName, duration)
 
       return result
-    }
+    },
   })
 
   // Register L2 hook (approval with bypass)
@@ -43,7 +43,7 @@ async function hookEnforcementExample() {
       const response = await fetch(context.url, {
         method: context.method || 'GET',
         headers: context.headers || {},
-        body: context.body ? JSON.stringify(context.body) : undefined
+        body: context.body ? JSON.stringify(context.body) : undefined,
       })
 
       if (!response.ok) {
@@ -51,7 +51,7 @@ async function hookEnforcementExample() {
       }
 
       return await response.json()
-    }
+    },
   })
 
   // Register L3 hook (strict enforcement)
@@ -63,13 +63,13 @@ async function hookEnforcementExample() {
       const { path, content } = context
       await fs.writeFile(path, content)
       return { path, bytes: content.length }
-    }
+    },
   })
 
   // Execute L1 hook (always executes)
   const perfResult = await enforcer.execute('perf-metric', {
     metricName: 'database-query',
-    operation: () => databaseQuery('SELECT * FROM users')
+    operation: () => databaseQuery('SELECT * FROM users'),
   })
   console.log('Performance tracking:', perfResult.executed)
 
@@ -77,10 +77,11 @@ async function hookEnforcementExample() {
   try {
     const apiResult = await enforcer.execute('api-call', {
       url: 'https://api.example.com/users',
-      method: 'GET'
+      method: 'GET',
     })
     console.log('API call successful')
-  } catch (error) {
+  }
+  catch (error) {
     console.log('API call failed, bypassing...')
     await enforcer.bypass('api-call', 'API unavailable, using cache')
   }
@@ -88,7 +89,7 @@ async function hookEnforcementExample() {
   // Execute L3 hook (cannot bypass in strict mode)
   const fileResult = await enforcer.execute('file-write', {
     path: './data/output.json',
-    content: JSON.stringify({ status: 'success' })
+    content: JSON.stringify({ status: 'success' }),
   })
   console.log('File written:', fileResult.result.path)
 
@@ -123,23 +124,23 @@ async function fileSystemMonitoringExample() {
       handler: async (context) => {
         console.log(`[FILE ${op.toUpperCase()}] ${context.path}`)
         return await executeFileOp(op, context)
-      }
+      },
     })
   }
 
   // All file operations are now tracked and enforced
   await enforcer.execute('fs-write', {
     path: './config.json',
-    content: JSON.stringify({ setting: 'value' })
+    content: JSON.stringify({ setting: 'value' }),
   })
 
   await enforcer.execute('fs-read', {
-    path: './config.json'
+    path: './config.json',
   })
 
   await enforcer.execute('fs-move', {
     from: './config.json',
-    to: './config.backup.json'
+    to: './config.backup.json',
   })
 }
 
@@ -151,7 +152,7 @@ async function securityEnforcementExample() {
 
   const enforcer = new HookEnforcer({
     strictMode: true,
-    auditLogPath: './security-audit.log'
+    auditLogPath: './security-audit.log',
   })
 
   // Register security hooks at different levels
@@ -169,7 +170,7 @@ async function securityEnforcementExample() {
 
       console.log(`[AUTH] ${user} allowed to ${action} on ${resource}`)
       return { allowed }
-    }
+    },
   })
 
   await enforcer.registerHook({
@@ -181,7 +182,7 @@ async function securityEnforcementExample() {
       console.log(`[DATA ACCESS] Reason: ${context.reason}`)
 
       return await accessData(context.resource, context.user)
-    }
+    },
   })
 
   await enforcer.registerHook({
@@ -194,12 +195,12 @@ async function securityEnforcementExample() {
         user: context.user,
         action: context.action,
         resource: context.resource,
-        result: context.result
+        result: context.result,
       }
 
-      await fs.appendFile('./audit.log', JSON.stringify(entry) + '\n')
+      await fs.appendFile('./audit.log', `${JSON.stringify(entry)}\n`)
       return entry
-    }
+    },
   })
 
   // Execute security workflow
@@ -207,22 +208,23 @@ async function securityEnforcementExample() {
     await enforcer.execute('auth-check', {
       user: 'admin',
       action: 'write',
-      resource: '/etc/config'
+      resource: '/etc/config',
     })
 
     await enforcer.execute('data-access', {
       user: 'admin',
       resource: 'sensitive-data',
-      reason: 'System maintenance'
+      reason: 'System maintenance',
     })
 
     await enforcer.execute('audit-log', {
       user: 'admin',
       action: 'write',
       resource: '/etc/config',
-      result: 'success'
+      result: 'success',
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Security violation:', error.message)
   }
 }

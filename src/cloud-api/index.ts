@@ -65,17 +65,26 @@ export type {
 
 export { CloudApiError } from '../types/cloud-api'
 
-// Export client
-export { CloudApiClient, createCloudApiClient, DEFAULT_BASE_URL, DEFAULT_RETRIES, DEFAULT_TIMEOUT } from './client'
-
 // Export sub-clients
 export { AuthClient } from './auth'
+
 export { BindClient } from './bind'
+// Export client
+export { CloudApiClient, createCloudApiClient, DEFAULT_BASE_URL, DEFAULT_RETRIES, DEFAULT_TIMEOUT } from './client'
 export { ContextClient } from './context'
+// Export credentials manager
+export {
+  clearCredentials,
+  getCredentials,
+  getCredentialsPath,
+  hasCredentials,
+  saveCredentials,
+} from './credentials'
 export { DeviceClient } from './device'
 export { NotifyClient } from './notify'
-export { ReplyClient, type PollOptions } from './reply'
+export { type PollOptions, ReplyClient } from './reply'
 export { SessionsClient } from './sessions'
+
 export { TemplatesClient } from './templates'
 
 // Export WebSocket client
@@ -86,12 +95,3 @@ export {
   type WebSocketEventHandlers,
   type WebSocketState,
 } from './websocket'
-
-// Export credentials manager
-export {
-  clearCredentials,
-  getCredentials,
-  getCredentialsPath,
-  hasCredentials,
-  saveCredentials,
-} from './credentials'

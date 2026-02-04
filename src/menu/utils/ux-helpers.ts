@@ -140,10 +140,11 @@ export function showTip(title: string, content: string): void {
   const words = content.split(' ')
   let line = ''
   for (const word of words) {
-    if ((line + ' ' + word).length > width - 4) {
+    if ((`${line} ${word}`).length > width - 4) {
       console.log(ansis.cyan('│') + ` ${line}`.padEnd(width - 2) + ansis.cyan('│'))
       line = word
-    } else {
+    }
+    else {
       line = line ? `${line} ${word}` : word
     }
   }
@@ -177,8 +178,8 @@ export function showTitle(title: string, subtitle?: string): void {
 /**
  * 显示列表
  */
-export function showList(items: Array<{ label: string; value?: string; icon?: string }>): void {
-  items.forEach(item => {
+export function showList(items: Array<{ label: string, value?: string, icon?: string }>): void {
+  items.forEach((item) => {
     const icon = item.icon || '•'
     const value = item.value ? ansis.dim(` - ${item.value}`) : ''
     console.log(`  ${icon} ${item.label}${value}`)
@@ -188,10 +189,10 @@ export function showList(items: Array<{ label: string; value?: string; icon?: st
 /**
  * 显示键值对
  */
-export function showKeyValue(pairs: Array<{ key: string; value: string }>): void {
+export function showKeyValue(pairs: Array<{ key: string, value: string }>): void {
   const maxKeyLength = Math.max(...pairs.map(p => p.key.length))
 
-  pairs.forEach(pair => {
+  pairs.forEach((pair) => {
     const key = pair.key.padEnd(maxKeyLength)
     console.log(`  ${ansis.dim(key)}  ${pair.value}`)
   })
@@ -202,7 +203,7 @@ export function showKeyValue(pairs: Array<{ key: string; value: string }>): void
  */
 export async function confirm(
   message: string,
-  defaultValue: boolean = false
+  defaultValue: boolean = false,
 ): Promise<boolean> {
   const inquirer = (await import('inquirer')).default
 
@@ -227,7 +228,7 @@ export async function input(
     default?: string
     validate?: (value: string) => boolean | string
     mask?: string
-  }
+  },
 ): Promise<string> {
   const inquirer = (await import('inquirer')).default
 
@@ -252,7 +253,7 @@ export async function input(
  */
 export async function select<T extends string>(
   message: string,
-  choices: Array<{ name: string; value: T; description?: string }>
+  choices: Array<{ name: string, value: T, description?: string }>,
 ): Promise<T> {
   const inquirer = (await import('inquirer')).default
 
@@ -280,7 +281,7 @@ export async function select<T extends string>(
  */
 export async function multiSelect<T extends string>(
   message: string,
-  choices: Array<{ name: string; value: T; checked?: boolean }>
+  choices: Array<{ name: string, value: T, checked?: boolean }>,
 ): Promise<T[]> {
   const inquirer = (await import('inquirer')).default
 

@@ -1,6 +1,6 @@
+import type { CCJKConfig, MCPService, WorkflowConfig } from '@/types'
 import { nanoid } from 'nanoid'
 import { join } from 'pathe'
-import type { WorkflowConfig, CCJKConfig, MCPService } from '@/types'
 
 /**
  * Test data generator for creating realistic test data
@@ -25,7 +25,7 @@ export class TestDataGenerator {
    */
   static generateFilePath(
     filename: string,
-    directory = '/tmp/ccjk-test'
+    directory = '/tmp/ccjk-test',
   ): string {
     return join(directory, filename)
   }
@@ -38,7 +38,7 @@ export class TestDataGenerator {
       version: '6.0.0',
       language: 'en',
       apiProvider: '302.AI',
-      apiKey: 'test-api-key-' + nanoid(16),
+      apiKey: `test-api-key-${nanoid(16)}`,
       claudeCodePath: '/usr/local/bin/claude-code',
       workflowsEnabled: true,
       mcpEnabled: true,
@@ -228,7 +228,7 @@ export class TestDataGenerator {
       inputText: { input: 'test input' },
       inputEmpty: { input: '' },
       multiSelect: { selections: [0, 2, 4] },
-      apiKeyInput: { apiKey: 'sk-test-' + nanoid(32) },
+      apiKeyInput: { apiKey: `sk-test-${nanoid(32)}` },
       providerSelect: { provider: '302.AI' },
       languageSelect: { language: 'en' },
     }

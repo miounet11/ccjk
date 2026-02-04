@@ -5,7 +5,7 @@
  * effective prompts for the AI workflow generator.
  */
 
-import type { PromptVariables, ProjectContext, GenerationOptions, Workflow } from '../types.js'
+import type { ProjectContext, PromptVariables, Workflow } from '../types.js'
 
 export class PromptTemplates {
   /**
@@ -29,13 +29,15 @@ ${task}
 
 ${context.dependencies ? `- Dependencies: ${Object.keys(context.dependencies).slice(0, 10).join(', ')}` : ''}
 
-${context.customContext?.fileSystem ? `
+${context.customContext?.fileSystem
+  ? `
 ## Project Structure
 - Has Tests: ${context.customContext.fileSystem.hasTests ? 'Yes' : 'No'}
 - Has Documentation: ${context.customContext.fileSystem.hasDocs ? 'Yes' : 'No'}
 - Has Config: ${context.customContext.fileSystem.hasConfig ? 'Yes' : 'No'}
 - Main Files: ${context.customContext.fileSystem.mainFiles.slice(0, 5).join(', ')}
-` : ''}
+`
+  : ''}
 
 ## Generation Options
 - Include Tests: ${options?.includeTests !== false ? 'Yes' : 'No'}
@@ -43,20 +45,26 @@ ${context.customContext?.fileSystem ? `
 - Optimization Level: ${options?.optimizationLevel || 'balanced'}
 - Style: ${options?.style || 'balanced'}
 
-${options?.customRequirements ? `
+${options?.customRequirements
+  ? `
 ## Custom Requirements
 ${options.customRequirements.map(r => `- ${r}`).join('\n')}
-` : ''}
+`
+  : ''}
 
-${examples ? `
+${examples
+  ? `
 ## Example Workflows
 ${examples}
-` : ''}
+`
+  : ''}
 
-${customInstructions ? `
+${customInstructions
+  ? `
 ## Custom Instructions
 ${customInstructions}
-` : ''}
+`
+  : ''}
 
 ## Instructions
 

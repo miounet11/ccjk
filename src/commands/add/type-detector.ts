@@ -8,9 +8,9 @@
  * - package.json 字段
  */
 
+import type { GitHubSourceInfo, LocalSourceInfo, SourceInfo } from './source-parser'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import type { SourceInfo, GitHubSourceInfo, LocalSourceInfo } from './source-parser'
 import { buildGitHubRawUrl } from './source-parser'
 
 export type PluginType = 'skill' | 'mcp' | 'agent' | 'hook'
@@ -121,7 +121,7 @@ async function detectFromNpm(info: { packageName: string }): Promise<DetectionRe
     const registryUrl = `https://registry.npmjs.org/${info.packageName}`
     const response = await fetch(registryUrl)
     if (response.ok) {
-      const data = await response.json() as { 'dist-tags'?: { latest?: string }; versions?: Record<string, Record<string, unknown>> }
+      const data = await response.json() as { 'dist-tags'?: { latest?: string }, 'versions'?: Record<string, Record<string, unknown>> }
       const latestVersion = data['dist-tags']?.latest
       if (latestVersion && data.versions?.[latestVersion]) {
         const packageJson = data.versions[latestVersion]
@@ -221,37 +221,37 @@ function detectFromRepoName(name: string): DetectionResult {
 
   // MCP 服务器模式
   if (
-    lowerName.includes('mcp-server') ||
-    lowerName.includes('mcp_server') ||
-    lowerName.startsWith('mcp-') ||
-    lowerName.endsWith('-mcp')
+    lowerName.includes('mcp-server')
+    || lowerName.includes('mcp_server')
+    || lowerName.startsWith('mcp-')
+    || lowerName.endsWith('-mcp')
   ) {
     return { type: 'mcp', confidence: 'high', reason: `Name contains MCP pattern: ${name}` }
   }
 
   // Agent 模式
   if (
-    lowerName.includes('agent') ||
-    lowerName.includes('-agent') ||
-    lowerName.endsWith('-agent')
+    lowerName.includes('agent')
+    || lowerName.includes('-agent')
+    || lowerName.endsWith('-agent')
   ) {
     return { type: 'agent', confidence: 'medium', reason: `Name contains agent pattern: ${name}` }
   }
 
   // Hook 模式
   if (
-    lowerName.includes('hook') ||
-    lowerName.includes('-hook') ||
-    lowerName.endsWith('-hook')
+    lowerName.includes('hook')
+    || lowerName.includes('-hook')
+    || lowerName.endsWith('-hook')
   ) {
     return { type: 'hook', confidence: 'medium', reason: `Name contains hook pattern: ${name}` }
   }
 
   // Skill 模式
   if (
-    lowerName.includes('skill') ||
-    lowerName.includes('-skill') ||
-    lowerName.endsWith('-skill')
+    lowerName.includes('skill')
+    || lowerName.includes('-skill')
+    || lowerName.endsWith('-skill')
   ) {
     return { type: 'skill', confidence: 'medium', reason: `Name contains skill pattern: ${name}` }
   }
@@ -298,7 +298,7 @@ function detectFromPackageJson(packageJson: Record<string, unknown>): DetectionR
     const keywords = packageJson.keywords as string[]
     const keywordMap: Record<string, PluginType> = {
       'mcp-server': 'mcp',
-      mcp: 'mcp',
+      'mcp': 'mcp',
       'model-context-protocol': 'mcp',
       'ccjk-skill': 'skill',
       'claude-skill': 'skill',

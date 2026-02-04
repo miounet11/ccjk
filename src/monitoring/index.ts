@@ -14,54 +14,54 @@
 // Type Exports
 // ============================================================================
 
-export * from './types'
+// ============================================================================
+// Convenience Functions
+// ============================================================================
+
+import type { Dashboard, DashboardConfig, PerformanceReport, ReportConfig } from './types'
+import { createDashboard } from './dashboard'
+import { getMetricsCollector } from './metrics-collector'
+import { getPerformanceTracker } from './performance-tracker'
+import { createReporter } from './reporter'
+
+export { createDashboard, PerformanceDashboard } from './dashboard'
 
 // ============================================================================
 // Metrics Collector Exports
 // ============================================================================
 
-export { MetricsCollector, getMetricsCollector, resetMetricsCollector } from './metrics-collector'
+export { getMetricsCollector, MetricsCollector, resetMetricsCollector } from './metrics-collector'
 
 // ============================================================================
 // Performance Tracker Exports
 // ============================================================================
 
 export {
-  PerformanceTracker,
-  CommandTracker,
-  ApiCallTracker,
   AgentTaskTracker,
+  ApiCallTracker,
+  CommandTracker,
   getPerformanceTracker,
+  PerformanceTracker,
   resetPerformanceTracker,
-  trackPerformance,
   trackErrors,
+  trackPerformance,
 } from './performance-tracker'
 
 // ============================================================================
 // Dashboard Exports
 // ============================================================================
 
-export { PerformanceDashboard, DashboardRenderer, createDashboard } from './dashboard'
+export {
+  createReporter,
+  generateQuickReport,
+  PerformanceReporter,
+} from './reporter'
 
 // ============================================================================
 // Reporter Exports
 // ============================================================================
 
-export {
-  PerformanceReporter,
-  createReporter,
-  generateQuickReport,
-} from './reporter'
-
-// ============================================================================
-// Convenience Functions
-// ============================================================================
-
-import { getMetricsCollector } from './metrics-collector'
-import { getPerformanceTracker } from './performance-tracker'
-import { createDashboard } from './dashboard'
-import { createReporter } from './reporter'
-import type { Dashboard, DashboardConfig, PerformanceReport, ReportConfig } from './types'
+export * from './types'
 
 /**
  * Get the monitoring system singleton

@@ -4,7 +4,9 @@
  */
 
 import type { ProviderCredentials, ProviderSetup } from '../../api-providers/core/provider-interface'
+
 import type { OneClickSetupConfig } from '../types'
+import process from 'node:process'
 import { ProviderFactory } from '../../api-providers/core/provider-factory'
 import { providerRegistry } from '../../api-providers/core/provider-registry'
 
@@ -225,8 +227,9 @@ export class AutoConfiguration {
    */
   async autoConfigureSmart(options?: AutoConfigOptions): Promise<AutoConfigResult> {
     // Try URL first (if in browser context)
-    if (typeof window !== 'undefined' && window.location) {
-      const urlResult = await this.configureFromUrl(window.location.href, options)
+    const globalWindow = globalThis as any
+    if (typeof globalWindow !== 'undefined' && globalWindow.window?.location) {
+      const urlResult = await this.configureFromUrl(globalWindow.window.location.href, options)
       if (urlResult.success) {
         return urlResult
       }
@@ -352,7 +355,7 @@ export class AutoConfiguration {
     provider: string,
     apiKey: string,
     model: string | undefined,
-    options?: AutoConfigOptions,
+    _options?: AutoConfigOptions,
   ): Promise<AutoConfigResult> {
     try {
       const setup = await ProviderFactory.createSetup(provider, apiKey, undefined)

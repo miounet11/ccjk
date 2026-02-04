@@ -10,13 +10,12 @@
  *   ccjk monitor export       - Export metrics data
  */
 
-import process from 'node:process'
-import ansis from 'ansis'
 import type { SupportedLang } from '../constants'
 import type { DashboardConfig, ExportFormat, ReportTimeRange } from '../monitoring/types'
+import ansis from 'ansis'
+import { i18n } from '../i18n'
 import { createDashboard, createReporter } from '../monitoring'
 import { displayBannerWithInfo } from '../utils/banner'
-import { i18n } from '../i18n'
 
 /**
  * Monitor command options

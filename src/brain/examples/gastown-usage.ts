@@ -10,11 +10,11 @@
  * @module brain/examples/gastown-usage
  */
 
-import { getGlobalStateManager } from '../persistence/git-backed-state'
-import { getGlobalMailboxManager } from '../messaging/persistent-mailbox'
 import { getGlobalConvoyManager } from '../convoy/convoy-manager'
 import { ProgressTracker } from '../convoy/progress-tracker'
 import { getGlobalMayorAgent } from '../mayor/mayor-agent'
+import { getGlobalMailboxManager } from '../messaging/persistent-mailbox'
+import { getGlobalStateManager } from '../persistence/git-backed-state'
 
 /**
  * Example 1: Git-Backed State Persistence
@@ -149,7 +149,7 @@ async function exampleConvoyManagement() {
   })
 
   tracker.on('progress', (update) => {
-    console.log(`Progress: ${update.progress}% (${update.completedTasks}/${update.totalTasks})`);
+    console.log(`Progress: ${update.progress}% (${update.completedTasks}/${update.totalTasks})`)
   })
 
   tracker.track(convoy.id)
@@ -312,9 +312,9 @@ if (require.main === module) {
 }
 
 export {
-  exampleStatePersistence,
-  exampleMailboxMessaging,
-  exampleConvoyManagement,
-  exampleMayorCoordination,
   exampleCompleteWorkflow,
+  exampleConvoyManagement,
+  exampleMailboxMessaging,
+  exampleMayorCoordination,
+  exampleStatePersistence,
 }

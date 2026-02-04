@@ -5,14 +5,29 @@
  * They provide basic functionality while the backend issues are being resolved.
  */
 
-import type { SkillTemplate } from './types'
+import type { TemplateItem } from '../types/cloud-api'
+
+/**
+ * Internal fallback template structure
+ */
+interface FallbackTemplate {
+  id: string
+  name: string
+  content: string
+  metadata: {
+    version: string
+    author: string
+    category: string
+    tags: string[]
+  }
+}
 
 /**
  * Bundled fallback skill templates
  * These are embedded in the client to ensure basic functionality
  * even when the cloud API is unavailable.
  */
-export const FALLBACK_TEMPLATES: Record<string, SkillTemplate> = {
+export const FALLBACK_TEMPLATES: Record<string, FallbackTemplate> = {
   // Git workflow skill
   'skill_git_workflow': {
     id: 'skill_git_workflow',
@@ -140,7 +155,7 @@ Ask Claude to analyze and refactor your code.
  * Get a fallback template by ID
  * Returns undefined if no fallback exists for the given ID
  */
-export function getFallbackTemplate(templateId: string): SkillTemplate | undefined {
+export function getFallbackTemplate(templateId: string): FallbackTemplate | undefined {
   // Direct match
   if (FALLBACK_TEMPLATES[templateId]) {
     return FALLBACK_TEMPLATES[templateId]
@@ -172,7 +187,7 @@ export function getFallbackTemplate(templateId: string): SkillTemplate | undefin
 /**
  * Get all available fallback templates
  */
-export function getAllFallbackTemplates(): SkillTemplate[] {
+export function getAllFallbackTemplates(): FallbackTemplate[] {
   return Object.values(FALLBACK_TEMPLATES)
 }
 

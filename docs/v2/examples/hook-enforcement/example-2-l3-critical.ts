@@ -4,7 +4,8 @@
  * Demonstrates critical-level hooks that block dangerous operations
  */
 
-import { HookEnforcer, HookMatcher, HookExecutor } from '@ccjk/v2/hooks'
+import type { HookExecutor, HookMatcher } from '@ccjk/v2/hooks'
+import { HookEnforcer } from '@ccjk/v2/hooks'
 import { EnforcementLevel } from '@ccjk/v2/types'
 
 /**

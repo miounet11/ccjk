@@ -3,15 +3,15 @@
  * Handles skill CRUD operations
  */
 
-import { APIClient } from './client.js'
-import {
+import type {
+  ListOptions,
+  SkillDetails,
+  SkillList,
+  UpdateSkillRequest,
   UploadSkillRequest,
   UploadSkillResponse,
-  SkillDetails,
-  UpdateSkillRequest,
-  ListOptions,
-  SkillList,
 } from './types.js'
+import { APIClient } from './client.js'
 import { API_PATHS } from './config.js'
 
 export class SkillsAPIClient extends APIClient {
@@ -42,10 +42,16 @@ export class SkillsAPIClient extends APIClient {
     }
 
     // Add file content
-    if (Buffer.isBuffer(request.content) || request.content instanceof Uint8Array) {
+    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(request.content)) {
+      const uint8Array = new Uint8Array(request.content)
+      const blob = new Blob([uint8Array], { type: 'application/octet-stream' })
+      formData.append('file', blob, `${request.name}.md`)
+    }
+    else if (request.content instanceof Uint8Array) {
       const blob = new Blob([request.content], { type: 'application/octet-stream' })
       formData.append('file', blob, `${request.name}.md`)
-    } else {
+    }
+    else {
       formData.append('file', new Blob([request.content], { type: 'text/markdown' }), `${request.name}.md`)
     }
 
@@ -72,7 +78,7 @@ export class SkillsAPIClient extends APIClient {
   async updateSkillContent(
     skillId: string,
     content: string | Buffer,
-    version?: string
+    version?: string,
   ): Promise<void> {
     const formData = new FormData()
 
@@ -81,9 +87,10 @@ export class SkillsAPIClient extends APIClient {
     }
 
     if (Buffer.isBuffer(content)) {
-      const blob = new Blob([content], { type: 'application/octet-stream' })
+      const blob = new Blob([new Uint8Array(content)], { type: 'application/octet-stream' })
       formData.append('file', blob)
-    } else {
+    }
+    else {
       formData.append('file', new Blob([content], { type: 'text/markdown' }))
     }
 
@@ -166,7 +173,8 @@ export class SkillsAPIClient extends APIClient {
       try {
         const result = await this.uploadSkill(request)
         results.push(result)
-      } catch (error) {
+      }
+      catch (error) {
         console.error(`Failed to upload skill: ${request.name}`, error)
         results.push({
           skillId: '',
@@ -200,7 +208,7 @@ export class SkillsAPIClient extends APIClient {
    */
   async getSkillVersions(skillId: string): Promise<string[]> {
     const response = await this.get<{ versions: string[] }>(
-      `${API_PATHS.SKILL_DETAILS(skillId)}/versions`
+      `${API_PATHS.SKILL_DETAILS(skillId)}/versions`,
     )
     return response.versions
   }
@@ -211,7 +219,7 @@ export class SkillsAPIClient extends APIClient {
   async cloneSkill(skillId: string, newName: string): Promise<UploadSkillResponse> {
     return this.post<UploadSkillResponse>(
       `${API_PATHS.SKILL_DETAILS(skillId)}/clone`,
-      { name: newName }
+      { name: newName },
     )
   }
 
@@ -243,9 +251,9 @@ export class SkillsAPIClient extends APIClient {
     valid: boolean
     errors: string[]
   }> {
-    return this.post<{ valid: boolean; errors: string[] }>(
+    return this.post<{ valid: boolean, errors: string[] }>(
       `${API_PATHS.SKILLS}/validate`,
-      request
+      request,
     )
   }
 
@@ -264,8 +272,8 @@ export class SkillsAPIClient extends APIClient {
     resolved: Record<string, string>
     missing: string[]
   }> {
-    return this.get<{ resolved: Record<string, string>; missing: string[] }>(
-      `${API_PATHS.SKILL_DETAILS(skillId)}/dependencies/resolve`
+    return this.get<{ resolved: Record<string, string>, missing: string[] }>(
+      `${API_PATHS.SKILL_DETAILS(skillId)}/dependencies/resolve`,
     )
   }
 

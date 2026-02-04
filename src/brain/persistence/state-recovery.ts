@@ -7,10 +7,9 @@
  */
 
 import type { AgentState } from '../types'
+import type { GitBackedStateManager } from './git-backed-state'
 import { EventEmitter } from 'node:events'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'pathe'
-import { getGlobalStateManager, type GitBackedStateManager } from './git-backed-state'
+import { getGlobalStateManager } from './git-backed-state'
 
 /**
  * Recovery status

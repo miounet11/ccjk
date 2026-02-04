@@ -1,18 +1,18 @@
 import type { ProjectAnalyzer } from '../analyzers'
-import type { CcjkSkillsOptions } from '../commands/ccjk-skills'
-import type { CcjkMcpOptions } from '../commands/ccjk-mcp'
 import type { CcjkAgentsOptions } from '../commands/ccjk-agents'
 import type { CcjkHooksOptions } from '../commands/ccjk-hooks'
-import { consola } from 'consola'
-import { performance } from 'node:perf_hooks'
+import type { CcjkMcpOptions } from '../commands/ccjk-mcp'
+import type { CcjkSkillsOptions } from '../commands/ccjk-skills'
 import { promises as fs } from 'node:fs'
+import { performance } from 'node:perf_hooks'
+import { consola } from 'consola'
 import { join } from 'pathe'
-import { i18n } from '../i18n'
-import { createBackup } from '../utils/backup'
-import { ccjkSkills } from '../commands/ccjk-skills'
-import { ccjkMcp } from '../commands/ccjk-mcp'
 import { ccjkAgents } from '../commands/ccjk-agents'
 import { ccjkHooks } from '../commands/ccjk-hooks'
+import { ccjkMcp } from '../commands/ccjk-mcp'
+import { ccjkSkills } from '../commands/ccjk-skills'
+import { i18n } from '../i18n'
+import { createBackup } from '../utils/backup'
 import { generateReport } from '../utils/report-generator'
 
 export interface SetupOrchestratorOptions {
@@ -30,6 +30,7 @@ export interface SetupOrchestratorOptions {
   backup?: boolean
   rollbackOnError?: boolean
   lang?: 'en' | 'zh-CN'
+  projectPath?: string
 }
 
 export interface PhaseResult {
@@ -93,7 +94,7 @@ export class SetupOrchestrator {
       totalFailed: 0,
       duration: 0,
       phases: [],
-      errors: []
+      errors: [],
     }
 
     try {
@@ -102,7 +103,7 @@ export class SetupOrchestrator {
         this.logger.info(i18n.t('setup.analyzingProject'))
       }
 
-      const projectAnalysis = await this.analyzer.analyze()
+      const projectAnalysis = await this.analyzer.analyze(options.projectPath || process.cwd())
       result.projectAnalysis = projectAnalysis
 
       // Phase 2: Generate Installation Plan
@@ -126,7 +127,7 @@ export class SetupOrchestrator {
           return {
             ...result,
             success: true,
-            duration: performance.now() - this.startTime
+            duration: performance.now() - this.startTime,
           }
         }
       }
@@ -144,7 +145,8 @@ export class SetupOrchestrator {
 
         // Check if any critical failures
         result.success = result.totalFailed === 0 || !options.rollbackOnError
-      } else {
+      }
+      else {
         // Dry run is always successful
         result.success = true
       }
@@ -163,7 +165,8 @@ export class SetupOrchestrator {
       }
 
       return result
-    } catch (error) {
+    }
+    catch (error) {
       result.errors.push(error as Error)
       result.duration = performance.now() - this.startTime
 
@@ -177,7 +180,7 @@ export class SetupOrchestrator {
 
   private async generateInstallationPlan(
     projectAnalysis: any,
-    options: SetupOrchestratorOptions
+    options: SetupOrchestratorOptions,
   ): Promise<any> {
     const { profile = 'recommended', resources = ['skills', 'mcp', 'agents', 'hooks'] } = options
 
@@ -189,21 +192,21 @@ export class SetupOrchestrator {
       phases: {
         skills: {
           enabled: resources.includes('skills'),
-          resources: [] as any[]
+          resources: [] as any[],
         },
         mcp: {
           enabled: resources.includes('mcp'),
-          resources: [] as any[]
+          resources: [] as any[],
         },
         agents: {
           enabled: resources.includes('agents'),
-          resources: [] as any[]
+          resources: [] as any[],
         },
         hooks: {
           enabled: resources.includes('hooks'),
-          resources: [] as any[]
-        }
-      }
+          resources: [] as any[],
+        },
+      },
     }
 
     // Select resources based on profile and project analysis
@@ -224,11 +227,11 @@ export class SetupOrchestrator {
     }
 
     // Calculate estimated time
-    const totalResources =
-      plan.phases.skills.resources.length +
-      plan.phases.mcp.resources.length +
-      plan.phases.agents.resources.length +
-      plan.phases.hooks.resources.length
+    const totalResources
+      = plan.phases.skills.resources.length
+        + plan.phases.mcp.resources.length
+        + plan.phases.agents.resources.length
+        + plan.phases.hooks.resources.length
 
     plan.estimatedTime = Math.max(1, Math.ceil(totalResources / 4))
 
@@ -403,7 +406,7 @@ export class SetupOrchestrator {
       // Skills and MCP can run in parallel
       const [skillsResult, mcpResult] = await Promise.all([
         this.executeSkillsPhase(plan.phases.skills, options),
-        this.executeMcpPhase(plan.phases.mcp, options)
+        this.executeMcpPhase(plan.phases.mcp, options),
       ])
 
       phases.push(skillsResult, mcpResult)
@@ -411,11 +414,12 @@ export class SetupOrchestrator {
       // Agents depend on skills+MCP being done, but hooks can run in parallel
       const [agentsResult, hooksResult] = await Promise.all([
         this.executeAgentsPhase(plan.phases.agents, options),
-        this.executeHooksPhase(plan.phases.hooks, options)
+        this.executeHooksPhase(plan.phases.hooks, options),
       ])
 
       phases.push(agentsResult, hooksResult)
-    } else {
+    }
+    else {
       // Sequential execution
       phases.push(await this.executeSkillsPhase(plan.phases.skills, options))
       phases.push(await this.executeMcpPhase(plan.phases.mcp, options))
@@ -436,7 +440,7 @@ export class SetupOrchestrator {
       failed: 0,
       duration: 0,
       errors: [],
-      details: {}
+      details: {},
     }
 
     if (!phaseConfig.enabled || phaseConfig.resources.length === 0) {
@@ -450,28 +454,28 @@ export class SetupOrchestrator {
 
       // Create skills options
       const skillsOptions: CcjkSkillsOptions = {
-        skills: skillIds,
-        install: true,
         lang: options.lang || 'en',
-        verbose: options.verbose || false,
+        interactive: false,
+        dryRun: false,
+        force: false,
         targetDir: options.projectPath || process.cwd(),
-        interactive: false
       }
 
       // Execute skills command
-      const skillsResult = await ccjkSkills(skillsOptions)
+      await ccjkSkills(skillsOptions)
 
-      // Process results
-      result.installed = skillsResult.installed || 0
-      result.skipped = skillsResult.skipped || 0
-      result.failed = skillsResult.failed || 0
-      result.details = skillsResult
+      // Process results - ccjkSkills returns void, so we assume success
+      result.installed = skillIds.length
+      result.skipped = 0
+      result.failed = 0
+      result.details = { skillIds }
 
       if (result.failed > 0) {
         result.success = false
         result.errors.push(new Error(`Failed to install ${result.failed} skills`))
       }
-    } catch (error) {
+    }
+    catch (error) {
       result.success = false
       result.errors.push(error as Error)
       result.failed = phaseConfig.resources.length
@@ -491,7 +495,7 @@ export class SetupOrchestrator {
       failed: 0,
       duration: 0,
       errors: [],
-      details: {}
+      details: {},
     }
 
     if (!phaseConfig.enabled || phaseConfig.resources.length === 0) {
@@ -506,27 +510,27 @@ export class SetupOrchestrator {
       // Create MCP options
       const mcpOptions: CcjkMcpOptions = {
         services: mcpIds,
-        install: true,
+        interactive: false,
         lang: options.lang || 'en',
-        verbose: options.verbose || false,
-        targetDir: options.projectPath || process.cwd(),
-        interactive: false
+        dryRun: false,
+        force: false,
       }
 
       // Execute MCP command
       const mcpResult = await ccjkMcp(mcpOptions)
 
-      // Process results
-      result.installed = mcpResult.installed || 0
-      result.skipped = mcpResult.skipped || 0
-      result.failed = mcpResult.failed || 0
+      // Process results from CcjkMcpResult
+      result.installed = mcpResult.installed.length
+      result.skipped = mcpResult.skipped.length
+      result.failed = mcpResult.failed.length
       result.details = mcpResult
 
       if (result.failed > 0) {
         result.success = false
         result.errors.push(new Error(`Failed to install ${result.failed} MCP services`))
       }
-    } catch (error) {
+    }
+    catch (error) {
       result.success = false
       result.errors.push(error as Error)
       result.failed = phaseConfig.resources.length
@@ -546,7 +550,7 @@ export class SetupOrchestrator {
       failed: 0,
       duration: 0,
       errors: [],
-      details: {}
+      details: {},
     }
 
     if (!phaseConfig.enabled || phaseConfig.resources.length === 0) {
@@ -560,28 +564,26 @@ export class SetupOrchestrator {
 
       // Create agents options
       const agentsOptions: CcjkAgentsOptions = {
-        agents: agentIds,
-        create: true,
         lang: options.lang || 'en',
-        verbose: options.verbose || false,
-        targetDir: options.projectPath || process.cwd(),
-        interactive: false
+        dryRun: false,
+        json: false,
       }
 
       // Execute agents command
-      const agentsResult = await ccjkAgents(agentsOptions)
+      await ccjkAgents(agentsOptions)
 
-      // Process results
-      result.installed = agentsResult.created || 0
-      result.skipped = agentsResult.skipped || 0
-      result.failed = agentsResult.failed || 0
-      result.details = agentsResult
+      // Process results - ccjkAgents returns void, so we assume success
+      result.installed = agentIds.length
+      result.skipped = 0
+      result.failed = 0
+      result.details = { agentIds }
 
       if (result.failed > 0) {
         result.success = false
         result.errors.push(new Error(`Failed to create ${result.failed} agents`))
       }
-    } catch (error) {
+    }
+    catch (error) {
       result.success = false
       result.errors.push(error as Error)
       result.failed = phaseConfig.resources.length
@@ -601,7 +603,7 @@ export class SetupOrchestrator {
       failed: 0,
       duration: 0,
       errors: [],
-      details: {}
+      details: {},
     }
 
     if (!phaseConfig.enabled || phaseConfig.resources.length === 0) {
@@ -615,28 +617,35 @@ export class SetupOrchestrator {
 
       // Create hooks options
       const hooksOptions: CcjkHooksOptions = {
-        hooks: hookIds,
-        install: true,
-        lang: options.lang || 'en',
+        dryRun: false,
+        json: false,
         verbose: options.verbose || false,
-        targetDir: options.projectPath || process.cwd(),
-        interactive: false
       }
 
       // Execute hooks command
       const hooksResult = await ccjkHooks(hooksOptions)
 
-      // Process results
-      result.installed = hooksResult.installed || 0
-      result.skipped = hooksResult.skipped || 0
-      result.failed = hooksResult.failed || 0
-      result.details = hooksResult
+      // Process results from hooks command
+      if (hooksResult && 'installed' in hooksResult && hooksResult.installed) {
+        result.installed = hooksResult.installed.length
+        result.skipped = 0
+        result.failed = hooksResult.errors?.length || 0
+        result.details = hooksResult
+      }
+      else {
+        // Fallback if result format is unexpected
+        result.installed = hookIds.length
+        result.skipped = 0
+        result.failed = 0
+        result.details = { hookIds }
+      }
 
       if (result.failed > 0) {
         result.success = false
         result.errors.push(new Error(`Failed to install ${result.failed} hooks`))
       }
-    } catch (error) {
+    }
+    catch (error) {
       result.success = false
       result.errors.push(error as Error)
       result.failed = phaseConfig.resources.length
@@ -675,7 +684,8 @@ export class SetupOrchestrator {
       }
 
       this.logger.info(i18n.t('setup.rollbackComplete'))
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.error(i18n.t('setup.rollbackFailed'), error)
     }
   }

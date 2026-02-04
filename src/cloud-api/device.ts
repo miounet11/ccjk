@@ -48,7 +48,7 @@ export class DeviceClient {
       body: JSON.stringify(request),
     })
 
-    return response.json()
+    return response.json() as Promise<RegisterDeviceResponse>
   }
 
   /**
@@ -58,7 +58,7 @@ export class DeviceClient {
    */
   async getInfo(): Promise<GetDeviceInfoResponse> {
     const response = await this.fetch('/device/info', {}, true)
-    return response.json()
+    return response.json() as Promise<GetDeviceInfoResponse>
   }
 
   /**
@@ -68,7 +68,7 @@ export class DeviceClient {
    */
   async getChannels(): Promise<GetDeviceChannelsResponse> {
     const response = await this.fetch('/device/channels', {}, true)
-    return response.json()
+    return response.json() as Promise<GetDeviceChannelsResponse>
   }
 
   /**
@@ -83,7 +83,7 @@ export class DeviceClient {
       body: JSON.stringify(request),
     }, true)
 
-    return response.json()
+    return response.json() as Promise<UpdateDeviceChannelsResponse>
   }
 
   /**
@@ -96,7 +96,7 @@ export class DeviceClient {
       method: 'POST',
     }, true)
 
-    return response.json()
+    return response.json() as Promise<RegenerateTokenResponse>
   }
 
   /**
@@ -109,7 +109,7 @@ export class DeviceClient {
       method: 'DELETE',
     }, true)
 
-    return response.json()
+    return response.json() as Promise<DeleteDeviceResponse>
   }
 
   /**
@@ -177,7 +177,7 @@ export class DeviceClient {
     let message = response.statusText
 
     try {
-      const body = await response.json()
+      const body = await response.json() as { error?: string }
       if (body.error) {
         message = body.error
       }

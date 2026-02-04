@@ -18,7 +18,7 @@ import type {
   SubagentContextMode,
 } from '../types/skill-md'
 import { readFileSync, statSync } from 'node:fs'
-import { extname, join } from 'pathe'
+import { extname } from 'pathe'
 
 // ============================================================================
 // Constants

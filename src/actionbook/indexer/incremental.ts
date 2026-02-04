@@ -5,15 +5,15 @@
  * Only reindexes changed files and their dependencies.
  */
 
+import type { IndexingStats, PrecomputedData } from '../types.js'
+import * as fs from 'node:fs/promises'
+import { getGlobalIndex } from '../cache/index.js'
+import { LevelDBStorage } from '../cache/storage.js'
 import { parseAST } from '../precompute/ast-parser.js'
-import { extractSymbols } from '../precompute/symbol-extractor.js'
 import { generateCallGraph } from '../precompute/call-graph.js'
 import { calculateComplexity } from '../precompute/complexity.js'
 import { detectPatterns } from '../precompute/patterns.js'
-import { getGlobalIndex } from '../cache/index.js'
-import { LevelDBStorage } from '../cache/storage.js'
-import type { PrecomputedData, IndexingStats } from '../types.js'
-import * as fs from 'node:fs/promises'
+import { extractSymbols } from '../precompute/symbol-extractor.js'
 
 /**
  * Incremental indexer class
@@ -129,7 +129,8 @@ export class IncrementalIndexer {
     // Update dependency graphs
     const dependencies = this.dependencyGraph.get(filePath)
     if (dependencies) {
-      for (const dep of dependencies) {
+      const depsArray = Array.from(dependencies)
+      for (const dep of depsArray) {
         const dependents = this.reverseDependencyGraph.get(dep)
         if (dependents) {
           dependents.delete(filePath)
@@ -256,7 +257,8 @@ export class IncrementalIndexer {
     this.dependencyGraph.set(filePath, imports)
 
     // Update reverse dependencies
-    for (const dep of imports) {
+    const importsArray = Array.from(imports)
+    for (const dep of importsArray) {
       if (!this.reverseDependencyGraph.has(dep)) {
         this.reverseDependencyGraph.set(dep, new Set())
       }

@@ -5,6 +5,7 @@
  * with convenient APIs for tracking various operations.
  */
 
+import type { MetricsCollector } from './metrics-collector'
 import type {
   AggregatedMetric,
   ApiStats,
@@ -16,7 +17,7 @@ import type {
   MetricEventType,
   ThresholdConfig,
 } from './types'
-import { getMetricsCollector, MetricsCollector } from './metrics-collector'
+import { getMetricsCollector } from './metrics-collector'
 
 // ============================================================================
 // Performance Tracker Class
@@ -24,7 +25,7 @@ import { getMetricsCollector, MetricsCollector } from './metrics-collector'
 
 export class PerformanceTracker {
   private collector: MetricsCollector
-  private activeTimers: Map<string, { start: number; label: string }> = new Map()
+  private activeTimers: Map<string, { start: number, label: string }> = new Map()
   private memoryInterval?: ReturnType<typeof setInterval>
 
   constructor(collector?: MetricsCollector) {
@@ -49,7 +50,8 @@ export class PerformanceTracker {
    */
   stopTimer(id: string): number {
     const timer = this.activeTimers.get(id)
-    if (!timer) return 0
+    if (!timer)
+      return 0
 
     const duration = performance.now() - timer.start
     this.activeTimers.delete(id)
@@ -59,7 +61,7 @@ export class PerformanceTracker {
   /**
    * Measure the duration of an async function
    */
-  async measure<T>(label: string, fn: () => Promise<T>): Promise<{ result: T; duration: number }> {
+  async measure<T>(label: string, fn: () => Promise<T>): Promise<{ result: T, duration: number }> {
     const start = performance.now()
     try {
       const result = await fn()
@@ -75,7 +77,7 @@ export class PerformanceTracker {
   /**
    * Measure the duration of a sync function
    */
-  measureSync<T>(label: string, fn: () => T): { result: T; duration: number } {
+  measureSync<T>(label: string, fn: () => T): { result: T, duration: number } {
     const start = performance.now()
     try {
       const result = fn()
@@ -407,9 +409,12 @@ export class PerformanceTracker {
    * Format duration for display
    */
   formatDuration(ms: number): string {
-    if (ms < 1000) return `${ms.toFixed(0)}ms`
-    if (ms < 60000) return `${(ms / 1000).toFixed(2)}s`
-    if (ms < 3600000) return `${(ms / 60000).toFixed(2)}m`
+    if (ms < 1000)
+      return `${ms.toFixed(0)}ms`
+    if (ms < 60000)
+      return `${(ms / 1000).toFixed(2)}s`
+    if (ms < 3600000)
+      return `${(ms / 60000).toFixed(2)}m`
     return `${(ms / 3600000).toFixed(2)}h`
   }
 
@@ -417,9 +422,12 @@ export class PerformanceTracker {
    * Format bytes for display
    */
   formatBytes(bytes: number): string {
-    if (bytes < 1024) return `${bytes}B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)}KB`
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)}MB`
+    if (bytes < 1024)
+      return `${bytes}B`
+    if (bytes < 1024 * 1024)
+      return `${(bytes / 1024).toFixed(2)}KB`
+    if (bytes < 1024 * 1024 * 1024)
+      return `${(bytes / (1024 * 1024)).toFixed(2)}MB`
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)}GB`
   }
 

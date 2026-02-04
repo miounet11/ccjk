@@ -4,14 +4,14 @@
  * This file demonstrates common usage patterns for the workflow v2 system.
  */
 
+import type { Fragment, Workflow } from './index.js'
 import {
-  WorkflowManager,
-  quickGenerate,
-  quickValidate,
-  quickOptimize,
+
   FragmentLibrary,
-  type Workflow,
-  type Fragment,
+  quickOptimize,
+  quickValidate,
+
+  WorkflowManager,
 } from './index.js'
 
 /**

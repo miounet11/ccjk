@@ -59,7 +59,7 @@ export class SessionsClient {
     const path = `/api/sessions${query ? `?${query}` : ''}`
 
     const response = await this.fetch(path)
-    return response.json()
+    return response.json() as Promise<ListSessionsResponse>
   }
 
   /**
@@ -70,7 +70,7 @@ export class SessionsClient {
    */
   async get(sessionId: string): Promise<GetSessionResponse> {
     const response = await this.fetch(`/api/sessions/${sessionId}`)
-    return response.json()
+    return response.json() as Promise<GetSessionResponse>
   }
 
   /**
@@ -84,7 +84,7 @@ export class SessionsClient {
       method: 'POST',
       body: JSON.stringify(request),
     })
-    return response.json()
+    return response.json() as Promise<CreateSessionResponse>
   }
 
   /**
@@ -99,7 +99,7 @@ export class SessionsClient {
       method: 'PUT',
       body: JSON.stringify(request),
     })
-    return response.json()
+    return response.json() as Promise<UpdateSessionResponse>
   }
 
   /**
@@ -112,7 +112,7 @@ export class SessionsClient {
     const response = await this.fetch(`/api/sessions/${sessionId}`, {
       method: 'DELETE',
     })
-    return response.json()
+    return response.json() as Promise<DeleteSessionResponse>
   }
 
   /**
@@ -127,7 +127,7 @@ export class SessionsClient {
       method: 'POST',
       body: JSON.stringify({ name }),
     })
-    return response.json()
+    return response.json() as Promise<CreateSessionResponse>
   }
 
   /**
@@ -212,7 +212,7 @@ export class SessionsClient {
     let code: string = 'UNKNOWN_ERROR'
 
     try {
-      const body = await response.json()
+      const body = await response.json() as any
       if (body.error) {
         message = body.error.message || body.error
         code = body.error.code || code

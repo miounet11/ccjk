@@ -2,12 +2,12 @@
  * Memory Management CLI Command
  */
 
-import ansis from 'ansis'
-import { writeFileSync, readFileSync } from 'node:fs'
-import inquirer from 'inquirer'
-import { MemoryManager } from '../memory'
 import type { MemoryEntry, MemoryQuery } from '../types/memory'
+import { readFileSync, writeFileSync } from 'node:fs'
+import ansis from 'ansis'
+import inquirer from 'inquirer'
 import { i18n, initI18n } from '../i18n'
+import { MemoryManager } from '../memory'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 
 /**
@@ -299,7 +299,7 @@ async function deleteMemory(
     return
   }
 
-  console.log(ansis.yellow('\n' + (isZh ? '将要删除:' : 'About to delete:')))
+  console.log(ansis.yellow(`\n${isZh ? '将要删除:' : 'About to delete:'}`))
   printMemory(memory, isZh)
 
   const { confirm } = await inquirer.prompt<{ confirm: boolean }>({
@@ -382,7 +382,8 @@ async function exportMemories(
   writeFileSync(filename, JSON.stringify(data, null, 2))
 
   console.log(ansis.green(`\n✓ ${isZh ? '记忆已导出到' : 'Memories exported to'}: ${filename}`))
-  console.log(`${isZh ? '导出了' : 'Exported'} ${data.memories.length} ${isZh ? '条记忆' : 'memories'}`)}
+  console.log(`${isZh ? '导出了' : 'Exported'} ${data.memories.length} ${isZh ? '条记忆' : 'memories'}`)
+}
 
 /**
  * Import memories from file
@@ -421,7 +422,8 @@ async function importMemories(
     manager.import(data, merge)
 
     console.log(ansis.green(`\n✓ ${isZh ? '记忆已导入' : 'Memories imported'}`))
-    console.log(`${isZh ? '导入了' : 'Imported'} ${data.memories.length} ${isZh ? '条记忆' : 'memories'}`)  }
+    console.log(`${isZh ? '导入了' : 'Imported'} ${data.memories.length} ${isZh ? '条记忆' : 'memories'}`)
+  }
   catch (error) {
     console.log(ansis.red(`\n${isZh ? '导入失败' : 'Import failed'}: ${error}`))
   }

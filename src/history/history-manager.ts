@@ -6,16 +6,16 @@
  * @module history
  */
 
-import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
-import * as os from 'node:os'
 import type {
   HistoryEntry,
   HistoryEntryType,
+  HistoryManagerOptions,
   HistorySearchOptions,
   HistoryStats,
-  HistoryManagerOptions,
 } from './types'
+import * as fs from 'node:fs/promises'
+import * as os from 'node:os'
+import * as path from 'node:path'
 
 /**
  * History Manager class
@@ -48,7 +48,7 @@ export class HistoryManager {
   async add(
     type: HistoryEntryType,
     content: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<HistoryEntry> {
     const entry: HistoryEntry = {
       id: this.generateId(),
@@ -90,7 +90,7 @@ export class HistoryManager {
     if (options?.query) {
       const query = options.query.toLowerCase()
       results = results.filter(e =>
-        e.content.toLowerCase().includes(query)
+        e.content.toLowerCase().includes(query),
       )
     }
 
@@ -180,7 +180,7 @@ export class HistoryManager {
     const originalLength = this.entries.length
 
     this.entries = this.entries.filter(e =>
-      new Date(e.timestamp).getTime() > cutoffTime
+      new Date(e.timestamp).getTime() > cutoffTime,
     )
 
     const removed = originalLength - this.entries.length
@@ -198,7 +198,8 @@ export class HistoryManager {
   private async load(): Promise<void> {
     if (this.storageType === 'local') {
       await this.loadFromLocal()
-    } else {
+    }
+    else {
       await this.loadFromCloud()
     }
   }
@@ -209,7 +210,8 @@ export class HistoryManager {
   private async save(): Promise<void> {
     if (this.storageType === 'local') {
       await this.saveToLocal()
-    } else {
+    }
+    else {
       await this.saveToCloud()
     }
   }
@@ -221,7 +223,8 @@ export class HistoryManager {
     try {
       const data = await fs.readFile(this.storagePath, 'utf-8')
       this.entries = JSON.parse(data)
-    } catch (error) {
+    }
+    catch (error) {
       // File doesn't exist, start with empty history
       this.entries = []
     }
@@ -237,7 +240,7 @@ export class HistoryManager {
     await fs.writeFile(
       this.storagePath,
       JSON.stringify(this.entries, null, 2),
-      'utf-8'
+      'utf-8',
     )
   }
 

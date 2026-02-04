@@ -213,7 +213,7 @@ export class ContextWebSocketClient {
   /**
    * Handle connection close
    */
-  private handleClose(event: CloseEvent): void {
+  private handleClose(event: { code: number; reason: string }): void {
     this.stopHeartbeat()
     this.ws = null
 
@@ -284,7 +284,7 @@ export class ContextWebSocketClient {
 
     // Exponential backoff
     const delay = Math.min(
-      this.config.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+      this.config.reconnectDelay * 2 ** (this.reconnectAttempts - 1),
       30000, // Max 30 seconds
     )
 

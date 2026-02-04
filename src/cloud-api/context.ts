@@ -71,7 +71,7 @@ export class ContextClient {
     const path = `/api/v8/sessions/${sessionId}/messages${query ? `?${query}` : ''}`
 
     const response = await this.fetch(path)
-    return response.json()
+    return response.json() as Promise<ListMessagesResponse>
   }
 
   /**
@@ -86,7 +86,7 @@ export class ContextClient {
       method: 'POST',
       body: JSON.stringify(request),
     })
-    return response.json()
+    return response.json() as Promise<AddMessageResponse>
   }
 
   /**
@@ -100,7 +100,7 @@ export class ContextClient {
     const response = await this.fetch(`/api/v8/sessions/${sessionId}/messages/${messageId}`, {
       method: 'DELETE',
     })
-    return response.json()
+    return response.json() as Promise<{ success: boolean, message: string }>
   }
 
   // ============================================================================
@@ -115,7 +115,7 @@ export class ContextClient {
    */
   async getSummary(sessionId: string): Promise<GetSummaryResponse> {
     const response = await this.fetch(`/api/v8/sessions/${sessionId}/summary`)
-    return response.json()
+    return response.json() as Promise<GetSummaryResponse>
   }
 
   /**
@@ -126,7 +126,7 @@ export class ContextClient {
    */
   async listSummaries(sessionId: string): Promise<ListSummariesResponse> {
     const response = await this.fetch(`/api/v8/sessions/${sessionId}/summaries`)
-    return response.json()
+    return response.json() as Promise<ListSummariesResponse>
   }
 
   /**
@@ -138,7 +138,7 @@ export class ContextClient {
    */
   async getSummaryById(sessionId: string, summaryId: string): Promise<GetSummaryResponse> {
     const response = await this.fetch(`/api/v8/sessions/${sessionId}/summaries/${summaryId}`)
-    return response.json()
+    return response.json() as Promise<GetSummaryResponse>
   }
 
   // ============================================================================
@@ -153,7 +153,7 @@ export class ContextClient {
    */
   async getStats(sessionId: string): Promise<GetContextStatsResponse> {
     const response = await this.fetch(`/api/v8/context/stats?session_id=${encodeURIComponent(sessionId)}`)
-    return response.json()
+    return response.json() as Promise<GetContextStatsResponse>
   }
 
   /**
@@ -164,7 +164,7 @@ export class ContextClient {
    */
   async getSessionStats(sessionId: string): Promise<GetContextStatsResponse> {
     const response = await this.fetch(`/api/v8/sessions/${sessionId}/stats`)
-    return response.json()
+    return response.json() as Promise<GetContextStatsResponse>
   }
 
   /**
@@ -178,7 +178,7 @@ export class ContextClient {
       method: 'POST',
       body: JSON.stringify(request),
     })
-    return response.json()
+    return response.json() as Promise<TokenEstimateResponse>
   }
 
   // ============================================================================
@@ -210,7 +210,7 @@ export class ContextClient {
       method: 'POST',
       body: JSON.stringify(body),
     })
-    return response.json()
+    return response.json() as Promise<CompactResult>
   }
 
   // ============================================================================
@@ -225,7 +225,7 @@ export class ContextClient {
    */
   async listArchives(sessionId: string): Promise<ArchiveListResponse> {
     const response = await this.fetch(`/api/v8/sessions/${sessionId}/archives`)
-    return response.json()
+    return response.json() as Promise<ArchiveListResponse>
   }
 
   /**
@@ -237,7 +237,7 @@ export class ContextClient {
    */
   async getArchive(sessionId: string, archiveId: string): Promise<ArchiveDetailResponse> {
     const response = await this.fetch(`/api/v8/sessions/${sessionId}/archives/${archiveId}`)
-    return response.json()
+    return response.json() as Promise<ArchiveDetailResponse>
   }
 
   /**
@@ -251,7 +251,7 @@ export class ContextClient {
     const response = await this.fetch(`/api/v8/sessions/${sessionId}/archives/${archiveId}`, {
       method: 'DELETE',
     })
-    return response.json()
+    return response.json() as Promise<{ success: boolean, message: string }>
   }
 
   // ============================================================================
@@ -279,7 +279,13 @@ export class ContextClient {
       method: 'POST',
       body: JSON.stringify({ trigger }),
     })
-    return response.json()
+    return response.json() as Promise<{
+      success: boolean
+      data: {
+        savedAt: string
+        messageCount: number
+      }
+    }>
   }
 
   // ============================================================================
@@ -304,7 +310,18 @@ export class ContextClient {
     }
   }> {
     const response = await this.fetch('/api/v8/recovery')
-    return response.json()
+    return response.json() as Promise<{
+      success: boolean
+      data: {
+        items: Array<{
+          id: string
+          sessionId: string
+          pendingMessages: unknown[]
+          contextSnapshot: unknown
+          createdAt: string
+        }>
+      }
+    }>
   }
 
   /**
@@ -328,7 +345,7 @@ export class ContextClient {
         context_snapshot: contextSnapshot,
       }),
     })
-    return response.json()
+    return response.json() as Promise<{ success: boolean, data: { id: string } }>
   }
 
   /**
@@ -344,7 +361,10 @@ export class ContextClient {
     const response = await this.fetch(`/api/v8/recovery/${recoveryId}/recover`, {
       method: 'POST',
     })
-    return response.json()
+    return response.json() as Promise<{
+      success: boolean
+      message: string
+    }>
   }
 
   /**
@@ -360,7 +380,81 @@ export class ContextClient {
     const response = await this.fetch(`/api/v8/recovery/cleanup?days=${days}`, {
       method: 'DELETE',
     })
-    return response.json()
+    return response.json() as Promise<{
+      success: boolean
+      data: { deletedCount: number }
+    }>
+  }
+
+  /**
+   * Check for crash recovery data for a session
+   *
+   * @param sessionId - Session ID
+   * @returns Recovery availability
+   */
+  async checkRecovery(sessionId: string): Promise<{
+    success: boolean
+    data: {
+      available: boolean
+      recoveryData?: {
+        sessionId: string
+        messageCount: number
+      }
+    }
+  }> {
+    const response = await this.fetch(`/api/v8/sessions/${sessionId}/recovery/check`)
+    return response.json() as Promise<{
+      success: boolean
+      data: {
+        available: boolean
+        recoveryData?: {
+          sessionId: string
+          messageCount: number
+        }
+      }
+    }>
+  }
+
+  /**
+   * Apply crash recovery for a session
+   *
+   * @param sessionId - Session ID
+   * @returns Recovery result
+   */
+  async applyRecovery(sessionId: string): Promise<{
+    success: boolean
+    data: {
+      messagesRecovered: number
+    }
+  }> {
+    const response = await this.fetch(`/api/v8/sessions/${sessionId}/recovery/apply`, {
+      method: 'POST',
+    })
+    return response.json() as Promise<{
+      success: boolean
+      data: {
+        messagesRecovered: number
+      }
+    }>
+  }
+
+  /**
+   * Dismiss crash recovery for a session
+   *
+   * @param sessionId - Session ID
+   * @returns Dismiss result
+   */
+  async dismissRecovery(sessionId: string): Promise<{
+    success: boolean
+    message: string
+  }> {
+    const response = await this.fetch(`/api/v8/sessions/${sessionId}/recovery/dismiss`, {
+      method: 'POST',
+    })
+    return response.json() as Promise<{
+      success: boolean
+      message: string
+    }>
   }
 
   // ============================================================================
@@ -429,7 +523,7 @@ export class ContextClient {
     let code: string = 'UNKNOWN_ERROR'
 
     try {
-      const body = await response.json()
+      const body = await response.json() as any
       if (body.error) {
         message = body.error.message || body.error
         code = body.error.code || code

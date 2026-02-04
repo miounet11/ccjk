@@ -28,18 +28,18 @@ import { EventEmitter } from 'node:events'
 /**
  * Extended hook types for CCJK
  */
-export type CCJKHookType =
-  | 'Setup' // CLI startup
-  | 'PreCommand' // Before command
-  | 'PostCommand' // After command
-  | 'PreToolUse' // Before tool use
-  | 'PostToolUse' // After tool use
-  | 'SkillActivate' // Skill activation
-  | 'SkillComplete' // Skill completion
-  | 'AgentStart' // Agent starts
-  | 'AgentStop' // Agent stops
-  | 'Error' // Error occurred
-  | 'Shutdown' // CLI shutdown
+export type CCJKHookType
+  = | 'Setup' // CLI startup
+    | 'PreCommand' // Before command
+    | 'PostCommand' // After command
+    | 'PreToolUse' // Before tool use
+    | 'PostToolUse' // After tool use
+    | 'SkillActivate' // Skill activation
+    | 'SkillComplete' // Skill completion
+    | 'AgentStart' // Agent starts
+    | 'AgentStop' // Agent stops
+    | 'Error' // Error occurred
+    | 'Shutdown' // CLI shutdown
 
 /**
  * Hook execution context
@@ -128,11 +128,17 @@ export class HookSkillBridge extends EventEmitter {
    */
   private initializeHookTypes(): void {
     const types: CCJKHookType[] = [
-      'Setup', 'PreCommand', 'PostCommand',
-      'PreToolUse', 'PostToolUse',
-      'SkillActivate', 'SkillComplete',
-      'AgentStart', 'AgentStop',
-      'Error', 'Shutdown',
+      'Setup',
+      'PreCommand',
+      'PostCommand',
+      'PreToolUse',
+      'PostToolUse',
+      'SkillActivate',
+      'SkillComplete',
+      'AgentStart',
+      'AgentStop',
+      'Error',
+      'Shutdown',
     ]
 
     for (const type of types) {
@@ -215,12 +221,12 @@ export class HookSkillBridge extends EventEmitter {
         matcher: hook.matcher,
         handler: hook.command
           ? async () => {
-              await this.executeCommand(hook.command!)
-            }
+            await this.executeCommand(hook.command!)
+          }
           : hook.script
             ? async () => {
-                await this.executeScript(hook.script!)
-              }
+              await this.executeScript(hook.script!)
+            }
             : undefined,
         priority: 50,
         enabled: true,

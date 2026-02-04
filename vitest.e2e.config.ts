@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config'
 import { resolve } from 'pathe'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
@@ -11,18 +11,18 @@ export default defineConfig({
     teardownTimeout: 30000,
     include: [
       'tests/e2e/**/*.test.ts',
-      'tests/e2e/**/*.e2e.test.ts'
+      'tests/e2e/**/*.e2e.test.ts',
     ],
     exclude: [
       'node_modules/**',
       'dist/**',
       'coverage/**',
       '**/*.unit.test.ts',
-      '**/*.integration.test.ts'
+      '**/*.integration.test.ts',
     ],
     globals: true,
     setupFiles: [
-      './tests/e2e/setup.ts'
+      './tests/e2e/setup.ts',
     ],
     env: {
       NODE_ENV: 'test',
@@ -43,33 +43,33 @@ export default defineConfig({
         'src/**/*.spec.ts',
         'src/**/*.d.ts',
         'src/types/**',
-        'tests/**'
+        'tests/**',
       ],
       thresholds: {
         lines: 60,
         functions: 60,
         branches: 60,
-        statements: 60
-      }
+        statements: 60,
+      },
     },
     pool: 'forks',
     poolOptions: {
       forks: {
-        singleFork: true
-      }
+        singleFork: true,
+      },
     },
     sequence: {
-      concurrent: false
+      concurrent: false,
     },
     isolate: true,
     fileParallelism: false,
     retry: 2,
-    bail: 1
+    bail: 1,
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      '@tests': resolve(__dirname, 'tests')
-    }
-  }
+      '@tests': resolve(__dirname, 'tests'),
+    },
+  },
 })

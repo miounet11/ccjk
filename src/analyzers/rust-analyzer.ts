@@ -3,11 +3,11 @@
  * Detects frameworks like Actix, Rocket, etc.
  */
 
-import fs from 'fs-extra'
-import path from 'pathe'
+import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
 import consola from 'consola'
+import * as fs from 'fs-extra'
+import path from 'pathe'
 import { parse } from 'smol-toml'
-import type { LanguageDetection, FrameworkDetectionResult } from './types.js'
 
 const logger = consola.withTag('rust-analyzer')
 
@@ -171,7 +171,8 @@ export async function analyzeRustProject(
       const content = await fs.readFile(cargoTomlPath, 'utf-8')
       cargoToml = parse(content)
     }
-  } catch (error) {
+  }
+  catch (error) {
     logger.warn('Failed to read Cargo.toml:', error)
   }
 
@@ -247,8 +248,9 @@ function extractCargoDependencies(cargoToml: any): Record<string, string> {
       for (const [name, version] of Object.entries(section)) {
         if (typeof version === 'string') {
           dependencies[name] = version
-        } else if (typeof version === 'object' && version.version) {
-          dependencies[name] = version.version
+        }
+        else if (typeof version === 'object' && version !== null && 'version' in version) {
+          dependencies[name] = (version as { version: string }).version
         }
       }
     }
@@ -260,8 +262,9 @@ function extractCargoDependencies(cargoToml: any): Record<string, string> {
       if (!dependencies[name]) {
         if (typeof version === 'string') {
           dependencies[name] = version
-        } else if (typeof version === 'object' && version.version) {
-          dependencies[name] = version.version
+        }
+        else if (typeof version === 'object' && version !== null && 'version' in version) {
+          dependencies[name] = (version as { version: string }).version
         }
       }
     }
@@ -308,7 +311,8 @@ async function scanRustPatterns(
           patterns[trait] = (patterns[trait] || 0) + 1
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       logger.warn(`Failed to read ${file}:`, error)
     }
   }
@@ -322,7 +326,12 @@ async function scanRustPatterns(
 function getFrameworkCategory(framework: string): string {
   const categories = {
     web: [
-      'actix-web', 'rocket', 'axum', 'warp', 'hyper', 'tide',
+      'actix-web',
+      'rocket',
+      'axum',
+      'warp',
+      'hyper',
+      'tide',
     ],
     async: ['tokio', 'async-std'],
     serialization: ['serde', 'serde_json'],
@@ -416,7 +425,7 @@ async function detectAdditionalPatterns(
   }
 
   // Check for testing patterns
-  if (files.some(f => f.endsWith('_test.rs')) || patterns['#[']?.includes('test')) {
+  if (files.some(f => f.endsWith('_test.rs')) || (patterns['#['] && patterns['#['] > 0)) {
     frameworks.push({
       name: 'testing',
       category: 'testing',
@@ -523,7 +532,7 @@ async function detectAdditionalPatterns(
   }
 
   // Check for linting tools
-  if (dependencies['clippy']) {
+  if (dependencies.clippy) {
     frameworks.push({
       name: 'clippy',
       category: 'linting',
@@ -533,7 +542,7 @@ async function detectAdditionalPatterns(
   }
 
   // Check for formatting
-  if (dependencies['rustfmt']) {
+  if (dependencies.rustfmt) {
     frameworks.push({
       name: 'rustfmt',
       category: 'formatting',
@@ -543,7 +552,7 @@ async function detectAdditionalPatterns(
   }
 
   // Check for documentation tools
-  if (dependencies['rustdoc']) {
+  if (dependencies.rustdoc) {
     frameworks.push({
       name: 'rustdoc',
       category: 'documentation',

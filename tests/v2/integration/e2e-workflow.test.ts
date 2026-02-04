@@ -7,19 +7,19 @@
  * They serve as a template for future integration tests.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, AssertionHelpers } from '../helpers'
-import { createTestTempDir } from '../setup'
 import type {
-  UserInput,
+  BrainAnalysis,
   HookTrigger,
   SkillExecution,
-  BrainAnalysis,
   Solution,
+  UserInput,
   WorkflowResult,
 } from '@/types/e2e'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AssertionHelpers } from '../helpers'
+import { createTestTempDir } from '../setup'
 
-describe.skip('End-to-End Workflow Integration', () => {
+describe.skip('end-to-End Workflow Integration', () => {
   let testDir: string
   let workflowEngine: any
   let inputProcessor: any
@@ -120,7 +120,7 @@ describe.skip('End-to-End Workflow Integration', () => {
     vi.clearAllMocks()
   })
 
-  describe('Complete Workflow Flow', () => {
+  describe('complete Workflow Flow', () => {
     it('should execute complete workflow from user input to solution', async () => {
       // Arrange - Realistic user input
       const userInput: UserInput = {
@@ -457,7 +457,7 @@ describe.skip('End-to-End Workflow Integration', () => {
     })
   })
 
-  describe('Error Handling and Recovery', () => {
+  describe('error Handling and Recovery', () => {
     it('should recover from skill execution failure', async () => {
       // Arrange
       const userInput: UserInput = {
@@ -481,7 +481,7 @@ describe.skip('End-to-End Workflow Integration', () => {
 
       // First execution fails
       skillManager.executeSkills.mockRejectedValueOnce(
-        new Error('Code analyzer crashed')
+        new Error('Code analyzer crashed'),
       )
 
       // Retry with fallback
@@ -502,7 +502,8 @@ describe.skip('End-to-End Workflow Integration', () => {
         try {
           const executions = await skillManager.executeSkills(skills, processed)
           return { success: true, skills: executions }
-        } catch (error) {
+        }
+        catch (error) {
           // Fallback to simpler skill
           const fallbackSkills = [{ id: 'simple-code-analyzer', layer: 'L1' }]
           const executions = await skillManager.executeSkills(fallbackSkills, processed)
@@ -571,7 +572,7 @@ describe.skip('End-to-End Workflow Integration', () => {
 
         // Set timeout for brain analysis
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Brain analysis timeout')), 5000)
+          setTimeout(() => reject(new Error('Brain analysis timeout')), 5000),
         )
 
         try {
@@ -580,7 +581,8 @@ describe.skip('End-to-End Workflow Integration', () => {
             timeoutPromise,
           ])
           return { success: true, analysis }
-        } catch (error) {
+        }
+        catch (error) {
           return {
             success: false,
             error: error.message,
@@ -603,7 +605,7 @@ describe.skip('End-to-End Workflow Integration', () => {
     })
   })
 
-  describe('Performance Benchmarks', () => {
+  describe('performance Benchmarks', () => {
     it('should complete workflow within performance budget', async () => {
       // Arrange
       const maxWorkflowTime = 30000 // 30 seconds
@@ -632,7 +634,7 @@ describe.skip('End-to-End Workflow Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => integrationOrchestrator.orchestrate(userInput),
-        maxWorkflowTime
+        maxWorkflowTime,
       )
     })
 
@@ -664,7 +666,7 @@ describe.skip('End-to-End Workflow Integration', () => {
       // Act
       const startTime = Date.now()
       const results = await Promise.all(
-        inputs.map(input => integrationOrchestrator.orchestrate(input))
+        inputs.map(input => integrationOrchestrator.orchestrate(input)),
       )
       const totalTime = Date.now() - startTime
 
@@ -675,7 +677,7 @@ describe.skip('End-to-End Workflow Integration', () => {
     })
   })
 
-  describe('Workflow Metrics and Reporting', () => {
+  describe('workflow Metrics and Reporting', () => {
     it('should collect comprehensive workflow metrics', async () => {
       // Arrange
       const userInput: UserInput = {
@@ -747,7 +749,7 @@ describe.skip('End-to-End Workflow Integration', () => {
     })
   })
 
-  describe('Complex Integration Scenarios', () => {
+  describe('complex Integration Scenarios', () => {
     it('should handle multi-step complex workflow', async () => {
       // Arrange - Complex scenario with multiple decision points
       const userInput: UserInput = {
@@ -772,7 +774,7 @@ describe.skip('End-to-End Workflow Integration', () => {
       ]
       skillManager.loadSkills.mockResolvedValue(mockSkills)
       skillManager.executeSkills.mockResolvedValue([
-        { skillId: 'executed-skill', status: 'completed' }
+        { skillId: 'executed-skill', status: 'completed' },
       ])
       solutionGenerator.generate.mockResolvedValue({
         type: 'multi-step-solution',
@@ -799,7 +801,7 @@ describe.skip('End-to-End Workflow Integration', () => {
         // Step 3: Execute skills in sequence
         for (const category of ['refactoring', 'testing', 'optimization', 'security']) {
           const execution = await skillManager.executeSkills(
-            skills.filter(s => s.category === category)
+            skills.filter(s => s.category === category),
           )
           results.push({ step: `${category}-executed`, result: execution })
         }

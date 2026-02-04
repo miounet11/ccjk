@@ -2,9 +2,9 @@
  * Context analyzer tests
  */
 
-import { describe, expect, it, vi } from 'vitest'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import type { CcjkSkill } from '../../src/skills/types'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { describe, expect, it, vi } from 'vitest'
 import { analyzeProjectContext, recommendSkillsForContext } from '../../src/skills/context-analyzer'
 
 // Mock fs functions
@@ -14,12 +14,12 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
 }))
 
-describe('Context Analyzer', () => {
+describe('context Analyzer', () => {
   const mockSkills: CcjkSkill[] = [
     {
       id: 'git-commit',
-      name: { en: 'Git Commit', 'zh-CN': 'Git 提交' },
-      description: { en: 'Smart commit', 'zh-CN': '智能提交' },
+      name: { 'en': 'Git Commit', 'zh-CN': 'Git 提交' },
+      description: { 'en': 'Smart commit', 'zh-CN': '智能提交' },
       category: 'git',
       triggers: ['/commit'],
       template: '# Git Commit',
@@ -29,8 +29,8 @@ describe('Context Analyzer', () => {
     },
     {
       id: 'ts-debug',
-      name: { en: 'TypeScript Debug', 'zh-CN': 'TypeScript 调试' },
-      description: { en: 'Debug TS', 'zh-CN': '调试 TS' },
+      name: { 'en': 'TypeScript Debug', 'zh-CN': 'TypeScript 调试' },
+      description: { 'en': 'Debug TS', 'zh-CN': '调试 TS' },
       category: 'dev',
       triggers: ['/ts-debug'],
       template: '# TS Debug',
@@ -40,8 +40,8 @@ describe('Context Analyzer', () => {
     },
     {
       id: 'write-tests',
-      name: { en: 'Write Tests', 'zh-CN': '编写测试' },
-      description: { en: 'Write tests', 'zh-CN': '编写测试' },
+      name: { 'en': 'Write Tests', 'zh-CN': '编写测试' },
+      description: { 'en': 'Write tests', 'zh-CN': '编写测试' },
       category: 'testing',
       triggers: ['/test'],
       template: '# Tests',
@@ -51,8 +51,8 @@ describe('Context Analyzer', () => {
     },
     {
       id: 'write-docs',
-      name: { en: 'Write Docs', 'zh-CN': '编写文档' },
-      description: { en: 'Write docs', 'zh-CN': '编写文档' },
+      name: { 'en': 'Write Docs', 'zh-CN': '编写文档' },
+      description: { 'en': 'Write docs', 'zh-CN': '编写文档' },
       category: 'docs',
       triggers: ['/docs'],
       template: '# Docs',

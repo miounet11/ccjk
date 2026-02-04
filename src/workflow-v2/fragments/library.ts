@@ -7,13 +7,13 @@
 
 import type {
   Fragment,
-  FragmentLibraryIndex,
   FragmentCategory,
+  FragmentLibraryIndex,
 } from '../types.js'
-import { setupFragments } from '../fragments/setup/index.js'
-import { developFragments } from '../fragments/develop/index.js'
-import { testFragments } from '../fragments/test/index.js'
 import { deployFragments } from '../fragments/deploy/index.js'
+import { developFragments } from '../fragments/develop/index.js'
+import { setupFragments } from '../fragments/setup/index.js'
+import { testFragments } from '../fragments/test/index.js'
 
 export class FragmentLibrary {
   private index: FragmentLibraryIndex
@@ -52,9 +52,9 @@ export class FragmentLibrary {
     const lowerQuery = query.toLowerCase()
 
     return Object.values(this.index.fragments).filter(fragment =>
-      fragment.name.toLowerCase().includes(lowerQuery) ||
-      fragment.description.toLowerCase().includes(lowerQuery) ||
-      fragment.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+      fragment.name.toLowerCase().includes(lowerQuery)
+      || fragment.description.toLowerCase().includes(lowerQuery)
+      || fragment.tags.some(tag => tag.toLowerCase().includes(lowerQuery)),
     )
   }
 
@@ -138,7 +138,7 @@ export class FragmentLibrary {
   getStats(): {
     totalFragments: number
     fragmentsByCategory: Record<FragmentCategory, number>
-    topTags: Array<{ tag: string; count: number }>
+    topTags: Array<{ tag: string, count: number }>
   } {
     const fragmentsByCategory: Record<FragmentCategory, number> = {
       setup: 0,
@@ -244,31 +244,31 @@ export class FragmentLibrary {
     language?: string
     framework?: string
   }): Fragment[] {
-    return Object.values(this.index.fragments).filter(fragment => {
+    return Object.values(this.index.fragments).filter((fragment) => {
       if (!fragment.compatibility) {
         return true
       }
 
       if (
-        fragment.compatibility.platforms &&
-        context.platform &&
-        !fragment.compatibility.platforms.includes(context.platform)
+        fragment.compatibility.platforms
+        && context.platform
+        && !fragment.compatibility.platforms.includes(context.platform)
       ) {
         return false
       }
 
       if (
-        fragment.compatibility.languages &&
-        context.language &&
-        !fragment.compatibility.languages.includes(context.language)
+        fragment.compatibility.languages
+        && context.language
+        && !fragment.compatibility.languages.includes(context.language)
       ) {
         return false
       }
 
       if (
-        fragment.compatibility.frameworks &&
-        context.framework &&
-        !fragment.compatibility.frameworks.includes(context.framework)
+        fragment.compatibility.frameworks
+        && context.framework
+        && !fragment.compatibility.frameworks.includes(context.framework)
       ) {
         return false
       }

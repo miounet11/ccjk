@@ -54,7 +54,7 @@ export class TaskDependencyTracker {
    * Build dependency graph for visualization
    */
   buildGraph(tasks: Task[]): TaskGraphNode[] {
-    const nodes: TaskGraphNode[] = tasks.map(task => {
+    const nodes: TaskGraphNode[] = tasks.map((task) => {
       const level = this.calculateLevel(task, tasks)
       return {
         id: task.id,
@@ -130,4 +130,3 @@ export class TaskDependencyTracker {
     return sorted.map(node => idToTask.get(node.id)!).filter(Boolean)
   }
 }
-

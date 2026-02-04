@@ -3,35 +3,22 @@
  * Tests CCJK behavior across different operating systems and environments
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
-import { join, resolve, sep } from 'pathe'
-import { platform, tmpdir, homedir } from 'node:os'
-import { runCommand } from './helpers'
+import { join } from 'pathe'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  runCcjk,
   assertSuccess,
-  assertFailure,
-  assertOutputContains,
-  assertFile,
-  waitForFile,
   createFile,
-  readJsonFile,
-  writeJsonFile,
-  sleep,
   isPlatform,
-  skipOnPlatform,
-  normalizePath,
-  getPathSeparator,
+  runCcjk,
+  runCommand,
+  writeJsonFile,
 } from './helpers'
 import {
-  getE2EEnvironment,
   createTestProject,
   getTestConfigDir,
-  getTestHomeDir,
 } from './setup'
 
-describe('E2E: Cross-Platform Compatibility', () => {
+describe('e2E: Cross-Platform Compatibility', () => {
   let testProjectDir: string
 
   beforeEach(async () => {
@@ -47,7 +34,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Platform Detection Tests
   // ==========================================================================
 
-  describe('Platform Detection', () => {
+  describe('platform Detection', () => {
     it('should detect current platform', async () => {
       // First test may need more time for initialization
       const result = await runCcjk(['--version'], { timeout: 30000 })
@@ -76,7 +63,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Windows-Specific Tests
   // ==========================================================================
 
-  describe('Windows Compatibility', () => {
+  describe('windows Compatibility', () => {
     const isWindows = isPlatform('win32')
 
     // Skip these tests on non-Windows platforms
@@ -167,7 +154,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Linux-Specific Tests
   // ==========================================================================
 
-  describe('Linux Compatibility', () => {
+  describe('linux Compatibility', () => {
     const isLinux = isPlatform('linux')
 
     // Skip these tests on non-Linux platforms
@@ -210,7 +197,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Path Handling Tests
   // ==========================================================================
 
-  describe('Path Handling', () => {
+  describe('path Handling', () => {
     it('should normalize paths consistently', async () => {
       // Use --version which always works
       const result = await runCcjk(['--version'])
@@ -277,7 +264,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // File System Tests
   // ==========================================================================
 
-  describe('File System Compatibility', () => {
+  describe('file System Compatibility', () => {
     it('should handle different file systems', async () => {
       // Use --version which always works
       const result = await runCcjk(['--version'])
@@ -293,7 +280,8 @@ describe('E2E: Cross-Platform Compatibility', () => {
       try {
         // Try to create a symlink
         await runCommand('ln', ['-s', targetPath, linkPath], { timeout: 5000 })
-      } catch {
+      }
+      catch {
         // Symlink creation failed, skip test
         return
       }
@@ -314,7 +302,8 @@ describe('E2E: Cross-Platform Compatibility', () => {
         if (isPlatform('darwin') || isPlatform('linux')) {
           await runCommand('chmod', ['444', readOnlyFile], { timeout: 5000 })
         }
-      } catch {
+      }
+      catch {
         // Skip if chmod fails
       }
 
@@ -348,7 +337,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Environment Variable Tests
   // ==========================================================================
 
-  describe('Environment Variables', () => {
+  describe('environment Variables', () => {
     it('should respect PATH environment variable', async () => {
       // Use --version which always works
       const result = await runCcjk(['--version'], {
@@ -391,7 +380,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Node.js Version Compatibility
   // ==========================================================================
 
-  describe('Node.js Version Compatibility', () => {
+  describe('node.js Version Compatibility', () => {
     it('should work with current Node.js version', async () => {
       const result = await runCommand('node', ['--version'], { timeout: 5000 })
 
@@ -417,7 +406,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Package Manager Compatibility
   // ==========================================================================
 
-  describe('Package Manager Compatibility', () => {
+  describe('package Manager Compatibility', () => {
     it('should detect installed package managers', async () => {
       const results = await Promise.allSettled([
         runCommand('npm', ['--version'], { timeout: 5000 }),
@@ -449,7 +438,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Terminal Compatibility
   // ==========================================================================
 
-  describe('Terminal Compatibility', () => {
+  describe('terminal Compatibility', () => {
     it('should work with basic terminals', async () => {
       const result = await runCcjk(['--help'])
 
@@ -490,7 +479,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Locale and Encoding Tests
   // ==========================================================================
 
-  describe('Locale and Encoding', () => {
+  describe('locale and Encoding', () => {
     it('should work with UTF-8 encoding', async () => {
       // Use --version which always works
       const result = await runCcjk(['--version'], {
@@ -535,7 +524,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Special Environment Tests
   // ==========================================================================
 
-  describe('Special Environments', () => {
+  describe('special Environments', () => {
     it('should work in CI/CD environment', async () => {
       // Use --version which always works
       const result = await runCcjk(['--version'], {
@@ -584,7 +573,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Architecture Tests
   // ==========================================================================
 
-  describe('Architecture Compatibility', () => {
+  describe('architecture Compatibility', () => {
     it('should detect system architecture', async () => {
       const result = await runCommand('uname', ['-m'], { timeout: 5000 })
 
@@ -608,7 +597,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Concurrent Execution Tests
   // ==========================================================================
 
-  describe('Concurrent Execution', () => {
+  describe('concurrent Execution', () => {
     it('should handle multiple CCJK instances', async () => {
       const results = await Promise.all([
         runCcjk(['--version'], { timeout: 10000 }),
@@ -616,7 +605,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
         runCcjk(['--version'], { timeout: 10000 }),
       ])
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.timedOut).toBe(false)
       })
     })
@@ -628,7 +617,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
         runCcjk(['--help'], { timeout: 10000 }),
       ])
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.timedOut).toBe(false)
         assertSuccess(result)
       })
@@ -639,7 +628,7 @@ describe('E2E: Cross-Platform Compatibility', () => {
   // Upgrade and Migration Tests
   // ==========================================================================
 
-  describe('Upgrade and Migration', () => {
+  describe('upgrade and Migration', () => {
     it('should preserve configuration across versions', async () => {
       // Create a config file
       const configPath = join(getTestConfigDir(), 'config.json')

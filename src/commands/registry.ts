@@ -5,6 +5,7 @@
  * Provides lazy loading, deprecation warnings, and categorization
  */
 
+import type { CAC } from 'cac'
 import ansis from 'ansis'
 import { getTranslation } from '../i18n'
 
@@ -48,7 +49,7 @@ export interface CommandDefinition {
   deprecationReason?: string
 
   /** Lazy import function for the command handler */
-  lazyImport?: () => Promise<{ default: () => Promise<void> } | { handleCommand: () => Promise<void> }>
+  lazyImport?: () => Promise<{ default: () => Promise<void> } | { handleCommand: () => Promise<void>, handler?: () => Promise<void> }>
 
   /** Direct handler (for core commands) */
   handler?: () => Promise<void>
@@ -174,7 +175,9 @@ export class CommandRegistry {
     if (cmd.lazyImport) {
       const module = await cmd.lazyImport()
       const handler = 'default' in module ? module.default : module.handler
-      await handler()
+      if (handler) {
+        await handler()
+      }
       return
     }
 
@@ -184,7 +187,7 @@ export class CommandRegistry {
   /**
    * Register command with CAC CLI
    */
-  registerWithCli(command: CommandDefinition, cli: CliCommand): void {
+  registerWithCli(command: CommandDefinition, cli: CAC): void {
     const cliCmd = cli.command(command.name, command.description)
 
     if (command.alias) {

@@ -65,7 +65,7 @@ export class ReplyClient {
     const pollTimeout = (options.timeout || 30) * 1000 + 5000
     const response = await this.fetch(path, {}, pollTimeout)
 
-    return response.json()
+    return response.json() as Promise<PollRepliesResponse>
   }
 
   /**
@@ -76,7 +76,7 @@ export class ReplyClient {
    */
   async get(notificationId: string): Promise<GetReplyResponse> {
     const response = await this.fetch(`/reply/${notificationId}`)
-    return response.json()
+    return response.json() as Promise<GetReplyResponse>
   }
 
   /**
@@ -87,7 +87,7 @@ export class ReplyClient {
    */
   async getHistory(limit = 50): Promise<GetReplyHistoryResponse> {
     const response = await this.fetch(`/reply/history?limit=${limit}`)
-    return response.json()
+    return response.json() as Promise<GetReplyHistoryResponse>
   }
 
   /**
@@ -102,7 +102,7 @@ export class ReplyClient {
       body: JSON.stringify(request),
     })
 
-    return response.json()
+    return response.json() as Promise<ManualReplyResponse>
   }
 
   /**
@@ -168,8 +168,8 @@ export class ReplyClient {
     let message = response.statusText
 
     try {
-      const body = await response.json()
-      if (body.error) {
+      const body = await response.json() as { error?: string }
+      if (body && typeof body === 'object' && 'error' in body && body.error) {
         message = body.error
       }
     }

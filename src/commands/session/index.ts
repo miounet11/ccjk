@@ -4,14 +4,12 @@
  * Merges session-resume, background, and new session management features
  */
 
-import type { SupportedLang } from '../../constants'
-
 import { existsSync, readdirSync, unlinkSync } from 'node:fs'
 import { homedir } from 'node:os'
 import ansis from 'ansis'
 import { join } from 'pathe'
 import { getTranslation } from '../../i18n'
-import { ensureDir, readFile, readJson, writeFile, writeJson } from '../../utils/fs-operations'
+import { ensureDir, readJsonFile, writeJsonFile } from '../../utils/fs-operations'
 
 /**
  * Session storage directory
@@ -67,7 +65,7 @@ export async function saveSession(name?: string): Promise<Session> {
   }
 
   const sessionPath = join(SESSIONS_DIR, `${session.id}.json`)
-  writeJson(sessionPath, session, { pretty: true })
+  writeJsonFile(sessionPath, session, true)
 
   console.log(ansis.green(`\n✓ ${t('session.saved')}: ${ansis.bold(session.name)}`))
   console.log(ansis.dim(`  ID: ${session.id}`))
@@ -101,7 +99,7 @@ export async function restoreSession(idOrName: string): Promise<void> {
   // Update session access time
   session.updatedAt = new Date().toISOString()
   const sessionPath = join(SESSIONS_DIR, `${session.id}.json`)
-  writeJson(sessionPath, session, { pretty: true })
+  writeJsonFile(sessionPath, session, true)
 
   // TODO: Implement actual restoration logic
   console.log(ansis.dim(t('session.restoreNote')))
@@ -128,7 +126,7 @@ export async function listSessions(): Promise<void> {
   const sessions: Session[] = []
   for (const file of files) {
     try {
-      const session = readJson<Session>(join(SESSIONS_DIR, file))
+      const session = readJsonFile<Session>(join(SESSIONS_DIR, file))
       sessions.push(session)
     }
     catch {
@@ -201,7 +199,7 @@ export async function resumeLastSession(): Promise<void> {
 
   for (const file of files) {
     try {
-      const session = readJson<Session>(join(SESSIONS_DIR, file))
+      const session = readJsonFile<Session>(join(SESSIONS_DIR, file))
       const time = new Date(session.updatedAt).getTime()
       if (time > latestTime) {
         latestTime = time
@@ -232,7 +230,7 @@ function findSession(idOrName: string): Session | null {
 
   for (const file of files) {
     try {
-      const session = readJson<Session>(join(SESSIONS_DIR, file))
+      const session = readJsonFile<Session>(join(SESSIONS_DIR, file))
       if (session.id === idOrName || session.name === idOrName) {
         return session
       }

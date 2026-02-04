@@ -6,12 +6,12 @@
  * They serve as a template for future integration tests.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, AssertionHelpers } from '../helpers'
+import type { HookExecution, HookJustification, HookLevel } from '@/types/hooks'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MockFactory } from '../helpers'
 import { createTestTempDir } from '../setup'
-import type { HookLevel, HookExecution, HookJustification } from '@/types/hooks'
 
-describe.skip('Hook Enforcement Integration', () => {
+describe.skip('hook Enforcement Integration', () => {
   let testDir: string
   let hookManager: any
   let hookRegistry: any
@@ -78,7 +78,7 @@ describe.skip('Hook Enforcement Integration', () => {
     vi.clearAllMocks()
   })
 
-  describe('L3 Hook Enforcement (Mandatory)', () => {
+  describe('l3 Hook Enforcement (Mandatory)', () => {
     it('should enforce L3 hooks without bypass option', async () => {
       // Arrange
       const l3Hook = MockFactory.createHook({
@@ -139,12 +139,12 @@ describe.skip('Hook Enforcement Integration', () => {
 
       // Act & Assert
       expect(() => hookManager.validateHook('missing-l3-hook')).toThrow(
-        "Mandatory L3 hook 'missing-l3-hook' not found"
+        'Mandatory L3 hook \'missing-l3-hook\' not found',
       )
     })
   })
 
-  describe('L2 Hook Enforcement (Optional with Justification)', () => {
+  describe('l2 Hook Enforcement (Optional with Justification)', () => {
     it('should execute L2 hook normally', async () => {
       // Arrange
       const l2Hook = MockFactory.createHook({
@@ -200,7 +200,7 @@ describe.skip('Hook Enforcement Integration', () => {
       // Act
       const result = await hookManager.bypassWithJustification(
         'compatibility-check',
-        justification
+        justification,
       )
 
       // Assert
@@ -219,12 +219,12 @@ describe.skip('Hook Enforcement Integration', () => {
       }
 
       hookManager.bypassWithJustification.mockRejectedValue(
-        new Error('Invalid justification: reason and authorizer are required')
+        new Error('Invalid justification: reason and authorizer are required'),
       )
 
       // Act & Assert
       await expect(
-        hookManager.bypassWithJustification('performance-check', invalidJustification)
+        hookManager.bypassWithJustification('performance-check', invalidJustification),
       ).rejects.toThrow('Invalid justification: reason and authorizer are required')
     })
 
@@ -255,7 +255,7 @@ describe.skip('Hook Enforcement Integration', () => {
     })
   })
 
-  describe('Hook Execution Audit Trail', () => {
+  describe('hook Execution Audit Trail', () => {
     it('should maintain complete audit trail for all hook executions', async () => {
       // Arrange
       const executions: HookExecution[] = [
@@ -344,7 +344,7 @@ describe.skip('Hook Enforcement Integration', () => {
     })
   })
 
-  describe('Performance Benchmarks', () => {
+  describe('performance Benchmarks', () => {
     it('should execute hooks within performance budget (<5ms)', async () => {
       // Arrange
       const hooks = [
@@ -364,11 +364,11 @@ describe.skip('Hook Enforcement Integration', () => {
 
       // Act
       const results = await Promise.all(
-        hooks.map(hook => hookManager.executeHook(hook.id, {}))
+        hooks.map(hook => hookManager.executeHook(hook.id, {})),
       )
 
       // Assert
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.executionTime).toBeLessThan(5) // Less than 5ms
       })
     })
@@ -379,15 +379,14 @@ describe.skip('Hook Enforcement Integration', () => {
         MockFactory.createHook({
           id: `bulk-hook-${i}`,
           level: i % 3 === 0 ? 'L3' : i % 2 === 0 ? 'L2' : 'L1',
-        })
-      )
+        }))
 
       const startTime = Date.now()
       hookManager.executeHook.mockResolvedValue({ success: true, executionTime: 0.5 })
 
       // Act
       const results = await Promise.all(
-        bulkHooks.map(hook => hookManager.executeHook(hook.id, {}))
+        bulkHooks.map(hook => hookManager.executeHook(hook.id, {})),
       )
       const totalTime = Date.now() - startTime
 
@@ -398,7 +397,7 @@ describe.skip('Hook Enforcement Integration', () => {
     })
   })
 
-  describe('Edge Cases and Error Scenarios', () => {
+  describe('edge Cases and Error Scenarios', () => {
     it('should handle circular hook dependencies', async () => {
       // Arrange
       const circularHooks = [
@@ -420,7 +419,7 @@ describe.skip('Hook Enforcement Integration', () => {
 
       // Act & Assert
       expect(() => hookManager.validateHook('hook-a')).toThrow(
-        'Circular dependency detected: hook-a <-> hook-b'
+        'Circular dependency detected: hook-a <-> hook-b',
       )
     })
 

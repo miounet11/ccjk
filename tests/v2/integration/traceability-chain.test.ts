@@ -7,18 +7,18 @@
  * They serve as a template for future integration tests.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, AssertionHelpers } from '../helpers'
-import { createTestTempDir } from '../setup'
 import type {
-  TraceabilityChain,
-  ErrorClassification,
   ConstraintIdentification,
+  ErrorClassification,
   PatternMatch,
   SolutionGeneration,
+  TraceabilityChain,
 } from '@/types/traceability'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AssertionHelpers } from '../helpers'
+import { createTestTempDir } from '../setup'
 
-describe.skip('Traceability Chain Integration', () => {
+describe.skip('traceability Chain Integration', () => {
   let testDir: string
   let traceabilityEngine: any
   let errorClassifier: any
@@ -105,7 +105,7 @@ describe.skip('Traceability Chain Integration', () => {
     vi.clearAllMocks()
   })
 
-  describe('L1 Error Classification', () => {
+  describe('l1 Error Classification', () => {
     it('should classify errors with high accuracy', async () => {
       // Arrange
       const error = new Error('Module not found: @ccjk/brain')
@@ -199,7 +199,7 @@ describe.skip('Traceability Chain Integration', () => {
     })
   })
 
-  describe('L3 Constraint Identification', () => {
+  describe('l3 Constraint Identification', () => {
     it('should identify system constraints from error context', async () => {
       // Arrange
       const errorContext = {
@@ -319,7 +319,7 @@ describe.skip('Traceability Chain Integration', () => {
     })
   })
 
-  describe('L2 Pattern Matching', () => {
+  describe('l2 Pattern Matching', () => {
     it('should match error patterns from historical data', async () => {
       // Arrange
       const errorSignature = {
@@ -424,7 +424,7 @@ describe.skip('Traceability Chain Integration', () => {
     })
   })
 
-  describe('Solution Generation', () => {
+  describe('solution Generation', () => {
     it('should generate ranked solutions from traceability chain', async () => {
       // Arrange
       const chain: TraceabilityChain = {
@@ -520,7 +520,7 @@ describe.skip('Traceability Chain Integration', () => {
     })
   })
 
-  describe('End-to-End Traceability Chain', () => {
+  describe('end-to-End Traceability Chain', () => {
     it('should build complete traceability chain from error to solution', async () => {
       // Arrange
       const originalError = new Error('Failed to process large dataset: Memory limit exceeded')
@@ -635,7 +635,7 @@ describe.skip('Traceability Chain Integration', () => {
     })
   })
 
-  describe('Performance and Scalability', () => {
+  describe('performance and Scalability', () => {
     it('should complete traceability analysis within acceptable time', async () => {
       // Arrange
       const maxAnalysisTime = 5000 // 5 seconds
@@ -653,15 +653,14 @@ describe.skip('Traceability Chain Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => traceabilityEngine.buildChain(new Error('Test')),
-        maxAnalysisTime
+        maxAnalysisTime,
       )
     })
 
     it('should handle bulk error analysis efficiently', async () => {
       // Arrange
       const errors = Array.from({ length: 50 }, (_, i) =>
-        new Error(`Bulk test error ${i}`)
-      )
+        new Error(`Bulk test error ${i}`))
 
       traceabilityEngine.buildChain.mockResolvedValue({
         classification: { level: 'L1' },
@@ -673,7 +672,7 @@ describe.skip('Traceability Chain Integration', () => {
       // Act
       const startTime = Date.now()
       const chains = await Promise.all(
-        errors.map(error => traceabilityEngine.buildChain(error))
+        errors.map(error => traceabilityEngine.buildChain(error)),
       )
       const totalTime = Date.now() - startTime
 

@@ -10,13 +10,13 @@
  * Users don't need to do anything - the system handles everything.
  */
 
-import { EventEmitter } from 'node:events'
 import type { AnalyzedIntent } from './intent-router'
-import { getGlobalIntentRouter } from './intent-router'
-import { getGlobalMayorAgent } from '../mayor/mayor-agent'
+import { EventEmitter } from 'node:events'
 import { getGlobalConvoyManager } from '../convoy/convoy-manager'
-import { getGlobalStateManager } from '../persistence/git-backed-state'
+import { getGlobalMayorAgent } from '../mayor/mayor-agent'
 import { getGlobalMailboxManager } from '../messaging/persistent-mailbox'
+import { getGlobalStateManager } from '../persistence/git-backed-state'
+import { getGlobalIntentRouter } from './intent-router'
 
 /**
  * Execution result

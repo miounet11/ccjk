@@ -12,9 +12,8 @@ import type {
   AgentRole,
   BrainConfig,
   HealthStatus,
-  MessagePriority,
-  TaskDefinition,
 } from './types'
+import type { TaskPriority } from './task-queue'
 import process from 'node:process'
 import { AgentRegistry, AgentState, BaseAgent } from './agents/base-agent'
 import { CodeAgent } from './agents/code-agent'
@@ -46,7 +45,7 @@ export interface BrainExecuteOptions {
   /**
    * Task priority (default: 'normal')
    */
-  priority?: MessagePriority
+  priority?: TaskPriority
 
   /**
    * Task timeout in milliseconds (default: 60000)
@@ -294,13 +293,14 @@ export class Brain {
       // Record successful heartbeat
       if (this.healthMonitor && result.success) {
         this.healthMonitor.recordHeartbeat(agent.getName(), {
+          agentId: agent.getName(),
           cpuUsage: 0,
           memoryUsage: 0,
           avgResponseTime: 0,
           errorRate: 0,
-          taskCount: 1,
-          successRate: 1,
-          timestamp: Date.now(),
+          tasksCompleted: 1,
+          tasksFailed: 0,
+          lastUpdated: new Date().toISOString(),
         })
       }
 
@@ -534,11 +534,11 @@ export class Brain {
       || lowerCommand.includes('performance')
       || lowerCommand.includes('metrics')
     ) {
-      return 'typescript-cli-architect'
+      return 'architect'
     }
 
-    // Default to system
-    return 'system'
+    // Default to coordinator
+    return 'coordinator'
   }
 
   /**
@@ -591,12 +591,10 @@ export function createBrain(options?: BrainInitOptions): Brain {
 
 // Re-export types and classes for convenience
 export type {
-  AgentContext,
   AgentResult,
   BrainConfig,
   HealthStatus,
-  MessagePriority,
-  TaskDefinition,
+  TaskPriority,
 }
 
 export {
@@ -701,17 +699,113 @@ export type {
   RefactoringPlan,
   RefactoringStep,
 } from './agents/code-agent'
+export {
+  AutoSessionSaver,
+  createAutoSessionSaver,
+  getAutoSessionSaver,
+  resetAutoSessionSaver,
+} from './auto-session-saver'
+
+export type {
+  AutoSaveEvent,
+  AutoSessionSaverStats as AutoSaverStats,
+  AutoSessionSaverConfig,
+  CrashRecoveryData,
+} from './auto-session-saver'
+
+export {
+  ContextOverflowDetector,
+  createClaudeDetector,
+  createCustomDetector,
+  createGPT4Detector,
+  createPredictiveClaudeDetector,
+  getContextDetector,
+  PredictiveContextDetector,
+  resetContextDetector,
+} from './context-overflow-detector'
+
+export type {
+  ContextOverflowConfig,
+  OverflowPrediction,
+  UsageStats,
+} from './context-overflow-detector'
+export {
+  ConvoyManager,
+  getGlobalConvoyManager,
+  resetGlobalConvoyManager,
+} from './convoy/convoy-manager'
+
+export type {
+  Convoy,
+  ConvoyStatus,
+  ConvoyTask,
+  CreateConvoyOptions,
+  CreateTaskOptions,
+} from './convoy/convoy-manager'
+
+export {
+  createProgressCallback,
+  ProgressTracker,
+} from './convoy/progress-tracker'
+export type {
+  ProgressTrackerConfig,
+  ProgressUpdate,
+} from './convoy/progress-tracker'
+
 export type { HealthCheckResult, HeartbeatRecord } from './health-monitor'
+export {
+  getGlobalMayorAgent,
+  MayorAgent,
+  resetGlobalMayorAgent,
+} from './mayor/mayor-agent'
+
+export type {
+  Intent,
+  MayorAgentConfig,
+  MayorResponse,
+  TaskPlan,
+} from './mayor/mayor-agent'
+
+// ============================================================================
+// SKILL HOT RELOAD SYSTEM (v3.8)
+// ============================================================================
+
+/**
+ * Skill Hot Reload System - Automatic skill file watching and reloading
+ *
+ * The skill hot-reload system provides:
+ * - Automatic parsing of SKILL.md files with YAML frontmatter
+ * - In-memory registry with hot-swap capability
+ * - File system watching with chokidar
+ * - Event-driven architecture via MessageBus
+ * - Dependency tracking between skills
+ */
+
+export {
+  getGlobalMailboxManager,
+  PersistentMailboxManager,
+  resetGlobalMailboxManager,
+} from './messaging/persistent-mailbox'
+
+export type {
+  Mailbox,
+  Message,
+  SendMessageOptions,
+} from './messaging/persistent-mailbox'
 
 // Orchestrator type definitions
 export type {
+  AgentCapability,
+  AgentContext,
   AgentInstance,
   AgentInstanceConfig,
+  AgentMessage,
   AgentMetrics,
   AgentRequirement,
   AgentSelectionCriteria,
   AgentSelectionResult,
   AgentStatus,
+  BaseAgentCapability,
   ConflictResolutionContext,
   ConflictResolutionResult,
   ConflictResolutionStrategy,
@@ -744,84 +838,8 @@ export type {
 export { BrainOrchestrator } from './orchestrator.js'
 
 export type { OrchestratorEvents } from './orchestrator.js'
+
 export type { ExtendedOrchestratorConfig } from './orchestrator.js'
-
-// Result aggregation
-export { ResultAggregator } from './result-aggregator.js'
-
-export type {
-  AggregationContext,
-  AggregationResult,
-  ResultAggregationOptions,
-  ResultValidator,
-  ValidationResult,
-} from './result-aggregator.js'
-// Skill Hot Reload
-export {
-  createSkillHotReload,
-  getSkillHotReload,
-  getSkillHotReloadStats,
-  resetSkillHotReload,
-  SkillHotReload,
-  startSkillHotReload,
-  stopSkillHotReload,
-} from './skill-hot-reload'
-
-export type {
-  HotReloadEvent,
-  HotReloadEventType,
-  HotReloadOptions,
-  HotReloadStats,
-  SkillHotReloadEvents,
-} from './skill-hot-reload'
-// Skill Parser
-export { getSkillParser, isSkillFile, parseSkillContent, parseSkillFile, resetSkillParser, SkillParser } from './skill-parser'
-
-export type { FrontmatterParseOptions, SkillParseResult } from './skill-parser'
-
-// ============================================================================
-// SKILL HOT RELOAD SYSTEM (v3.8)
-// ============================================================================
-
-/**
- * Skill Hot Reload System - Automatic skill file watching and reloading
- *
- * The skill hot-reload system provides:
- * - Automatic parsing of SKILL.md files with YAML frontmatter
- * - In-memory registry with hot-swap capability
- * - File system watching with chokidar
- * - Event-driven architecture via MessageBus
- * - Dependency tracking between skills
- */
-
-// Skill Registry
-export {
-  getSkillById,
-  getSkillRegistry,
-  getSkillsByTrigger,
-  lookupSkills,
-  registerSkill,
-  resetSkillRegistry,
-  SkillRegistry,
-} from './skill-registry'
-
-export type {
-  SkillLookupOptions,
-  SkillRegistryEntry,
-  SkillRegistryEvents,
-  SkillRegistryStats,
-} from './skill-registry'
-
-// Task decomposition
-export { TaskDecomposer } from './task-decomposer.js'
-
-export type { TaskDecompositionOptions } from './task-decomposer.js'
-
-// Re-export specific types from other modules to avoid conflicts
-export type { Task as QueueTask, TaskPriority as QueueTaskPriority, TaskOptions, TaskQueueOptions, TaskQueueStats } from './task-queue'
-
-// Export all thinking mode types and utilities
-export * from './thinking-mode.js'
 
 // ============================================================================
 // THINKING MODE - Claude Code CLI 2.0.67+ Integration
@@ -834,8 +852,11 @@ export * from './thinking-mode.js'
  * Enabled by default for Opus 4.5 with configurable budget tokens.
  */
 
-// Re-export all types from types module
-export * from './types'
+export {
+  getGlobalStateManager,
+  GitBackedStateManager,
+  resetGlobalStateManager,
+} from './persistence/git-backed-state'
 
 // ============================================================================
 // SESSION MANAGEMENT & ZPA (Zero-Prompt Architecture)
@@ -851,23 +872,14 @@ export * from './types'
  * - Import/export functionality
  */
 
-export {
-  SessionManager,
-  getSessionManager,
-  resetSessionManager,
-  CrossSessionRecovery,
-  getCrossSessionRecovery,
-} from './session-manager'
-
 export type {
-  Session,
-  SessionHistoryEntry,
-  SessionMetadata,
-  GitInfo as SessionGitInfo,
-  SessionManagerOptions,
-  SessionListOptions,
-  RecoveryCheckpoint,
-} from './session-manager'
+  GitBackedStateConfig,
+  StateHistory,
+  StateSnapshot,
+} from './persistence/git-backed-state'
+
+// Result aggregation
+export { ResultAggregator } from './result-aggregator.js'
 
 /**
  * Auto Session Saver
@@ -878,19 +890,21 @@ export type {
  * - Event-driven save triggers
  */
 
-export {
-  AutoSessionSaver,
-  getAutoSessionSaver,
-  resetAutoSessionSaver,
-  createAutoSessionSaver,
-} from './auto-session-saver'
-
 export type {
-  AutoSessionSaverConfig,
-  AutoSaveEvent,
-  CrashRecoveryData,
-  AutoSessionSaverStats as AutoSaverStats,
-} from './auto-session-saver'
+  AggregationContext,
+  AggregationResult,
+  ResultAggregationOptions,
+  ResultValidator,
+  ValidationResult,
+} from './result-aggregator.js'
+
+export {
+  CrossSessionRecovery,
+  getCrossSessionRecovery,
+  getSessionManager,
+  resetSessionManager,
+  SessionManager,
+} from './session-manager'
 
 /**
  * Context Overflow Detection
@@ -902,22 +916,26 @@ export type {
  * - Model-specific presets (Claude, GPT-4, custom)
  */
 
-export {
-  ContextOverflowDetector,
-  PredictiveContextDetector,
-  getContextDetector,
-  resetContextDetector,
-  createClaudeDetector,
-  createGPT4Detector,
-  createCustomDetector,
-  createPredictiveClaudeDetector,
-} from './context-overflow-detector'
-
 export type {
-  ContextOverflowConfig,
-  UsageStats,
-  OverflowPrediction,
-} from './context-overflow-detector'
+  RecoveryCheckpoint,
+  Session,
+  GitInfo as SessionGitInfo,
+  SessionHistoryEntry,
+  SessionListOptions,
+  SessionManagerOptions,
+  SessionMetadata,
+} from './session-manager'
+
+// Skill Hot Reload
+export {
+  createSkillHotReload,
+  getSkillHotReload,
+  getSkillHotReloadStats,
+  resetSkillHotReload,
+  SkillHotReload,
+  startSkillHotReload,
+  stopSkillHotReload,
+} from './skill-hot-reload'
 
 /**
  * Auto Compact Manager
@@ -942,17 +960,16 @@ export type {
  * - Multi-device sync via Git remotes
  */
 
-export {
-  GitBackedStateManager,
-  getGlobalStateManager,
-  resetGlobalStateManager,
-} from './persistence/git-backed-state'
-
 export type {
-  GitBackedStateConfig,
-  StateSnapshot,
-  StateHistory,
-} from './persistence/git-backed-state'
+  HotReloadEvent,
+  HotReloadEventType,
+  HotReloadOptions,
+  HotReloadStats,
+  SkillHotReloadEvents,
+} from './skill-hot-reload'
+
+// Skill Parser
+export { getSkillParser, isSkillFile, parseSkillContent, parseSkillFile, resetSkillParser, SkillParser } from './skill-parser'
 
 /**
  * Persistent Mailbox System
@@ -964,17 +981,18 @@ export type {
  * - Search and filtering capabilities
  */
 
-export {
-  PersistentMailboxManager,
-  getGlobalMailboxManager,
-  resetGlobalMailboxManager,
-} from './messaging/persistent-mailbox'
+export type { FrontmatterParseOptions, SkillParseResult } from './skill-parser'
 
-export type {
-  Message,
-  Mailbox,
-  SendMessageOptions,
-} from './messaging/persistent-mailbox'
+// Skill Registry
+export {
+  getSkillById,
+  getSkillRegistry,
+  getSkillsByTrigger,
+  lookupSkills,
+  registerSkill,
+  resetSkillRegistry,
+  SkillRegistry,
+} from './skill-registry'
 
 /**
  * Convoy Task Management
@@ -986,29 +1004,20 @@ export type {
  * - Real-time progress visualization
  */
 
-export {
-  ConvoyManager,
-  getGlobalConvoyManager,
-  resetGlobalConvoyManager,
-} from './convoy/convoy-manager'
-
 export type {
-  Convoy,
-  ConvoyTask,
-  ConvoyStatus,
-  CreateConvoyOptions,
-  CreateTaskOptions,
-} from './convoy/convoy-manager'
+  SkillLookupOptions,
+  SkillRegistryEntry,
+  SkillRegistryEvents,
+  SkillRegistryStats,
+} from './skill-registry'
 
-export {
-  ProgressTracker,
-  createProgressCallback,
-} from './convoy/progress-tracker'
+// Task decomposition
+export { TaskDecomposer } from './task-decomposer.js'
 
-export type {
-  ProgressUpdate,
-  ProgressTrackerConfig,
-} from './convoy/progress-tracker'
+export type { TaskDecompositionOptions } from './task-decomposer.js'
+
+// Re-export specific types from other modules to avoid conflicts
+export type { Task as QueueTask, TaskPriority as QueueTaskPriority, TaskOptions, TaskQueueOptions, TaskQueueStats } from './task-queue'
 
 /**
  * Mayor Agent - AI Coordinator
@@ -1020,15 +1029,8 @@ export type {
  * - Progress monitoring and reporting
  */
 
-export {
-  MayorAgent,
-  getGlobalMayorAgent,
-  resetGlobalMayorAgent,
-} from './mayor/mayor-agent'
+// Export all thinking mode types and utilities
+export * from './thinking-mode.js'
 
-export type {
-  Intent,
-  TaskPlan,
-  MayorResponse,
-  MayorAgentConfig,
-} from './mayor/mayor-agent'
+// Re-export all types from types module
+export * from './types'

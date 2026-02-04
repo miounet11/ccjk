@@ -42,7 +42,7 @@ export interface HistorySearchOptions {
 export interface HistoryStats {
   total: number
   byType: Record<HistoryEntryType, number>
-  mostUsedCommands: Array<{ command: string; count: number }>
+  mostUsedCommands: Array<{ command: string, count: number }>
   recentSessions: string[]
 }
 

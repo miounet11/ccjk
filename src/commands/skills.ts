@@ -612,6 +612,8 @@ function getCategoryIcon(category: SkillCategory): string {
     seo: '🔍',
     devops: '🚀',
     custom: '⚙️',
+    debug: '🐛',
+    planning: '📋',
   }
   return icons[category] || '📦'
 }

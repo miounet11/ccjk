@@ -14,7 +14,8 @@ import type {
   ProviderQueryResponse,
   ProviderRegistry,
 } from '../types/provider'
-import { CloudApiClient, createApiClient } from './cloud/api-client'
+import type { CloudApiClient } from './cloud/api-client'
+import { createApiClient } from './cloud/api-client'
 
 // ============================================================================
 // Constants
@@ -31,7 +32,7 @@ const REQUEST_TIMEOUT = 10000 // 10 seconds for quick operations
  * Built-in provider registry for offline/fallback use
  */
 const BUILTIN_PROVIDERS: Record<string, ProviderRegistry> = {
-  '302': {
+  302: {
     shortcode: '302',
     name: '302.AI',
     apiUrl: 'https://api.302.ai',
@@ -42,7 +43,7 @@ const BUILTIN_PROVIDERS: Record<string, ProviderRegistry> = {
     status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
   },
-  'glm': {
+  glm: {
     shortcode: 'glm',
     name: '智谱AI',
     apiUrl: 'https://open.bigmodel.cn/api/paas/v4',
@@ -53,7 +54,7 @@ const BUILTIN_PROVIDERS: Record<string, ProviderRegistry> = {
     status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
   },
-  'kimi': {
+  kimi: {
     shortcode: 'kimi',
     name: '月之暗面 Kimi',
     apiUrl: 'https://api.moonshot.cn/v1',
@@ -64,7 +65,7 @@ const BUILTIN_PROVIDERS: Record<string, ProviderRegistry> = {
     status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
   },
-  'minimax': {
+  minimax: {
     shortcode: 'minimax',
     name: 'MiniMax',
     apiUrl: 'https://api.minimax.chat/v1',
@@ -75,7 +76,7 @@ const BUILTIN_PROVIDERS: Record<string, ProviderRegistry> = {
     status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
   },
-  'deepseek': {
+  deepseek: {
     shortcode: 'deepseek',
     name: 'DeepSeek',
     apiUrl: 'https://api.deepseek.com/v1',
@@ -86,7 +87,7 @@ const BUILTIN_PROVIDERS: Record<string, ProviderRegistry> = {
     status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
   },
-  'qwen': {
+  qwen: {
     shortcode: 'qwen',
     name: '通义千问',
     apiUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
@@ -112,7 +113,7 @@ export class ProviderRegistryService {
   private client: CloudApiClient
   private useCloud: boolean = true
 
-  constructor(options?: { baseUrl?: string; useCloud?: boolean }) {
+  constructor(options?: { baseUrl?: string, useCloud?: boolean }) {
     this.client = createApiClient({
       baseUrl: options?.baseUrl || CLOUD_API_BASE_URL,
       timeout: REQUEST_TIMEOUT,
@@ -139,7 +140,7 @@ export class ProviderRegistryService {
     // Try cloud first if enabled
     if (this.useCloud) {
       try {
-        const response = await this.client.get<ProviderQueryResponse>(
+        const response = await this.client.get<ProviderRegistry>(
           `/providers/${encodeURIComponent(normalizedCode)}`,
         )
 
@@ -199,13 +200,16 @@ export class ProviderRegistryService {
     }
 
     try {
-      const response = await this.client.post<ProviderCreateResponse>(
+      const response = await this.client.post<ProviderRegistry>(
         '/providers',
         input,
       )
 
       if (response.success && response.data) {
-        return response.data
+        return {
+          success: true,
+          data: response.data,
+        }
       }
 
       return {
@@ -246,17 +250,20 @@ export class ProviderRegistryService {
     if (this.useCloud) {
       try {
         const query: Record<string, string | number | boolean> = {}
-        if (options?.category) query.category = options.category
-        if (options?.verified !== undefined) query.verified = options.verified
-        if (options?.limit) query.limit = options.limit
+        if (options?.category)
+          query.category = options.category
+        if (options?.verified !== undefined)
+          query.verified = options.verified
+        if (options?.limit)
+          query.limit = options.limit
 
-        const response = await this.client.get<ProviderListResponse>(
+        const response = await this.client.get<{ providers: ProviderRegistry[], total: number }>(
           '/providers',
           query,
         )
 
-        if (response.success && response.data?.data?.providers) {
-          return response.data.data.providers
+        if (response.success && response.data?.providers) {
+          return response.data.providers
         }
       }
       catch {

@@ -6,34 +6,29 @@
  * @module cloud-sync-v2/sync-engine
  */
 
-import { randomBytes, randomUUID } from 'node:crypto'
-import { EventEmitter } from 'node:events'
 import type {
   CRDTSnapshot,
-  EncryptionConfig,
   NodeId,
   OperationType,
   ProgressCallback,
-  QueueConfig,
   QueuedOperation,
-  StreamTransferConfig,
   SyncEngineV2Config,
   SyncEventsV2,
-  SyncItemV2,
   SyncItemType,
+  SyncItemV2,
   SyncResultV2,
   Timestamp,
+  TransferProgress,
 } from './types'
-import {
-  DEFAULT_ENCRYPTION_CONFIG,
-  DEFAULT_QUEUE_CONFIG,
-  DEFAULT_SYNC_ENGINE_V2_CONFIG,
-  DEFAULT_TRANSFER_CONFIG,
-} from './types'
-import { EncryptionManager, createEncryptionManager } from './encryption'
-import { createStreamTransferEngine, StreamTransferEngine, TransferProgress } from './stream-transfer'
+import { randomUUID } from 'node:crypto'
+import { EventEmitter } from 'node:events'
 import { createGCounter, LWWRegister, ORSet } from './crdt'
-import { OfflineQueue, createOfflineQueue } from './offline-queue'
+import { createEncryptionManager, EncryptionManager } from './encryption'
+import { createOfflineQueue, OfflineQueue } from './offline-queue'
+import { createStreamTransferEngine, StreamTransferEngine } from './stream-transfer'
+import {
+  DEFAULT_SYNC_ENGINE_V2_CONFIG,
+} from './types'
 
 // ============================================================================
 // Storage Adapter Interface
@@ -46,32 +41,32 @@ export interface StorageAdapter<T = unknown> {
   /**
    * Get an item by ID
    */
-  get(id: string): Promise<SyncItemV2<T> | null>
+  get: (id: string) => Promise<SyncItemV2<T> | null>
 
   /**
    * Get all items of a type
    */
-  getAll(type: SyncItemType): Promise<SyncItemV2<T>[]>
+  getAll: (type: SyncItemType) => Promise<SyncItemV2<T>[]>
 
   /**
    * Save an item
    */
-  save(item: SyncItemV2<T>): Promise<void>
+  save: (item: SyncItemV2<T>) => Promise<void>
 
   /**
    * Delete an item
    */
-  delete(id: string): Promise<void>
+  delete: (id: string) => Promise<void>
 
   /**
    * List all item IDs
    */
-  list(type?: SyncItemType): Promise<string[]>
+  list: (type?: SyncItemType) => Promise<string[]>
 
   /**
    * Check if item exists
    */
-  has(id: string): Promise<boolean>
+  has: (id: string) => Promise<boolean>
 }
 
 /**
@@ -81,47 +76,47 @@ export interface RemoteStorageAdapter<T = unknown> {
   /**
    * Connect to remote storage
    */
-  connect(): Promise<void>
+  connect: () => Promise<void>
 
   /**
    * Disconnect from remote storage
    */
-  disconnect(): Promise<void>
+  disconnect: () => Promise<void>
 
   /**
    * Test connection
    */
-  testConnection(): Promise<boolean>
+  testConnection: () => Promise<boolean>
 
   /**
    * Upload a chunk
    */
-  uploadChunk(itemId: string, chunkIndex: number, data: Buffer): Promise<void>
+  uploadChunk: (itemId: string, chunkIndex: number, data: Buffer) => Promise<void>
 
   /**
    * Download a chunk
    */
-  downloadChunk(itemId: string, chunkIndex: number): Promise<Buffer>
+  downloadChunk: (itemId: string, chunkIndex: number) => Promise<Buffer>
 
   /**
    * Upload metadata
    */
-  uploadMetadata(itemId: string, metadata: SyncItemV2<T>): Promise<void>
+  uploadMetadata: (itemId: string, metadata: SyncItemV2<T>) => Promise<void>
 
   /**
    * Download metadata
    */
-  downloadMetadata(itemId: string): Promise<SyncItemV2<T> | null>
+  downloadMetadata: (itemId: string) => Promise<SyncItemV2<T> | null>
 
   /**
    * List remote items
    */
-  list(type?: SyncItemType): Promise<SyncItemV2<T>[]>
+  list: (type?: SyncItemType) => Promise<SyncItemV2<T>[]>
 
   /**
    * Delete item
    */
-  delete(itemId: string): Promise<void>
+  delete: (itemId: string) => Promise<void>
 }
 
 // ============================================================================
@@ -513,7 +508,7 @@ export class SyncEngineV2 extends EventEmitter {
         // Both exist - merge
         const mergeResult = await this.mergeItems<T>(local, remote)
 
-        if (mergeResult.type === 'merged') {
+        if (mergeResult.type === 'merged' && mergeResult.item) {
           await this.pushItem<T>(mergeResult.item, onProgress)
           await this.localAdapter.save(mergeResult.item)
           result.merged.push(mergeResult.item)
@@ -524,7 +519,7 @@ export class SyncEngineV2 extends EventEmitter {
             itemId: id,
             local,
             remote,
-            reason: mergeResult.reason,
+            reason: mergeResult.reason ?? 'Unknown conflict',
           })
           this.emit('sync:conflict', { itemId: id, local, remote })
         }
@@ -740,7 +735,7 @@ export class SyncEngineV2 extends EventEmitter {
           crdt: {
             ...local.crdt,
             state: { counts: mergedCounts },
-            value: Object.values(mergedCounts).reduce((a, b) => a + b, 0),
+            value: Object.values(mergedCounts).reduce((a, b) => a + b, 0) as T,
           },
         }
       }
@@ -762,7 +757,7 @@ export class SyncEngineV2 extends EventEmitter {
           crdt: {
             ...local.crdt,
             state: { elements: mergedElements },
-            value: mergedElements.map(e => e.value),
+            value: mergedElements.map(e => e.value) as T,
           },
         }
       }
@@ -879,7 +874,7 @@ export class SyncEngineV2 extends EventEmitter {
     const items: SyncItemV2<T>[] = []
 
     for (const type of types) {
-      const typeItems = await this.localAdapter.getAll<T>(type)
+      const typeItems = await this.localAdapter.getAll(type) as SyncItemV2<T>[]
       items.push(...typeItems)
     }
 
@@ -982,9 +977,3 @@ export function createSyncEngineV2WithConfig(
 // ============================================================================
 
 export { InMemoryStorage }
-export type { StorageAdapter, RemoteStorageAdapter }
-export { EncryptionManager, createEncryptionManager }
-export { createStreamTransferEngine, StreamTransferEngine }
-export { OfflineQueue, createOfflineQueue }
-export { LWWRegister, ORSet, createGCounter }
-export type { SyncEventsV2 }

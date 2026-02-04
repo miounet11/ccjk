@@ -5,7 +5,6 @@
  */
 
 import { TraceabilityAnalyzer } from '@ccjk/v2/brain'
-import { DomainConstraint, ConstraintCategory } from '@ccjk/v2/types'
 
 /**
  * Example: Detecting violated domain constraints
@@ -44,7 +43,7 @@ export async function domainConstraintExample() {
 
   // Scenario 2: Type safety constraint
   const error2 = {
-    message: "Type 'string' is not assignable to type 'number'",
+    message: 'Type \'string\' is not assignable to type \'number\'',
     code: 'TS2322',
     file: 'src/types/calculator.ts',
   }

@@ -2,17 +2,17 @@
  * CCJK 交互式菜单系统 - 菜单渲染器
  */
 
-import inquirer from 'inquirer'
-import ansis from 'ansis'
 import type {
-  MenuItem,
-  MenuGroup,
+  ApiStatus,
   MenuConfig,
+  MenuGroup,
+  MenuItem,
   MenuRenderOptions,
   MenuSelection,
   ProjectInfo,
-  ApiStatus,
 } from './types.js'
+import ansis from 'ansis'
+import inquirer from 'inquirer'
 import { getLocalizedLabel } from './menu-config.js'
 
 /**
@@ -35,7 +35,8 @@ export class MenuRenderer {
    * 渲染状态栏
    */
   renderStatusBar(projectInfo?: ProjectInfo, apiStatus?: ApiStatus): string {
-    if (!this.showStatusBar) return ''
+    if (!this.showStatusBar)
+      return ''
 
     const lines: string[] = []
     const width = 60
@@ -66,17 +67,18 @@ export class MenuRenderer {
 
     lines.push(ansis.dim(`╰${border}╯`))
 
-    return lines.join('\n') + '\n'
+    return `${lines.join('\n')}\n`
   }
 
   /**
    * 渲染面包屑导航
    */
   renderBreadcrumb(path: string[]): string {
-    if (!this.showBreadcrumb || path.length === 0) return ''
+    if (!this.showBreadcrumb || path.length === 0)
+      return ''
 
     const breadcrumb = ['Home', ...path].join(' > ')
-    return ansis.dim(`📍 ${breadcrumb}`) + '\n\n'
+    return `${ansis.dim(`📍 ${breadcrumb}`)}\n\n`
   }
 
   /**
@@ -118,7 +120,7 @@ export class MenuRenderer {
   async renderMainMenu(
     config: MenuConfig,
     projectInfo?: ProjectInfo,
-    apiStatus?: ApiStatus
+    apiStatus?: ApiStatus,
   ): Promise<MenuSelection> {
     // 清屏
     console.clear()
@@ -145,7 +147,8 @@ export class MenuRenderer {
         // 检查条件
         if (item.condition) {
           const visible = await item.condition()
-          if (!visible) continue
+          if (!visible)
+            continue
         }
 
         choices.push({
@@ -157,7 +160,7 @@ export class MenuRenderer {
     }
 
     // 添加底部分隔符
-    choices.push(new inquirer.Separator(ansis.dim('\n  ' + '─'.repeat(55))) as any)
+    choices.push(new inquirer.Separator(ansis.dim(`\n  ${'─'.repeat(55)}`)) as any)
 
     // 添加底部菜单项
     if (config.footer) {
@@ -199,7 +202,7 @@ export class MenuRenderer {
    */
   async renderSubmenu(
     item: MenuItem,
-    breadcrumb: string[]
+    breadcrumb: string[],
   ): Promise<MenuSelection> {
     if (!item.submenu || item.submenu.length === 0) {
       return { item, action: 'select' }
@@ -236,7 +239,8 @@ export class MenuRenderer {
       // 检查条件
       if (subItem.condition) {
         const visible = await subItem.condition()
-        if (!visible) continue
+        if (!visible)
+          continue
       }
 
       choices.push({
@@ -247,7 +251,7 @@ export class MenuRenderer {
     }
 
     // 添加返回选项
-    choices.push(new inquirer.Separator(ansis.dim('\n  ' + '─'.repeat(55))) as any)
+    choices.push(new inquirer.Separator(ansis.dim(`\n  ${'─'.repeat(55)}`)) as any)
     choices.push({
       name: `${ansis.dim('←')} ${this.locale === 'zh-CN' ? '返回主菜单' : 'Back to main menu'}`,
       value: 'back',

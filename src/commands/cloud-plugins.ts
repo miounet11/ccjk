@@ -15,10 +15,11 @@
  */
 
 import type { CAC } from 'cac'
-import type { MarketplacePackage } from '../types/marketplace.js'
+import type { CloudPlugin, PluginCategory } from '../cloud-plugins/types.js'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import ora from 'ora'
+import { getCloudPluginManager } from '../cloud-plugins/manager.js'
 import { i18n } from '../i18n/index.js'
 
 // ============================================================================
@@ -35,13 +36,7 @@ interface CloudPluginsOptions {
   path?: string
 }
 
-interface CloudPlugin extends MarketplacePackage {
-  // Cloud-specific plugin extensions
-  cloudId?: string
-  syncStatus?: 'synced' | 'outdated' | 'local-only'
-}
-
-interface RecommendationResult {
+interface RecommendationResultDisplay {
   plugins: CloudPlugin[]
   reason: string
   confidence: number
@@ -53,113 +48,12 @@ interface RecommendationResult {
 }
 
 // ============================================================================
-// Mock Data (Replace with actual API calls)
+// Manager Instance
 // ============================================================================
 
-const MOCK_PLUGINS: CloudPlugin[] = [
-  {
-    id: 'git-workflow-pro',
-    name: 'Git Workflow Pro',
-    version: '1.2.0',
-    description: {
-      'en': 'Advanced git workflow automation with smart commit messages',
-      'zh-CN': '高级 Git 工作流自动化，智能提交信息',
-    },
-    author: 'CCJK Team',
-    license: 'MIT',
-    keywords: ['git', 'workflow', 'automation', 'commit'],
-    category: 'workflow',
-    downloads: 1500,
-    rating: 4.8,
-    ratingCount: 42,
-    verified: 'verified',
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-10T00:00:00Z',
-    ccjkVersion: '>=3.5.0',
-  },
-  {
-    id: 'code-review-assistant',
-    name: 'Code Review Assistant',
-    version: '2.0.1',
-    description: {
-      'en': 'AI-powered code review with best practices suggestions',
-      'zh-CN': 'AI 驱动的代码审查，提供最佳实践建议',
-    },
-    author: 'Community',
-    license: 'Apache-2.0',
-    keywords: ['code-review', 'ai', 'quality', 'best-practices'],
-    category: 'plugin',
-    downloads: 2300,
-    rating: 4.6,
-    ratingCount: 87,
-    verified: 'community',
-    createdAt: '2024-12-15T00:00:00Z',
-    updatedAt: '2025-01-08T00:00:00Z',
-    ccjkVersion: '>=3.4.0',
-  },
-  {
-    id: 'test-generator',
-    name: 'Test Generator',
-    version: '1.5.3',
-    description: {
-      'en': 'Automatically generate unit tests for your code',
-      'zh-CN': '自动为代码生成单元测试',
-    },
-    author: 'TestTools Inc',
-    license: 'MIT',
-    keywords: ['testing', 'unit-test', 'automation', 'tdd'],
-    category: 'plugin',
-    downloads: 1800,
-    rating: 4.5,
-    ratingCount: 65,
-    verified: 'verified',
-    createdAt: '2024-11-20T00:00:00Z',
-    updatedAt: '2025-01-05T00:00:00Z',
-    ccjkVersion: '>=3.3.0',
-  },
-  {
-    id: 'api-doc-generator',
-    name: 'API Documentation Generator',
-    version: '1.0.0',
-    description: {
-      'en': 'Generate comprehensive API documentation from code',
-      'zh-CN': '从代码生成全面的 API 文档',
-    },
-    author: 'DocTools',
-    license: 'MIT',
-    keywords: ['documentation', 'api', 'openapi', 'swagger'],
-    category: 'plugin',
-    downloads: 950,
-    rating: 4.3,
-    ratingCount: 28,
-    verified: 'community',
-    createdAt: '2024-12-01T00:00:00Z',
-    updatedAt: '2024-12-20T00:00:00Z',
-    ccjkVersion: '>=3.5.0',
-  },
-  {
-    id: 'performance-analyzer',
-    name: 'Performance Analyzer',
-    version: '2.1.0',
-    description: {
-      'en': 'Analyze and optimize code performance',
-      'zh-CN': '分析和优化代码性能',
-    },
-    author: 'PerfTools',
-    license: 'Apache-2.0',
-    keywords: ['performance', 'optimization', 'profiling', 'benchmark'],
-    category: 'plugin',
-    downloads: 1200,
-    rating: 4.7,
-    ratingCount: 53,
-    verified: 'verified',
-    createdAt: '2024-10-15T00:00:00Z',
-    updatedAt: '2025-01-03T00:00:00Z',
-    ccjkVersion: '>=3.4.0',
-  },
-]
-
-const INSTALLED_PLUGINS = new Set<string>(['git-workflow-pro', 'test-generator'])
+function getManager() {
+  return getCloudPluginManager()
+}
 
 // ============================================================================
 // Helper Functions
@@ -174,16 +68,23 @@ function getDescription(plugin: CloudPlugin): string {
 }
 
 /**
+ * Get name in current language
+ */
+function getName(plugin: CloudPlugin): string {
+  const lang = i18n.language as 'en' | 'zh-CN'
+  return plugin.name[lang] || plugin.name.en || Object.values(plugin.name)[0]
+}
+
+/**
  * Format plugin for display
  */
-function formatPlugin(plugin: CloudPlugin, index?: number): string {
-  const installed = INSTALLED_PLUGINS.has(plugin.id)
+function formatPlugin(plugin: CloudPlugin, index?: number, isInstalled?: boolean): string {
+  const installed = isInstalled ?? getManager().isPluginInstalled(plugin.id)
   const installedMark = installed ? ansis.green('✓') : ansis.gray('○')
-  const verifiedMark = plugin.verified === 'verified' ? ansis.green('✓') : ''
   const indexStr = index !== undefined ? ansis.green(`${index + 1}.`) : ''
 
   const lines = [
-    `${indexStr} ${installedMark} ${ansis.bold(plugin.name)} ${ansis.gray(`v${plugin.version}`)} ${verifiedMark}`,
+    `${indexStr} ${installedMark} ${ansis.bold(getName(plugin))} ${ansis.gray(`v${plugin.version}`)}`,
     `   ${getDescription(plugin)}`,
     `   ${ansis.gray(i18n.t('plugins:info.category'))}: ${plugin.category} | ${ansis.gray(i18n.t('plugins:info.downloads'))}: ${plugin.downloads.toLocaleString()} | ${ansis.gray(i18n.t('plugins:info.rating'))}: ${'★'.repeat(Math.round(plugin.rating))}${ansis.gray('☆'.repeat(5 - Math.round(plugin.rating)))} (${plugin.rating})`,
   ]
@@ -213,7 +114,7 @@ function displayPlugins(plugins: CloudPlugin[], title?: string): void {
 /**
  * Display recommendations with reasoning
  */
-function displayRecommendations(result: RecommendationResult): void {
+function displayRecommendations(result: RecommendationResultDisplay): void {
   console.log(ansis.green.bold(`\n${i18n.t('plugins:recommendations.title')}\n`))
   console.log(ansis.gray(`${i18n.t('plugins:recommendations.reason')}: ${result.reason}`))
   console.log(ansis.gray(`${i18n.t('plugins:recommendations.confidence')}: ${Math.round(result.confidence * 100)}%\n`))
@@ -243,10 +144,8 @@ async function listCommand(options: CloudPluginsOptions): Promise<void> {
   const spinner = ora(i18n.t('plugins:list.loading')).start()
 
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const installedPlugins = MOCK_PLUGINS.filter(p => INSTALLED_PLUGINS.has(p.id))
+    const manager = getManager()
+    let installedPlugins = manager.getInstalledPlugins()
 
     spinner.succeed(i18n.t('plugins:list.success', { count: installedPlugins.length }))
 
@@ -256,8 +155,8 @@ async function listCommand(options: CloudPluginsOptions): Promise<void> {
     }
 
     if (options.category) {
-      const filtered = installedPlugins.filter(p => p.category === options.category)
-      displayPlugins(filtered, i18n.t('plugins:list.titleFiltered', { category: options.category }))
+      installedPlugins = installedPlugins.filter(p => p.category === options.category)
+      displayPlugins(installedPlugins, i18n.t('plugins:list.titleFiltered', { category: options.category }))
     }
     else {
       displayPlugins(installedPlugins, i18n.t('plugins:list.title'))
@@ -276,22 +175,19 @@ async function searchCommand(query: string, options: CloudPluginsOptions): Promi
   const spinner = ora(i18n.t('plugins:search.searching', { query })).start()
 
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800))
+    const manager = getManager()
+    const result = await manager.searchPlugins({
+      query,
+      category: options.category as PluginCategory | undefined,
+      pageSize: options.limit || 10,
+    })
 
-    let results = MOCK_PLUGINS.filter(p =>
-      p.name.toLowerCase().includes(query.toLowerCase())
-      || getDescription(p).toLowerCase().includes(query.toLowerCase())
-      || p.keywords.some(k => k.toLowerCase().includes(query.toLowerCase())),
-    )
-
-    if (options.category) {
-      results = results.filter(p => p.category === options.category)
+    if (!result.success || !result.data) {
+      spinner.fail(result.error || i18n.t('plugins:search.failed'))
+      return
     }
 
-    if (options.limit) {
-      results = results.slice(0, options.limit)
-    }
+    const results = result.data
 
     spinner.succeed(i18n.t('plugins:search.found', { count: results.length, query }))
 
@@ -312,38 +208,55 @@ async function searchCommand(query: string, options: CloudPluginsOptions): Promi
  * Install a cloud plugin
  */
 async function installCommand(id: string, options: CloudPluginsOptions): Promise<void> {
-  const plugin = MOCK_PLUGINS.find(p => p.id === id)
+  const manager = getManager()
 
-  if (!plugin) {
+  // Get plugin info first
+  const pluginInfo = await manager.getPluginInfo(id)
+  if (!pluginInfo) {
     console.log(ansis.red(i18n.t('plugins:install.notFound', { id })))
     return
   }
 
-  if (INSTALLED_PLUGINS.has(id) && !options.force) {
-    console.log(ansis.yellow(i18n.t('plugins:install.alreadyInstalled', { name: plugin.name })))
+  const pluginName = getName(pluginInfo)
+
+  if (manager.isPluginInstalled(id) && !options.force) {
+    console.log(ansis.yellow(i18n.t('plugins:install.alreadyInstalled', { name: pluginName })))
     return
   }
 
   if (options.dryRun) {
     console.log(ansis.green(i18n.t('plugins:install.dryRun')))
-    console.log(formatPlugin(plugin))
+    console.log(formatPlugin(pluginInfo))
     return
   }
 
-  const spinner = ora(i18n.t('plugins:install.installing', { name: plugin.name })).start()
+  const spinner = ora(i18n.t('plugins:install.installing', { name: pluginName })).start()
 
   try {
-    // Simulate installation
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    const result = await manager.installPlugin(id, {
+      force: options.force,
+      dryRun: options.dryRun,
+    })
 
-    INSTALLED_PLUGINS.add(id)
-    spinner.succeed(i18n.t('plugins:install.success', { name: plugin.name }))
+    if (!result.success) {
+      spinner.fail(i18n.t('plugins:install.failed', { name: pluginName }))
+      console.log(ansis.red(result.error || 'Unknown error'))
+      return
+    }
 
-    console.log(ansis.gray(`\n${i18n.t('plugins:install.location')}: ~/.ccjk/plugins/${id}`))
-    console.log(ansis.gray(`${i18n.t('plugins:install.version')}: ${plugin.version}`))
+    spinner.succeed(i18n.t('plugins:install.success', { name: pluginName }))
+
+    if (result.installedPath) {
+      console.log(ansis.gray(`\n${i18n.t('plugins:install.location')}: ${result.installedPath}`))
+    }
+    console.log(ansis.gray(`${i18n.t('plugins:install.version')}: ${pluginInfo.version}`))
+
+    if (result.dependencies && result.dependencies.length > 0) {
+      console.log(ansis.gray(`${i18n.t('plugins:install.dependencies')}: ${result.dependencies.join(', ')}`))
+    }
   }
   catch (error) {
-    spinner.fail(i18n.t('plugins:install.failed', { name: plugin.name }))
+    spinner.fail(i18n.t('plugins:install.failed', { name: pluginName }))
     throw error
   }
 }
@@ -352,24 +265,23 @@ async function installCommand(id: string, options: CloudPluginsOptions): Promise
  * Uninstall a cloud plugin
  */
 async function uninstallCommand(id: string, options: CloudPluginsOptions): Promise<void> {
-  const plugin = MOCK_PLUGINS.find(p => p.id === id)
+  const manager = getManager()
 
-  if (!plugin) {
-    console.log(ansis.red(i18n.t('plugins:uninstall.notFound', { id })))
+  if (!manager.isPluginInstalled(id)) {
+    console.log(ansis.yellow(i18n.t('plugins:uninstall.notInstalled', { name: id })))
     return
   }
 
-  if (!INSTALLED_PLUGINS.has(id)) {
-    console.log(ansis.yellow(i18n.t('plugins:uninstall.notInstalled', { name: plugin.name })))
-    return
-  }
+  // Get plugin info for display name
+  const pluginInfo = await manager.getPluginInfo(id)
+  const pluginName = pluginInfo ? getName(pluginInfo) : id
 
   // Confirm uninstall
   if (!options.force) {
     const { confirm } = await inquirer.prompt([{
       type: 'confirm',
       name: 'confirm',
-      message: i18n.t('plugins:uninstall.confirm', { name: plugin.name }),
+      message: i18n.t('plugins:uninstall.confirm', { name: pluginName }),
       default: false,
     }])
 
@@ -379,17 +291,21 @@ async function uninstallCommand(id: string, options: CloudPluginsOptions): Promi
     }
   }
 
-  const spinner = ora(i18n.t('plugins:uninstall.uninstalling', { name: plugin.name })).start()
+  const spinner = ora(i18n.t('plugins:uninstall.uninstalling', { name: pluginName })).start()
 
   try {
-    // Simulate uninstallation
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    const result = await manager.uninstallPlugin(id)
 
-    INSTALLED_PLUGINS.delete(id)
-    spinner.succeed(i18n.t('plugins:uninstall.success', { name: plugin.name }))
+    if (!result.success) {
+      spinner.fail(i18n.t('plugins:uninstall.failed', { name: pluginName }))
+      console.log(ansis.red(result.error || 'Unknown error'))
+      return
+    }
+
+    spinner.succeed(i18n.t('plugins:uninstall.success', { name: pluginName }))
   }
   catch (error) {
-    spinner.fail(i18n.t('plugins:uninstall.failed', { name: plugin.name }))
+    spinner.fail(i18n.t('plugins:uninstall.failed', { name: pluginName }))
     throw error
   }
 }
@@ -398,30 +314,39 @@ async function uninstallCommand(id: string, options: CloudPluginsOptions): Promi
  * Update plugins
  */
 async function updateCommand(id: string | undefined, _options: CloudPluginsOptions): Promise<void> {
+  const manager = getManager()
+
   if (id) {
     // Update specific plugin
-    const plugin = MOCK_PLUGINS.find(p => p.id === id)
-
-    if (!plugin) {
-      console.log(ansis.red(i18n.t('plugins:update.notFound', { id })))
+    if (!manager.isPluginInstalled(id)) {
+      console.log(ansis.yellow(i18n.t('plugins:update.notInstalled', { name: id })))
       return
     }
 
-    if (!INSTALLED_PLUGINS.has(id)) {
-      console.log(ansis.yellow(i18n.t('plugins:update.notInstalled', { name: plugin.name })))
-      return
-    }
+    const pluginInfo = await manager.getPluginInfo(id)
+    const pluginName = pluginInfo ? getName(pluginInfo) : id
 
-    const spinner = ora(i18n.t('plugins:update.updating', { name: plugin.name })).start()
+    const spinner = ora(i18n.t('plugins:update.updating', { name: pluginName })).start()
 
     try {
-      // Simulate update
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const result = await manager.updatePlugin(id)
 
-      spinner.succeed(i18n.t('plugins:update.success', { name: plugin.name, version: plugin.version }))
+      if (!result.success) {
+        spinner.fail(i18n.t('plugins:update.failed', { name: pluginName }))
+        console.log(ansis.red(result.error || 'Unknown error'))
+        return
+      }
+
+      if (result.updated) {
+        spinner.succeed(i18n.t('plugins:update.success', { name: pluginName, version: result.newVersion }))
+        console.log(ansis.gray(`  ${result.oldVersion} → ${result.newVersion}`))
+      }
+      else {
+        spinner.succeed(i18n.t('plugins:update.alreadyLatest', { name: pluginName }))
+      }
     }
     catch (error) {
-      spinner.fail(i18n.t('plugins:update.failed', { name: plugin.name }))
+      spinner.fail(i18n.t('plugins:update.failed', { name: pluginName }))
       throw error
     }
   }
@@ -430,23 +355,35 @@ async function updateCommand(id: string | undefined, _options: CloudPluginsOptio
     const spinner = ora(i18n.t('plugins:update.checking')).start()
 
     try {
-      // Simulate checking
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      const installedPlugins = MOCK_PLUGINS.filter(p => INSTALLED_PLUGINS.has(p.id))
-      const updatesAvailable = installedPlugins.slice(0, 2) // Mock: 2 updates available
+      const results = await manager.updateAllPlugins()
 
       spinner.succeed(i18n.t('plugins:update.checkComplete'))
 
-      if (updatesAvailable.length === 0) {
+      const updatesAvailable = results.filter(r => r.updated)
+      const upToDate = results.filter(r => r.success && !r.updated)
+      const failed = results.filter(r => !r.success)
+
+      if (updatesAvailable.length === 0 && failed.length === 0) {
         console.log(ansis.green(`\n${i18n.t('plugins:update.noUpdates')}`))
       }
       else {
-        console.log(ansis.yellow(`\n${i18n.t('plugins:update.available', { count: updatesAvailable.length })}\n`))
-        updatesAvailable.forEach((plugin) => {
-          console.log(`  ${ansis.bold(plugin.name)}: ${ansis.gray('v1.0.0')} → ${ansis.green(`v${plugin.version}`)}`)
-        })
-        console.log(ansis.gray(`\n${i18n.t('plugins:update.hint')}`))
+        if (updatesAvailable.length > 0) {
+          console.log(ansis.green(`\n${i18n.t('plugins:update.updated', { count: updatesAvailable.length })}\n`))
+          updatesAvailable.forEach((result) => {
+            console.log(`  ${ansis.bold(result.pluginId)}: ${ansis.gray(`v${result.oldVersion}`)} → ${ansis.green(`v${result.newVersion}`)}`)
+          })
+        }
+
+        if (upToDate.length > 0) {
+          console.log(ansis.gray(`\n${i18n.t('plugins:update.upToDate', { count: upToDate.length })}`))
+        }
+
+        if (failed.length > 0) {
+          console.log(ansis.red(`\n${i18n.t('plugins:update.failedCount', { count: failed.length })}`))
+          failed.forEach((result) => {
+            console.log(`  ${ansis.bold(result.pluginId)}: ${result.error}`)
+          })
+        }
       }
     }
     catch (error) {
@@ -463,71 +400,34 @@ async function recommendCommand(options: CloudPluginsOptions): Promise<void> {
   const spinner = ora(i18n.t('plugins:recommend.analyzing')).start()
 
   try {
-    // Import the recommendation service
-    const { getRecommendations, getCurrentPlatform } = await import('../services/cloud/plugin-recommendation.js')
-    const { readFileSync, existsSync } = await import('node:fs')
-    const { join } = await import('pathe')
-    const nodeProcess = await import('node:process')
-
-    // Load fallback data from plugins-registry.json
-    const registryPath = join(nodeProcess.cwd(), 'src', 'data', 'plugins-registry.json')
-
-    if (existsSync(registryPath)) {
-      const registryContent = readFileSync(registryPath, 'utf-8')
-      // Parse registry for potential future use
-      JSON.parse(registryContent)
-    }
-
-    // Get installed plugins list
-    const installedPlugins = Array.from(INSTALLED_PLUGINS)
-
-    // Prepare recommendation request
-    const request = {
-      os: getCurrentPlatform(),
-      codeTool: 'claude-code',
-      installedPlugins,
-      preferredLang: (i18n.language as 'en' | 'zh-CN') || 'en',
-      category: options.category as any,
-      limit: options.limit || 5,
-    }
-
-    // Get recommendations from service
-    const response = await getRecommendations(request)
+    const manager = getManager()
+    const recommendResult = await manager.getRecommendations(options.path)
 
     spinner.succeed(i18n.t('plugins:recommend.complete'))
 
     if (options.json) {
-      console.log(JSON.stringify(response, null, 2))
+      console.log(JSON.stringify(recommendResult, null, 2))
       return
     }
 
     // Convert to display format
-    const result: RecommendationResult = {
-      plugins: response.recommendations.map(rec => ({
-        id: rec.id,
-        name: rec.name,
-        version: rec.version || '1.0.0',
-        description: rec.description,
-        author: rec.author || 'Unknown',
-        license: 'MIT',
-        keywords: rec.tags,
-        category: rec.category,
-        downloads: rec.downloads || 0,
-        rating: rec.rating,
-        ratingCount: rec.ratingCount,
-        verified: rec.verified ? 'verified' : 'community',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        ccjkVersion: '>=3.5.0',
-      })),
-      reason: response.fromCache
-        ? i18n.t('plugins:recommendations.fromCache')
-        : i18n.t('plugins:recommendations.fromCloud'),
-      confidence: 0.85,
+    const result: RecommendationResultDisplay = {
+      plugins: recommendResult.recommendations
+        .filter(rec => !rec.isInstalled)
+        .slice(0, options.limit || 5)
+        .map(rec => rec.plugin),
+      reason: recommendResult.source === 'cloud'
+        ? i18n.t('plugins:recommendations.fromCloud')
+        : recommendResult.source === 'local'
+          ? i18n.t('plugins:recommendations.fromCache')
+          : i18n.t('plugins:recommendations.fromHybrid'),
+      confidence: recommendResult.recommendations.length > 0
+        ? recommendResult.recommendations.reduce((sum, r) => sum + r.confidence, 0) / recommendResult.recommendations.length
+        : 0,
       projectContext: {
-        type: 'detected-project',
-        frameworks: [],
-        languages: [],
+        type: recommendResult.context.projectType,
+        frameworks: recommendResult.context.frameworks,
+        languages: recommendResult.context.languages,
       },
     }
 
@@ -536,20 +436,6 @@ async function recommendCommand(options: CloudPluginsOptions): Promise<void> {
   catch (error) {
     spinner.fail(i18n.t('plugins:recommend.failed'))
     console.error(ansis.red(`Error: ${error}`))
-
-    // Fallback to mock data on error
-    const result: RecommendationResult = {
-      plugins: MOCK_PLUGINS.filter(p => !INSTALLED_PLUGINS.has(p.id)).slice(0, options.limit || 5),
-      reason: i18n.t('plugins:recommendations.cloudUnavailable'),
-      confidence: 0.5,
-      projectContext: {
-        type: 'fallback',
-        frameworks: [],
-        languages: [],
-      },
-    }
-
-    displayRecommendations(result)
   }
 }
 
@@ -560,10 +446,8 @@ async function infoCommand(id: string, options: CloudPluginsOptions): Promise<vo
   const spinner = ora(i18n.t('plugins:info.loading')).start()
 
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const plugin = MOCK_PLUGINS.find(p => p.id === id)
+    const manager = getManager()
+    const plugin = await manager.getPluginInfo(id)
 
     if (!plugin) {
       spinner.fail(i18n.t('plugins:info.notFound', { id }))
@@ -577,26 +461,26 @@ async function infoCommand(id: string, options: CloudPluginsOptions): Promise<vo
       return
     }
 
-    const installed = INSTALLED_PLUGINS.has(id)
+    const installed = manager.isPluginInstalled(id)
+    const pluginName = getName(plugin)
 
     console.log()
-    console.log(ansis.bold.cyan(plugin.name))
+    console.log(ansis.bold.cyan(pluginName))
     console.log(ansis.gray('─'.repeat(60)))
     console.log()
     console.log(`${ansis.bold(i18n.t('plugins:info.description'))}: ${getDescription(plugin)}`)
     console.log(`${ansis.bold(i18n.t('plugins:info.version'))}: ${plugin.version}`)
     console.log(`${ansis.bold(i18n.t('plugins:info.category'))}: ${plugin.category}`)
     console.log(`${ansis.bold(i18n.t('plugins:info.author'))}: ${plugin.author}`)
-    console.log(`${ansis.bold(i18n.t('plugins:info.license'))}: ${plugin.license}`)
     console.log(`${ansis.bold(i18n.t('plugins:info.downloads'))}: ${plugin.downloads.toLocaleString()}`)
-    console.log(`${ansis.bold(i18n.t('plugins:info.rating'))}: ${'★'.repeat(Math.round(plugin.rating))}${ansis.gray('☆'.repeat(5 - Math.round(plugin.rating)))} (${plugin.rating}/5, ${plugin.ratingCount} ${i18n.t('plugins:info.ratings')})`)
+    console.log(`${ansis.bold(i18n.t('plugins:info.rating'))}: ${'★'.repeat(Math.round(plugin.rating))}${ansis.gray('☆'.repeat(5 - Math.round(plugin.rating)))} (${plugin.rating}/5)`)
 
-    if (plugin.keywords.length > 0) {
-      console.log(`${ansis.bold(i18n.t('plugins:info.keywords'))}: ${plugin.keywords.join(', ')}`)
+    if (plugin.tags.length > 0) {
+      console.log(`${ansis.bold(i18n.t('plugins:info.keywords'))}: ${plugin.tags.join(', ')}`)
     }
 
-    if (plugin.verified === 'verified') {
-      console.log(`${ansis.green('✓')} ${i18n.t('plugins:info.verified')}`)
+    if (plugin.dependencies && plugin.dependencies.length > 0) {
+      console.log(`${ansis.bold(i18n.t('plugins:info.dependencies'))}: ${plugin.dependencies.join(', ')}`)
     }
 
     console.log()
@@ -620,6 +504,7 @@ async function cacheCommand(_options: CloudPluginsOptions): Promise<void> {
     choices: [
       { name: i18n.t('plugins:cache.clear'), value: 'clear' },
       { name: i18n.t('plugins:cache.info'), value: 'info' },
+      { name: i18n.t('plugins:cache.refresh'), value: 'refresh' },
       { name: ansis.gray(i18n.t('common:back')), value: 'back' },
     ],
   }])
@@ -628,17 +513,27 @@ async function cacheCommand(_options: CloudPluginsOptions): Promise<void> {
     return
   }
 
+  const manager = getManager()
+
   if (action === 'clear') {
     const spinner = ora(i18n.t('plugins:cache.clearing')).start()
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    manager.clearCache()
     spinner.succeed(i18n.t('plugins:cache.cleared'))
   }
+  else if (action === 'refresh') {
+    const spinner = ora(i18n.t('plugins:cache.refreshing')).start()
+    await manager.refreshCache()
+    spinner.succeed(i18n.t('plugins:cache.refreshed'))
+  }
   else if (action === 'info') {
+    const stats = manager.getCacheStats()
     console.log(ansis.green.bold(`\n${i18n.t('plugins:cache.infoTitle')}\n`))
-    console.log(`${i18n.t('plugins:cache.location')}: ~/.ccjk/cache/plugins`)
-    console.log(`${i18n.t('plugins:cache.size')}: 12.5 MB`)
-    console.log(`${i18n.t('plugins:cache.entries')}: 15`)
-    console.log(`${i18n.t('plugins:cache.lastUpdated')}: ${new Date().toLocaleString()}`)
+    console.log(`${i18n.t('plugins:cache.totalPlugins')}: ${stats.totalPlugins}`)
+    console.log(`${i18n.t('plugins:cache.size')}: ${(stats.cacheSize / 1024).toFixed(2)} KB`)
+    console.log(`${i18n.t('plugins:cache.cachedContents')}: ${stats.cachedContents}`)
+    console.log(`${i18n.t('plugins:cache.lastUpdated')}: ${stats.lastUpdated || 'N/A'}`)
+    console.log(`${i18n.t('plugins:cache.expiresAt')}: ${stats.expiresAt || 'N/A'}`)
+    console.log(`${i18n.t('plugins:cache.isExpired')}: ${stats.isExpired ? ansis.yellow(i18n.t('common:yes')) : ansis.green(i18n.t('common:no'))}`)
   }
 }
 

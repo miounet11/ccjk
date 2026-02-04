@@ -5,9 +5,9 @@
  * @module cloud-client/templates-client
  */
 
-import { ofetch } from 'ofetch'
 import type { $Fetch } from 'ofetch'
 import consola from 'consola'
+import { ofetch } from 'ofetch'
 
 // ============================================================================
 // Types
@@ -156,15 +156,16 @@ export class TemplatesClient {
     try {
       this.logger.debug(`Fetching template: ${templateId}`)
 
-      const response = await this.fetch<{ code: number; data: Template }>(
-        `/api/v8/templates/${encodeURIComponent(templateId)}`
+      const response = await this.fetch<{ code: number, data: Template }>(
+        `/api/v8/templates/${encodeURIComponent(templateId)}`,
       )
 
       if (response.code === 200 && response.data) {
         return response.data
       }
       return null
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.warn(`Failed to fetch template ${templateId}:`, error)
       return null
     }
@@ -179,7 +180,7 @@ export class TemplatesClient {
    */
   async getTemplates(
     ids: string[],
-    language?: 'en' | 'zh-CN'
+    language?: 'en' | 'zh-CN',
   ): Promise<BatchTemplateResponse> {
     try {
       this.logger.debug(`Batch fetching ${ids.length} templates`)
@@ -193,7 +194,7 @@ export class TemplatesClient {
             language: language || this.language,
             includeStats: true,
           },
-        }
+        },
       )
 
       return {
@@ -202,7 +203,8 @@ export class TemplatesClient {
         notFound: response.notFound || [],
         stats: response.stats,
       }
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.warn('Failed to batch fetch templates:', error)
       return {
         requestId: '',
@@ -221,15 +223,15 @@ export class TemplatesClient {
    */
   async searchTemplates(
     query: string,
-    params: Omit<TemplateSearchParams, 'query'> = {}
+    params: Omit<TemplateSearchParams, 'query'> = {},
   ): Promise<TemplateListResponse> {
     try {
       this.logger.debug(`Searching templates: ${query}`)
 
       const searchParams = this.buildSearchParams({ ...params, query })
 
-      const response = await this.fetch<{ code: number; data: TemplateListResponse }>(
-        `/api/v8/templates/search?${searchParams}`
+      const response = await this.fetch<{ code: number, data: TemplateListResponse }>(
+        `/api/v8/templates/search?${searchParams}`,
       )
 
       if (response.code === 200 && response.data) {
@@ -237,7 +239,8 @@ export class TemplatesClient {
       }
 
       return { items: [], total: 0, limit: 20, offset: 0 }
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.warn('Failed to search templates:', error)
       return { items: [], total: 0, limit: 20, offset: 0 }
     }
@@ -252,8 +255,8 @@ export class TemplatesClient {
 
       const searchParams = this.buildSearchParams(params)
 
-      const response = await this.fetch<{ code: number; data: TemplateListResponse }>(
-        `/api/v8/templates?${searchParams}`
+      const response = await this.fetch<{ code: number, data: TemplateListResponse }>(
+        `/api/v8/templates?${searchParams}`,
       )
 
       if (response.code === 200 && response.data) {
@@ -261,7 +264,8 @@ export class TemplatesClient {
       }
 
       return { items: [], total: 0, limit: 20, offset: 0 }
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.warn('Failed to list templates:', error)
       return { items: [], total: 0, limit: 20, offset: 0 }
     }
@@ -276,7 +280,7 @@ export class TemplatesClient {
    */
   async getTemplatesByType(
     type: TemplateType,
-    options: { category?: string; limit?: number; is_official?: boolean } = {}
+    options: { category?: string, limit?: number, is_official?: boolean } = {},
   ): Promise<Template[]> {
     const { items } = await this.listTemplates({
       type,
@@ -324,15 +328,16 @@ export class TemplatesClient {
    */
   async getFeaturedTemplates(limit = 10): Promise<Template[]> {
     try {
-      const response = await this.fetch<{ code: number; data: Template[] }>(
-        `/api/v8/templates/featured?limit=${limit}`
+      const response = await this.fetch<{ code: number, data: Template[] }>(
+        `/api/v8/templates/featured?limit=${limit}`,
       )
 
       if (response.code === 200 && response.data) {
         return response.data
       }
       return []
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.warn('Failed to fetch featured templates:', error)
       return []
     }
@@ -343,15 +348,16 @@ export class TemplatesClient {
    */
   async getPopularTemplates(limit = 20): Promise<Template[]> {
     try {
-      const response = await this.fetch<{ code: number; data: Template[] }>(
-        `/api/v8/templates/popular?limit=${limit}`
+      const response = await this.fetch<{ code: number, data: Template[] }>(
+        `/api/v8/templates/popular?limit=${limit}`,
       )
 
       if (response.code === 200 && response.data) {
         return response.data
       }
       return []
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.warn('Failed to fetch popular templates:', error)
       return []
     }
@@ -366,15 +372,16 @@ export class TemplatesClient {
    */
   async getCategories(): Promise<string[]> {
     try {
-      const response = await this.fetch<{ code: number; data: string[] }>(
-        '/api/v8/templates/categories'
+      const response = await this.fetch<{ code: number, data: string[] }>(
+        '/api/v8/templates/categories',
       )
 
       if (response.code === 200 && response.data) {
         return response.data
       }
       return []
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.warn('Failed to fetch categories:', error)
       return []
     }
@@ -391,10 +398,11 @@ export class TemplatesClient {
     try {
       const response = await this.fetch<{ code: number }>(
         `/api/v8/templates/${encodeURIComponent(templateId)}/download`,
-        { method: 'POST' }
+        { method: 'POST' },
       )
       return response.code === 200
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.warn(`Failed to track download for ${templateId}:`, error)
       return false
     }
@@ -410,17 +418,28 @@ export class TemplatesClient {
   private buildSearchParams(params: TemplateSearchParams): string {
     const searchParams = new URLSearchParams()
 
-    if (params.query) searchParams.set('query', params.query)
-    if (params.type) searchParams.set('type', params.type)
-    if (params.category) searchParams.set('category', params.category)
-    if (params.tags?.length) searchParams.set('tags', params.tags.join(','))
-    if (params.is_official !== undefined) searchParams.set('is_official', String(params.is_official))
-    if (params.is_featured !== undefined) searchParams.set('is_featured', String(params.is_featured))
-    if (params.is_verified !== undefined) searchParams.set('is_verified', String(params.is_verified))
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy)
-    if (params.order) searchParams.set('order', params.order)
-    if (params.limit) searchParams.set('limit', String(params.limit))
-    if (params.offset) searchParams.set('offset', String(params.offset))
+    if (params.query)
+      searchParams.set('query', params.query)
+    if (params.type)
+      searchParams.set('type', params.type)
+    if (params.category)
+      searchParams.set('category', params.category)
+    if (params.tags?.length)
+      searchParams.set('tags', params.tags.join(','))
+    if (params.is_official !== undefined)
+      searchParams.set('is_official', String(params.is_official))
+    if (params.is_featured !== undefined)
+      searchParams.set('is_featured', String(params.is_featured))
+    if (params.is_verified !== undefined)
+      searchParams.set('is_verified', String(params.is_verified))
+    if (params.sortBy)
+      searchParams.set('sortBy', params.sortBy)
+    if (params.order)
+      searchParams.set('order', params.order)
+    if (params.limit)
+      searchParams.set('limit', String(params.limit))
+    if (params.offset)
+      searchParams.set('offset', String(params.offset))
 
     return searchParams.toString()
   }

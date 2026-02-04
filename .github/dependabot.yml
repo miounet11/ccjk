@@ -1,56 +1,56 @@
 version: 2
 updates:
   # npm dependencies
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: weekly
+      day: monday
+      time: '09:00'
     open-pull-requests-limit: 10
     reviewers:
-      - "lu"
+      - lu
     assignees:
-      - "lu"
+      - lu
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: chore
+      include: scope
     groups:
       dev-dependencies:
-        dependency-type: "development"
+        dependency-type: development
         update-types:
-          - "minor"
-          - "patch"
+          - minor
+          - patch
       prod-dependencies:
-        dependency-type: "production"
+        dependency-type: production
         update-types:
-          - "minor"
-          - "patch"
+          - minor
+          - patch
 
   # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: weekly
+      day: monday
+      time: '09:00'
     open-pull-requests-limit: 5
     reviewers:
-      - "lu"
+      - lu
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: chore
+      include: scope
 
   # Docker dependencies
-  - package-ecosystem: "docker"
-    directory: "/"
+  - package-ecosystem: docker
+    directory: /
     schedule:
-      interval: "monthly"
-      day: "monday"
-      time: "09:00"
+      interval: monthly
+      day: monday
+      time: '09:00'
     open-pull-requests-limit: 3
     reviewers:
-      - "lu"
+      - lu
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: chore
+      include: scope

@@ -7,6 +7,7 @@ import { i18n } from '../i18n'
 import { displayBanner } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { runCodexUpdate } from '../utils/code-tools/codex'
+import { copyConfigFiles } from '../utils/config'
 import {
   displayMigrationResult,
   migrateSettingsForTokenRetrieval,
@@ -18,7 +19,6 @@ import { handleExitPromptError, handleGeneralError } from '../utils/error-handle
 import { resolveAiOutputLanguage } from '../utils/prompts'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
 import { selectAndInstallWorkflows } from '../utils/workflow-installer'
-import { copyConfigFiles } from '../utils/config'
 
 export interface UpdateOptions {
   configLang?: SupportedLang

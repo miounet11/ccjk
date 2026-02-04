@@ -266,14 +266,16 @@ export function getAgentCapability(id: string): AgentCapability | null {
  */
 export function getCollaborators(agentId: string): AgentCapability[] {
   const agent = agentCapabilityMap.getAgent(agentId)
-  if (!agent) return []
+  if (!agent)
+    return []
 
   // Find agents with different specialties that could complement
-  return agentCapabilityMap.getAllAgents().filter(other => {
-    if (other.id === agentId) return false
+  return agentCapabilityMap.getAllAgents().filter((other) => {
+    if (other.id === agentId)
+      return false
     // Check if there's minimal overlap (complementary skills)
     const overlap = other.specialties.filter(s =>
-      agent.specialties.includes(s)
+      agent.specialties.includes(s),
     ).length
     return overlap < agent.specialties.length / 2
   })

@@ -15,7 +15,7 @@ async function example() {
     id: 'task-1',
     description: 'Create a new TypeScript CLI command',
     complexity: 3,
-    priority: 'medium',
+    priority: 5,
     requiredCapabilities: ['typescript', 'cli-architecture'],
   }]
 
@@ -29,7 +29,7 @@ async function example() {
     id: 'task-2',
     description: 'Add internationalization support to CLI',
     complexity: 5,
-    priority: 'high',
+    priority: 8,
     requiredCapabilities: ['typescript', 'internationalization', 'i18next'],
   }]
 
@@ -44,21 +44,21 @@ async function example() {
       id: 'task-3a',
       description: 'Design configuration architecture',
       complexity: 7,
-      priority: 'high',
+      priority: 8,
       requiredCapabilities: ['configuration-management', 'config-merging'],
     },
     {
       id: 'task-3b',
       description: 'Implement configuration system',
       complexity: 8,
-      priority: 'high',
+      priority: 8,
       requiredCapabilities: ['typescript', 'configuration-management'],
     },
     {
       id: 'task-3c',
       description: 'Write tests for configuration',
       complexity: 5,
-      priority: 'medium',
+      priority: 5,
       requiredCapabilities: ['testing', 'vitest'],
     },
   ]
@@ -70,11 +70,8 @@ async function example() {
 }
 
 // Run example if executed directly
-if (typeof process !== 'undefined' && process.argv[1]) {
-  const fileUrl = new URL(import.meta.url)
-  if (fileUrl.pathname === process.argv[1]) {
-    example().catch(console.error)
-  }
+if (typeof process !== 'undefined' && process.argv[1] && process.argv[1].includes('example')) {
+  example().catch(console.error)
 }
 
 export { example }

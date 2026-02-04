@@ -1,5 +1,6 @@
+import type { ContextStore } from '../../src/orchestrator/context'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { ContextStore, createContextStore } from '../../src/orchestrator/context'
+import { createContextStore } from '../../src/orchestrator/context'
 
 describe('contextStore', () => {
   let store: ContextStore
@@ -424,8 +425,7 @@ describe('contextStore', () => {
 
       // Perform many concurrent updates
       const updates = Array.from({ length: 100 }, (_, i) =>
-        store.update(id, { count: i + 1 }),
-      )
+        store.update(id, { count: i + 1 }))
 
       await Promise.all(updates)
 

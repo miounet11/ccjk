@@ -21,11 +21,11 @@ export type KeybindingContext = 'global' | 'terminal' | 'editor' | 'prompt'
  */
 export interface Keybinding {
   id: string
-  key: string                    // e.g., "ctrl+b", "ctrl+shift+p"
-  command: string                // Command to execute
-  args?: any[]                   // Command arguments
-  when?: KeybindingContext       // Context when binding is active
-  description?: string           // Human-readable description
+  key: string // e.g., "ctrl+b", "ctrl+shift+p"
+  command: string // Command to execute
+  args?: any[] // Command arguments
+  when?: KeybindingContext // Context when binding is active
+  description?: string // Human-readable description
   enabled: boolean
 }
 

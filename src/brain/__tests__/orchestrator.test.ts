@@ -4,17 +4,14 @@
  * @module brain/__tests__/orchestrator.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { BrainOrchestrator } from '../orchestrator'
+import type { AgentCapability, CloudAgent } from '../../types/agent'
+import type { SkillCategory, SkillMdFile } from '../../types/skill-md'
 import type {
   Task,
   TaskPriority,
-  OrchestrationResult,
-  AgentInstance,
 } from '../orchestrator-types'
-import type { CloudAgent, AgentCapability } from '../../types/agent'
-import type { SkillMdFile, SkillCategory } from '../../types/skill-md'
-import type { AgentRole } from '../types'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { BrainOrchestrator } from '../orchestrator'
 
 // Mock dependencies
 vi.mock('../task-decomposer', () => ({
@@ -61,7 +58,7 @@ vi.mock('../agent-fork', () => ({
 vi.mock('../agent-dispatcher', () => ({
   AgentDispatcher: vi.fn().mockImplementation(() => ({
     dispatch: vi.fn().mockResolvedValue({ success: true, output: {} }),
-    dispatchParallel: vi.fn().mockImplementation((execution) => Promise.resolve({
+    dispatchParallel: vi.fn().mockImplementation(execution => Promise.resolve({
       id: execution.id,
       success: true,
       results: [],
@@ -119,7 +116,7 @@ function createMockCloudAgent(overrides: Partial<CloudAgent> = {}): CloudAgent {
     },
     metadata: {
       author: 'Test',
-      description: { en: 'Test agent', 'zh-CN': 'Test agent' },
+      description: { 'en': 'Test agent', 'zh-CN': 'Test agent' },
       tags: [],
       category: 'testing',
       createdAt: new Date().toISOString(),
@@ -133,7 +130,7 @@ function createMockCloudAgent(overrides: Partial<CloudAgent> = {}): CloudAgent {
   }
 }
 
-describe('BrainOrchestrator', () => {
+describe('brainOrchestrator', () => {
   let orchestrator: BrainOrchestrator
 
   beforeEach(() => {
@@ -154,7 +151,7 @@ describe('BrainOrchestrator', () => {
   // Normal Flow Tests
   // ===========================================================================
 
-  describe('Normal Flow', () => {
+  describe('normal Flow', () => {
     it('should dispatch tasks to correct agents', async () => {
       const agent = createMockCloudAgent()
       orchestrator.registerAgent('typescript-cli-architect', agent)
@@ -240,7 +237,7 @@ describe('BrainOrchestrator', () => {
   // Agent Failure Handling Tests
   // ===========================================================================
 
-  describe('Agent Failure Handling', () => {
+  describe('agent Failure Handling', () => {
     it('should handle agent failures gracefully', async () => {
       // No agents registered - should handle gracefully
       const task = createMockTask()
@@ -286,7 +283,7 @@ describe('BrainOrchestrator', () => {
   // Task Priority Tests
   // ===========================================================================
 
-  describe('Task Priority', () => {
+  describe('task Priority', () => {
     it('should respect task priorities', async () => {
       const agent = createMockCloudAgent()
       orchestrator.registerAgent('typescript-cli-architect', agent)
@@ -332,7 +329,7 @@ describe('BrainOrchestrator', () => {
   // Timeout Tests
   // ===========================================================================
 
-  describe('Timeout Handling', () => {
+  describe('timeout Handling', () => {
     it('should timeout long-running tasks', async () => {
       const orchestratorWithShortTimeout = new BrainOrchestrator({
         defaultTaskTimeout: 100, // Very short timeout
@@ -363,7 +360,7 @@ describe('BrainOrchestrator', () => {
   // Pause/Resume/Cancel Tests
   // ===========================================================================
 
-  describe('Orchestration Control', () => {
+  describe('orchestration Control', () => {
     it('should pause orchestration', () => {
       // Start execution state
       const state = orchestrator.getState()
@@ -402,7 +399,7 @@ describe('BrainOrchestrator', () => {
   // Fork Context Tests (v3.8)
   // ===========================================================================
 
-  describe('Fork Context Execution', () => {
+  describe('fork Context Execution', () => {
     it('should execute task in fork context', async () => {
       const skill: SkillMdFile = {
         metadata: {
@@ -501,7 +498,7 @@ describe('BrainOrchestrator', () => {
   // Dispatcher Tests
   // ===========================================================================
 
-  describe('Agent Dispatcher Integration', () => {
+  describe('agent Dispatcher Integration', () => {
     it('should get dispatcher statistics', () => {
       const stats = orchestrator.getDispatcherStats()
 
@@ -543,14 +540,13 @@ describe('BrainOrchestrator', () => {
   // Concurrent Execution Tests
   // ===========================================================================
 
-  describe('Concurrent Execution', () => {
+  describe('concurrent Execution', () => {
     it('should handle multiple concurrent task executions', async () => {
       const agent = createMockCloudAgent()
       orchestrator.registerAgent('typescript-cli-architect', agent)
 
       const tasks = Array.from({ length: 5 }, (_, i) =>
-        createMockTask({ id: `concurrent-task-${i}` }),
-      )
+        createMockTask({ id: `concurrent-task-${i}` }))
 
       const results = await Promise.all(
         tasks.map(task => orchestrator.execute(task)),
@@ -573,8 +569,7 @@ describe('BrainOrchestrator', () => {
       orchestratorLimited.registerAgent('typescript-cli-architect', agent)
 
       const tasks = Array.from({ length: 5 }, (_, i) =>
-        createMockTask({ id: `limited-task-${i}` }),
-      )
+        createMockTask({ id: `limited-task-${i}` }))
 
       const results = await Promise.all(
         tasks.map(task => orchestratorLimited.execute(task)),
@@ -647,7 +642,7 @@ describe('BrainOrchestrator', () => {
   // Edge Cases and Boundary Conditions
   // ===========================================================================
 
-  describe('Edge Cases', () => {
+  describe('edge Cases', () => {
     it('should handle empty task input', async () => {
       const task = createMockTask({
         input: { parameters: {} },

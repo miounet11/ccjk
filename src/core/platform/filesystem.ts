@@ -8,14 +8,6 @@
  * @since v8.3.0
  */
 
-import * as fs from 'node:fs'
-import * as fsPromises from 'node:fs/promises'
-import * as os from 'node:os'
-import * as path from 'node:path'
-import { randomBytes } from 'node:crypto'
-
-import { getPlatformCapabilities, getPlatformInfo } from './detector'
-import { normalizePath } from './paths'
 import type {
   AtomicWriteOptions,
   FileCopyOptions,
@@ -25,6 +17,13 @@ import type {
   PlatformErrorCode,
   SafeDeleteOptions,
 } from './types'
+import { randomBytes } from 'node:crypto'
+import * as fs from 'node:fs'
+import * as fsPromises from 'node:fs/promises'
+
+import * as path from 'node:path'
+import { getPlatformCapabilities, getPlatformInfo } from './detector'
+import { normalizePath } from './paths'
 
 // ============================================================================
 // Error Handling
@@ -57,7 +56,7 @@ function mapErrorCode(code: string | undefined): PlatformErrorCode {
  */
 function createPlatformError(
   error: NodeJS.ErrnoException,
-  filePath?: string
+  filePath?: string,
 ): PlatformError {
   const platformError = new Error(error.message) as PlatformError
   platformError.code = mapErrorCode(error.code)
@@ -96,7 +95,7 @@ function getTempFilePath(targetPath: string, suffix: string = '.tmp'): string {
 export async function atomicWrite(
   filePath: string,
   content: string | Buffer,
-  options: AtomicWriteOptions = {}
+  options: AtomicWriteOptions = {},
 ): Promise<void> {
   const {
     mode,
@@ -116,7 +115,8 @@ export async function atomicWrite(
     try {
       const stats = await fsPromises.stat(normalizedPath)
       existingMode = stats.mode
-    } catch {
+    }
+    catch {
       // File doesn't exist, use default or specified mode
     }
   }
@@ -142,11 +142,13 @@ export async function atomicWrite(
 
     // Atomic rename
     await fsPromises.rename(tempPath, normalizedPath)
-  } catch (error) {
+  }
+  catch (error) {
     // Clean up temp file on failure
     try {
       await fsPromises.unlink(tempPath)
-    } catch {
+    }
+    catch {
       // Ignore cleanup errors
     }
     throw createPlatformError(error as NodeJS.ErrnoException, normalizedPath)
@@ -163,7 +165,7 @@ export async function atomicWrite(
 export function atomicWriteSync(
   filePath: string,
   content: string | Buffer,
-  options: AtomicWriteOptions = {}
+  options: AtomicWriteOptions = {},
 ): void {
   const {
     mode,
@@ -183,7 +185,8 @@ export function atomicWriteSync(
     try {
       const stats = fs.statSync(normalizedPath)
       existingMode = stats.mode
-    } catch {
+    }
+    catch {
       // File doesn't exist
     }
   }
@@ -209,11 +212,13 @@ export function atomicWriteSync(
 
     // Atomic rename
     fs.renameSync(tempPath, normalizedPath)
-  } catch (error) {
+  }
+  catch (error) {
     // Clean up temp file on failure
     try {
       fs.unlinkSync(tempPath)
-    } catch {
+    }
+    catch {
       // Ignore cleanup errors
     }
     throw createPlatformError(error as NodeJS.ErrnoException, normalizedPath)
@@ -260,7 +265,7 @@ async function moveToTrash(filePath: string): Promise<boolean> {
       const { executeCommand } = await import('./commands')
       const script = `
         Add-Type -AssemblyName Microsoft.VisualBasic
-        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('${filePath.replace(/'/g, "''")}', 'OnlyErrorDialogs', 'SendToRecycleBin')
+        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('${filePath.replace(/'/g, '\'\'')}', 'OnlyErrorDialogs', 'SendToRecycleBin')
       `
       const result = await executeCommand(`powershell -Command "${script}"`)
       return result.success
@@ -273,26 +278,30 @@ async function moveToTrash(filePath: string): Promise<boolean> {
       // Try gio (GNOME)
       if (await commandExists('gio')) {
         const result = await executeCommand(`gio trash "${filePath}"`)
-        if (result.success) return true
+        if (result.success)
+          return true
       }
 
       // Try trash-cli
       if (await commandExists('trash-put')) {
         const result = await executeCommand(`trash-put "${filePath}"`)
-        if (result.success) return true
+        if (result.success)
+          return true
       }
 
       // Try kioclient (KDE)
       if (await commandExists('kioclient')) {
         const result = await executeCommand(`kioclient move "${filePath}" trash:/`)
-        if (result.success) return true
+        if (result.success)
+          return true
       }
 
       return false
     }
 
     return false
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -307,7 +316,7 @@ async function moveToTrash(filePath: string): Promise<boolean> {
  */
 export async function safeDelete(
   filePath: string,
-  options: SafeDeleteOptions = {}
+  options: SafeDeleteOptions = {},
 ): Promise<void> {
   const {
     useTrash = false,
@@ -322,7 +331,8 @@ export async function safeDelete(
   // Check if path exists
   try {
     await fsPromises.access(normalizedPath)
-  } catch {
+  }
+  catch {
     // Path doesn't exist, nothing to delete
     return
   }
@@ -344,7 +354,8 @@ export async function safeDelete(
     try {
       // Make writable
       await fsPromises.chmod(normalizedPath, 0o666)
-    } catch {
+    }
+    catch {
       // Ignore chmod errors
     }
   }
@@ -356,14 +367,17 @@ export async function safeDelete(
       if (stats.isDirectory()) {
         if (recursive) {
           await fsPromises.rm(normalizedPath, { recursive: true, force })
-        } else {
+        }
+        else {
           await fsPromises.rmdir(normalizedPath)
         }
-      } else {
+      }
+      else {
         await fsPromises.unlink(normalizedPath)
       }
       return // Success
-    } catch (error) {
+    }
+    catch (error) {
       lastError = error as Error
       const nodeError = error as NodeJS.ErrnoException
 
@@ -374,7 +388,7 @@ export async function safeDelete(
 
       // Wait before retry
       if (attempt < maxRetries - 1) {
-        await new Promise((resolve) => setTimeout(resolve, retryDelay * (attempt + 1)))
+        await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt + 1)))
       }
     }
   }
@@ -391,7 +405,7 @@ export async function safeDelete(
  */
 export function safeDeleteSync(
   filePath: string,
-  options: SafeDeleteOptions = {}
+  options: SafeDeleteOptions = {},
 ): void {
   const {
     force = false,
@@ -405,7 +419,8 @@ export function safeDeleteSync(
   // Check if path exists
   try {
     fs.accessSync(normalizedPath)
-  } catch {
+  }
+  catch {
     return
   }
 
@@ -414,7 +429,8 @@ export function safeDeleteSync(
   if (force) {
     try {
       fs.chmodSync(normalizedPath, 0o666)
-    } catch {
+    }
+    catch {
       // Ignore
     }
   }
@@ -425,14 +441,17 @@ export function safeDeleteSync(
       if (stats.isDirectory()) {
         if (recursive) {
           fs.rmSync(normalizedPath, { recursive: true, force })
-        } else {
+        }
+        else {
           fs.rmdirSync(normalizedPath)
         }
-      } else {
+      }
+      else {
         fs.unlinkSync(normalizedPath)
       }
       return
-    } catch (error) {
+    }
+    catch (error) {
       lastError = error as Error
       const nodeError = error as NodeJS.ErrnoException
 
@@ -492,7 +511,8 @@ export async function checkPermissions(filePath: string): Promise<PermissionChec
     try {
       await fsPromises.access(normalizedPath, fs.constants.R_OK)
       result.readable = true
-    } catch {
+    }
+    catch {
       // Not readable
     }
 
@@ -500,7 +520,8 @@ export async function checkPermissions(filePath: string): Promise<PermissionChec
     try {
       await fsPromises.access(normalizedPath, fs.constants.W_OK)
       result.writable = true
-    } catch {
+    }
+    catch {
       // Not writable
     }
 
@@ -508,7 +529,8 @@ export async function checkPermissions(filePath: string): Promise<PermissionChec
     try {
       await fsPromises.access(normalizedPath, fs.constants.X_OK)
       result.executable = true
-    } catch {
+    }
+    catch {
       // Not executable
     }
 
@@ -523,7 +545,8 @@ export async function checkPermissions(filePath: string): Promise<PermissionChec
       result.uid = stats.uid
       result.gid = stats.gid
     }
-  } catch {
+  }
+  catch {
     // Path doesn't exist
   }
 
@@ -552,21 +575,24 @@ export function checkPermissionsSync(filePath: string): PermissionCheckResult {
     try {
       fs.accessSync(normalizedPath, fs.constants.R_OK)
       result.readable = true
-    } catch {
+    }
+    catch {
       // Not readable
     }
 
     try {
       fs.accessSync(normalizedPath, fs.constants.W_OK)
       result.writable = true
-    } catch {
+    }
+    catch {
       // Not writable
     }
 
     try {
       fs.accessSync(normalizedPath, fs.constants.X_OK)
       result.executable = true
-    } catch {
+    }
+    catch {
       // Not executable
     }
 
@@ -579,7 +605,8 @@ export function checkPermissionsSync(filePath: string): PermissionCheckResult {
       result.uid = stats.uid
       result.gid = stats.gid
     }
-  } catch {
+  }
+  catch {
     // Path doesn't exist
   }
 
@@ -600,7 +627,7 @@ export function checkPermissionsSync(filePath: string): PermissionCheckResult {
 export async function copyFile(
   source: string,
   destination: string,
-  options: FileCopyOptions = {}
+  options: FileCopyOptions = {},
 ): Promise<void> {
   const {
     overwrite = true,
@@ -617,9 +644,10 @@ export async function copyFile(
       await fsPromises.access(normalizedDest)
       throw createPlatformError(
         { code: 'EEXIST', message: 'Destination already exists' } as NodeJS.ErrnoException,
-        normalizedDest
+        normalizedDest,
       )
-    } catch (error) {
+    }
+    catch (error) {
       const nodeError = error as NodeJS.ErrnoException
       if (nodeError.code !== 'ENOENT') {
         throw error
@@ -640,7 +668,8 @@ export async function copyFile(
   if (preservePermissions) {
     try {
       await fsPromises.chmod(normalizedDest, sourceStats.mode)
-    } catch {
+    }
+    catch {
       // Ignore permission errors on Windows
     }
   }
@@ -648,7 +677,8 @@ export async function copyFile(
   if (preserveTimestamps) {
     try {
       await fsPromises.utimes(normalizedDest, sourceStats.atime, sourceStats.mtime)
-    } catch {
+    }
+    catch {
       // Ignore timestamp errors
     }
   }
@@ -664,7 +694,7 @@ export async function copyFile(
 export async function copyDirectory(
   source: string,
   destination: string,
-  options: FileCopyOptions = {}
+  options: FileCopyOptions = {},
 ): Promise<void> {
   const normalizedSource = normalizePath(source, { normalize: true })
   const normalizedDest = normalizePath(destination, { normalize: true })
@@ -681,9 +711,11 @@ export async function copyDirectory(
 
     if (entry.isDirectory()) {
       await copyDirectory(srcPath, destPath, options)
-    } else if (entry.isFile()) {
+    }
+    else if (entry.isFile()) {
       await copyFile(srcPath, destPath, options)
-    } else if (entry.isSymbolicLink() && options.followSymlinks !== false) {
+    }
+    else if (entry.isSymbolicLink() && options.followSymlinks !== false) {
       // Copy symlink target
       const target = await fsPromises.readlink(srcPath)
       await fsPromises.symlink(target, destPath)
@@ -695,7 +727,8 @@ export async function copyDirectory(
     const sourceStats = await fsPromises.stat(normalizedSource)
     try {
       await fsPromises.utimes(normalizedDest, sourceStats.atime, sourceStats.mtime)
-    } catch {
+    }
+    catch {
       // Ignore
     }
   }
@@ -717,7 +750,8 @@ export async function mkdir(dirPath: string, options: MkdirOptions = {}): Promis
 
   try {
     await fsPromises.mkdir(normalizedPath, { recursive, mode })
-  } catch (error) {
+  }
+  catch (error) {
     throw createPlatformError(error as NodeJS.ErrnoException, normalizedPath)
   }
 }
@@ -734,7 +768,8 @@ export function mkdirSync(dirPath: string, options: MkdirOptions = {}): void {
 
   try {
     fs.mkdirSync(normalizedPath, { recursive, mode })
-  } catch (error) {
+  }
+  catch (error) {
     throw createPlatformError(error as NodeJS.ErrnoException, normalizedPath)
   }
 }
@@ -779,7 +814,8 @@ export async function exists(filePath: string): Promise<boolean> {
   try {
     await fsPromises.access(filePath)
     return true
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -794,7 +830,8 @@ export function existsSync(filePath: string): boolean {
   try {
     fs.accessSync(filePath)
     return true
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -809,7 +846,8 @@ export async function isFile(filePath: string): Promise<boolean> {
   try {
     const stats = await fsPromises.stat(filePath)
     return stats.isFile()
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -824,7 +862,8 @@ export async function isDirectory(filePath: string): Promise<boolean> {
   try {
     const stats = await fsPromises.stat(filePath)
     return stats.isDirectory()
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -842,12 +881,13 @@ export async function isDirectory(filePath: string): Promise<boolean> {
  */
 export async function readText(
   filePath: string,
-  encoding: BufferEncoding = 'utf8'
+  encoding: BufferEncoding = 'utf8',
 ): Promise<string> {
   const normalizedPath = normalizePath(filePath, { normalize: true })
   try {
     return await fsPromises.readFile(normalizedPath, { encoding })
-  } catch (error) {
+  }
+  catch (error) {
     throw createPlatformError(error as NodeJS.ErrnoException, normalizedPath)
   }
 }
@@ -873,7 +913,7 @@ export async function readJson<T = unknown>(filePath: string): Promise<T> {
 export async function writeText(
   filePath: string,
   content: string,
-  options: AtomicWriteOptions = {}
+  options: AtomicWriteOptions = {},
 ): Promise<void> {
   await atomicWrite(filePath, content, options)
 }
@@ -888,7 +928,7 @@ export async function writeText(
 export async function writeJson(
   filePath: string,
   data: unknown,
-  options: AtomicWriteOptions & { pretty?: boolean } = {}
+  options: AtomicWriteOptions & { pretty?: boolean } = {},
 ): Promise<void> {
   const { pretty = true, ...writeOptions } = options
   const content = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data)

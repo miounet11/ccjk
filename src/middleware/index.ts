@@ -9,13 +9,13 @@
 export {
   checkContextBeforeExecution,
   ContextChecker,
-  ensureContextAvailable,
   getContextChecker as createContextChecker,
+  ensureContextAvailable,
   getContextChecker as getGlobalContextChecker,
   resetContextChecker,
 } from './context-checker'
 
 export type {
-  ContextCheckResult,
   ContextCheckerOptions,
+  ContextCheckResult,
 } from './context-checker'

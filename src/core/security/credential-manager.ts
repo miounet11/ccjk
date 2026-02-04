@@ -5,9 +5,6 @@
  * @description 统一凭证管理器，支持系统密钥链和加密文件存储
  */
 
-import * as fs from 'node:fs/promises'
-import * as os from 'node:os'
-import * as path from 'node:path'
 import type {
   CredentialEventListener,
   CredentialManagerConfig,
@@ -17,6 +14,9 @@ import type {
   IKeychainBackend,
   StoredCredential,
 } from './types'
+import * as fs from 'node:fs/promises'
+import * as os from 'node:os'
+import * as path from 'node:path'
 import { EncryptionService } from './encryption'
 import { createKeychainBackend, FileStorageBackend } from './keychain'
 

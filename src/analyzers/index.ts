@@ -3,12 +3,12 @@
  * Provides intelligent project detection and analysis capabilities
  */
 
+import type { DetectorConfig, ProjectAnalysis } from './types.js'
 import consola from 'consola'
-import { detectProject } from './project-detector.js'
 import { analyzeDependencies } from './dependency-resolver.js'
-import type { ProjectAnalysis, DetectorConfig } from './types.js'
+import { detectProject } from './project-detector.js'
 
-export { detectProject, analyzeDependencies }
+export { analyzeDependencies, detectProject }
 export * from './types.js'
 
 /**
@@ -92,7 +92,8 @@ export async function analyzeProject(
     logger.info(`Detected: ${analysis.projectType} (${analysis.metadata.confidence * 100}% confidence)`)
 
     return analysis
-  } catch (error) {
+  }
+  catch (error) {
     logger.error('Project analysis failed:', error)
     throw new Error(`Failed to analyze project at ${projectPath}: ${error instanceof Error ? error.message : String(error)}`)
   }
@@ -123,7 +124,8 @@ export async function batchAnalyze(
     try {
       const analysis = await analyzeProject(path, config)
       results.push(analysis)
-    } catch (error) {
+    }
+    catch (error) {
       logger.error(`Failed to analyze ${path}:`, error)
       // Continue with other projects
     }

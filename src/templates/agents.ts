@@ -4,9 +4,9 @@
  * Loads and manages agent templates from templates/agents directory
  */
 
-import { join, dirname } from 'pathe'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { dirname, join } from 'pathe'
 
 // Get the directory of this module to locate templates in npm package
 const _dirname = dirname(fileURLToPath(import.meta.url))
@@ -54,7 +54,8 @@ export async function loadAgentTemplates(): Promise<AgentRecommendation[]> {
   const files = readdirSync(templatesDir)
 
   for (const file of files) {
-    if (!file.endsWith('.json')) continue
+    if (!file.endsWith('.json'))
+      continue
 
     try {
       const filePath = join(templatesDir, file)
@@ -70,11 +71,12 @@ export async function loadAgentTemplates(): Promise<AgentRecommendation[]> {
         persona: template.persona,
         capabilities: template.capabilities || [],
         confidence: 0.8, // Default confidence
-        reason: `Matches project type and includes relevant skills: ${(template.skills || []).join(', ')}`
+        reason: `Matches project type and includes relevant skills: ${(template.skills || []).join(', ')}`,
       }
 
       templates.push(recommendation)
-    } catch (error) {
+    }
+    catch (error) {
       console.warn(`Failed to load agent template ${file}:`, error)
     }
   }
@@ -105,9 +107,10 @@ export async function loadAgentTemplate(templateId: string): Promise<AgentRecomm
       persona: template.persona,
       capabilities: template.capabilities || [],
       confidence: 0.9,
-      reason: 'Template loaded successfully'
+      reason: 'Template loaded successfully',
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.warn(`Failed to load agent template ${templateId}:`, error)
     return null
   }
@@ -120,12 +123,12 @@ export async function searchAgentTemplates(query: string): Promise<AgentRecommen
   const templates = await loadAgentTemplates()
   const lowercaseQuery = query.toLowerCase()
 
-  return templates.filter(template => {
+  return templates.filter((template) => {
     return (
-      template.name.toLowerCase().includes(lowercaseQuery) ||
-      template.description.toLowerCase().includes(lowercaseQuery) ||
-      template.skills.some(skill => skill.toLowerCase().includes(lowercaseQuery)) ||
-      template.capabilities.some(cap => cap.toLowerCase().includes(lowercaseQuery))
+      template.name.toLowerCase().includes(lowercaseQuery)
+      || template.description.toLowerCase().includes(lowercaseQuery)
+      || template.skills.some(skill => skill.toLowerCase().includes(lowercaseQuery))
+      || template.capabilities.some(cap => cap.toLowerCase().includes(lowercaseQuery))
     )
   })
 }
@@ -136,12 +139,12 @@ export async function searchAgentTemplates(query: string): Promise<AgentRecommen
 export async function filterAgentTemplatesByTags(tags: string[]): Promise<AgentRecommendation[]> {
   const templates = await loadAgentTemplates()
 
-  return templates.filter(template => {
-    return tags.some(tag => {
+  return templates.filter((template) => {
+    return tags.some((tag) => {
       return (
-        template.skills.includes(tag) ||
-        template.capabilities.includes(tag) ||
-        template.name.toLowerCase().includes(tag.toLowerCase())
+        template.skills.includes(tag)
+        || template.capabilities.includes(tag)
+        || template.name.toLowerCase().includes(tag.toLowerCase())
       )
     })
   })

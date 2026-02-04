@@ -6,9 +6,9 @@
 import process from 'node:process'
 import ansis from 'ansis'
 import { checkAgentBrowserInstalled, getInstallPath } from './installer'
+import { AgentBrowserSession } from './session'
 
 const { cyan, yellow, gray, green, red, blue, bold, dim } = ansis
-import { AgentBrowserSession } from './session'
 
 // ============================================================================
 // 类型定义

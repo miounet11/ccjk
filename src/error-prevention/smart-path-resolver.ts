@@ -7,6 +7,7 @@ import type { PathOptions, PathResult } from './types'
 import { existsSync } from 'node:fs'
 import { lstat, realpath } from 'node:fs/promises'
 import { homedir } from 'node:os'
+import { sep as nodeSep } from 'node:path'
 import { isAbsolute, normalize, resolve, sep } from 'pathe'
 
 export class SmartPathResolver {
@@ -87,7 +88,7 @@ export class SmartPathResolver {
     normalized = normalize(normalized)
 
     // 确保路径分隔符一致
-    if (sep === '\\') {
+    if (nodeSep === '\\') {
       normalized = normalized.replace(/\//g, '\\')
     }
 
@@ -281,7 +282,7 @@ export class SmartPathResolver {
   toPlatformPath(path: string): string {
     let normalized = path.replace(/\\/g, '/').replace(/\/+/g, '/')
 
-    if (sep === '\\') {
+    if (nodeSep === '\\') {
       normalized = normalized.replace(/\//g, '\\')
     }
 

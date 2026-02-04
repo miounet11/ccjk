@@ -7,8 +7,6 @@
  * @module agents-v3/error-recovery
  */
 
-import { EventEmitter } from 'node:events'
-import { nanoid } from 'nanoid'
 import type {
   DeadLetterEntry,
   RecoveryAction,
@@ -20,6 +18,8 @@ import type {
   TaskId,
   TaskResult,
 } from './types.js'
+import { EventEmitter } from 'node:events'
+import { nanoid } from 'nanoid'
 
 /**
  * Error recovery configuration
@@ -256,7 +256,8 @@ export class ErrorRecovery extends EventEmitter {
 
     if (checkpointId) {
       checkpoint = taskCheckpoints.find(cp => cp.id === checkpointId)
-    } else {
+    }
+    else {
       checkpoint = taskCheckpoints[taskCheckpoints.length - 1]
     }
 
@@ -355,7 +356,8 @@ export class ErrorRecovery extends EventEmitter {
       }
 
       return result
-    } catch (error) {
+    }
+    catch (error) {
       return null
     }
   }
@@ -364,8 +366,8 @@ export class ErrorRecovery extends EventEmitter {
    * Calculate retry delay with exponential backoff
    */
   calculateRetryDelay(attemptNumber: number): number {
-    const delay = this.config.initialDelayMs *
-      Math.pow(this.config.backoffMultiplier, attemptNumber - 1)
+    const delay = this.config.initialDelayMs
+      * this.config.backoffMultiplier ** (attemptNumber - 1)
 
     // Add jitter (10% random variation)
     const jitter = delay * 0.1 * (Math.random() - 0.5)
@@ -438,13 +440,13 @@ export class ErrorRecovery extends EventEmitter {
       return false
     }
 
-    if (strategy.conditions.errorCodes &&
-        !strategy.conditions.errorCodes.includes(error.code)) {
+    if (strategy.conditions.errorCodes
+      && !strategy.conditions.errorCodes.includes(error.code)) {
       return false
     }
 
-    if (strategy.conditions.taskTypes &&
-        !strategy.conditions.taskTypes.includes(task.type)) {
+    if (strategy.conditions.taskTypes
+      && !strategy.conditions.taskTypes.includes(task.type)) {
       return false
     }
 
@@ -535,7 +537,8 @@ export class ErrorRecovery extends EventEmitter {
             timestamp: Date.now(),
           }
       }
-    } catch (err) {
+    }
+    catch (err) {
       return {
         attempt: attemptNumber,
         action,
@@ -576,7 +579,8 @@ export class ErrorRecovery extends EventEmitter {
         durationMs: Date.now() - startTime,
         timestamp: Date.now(),
       }
-    } catch (err) {
+    }
+    catch (err) {
       return {
         attempt: attemptNumber,
         action: 'retry',
@@ -627,7 +631,8 @@ export class ErrorRecovery extends EventEmitter {
         durationMs: Date.now() - startTime,
         timestamp: Date.now(),
       }
-    } catch (err) {
+    }
+    catch (err) {
       return {
         attempt: attemptNumber,
         action: 'checkpoint_restore',
@@ -665,7 +670,8 @@ export class ErrorRecovery extends EventEmitter {
         durationMs: Date.now() - startTime,
         timestamp: Date.now(),
       }
-    } catch (err) {
+    }
+    catch (err) {
       return {
         attempt: attemptNumber,
         action: 'reassign_task',
@@ -813,7 +819,8 @@ export class ErrorRecovery extends EventEmitter {
 
         if (validCheckpoints.length === 0) {
           this.checkpoints.delete(taskId)
-        } else if (validCheckpoints.length !== checkpoints.length) {
+        }
+        else if (validCheckpoints.length !== checkpoints.length) {
           this.checkpoints.set(taskId, validCheckpoints)
         }
       }

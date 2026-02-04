@@ -172,7 +172,8 @@ export async function resolveConflict(
       startedAt,
       completedAt: new Date().toISOString(),
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       success: false,
       direction: 'bidirectional',

@@ -197,7 +197,7 @@ function generateCommandMap(commands: CommandInfo[]): string {
 
     // Aliases
     if (cmd.aliases && cmd.aliases.length > 0) {
-      cmdInfo.push(`'Aliases' = @('${cmd.aliases.join("', '")}')`)
+      cmdInfo.push(`'Aliases' = @('${cmd.aliases.join('\', \'')}')`)
     }
     else {
       cmdInfo.push(`'Aliases' = @()`)
@@ -253,7 +253,7 @@ function parseOptionFlags(flags: string): string[] {
  */
 function escapePowerShellString(str: string): string {
   return str
-    .replace(/'/g, "''")
+    .replace(/'/g, '\'\'')
     .replace(/`/g, '``')
     .replace(/\$/g, '`$')
 }

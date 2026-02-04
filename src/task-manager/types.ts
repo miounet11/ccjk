@@ -25,14 +25,14 @@ export interface Task {
   description?: string
   status: TaskStatus
   priority: TaskPriority
-  dependsOn: string[]         // IDs of tasks this task depends on
-  dependents: string[]        // IDs of tasks that depend on this task
+  dependsOn: string[] // IDs of tasks this task depends on
+  dependents: string[] // IDs of tasks that depend on this task
   metadata: Record<string, any>
   createdAt: string
   updatedAt: string
   completedAt?: string
   startedAt?: string
-  duration?: number           // in milliseconds
+  duration?: number // in milliseconds
 }
 
 /**
@@ -77,7 +77,7 @@ export interface TaskGraphNode {
   name: string
   status: TaskStatus
   priority: TaskPriority
-  level: number              // Topological level
+  level: number // Topological level
   dependencies: string[]
 }
 
@@ -85,9 +85,9 @@ export interface TaskGraphNode {
  * Task scheduler result
  */
 export interface TaskSchedule {
-  order: Task[]              // Topological order
-  parallelGroups: Task[][]   // Tasks that can run in parallel
-  blocked: Task[]            // Tasks waiting for dependencies
+  order: Task[] // Topological order
+  parallelGroups: Task[][] // Tasks that can run in parallel
+  blocked: Task[] // Tasks waiting for dependencies
 }
 
 /**
@@ -118,6 +118,6 @@ export interface TaskStats {
   total: number
   byStatus: Record<TaskStatus, number>
   byPriority: Record<TaskPriority, number>
-  completionRate: number    // 0-100
+  completionRate: number // 0-100
   averageDuration?: number
 }

@@ -4,22 +4,22 @@
  * Validates agent definitions for correctness and completeness
  */
 
-import type { AgentDefinition, AgentCapability } from './types'
 import type { AgentValidationResult } from '../types/agent'
+import type { AgentCapability, AgentDefinition } from './types'
 
 /**
  * Validate agent definition
  */
 export function validateAgentDefinition(agent: AgentDefinition): AgentValidationResult {
-  const errors: Array<{ field: string; message: string; code: string }> = []
-  const warnings: Array<{ field: string; message: string; code: string }> = []
+  const errors: Array<{ field: string, message: string, code: string }> = []
+  const warnings: Array<{ field: string, message: string, code: string }> = []
 
   // Validate required fields
   if (!agent.id || agent.id.trim().length === 0) {
     errors.push({
       field: 'id',
       message: 'Agent ID is required',
-      code: 'MISSING_ID'
+      code: 'MISSING_ID',
     })
   }
 
@@ -27,7 +27,7 @@ export function validateAgentDefinition(agent: AgentDefinition): AgentValidation
     errors.push({
       field: 'persona',
       message: 'Agent persona is required',
-      code: 'MISSING_PERSONA'
+      code: 'MISSING_PERSONA',
     })
   }
 
@@ -35,7 +35,7 @@ export function validateAgentDefinition(agent: AgentDefinition): AgentValidation
     errors.push({
       field: 'instructions',
       message: 'Agent instructions are required',
-      code: 'MISSING_INSTRUCTIONS'
+      code: 'MISSING_INSTRUCTIONS',
     })
   }
 
@@ -44,7 +44,7 @@ export function validateAgentDefinition(agent: AgentDefinition): AgentValidation
     warnings.push({
       field: 'capabilities',
       message: 'Agent has no capabilities defined',
-      code: 'NO_CAPABILITIES'
+      code: 'NO_CAPABILITIES',
     })
   }
 
@@ -53,14 +53,14 @@ export function validateAgentDefinition(agent: AgentDefinition): AgentValidation
     warnings.push({
       field: 'skills',
       message: 'Agent has no skills defined',
-      code: 'NO_SKILLS'
+      code: 'NO_SKILLS',
     })
   }
 
   return {
     valid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   }
 }
 
@@ -68,26 +68,22 @@ export function validateAgentDefinition(agent: AgentDefinition): AgentValidation
  * Validate agent capabilities
  */
 export function validateCapabilities(capabilities: AgentCapability[]): boolean {
-  const validTypes = [
+  const validTypes: AgentCapability[] = [
     'code-generation',
-    'code-modification',
-    'code-analysis',
-    'test-generation',
+    'code-review',
+    'testing',
     'documentation',
+    'deployment',
     'debugging',
     'refactoring',
-    'security-audit',
-    'performance-analysis',
-    'architecture-design',
-    'code-review',
-    'api-design'
+    'git-operations',
+    'file-management',
+    'web-search',
+    'api-integration',
   ]
 
   return capabilities.every(cap =>
-    cap &&
-    validTypes.includes(cap.type) &&
-    typeof cap.description === 'string' &&
-    typeof cap.enabled === 'boolean'
+    cap && validTypes.includes(cap),
   )
 }
 
@@ -96,7 +92,7 @@ export function validateCapabilities(capabilities: AgentCapability[]): boolean {
  */
 export function validateAgentName(name: string): boolean {
   // Must be alphanumeric with hyphens and underscores, 3-50 characters
-  return /^[a-zA-Z0-9_-]{3,50}$/.test(name)
+  return /^[\w-]{3,50}$/.test(name)
 }
 
 /**

@@ -5,28 +5,22 @@
  * @module bootstrap
  */
 
-// Event Bus
+// Re-export module creators for custom bootstrap configurations
 export {
-  StartupEventBus,
-  getStartupEventBus,
-  resetStartupEventBus,
-  emitStartupEvent,
-  onStartupEvent,
-  type EventPriority,
-  type EventHandlerRegistration,
-  type EventEmitResult,
-} from './event-bus'
+  createCapabilityDiscoveryModule,
+  createConfigGuardianModule,
+  createToolRouterModule,
+  createVersionSyncModule,
+  createZeroConfigModule,
+  getDefaultModules,
+  registerDefaultModules,
+} from '../utils/startup-orchestrator'
 
-// Intelligent Bootstrap
+// Re-export orchestrator for advanced usage
 export {
-  IntelligentBootstrap,
-  getIntelligentBootstrap,
-  resetIntelligentBootstrap,
-  quickBootstrap,
-  type BootstrapConfig,
-  type BootstrapStats,
-  type IntelligentBootstrapResult,
-} from './intelligent-bootstrap'
+  createDefaultOrchestrator,
+  StartupOrchestrator,
+} from '../utils/startup-orchestrator/orchestrator'
 
 // Re-export types from startup-orchestrator for convenience
 export type {
@@ -41,19 +35,25 @@ export type {
   StartupStatus,
 } from '../utils/startup-orchestrator/types'
 
-// Re-export module creators for custom bootstrap configurations
+// Event Bus
 export {
-  createCapabilityDiscoveryModule,
-  createConfigGuardianModule,
-  createToolRouterModule,
-  createVersionSyncModule,
-  createZeroConfigModule,
-  getDefaultModules,
-  registerDefaultModules,
-} from '../utils/startup-orchestrator'
+  emitStartupEvent,
+  type EventEmitResult,
+  type EventHandlerRegistration,
+  type EventPriority,
+  getStartupEventBus,
+  onStartupEvent,
+  resetStartupEventBus,
+  StartupEventBus,
+} from './event-bus'
 
-// Re-export orchestrator for advanced usage
+// Intelligent Bootstrap
 export {
-  StartupOrchestrator,
-  createDefaultOrchestrator,
-} from '../utils/startup-orchestrator/orchestrator'
+  type BootstrapConfig,
+  type BootstrapStats,
+  getIntelligentBootstrap,
+  IntelligentBootstrap,
+  type IntelligentBootstrapResult,
+  quickBootstrap,
+  resetIntelligentBootstrap,
+} from './intelligent-bootstrap'

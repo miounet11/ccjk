@@ -6,13 +6,13 @@
  */
 
 import type {
-  Workflow,
-  WorkflowStep,
-  ValidationResult,
-  ValidationError,
-  ValidationWarning,
   PostProcessorConfig,
   ProjectContext,
+  ValidationError,
+  ValidationResult,
+  ValidationWarning,
+  Workflow,
+  WorkflowStep,
 } from '../types.js'
 
 export class PostProcessor {
@@ -292,8 +292,8 @@ export class PostProcessor {
   /**
    * Detect missing dependencies
    */
-  private detectMissingDependencies(workflow: Workflow): Array<{ stepId: string; dependency: string }> {
-    const missing: Array<{ stepId: string; dependency: string }> = []
+  private detectMissingDependencies(workflow: Workflow): Array<{ stepId: string, dependency: string }> {
+    const missing: Array<{ stepId: string, dependency: string }> = []
     const stepIds = new Set(workflow.steps.map(s => s.id))
 
     for (const step of workflow.steps) {
@@ -327,14 +327,35 @@ export class PostProcessor {
 
     // Common valid commands
     const commonCommands = [
-      'npm', 'pnpm', 'yarn', 'bun',
-      'git', 'node', 'python', 'python3',
-      'cargo', 'go', 'rustc',
-      'javac', 'java', 'kotlin',
-      'gcc', 'clang', 'make', 'cmake',
-      'docker', 'podman',
-      'ls', 'cd', 'mkdir', 'cp', 'mv',
-      'echo', 'cat', 'grep', 'find',
+      'npm',
+      'pnpm',
+      'yarn',
+      'bun',
+      'git',
+      'node',
+      'python',
+      'python3',
+      'cargo',
+      'go',
+      'rustc',
+      'javac',
+      'java',
+      'kotlin',
+      'gcc',
+      'clang',
+      'make',
+      'cmake',
+      'docker',
+      'podman',
+      'ls',
+      'cd',
+      'mkdir',
+      'cp',
+      'mv',
+      'echo',
+      'cat',
+      'grep',
+      'find',
     ]
 
     return commonCommands.includes(cmd) || cmd.includes('/')
@@ -353,7 +374,7 @@ export class PostProcessor {
       return workflow
     }
 
-    let fixedWorkflow = { ...workflow }
+    const fixedWorkflow = { ...workflow }
 
     for (const error of validation.errors) {
       switch (error.type) {

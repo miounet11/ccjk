@@ -15,7 +15,7 @@ import type {
   SkillMdFile,
   SkillMdMetadata,
 } from '../types/skill-md'
-import type { AgentRole, MessageType } from './types'
+import type { MessageType } from './types'
 import { EventEmitter } from 'node:events'
 import { getMessageBus } from './message-bus'
 
@@ -717,7 +717,7 @@ export class SkillRegistry extends EventEmitter {
   private publishMessage(type: MessageType, payload: unknown): void {
     this.messageBus.publish(
       type,
-      'system',
+      'coordinator',
       'all',
       `Skill registry event: ${type}`,
       payload,

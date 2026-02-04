@@ -4,12 +4,12 @@
  * 从本地路径安装插件
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
+import type { AddResult } from './index'
 import type { LocalSourceInfo } from './source-parser'
 import type { PluginType } from './type-detector'
-import type { AddResult } from './index'
-import { getInstallPath, copyDirectory } from './utils'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { copyDirectory, getInstallPath } from './utils'
 
 export interface InstallOptions {
   force?: boolean
@@ -177,7 +177,7 @@ async function listFiles(dir: string): Promise<string[]> {
 async function readPluginInfo(
   sourcePath: string,
   isFile: boolean,
-): Promise<{ name?: string; version?: string; description?: string }> {
+): Promise<{ name?: string, version?: string, description?: string }> {
   if (isFile) {
     // 从文件名提取信息
     const name = path.basename(sourcePath, path.extname(sourcePath))

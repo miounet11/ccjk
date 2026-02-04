@@ -15,14 +15,14 @@
  * @module core/zero-participation-automation
  */
 
+import type { AutoSaveEvent, AutoSessionSaver, AutoSessionSaverConfig, CrashRecoveryData } from '../brain/auto-session-saver'
+import type { ContextOverflowConfig, OverflowPrediction, PredictiveContextDetector, UsageStats } from '../brain/context-overflow-detector'
 import type { SessionHistoryEntry } from '../brain/session-manager'
-import type { AutoSessionSaverConfig, AutoSaveEvent, CrashRecoveryData } from '../brain/auto-session-saver'
-import type { AutoCompactManagerConfig, CompactResult } from './auto-compact-manager'
-import type { ContextOverflowConfig, OverflowPrediction, UsageStats } from '../brain/context-overflow-detector'
+import type { AutoCompactManager, AutoCompactManagerConfig, CompactResult } from './auto-compact-manager'
 import { EventEmitter } from 'node:events'
-import { AutoSessionSaver, getAutoSessionSaver } from '../brain/auto-session-saver'
-import { getContextDetector, PredictiveContextDetector } from '../brain/context-overflow-detector'
-import { AutoCompactManager, getAutoCompactManager } from './auto-compact-manager'
+import { getAutoSessionSaver } from '../brain/auto-session-saver'
+import { getContextDetector } from '../brain/context-overflow-detector'
+import { getAutoCompactManager } from './auto-compact-manager'
 
 // ============================================================================
 // Types
@@ -31,17 +31,17 @@ import { AutoCompactManager, getAutoCompactManager } from './auto-compact-manage
 /**
  * ZPA event types
  */
-export type ZPAEventType =
-  | 'session-saved'
-  | 'session-save-error'
-  | 'context-warning'
-  | 'context-critical'
-  | 'compact-triggered'
-  | 'compact-completed'
-  | 'compact-error'
-  | 'crash-recovery-available'
-  | 'crash-recovered'
-  | 'prediction-updated'
+export type ZPAEventType
+  = | 'session-saved'
+    | 'session-save-error'
+    | 'context-warning'
+    | 'context-critical'
+    | 'compact-triggered'
+    | 'compact-completed'
+    | 'compact-error'
+    | 'crash-recovery-available'
+    | 'crash-recovered'
+    | 'prediction-updated'
 
 /**
  * ZPA event data
@@ -622,5 +622,5 @@ export function createZPA(config?: ZPAConfig): ZeroParticipationAutomation {
 // ============================================================================
 
 export { AutoSessionSaver, getAutoSessionSaver } from '../brain/auto-session-saver'
+export { getContextDetector, PredictiveContextDetector } from '../brain/context-overflow-detector'
 export { AutoCompactManager, getAutoCompactManager } from './auto-compact-manager'
-export { PredictiveContextDetector, getContextDetector } from '../brain/context-overflow-detector'

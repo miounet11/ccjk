@@ -110,7 +110,7 @@ export class MCPCloudManager {
   /**
    * Quick search for services
    */
-  async search(query: string) {
+  async searchServices(query: string) {
     return await this.search.search(query)
   }
 

@@ -51,8 +51,8 @@ export const DEFAULT_SETTINGS_V2: Partial<ClaudeSettings> = {
   // Response language - empty means use system default
   language: '',
 
-  // Plans directory - null means use default location
-  plansDirectory: null,
+  // Plans directory - undefined means use default location
+  plansDirectory: undefined,
 
   // Show turn duration - default false for cleaner output
   showTurnDuration: false,
@@ -261,7 +261,7 @@ export function readMigratedConfig(): {
 
   return {
     config: migrated,
-    wasMigrated: needsMigration,
+    wasMigrated: needsMigration ?? false,
     validationErrors,
   }
 }
@@ -339,7 +339,7 @@ export function runMigration(): {
 
   return {
     success: result.success,
-    wasMigrated,
+    wasMigrated: wasMigrated ?? false,
     validationErrors: result.validationErrors,
   }
 }
@@ -357,7 +357,7 @@ export function needsMigration(): boolean {
     return false
   }
 
-  return (
+  const needsMigration = (
     config.language === undefined
     || config.plansDirectory === undefined
     || config.showTurnDuration === undefined
@@ -371,8 +371,9 @@ export function needsMigration(): boolean {
     || config.attribution === undefined
     || config.index === undefined
     || config.allowBrowser === undefined
-    || (config.permissions && config.permissions.deny === undefined)
+    || Boolean(config.permissions && config.permissions.deny === undefined)
   )
+  return needsMigration
 }
 
 /**

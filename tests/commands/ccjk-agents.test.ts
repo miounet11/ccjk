@@ -2,11 +2,10 @@
  * Tests for ccjk:agents command
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { consola } from 'consola'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProjectAnalyzer } from '../../src/analyzers'
-import { loadAgentTemplates } from '../../src/templates/agents'
 import { getCloudRecommendations } from '../../src/cloud-client'
+import { loadAgentTemplates } from '../../src/templates/agents'
 
 vi.mock('consola')
 vi.mock('../../src/analyzers')
@@ -24,7 +23,7 @@ describe('ccjk:agents', () => {
       frameworks: [{ name: 'React' }],
       languages: [{ language: 'TypeScript' }],
       dependencies: { direct: [] },
-      metadata: { confidence: 0.9 }
+      metadata: { confidence: 0.9 },
     }
 
     const mockRecommendations = [
@@ -35,8 +34,8 @@ describe('ccjk:agents', () => {
         mcpServers: ['typescript-language-server'],
         capabilities: ['code-generation', 'architecture-design'],
         confidence: 0.9,
-        reason: 'Matches TypeScript project'
-      }
+        reason: 'Matches TypeScript project',
+      },
     ]
 
     vi.mocked(ProjectAnalyzer.prototype.analyze).mockResolvedValue(mockAnalysis as any)
@@ -55,7 +54,7 @@ describe('ccjk:agents', () => {
       frameworks: [],
       languages: [],
       dependencies: { direct: [] },
-      metadata: { confidence: 0.3 }
+      metadata: { confidence: 0.3 },
     }
 
     vi.mocked(ProjectAnalyzer.prototype.analyze).mockResolvedValue(mockAnalysis as any)
@@ -73,7 +72,7 @@ describe('ccjk:agents', () => {
       frameworks: [{ name: 'React' }],
       languages: [{ language: 'TypeScript' }],
       dependencies: { direct: [] },
-      metadata: { confidence: 0.9 }
+      metadata: { confidence: 0.9 },
     }
 
     const mockRecommendations = [
@@ -84,8 +83,8 @@ describe('ccjk:agents', () => {
         mcpServers: [],
         capabilities: ['code-generation'],
         confidence: 0.9,
-        reason: 'Match'
-      }
+        reason: 'Match',
+      },
     ]
 
     vi.mocked(ProjectAnalyzer.prototype.analyze).mockResolvedValue(mockAnalysis as any)

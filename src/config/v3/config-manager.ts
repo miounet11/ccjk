@@ -4,6 +4,8 @@
  * Singleton configuration manager with full type safety
  */
 
+import type { HotReloadManager } from './hot-reload'
+
 import type {
   ConfigChangeEvent,
   ConfigChangeHandler,
@@ -16,14 +18,13 @@ import type {
   PartialConfigV3,
   ValidationResult,
 } from './types'
-
 import { existsSync } from 'node:fs'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR } from '../../constants'
 import { ensureDir, readFile, writeFileAtomic } from '../../utils/fs-operations'
-import { createHotReloadManager, type HotReloadManager } from './hot-reload'
+import { createHotReloadManager } from './hot-reload'
 import { createDefaultConfigV3, runMigration } from './migration'
-import { SchemaValidator, validateConfig } from './schema-validator'
+import { SchemaValidator } from './schema-validator'
 
 // ============================================================================
 // Constants

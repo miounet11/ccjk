@@ -3,8 +3,8 @@
  * Tests for RecommendationEngine
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { MCPService, ServiceCombo, UserProfile } from '../types'
+import type { MCPService, UserProfile } from '../types'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { RecommendationEngine } from '../marketplace/recommendation-engine'
 
 // Mock service data
@@ -451,10 +451,10 @@ describe('recommendationEngine', () => {
       expect(recommendations.length).toBeGreaterThan(0)
       // Top recommendations should generally be relevant to the user's profile
       const topRec = recommendations[0]
-      const isRelevant =
-        topRec.tags.some(tag => advancedProfile.techStack.some(tech => tag.toLowerCase().includes(tech.toLowerCase()))) ||
-        topRec.category.some(cat => advancedProfile.preferences.categories.includes(cat)) ||
-        topRec.tags.some(tag => advancedProfile.preferences.tags.includes(tag))
+      const isRelevant
+        = topRec.tags.some(tag => advancedProfile.techStack.some(tech => tag.toLowerCase().includes(tech.toLowerCase())))
+          || topRec.category.some(cat => advancedProfile.preferences.categories.includes(cat))
+          || topRec.tags.some(tag => advancedProfile.preferences.tags.includes(tag))
       expect(isRelevant).toBe(true)
     })
   })
@@ -486,12 +486,12 @@ describe('recommendationEngine', () => {
     it('should include combo metadata', async () => {
       const combos = await engine.getServiceCombos(mockServices, 'filesystem')
 
-      expect(combos.every(c => {
-        return c.name &&
-          c.description &&
-          c.useCase &&
-          typeof c.popularity === 'number' &&
-          typeof c.rating === 'number'
+      expect(combos.every((c) => {
+        return c.name
+          && c.description
+          && c.useCase
+          && typeof c.popularity === 'number'
+          && typeof c.rating === 'number'
       })).toBe(true)
     })
   })

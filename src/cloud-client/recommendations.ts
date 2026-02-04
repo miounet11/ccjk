@@ -6,25 +6,25 @@
 
 import type { ProjectAnalysis } from '../analyzers'
 import type { AgentRecommendation } from '../templates/agents'
-import { createCloudClient } from './client'
 import { extractString } from '../utils/i18n-helpers'
+import { createCloudClient } from './client'
 
 /**
  * Get agent recommendations from cloud
  */
 export async function getCloudRecommendations(
-  analysis: ProjectAnalysis
+  analysis: ProjectAnalysis,
 ): Promise<AgentRecommendation[]> {
   try {
     const client = createCloudClient()
 
     // Send project analysis to cloud using analyzeProject API
     const response = await client.analyzeProject({
-      projectRoot: analysis.projectRoot || process.cwd(),
-      projectType: analysis.projectType,
-      frameworks: analysis.frameworks.map(f => f.name),
-      languages: analysis.languages.map(l => l.language),
-      dependencies: analysis.dependencies?.direct.map(d => d.name) || [],
+      projectRoot: analysis.rootPath || process.cwd(),
+      dependencies: analysis.dependencies?.direct.reduce((acc, d) => {
+        acc[d.name] = d.version || '*'
+        return acc
+      }, {} as Record<string, string>),
     })
 
     // Convert cloud response to our format
@@ -37,9 +37,10 @@ export async function getCloudRecommendations(
       persona: rec.persona,
       capabilities: rec.capabilities || [],
       confidence: rec.confidence || rec.relevanceScore || 0.8,
-      reason: rec.reason || 'Recommended by CCJK Cloud'
+      reason: rec.reason || 'Recommended by CCJK Cloud',
     }))
-  } catch (error) {
+  }
+  catch (error) {
     console.warn('Failed to get cloud recommendations:', error)
     // Return empty array to fallback to local templates
     return []
@@ -50,19 +51,21 @@ export async function getCloudRecommendations(
  * Get skill recommendations from cloud
  */
 export async function getCloudSkillRecommendations(
-  analysis: ProjectAnalysis
+  analysis: ProjectAnalysis,
 ): Promise<any[]> {
   try {
     const client = createCloudClient()
     const response = await client.analyzeProject({
-      projectRoot: analysis.projectRoot || process.cwd(),
-      projectType: analysis.projectType,
-      languages: analysis.languages.map(l => l.language),
-      frameworks: analysis.frameworks.map(f => f.name),
+      projectRoot: analysis.rootPath || process.cwd(),
+      dependencies: analysis.dependencies?.direct.reduce((acc, d) => {
+        acc[d.name] = d.version || '*'
+        return acc
+      }, {} as Record<string, string>),
     })
 
-    return response.skills || []
-  } catch (error) {
+    return []
+  }
+  catch (error) {
     console.warn('Failed to get cloud skill recommendations:', error)
     return []
   }
@@ -72,18 +75,21 @@ export async function getCloudSkillRecommendations(
  * Get MCP recommendations from cloud
  */
 export async function getCloudMcpRecommendations(
-  analysis: ProjectAnalysis
+  analysis: ProjectAnalysis,
 ): Promise<any[]> {
   try {
     const client = createCloudClient()
     const response = await client.analyzeProject({
-      projectRoot: analysis.projectRoot || process.cwd(),
-      projectType: analysis.projectType,
-      languages: analysis.languages.map(l => l.language),
+      projectRoot: analysis.rootPath || process.cwd(),
+      dependencies: analysis.dependencies?.direct.reduce((acc, d) => {
+        acc[d.name] = d.version || '*'
+        return acc
+      }, {} as Record<string, string>),
     })
 
-    return response.mcpServers || []
-  } catch (error) {
+    return []
+  }
+  catch (error) {
     console.warn('Failed to get cloud MCP recommendations:', error)
     return []
   }

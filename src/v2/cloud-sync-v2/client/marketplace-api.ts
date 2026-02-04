@@ -3,16 +3,16 @@
  * Handles skill discovery, search, and recommendations
  */
 
-import { APIClient } from './client.js'
-import {
+import type {
+  Categories,
+  FeaturedSkills,
+  RecommendedSkills,
   SearchQuery,
   SearchResults,
-  TrendingSkills,
-  RecommendedSkills,
-  FeaturedSkills,
-  Categories,
   SkillDetails,
+  TrendingSkills,
 } from './types.js'
+import { APIClient } from './client.js'
 import { API_PATHS } from './config.js'
 
 export class MarketplaceAPIClient extends APIClient {
@@ -39,7 +39,7 @@ export class MarketplaceAPIClient extends APIClient {
    * Get recommended skills
    */
   async getRecommendedSkills(
-    algorithm: 'collaborative' | 'content-based' | 'hybrid' = 'hybrid'
+    algorithm: 'collaborative' | 'content-based' | 'hybrid' = 'hybrid',
   ): Promise<RecommendedSkills> {
     return this.get<RecommendedSkills>(API_PATHS.MARKETPLACE_RECOMMENDED, {
       params: { algorithm },
@@ -84,7 +84,7 @@ export class MarketplaceAPIClient extends APIClient {
       pageSize?: number
       sortBy?: string
       sortOrder?: 'asc' | 'desc'
-    }
+    },
   ): Promise<SearchResults> {
     return this.get<SearchResults>(`${API_PATHS.MARKETPLACE_CATEGORIES}/${categoryId}/skills`, {
       params: options,
@@ -136,9 +136,9 @@ export class MarketplaceAPIClient extends APIClient {
     dependencies: SkillDetails[]
     dependents: SkillDetails[]
   }> {
-    return this.get<{ dependencies: SkillDetails[]; dependents: SkillDetails[] }>(
+    return this.get<{ dependencies: SkillDetails[], dependents: SkillDetails[] }>(
       `${API_PATHS.SKILLS}/${skillId}/related`,
-      { cache: true }
+      { cache: true },
     )
   }
 
@@ -205,7 +205,7 @@ export class MarketplaceAPIClient extends APIClient {
     language?: string
     tags?: string[]
     minRating?: number
-    sortBy?: 'relevance' | 'rating' | 'downloads' | 'updated' | 'name'
+    sortBy?: 'relevance' | 'rating' | 'downloads' | 'updated'
     sortOrder?: 'asc' | 'desc'
     page?: number
     pageSize?: number
@@ -231,7 +231,7 @@ export class MarketplaceAPIClient extends APIClient {
    */
   async getSkillInstallCount(skillId: string): Promise<number> {
     const response = await this.get<{ count: number }>(
-      `${API_PATHS.SKILLS}/${skillId}/stats/downloads`
+      `${API_PATHS.SKILLS}/${skillId}/stats/downloads`,
     )
     return response.count
   }
@@ -241,7 +241,7 @@ export class MarketplaceAPIClient extends APIClient {
    */
   async getSkillViewCount(skillId: string): Promise<number> {
     const response = await this.get<{ count: number }>(
-      `${API_PATHS.SKILLS}/${skillId}/stats/views`
+      `${API_PATHS.SKILLS}/${skillId}/stats/views`,
     )
     return response.count
   }

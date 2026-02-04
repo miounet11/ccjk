@@ -69,10 +69,10 @@ export default defineConfig({
 
       // Strict coverage thresholds for v2
       thresholds: {
-        branches: 85,    // Increased from 80
-        functions: 85,   // Increased from 80
-        lines: 85,       // Increased from 80
-        statements: 85,  // Increased from 80
+        branches: 85, // Increased from 80
+        functions: 85, // Increased from 80
+        lines: 85, // Increased from 80
+        statements: 85, // Increased from 80
         // Per-file thresholds
         perFile: true,
       },

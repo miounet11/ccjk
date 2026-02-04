@@ -23,18 +23,18 @@
  * @see https://github.com/ccjk/ccjk/issues/XXX for tracking
  */
 
+import type {
+  DependencyAnalysis,
+  DependencyConflict,
+  DependencyNode,
+  DetectorConfig,
+  InstallationCommands,
+  InstallationPlan,
+  ProjectAnalysis,
+} from './types.js'
+import consola from 'consola'
 import fs from 'fs-extra'
 import path from 'pathe'
-import consola from 'consola'
-import type {
-  ProjectAnalysis,
-  DependencyNode,
-  DependencyAnalysis,
-  InstallationPlan,
-  InstallationCommands,
-  DependencyConflict,
-  DetectorConfig,
-} from './types.js'
 
 const logger = consola.withTag('dependency-resolver')
 
@@ -50,9 +50,9 @@ export async function analyzeDependencies(
   // Warn if transitive deps analysis is requested but not implemented
   if (config.analyzeTransitiveDeps) {
     logger.warn(
-      'Transitive dependency analysis requested but not fully implemented. ' +
-      'The "all" field will only contain direct dependencies. ' +
-      'See dependency-resolver.ts for details.',
+      'Transitive dependency analysis requested but not fully implemented. '
+      + 'The "all" field will only contain direct dependencies. '
+      + 'See dependency-resolver.ts for details.',
     )
   }
 
@@ -68,15 +68,18 @@ export async function analyzeDependencies(
     const npmDeps = await analyzeNpmDependencies(projectPath)
     direct = npmDeps.direct
     all = npmDeps.all
-  } else if (packageManager === 'pip' || packageManager === 'poetry' || packageManager === 'pipenv') {
+  }
+  else if (packageManager === 'pip' || packageManager === 'poetry' || packageManager === 'pipenv') {
     const pythonDeps = await analyzePythonDependencies(projectPath, packageManager)
     direct = pythonDeps.direct
     all = pythonDeps.all
-  } else if (packageManager === 'go') {
+  }
+  else if (packageManager === 'go') {
     const goDeps = await analyzeGoDependencies(projectPath)
     direct = goDeps.direct
     all = goDeps.all
-  } else if (packageManager === 'cargo') {
+  }
+  else if (packageManager === 'cargo') {
     const rustDeps = await analyzeRustDependencies(projectPath)
     direct = rustDeps.direct
     all = rustDeps.all
@@ -117,7 +120,7 @@ export async function analyzeDependencies(
  */
 async function analyzeNpmDependencies(
   projectPath: string,
-): Promise<{ direct: DependencyNode[]; all: DependencyNode[] }> {
+): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
   const packageJsonPath = path.join(projectPath, 'package.json')
 
   if (!await fs.pathExists(packageJsonPath)) {
@@ -130,7 +133,8 @@ async function analyzeNpmDependencies(
 
     // Process dependencies
     const processDeps = (deps: Record<string, string>, isDev: boolean, isPeer: boolean): DependencyNode[] => {
-      if (!deps) return []
+      if (!deps)
+        return []
 
       return Object.entries(deps).map(([name, version]) => ({
         name,
@@ -158,7 +162,8 @@ async function analyzeNpmDependencies(
     const all = [...direct]
 
     return { direct, all }
-  } catch (error) {
+  }
+  catch (error) {
     logger.warn('Failed to analyze npm dependencies:', error)
     return { direct: [], all: [] }
   }
@@ -170,7 +175,7 @@ async function analyzeNpmDependencies(
 async function analyzePythonDependencies(
   projectPath: string,
   packageManager: string,
-): Promise<{ direct: DependencyNode[]; all: DependencyNode[] }> {
+): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
   const direct: DependencyNode[] = []
   const all: DependencyNode[] = []
 
@@ -207,11 +212,13 @@ async function analyzePythonDependencies(
             isOptional: false,
           })
         }
-      } catch (error) {
+      }
+      catch (error) {
         logger.warn('Failed to parse pyproject.toml:', error)
       }
     }
-  } else if (packageManager === 'pipenv') {
+  }
+  else if (packageManager === 'pipenv') {
     const pipfilePath = path.join(projectPath, 'Pipfile')
     if (await fs.pathExists(pipfilePath)) {
       try {
@@ -243,11 +250,13 @@ async function analyzePythonDependencies(
             isOptional: false,
           })
         }
-      } catch (error) {
+      }
+      catch (error) {
         logger.warn('Failed to parse Pipfile:', error)
       }
     }
-  } else {
+  }
+  else {
     // Default to requirements.txt
     const requirementsPath = path.join(projectPath, 'requirements.txt')
     if (await fs.pathExists(requirementsPath)) {
@@ -258,7 +267,7 @@ async function analyzePythonDependencies(
         for (const line of lines) {
           const trimmed = line.trim()
           if (trimmed && !trimmed.startsWith('#')) {
-            const match = trimmed.match(/^([a-zA-Z0-9_-]+)([\[~\=\>\<]+.*)?$/)
+            const match = trimmed.match(/^([\w-]+)([[~=><].*)?$/)
             if (match) {
               direct.push({
                 name: match[1],
@@ -271,7 +280,8 @@ async function analyzePythonDependencies(
             }
           }
         }
-      } catch (error) {
+      }
+      catch (error) {
         logger.warn('Failed to parse requirements.txt:', error)
       }
     }
@@ -286,7 +296,7 @@ async function analyzePythonDependencies(
  */
 async function analyzeGoDependencies(
   projectPath: string,
-): Promise<{ direct: DependencyNode[]; all: DependencyNode[] }> {
+): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
   const goModPath = path.join(projectPath, 'go.mod')
 
   if (!await fs.pathExists(goModPath)) {
@@ -332,7 +342,8 @@ async function analyzeGoDependencies(
 
     const all = [...direct]
     return { direct, all }
-  } catch (error) {
+  }
+  catch (error) {
     logger.warn('Failed to analyze Go dependencies:', error)
     return { direct: [], all: [] }
   }
@@ -343,7 +354,7 @@ async function analyzeGoDependencies(
  */
 async function analyzeRustDependencies(
   projectPath: string,
-): Promise<{ direct: DependencyNode[]; all: DependencyNode[] }> {
+): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
   const cargoTomlPath = path.join(projectPath, 'Cargo.toml')
 
   if (!await fs.pathExists(cargoTomlPath)) {
@@ -357,7 +368,8 @@ async function analyzeRustDependencies(
     const direct: DependencyNode[] = []
 
     const processDeps = (deps: Record<string, any> | undefined, isDev: boolean): DependencyNode[] => {
-      if (!deps) return []
+      if (!deps)
+        return []
 
       return Object.entries(deps).map(([name, version]) => ({
         name,
@@ -377,7 +389,8 @@ async function analyzeRustDependencies(
 
     const all = [...direct]
     return { direct, all }
-  } catch (error) {
+  }
+  catch (error) {
     logger.warn('Failed to analyze Rust dependencies:', error)
     return { direct: [], all: [] }
   }
@@ -473,7 +486,7 @@ function generateInstallationCommands(packageManager?: string): InstallationComm
       installAll: 'pip install -r requirements.txt',
       installPackage: (name, version) => `pip install ${name}${version ? version.replace(/[*=]/, '==') : ''}`,
       installDev: 'pip install -r requirements-dev.txt',
-      add: (name) => `pip install ${name}`,
+      add: name => `pip install ${name}`,
     },
     poetry: {
       installAll: 'poetry install',
@@ -489,15 +502,15 @@ function generateInstallationCommands(packageManager?: string): InstallationComm
     },
     go: {
       installAll: 'go mod download',
-      installPackage: (name) => `go get ${name}`,
+      installPackage: name => `go get ${name}`,
       installDev: 'go mod download',
-      add: (name) => `go get ${name}`,
+      add: name => `go get ${name}`,
     },
     cargo: {
       installAll: 'cargo build',
       installPackage: (name, version) => `cargo add ${name}${version ? ` --vers ${version}` : ''}`,
       installDev: 'cargo build',
-      add: (name) => `cargo add ${name}`,
+      add: name => `cargo add ${name}`,
     },
   }
 
@@ -559,7 +572,8 @@ function detectCircularDependencies(
         if (dfs(neighbor.name)) {
           return true
         }
-      } else if (recStack.has(neighbor.name)) {
+      }
+      else if (recStack.has(neighbor.name)) {
         // Found a cycle
         const cycleStart = path.indexOf(neighbor.name)
         const cycle = path.slice(cycleStart).concat(neighbor.name)

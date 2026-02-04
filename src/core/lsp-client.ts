@@ -10,8 +10,6 @@ import type {
   LspCompletionItem,
   LspCompletionList,
   LspDiagnostic,
-  LspFeatureRequest,
-  LspFeatureResponse,
   LspHover,
   LspLocation,
   LspReferenceParams,
@@ -20,7 +18,6 @@ import type {
   LspTextDocumentPositionParams,
 } from '../types/lsp'
 import { spawn } from 'node:child_process'
-import { randomUUID } from 'node:crypto'
 import { EventEmitter } from 'node:events'
 import { dirname, join } from 'pathe'
 import { commandExists, isWindows } from '../utils/platform'

@@ -2,12 +2,12 @@
  * Tests for the project analysis engine
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import path from 'pathe'
 import fs from 'fs-extra'
+import path from 'pathe'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { analyzeProject, detectProjectType } from '../../src/analyzers/index.js'
 
-describe('Project Analysis Engine', () => {
+describe('project Analysis Engine', () => {
   const testFixturesDir = path.resolve('tests/analyzers/fixtures')
   let tempDir: string
 
@@ -22,7 +22,7 @@ describe('Project Analysis Engine', () => {
     await fs.remove(tempDir)
   })
 
-  describe('Project Type Detection', () => {
+  describe('project Type Detection', () => {
     it('should detect Next.js project', async () => {
       const fixturePath = path.join(testFixturesDir, 'nextjs')
       await fs.ensureDir(fixturePath)
@@ -133,7 +133,7 @@ func main() {
     })
   })
 
-  describe('Language Detection', () => {
+  describe('language Detection', () => {
     it('should detect TypeScript with high confidence', async () => {
       const fixturePath = path.join(tempDir, 'ts-project')
       await fs.ensureDir(fixturePath)
@@ -172,14 +172,14 @@ func main() {
     })
   })
 
-  describe('Framework Detection', () => {
+  describe('framework Detection', () => {
     it('should detect multiple frameworks', async () => {
       const fixturePath = path.join(tempDir, 'multi-framework')
       await fs.ensureDir(fixturePath)
       await fs.writeJson(path.join(fixturePath, 'package.json'), {
         dependencies: {
-          next: '14.1.0',
-          tailwindcss: '^3.3.0',
+          'next': '14.1.0',
+          'tailwindcss': '^3.3.0',
           '@tanstack/react-query': '^5.0.0',
         },
       })
@@ -218,7 +218,7 @@ func main() {
     })
   })
 
-  describe('Quick Detection', () => {
+  describe('quick Detection', () => {
     it('should quickly detect project type', async () => {
       const fixturePath = path.join(tempDir, 'quick-detect')
       await fs.ensureDir(fixturePath)
@@ -237,14 +237,14 @@ func main() {
     })
   })
 
-  describe('Confidence Calculation', () => {
+  describe('confidence Calculation', () => {
     it('should have high confidence for clear projects', async () => {
       const fixturePath = path.join(tempDir, 'clear-project')
       await fs.ensureDir(fixturePath)
       await fs.writeJson(path.join(fixturePath, 'package.json'), {
         dependencies: {
-          next: '14.1.0',
-          react: '^18.0.0',
+          'next': '14.1.0',
+          'react': '^18.0.0',
           'react-dom': '^18.0.0',
         },
       })
@@ -271,7 +271,7 @@ func main() {
     })
   })
 
-  describe('Edge Cases', () => {
+  describe('edge Cases', () => {
     it('should handle empty projects gracefully', async () => {
       const fixturePath = path.join(tempDir, 'empty-project')
       await fs.ensureDir(fixturePath)

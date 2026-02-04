@@ -1,0 +1,69 @@
+{
+  "templates": [
+    {
+      "id": "frontend-specialist",
+      "name": "Frontend Specialist",
+      "file": "frontend-specialist.md",
+      "category": "frontend",
+      "tags": ["react", "typescript", "ui", "frontend"],
+      "model": "sonnet",
+      "priority": 9,
+      "description": "Expert in React, TypeScript, and modern frontend development"
+    },
+    {
+      "id": "backend-specialist",
+      "name": "Backend Specialist",
+      "file": "backend-specialist.md",
+      "category": "backend",
+      "tags": ["nodejs", "api", "database", "backend"],
+      "model": "sonnet",
+      "priority": 9,
+      "description": "Expert in Node.js, APIs, databases, and backend architecture"
+    },
+    {
+      "id": "fullstack-developer",
+      "name": "Fullstack Developer",
+      "file": "fullstack-developer.md",
+      "category": "fullstack",
+      "tags": ["fullstack", "react", "nodejs", "typescript"],
+      "model": "sonnet",
+      "priority": 8,
+      "description": "Versatile developer handling both frontend and backend"
+    },
+    {
+      "id": "test-engineer",
+      "name": "Test Engineer",
+      "file": "test-engineer.md",
+      "category": "testing",
+      "tags": ["testing", "unit-tests", "integration-tests", "e2e", "vitest"],
+      "model": "sonnet",
+      "priority": 8,
+      "description": "Specialist in test design, automation, and quality assurance"
+    },
+    {
+      "id": "devops-engineer",
+      "name": "DevOps Engineer",
+      "file": "devops-engineer.md",
+      "category": "devops",
+      "tags": ["devops", "ci-cd", "docker", "kubernetes", "github-actions"],
+      "model": "sonnet",
+      "priority": 7,
+      "description": "Expert in CI/CD, deployment automation, and infrastructure"
+    },
+    {
+      "id": "security-specialist",
+      "name": "Security Specialist",
+      "file": "security-specialist.md",
+      "category": "security",
+      "tags": ["security", "owasp", "vulnerabilities", "secure-coding"],
+      "model": "opus",
+      "priority": 9,
+      "description": "Expert in security auditing, vulnerability detection, and secure coding"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2026-02-04",
+    "totalTemplates": 6
+  }
+}

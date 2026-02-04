@@ -13,9 +13,8 @@
 
 import type { ProcessTaskOptions } from './types'
 import { fork } from 'node:child_process'
-import { randomBytes } from 'node:crypto'
 import { EventEmitter } from 'node:events'
-import { existsSync, mkdirSync, rmdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, rmSync } from 'node:fs'
 import { cpus } from 'node:os'
 import { join } from 'node:path'
 import { nanoid } from 'nanoid'

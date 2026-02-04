@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config'
 import { resolve } from 'pathe'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
@@ -11,25 +11,25 @@ export default defineConfig({
     teardownTimeout: 10000,
     include: [
       'tests/integration/**/*.test.ts',
-      'tests/integration/**/*.integration.test.ts'
+      'tests/integration/**/*.integration.test.ts',
     ],
     exclude: [
       'node_modules/**',
       'dist/**',
       'coverage/**',
       '**/*.unit.test.ts',
-      '**/*.e2e.test.ts'
+      '**/*.e2e.test.ts',
     ],
     globals: true,
     setupFiles: [
-      './tests/setup/integration.setup.ts'
+      './tests/setup/integration.setup.ts',
     ],
     env: {
       NODE_ENV: 'test',
       DATABASE_URL: 'postgresql://ccjk_user:ccjk_password@localhost:5433/ccjk_test',
       REDIS_URL: 'redis://localhost:6379/15',
       ELASTICSEARCH_URL: 'http://localhost:9200',
-      LOG_LEVEL: 'error'
+      LOG_LEVEL: 'error',
     },
     coverage: {
       provider: 'v8',
@@ -41,31 +41,31 @@ export default defineConfig({
         'src/**/*.spec.ts',
         'src/**/*.d.ts',
         'src/types/**',
-        'tests/**'
+        'tests/**',
       ],
       thresholds: {
         lines: 70,
         functions: 70,
         branches: 70,
-        statements: 70
-      }
+        statements: 70,
+      },
     },
     pool: 'forks',
     poolOptions: {
       forks: {
-        singleFork: true
-      }
+        singleFork: true,
+      },
     },
     sequence: {
-      concurrent: false
+      concurrent: false,
     },
     isolate: true,
-    fileParallelism: false
+    fileParallelism: false,
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      '@tests': resolve(__dirname, 'tests')
-    }
-  }
+      '@tests': resolve(__dirname, 'tests'),
+    },
+  },
 })

@@ -1,0 +1,132 @@
+{
+  "templates": [
+    {
+      "id": "git-commit",
+      "name": "Git Commit",
+      "category": "git",
+      "priority": 1,
+      "file": "git-workflow.md",
+      "tags": ["git", "commit", "version-control"]
+    },
+    {
+      "id": "code-review",
+      "name": "Code Review",
+      "category": "code-quality",
+      "priority": 1,
+      "file": "code-review.hbs",
+      "tags": ["review", "quality", "best-practices"]
+    },
+    {
+      "id": "refactor-code",
+      "name": "Refactor Code",
+      "category": "code-quality",
+      "priority": 2,
+      "file": "code-refactor.hbs",
+      "tags": ["refactor", "clean-code", "patterns"]
+    },
+    {
+      "id": "generate-tests",
+      "name": "Generate Tests",
+      "category": "testing",
+      "priority": 1,
+      "file": "testing-best-practices.md",
+      "tags": ["testing", "unit-tests", "integration-tests"]
+    },
+    {
+      "id": "type-fix",
+      "name": "TypeScript Type Fix",
+      "category": "typescript",
+      "priority": 1,
+      "file": "type-fix.hbs",
+      "tags": ["typescript", "types", "fix"]
+    },
+    {
+      "id": "react-patterns",
+      "name": "React Patterns",
+      "category": "frontend",
+      "priority": 1,
+      "file": "react-patterns.md",
+      "tags": ["react", "patterns", "hooks"]
+    },
+    {
+      "id": "nextjs-optimization",
+      "name": "Next.js Optimization",
+      "category": "frontend",
+      "priority": 2,
+      "file": "nextjs-optimization.md",
+      "tags": ["nextjs", "performance", "ssr"]
+    },
+    {
+      "id": "ts-best-practices",
+      "name": "TypeScript Best Practices",
+      "category": "typescript",
+      "priority": 2,
+      "file": "ts-best-practices.md",
+      "tags": ["typescript", "best-practices", "patterns"]
+    },
+    {
+      "id": "python-pep8",
+      "name": "Python PEP8",
+      "category": "python",
+      "priority": 1,
+      "file": "python-pep8.md",
+      "tags": ["python", "pep8", "style"]
+    },
+    {
+      "id": "django-patterns",
+      "name": "Django Patterns",
+      "category": "python",
+      "priority": 2,
+      "file": "django-patterns.md",
+      "tags": ["django", "python", "patterns"]
+    },
+    {
+      "id": "go-idioms",
+      "name": "Go Idioms",
+      "category": "go",
+      "priority": 1,
+      "file": "go-idioms.md",
+      "tags": ["go", "golang", "idioms"]
+    },
+    {
+      "id": "rust-patterns",
+      "name": "Rust Patterns",
+      "category": "rust",
+      "priority": 1,
+      "file": "rust-patterns.md",
+      "tags": ["rust", "patterns", "ownership"]
+    },
+    {
+      "id": "security-best-practices",
+      "name": "Security Best Practices",
+      "category": "security",
+      "priority": 1,
+      "file": "security-best-practices.md",
+      "tags": ["security", "owasp", "best-practices"]
+    },
+    {
+      "id": "ccjk-init",
+      "name": "CCJK Init",
+      "category": "ccjk",
+      "priority": 1,
+      "file": "ccjk-init.md",
+      "tags": ["ccjk", "init", "setup"]
+    },
+    {
+      "id": "ccjk-mcp-setup",
+      "name": "CCJK MCP Setup",
+      "category": "ccjk",
+      "priority": 2,
+      "file": "ccjk-mcp-setup.md",
+      "tags": ["ccjk", "mcp", "setup"]
+    },
+    {
+      "id": "ccjk-troubleshoot",
+      "name": "CCJK Troubleshoot",
+      "category": "ccjk",
+      "priority": 3,
+      "file": "ccjk-troubleshoot.md",
+      "tags": ["ccjk", "troubleshoot", "debug"]
+    }
+  ]
+}

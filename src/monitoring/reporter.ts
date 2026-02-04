@@ -5,6 +5,7 @@
  * and actionable recommendations.
  */
 
+import type { MetricsCollector } from './metrics-collector'
 import type {
   AgentStats,
   AnomalyDetection,
@@ -18,7 +19,7 @@ import type {
   ReportTimeRange,
   TrendAnalysis,
 } from './types'
-import { getMetricsCollector, MetricsCollector } from './metrics-collector'
+import { getMetricsCollector } from './metrics-collector'
 
 // ============================================================================
 // Default Configuration
@@ -43,7 +44,7 @@ const DEFAULT_REPORT_CONFIG: ReportConfig = {
 /**
  * Get time range boundaries
  */
-function getTimeRangeBoundaries(range: ReportTimeRange, custom?: { start?: number; end?: number }): { start: number; end: number } {
+function getTimeRangeBoundaries(range: ReportTimeRange, custom?: { start?: number, end?: number }): { start: number, end: number } {
   const now = Date.now()
   const end = custom?.end || now
 
@@ -114,14 +115,18 @@ function analyzeTrend(
 
   // Determine direction
   let direction: 'up' | 'down' | 'stable' = 'stable'
-  if (changePercent > 5) direction = 'up'
-  else if (changePercent < -5) direction = 'down'
+  if (changePercent > 5)
+    direction = 'up'
+  else if (changePercent < -5)
+    direction = 'down'
 
   // Determine significance
   let significance: 'low' | 'medium' | 'high' = 'low'
   const absChange = Math.abs(changePercent)
-  if (absChange > 50) significance = 'high'
-  else if (absChange > 20) significance = 'medium'
+  if (absChange > 50)
+    significance = 'high'
+  else if (absChange > 20)
+    significance = 'medium'
 
   // Simple linear prediction
   const slope = (secondAvg - firstAvg) / midpoint
@@ -144,10 +149,11 @@ function analyzeTrend(
  * Detect anomalies using statistical methods
  */
 function detectAnomalies(
-  values: { timestamp: number; value: number }[],
+  values: { timestamp: number, value: number }[],
   metricName: string,
 ): AnomalyDetection[] {
-  if (values.length < 10) return []
+  if (values.length < 10)
+    return []
 
   const anomalies: AnomalyDetection[] = []
   const numericValues = values.map(v => v.value)
@@ -165,9 +171,12 @@ function detectAnomalies(
 
     if (zScore > 2) {
       let severity: 'low' | 'medium' | 'high' | 'critical' = 'low'
-      if (zScore > 4) severity = 'critical'
-      else if (zScore > 3) severity = 'high'
-      else if (zScore > 2.5) severity = 'medium'
+      if (zScore > 4)
+        severity = 'critical'
+      else if (zScore > 3)
+        severity = 'high'
+      else if (zScore > 2.5)
+        severity = 'medium'
 
       anomalies.push({
         metric: metricName,
@@ -601,7 +610,8 @@ export class PerformanceReporter {
       </div>
     </div>
 
-    ${report.commands.length > 0 ? `
+    ${report.commands.length > 0
+      ? `
     <h2>Command Statistics</h2>
     <div class="card">
       <table>
@@ -615,9 +625,11 @@ export class PerformanceReporter {
           <td>${c.p95Duration.toFixed(0)}ms</td>
         </tr>`).join('')}
       </table>
-    </div>` : ''}
+    </div>`
+      : ''}
 
-    ${report.api.length > 0 ? `
+    ${report.api.length > 0
+      ? `
     <h2>API Performance</h2>
     <div class="card">
       <table>
@@ -632,9 +644,11 @@ export class PerformanceReporter {
           <td>${a.totalTokens}</td>
         </tr>`).join('')}
       </table>
-    </div>` : ''}
+    </div>`
+      : ''}
 
-    ${report.trends.length > 0 ? `
+    ${report.trends.length > 0
+      ? `
     <h2>Trends</h2>
     <div class="card">
       <table>
@@ -647,16 +661,19 @@ export class PerformanceReporter {
           <td>${t.significance}</td>
         </tr>`).join('')}
       </table>
-    </div>` : ''}
+    </div>`
+      : ''}
 
-    ${report.anomalies.length > 0 ? `
+    ${report.anomalies.length > 0
+      ? `
     <h2>Anomalies Detected</h2>
     <div class="card">
       ${report.anomalies.map(a => `
       <div class="recommendation">
         <span class="severity-${a.severity}">[${a.severity.toUpperCase()}]</span> ${a.description}
       </div>`).join('')}
-    </div>` : ''}
+    </div>`
+      : ''}
 
     <h2>Recommendations</h2>
     <div class="card">

@@ -100,7 +100,7 @@ export function generateDiff(
 function computeLCS(oldLines: string[], newLines: string[]): number[][] {
   const m = oldLines.length
   const n = newLines.length
-  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0))
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0))
 
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
@@ -330,10 +330,10 @@ export function previewEdit(
   originalContent: string,
   edit: EditOperation,
 ): {
-    preview: string
-    diff: DiffResult
-    newContent: string
-  } {
+  preview: string
+  diff: DiffResult
+  newContent: string
+} {
   const lines = originalContent.split('\n')
   let newLines: string[]
 
@@ -384,10 +384,10 @@ export function previewEdits(
   originalContent: string,
   edits: EditOperation[],
 ): {
-    preview: string
-    diff: DiffResult
-    newContent: string
-  } {
+  preview: string
+  diff: DiffResult
+  newContent: string
+} {
   // Sort edits by line number (descending) to apply from bottom to top
   const sortedEdits = [...edits].sort((a, b) => b.startLine - a.startLine)
 
@@ -531,11 +531,11 @@ export function getLineChanges(
   oldContent: string,
   newContent: string,
 ): Array<{
-    lineNumber: number
-    type: 'add' | 'remove' | 'modify'
-    oldLine?: string
-    newLine?: string
-  }> {
+  lineNumber: number
+  type: 'add' | 'remove' | 'modify'
+  oldLine?: string
+  newLine?: string
+}> {
   const diff = generateDiff(oldContent, newContent)
   const changes: Array<{
     lineNumber: number

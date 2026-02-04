@@ -12,13 +12,15 @@
  *   ccjk add ./my-local-skill
  */
 
+import type { SourceInfo } from './source-parser'
+import type { PluginType } from './type-detector'
 import ansis from 'ansis'
 import ora from 'ora'
-import { parseSource, type SourceInfo } from './source-parser'
 import { installFromGitHub } from './github-installer'
-import { installFromNpm } from './npm-installer'
 import { installFromLocal } from './local-installer'
-import { detectPluginType, type PluginType } from './type-detector'
+import { installFromNpm } from './npm-installer'
+import { parseSource } from './source-parser'
+import { detectPluginType } from './type-detector'
 
 export interface AddCommandOptions {
   type?: PluginType
@@ -249,7 +251,7 @@ function getI18n(lang: 'zh-CN' | 'en') {
       dryRunNote: '这是预览模式，未实际安装。移除 --dry-run 执行安装。',
       andMore: (n: number) => `还有 ${n} 个文件`,
     },
-    en: {
+    'en': {
       parsing: 'Parsing source...',
       parsed: (type: string) => `Source type: ${type}`,
       parseFailed: 'Failed to parse source',

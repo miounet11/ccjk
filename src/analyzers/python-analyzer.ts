@@ -3,11 +3,11 @@
  * Detects frameworks like Django, FastAPI, Flask, etc.
  */
 
+import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
+import consola from 'consola'
 import fs from 'fs-extra'
 import path from 'pathe'
-import consola from 'consola'
 import { parse } from 'smol-toml'
-import type { LanguageDetection, FrameworkDetectionResult } from './types.js'
 
 const logger = consola.withTag('python-analyzer')
 
@@ -227,13 +227,14 @@ async function analyzeDependencies(
         const trimmed = line.trim()
         if (trimmed && !trimmed.startsWith('#')) {
           // Parse requirement
-          const match = trimmed.match(/^([a-zA-Z0-9_-]+)([\[~\=\>\<]+.*)?$/)
+          const match = trimmed.match(/^([\w-]+)([[~=><].*)?$/)
           if (match) {
             dependencies[match[1]] = match[2] || 'latest'
           }
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       logger.warn('Failed to parse requirements.txt:', error)
     }
   }
@@ -246,22 +247,38 @@ async function analyzeDependencies(
       const parsed = parse(content)
 
       // Poetry dependencies
-      if (parsed.tool?.poetry?.dependencies) {
-        Object.assign(dependencies, parsed.tool.poetry.dependencies)
-      }
-
-      // Project dependencies
-      if (parsed.project?.dependencies) {
-        for (const dep of parsed.project.dependencies) {
-          if (typeof dep === 'string') {
-            const match = dep.match(/^([a-zA-Z0-9_-]+)([\[~\=\>\<]+.*)?$/)
-            if (match) {
-              dependencies[match[1]] = match[2] || 'latest'
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && 'tool' in parsed) {
+        const tool = parsed.tool
+        if (typeof tool === 'object' && tool !== null && !Array.isArray(tool) && 'poetry' in tool) {
+          const poetry = tool.poetry
+          if (typeof poetry === 'object' && poetry !== null && !Array.isArray(poetry) && 'dependencies' in poetry) {
+            const poetryDeps = poetry.dependencies
+            if (typeof poetryDeps === 'object' && poetryDeps !== null && !Array.isArray(poetryDeps)) {
+              Object.assign(dependencies, poetryDeps)
             }
           }
         }
       }
-    } catch (error) {
+
+      // Project dependencies
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && 'project' in parsed) {
+        const project = parsed.project
+        if (typeof project === 'object' && project !== null && !Array.isArray(project) && 'dependencies' in project) {
+          const projectDeps = project.dependencies
+          if (Array.isArray(projectDeps)) {
+            for (const dep of projectDeps) {
+              if (typeof dep === 'string') {
+                const match = dep.match(/^([\w-]+)([[~=><].*)?$/)
+                if (match) {
+                  dependencies[match[1]] = match[2] || 'latest'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    catch (error) {
       logger.warn('Failed to parse pyproject.toml:', error)
     }
   }
@@ -288,13 +305,14 @@ async function analyzeDependencies(
         }
 
         if (inPackages && trimmed && !trimmed.startsWith('#')) {
-          const match = trimmed.match(/^([a-zA-Z0-9_-]+)\s*=\s*"?([^"]*)"?/)
+          const match = trimmed.match(/^([\w-]+)\s*=\s*"?([^"]*)"?/)
           if (match) {
             dependencies[match[1]] = match[2] || 'latest'
           }
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       logger.warn('Failed to parse Pipfile:', error)
     }
   }
@@ -309,7 +327,7 @@ async function analyzeDependencies(
       const installRequiresMatch = content.match(/install_requires\s*=\s*\[([\s\S]*?)\]/)
       if (installRequiresMatch) {
         const requiresList = installRequiresMatch[1]
-        const requires = requiresList.match(/['"`]([a-zA-Z0-9_-]+)/g)
+        const requires = requiresList.match(/['"`]([\w-]+)/g)
 
         if (requires) {
           for (const req of requires) {
@@ -318,7 +336,8 @@ async function analyzeDependencies(
           }
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       logger.warn('Failed to parse setup.py:', error)
     }
   }
@@ -330,17 +349,21 @@ async function analyzeDependencies(
       const content = await fs.readFile(envPath, 'utf-8')
       const parsed = parse(content)
 
-      if (parsed.dependencies) {
-        for (const dep of parsed.dependencies) {
-          if (typeof dep === 'string') {
-            const match = dep.match(/^([a-zA-Z0-9_-]+)([\[~\=\>\<]+.*)?$/)
-            if (match) {
-              dependencies[match[1]] = match[2] || 'latest'
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && 'dependencies' in parsed) {
+        const deps = parsed.dependencies
+        if (Array.isArray(deps)) {
+          for (const dep of deps) {
+            if (typeof dep === 'string') {
+              const match = dep.match(/^([\w-]+)([[~=><].*)?$/)
+              if (match) {
+                dependencies[match[1]] = match[2] || 'latest'
+              }
             }
           }
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       logger.warn('Failed to parse environment.yml:', error)
     }
   }
@@ -354,8 +377,16 @@ async function analyzeDependencies(
 function getFrameworkCategory(framework: string): string {
   const categories = {
     web: [
-      'django', 'fastapi', 'flask', 'tornado', 'sanic', 'quart',
-      'falcon', 'bottle', 'pyramid', 'starlette',
+      'django',
+      'fastapi',
+      'flask',
+      'tornado',
+      'sanic',
+      'quart',
+      'falcon',
+      'bottle',
+      'pyramid',
+      'starlette',
     ],
     async: ['celery'],
     data: ['pandas', 'numpy', 'scikit-learn', 'tensorflow', 'pytorch'],
@@ -395,7 +426,8 @@ async function detectAdditionalPatterns(
         confidence: 0.9,
         evidence: ['Found .python-version'],
       })
-    } catch (error) {
+    }
+    catch (error) {
       logger.warn('Failed to read .python-version:', error)
     }
   }

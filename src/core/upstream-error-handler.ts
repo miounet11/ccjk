@@ -7,8 +7,7 @@
  * @module core/upstream-error-handler
  */
 
-import type { HookContext } from './hook-skill-bridge'
-import { getHookSkillBridge, triggerHooks } from './hook-skill-bridge'
+import { triggerHooks } from './hook-skill-bridge'
 import { getLifecycleManager } from './lifecycle-hooks'
 
 // ============================================================================
@@ -18,15 +17,15 @@ import { getLifecycleManager } from './lifecycle-hooks'
 /**
  * Upstream error types that can trigger recovery actions
  */
-export type UpstreamErrorType =
-  | 'context_overflow'      // Context/token limit exceeded
-  | 'rate_limit'            // Rate limit hit
-  | 'overloaded'            // Server overloaded
-  | 'timeout'               // Request timeout
-  | 'authentication'        // Auth error
-  | 'invalid_request'       // Bad request
-  | 'server_error'          // 5xx errors
-  | 'unknown'               // Unknown error
+export type UpstreamErrorType
+  = | 'context_overflow' // Context/token limit exceeded
+    | 'rate_limit' // Rate limit hit
+    | 'overloaded' // Server overloaded
+    | 'timeout' // Request timeout
+    | 'authentication' // Auth error
+    | 'invalid_request' // Bad request
+    | 'server_error' // 5xx errors
+    | 'unknown' // Unknown error
 
 /**
  * Parsed upstream error
@@ -387,8 +386,10 @@ export class UpstreamErrorHandler {
    * Extract error message from various error types
    */
   private extractMessage(error: unknown): string {
-    if (typeof error === 'string') return error
-    if (error instanceof Error) return error.message
+    if (typeof error === 'string')
+      return error
+    if (error instanceof Error)
+      return error.message
     if (error && typeof error === 'object') {
       const obj = error as Record<string, unknown>
       return String(obj.message || obj.error || obj.detail || JSON.stringify(error))
@@ -403,7 +404,8 @@ export class UpstreamErrorHandler {
     if (error && typeof error === 'object') {
       const obj = error as Record<string, unknown>
       const status = obj.status || obj.statusCode || obj.code
-      if (typeof status === 'number') return status
+      if (typeof status === 'number')
+        return status
     }
     return undefined
   }
@@ -414,8 +416,10 @@ export class UpstreamErrorHandler {
   private extractErrorCode(error: unknown): string | undefined {
     if (error && typeof error === 'object') {
       const obj = error as Record<string, unknown>
-      if (typeof obj.code === 'string') return obj.code
-      if (typeof obj.error_code === 'string') return obj.error_code
+      if (typeof obj.code === 'string')
+        return obj.code
+      if (typeof obj.error_code === 'string')
+        return obj.error_code
     }
     return undefined
   }
@@ -427,8 +431,10 @@ export class UpstreamErrorHandler {
     if (error && typeof error === 'object') {
       const obj = error as Record<string, unknown>
       const retryAfter = obj.retryAfter || obj.retry_after
-      if (typeof retryAfter === 'number') return retryAfter
-      if (typeof retryAfter === 'string') return Number.parseInt(retryAfter, 10)
+      if (typeof retryAfter === 'number')
+        return retryAfter
+      if (typeof retryAfter === 'string')
+        return Number.parseInt(retryAfter, 10)
     }
     return undefined
   }
@@ -439,7 +445,8 @@ export class UpstreamErrorHandler {
   private extractProvider(error: unknown): string | undefined {
     if (error && typeof error === 'object') {
       const obj = error as Record<string, unknown>
-      if (typeof obj.provider === 'string') return obj.provider
+      if (typeof obj.provider === 'string')
+        return obj.provider
     }
     return undefined
   }

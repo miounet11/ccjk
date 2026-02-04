@@ -2,12 +2,12 @@
  * Tests for multi-agent orchestration system
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { MultiAgentOrchestrator } from '../../src/agents/multi-agent-orchestrator'
+import type { Task } from '../../src/types/agent'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { AgentCapabilityMap } from '../../src/agents/capability-map'
-import type { Task, OrchestrationOptions } from '../../src/types/agent'
+import { MultiAgentOrchestrator } from '../../src/agents/multi-agent-orchestrator'
 
-describe('MultiAgentOrchestrator', () => {
+describe('multiAgentOrchestrator', () => {
   let orchestrator: MultiAgentOrchestrator
   let capabilityMap: AgentCapabilityMap
 
@@ -337,7 +337,7 @@ describe('MultiAgentOrchestrator', () => {
     })
   })
 
-  describe('AgentCapabilityMap', () => {
+  describe('agentCapabilityMap', () => {
     it('should have 5 predefined agents', () => {
       const agents = capabilityMap.getAllAgents()
 
@@ -388,7 +388,7 @@ describe('MultiAgentOrchestrator', () => {
     })
   })
 
-  describe('Edge Cases', () => {
+  describe('edge Cases', () => {
     it('should handle empty task list', () => {
       const result = orchestrator.orchestrate([])
 

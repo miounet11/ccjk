@@ -16,7 +16,6 @@ import type { ApiConfigOptions } from './types'
 
 import ansis from 'ansis'
 import { getApiProvidersAsync } from '../../config/api-providers'
-import { config } from '../../config/unified'
 import { getApiConfig as getClaudeApiConfig, setApiConfig as setClaudeApiConfig } from '../../config/unified/claude-config'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'

@@ -7,12 +7,12 @@
  * @module brain/messaging/persistent-mailbox
  */
 
-import type { AgentRole } from '../types'
+import type { GitBackedStateManager } from '../persistence/git-backed-state'
 import { EventEmitter } from 'node:events'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'pathe'
 import { nanoid } from 'nanoid'
-import { getGlobalStateManager, type GitBackedStateManager } from '../persistence/git-backed-state'
+import { join } from 'pathe'
+import { getGlobalStateManager } from '../persistence/git-backed-state'
 
 /**
  * Message structure
@@ -140,7 +140,8 @@ export class PersistentMailboxManager extends EventEmitter {
    * Initialize mailbox manager
    */
   async initialize(): Promise<void> {
-    if (this.initialized) return
+    if (this.initialized)
+      return
 
     await this.stateManager.initialize()
 
@@ -537,10 +538,12 @@ export class PersistentMailboxManager extends EventEmitter {
 
   private async loadMailbox(agentId: string): Promise<void> {
     const agentPath = this.stateManager.getAgentPath(agentId)
-    if (!agentPath) return
+    if (!agentPath)
+      return
 
     const mailboxFile = join(agentPath, 'mailbox.json')
-    if (!existsSync(mailboxFile)) return
+    if (!existsSync(mailboxFile))
+      return
 
     try {
       const data = JSON.parse(readFileSync(mailboxFile, 'utf-8'))
@@ -559,13 +562,15 @@ export class PersistentMailboxManager extends EventEmitter {
 
   private async persistMailbox(agentId: string): Promise<void> {
     const mailbox = this.mailboxes.get(agentId)
-    if (!mailbox) return
+    if (!mailbox)
+      return
 
     // Ensure agent worktree exists
     await this.stateManager.createAgentWorktree(agentId)
 
     const agentPath = this.stateManager.getAgentPath(agentId)
-    if (!agentPath) return
+    if (!agentPath)
+      return
 
     const mailboxFile = join(agentPath, 'mailbox.json')
     writeFileSync(mailboxFile, JSON.stringify(mailbox, null, 2))

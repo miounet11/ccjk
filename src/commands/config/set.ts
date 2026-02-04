@@ -17,7 +17,7 @@ import type { SetConfigOptions } from './types'
 
 import ansis from 'ansis'
 import { config } from '../../config/unified'
-import { CCJK_CONFIG_FILE, SETTINGS_FILE, STATE_FILE } from '../../constants'
+import { CCJK_CONFIG_FILE, STATE_FILE } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
 
 /**

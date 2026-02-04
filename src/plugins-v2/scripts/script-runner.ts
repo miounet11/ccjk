@@ -257,7 +257,12 @@ export class ScriptRunner {
       try {
         const result = await this.spawn('bash', args, {
           cwd: options.cwd,
-          env: { ...process.env, ...options.env },
+          env: {
+            ...Object.fromEntries(
+              Object.entries(process.env).filter(([, v]) => v !== undefined)
+            ) as Record<string, string>,
+            ...options.env,
+          },
           timeout,
           stdin: options.stdin,
           captureOutput: options.captureOutput ?? true,
@@ -291,7 +296,12 @@ export class ScriptRunner {
 
       const result = await this.spawn(interpreter[0], args, {
         cwd: options.cwd,
-        env: { ...process.env, ...options.env },
+        env: {
+          ...Object.fromEntries(
+            Object.entries(process.env).filter(([, v]) => v !== undefined)
+          ) as Record<string, string>,
+          ...options.env,
+        },
         timeout,
         stdin: options.stdin,
         captureOutput: options.captureOutput ?? true,
@@ -350,7 +360,7 @@ export class ScriptRunner {
    * Kill all running scripts
    */
   killAll(): void {
-    for (const [id, process] of this.runningProcesses) {
+    for (const [id, process] of Array.from(this.runningProcesses.entries())) {
       process.kill()
       this.runningProcesses.delete(id)
     }

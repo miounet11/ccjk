@@ -10,9 +10,9 @@
  * - 支持配置切换和管理
  */
 
+import type { ApiStatus } from '../types.js'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
-import type { ApiStatus } from '../types.js'
 
 /**
  * 检测 API 配置状态
@@ -53,7 +53,8 @@ export async function detectApiStatus(): Promise<ApiStatus> {
           provider: 'Anthropic',
         }
       }
-    } catch {
+    }
+    catch {
       // 忽略解析错误
     }
   }
@@ -73,7 +74,8 @@ export async function detectApiStatus(): Promise<ApiStatus> {
           baseUrl: config.apiBaseUrl,
         }
       }
-    } catch {
+    }
+    catch {
       // 忽略解析错误
     }
   }
@@ -301,7 +303,8 @@ export async function quickApiSetup(locale: string = 'zh-CN'): Promise<boolean> 
           },
         ])
         credentials[field.name] = value
-      } else if (field.type === 'select' && field.options) {
+      }
+      else if (field.type === 'select' && field.options) {
         const { value } = await inquirer.prompt<{ value: string }>([
           {
             type: 'list',
@@ -315,7 +318,8 @@ export async function quickApiSetup(locale: string = 'zh-CN'): Promise<boolean> 
           },
         ])
         credentials[field.name] = value
-      } else {
+      }
+      else {
         const { value } = await inquirer.prompt<{ value: string }>([
           {
             type: 'input',
@@ -348,7 +352,8 @@ export async function quickApiSetup(locale: string = 'zh-CN'): Promise<boolean> 
       console.log(ansis.dim(isZh ? `模型: ${setup.model}` : `Model: ${setup.model}`))
 
       return true
-    } else {
+    }
+    else {
       console.log(ansis.red(`✗ ${testResult.message}`))
       if (testResult.suggestions) {
         console.log(ansis.yellow(isZh ? '建议:' : 'Suggestions:'))
@@ -356,7 +361,8 @@ export async function quickApiSetup(locale: string = 'zh-CN'): Promise<boolean> 
       }
       return false
     }
-  } catch (error) {
+  }
+  catch (error) {
     const ansis = (await import('ansis')).default
     console.log(ansis.red(isZh ? '配置失败' : 'Configuration failed'))
     console.log(ansis.dim(String(error)))

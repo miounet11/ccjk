@@ -5,9 +5,9 @@
 
 import type {
   Dependency,
-  ResolvedDependency,
   DependencyResolverFn,
   IDependencyResolver,
+  ResolvedDependency,
 } from './types'
 
 // Re-export for backwards compatibility
@@ -116,45 +116,54 @@ export class DependencyResolver implements IDependencyResolver {
     // 获取解析器
     const resolver = this.resolvers.get(dep.type)
     if (!resolver) {
-      const result: ResolvedDependency = {
-        ...dep,
-        resolved: false,
-        error: new Error(`No resolver registered for dependency type: ${dep.type}`),
-      }
-
-      if (!dep.optional) {
-        throw result.error
-      }
-
-      return result
-    }
-
-    try {
-      // 带超时的解析
-      const resolved = await this.withTimeout(
-        resolver(dep),
-        this.options.timeout,
-        `Dependency resolution timeout: ${dep.type}:${dep.name}`
-      )
-
-      // 缓存结果
-      if (this.options.cache && resolved.resolved) {
-        this.cache.set(cacheKey, resolved)
-      }
-
-      return resolved
-    } catch (error) {
-      const result: ResolvedDependency = {
-        ...dep,
-        resolved: false,
-        error: error as Error,
-      }
+      const error = new Error(`No resolver registered for dependency type: ${dep.type}`)
 
       if (!dep.optional) {
         throw error
       }
 
-      return result
+      // Return a resolved dependency with null instance for optional missing resolvers
+      return {
+        dependency: dep,
+        instance: null,
+        resolvedAt: new Date(),
+        metadata: { error: error.message },
+      }
+    }
+
+    try {
+      // 带超时的解析
+      const instance = await this.withTimeout(
+        Promise.resolve(resolver(dep)),
+        this.options.timeout,
+        `Dependency resolution timeout: ${dep.type}:${dep.name}`,
+      )
+
+      const resolved: ResolvedDependency = {
+        dependency: dep,
+        instance,
+        resolvedAt: new Date(),
+      }
+
+      // 缓存结果
+      if (this.options.cache) {
+        this.cache.set(cacheKey, resolved)
+      }
+
+      return resolved
+    }
+    catch (error) {
+      if (!dep.optional) {
+        throw error
+      }
+
+      // Return a resolved dependency with null instance for optional failed resolutions
+      return {
+        dependency: dep,
+        instance: null,
+        resolvedAt: new Date(),
+        metadata: { error: (error as Error).message },
+      }
     }
   }
 
@@ -171,7 +180,7 @@ export class DependencyResolver implements IDependencyResolver {
   private async withTimeout<T>(
     promise: Promise<T>,
     timeout: number,
-    message: string
+    message: string,
   ): Promise<T> {
     let timeoutId: NodeJS.Timeout
 
@@ -183,7 +192,8 @@ export class DependencyResolver implements IDependencyResolver {
       const result = await Promise.race([promise, timeoutPromise])
       clearTimeout(timeoutId!)
       return result
-    } catch (error) {
+    }
+    catch (error) {
       clearTimeout(timeoutId!)
       throw error
     }
@@ -195,86 +205,41 @@ export class DependencyResolver implements IDependencyResolver {
   private registerDefaultResolvers(): void {
     // Skill 解析器
     this.registerResolver('skill', async (dep) => {
-      try {
-        // 动态导入 skill
-        const skillModule = await import(`../skills/${dep.name}`)
-        return {
-          ...dep,
-          resolved: true,
-          instance: skillModule.default || skillModule,
-        }
-      } catch (error) {
-        return {
-          ...dep,
-          resolved: false,
-          error: error as Error,
-        }
-      }
+      // 动态导入 skill
+      const skillModule = await import(`../skills/${dep.name}`)
+      return skillModule.default || skillModule
     })
 
     // Agent 解析器
     this.registerResolver('agent', async (dep) => {
-      try {
-        const agentModule = await import(`../agents/${dep.name}`)
-        return {
-          ...dep,
-          resolved: true,
-          instance: agentModule.default || agentModule,
-        }
-      } catch (error) {
-        return {
-          ...dep,
-          resolved: false,
-          error: error as Error,
-        }
-      }
+      const agentModule = await import(`../agents/${dep.name}`)
+      return agentModule.default || agentModule
     })
 
     // Hook 解析器
     this.registerResolver('hook', async (dep) => {
-      try {
-        const hookModule = await import(`../hooks/${dep.name}`)
-        return {
-          ...dep,
-          resolved: true,
-          instance: hookModule.default || hookModule,
-        }
-      } catch (error) {
-        return {
-          ...dep,
-          resolved: false,
-          error: error as Error,
-        }
-      }
+      const hookModule = await import(`../hooks/${dep.name}`)
+      return hookModule.default || hookModule
     })
 
     // MCP 解析器
     this.registerResolver('mcp', async (dep) => {
-      try {
-        // MCP 服务通过配置加载
-        const mcpConfig = await import('../config/mcp.json')
-        const service = mcpConfig.mcpServers?.[dep.name]
+      // MCP 服务通过配置加载
+      const mcpServicesModule = await import('../config/mcp-services.js')
+      const mcpServices = await mcpServicesModule.getMcpServices()
 
-        if (!service) {
-          return {
-            ...dep,
-            resolved: false,
-            error: new Error(`MCP service not found: ${dep.name}`),
-          }
-        }
-
-        return {
-          ...dep,
-          resolved: true,
-          instance: service,
-        }
-      } catch (error) {
-        return {
-          ...dep,
-          resolved: false,
-          error: error as Error,
-        }
+      if (!mcpServices) {
+        throw new Error('MCP services configuration not found')
       }
+
+      // Find the service by name
+      const service = mcpServices.find((s: any) => s.name === dep.name || s.id === dep.name)
+
+      if (!service) {
+        throw new Error(`MCP service not found: ${dep.name}`)
+      }
+
+      return service
     })
   }
 }

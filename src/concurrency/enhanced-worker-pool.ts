@@ -17,7 +17,6 @@ import { EventEmitter } from 'node:events'
 import { cpus } from 'node:os'
 import { join } from 'node:path'
 import { Worker } from 'node:worker_threads'
-import { nanoid } from 'nanoid'
 
 // Default to current directory for __dirname in ESM
 const __dirname = '.'

@@ -88,7 +88,7 @@ export abstract class BasePluginAdapter implements PluginSourceAdapter {
     }
 
     // Validate version format (semver-like)
-    const versionRegex = /^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?$/
+    const versionRegex = /^\d+\.\d+\.\d+(-[a-z0-9.]+)?(\+[a-z0-9.]+)?$/i
     if (!versionRegex.test(plugin.version)) {
       return false
     }

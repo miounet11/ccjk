@@ -27,65 +27,87 @@
  * ```
  */
 
-// Main Sync Engine
+// CRDT
 export {
-  SyncEngineV2,
-  createSyncEngineV2,
-  createSyncEngineV2WithConfig,
-  InMemoryStorage,
-} from './sync-engine'
-
-export type {
-  StorageAdapter,
-  RemoteStorageAdapter,
-  SyncEventsV2,
-} from './sync-engine'
+  createGCounter,
+  createLWWRegister,
+  createORSet,
+  createORSetWithValues,
+  createPNCounter,
+  GCounter,
+  LWWRegister,
+  mergeGCounterStates,
+  mergeLWWStates,
+  ORSet,
+  PNCounter,
+} from './crdt'
 
 // Encryption
 export {
-  EncryptionManager,
   createEncryptionManager,
-  encrypt,
   decrypt,
-  encryptToEnvelope,
   decryptFromEnvelope,
-  encryptWithKey,
   decryptWithKey,
-  generateKey,
-  generateSalt,
-  generateIV,
-  generateKeyId,
   deriveKey,
-  generateKeyPair,
   deriveSharedSecret,
+  encrypt,
+  EncryptionManager,
+  encryptToEnvelope,
+  encryptWithKey,
   generateCommitment,
-  verifyCommitment,
+  generateIV,
+  generateKey,
+  generateKeyId,
+  generateKeyPair,
   generateProofOfKnowledge,
-  hashData,
+  generateSalt,
   generateSecureToken,
+  hashData,
+  verifyCommitment,
 } from './encryption'
 
-export type {
-  EncryptionAlgorithm,
-  EncryptionConfig,
-  EncryptedEnvelope,
-  KDFType,
-  KeyPair,
-} from './types'
+// Offline Queue
+export {
+  createCRDTConflictResolver,
+  createLWWConflictResolver,
+  createOfflineQueue,
+  OfflineQueue,
+} from './offline-queue'
 
 // Stream Transfer
 export {
-  StreamTransferEngine,
-  createStreamTransferEngine,
-  TransferStateManager,
-  createTransferStateManager,
-  chunkData,
   calculateChunkMetadata,
-  verifyChunk,
+  calculateContentHash,
+  chunkData,
   createBandwidthLimiter,
   createProgressTracker,
-  calculateContentHash,
+  createStreamTransferEngine,
+  createTransferStateManager,
+  StreamTransferEngine,
+  TransferStateManager,
+  verifyChunk,
 } from './stream-transfer'
+
+// Main Sync Engine
+export {
+  createSyncEngineV2,
+  createSyncEngineV2WithConfig,
+  InMemoryStorage,
+  SyncEngineV2,
+} from './sync-engine'
+
+export type {
+  RemoteStorageAdapter,
+  StorageAdapter,
+} from './sync-engine'
+
+export type {
+  EncryptedEnvelope,
+  EncryptionAlgorithm,
+  EncryptionConfig,
+  KDFType,
+  KeyPair,
+} from './types'
 
 export type {
   ChunkMetadata,
@@ -95,69 +117,47 @@ export type {
   TransferState,
 } from './types'
 
-// CRDT
-export {
-  LWWRegister,
-  GCounter,
-  PNCounter,
-  ORSet,
-  createLWWRegister,
-  createGCounter,
-  createPNCounter,
-  createORSet,
-  createORSetWithValues,
-  mergeLWWStates,
-  mergeGCounterStates,
-} from './crdt'
-
 export type {
   CRDTOperation,
   CRDTSnapshot,
-  MergeResult,
-  NodeId,
-  Timestamp,
-  VectorClock,
-  LWWRegisterState,
-  LWWRegisterOptions,
   GCounterState,
   GCounterStateObject,
-  PNCounterState,
+  LWWRegisterOptions,
+  LWWRegisterState,
+  MergeResult,
+  NodeId,
   ORSetState,
   ORSetStateObject,
+  PNCounterState,
   Tag,
   TaggedElement,
+  Timestamp,
+  VectorClock,
 } from './types'
 
-// Offline Queue
-export {
-  OfflineQueue,
-  createOfflineQueue,
-  createCRDTConflictResolver,
-  createLWWConflictResolver,
-} from './offline-queue'
-
 export type {
-  QueuedOperation,
+  ConflictResolver,
+  OperationProcessor,
   QueueConfig,
+  QueuedOperation,
   QueueEvents,
   QueueState,
-  OperationProcessor,
-  ConflictResolver,
 } from './types'
 
 // Types
 export type {
-  SyncItemType,
   OperationType,
-  SyncItemV2,
   SyncEngineV2Config,
+  SyncEventsV2,
+  SyncItemType,
+  SyncItemV2,
   SyncResultV2,
 } from './types'
 
 // Constants
 export {
   DEFAULT_ENCRYPTION_CONFIG,
-  DEFAULT_TRANSFER_CONFIG,
   DEFAULT_QUEUE_CONFIG,
   DEFAULT_SYNC_ENGINE_V2_CONFIG,
+  DEFAULT_TRANSFER_CONFIG,
 } from './types'

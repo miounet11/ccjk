@@ -5,8 +5,11 @@
  * for code analysis and querying.
  */
 
-import { createEngine } from './index.js'
+// Import fs at the bottom to avoid hoisting issues
+import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
+
+import { createEngine } from './index.js'
 
 /**
  * Main example function
@@ -40,8 +43,8 @@ async function main() {
 
     // Index files
     console.log('Indexing test files...')
-    const stats = await engine.indexFiles(testFiles)
-    console.log(`✅ Indexed ${stats.filesIndexed}/${stats.totalFiles} files\n`)
+    const indexStats = await engine.indexFiles(testFiles)
+    console.log(`✅ Indexed ${indexStats.filesIndexed}/${indexStats.totalFiles} files\n`)
 
     // Perform queries
     console.log('🔍 Performing queries...\n')
@@ -73,11 +76,18 @@ async function main() {
       console.log(`  - Call edges: ${callGraph.edges.length}`)
       console.log(`  - Entry points: ${callGraph.entryPoints.length}`)
 
-      // Find most called functions
-      const mostCalled = await engine.query.callGraph.queryMostCalledFunctions('./test-files/sample.ts', 3)
-      if (mostCalled.length > 0) {
+      // Find most called functions by analyzing edges
+      const callCounts = new Map<string, number>()
+      for (const edge of callGraph.edges) {
+        const count = callCounts.get(edge.to) || 0
+        callCounts.set(edge.to, count + edge.callCount)
+      }
+      const sortedCalls = Array.from(callCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+      if (sortedCalls.length > 0) {
         console.log('  - Most called functions:')
-        mostCalled.forEach(({ name, count }) => {
+        sortedCalls.forEach(([name, count]) => {
           console.log(`    * ${name}: ${count} calls`)
         })
       }
@@ -106,7 +116,7 @@ async function main() {
 
       if (warnings.length > 0) {
         console.log('  - Warnings:')
-        warnings.forEach(p => {
+        warnings.forEach((p) => {
           console.log(`    * ${p.name}: ${p.description}`)
         })
       }
@@ -114,37 +124,37 @@ async function main() {
 
     // Get cache statistics
     console.log('\n📊 Cache Statistics:')
-    const stats = await engine.getCacheStats()
-    console.log(`  - L1 cache hits: ${stats.l1.hits}`)
-    console.log(`  - L1 cache misses: ${stats.l1.misses}`)
-    console.log(`  - L1 cache size: ${stats.l1.size}`)
-    console.log(`  - L1 hit rate: ${(stats.l1.hitRate * 100).toFixed(1)}%`)
-    console.log(`  - L2 cache size: ${stats.l2.size}`)
-    console.log(`  - Combined hit rate: ${(stats.combined.hitRate * 100).toFixed(1)}%`)
+    const cacheStats = await engine.getCacheStats()
+    console.log(`  - L1 cache hits: ${cacheStats.l1.hits}`)
+    console.log(`  - L1 cache misses: ${cacheStats.l1.misses}`)
+    console.log(`  - L1 cache size: ${cacheStats.l1.size}`)
+    console.log(`  - L1 hit rate: ${(cacheStats.l1.hitRate * 100).toFixed(1)}%`)
+    console.log(`  - L2 cache size: ${cacheStats.l2.size}`)
+    console.log(`  - Combined hit rate: ${(cacheStats.combined.hitRate * 100).toFixed(1)}%`)
 
-    // Watch mode example
-    if (engine.config.watchMode) {
-      console.log('\n👀 Watch mode enabled. Watching for changes...')
-      await engine.watchDirectory('./test-files')
+    // Watch mode example (always enabled in this demo)
+    console.log('\n👀 Watch mode enabled. Watching for changes...')
+    await engine.watchDirectory('./test-files')
 
-      // Simulate file changes
-      console.log('\nSimulating file changes...')
-      await simulateFileChange()
+    // Simulate file changes
+    console.log('\nSimulating file changes...')
+    await simulateFileChange()
 
-      // Wait a bit for reindexing
-      await new Promise(resolve => setTimeout(resolve, 2000))
+    // Wait a bit for reindexing
+    await new Promise(resolve => setTimeout(resolve, 2000))
 
-      // Check if anything was reindexed
-      const newStats = await engine.getCacheStats()
-      console.log(`\nAfter changes - New combined hit rate: ${(newStats.combined.hitRate * 100).toFixed(1)}%`)
-    }
+    // Check if anything was reindexed
+    const newCacheStats = await engine.getCacheStats()
+    console.log(`\nAfter changes - New combined hit rate: ${(newCacheStats.combined.hitRate * 100).toFixed(1)}%`)
 
     // Dependency analysis
     console.log('\n🔗 Dependency Analysis:')
     const graph = engine.getDependencyGraph()
-    for (const [file, deps] of graph) {
+    const graphEntries = Array.from(graph.entries())
+    for (const [file, deps] of graphEntries) {
       console.log(`  - ${file} depends on:`)
-      for (const dep of deps) {
+      const depsArray = Array.from(deps)
+      for (const dep of depsArray) {
         console.log(`    * ${dep}`)
       }
     }
@@ -153,13 +163,13 @@ async function main() {
     const cycles = engine.getCircularDependencies()
     if (cycles.length > 0) {
       console.log('\n⚠️  Circular Dependencies Detected:')
-      cycles.forEach(cycle => {
+      cycles.forEach((cycle) => {
         console.log(`  - ${cycle.join(' → ')}`)
       })
-    } else {
+    }
+    else {
       console.log('\n✅ No circular dependencies detected')
     }
-
   }
   catch (error) {
     console.error('❌ Error:', error)
@@ -180,7 +190,8 @@ async function createTestFiles() {
 
   try {
     await fs.mkdir(testDir, { recursive: true })
-  } catch {}
+  }
+  catch {}
 
   // Sample file with various constructs
   const sampleContent = `
@@ -311,7 +322,7 @@ async function simulateFileChange() {
   try {
     const content = await fs.readFile(filePath, 'utf-8')
     // Add a comment to trigger change
-    const newContent = content + '\n// Added comment for testing watch mode'
+    const newContent = `${content}\n// Added comment for testing watch mode`
     await fs.writeFile(filePath, newContent)
 
     console.log('  - Modified sample.ts (added comment)')
@@ -320,15 +331,15 @@ async function simulateFileChange() {
     await new Promise(resolve => setTimeout(resolve, 1000))
     await fs.writeFile(filePath, content)
     console.log('  - Reverted changes')
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to simulate file change:', error)
   }
 }
 
 // Run example
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Check if this file is being run directly
+const isMainModule = process.argv[1] && process.argv[1].endsWith('example.ts')
+if (isMainModule) {
   main().catch(console.error)
 }
-
-// Import fs at the bottom to avoid hoisting issues
-import * as fs from 'node:fs/promises'

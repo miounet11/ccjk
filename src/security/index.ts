@@ -6,10 +6,6 @@
  * @module security
  */
 
-import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
-import { spawn, ChildProcess } from 'node:child_process'
-
 /**
  * Permission Level
  */
@@ -92,7 +88,7 @@ export class PermissionManager {
         level: 'execute',
         allowed: false,
         reason: 'Destructive operation',
-      }
+      },
     )
   }
 
@@ -223,7 +219,8 @@ export class ProcessManager {
       try {
         process.kill(info.pid, 'SIGTERM')
         this.unregister(info.pid, 'failed')
-      } catch (error) {
+      }
+      catch (error) {
         // Process might already be dead
       }
     }
@@ -237,7 +234,8 @@ export class ProcessManager {
       process.kill(pid, 'SIGTERM')
       this.unregister(pid, 'failed')
       return true
-    } catch (error) {
+    }
+    catch (error) {
       return false
     }
   }
@@ -261,7 +259,8 @@ export class ProcessManager {
       if (now - info.startTime > 3600000) {
         try {
           process.kill(pid, 0) // Check if process exists
-        } catch (error) {
+        }
+        catch (error) {
           // Process doesn't exist, remove it
           this.processes.delete(pid)
           cleaned++
@@ -328,5 +327,3 @@ export class CommandValidator {
     return command.replace(/\\\n/g, ' ')
   }
 }
-
-export { PermissionManager, ProcessManager, CommandValidator }

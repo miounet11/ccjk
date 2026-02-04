@@ -190,8 +190,8 @@ export class AutoCompactHook implements LifecycleHook {
    * which should be set by the caller when invoking the hook.
    */
   async execute(context: HookContext): Promise<HookResult> {
-    // Extract output from metadata if available
-    const output = context.metadata?.output as string | undefined
+    // Extract output from data if available
+    const output = context.data?.output as string | undefined
 
     if (!output || typeof output !== 'string') {
       return { success: true }

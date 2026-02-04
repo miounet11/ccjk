@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, TestDataGenerator, AssertionHelpers } from '@helpers'
+import { AssertionHelpers, MockFactory, TestDataGenerator } from '@helpers'
 import { createTestTempDir } from '@v2/setup'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * Test suite for CCJK configuration management
@@ -8,7 +8,7 @@ import { createTestTempDir } from '@v2/setup'
  * NOTE: These tests are skipped because they test mock objects rather than real code.
  * They serve as a template for future integration tests.
  */
-describe.skip('CCJK Configuration Management', () => {
+describe.skip('cCJK Configuration Management', () => {
   let mockSuite: any
   let testDir: string
   let configManager: any
@@ -47,7 +47,7 @@ describe.skip('CCJK Configuration Management', () => {
     vi.clearAllMocks()
   })
 
-  describe('Configuration Loading', () => {
+  describe('configuration Loading', () => {
     it('should load default configuration when no config exists', async () => {
       // Arrange
       const expectedConfig = TestDataGenerator.generateCCJKConfig()
@@ -102,12 +102,12 @@ describe.skip('CCJK Configuration Management', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         configManager.load(),
-        /Invalid configuration/
+        /Invalid configuration/,
       )
     })
   })
 
-  describe('Configuration Saving', () => {
+  describe('configuration Saving', () => {
     it('should save configuration with backup', async () => {
       // Arrange
       const newConfig = TestDataGenerator.generateCCJKConfig({
@@ -126,7 +126,7 @@ describe.skip('CCJK Configuration Management', () => {
       MockFactory.MockVerifier.expectCalledWith(
         mockSuite.fs.writeFileSync,
         expect.any(String),
-        JSON.stringify(newConfig, null, 2)
+        JSON.stringify(newConfig, null, 2),
       )
     })
 
@@ -138,7 +138,7 @@ describe.skip('CCJK Configuration Management', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         configManager.save(invalidConfig),
-        /Configuration validation failed/
+        /Configuration validation failed/,
       )
 
       MockFactory.MockVerifier.expectCalled(configManager.validate)
@@ -146,7 +146,7 @@ describe.skip('CCJK Configuration Management', () => {
     })
   })
 
-  describe('Configuration Validation', () => {
+  describe('configuration Validation', () => {
     it('should validate required fields', () => {
       // Arrange
       const validConfig = TestDataGenerator.generateCCJKConfig()
@@ -183,7 +183,7 @@ describe.skip('CCJK Configuration Management', () => {
     })
   })
 
-  describe('Configuration Backup and Restore', () => {
+  describe('configuration Backup and Restore', () => {
     it('should create backup before modifying configuration', async () => {
       // Arrange
       const originalConfig = TestDataGenerator.generateCCJKConfig()
@@ -219,7 +219,7 @@ describe.skip('CCJK Configuration Management', () => {
     })
   })
 
-  describe('Performance and Error Handling', () => {
+  describe('performance and Error Handling', () => {
     it('should complete configuration operations within time limits', async () => {
       // Arrange
       const config = TestDataGenerator.generateCCJKConfig()
@@ -228,7 +228,7 @@ describe.skip('CCJK Configuration Management', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => configManager.save(config),
-        maxTime
+        maxTime,
       )
     })
 
@@ -244,7 +244,7 @@ describe.skip('CCJK Configuration Management', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         configManager.save(config),
-        /permission denied/
+        /permission denied/,
       )
     })
   })

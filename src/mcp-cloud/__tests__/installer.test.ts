@@ -3,12 +3,16 @@
  * Tests for OneClickInstaller, DependencyResolver, VersionManager, and RollbackManager
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { InstallOptions, MCPService } from '../types'
 import { exec } from 'node:child_process'
 import * as fs from 'node:fs'
-import * as os from 'node:os'
-import * as path from 'node:path'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+// Import after mocking
+import { DependencyResolver } from '../installer/dependency-resolver'
+import { OneClickInstaller } from '../installer/one-click-installer'
+import { RollbackManager } from '../installer/rollback-manager'
+import { VersionManager } from '../installer/version-manager'
 
 // Mock child_process
 vi.mock('node:child_process', () => ({
@@ -42,12 +46,6 @@ function mockExecAsyncError(errorMessage: string) {
     callback(new Error(errorMessage), { stdout: '', stderr: '' })
   }
 }
-
-// Import after mocking
-import { DependencyResolver } from '../installer/dependency-resolver'
-import { OneClickInstaller } from '../installer/one-click-installer'
-import { RollbackManager } from '../installer/rollback-manager'
-import { VersionManager } from '../installer/version-manager'
 
 // Mock service data
 const mockService: MCPService = {

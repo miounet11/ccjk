@@ -3,30 +3,21 @@
  * Tests cloud synchronization functionality across different providers
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import { join } from 'pathe'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  runCcjk,
-  assertSuccess,
-  assertFailure,
-  assertOutputContains,
-  assertFile,
-  waitForFile,
-  createFile,
   readJsonFile,
+  runCcjk,
   writeJsonFile,
-  sleep,
-  createMockCloudConfig,
 } from './helpers'
 import {
-  getE2EEnvironment,
   createTestProject,
   getTestConfigDir,
   getTestHomeDir,
 } from './setup'
 
-describe('E2E: Cloud Sync Workflow', () => {
+describe('e2E: Cloud Sync Workflow', () => {
   let testProjectDir: string
 
   beforeEach(async () => {
@@ -42,7 +33,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Cloud Provider Setup Tests
   // ==========================================================================
 
-  describe('Cloud Provider Setup', () => {
+  describe('cloud Provider Setup', () => {
     it('should list available cloud providers', async () => {
       const result = await runCcjk(['cloud', 'providers'], {
         timeout: 30000,
@@ -71,8 +62,8 @@ describe('E2E: Cloud Sync Workflow', () => {
     it('should configure GitHub Gist provider', async () => {
       const result = await runCcjk(['cloud', 'init', 'github-gist'], {
         input: [
-          'ghp_test_token',  // Mock token
-          'y',                // Confirm
+          'ghp_test_token', // Mock token
+          'y', // Confirm
         ],
         timeout: 30000,
       })
@@ -99,7 +90,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Cloud Sync Tests
   // ==========================================================================
 
-  describe('Cloud Synchronization', () => {
+  describe('cloud Synchronization', () => {
     beforeEach(async () => {
       // Initialize local cloud provider
       const result = await runCcjk(['cloud', 'init', 'local'], {
@@ -161,7 +152,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Conflict Resolution Tests
   // ==========================================================================
 
-  describe('Conflict Resolution', () => {
+  describe('conflict Resolution', () => {
     beforeEach(async () => {
       await runCcjk(['cloud', 'init', 'local'], { input: ['y'], timeout: 30000 })
     })
@@ -232,7 +223,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Selective Sync Tests
   // ==========================================================================
 
-  describe('Selective Sync', () => {
+  describe('selective Sync', () => {
     beforeEach(async () => {
       await runCcjk(['cloud', 'init', 'local'], { input: ['y'], timeout: 30000 })
     })
@@ -282,7 +273,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Multi-Device Sync Tests
   // ==========================================================================
 
-  describe('Multi-Device Synchronization', () => {
+  describe('multi-Device Synchronization', () => {
     it('should register new device', async () => {
       const result = await runCcjk(['cloud', 'device', 'register', 'test-device'], {
         timeout: 30000,
@@ -336,7 +327,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Cloud Skills Sync Tests
   // ==========================================================================
 
-  describe('Cloud Skills Synchronization', () => {
+  describe('cloud Skills Synchronization', () => {
     beforeEach(async () => {
       await runCcjk(['cloud', 'init', 'local'], { input: ['y'], timeout: 30000 })
     })
@@ -399,7 +390,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Cloud Plugins Sync Tests
   // ==========================================================================
 
-  describe('Cloud Plugins Synchronization', () => {
+  describe('cloud Plugins Synchronization', () => {
     beforeEach(async () => {
       await runCcjk(['cloud', 'init', 'local'], { input: ['y'], timeout: 30000 })
     })
@@ -434,7 +425,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Security Tests
   // ==========================================================================
 
-  describe('Security', () => {
+  describe('security', () => {
     beforeEach(async () => {
       await runCcjk(['cloud', 'init', 'local'], { input: ['y'], timeout: 30000 })
     })
@@ -501,7 +492,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Performance Tests
   // ==========================================================================
 
-  describe('Performance', () => {
+  describe('performance', () => {
     beforeEach(async () => {
       await runCcjk(['cloud', 'init', 'local'], { input: ['y'], timeout: 30000 })
     })
@@ -561,7 +552,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Error Recovery Tests
   // ==========================================================================
 
-  describe('Error Recovery', () => {
+  describe('error Recovery', () => {
     it('should handle network failures gracefully', async () => {
       await runCcjk(['cloud', 'init', 'webdav'], {
         input: ['http://invalid-server', 'user', 'pass', 'y'],
@@ -617,7 +608,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Backup and Restore Tests
   // ==========================================================================
 
-  describe('Backup and Restore', () => {
+  describe('backup and Restore', () => {
     beforeEach(async () => {
       await runCcjk(['cloud', 'init', 'local'], { input: ['y'], timeout: 30000 })
     })
@@ -691,7 +682,7 @@ describe('E2E: Cloud Sync Workflow', () => {
   // Auto-Sync Tests
   // ==========================================================================
 
-  describe('Auto-Sync', () => {
+  describe('auto-Sync', () => {
     beforeEach(async () => {
       await runCcjk(['cloud', 'init', 'local'], { input: ['y'], timeout: 30000 })
     })

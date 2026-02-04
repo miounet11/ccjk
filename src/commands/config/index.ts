@@ -18,7 +18,6 @@
  *   --code-type, -T <type>    Code tool type (claude-code, codex)
  */
 
-import type { SupportedLang } from '../../constants'
 import type { ApiConfigOptions, BaseConfigOptions, GetConfigOptions, ListConfigOptions, SetConfigOptions, SwitchConfigOptions } from './types'
 
 import ansis from 'ansis'

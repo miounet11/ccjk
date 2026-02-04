@@ -2,15 +2,15 @@
  * Main project detector using heuristics and file analysis
  */
 
-import fs from 'fs-extra'
-import path from 'pathe'
+import type { BuildSystem, DetectorConfig, FrameworkDetectionResult, LanguageDetection, PackageManager, ProjectAnalysis } from './types.js'
 import consola from 'consola'
+import * as fs from 'fs-extra'
+import path from 'pathe'
 import { glob } from 'tinyglobby'
-import type { DetectorConfig, LanguageDetection, FrameworkDetectionResult, ProjectAnalysis, AnalysisMetadata } from './types.js'
-import { analyzeTypeScriptProject } from './typescript-analyzer.js'
-import { analyzePythonProject } from './python-analyzer.js'
 import { analyzeGoProject } from './go-analyzer.js'
+import { analyzePythonProject } from './python-analyzer.js'
 import { analyzeRustProject } from './rust-analyzer.js'
+import { analyzeTypeScriptProject } from './typescript-analyzer.js'
 
 const logger = consola.withTag('project-detector')
 
@@ -79,7 +79,7 @@ const LANGUAGE_PATTERNS = {
 } as const
 
 // Framework detection priority for mixed projects
-const FRAMEWORK_PRIORITY = {
+const FRAMEWORK_PRIORITY: Record<string, number> = {
   'next.js': 10,
   'nuxt': 9,
   'sveltekit': 8,
@@ -138,7 +138,7 @@ export async function detectProject(
       case 'go':
         frameworks = await analyzeGoProject(absolutePath, files, languages)
         break
-        case 'rust':
+      case 'rust':
         frameworks = await analyzeRustProject(absolutePath, files, languages)
         break
       // Add more language-specific analyzers as needed
@@ -269,7 +269,8 @@ async function detectLanguages(
     const ext = path.extname(file).toLowerCase()
 
     for (const [language, patterns] of Object.entries(LANGUAGE_PATTERNS)) {
-      if (patterns.extensions.includes(ext)) {
+      const extensions = patterns.extensions as readonly string[]
+      if (extensions.includes(ext)) {
         languageCounts.set(language, (languageCounts.get(language) || 0) + 1)
       }
     }
@@ -306,7 +307,7 @@ async function detectLanguages(
   const totalFiles = files.length
   const languages: LanguageDetection[] = []
 
-  for (const [language, count] of languageCounts) {
+  for (const [language, count] of Array.from(languageCounts.entries())) {
     const confidence = Math.min(count / totalFiles, 1)
 
     if (confidence >= config.minConfidence) {
@@ -325,8 +326,8 @@ async function detectLanguages(
 /**
  * Detect package manager
  */
-function detectPackageManager(files: string[]): string | undefined {
-  const managers = {
+function detectPackageManager(files: string[]): PackageManager | undefined {
+  const managers: Record<string, PackageManager> = {
     'pnpm-lock.yaml': 'pnpm',
     'yarn.lock': 'yarn',
     'package-lock.json': 'npm',
@@ -338,9 +339,6 @@ function detectPackageManager(files: string[]): string | undefined {
     'Cargo.toml': 'cargo',
     'pom.xml': 'maven',
     'build.gradle': 'gradle',
-    'Gemfile': 'bundler',
-    'composer.json': 'composer',
-    'pubspec.yaml': 'pub',
   }
 
   for (const [file, manager] of Object.entries(managers)) {
@@ -355,17 +353,21 @@ function detectPackageManager(files: string[]): string | undefined {
 /**
  * Detect build system
  */
-function detectBuildSystem(files: string[], frameworks: FrameworkDetectionResult[]): string | undefined {
+function detectBuildSystem(files: string[], frameworks: FrameworkDetectionResult[]): BuildSystem | undefined {
   // Check for framework-specific build systems first
   for (const framework of frameworks) {
-    if (framework.name.includes('next')) return 'next'
-    if (framework.name.includes('nuxt')) return 'nuxt'
-    if (framework.name.includes('sveltekit')) return 'svelte'
-    if (framework.name.includes('astro')) return 'astro'
+    if (framework.name.includes('next'))
+      return 'next'
+    if (framework.name.includes('nuxt'))
+      return 'nuxt'
+    if (framework.name.includes('sveltekit'))
+      return 'svelte'
+    if (framework.name.includes('astro'))
+      return 'unknown'
   }
 
   // Check for build config files
-  const buildFiles = {
+  const buildFiles: Record<string, BuildSystem> = {
     'webpack.config.js': 'webpack',
     'webpack.config.ts': 'webpack',
     'vite.config.ts': 'vite',
@@ -513,7 +515,8 @@ function calculateOverallConfidence(
   languages: LanguageDetection[],
   frameworks: FrameworkDetectionResult[],
 ): number {
-  if (languages.length === 0) return 0
+  if (languages.length === 0)
+    return 0
 
   // Weight language confidence heavily
   const langConfidence = languages.reduce((sum, lang) => sum + lang.confidence, 0) / languages.length

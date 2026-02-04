@@ -4,18 +4,37 @@
  */
 
 import type {
-  Task,
-  TaskResult,
   Context,
-  LifecyclePhase,
   EventType,
   IEventBus,
   ILifecycleManager,
+  LifecyclePhase,
+  Task,
   TaskExecutor,
+  TaskResult,
+  TaskError,
 } from './types'
 
 // Re-export for backwards compatibility
-export type { TaskExecutor, ILifecycleManager }
+export type { ILifecycleManager, TaskExecutor }
+
+/**
+ * Extended context with lifecycle and shared state
+ */
+interface ExtendedContext extends Context {
+  lifecycle: {
+    phase: LifecyclePhase
+    startTime?: number
+    endTime?: number
+    errors: Error[]
+  }
+  shared: {
+    skills: Map<string, { skillName: string, success: boolean, output: unknown }>
+    agents: Map<string, { agentName: string, status: string, messages: unknown[], result?: unknown }>
+    mcp: Map<string, { service: string, method: string, success: boolean, data: unknown }>
+    custom: Map<string, unknown>
+  }
+}
 
 /**
  * 生命周期管理器配置
@@ -62,54 +81,91 @@ export class LifecycleManager implements ILifecycleManager {
    */
   async execute(task: Task, context: Context): Promise<TaskResult> {
     const startTime = Date.now()
+    const extContext = this.ensureExtendedContext(context)
 
     try {
       // Phase 1: Init
-      await this.runPhase('init', task, context)
+      await this.runPhase('initializing', task, extContext)
 
       // Phase 2: Validate
-      await this.runPhase('validate', task, context)
+      await this.runPhase('ready', task, extContext)
 
       // Phase 3: Execute (with timeout and retry)
-      const result = await this.executeWithRetry(task, context)
+      const result = await this.executeWithRetry(task, extContext)
 
       // Phase 4: Cleanup
-      await this.runPhase('cleanup', task, context)
+      await this.runPhase('stopped', task, extContext)
 
       // Mark as completed
-      context.lifecycle.phase = 'completed'
-      context.lifecycle.endTime = Date.now()
+      extContext.lifecycle.phase = 'stopped'
+      extContext.lifecycle.endTime = Date.now()
 
       return {
-        success: true,
-        data: result,
+        taskId: task.id,
+        status: 'completed',
+        output: result as Record<string, unknown>,
         duration: Date.now() - startTime,
+        retryCount: 0,
       }
-    } catch (error) {
+    }
+    catch (error) {
       // Handle error
-      context.lifecycle.phase = 'error'
-      context.lifecycle.errors.push(error as Error)
+      extContext.lifecycle.phase = 'error'
+      extContext.lifecycle.errors.push(error as Error)
 
       // Emit error event
       await this.eventBus.emit('task:error' as EventType, {
         task,
-        context,
+        context: extContext,
         error,
       })
 
       // Try cleanup even on error
       try {
-        await this.cleanup(context)
-      } catch (cleanupError) {
+        await this.cleanup(extContext)
+      }
+      catch (cleanupError) {
         console.error('Cleanup failed:', cleanupError)
       }
 
+      const taskError: TaskError = {
+        code: 'TASK_EXECUTION_ERROR',
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        original: error as Error,
+        recoverable: false,
+      }
+
       return {
-        success: false,
-        error: error as Error,
+        taskId: task.id,
+        status: 'failed',
+        error: taskError,
         duration: Date.now() - startTime,
+        retryCount: 0,
       }
     }
+  }
+
+  /**
+   * Ensure context has extended properties
+   */
+  private ensureExtendedContext(context: Context): ExtendedContext {
+    const extContext = context as ExtendedContext
+    if (!extContext.lifecycle) {
+      extContext.lifecycle = {
+        phase: 'initializing',
+        errors: [],
+      }
+    }
+    if (!extContext.shared) {
+      extContext.shared = {
+        skills: new Map(),
+        agents: new Map(),
+        mcp: new Map(),
+        custom: new Map(),
+      }
+    }
+    return extContext
   }
 
   /**
@@ -117,19 +173,20 @@ export class LifecycleManager implements ILifecycleManager {
    * @param context 执行上下文
    */
   async cleanup(context: Context): Promise<void> {
-    context.lifecycle.phase = 'cleanup'
+    const extContext = this.ensureExtendedContext(context)
+    extContext.lifecycle.phase = 'stopping'
 
     // 清理 shared 数据中的资源
-    for (const [, value] of context.shared.custom) {
+    for (const [, value] of extContext.shared.custom) {
       if (typeof (value as { dispose?: () => Promise<void> })?.dispose === 'function') {
         await (value as { dispose: () => Promise<void> }).dispose()
       }
     }
 
     // 清理 agents
-    for (const [name, state] of context.shared.agents) {
+    for (const [name, state] of extContext.shared.agents) {
       if (state.status === 'running') {
-        await this.eventBus.emit('agent:terminate' as EventType, { name, context })
+        await this.eventBus.emit('agent:terminate' as EventType, { name, context: extContext })
       }
     }
   }
@@ -146,7 +203,7 @@ export class LifecycleManager implements ILifecycleManager {
   /**
    * 运行生命周期阶段
    */
-  private async runPhase(phase: LifecyclePhase, task: Task, context: Context): Promise<void> {
+  private async runPhase(phase: LifecyclePhase, task: Task, context: ExtendedContext): Promise<void> {
     context.lifecycle.phase = phase
     await this.eventBus.emit(`lifecycle:${phase}` as EventType, { task, context })
   }
@@ -154,18 +211,19 @@ export class LifecycleManager implements ILifecycleManager {
   /**
    * 带重试的执行
    */
-  private async executeWithRetry(task: Task, context: Context): Promise<unknown> {
+  private async executeWithRetry(task: Task, context: ExtendedContext): Promise<unknown> {
     let lastError: Error | undefined
 
     for (let attempt = 0; attempt <= this.options.maxRetries; attempt++) {
       try {
-        context.lifecycle.phase = 'executing'
+        context.lifecycle.phase = 'running'
         return await this.executeWithTimeout(task, context)
-      } catch (error) {
+      }
+      catch (error) {
         lastError = error as Error
 
         if (attempt < this.options.maxRetries) {
-          const delay = this.options.retryDelay * Math.pow(this.options.retryBackoffMultiplier, attempt)
+          const delay = this.options.retryDelay * this.options.retryBackoffMultiplier ** attempt
           await this.delay(delay)
         }
       }
@@ -177,7 +235,7 @@ export class LifecycleManager implements ILifecycleManager {
   /**
    * 带超时的执行
    */
-  private async executeWithTimeout(task: Task, context: Context): Promise<unknown> {
+  private async executeWithTimeout(task: Task, context: ExtendedContext): Promise<unknown> {
     const executor = this.executors.get(task.type)
     if (!executor) {
       throw new Error(`No executor registered for task type: ${task.type}`)
@@ -250,7 +308,8 @@ export class LifecycleManager implements ILifecycleManager {
       const executed = new Set<string>()
 
       const executeStep = async (stepId: string): Promise<void> => {
-        if (executed.has(stepId)) return
+        if (executed.has(stepId))
+          return
 
         const step = task.workflow!.steps.find(s => s.id === stepId)
         if (!step) {
@@ -258,8 +317,8 @@ export class LifecycleManager implements ILifecycleManager {
         }
 
         // 先执行依赖
-        if (step.dependsOn) {
-          for (const depId of step.dependsOn) {
+        if (step.dependencies && step.dependencies.length > 0) {
+          for (const depId of step.dependencies) {
             await executeStep(depId)
           }
         }
@@ -267,7 +326,7 @@ export class LifecycleManager implements ILifecycleManager {
         // 检查条件
         if (step.condition) {
           // 简单条件评估（可扩展）
-          const conditionMet = this.evaluateCondition(step.condition, results)
+          const conditionMet = await this.evaluateTaskCondition(step.condition, results)
           if (!conditionMet) {
             executed.add(stepId)
             return
@@ -279,9 +338,15 @@ export class LifecycleManager implements ILifecycleManager {
           id: `${task.id}_${stepId}`,
           type: step.type,
           name: step.name,
+          status: 'pending',
+          priority: 'normal',
+          dependencies: [],
+          input: step.params || {},
           params: step.params,
-          hooks: step.hooks,
-          mcp: step.mcp,
+          metadata: {
+            createdAt: new Date(),
+            retryCount: 0,
+          },
         }
 
         const executor = this.executors.get(step.type)
@@ -326,16 +391,68 @@ export class LifecycleManager implements ILifecycleManager {
   }
 
   /**
+   * 评估 TaskCondition 类型的条件
+   */
+  private async evaluateTaskCondition(condition: import('./types').TaskCondition, results: Record<string, unknown>): Promise<boolean> {
+    switch (condition.type) {
+      case 'always':
+        return true
+      case 'on_success': {
+        // 检查所有之前的结果是否成功
+        const allSuccess = Object.values(results).every((r: unknown) => {
+          const result = r as { success?: boolean } | undefined
+          return result?.success !== false
+        })
+        return allSuccess
+      }
+      case 'on_failure': {
+        // 检查是否有任何失败
+        const anyFailure = Object.values(results).some((r: unknown) => {
+          const result = r as { success?: boolean } | undefined
+          return result?.success === false
+        })
+        return anyFailure
+      }
+      case 'custom':
+        if (condition.evaluate) {
+          // 创建一个简化的 ExecutionContext
+          const mockContext = {
+            executionId: '',
+            workflowId: '',
+            state: new Map(Object.entries(results)),
+            variables: results,
+            logger: console,
+            events: { on: () => {}, off: () => {}, emit: () => {}, once: () => {} },
+            signal: new AbortController().signal,
+          } as import('./types').ExecutionContext
+          return await condition.evaluate(mockContext)
+        }
+        return true
+      default:
+        return true
+    }
+  }
+
+  /**
    * 评估条件表达式
    */
-  private evaluateCondition(condition: string, results: Record<string, unknown>): boolean {
-    // 简单实现：支持 "stepId.success" 格式
-    const match = condition.match(/^(\w+)\.success$/)
-    if (match) {
-      const stepId = match[1]
-      const result = results[stepId] as { success?: boolean } | undefined
-      return result?.success === true
+  private async evaluateCondition(condition: string | ((context: Record<string, unknown>) => boolean | Promise<boolean>), results: Record<string, unknown>): Promise<boolean> {
+    // 如果是字符串条件，简单实现：支持 "stepId.success" 格式
+    if (typeof condition === 'string') {
+      const match = condition.match(/^(\w+)\.success$/)
+      if (match) {
+        const stepId = match[1]
+        const result = results[stepId] as { success?: boolean } | undefined
+        return result?.success === true
+      }
+      return true
     }
+
+    // 如果是函数条件，直接调用
+    if (typeof condition === 'function') {
+      return await condition(results)
+    }
+
     return true
   }
 }

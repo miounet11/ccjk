@@ -7,16 +7,16 @@
  */
 
 import type {
+  ProjectContext,
+  ValidationError,
+  ValidationResult,
+  ValidationWarning,
   Workflow,
   WorkflowStep,
-  ValidationResult,
-  ValidationError,
-  ValidationWarning,
-  ProjectContext,
 } from './types.js'
 
 // Re-export types for convenience
-export type { ValidationResult, ValidationError, ValidationWarning }
+export type { ValidationError, ValidationResult, ValidationWarning }
 
 export class WorkflowValidator {
   /**
@@ -383,7 +383,7 @@ export class WorkflowValidator {
    */
   private checkToolAvailability(tool: string): boolean {
     try {
-      const { execSync } = require('child_process')
+      const { execSync } = require('node:child_process')
       execSync(`which ${tool}`, { stdio: 'ignore' })
       return true
     }
@@ -444,7 +444,6 @@ export class WorkflowValidator {
     // TODO: Implement performance validation
     return []
   }
-
 
   /**
    * Generate improvement suggestions

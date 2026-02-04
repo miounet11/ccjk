@@ -543,7 +543,7 @@ export interface SyncEventsV2 {
   'sync:complete': (result: SyncResultV2) => void
   'sync:error': (error: Error) => void
   'sync:progress': (progress: TransferProgress) => void
-  'sync:conflict': (conflict: { itemId: string; local: SyncItemV2; remote: SyncItemV2 }) => void
+  'sync:conflict': (conflict: { itemId: string, local: SyncItemV2, remote: SyncItemV2 }) => void
   'sync:merged': (item: SyncItemV2) => void
   'queue:added': (operation: QueuedOperation) => void
   'queue:processed': (operation: QueuedOperation) => void

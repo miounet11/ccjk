@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, TestDataGenerator, AssertionHelpers } from '@helpers'
+import { AssertionHelpers, MockFactory, TestDataGenerator } from '@helpers'
 import { createTestTempDir } from '@v2/setup'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * Integration test suite for CCJK initialization workflow
@@ -8,7 +8,7 @@ import { createTestTempDir } from '@v2/setup'
  * NOTE: These tests are skipped because they test mock objects rather than real code.
  * They serve as a template for future integration tests.
  */
-describe.skip('CCJK Initialization Integration', () => {
+describe.skip('cCJK Initialization Integration', () => {
   let mockSuite: any
   let testDir: string
   let initCommand: any
@@ -82,7 +82,7 @@ describe.skip('CCJK Initialization Integration', () => {
     vi.clearAllMocks()
   })
 
-  describe('Full Initialization Workflow', () => {
+  describe('full Initialization Workflow', () => {
     it('should complete full initialization successfully', async () => {
       // Arrange
       const expectedConfig = TestDataGenerator.generateCCJKConfig({
@@ -164,7 +164,7 @@ describe.skip('CCJK Initialization Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         initCommand.execute(),
-        /Environment validation failed/
+        /Environment validation failed/,
       )
 
       MockFactory.MockVerifier.expectCalled(initCommand.validateEnvironment)
@@ -175,7 +175,7 @@ describe.skip('CCJK Initialization Integration', () => {
       // Arrange
       initCommand.validateEnvironment.mockResolvedValue({ valid: true })
       initCommand.setupConfiguration.mockRejectedValue(
-        new Error('Failed to save configuration: Permission denied')
+        new Error('Failed to save configuration: Permission denied'),
       )
 
       initCommand.execute.mockImplementation(async () => {
@@ -186,7 +186,7 @@ describe.skip('CCJK Initialization Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         initCommand.execute(),
-        /Failed to save configuration/
+        /Failed to save configuration/,
       )
 
       MockFactory.MockVerifier.expectCalled(initCommand.validateEnvironment)
@@ -195,7 +195,7 @@ describe.skip('CCJK Initialization Integration', () => {
     })
   })
 
-  describe('Component Integration', () => {
+  describe('component Integration', () => {
     it('should integrate configuration manager with workflow engine', async () => {
       // Arrange
       const config = TestDataGenerator.generateCCJKConfig({ workflowsEnabled: true })
@@ -250,7 +250,8 @@ describe.skip('CCJK Initialization Integration', () => {
         const loadedConfig = await configManager.load()
         try {
           await workflowEngine.execute(workflow)
-        } catch (error) {
+        }
+        catch (error) {
           throw new Error(`Initialization failed due to workflow error: ${error.message}`)
         }
       })
@@ -258,12 +259,12 @@ describe.skip('CCJK Initialization Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         initCommand.execute(),
-        /Initialization failed due to workflow error/
+        /Initialization failed due to workflow error/,
       )
     })
   })
 
-  describe('Data Flow Integration', () => {
+  describe('data Flow Integration', () => {
     it('should pass configuration data between components', async () => {
       // Arrange
       const initialConfig = TestDataGenerator.generateCCJKConfig({
@@ -341,7 +342,7 @@ describe.skip('CCJK Initialization Integration', () => {
     })
   })
 
-  describe('Error Recovery Integration', () => {
+  describe('error Recovery Integration', () => {
     it('should recover from partial failures', async () => {
       // Arrange
       let attemptCount = 0
@@ -358,7 +359,8 @@ describe.skip('CCJK Initialization Integration', () => {
         try {
           const config = await initCommand.setupConfiguration()
           return { success: true, config, attempts: attemptCount }
-        } catch (error) {
+        }
+        catch (error) {
           // Retry once
           const config = await initCommand.setupConfiguration()
           return { success: true, config, attempts: attemptCount }
@@ -383,7 +385,8 @@ describe.skip('CCJK Initialization Integration', () => {
       initCommand.execute.mockImplementation(async () => {
         try {
           await initCommand.setupConfiguration()
-        } catch (error) {
+        }
+        catch (error) {
           // Perform cleanup
           cleanupOperations.push('remove-partial-config')
           cleanupOperations.push('restore-backup')
@@ -394,7 +397,7 @@ describe.skip('CCJK Initialization Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         initCommand.execute(),
-        /Initialization failed/
+        /Initialization failed/,
       )
 
       // Verify cleanup was performed
@@ -405,7 +408,7 @@ describe.skip('CCJK Initialization Integration', () => {
     })
   })
 
-  describe('Performance Integration', () => {
+  describe('performance Integration', () => {
     it('should complete full initialization within acceptable time', async () => {
       // Arrange
       const maxInitTime = 10000 // 10 seconds
@@ -424,7 +427,7 @@ describe.skip('CCJK Initialization Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => initCommand.execute(),
-        maxInitTime
+        maxInitTime,
       )
     })
 

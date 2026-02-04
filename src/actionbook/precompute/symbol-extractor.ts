@@ -5,7 +5,7 @@
  * Builds symbol tables with scope information and references.
  */
 
-import type { ASTNode, SymbolTable, Symbol, Import, Scope } from '../types.js'
+import type { ASTNode, Import, Scope, Symbol, SymbolTable } from '../types.js'
 
 /**
  * Extract symbols from AST

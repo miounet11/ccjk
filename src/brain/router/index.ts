@@ -14,10 +14,9 @@
  * Zero configuration needed. Zero manual intervention needed.
  */
 
+import type { ExecutionResult } from './auto-executor'
 import { EventEmitter } from 'node:events'
 import { getGlobalCliInterceptor } from './cli-interceptor'
-import type { InterceptionResult } from './cli-interceptor'
-import type { ExecutionResult } from './auto-executor'
 
 /**
  * Brain Router - Main orchestrator
@@ -164,7 +163,7 @@ export async function processUserInput(userInput: string) {
   return await router.process(userInput)
 }
 
+export type { ExecutionResult } from './auto-executor'
 // Re-export types
 export type { InterceptionResult } from './cli-interceptor'
-export type { ExecutionResult } from './auto-executor'
-export type { AnalyzedIntent, IntentType, ComplexityLevel } from './intent-router'
+export type { AnalyzedIntent, ComplexityLevel, IntentType } from './intent-router'

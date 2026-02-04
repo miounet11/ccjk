@@ -6,7 +6,6 @@
  * @module cloud-sync-v2/encryption
  */
 
-import { createCipheriv, createDecipheriv, createHash, pbkdf2Sync, randomBytes } from 'node:crypto'
 import type {
   EncryptedEnvelope,
   EncryptionAlgorithm,
@@ -15,6 +14,7 @@ import type {
   KeyPair,
   Timestamp,
 } from './types'
+import { createCipheriv, createDecipheriv, createHash, pbkdf2Sync, randomBytes } from 'node:crypto'
 import { DEFAULT_ENCRYPTION_CONFIG } from './types'
 
 // ============================================================================
@@ -109,7 +109,7 @@ export function encrypt(
   // Map algorithm to Node.js cipher name
   const cipherName = algorithm === 'aes-256-gcm' ? 'aes-256-gcm' : 'chacha20-poly1305'
 
-  const cipher = createCipheriv(cipherName, key, iv, { authTagLength: tagLength } as any)
+  const cipher = createCipheriv(cipherName, key, iv, { authTagLength: tagLength } as any) as any
 
   if (aad && algorithm === 'aes-256-gcm') {
     cipher.setAAD(aad)
@@ -117,7 +117,7 @@ export function encrypt(
 
   const inputBuffer = typeof data === 'string' ? Buffer.from(data, 'utf-8') : data
   const encrypted = Buffer.concat([cipher.update(inputBuffer), cipher.final()])
-  const authTag = cipher.getAuthTag()
+  const authTag = cipher.getAuthTag() as Buffer
 
   return { ciphertext: encrypted, iv, authTag }
 }
@@ -138,7 +138,7 @@ export function decrypt(
   // Map algorithm to Node.js cipher name
   const cipherName = algorithm === 'aes-256-gcm' ? 'aes-256-gcm' : 'chacha20-poly1305'
 
-  const decipher = createDecipheriv(cipherName, key, iv, { authTagLength: tagLength } as any)
+  const decipher = createDecipheriv(cipherName, key, iv, { authTagLength: tagLength } as any) as any
   decipher.setAuthTag(authTag)
 
   if (aad && algorithm === 'aes-256-gcm') {

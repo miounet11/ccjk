@@ -36,7 +36,7 @@ export type MultilingualString = string | Record<string, string> | undefined
 export function extractString(
   val: MultilingualString,
   fallback: string,
-  preferredLang: SupportedLang = 'en'
+  preferredLang: SupportedLang = 'en',
 ): string {
   // Handle undefined/null
   if (val === undefined || val === null) {
@@ -93,7 +93,7 @@ export function extractString(
 export function extractDisplayName(
   val: MultilingualString,
   isZh: boolean = false,
-  fallback: string = 'Unknown'
+  fallback: string = 'Unknown',
 ): string {
   return extractString(val, fallback, isZh ? 'zh-CN' : 'en')
 }
@@ -109,8 +109,8 @@ export function extractDisplayName(
  */
 export function normalizeRecommendation<T extends Record<string, any>>(
   rec: T,
-  preferredLang: SupportedLang = 'en'
-): T & { name: string; description: string } {
+  preferredLang: SupportedLang = 'en',
+): T & { name: string, description: string } {
   return {
     ...rec,
     name: extractString(rec.name, rec.id || 'Unknown', preferredLang),
@@ -127,7 +127,7 @@ export function normalizeRecommendation<T extends Record<string, any>>(
  */
 export function normalizeRecommendations<T extends Record<string, any>>(
   recommendations: T[],
-  preferredLang: SupportedLang = 'en'
-): Array<T & { name: string; description: string }> {
+  preferredLang: SupportedLang = 'en',
+): Array<T & { name: string, description: string }> {
   return recommendations.map(rec => normalizeRecommendation(rec, preferredLang))
 }

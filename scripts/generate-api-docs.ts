@@ -8,9 +8,9 @@
  * @module scripts/generate-api-docs
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, existsSync } from 'fs'
-import { join, dirname, basename, extname, relative } from 'path'
-import { fileURLToPath } from 'url'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, extname, join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -64,7 +64,7 @@ function extractJsDoc(lines: string[], startIndex: number): { comment: string, e
           // Found start
           return {
             comment: commentLines.reverse().join('\n'),
-            endIndex: startIndex
+            endIndex: startIndex,
           }
         }
         // Extract content between * and the text
@@ -99,7 +99,7 @@ function parseJsDoc(comment: string): Partial<ApiDoc> {
     const trimmed = line.trim()
 
     // @param
-    const paramMatch = trimmed.match(/@param\s+(\{([^}]+)\})?\s*(\[[^\]]+\]|[\w.]+)\s+-\s*(.*)/)
+    const paramMatch = trimmed.match(/@param\s+(?:(\{([^}]+)\})\s*)?(\[[^\]]+\]|[\w.]+)\s+-\s*(.*)/)
     if (paramMatch) {
       if (currentParam?.name) {
         params.push(currentParam as ParameterDoc)
@@ -108,7 +108,7 @@ function parseJsDoc(comment: string): Partial<ApiDoc> {
         type: paramMatch[2] || 'any',
         name: paramMatch[3],
         description: paramMatch[4],
-        optional: paramMatch[3].startsWith('[')
+        optional: paramMatch[3].startsWith('['),
       }
       continue
     }
@@ -167,8 +167,9 @@ function parseJsDoc(comment: string): Partial<ApiDoc> {
     // Regular description line
     if (!trimmed.startsWith('@') && trimmed.length > 0) {
       if (currentParam?.name) {
-        currentParam.description += ' ' + trimmed
-      } else {
+        currentParam.description += ` ${trimmed}`
+      }
+      else {
         description.push(trimmed)
       }
     }
@@ -195,14 +196,14 @@ function parseJsDoc(comment: string): Partial<ApiDoc> {
 function extractSignature(line: string, kind: ApiDoc['kind']): string | undefined {
   switch (kind) {
     case 'function':
-      const funcMatch = line.match(/(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*(<[^>]+>)?\s*\(([^)]*)\)/)
+      const funcMatch = line.match(/(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*(?:(<[^>]+>)\s*)?\(([^)]*)\)/)
       if (funcMatch) {
         const name = funcMatch[1]
         const generics = funcMatch[2] || ''
         const params = funcMatch[3] || ''
         return `function ${name}${generics}(${params})`
       }
-      const arrowMatch = line.match(/(?:export\s+)?(?:const|let|var)\s+(\w+)\s*(?::\s*([^=]+))?\s*=\s*(?:async\s+)?\(([^)]*)\)\s*=>/)
+      const arrowMatch = line.match(/(?:export\s+)?(?:const|let|var)\s+(\w+)\s*(?::\s*([^=]+)\s*)?=\s*(?:async\s+)?\(([^)]*)\)\s*=>/)
       if (arrowMatch) {
         const name = arrowMatch[1]
         const type = arrowMatch[2] ? `: ${arrowMatch[2]}` : ''
@@ -231,7 +232,7 @@ function extractSignature(line: string, kind: ApiDoc['kind']): string | undefine
       break
 
     case 'type':
-      const typeMatch = line.match(/(?:export\s+)?type\s+(\w+)\s*(?:<[^>]+>)?\s*=\s*(.+)/)
+      const typeMatch = line.match(/(?:export\s+)?type\s+(\w+)\s*(?:<[^>]+>\s*)?=\s*(.+)/)
       if (typeMatch) {
         const name = typeMatch[1]
         const definition = typeMatch[2].replace(/\{.*\}/, '{ ... }').substring(0, 100)
@@ -247,7 +248,7 @@ function extractSignature(line: string, kind: ApiDoc['kind']): string | undefine
       break
 
     case 'constant':
-      const constMatch = line.match(/(?:export\s+)?(?:const|let|var)\s+(\w+)\s*(?::\s*([^=]+))?\s*=\s*(.+)/)
+      const constMatch = line.match(/(?:export\s+)?(?:const|let|var)\s+(\w+)\s*(?::\s*([^=]+)\s*)?=\s*(.+)/)
       if (constMatch) {
         const name = constMatch[1]
         const type = constMatch[2] || ''
@@ -274,17 +275,23 @@ function parseTypeScriptFile(filePath: string, rootDir: string): ApiDoc[] {
     // Look for exported definitions
     if (line.match(/export\s+(function|class|interface|type|enum|const|let|var)/)) {
       const { comment } = extractJsDoc(lines, i)
-      if (!comment) continue
+      if (!comment)
+        continue
 
       const jsDoc = parseJsDoc(comment)
 
       // Determine kind
       let kind: ApiDoc['kind'] = 'function'
-      if (line.includes('class')) kind = 'class'
-      else if (line.includes('interface')) kind = 'interface'
-      else if (line.includes('type ')) kind = 'type'
-      else if (line.includes('enum')) kind = 'enum'
-      else if (line.match(/export\s+(const|let|var)/)) kind = 'constant'
+      if (line.includes('class'))
+        kind = 'class'
+      else if (line.includes('interface'))
+        kind = 'interface'
+      else if (line.includes('type '))
+        kind = 'type'
+      else if (line.includes('enum'))
+        kind = 'enum'
+      else if (line.match(/export\s+(const|let|var)/))
+        kind = 'constant'
 
       const signature = extractSignature(line, kind)
 
@@ -305,7 +312,7 @@ function parseTypeScriptFile(filePath: string, rootDir: string): ApiDoc[] {
         since: jsDoc.since,
         see: jsDoc.see,
         sourceFile: relative(rootDir, filePath),
-        line: i + 1
+        line: i + 1,
       })
     }
   }
@@ -317,7 +324,8 @@ function parseTypeScriptFile(filePath: string, rootDir: string): ApiDoc[] {
  * Recursively find all TypeScript files in a directory
  */
 function findTypeScriptFiles(dir: string, rootDir: string, files: string[] = []): string[] {
-  if (!existsSync(dir)) return files
+  if (!existsSync(dir))
+    return files
 
   const entries = readdirSync(dir, { withFileTypes: true })
 
@@ -329,7 +337,8 @@ function findTypeScriptFiles(dir: string, rootDir: string, files: string[] = [])
       if (!['node_modules', 'test', 'tests', '__tests__', 'dist', 'build'].includes(entry.name)) {
         findTypeScriptFiles(fullPath, rootDir, files)
       }
-    } else if (entry.isFile() && (extname(entry.name) === '.ts' || extname(entry.name) === '.tsx')) {
+    }
+    else if (entry.isFile() && (extname(entry.name) === '.ts' || extname(entry.name) === '.tsx')) {
       // Skip declaration files and test files
       if (!entry.name.endsWith('.d.ts') && !entry.name.includes('.test.') && !entry.name.includes('.spec.')) {
         files.push(fullPath)
@@ -362,7 +371,7 @@ function generateMarkdown(module: ModuleDoc): string {
         function: '⚙️',
         type: '📝',
         enum: '🔢',
-        constant: '🔒'
+        constant: '🔒',
       }[api.kind]
       md += `- [${icon} ${api.name}](#${api.name.toLowerCase().replace(/\s+/g, '-')})\n`
     }
@@ -434,9 +443,12 @@ async function generateDocs() {
   const typesDir = join(docsDir, 'types')
 
   // Create directories
-  if (!existsSync(docsDir)) mkdirSync(docsDir, { recursive: true })
-  if (!existsSync(examplesDir)) mkdirSync(examplesDir, { recursive: true })
-  if (!existsSync(typesDir)) mkdirSync(typesDir, { recursive: true })
+  if (!existsSync(docsDir))
+    mkdirSync(docsDir, { recursive: true })
+  if (!existsSync(examplesDir))
+    mkdirSync(examplesDir, { recursive: true })
+  if (!existsSync(typesDir))
+    mkdirSync(typesDir, { recursive: true })
 
   // Find all TypeScript files
   console.log('🔍 Scanning source files...')
@@ -449,7 +461,8 @@ async function generateDocs() {
 
   for (const file of tsFiles) {
     const apis = parseTypeScriptFile(file, rootDir)
-    if (apis.length === 0) continue
+    if (apis.length === 0)
+      continue
 
     const relativePath = relative(srcDir, file)
     const moduleName = dirname(relativePath).replace(/\\/g, '/') || 'index'
@@ -459,7 +472,7 @@ async function generateDocs() {
         name: moduleName,
         description: `API documentation for ${moduleName}`,
         apis: [],
-        sourceFile: relativePath
+        sourceFile: relativePath,
       })
     }
 
@@ -523,11 +536,12 @@ Complete API reference for CCJK v2.0 modules.
     'Agents': modules.filter(m => m.name.includes('agent')),
     'Workflow': modules.filter(m => m.name.includes('workflow')),
     'Actionbook': modules.filter(m => m.name.includes('actionbook')),
-    'Utilities': modules.filter(m => !['hook', 'enforcement', 'brain', 'skill', 'agent', 'workflow', 'actionbook'].some(k => m.name.includes(k)))
+    'Utilities': modules.filter(m => !['hook', 'enforcement', 'brain', 'skill', 'agent', 'workflow', 'actionbook'].some(k => m.name.includes(k))),
   }
 
   for (const [category, catsModules] of Object.entries(categories)) {
-    if (catsModules.length === 0) continue
+    if (catsModules.length === 0)
+      continue
 
     md += `### ${category}\n\n`
     for (const module of catsModules) {

@@ -17,10 +17,10 @@
 import type { SkillCategory } from '../types/skill-md'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'pathe'
 import ansis from 'ansis'
 import * as Handlebars from 'handlebars'
 import inquirer from 'inquirer'
+import { join } from 'pathe'
 import { getPluginManager } from '../plugins-v2'
 
 // ============================================================================
@@ -148,7 +148,21 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
   const categories: SkillCategory[] = ['dev', 'git', 'review', 'testing', 'docs', 'devops', 'planning', 'debugging', 'custom']
 
   // Interactive prompts
-  const answers = await inquirer.prompt([
+  const answers = await inquirer.prompt<{
+    name: string
+    title: string
+    description: string
+    template: string
+    category: SkillCategory
+    use_when: string
+    auto_activate: boolean
+    context: string
+    tags: string
+    priority: number
+    hasArgs: boolean
+    argNames: string
+    targetDir: string
+  }>([
     {
       type: 'input',
       name: 'name',
@@ -245,7 +259,7 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
   ])
 
   // Process arguments
-  const args = answers.hasArgs && answers.argNames
+  const args: Array<{ name: string, description: string, required: boolean }> | undefined = answers.hasArgs && answers.argNames
     ? answers.argNames.split(',').map((name: string, index: number) => ({
         name: name.trim(),
         description: `Argument ${index + 1}`,
@@ -317,7 +331,7 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
   if (args && args.length > 0) {
     console.log('')
     console.log(ansis.bold('Arguments:'))
-    args.forEach((arg: { name: string; required: boolean }, i: number) => {
+    args.forEach((arg: { name: string, required: boolean }, i: number) => {
       console.log(ansis.dim(`   $${i} - ${arg.name}${arg.required ? ' (required)' : ''}`))
     })
   }

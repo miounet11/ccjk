@@ -26,8 +26,8 @@ function formatSessionDisplay(session: any, index: number): string {
   const pinned = session.metadata?.pinned ? ansis.yellow('📌') : ' '
   const name = session.name || ansis.gray('(unnamed)')
   const id = ansis.gray.dim(`[${session.id.substring(0, 8)}]`)
-  const branch = session.gitInfo?.branch ? ansis.cyan(`(${session.gitInfo.branch})`) : ''
-  const forked = session.forkedFrom ? ansis.dim('⑂') : ''
+  const branch = session.metadata?.branch ? ansis.cyan(`(${session.metadata.branch})`) : ''
+  const forked = session.metadata?.forkedFrom ? ansis.dim('⑂') : ''
   const historyCount = session.history.length
   const lastUsed = session.lastUsedAt.toLocaleString()
 
@@ -90,7 +90,7 @@ function formatSessionDetails(session: any): string {
 /**
  * Show session details preview
  */
-async function previewSession(session: any): Promise<void> {
+async function previewSession(session: any): Promise<string> {
   console.log(formatSessionDetails(session))
 
   const { action } = await inquirer.prompt<{ action: string }>({
@@ -106,7 +106,7 @@ async function previewSession(session: any): Promise<void> {
     ],
   })
 
-  return action as any
+  return action
 }
 
 /**
@@ -174,11 +174,16 @@ async function deleteSessionAction(sessionManager: any, session: any): Promise<b
  */
 async function togglePinAction(sessionManager: any, session: any): Promise<boolean> {
   const currentPinned = session.metadata?.pinned || false
-  const success = await sessionManager.togglePin(session.id)
+
+  // Update session metadata
+  session.metadata = session.metadata || {}
+  session.metadata.pinned = !currentPinned
+
+  const success = await sessionManager.updateSession(session.id, {
+    metadata: session.metadata,
+  })
 
   if (success) {
-    session.metadata = session.metadata || {}
-    session.metadata.pinned = !currentPinned
     console.log(ansis.green(`\n✔ ${!currentPinned ? 'Pinned' : 'Unpinned'} session`))
   }
 
@@ -229,8 +234,12 @@ export async function showSessionPicker(options: {
     let sessions = await sessionManager.listSessions({
       sortBy: 'lastUsedAt',
       order: 'desc',
-      branch: options.branch,
     })
+
+    // Filter by branch if provided (manual filtering since SessionListOptions doesn't support branch)
+    if (options.branch) {
+      sessions = sessions.filter(s => s.metadata?.branch === options.branch)
+    }
 
     // Apply text filter if provided
     if (options.filter) {
@@ -390,12 +399,16 @@ export async function pickSession(options: {
     }
 
     const sessionManager = getSessionManager()
-    const sessions = await sessionManager.listSessions({
+    let sessions = await sessionManager.listSessions({
       sortBy: 'lastUsedAt',
       order: 'desc',
-      branch: options.branch,
       limit: 20,
     })
+
+    // Filter by branch if provided
+    if (options.branch) {
+      sessions = sessions.filter(s => s.metadata?.branch === options.branch)
+    }
 
     if (sessions.length === 0) {
       return null
@@ -520,11 +533,15 @@ export async function listSessionsSimple(options: {
     }
 
     const sessionManager = getSessionManager()
-    const sessions = await sessionManager.listSessions({
+    let sessions = await sessionManager.listSessions({
       sortBy: 'lastUsedAt',
       order: 'desc',
-      branch: options.branch,
     })
+
+    // Filter by branch if provided
+    if (options.branch) {
+      sessions = sessions.filter(s => s.metadata?.branch === options.branch)
+    }
 
     if (sessions.length === 0) {
       console.log(ansis.yellow('\nNo sessions found\n'))
@@ -538,7 +555,7 @@ export async function listSessionsSimple(options: {
       const num = String(i + 1).padStart(2, '0')
       const name = session.name || ansis.gray('(unnamed)')
       const id = ansis.gray.dim(`[${session.id.substring(0, 8)}]`)
-      const branch = session.gitInfo?.branch ? ansis.cyan(` ${session.gitInfo.branch}`) : ''
+      const branch = session.metadata?.branch ? ansis.cyan(` ${session.metadata.branch}`) : ''
       const lastUsed = session.lastUsedAt.toLocaleString()
 
       console.log(`  ${ansis.green(num)}. ${name} ${id}${branch}`)
@@ -585,15 +602,39 @@ export async function forkSession(
     }
 
     const sessionManager = getSessionManager()
-    const newSession = await sessionManager.forkSession(sourceId, {
-      name: options.name,
-      branch: options.branch,
-    })
+    const sourceSession = await sessionManager.loadSession(sourceId)
+
+    if (!sourceSession) {
+      console.error(ansis.red('Source session not found'))
+      return
+    }
+
+    // Create a new session based on the source
+    const newSession = await sessionManager.createSession(
+      options.name || `${sourceSession.name || 'Session'} (fork)`,
+      sourceSession.provider,
+      sourceSession.apiKey,
+      {
+        apiUrl: sourceSession.apiUrl,
+        model: sourceSession.model,
+        codeType: sourceSession.codeType,
+        metadata: {
+          ...sourceSession.metadata,
+          forkedFrom: sourceId,
+          parentName: sourceSession.name,
+          branch: options.branch || sourceSession.metadata?.branch,
+        },
+      },
+    )
+
+    // Copy history from source session
+    newSession.history = [...sourceSession.history]
+    await sessionManager.saveSession(newSession)
 
     if (newSession) {
       console.log(ansis.green(`\n✔ Session forked: ${newSession.name || newSession.id}`))
-      if (newSession.gitInfo?.branch) {
-        console.log(ansis.gray(`  Branch: ${newSession.gitInfo.branch}`))
+      if ((newSession.metadata as any)?.gitInfo?.branch) {
+        console.log(ansis.gray(`  Branch: ${(newSession.metadata as any).gitInfo.branch}`))
       }
       console.log(ansis.gray(`\nRun: ccjk session restore ${newSession.id}\n`))
     }

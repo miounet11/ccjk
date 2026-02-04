@@ -3,7 +3,7 @@
  * Tracks CPU/memory usage, task completion, response times, and error rates
  */
 
-import type { AgentMetrics, MetricSnapshot, PerformanceMetrics, TaskMetrics } from './types'
+import type { AgentMetrics } from './orchestrator-types'
 
 export interface MetricRecord {
   timestamp: number
@@ -18,6 +18,34 @@ export interface AggregatedMetrics {
   median: number
   p95: number
   p99: number
+  count: number
+}
+
+export interface TaskMetrics {
+  totalTasks: number
+  completedTasks: number
+  failedTasks: number
+  avgDuration: number
+  successRate: number
+}
+
+export interface PerformanceMetrics {
+  cpuUsage: number
+  memoryUsage: number
+  responseTime: number
+  errorCount: number
+  requestCount: number
+  timestamp: number
+}
+
+export interface MetricSnapshot {
+  metricName: string
+  agentId: string
+  timestamp: number
+  current: number
+  min: number
+  max: number
+  avg: number
   count: number
 }
 
@@ -136,13 +164,16 @@ export class MetricsCollector {
     const errorRate = taskMetrics ? taskMetrics.failedTasks / taskMetrics.totalTasks : 0
 
     return {
+      tasksExecuted: taskMetrics?.totalTasks ?? 0,
+      tasksSucceeded: taskMetrics?.completedTasks ?? 0,
+      tasksFailed: taskMetrics?.failedTasks ?? 0,
+      avgTaskDuration: taskMetrics?.avgDuration ?? 0,
+      successRate: taskMetrics?.successRate ?? 0,
+      totalExecutionTime: taskMetrics?.avgDuration ?? 0,
+      avgConfidence: 0.8,
+      lastUpdated: new Date().toISOString(),
       cpuUsage,
       memoryUsage,
-      avgResponseTime,
-      errorRate,
-      taskCount: taskMetrics?.totalTasks ?? 0,
-      successRate: taskMetrics?.successRate ?? 0,
-      timestamp: Date.now(),
     }
   }
 

@@ -26,12 +26,12 @@ import type {
   McpToolInfo,
   PluginPackage,
 } from '../types'
-import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
+import { CCJK_CONFIG_DIR, CLAUDE_AGENTS_DIR } from '../../constants'
+import { writeAgentFile } from '../agent-writer'
 import { getPluginManager } from '../core/plugin-manager'
 import { getMcpServerManager } from '../mcp/mcp-integration'
-import { writeAgentFile, getAgentsDir, getLegacyAgentsDir } from '../agent-writer'
-import { CLAUDE_AGENTS_DIR, CCJK_CONFIG_DIR } from '../../constants'
 
 // ============================================================================
 // Constants
@@ -234,12 +234,16 @@ export class AgentCreator {
     }
 
     const definition: AgentDefinition = {
-      ...template,
-      ...overrides,
       id: overrides.id || `${templateId}-${Date.now()}`,
+      name: overrides.name || template.name || { 'en': templateId, 'zh-CN': templateId },
+      description: overrides.description || template.description || { 'en': '', 'zh-CN': '' },
+      persona: overrides.persona || template.persona || '',
+      instructions: overrides.instructions || template.instructions || '',
       skills: [...(template.skills || []), ...(overrides.skills || [])],
       mcpServers: [...(template.mcpServers || []), ...(overrides.mcpServers || [])],
       capabilities: [...new Set([...(template.capabilities || []), ...(overrides.capabilities || [])])],
+      triggers: overrides.triggers || template.triggers,
+      intents: overrides.intents || template.intents,
     }
 
     const manager = await getPluginManager()
@@ -360,7 +364,7 @@ export class AgentCreator {
    */
   async writeToClaudeCode(
     agent: AgentDefinition,
-    options?: { projectDir?: string }
+    options?: { projectDir?: string },
   ): Promise<string> {
     return writeAgentFile(agent, {
       format: 'markdown',

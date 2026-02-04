@@ -1,0 +1,89 @@
+{
+  "templates": [
+    {
+      "id": "git-commit",
+      "name": "Smart Git Commit",
+      "file": "git-commit.md",
+      "category": "git",
+      "tags": ["git", "commit", "version-control", "automation"],
+      "priority": 9,
+      "triggers": ["/commit", "commit changes", "提交代码"],
+      "description": "Intelligently analyze changes and create conventional commit messages"
+    },
+    {
+      "id": "code-review",
+      "name": "Code Review",
+      "file": "code-review.md",
+      "category": "code-quality",
+      "tags": ["code-review", "quality", "security", "best-practices"],
+      "priority": 8,
+      "triggers": ["/review", "review this code", "审查代码"],
+      "description": "Comprehensive code review with focus on quality and security"
+    },
+    {
+      "id": "generate-tests",
+      "name": "Generate Tests",
+      "file": "generate-tests.md",
+      "category": "testing",
+      "tags": ["testing", "unit-tests", "vitest", "automation"],
+      "priority": 8,
+      "triggers": ["/test", "generate tests for", "生成测试"],
+      "description": "Automatically generate comprehensive unit tests"
+    },
+    {
+      "id": "api-docs",
+      "name": "API Documentation Generator",
+      "file": "api-docs.md",
+      "category": "documentation",
+      "tags": ["api", "documentation", "openapi", "swagger"],
+      "priority": 7,
+      "triggers": ["/api-docs", "generate api docs", "生成API文档"],
+      "description": "Generate comprehensive API documentation with OpenAPI format"
+    },
+    {
+      "id": "refactor-code",
+      "name": "Code Refactoring",
+      "file": "refactor-code.md",
+      "category": "code-quality",
+      "tags": ["refactoring", "code-quality", "clean-code", "maintainability"],
+      "priority": 7,
+      "triggers": ["/refactor", "refactor this code", "重构代码"],
+      "description": "Intelligently refactor code to improve quality and maintainability"
+    },
+    {
+      "id": "performance-optimization",
+      "name": "Performance Optimization",
+      "file": "performance-optimization.md",
+      "category": "performance",
+      "tags": ["performance", "optimization", "profiling", "benchmarking"],
+      "priority": 7,
+      "triggers": ["/optimize", "optimize performance", "优化性能"],
+      "description": "Analyze and optimize code performance with profiling"
+    },
+    {
+      "id": "dependency-update",
+      "name": "Dependency Update",
+      "file": "dependency-update.md",
+      "category": "maintenance",
+      "tags": ["dependencies", "npm", "security", "updates"],
+      "priority": 8,
+      "triggers": ["/update-deps", "update dependencies", "更新依赖"],
+      "description": "Safely update dependencies with compatibility checks"
+    },
+    {
+      "id": "database-migration",
+      "name": "Database Migration",
+      "file": "database-migration.md",
+      "category": "database",
+      "tags": ["database", "migration", "schema", "sql", "orm"],
+      "priority": 8,
+      "triggers": ["/migrate", "create migration", "创建数据库迁移"],
+      "description": "Generate and manage database migrations with rollback support"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2026-02-04",
+    "totalTemplates": 8
+  }
+}

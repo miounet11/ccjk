@@ -4,22 +4,21 @@
  */
 
 import process from 'node:process'
+import type { CAC } from 'cac'
 import ansis from 'ansis'
-import { cac } from 'cac'
 import ora from 'ora'
 import { getPostmortemManager } from '../postmortem/manager'
 
-export function createPostmortemCommand() {
-  const cmd = new Command('postmortem')
+export function createPostmortemCommand(program: CAC) {
+  const cmd = program
+    .command('postmortem', '🔬 Postmortem 智能尸检系统 - 从历史 bug 中学习')
     .alias('pm')
-    .description('🔬 Postmortem 智能尸检系统 - 从历史 bug 中学习')
 
   // ========================================================================
   // init - 初始化 Postmortem 系统
   // ========================================================================
   cmd
-    .command('init')
-    .description('初始化 Postmortem 系统，分析历史 fix commits')
+    .command('init', '初始化 Postmortem 系统，分析历史 fix commits')
     .option('--force', '强制重新初始化')
     .action(async (_options: { force?: boolean }) => {
       const spinner = ora('正在分析历史 fix commits...').start()
@@ -56,9 +55,8 @@ export function createPostmortemCommand() {
   // generate - 生成新的 Postmortem
   // ========================================================================
   cmd
-    .command('generate')
+    .command('generate', '分析指定范围的 fix commits 并生成 Postmortem')
     .alias('gen')
-    .description('分析指定范围的 fix commits 并生成 Postmortem')
     .option('--since <tag>', '起始版本/提交')
     .option('--until <tag>', '结束版本/提交 (默认 HEAD)')
     .option('--version <version>', '关联的版本号')
@@ -118,10 +116,9 @@ export function createPostmortemCommand() {
   // ========================================================================
   // list - 列出所有 Postmortem
   // ========================================================================
-  cmd
-    .command('list')
+  const listCmd = cmd.command('list', '列出所有 Postmortem 报告')
+  listCmd
     .alias('ls')
-    .description('列出所有 Postmortem 报告')
     .option('--severity <level>', '按严重程度筛选 (critical/high/medium/low)')
     .option('--category <cat>', '按类别筛选')
     .option('--status <status>', '按状态筛选 (active/resolved/monitoring/archived)')
@@ -189,10 +186,8 @@ export function createPostmortemCommand() {
   // ========================================================================
   // show - 显示 Postmortem 详情
   // ========================================================================
-  cmd
-    .command('show <id>')
-    .description('显示 Postmortem 详情')
-    .action(async (id: string) => {
+  const showCmd = cmd.command('show <id>', '显示 Postmortem 详情')
+  showCmd.action(async (id: string) => {
       try {
         const manager = getPostmortemManager(process.cwd())
         const report = manager.getReport(id)
@@ -202,7 +197,7 @@ export function createPostmortemCommand() {
           process.exit(1)
         }
 
-        const severityColors: Record<string, typeof chalk> = {
+        const severityColors: Record<string, typeof ansis.red> = {
           critical: ansis.red,
           high: ansis.yellow,
           medium: ansis.blue,
@@ -280,9 +275,8 @@ export function createPostmortemCommand() {
   // ========================================================================
   // check - 检查代码是否可能触发已知问题
   // ========================================================================
-  cmd
-    .command('check')
-    .description('检查代码是否可能触发已知问题')
+  const checkCmd = cmd.command('check', '检查代码是否可能触发已知问题')
+  checkCmd
     .option('--staged', '只检查暂存的文件')
     .option('--files <files...>', '指定要检查的文件')
     .option('--ci', 'CI 模式，发现问题时返回非零退出码')
@@ -358,10 +352,8 @@ export function createPostmortemCommand() {
   // ========================================================================
   // sync - 同步到 CLAUDE.md
   // ========================================================================
-  cmd
-    .command('sync')
-    .description('将 Postmortem 同步到 CLAUDE.md')
-    .action(async () => {
+  const syncCmd = cmd.command('sync', '将 Postmortem 同步到 CLAUDE.md')
+  syncCmd.action(async () => {
       const spinner = ora('正在同步到 CLAUDE.md...').start()
 
       try {
@@ -386,10 +378,8 @@ export function createPostmortemCommand() {
   // ========================================================================
   // stats - 显示统计信息
   // ========================================================================
-  cmd
-    .command('stats')
-    .description('显示 Postmortem 统计信息')
-    .action(async () => {
+  const statsCmd = cmd.command('stats', '显示 Postmortem 统计信息')
+  statsCmd.action(async () => {
       try {
         const manager = getPostmortemManager(process.cwd())
         const index = manager.loadIndex()

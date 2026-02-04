@@ -11,7 +11,7 @@ export { HistoryManager } from './history-manager'
 export type {
   HistoryEntry,
   HistoryEntryType,
+  HistoryManagerOptions,
   HistorySearchOptions,
   HistoryStats,
-  HistoryManagerOptions,
 } from './types'

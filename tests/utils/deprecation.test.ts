@@ -11,7 +11,6 @@ import {
   getCommandsRemovedIn,
   getDeprecationInfo,
   isDeprecated,
-  showDeprecationWarning,
 } from '../../src/utils/deprecation'
 
 describe('deprecation System', () => {

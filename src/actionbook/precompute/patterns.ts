@@ -5,7 +5,7 @@
  * security risks, and performance issues.
  */
 
-import type { ASTNode, Pattern, PatternType } from '../types.js'
+import type { ASTNode, Pattern } from '../types.js'
 
 /**
  * Detect patterns in AST

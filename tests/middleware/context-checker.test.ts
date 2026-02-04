@@ -33,7 +33,7 @@ describe('contextChecker', () => {
     resetContextChecker()
   })
 
-  describe('ContextChecker class', () => {
+  describe('contextChecker class', () => {
     it('should create instance with default options', () => {
       const checker = new ContextChecker()
       expect(checker).toBeDefined()

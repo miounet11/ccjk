@@ -3,8 +3,8 @@
  * Demonstrates compression effectiveness and usage patterns
  */
 
-import { OrchestrationContextManager } from './context-manager'
 import type { Message, SessionData } from '../types/orchestration'
+import { OrchestrationContextManager } from './context-manager'
 
 /**
  * Example 1: Basic Compression
@@ -172,21 +172,23 @@ async function runAllExamples() {
   await strategyComparisonExample()
   await tokenEstimationExample()
 
-  console.log('\n' + '='.repeat(60))
+  console.log(`\n${'='.repeat(60)}`)
   console.log('All examples completed!')
   console.log('='.repeat(60))
 }
 
 // Run if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runAllExamples().catch(console.error)
-}
+// Note: This check is disabled for CommonJS compatibility
+// Uncomment when using ESM module system
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//   runAllExamples().catch(console.error)
+// }
 
 export {
   basicCompressionExample,
   largeConversationExample,
+  runAllExamples,
   sessionPersistenceExample,
   strategyComparisonExample,
   tokenEstimationExample,
-  runAllExamples,
 }

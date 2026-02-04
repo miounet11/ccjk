@@ -7,8 +7,8 @@
  * @module cloud-sync-v2/crdt/or-set
  */
 
-import { randomBytes } from 'node:crypto'
 import type { CRDTOperation, CRDTSnapshot, MergeResult, NodeId, Timestamp } from '../types'
+import { randomBytes } from 'node:crypto'
 
 // ============================================================================
 // Types
@@ -91,7 +91,7 @@ export class ORSet<T> {
    */
   constructor(
     nodeId: NodeId,
-    keyFn: (value: T) => string = (v) => JSON.stringify(v),
+    keyFn: (value: T) => string = v => JSON.stringify(v),
   ) {
     this.nodeId = nodeId
     this.elements = new Map()
@@ -500,7 +500,7 @@ export class ORSet<T> {
   /**
    * Iterate over elements
    */
-  *[Symbol.iterator](): Iterator<T> {
+  * [Symbol.iterator](): Iterator<T> {
     for (const element of this.elements.values()) {
       if (element.tags.size > 0) {
         yield element.value

@@ -6,9 +6,9 @@
  */
 
 import type { CredentialType } from '../types'
-import type { Credential, CredentialQueryOptions, CredentialWithValue, EncryptedCredentialStorage } from './types'
+import type { Credential, CredentialQueryOptions, EncryptedCredentialStorage } from './types'
 
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR } from '../../../constants'
 import { ensureDir, exists, readFile, writeFileAtomic } from '../../../utils/fs-operations'
@@ -122,6 +122,14 @@ interface EncryptedCredential {
   lastUsed?: string
   expiresAt?: string
   metadata?: Record<string, unknown>
+}
+
+/**
+ * Credential storage options
+ */
+export interface CredentialStorageOptions {
+  metadata?: Record<string, unknown>
+  expiresAt?: string
 }
 
 /**

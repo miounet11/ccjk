@@ -44,7 +44,7 @@ export class NotifyClient {
       body: JSON.stringify(request),
     })
 
-    return response.json()
+    return response.json() as Promise<SendNotificationResponse>
   }
 
   /**
@@ -57,7 +57,7 @@ export class NotifyClient {
       method: 'POST',
     })
 
-    return response.json()
+    return response.json() as Promise<TestNotificationResponse>
   }
 
   /**
@@ -69,7 +69,7 @@ export class NotifyClient {
   async getHistory(limit = 50): Promise<GetNotificationHistoryResponse> {
     const response = await this.fetch(`/notify/history?limit=${limit}`)
 
-    return response.json()
+    return response.json() as Promise<GetNotificationHistoryResponse>
   }
 
   /**
@@ -130,8 +130,8 @@ export class NotifyClient {
     let message = response.statusText
 
     try {
-      const body = await response.json()
-      if (body.error) {
+      const body = await response.json() as { error?: string }
+      if (body && typeof body === 'object' && 'error' in body && body.error) {
         message = body.error
       }
     }

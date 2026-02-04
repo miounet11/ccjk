@@ -7,8 +7,6 @@
  * @module agents-v3/task-scheduler
  */
 
-import { EventEmitter } from 'node:events'
-import { nanoid } from 'nanoid'
 import type {
   AgentId,
   AgentInstance,
@@ -18,8 +16,9 @@ import type {
   Task,
   TaskId,
   TaskResult,
-  TaskStatus,
 } from './types.js'
+import { EventEmitter } from 'node:events'
+import { nanoid } from 'nanoid'
 
 /**
  * Default scheduler configuration
@@ -71,7 +70,7 @@ export type TaskExecutor = (
 /**
  * Agent provider function type
  */
-export type AgentProvider = {
+export interface AgentProvider {
   getAvailableAgent: (type: string) => AgentInstance | undefined
   getAgentByCapabilities: (capabilities: string[]) => AgentInstance | undefined
   getLeastLoadedAgent: (type?: string) => AgentInstance | undefined
@@ -182,7 +181,7 @@ export class TaskScheduler extends EventEmitter {
   /**
    * Schedule a task
    */
-  schedule(task: Partial<Task> & { name: string; type: string }): Task {
+  schedule(task: Partial<Task> & { name: string, type: string }): Task {
     const now = Date.now()
 
     const fullTask: Task = {
@@ -212,7 +211,8 @@ export class TaskScheduler extends EventEmitter {
     // Check dependencies
     if (this.hasPendingDependencies(fullTask)) {
       fullTask.status = 'pending'
-    } else {
+    }
+    else {
       fullTask.status = 'queued'
     }
 
@@ -467,16 +467,19 @@ export class TaskScheduler extends EventEmitter {
       if (result.success) {
         this.stats.completedTasks++
         this.emit('task:completed', result)
-      } else {
+      }
+      else {
         // Check for retry
         if (this.shouldRetry(task, result)) {
           this.retryTask(task)
-        } else {
+        }
+        else {
           this.stats.failedTasks++
           this.emit('task:failed', task.id, new Error(result.error?.message || 'Task failed'))
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       this.handleTaskError(task, agent, error as Error)
     }
   }
@@ -511,7 +514,8 @@ export class TaskScheduler extends EventEmitter {
     // Check for retry
     if (this.shouldRetry(task)) {
       this.retryTask(task)
-    } else {
+    }
+    else {
       this.stats.failedTasks++
       this.emit('task:failed', task.id, error)
     }
@@ -642,7 +646,7 @@ export class TaskScheduler extends EventEmitter {
 
     // Calculate backoff delay
     const delay = Math.min(
-      task.retry!.initialDelayMs * Math.pow(task.retry!.backoffMultiplier, task.retryCount - 1),
+      task.retry!.initialDelayMs * task.retry!.backoffMultiplier ** (task.retryCount - 1),
       task.retry!.maxDelayMs,
     )
 
@@ -716,7 +720,8 @@ export class TaskScheduler extends EventEmitter {
     // Check for retry
     if (this.shouldRetry(task)) {
       this.retryTask(task)
-    } else {
+    }
+    else {
       this.stats.failedTasks++
     }
   }

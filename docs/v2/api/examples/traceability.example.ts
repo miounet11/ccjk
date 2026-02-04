@@ -5,8 +5,8 @@
  * including audit trails, action tracking, and compliance reporting.
  */
 
-import { Actionbook, Action } from '@ccjk/v2'
-import { HookEnforcer, HookLevel } from '@ccjk/v2'
+import type { Action } from '@ccjk/v2'
+import { Actionbook, HookEnforcer, HookLevel } from '@ccjk/v2'
 
 async function traceabilityExample() {
   console.log('=== Traceability Example ===\n')
@@ -16,7 +16,7 @@ async function traceabilityExample() {
     storagePath: './audit-actions',
     enableCompression: true,
     retentionDays: 365,
-    enableEncryption: true
+    enableEncryption: true,
   })
 
   // Define traceable actions
@@ -37,16 +37,16 @@ async function traceabilityExample() {
           email,
           role,
           createdBy: context.userId,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         })
 
         return {
           userId: user.id,
           username,
           email,
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
         }
-      }
+      },
     },
     {
       id: 'permission-grant',
@@ -64,14 +64,14 @@ async function traceabilityExample() {
           permissions,
           grantedBy: context.userId,
           reason,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         })
 
         return {
           userId,
           permissions,
           grantedBy: context.userId,
-          reason
+          reason,
         }
       },
 
@@ -83,9 +83,9 @@ async function traceabilityExample() {
 
         return {
           userId,
-          permissionsRevoked: permissions
+          permissionsRevoked: permissions,
         }
-      }
+      },
     },
     {
       id: 'data-export',
@@ -104,7 +104,7 @@ async function traceabilityExample() {
           filters,
           format,
           timestamp: new Date().toISOString(),
-          requestId: context.requestId
+          requestId: context.requestId,
         })
 
         // Export data
@@ -115,10 +115,10 @@ async function traceabilityExample() {
           dataType,
           recordCount: data.length,
           format,
-          exportedAt: new Date().toISOString()
+          exportedAt: new Date().toISOString(),
         }
-      }
-    }
+      },
+    },
   ]
 
   // Register all actions
@@ -129,7 +129,7 @@ async function traceabilityExample() {
   // Initialize hook enforcer for additional traceability
   const enforcer = new HookEnforcer({
     strictMode: true,
-    auditLogPath: './compliance-audit.log'
+    auditLogPath: './compliance-audit.log',
   })
 
   // Register compliance hooks
@@ -145,7 +145,7 @@ async function traceabilityExample() {
         action,
         userId,
         data,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       })
 
       if (!compliance.allowed) {
@@ -153,7 +153,7 @@ async function traceabilityExample() {
       }
 
       return { compliance, userId, action }
-    }
+    },
   })
 
   // Execute traceable actions
@@ -162,10 +162,10 @@ async function traceabilityExample() {
     params: {
       username: 'john.doe',
       email: 'john.doe@example.com',
-      role: 'developer'
+      role: 'developer',
     },
     userId: 'admin-123',
-    requestId: 'req-001'
+    requestId: 'req-001',
   })
 
   console.log('User created:', createUserResult.result)
@@ -176,10 +176,10 @@ async function traceabilityExample() {
     params: {
       userId: createUserResult.result.userId,
       permissions: ['read', 'write', 'deploy'],
-      reason: 'Developer access for project Alpha'
+      reason: 'Developer access for project Alpha',
     },
     userId: 'admin-123',
-    requestId: 'req-002'
+    requestId: 'req-002',
   })
 
   console.log('Permissions granted:', grantResult.result)
@@ -190,10 +190,10 @@ async function traceabilityExample() {
     params: {
       dataType: 'user-data',
       filters: { active: true },
-      format: 'csv'
+      format: 'csv',
     },
     userId: 'admin-123',
-    requestId: 'req-003'
+    requestId: 'req-003',
   })
 
   console.log('Data exported:', exportResult.result)
@@ -202,7 +202,7 @@ async function traceabilityExample() {
   console.log('\n=== Audit Trail ===')
   const history = await actionbook.getHistory()
 
-  history.forEach(record => {
+  history.forEach((record) => {
     console.log(`\n[${record.timestamp}] ${record.actionId}`)
     console.log(`  User: ${record.userId}`)
     console.log(`  Status: ${record.status}`)
@@ -223,7 +223,7 @@ async function traceabilityExample() {
   // Get usage patterns
   const patterns = actionbook.analytics.getUsagePatterns()
   console.log('\nUsage patterns:')
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     console.log(`- ${pattern.actionId}: ${pattern.frequency} times`)
   })
 
@@ -235,7 +235,7 @@ async function traceabilityExample() {
 
   if (complianceReport.violations.length > 0) {
     console.log('Violations:')
-    complianceReport.violations.forEach(violation => {
+    complianceReport.violations.forEach((violation) => {
       console.log(`- ${violation.actionId}: ${violation.reason}`)
     })
   }
@@ -249,7 +249,7 @@ async function realTimeMonitoringExample() {
 
   const actionbook = new Actionbook({
     storagePath: './monitoring-actions',
-    enableCompression: true
+    enableCompression: true,
   })
 
   // Define monitoring actions
@@ -271,12 +271,12 @@ async function realTimeMonitoringExample() {
             type: 'health-check-failed',
             service,
             details: health.details,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           })
         }
 
         return health
-      }
+      },
     },
     {
       id: 'performance-monitor',
@@ -295,13 +295,13 @@ async function realTimeMonitoringExample() {
             metric,
             value,
             threshold,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           })
         }
 
         return { metric, value, threshold, status: value < threshold ? 'ok' : 'warning' }
-      }
-    }
+      },
+    },
   ]
 
   // Register monitoring actions
@@ -318,7 +318,7 @@ async function realTimeMonitoringExample() {
       await actionbook.execute('health-check', {
         params: { service },
         userId: 'system-monitor',
-        requestId: `monitor-${Date.now()}`
+        requestId: `monitor-${Date.now()}`,
       })
     }
 
@@ -326,14 +326,14 @@ async function realTimeMonitoringExample() {
     const metrics = [
       { metric: 'cpu', threshold: 80 },
       { metric: 'memory', threshold: 85 },
-      { metric: 'disk', threshold: 90 }
+      { metric: 'disk', threshold: 90 },
     ]
 
     for (const { metric, threshold } of metrics) {
       await actionbook.execute('performance-monitor', {
         params: { metric, threshold },
         userId: 'system-monitor',
-        requestId: `monitor-${Date.now()}`
+        requestId: `monitor-${Date.now()}`,
       })
     }
   }, 60000) // Check every minute
@@ -348,8 +348,8 @@ async function realTimeMonitoringExample() {
 
     // Get monitoring history
     actionbook.getHistory({
-      startDate: new Date(Date.now() - 5 * 60 * 1000)
-    }).then(history => {
+      startDate: new Date(Date.now() - 5 * 60 * 1000),
+    }).then((history) => {
       console.log('\nMonitoring history (last 5 minutes):')
       console.log(`- Total checks: ${history.length}`)
 
@@ -373,7 +373,7 @@ async function forensicAnalysisExample() {
 
   const actionbook = new Actionbook({
     storagePath: './forensic-actions',
-    retentionDays: 365 * 5 // 5 years retention
+    retentionDays: 365 * 5, // 5 years retention
   })
 
   // Define forensic actions
@@ -396,13 +396,13 @@ async function forensicAnalysisExample() {
           ip,
           userAgent,
           sessionId: context.requestId,
-          geoLocation: await getGeoLocation(ip)
+          geoLocation: await getGeoLocation(ip),
         }
 
         await storeForensicLog(logEntry)
 
         return logEntry
-      }
+      },
     },
     {
       id: 'security-incident',
@@ -420,7 +420,7 @@ async function forensicAnalysisExample() {
           details,
           reporter,
           timestamp: new Date().toISOString(),
-          status: 'open'
+          status: 'open',
         }
 
         // Store incident
@@ -432,8 +432,8 @@ async function forensicAnalysisExample() {
         }
 
         return incident
-      }
-    }
+      },
+    },
   ]
 
   // Register forensic actions
@@ -451,10 +451,10 @@ async function forensicAnalysisExample() {
       dataId: 'customer-data-123',
       action: 'read',
       ip: '192.168.1.100',
-      userAgent: 'Mozilla/5.0...'
+      userAgent: 'Mozilla/5.0...',
     },
     userId: 'system',
-    requestId: 'forensic-001'
+    requestId: 'forensic-001',
   })
 
   // Log security incident
@@ -465,12 +465,12 @@ async function forensicAnalysisExample() {
       details: {
         resource: '/admin/users',
         method: 'POST',
-        attempted: 'create-admin-user'
+        attempted: 'create-admin-user',
       },
-      reporter: 'security-system'
+      reporter: 'security-system',
     },
     userId: 'security-system',
-    requestId: 'forensic-002'
+    requestId: 'forensic-002',
   })
 
   console.log('Incident recorded:', incidentResult.result.incidentId)
@@ -485,8 +485,8 @@ async function forensicAnalysisExample() {
     securityIncidents: allHistory.filter(h => h.actionId === 'security-incident').length,
     dataAccessEvents: allHistory.filter(h => h.actionId === 'data-access-log').length,
     uniqueUsers: new Set(allHistory.map(h => h.userId)).size,
-    suspiciousActivities: allHistory.filter(h => h.actionId === 'security-incident' &&
-      h.result?.severity >= 7).length
+    suspiciousActivities: allHistory.filter(h => h.actionId === 'security-incident'
+      && h.result?.severity >= 7).length,
   }
 
   console.log('Total events:', report.totalEvents)
@@ -509,7 +509,7 @@ async function logPermissionChange(change) {
 
 async function exportData(dataType, filters, format) {
   // Implementation
-  return Array(100).fill({ id: 1, data: 'sensitive' })
+  return Array.from({ length: 100 }).fill({ id: 1, data: 'sensitive' })
 }
 
 async function checkComplianceRequirements(req) {
@@ -523,8 +523,8 @@ async function generateComplianceReport(history) {
     compliant: history.length - 2,
     violations: [
       { actionId: 'data-export', reason: 'Missing approval' },
-      { actionId: 'permission-grant', reason: 'Invalid reason' }
-    ]
+      { actionId: 'permission-grant', reason: 'Invalid reason' },
+    ],
   }
 }
 

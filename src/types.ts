@@ -1,4 +1,4 @@
-import type { ContextWindowAnalysis, McpAutoThreshold, ServiceToolBreakdown } from './core/mcp-search'
+import type { McpAutoThreshold } from './core/mcp-search'
 import type { InstallMethod } from './utils/platform'
 
 // Re-export MCP search types for convenience
@@ -39,7 +39,7 @@ export interface McpToolSearchConfig {
    * - 'never': Defer all tools until requested (100% threshold)
    * @default 10 (per Claude Code 2.1.7 spec)
    */
-  autoEnableThreshold?: McpAutoThreshold
+  mcpAutoEnableThreshold?: McpAutoThreshold
 
   /**
    * Enable dynamic service discovery

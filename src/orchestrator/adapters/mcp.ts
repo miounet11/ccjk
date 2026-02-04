@@ -3,9 +3,8 @@
  * 将 MCP (Model Context Protocol) 系统集成到 Orchestrator
  */
 
-import type { Task, Context, MCPResponse, EventType } from '../types'
 import type { TaskExecutor } from '../lifecycle'
-import type { IEventBus } from '../types'
+import type { Context, EventType, IEventBus, MCPResponse, Task } from '../types'
 
 /**
  * MCP 服务配置
@@ -173,7 +172,8 @@ export class MCPAdapter {
 
     try {
       await instance.disconnect()
-    } finally {
+    }
+    finally {
       this.instances.delete(name)
     }
   }
@@ -197,7 +197,7 @@ export class MCPAdapter {
     serviceName: string,
     toolName: string,
     params: Record<string, unknown>,
-    context?: Context
+    context?: Context,
   ): Promise<MCPResponse> {
     const startTime = Date.now()
 
@@ -217,6 +217,8 @@ export class MCPAdapter {
       const result = await instance.call(toolName, params)
 
       const response: MCPResponse = {
+        service: serviceName,
+        method: toolName,
         success: true,
         data: result,
         duration: Date.now() - startTime,
@@ -238,8 +240,11 @@ export class MCPAdapter {
       }
 
       return response
-    } catch (error) {
+    }
+    catch (error) {
       const response: MCPResponse = {
+        service: serviceName,
+        method: toolName,
         success: false,
         error: error as Error,
         duration: Date.now() - startTime,
@@ -295,7 +300,8 @@ export class MCPAdapter {
       try {
         const tools = await this.getTools(name)
         result.set(name, tools)
-      } catch (error) {
+      }
+      catch (error) {
         console.error(`Failed to get tools from ${name}:`, error)
         result.set(name, [])
       }

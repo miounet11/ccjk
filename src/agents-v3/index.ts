@@ -43,27 +43,43 @@ import { createOrchestrator as _createOrchestrator } from './orchestrator.js'
 // Main Exports
 // ============================================================================
 
+// Agent Pool
+export {
+  type AgentFactory,
+  AgentPool,
+  type AgentPoolEvents,
+  createAgentPool,
+} from './agent-pool.js'
+
+// Communication
+export {
+  Communication,
+  type CommunicationConfig,
+  type CommunicationEvents,
+  createCommunication,
+} from './communication.js'
+
+// Error Recovery
+export {
+  createErrorRecovery,
+  ErrorRecovery,
+  type ErrorRecoveryConfig,
+  type ErrorRecoveryEvents,
+} from './error-recovery.js'
+
 // Orchestrator
 export {
-  OrchestratorV3,
   createOrchestrator,
+  OrchestratorV3,
   type OrchestratorV3Events,
 } from './orchestrator.js'
 
-// Agent Pool
-export {
-  AgentPool,
-  createAgentPool,
-  type AgentPoolEvents,
-  type AgentFactory,
-} from './agent-pool.js'
-
 // Task Scheduler
 export {
-  TaskScheduler,
   createTaskScheduler,
-  type TaskSchedulerEvents,
   type TaskExecutor,
+  TaskScheduler,
+  type TaskSchedulerEvents,
 } from './task-scheduler.js'
 
 // Re-export types from types.js for convenience
@@ -73,22 +89,6 @@ export type {
   SchedulerConfig,
   SchedulerStats,
 } from './types.js'
-
-// Error Recovery
-export {
-  ErrorRecovery,
-  createErrorRecovery,
-  type ErrorRecoveryConfig,
-  type ErrorRecoveryEvents,
-} from './error-recovery.js'
-
-// Communication
-export {
-  Communication,
-  createCommunication,
-  type CommunicationConfig,
-  type CommunicationEvents,
-} from './communication.js'
 
 // Types
 export * from './types.js'

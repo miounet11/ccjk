@@ -4,9 +4,10 @@
  * File watcher for automatic configuration updates
  */
 
-import type { ConfigChangeEvent, ConfigChangeHandler, ConfigV3 } from './types'
+import type { FSWatcher } from 'node:fs'
 
-import { existsSync, watch, type FSWatcher } from 'node:fs'
+import type { ConfigChangeEvent, ConfigChangeHandler, ConfigV3 } from './types'
+import { existsSync, watch } from 'node:fs'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR } from '../../constants'
 import { readFile } from '../../utils/fs-operations'
@@ -396,24 +397,30 @@ export class HotReloadManager {
    * Deep equality check
    */
   private isEqual(a: unknown, b: unknown): boolean {
-    if (a === b) return true
-    if (typeof a !== typeof b) return false
-    if (a === null || b === null) return a === b
+    if (a === b)
+      return true
+    if (typeof a !== typeof b)
+      return false
+    if (a === null || b === null)
+      return a === b
 
     if (typeof a === 'object') {
       if (Array.isArray(a) && Array.isArray(b)) {
-        if (a.length !== b.length) return false
+        if (a.length !== b.length)
+          return false
         return a.every((item, i) => this.isEqual(item, b[i]))
       }
 
-      if (Array.isArray(a) || Array.isArray(b)) return false
+      if (Array.isArray(a) || Array.isArray(b))
+        return false
 
       const aObj = a as Record<string, unknown>
       const bObj = b as Record<string, unknown>
       const aKeys = Object.keys(aObj)
       const bKeys = Object.keys(bObj)
 
-      if (aKeys.length !== bKeys.length) return false
+      if (aKeys.length !== bKeys.length)
+        return false
 
       return aKeys.every(key =>
         this.isEqual(aObj[key], bObj[key]),

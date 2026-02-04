@@ -5,23 +5,18 @@
  * ANSI colors, and live updates.
  */
 
-import process from 'node:process'
-import ansis from 'ansis'
+import type { MetricsCollector } from './metrics-collector'
 import type {
-  AgentStats,
-  ApiStats,
-  CacheStats,
-  CommandStats,
   Dashboard,
   DashboardConfig,
   DashboardData,
-  ErrorStats,
   ExportFormat,
   HealthStatus,
-  MemoryStats,
   SystemOverview,
 } from './types'
-import { getMetricsCollector, MetricsCollector } from './metrics-collector'
+import process from 'node:process'
+import ansis from 'ansis'
+import { getMetricsCollector } from './metrics-collector'
 
 // ============================================================================
 // Default Configuration
@@ -48,8 +43,8 @@ const DEFAULT_CONFIG: DashboardConfig = {
  * Generate an ASCII bar chart
  */
 function generateBarChart(
-  data: { label: string; value: number }[],
-  options: { width?: number; maxValue?: number; showValues?: boolean } = {},
+  data: { label: string, value: number }[],
+  options: { width?: number, maxValue?: number, showValues?: boolean } = {},
 ): string[] {
   const { width = 30, showValues = true } = options
   const maxValue = options.maxValue || Math.max(...data.map(d => d.value), 1)
@@ -71,7 +66,8 @@ function generateBarChart(
  * Generate an ASCII sparkline
  */
 function generateSparkline(values: number[], width: number = 20): string {
-  if (values.length === 0) return ansis.dim('─'.repeat(width))
+  if (values.length === 0)
+    return ansis.dim('─'.repeat(width))
 
   const chars = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
   const min = Math.min(...values)
@@ -98,7 +94,7 @@ function generateProgressBar(
   value: number,
   max: number,
   width: number = 20,
-  options: { showPercent?: boolean; colorThresholds?: { warning: number; critical: number } } = {},
+  options: { showPercent?: boolean, colorThresholds?: { warning: number, critical: number } } = {},
 ): string {
   const { showPercent = true, colorThresholds } = options
   const percent = Math.min(value / max, 1)
@@ -107,8 +103,10 @@ function generateProgressBar(
 
   let color = ansis.green
   if (colorThresholds) {
-    if (percent >= colorThresholds.critical) color = ansis.red
-    else if (percent >= colorThresholds.warning) color = ansis.yellow
+    if (percent >= colorThresholds.critical)
+      color = ansis.red
+    else if (percent >= colorThresholds.warning)
+      color = ansis.yellow
   }
 
   const bar = color('█'.repeat(filled)) + ansis.dim('░'.repeat(empty))
@@ -121,9 +119,12 @@ function generateProgressBar(
  * Format duration for display
  */
 function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms.toFixed(0)}ms`
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
-  if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`
+  if (ms < 1000)
+    return `${ms.toFixed(0)}ms`
+  if (ms < 60000)
+    return `${(ms / 1000).toFixed(1)}s`
+  if (ms < 3600000)
+    return `${(ms / 60000).toFixed(1)}m`
   return `${(ms / 3600000).toFixed(1)}h`
 }
 
@@ -131,9 +132,12 @@ function formatDuration(ms: number): string {
  * Format bytes for display
  */
 function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+  if (bytes < 1024)
+    return `${bytes}B`
+  if (bytes < 1024 * 1024)
+    return `${(bytes / 1024).toFixed(1)}KB`
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}GB`
 }
 
@@ -146,9 +150,12 @@ function formatUptime(ms: number): string {
   const hours = Math.floor(minutes / 60)
   const days = Math.floor(hours / 24)
 
-  if (days > 0) return `${days}d ${hours % 24}h ${minutes % 60}m`
-  if (hours > 0) return `${hours}h ${minutes % 60}m ${seconds % 60}s`
-  if (minutes > 0) return `${minutes}m ${seconds % 60}s`
+  if (days > 0)
+    return `${days}d ${hours % 24}h ${minutes % 60}m`
+  if (hours > 0)
+    return `${hours}h ${minutes % 60}m ${seconds % 60}s`
+  if (minutes > 0)
+    return `${minutes}m ${seconds % 60}s`
   return `${seconds}s`
 }
 
@@ -283,16 +290,19 @@ class DashboardRenderer {
 
     // Determine overall health
     let health: HealthStatus = 'healthy'
-    if (errorStats.errorsBySeverity.critical > 0) health = 'critical'
-    else if (errorStats.errorsBySeverity.high > 0) health = 'unhealthy'
-    else if (memStats.current.heapUsedPercent > 0.9) health = 'degraded'
+    if (errorStats.errorsBySeverity.critical > 0)
+      health = 'critical'
+    else if (errorStats.errorsBySeverity.high > 0)
+      health = 'unhealthy'
+    else if (memStats.current.heapUsedPercent > 0.9)
+      health = 'degraded'
 
     const healthColor = getHealthColor(health)
     const healthIcon = getHealthIcon(health)
 
     return [
       ansis.bold.white('  System Overview'),
-      ansis.dim('  ' + '─'.repeat(40)),
+      ansis.dim(`  ${'─'.repeat(40)}`),
       `  ${healthIcon} Status: ${healthColor(health.toUpperCase())}`,
       `  ${ansis.cyan('⏱')}  Uptime: ${ansis.yellow(formatUptime(uptime))}`,
       `  ${ansis.cyan('📊')} Memory: ${formatBytes(memStats.current.heapUsed)} / ${formatBytes(memStats.current.heapTotal)}`,
@@ -306,11 +316,12 @@ class DashboardRenderer {
   private renderMemorySection(): string[] {
     const stats = this.collector.getMemoryStats()
     this.memoryHistory.push(stats.current.heapUsedPercent * 100)
-    if (this.memoryHistory.length > 60) this.memoryHistory.shift()
+    if (this.memoryHistory.length > 60)
+      this.memoryHistory.shift()
 
     const lines: string[] = [
       ansis.bold.white('  Memory Usage'),
-      ansis.dim('  ' + '─'.repeat(40)),
+      ansis.dim(`  ${'─'.repeat(40)}`),
     ]
 
     // Memory progress bar
@@ -328,8 +339,10 @@ class DashboardRenderer {
     lines.push(`  ${ansis.dim('RSS:')} ${ansis.yellow(formatBytes(stats.current.rss))}`)
 
     // Trend indicator
-    const trendIcon = stats.trend === 'increasing' ? ansis.red('↑')
-      : stats.trend === 'decreasing' ? ansis.green('↓')
+    const trendIcon = stats.trend === 'increasing'
+      ? ansis.red('↑')
+      : stats.trend === 'decreasing'
+        ? ansis.green('↓')
         : ansis.gray('→')
     lines.push(`  ${ansis.dim('Trend:')} ${trendIcon} ${stats.trend}`)
 
@@ -347,7 +360,7 @@ class DashboardRenderer {
 
     const lines: string[] = [
       ansis.bold.white('  API Performance'),
-      ansis.dim('  ' + '─'.repeat(40)),
+      ansis.dim(`  ${'─'.repeat(40)}`),
     ]
 
     if (stats.length === 0) {
@@ -358,19 +371,22 @@ class DashboardRenderer {
     // Update latency history
     const avgLatency = stats.reduce((sum, s) => sum + s.avgLatency, 0) / stats.length
     this.apiLatencyHistory.push(avgLatency)
-    if (this.apiLatencyHistory.length > 60) this.apiLatencyHistory.shift()
+    if (this.apiLatencyHistory.length > 60)
+      this.apiLatencyHistory.shift()
 
     // Provider stats
     for (const provider of stats.slice(0, 3)) {
       const successRate = provider.totalCalls > 0
         ? (provider.successCount / provider.totalCalls * 100).toFixed(1)
         : '0'
-      const rateColor = Number(successRate) >= 95 ? ansis.green
-        : Number(successRate) >= 80 ? ansis.yellow
+      const rateColor = Number(successRate) >= 95
+        ? ansis.green
+        : Number(successRate) >= 80
+          ? ansis.yellow
           : ansis.red
 
       lines.push(`  ${ansis.cyan(provider.provider)}`)
-      lines.push(`    ${ansis.dim('Calls:')} ${provider.totalCalls} | ${ansis.dim('Success:')} ${rateColor(successRate + '%')}`)
+      lines.push(`    ${ansis.dim('Calls:')} ${provider.totalCalls} | ${ansis.dim('Success:')} ${rateColor(`${successRate}%`)}`)
       lines.push(`    ${ansis.dim('Latency:')} ${ansis.yellow(formatDuration(provider.avgLatency))} (p95: ${formatDuration(provider.p95Latency)})`)
     }
 
@@ -388,7 +404,7 @@ class DashboardRenderer {
 
     const lines: string[] = [
       ansis.bold.white('  Command Execution'),
-      ansis.dim('  ' + '─'.repeat(40)),
+      ansis.dim(`  ${'─'.repeat(40)}`),
     ]
 
     if (stats.length === 0) {
@@ -412,7 +428,7 @@ class DashboardRenderer {
     const successRate = totalExecs > 0 ? (totalSuccess / totalExecs * 100).toFixed(1) : '0'
 
     lines.push('')
-    lines.push(`  ${ansis.dim('Total:')} ${totalExecs} | ${ansis.dim('Success:')} ${ansis.green(successRate + '%')}`)
+    lines.push(`  ${ansis.dim('Total:')} ${totalExecs} | ${ansis.dim('Success:')} ${ansis.green(`${successRate}%`)}`)
 
     return lines
   }
@@ -425,7 +441,7 @@ class DashboardRenderer {
 
     const lines: string[] = [
       ansis.bold.white('  Cache Performance'),
-      ansis.dim('  ' + '─'.repeat(40)),
+      ansis.dim(`  ${'─'.repeat(40)}`),
     ]
 
     // Hit rate progress bar
@@ -448,7 +464,7 @@ class DashboardRenderer {
 
     const lines: string[] = [
       ansis.bold.white('  Recent Errors'),
-      ansis.dim('  ' + '─'.repeat(76)),
+      ansis.dim(`  ${'─'.repeat(76)}`),
     ]
 
     if (stats.totalErrors === 0) {
@@ -468,9 +484,12 @@ class DashboardRenderer {
 
     // Recent errors
     for (const error of stats.recentErrors.slice(0, 3)) {
-      const severityIcon = error.severity === 'critical' ? ansis.red('●')
-        : error.severity === 'high' ? ansis.red('○')
-          : error.severity === 'medium' ? ansis.yellow('○')
+      const severityIcon = error.severity === 'critical'
+        ? ansis.red('●')
+        : error.severity === 'high'
+          ? ansis.red('○')
+          : error.severity === 'medium'
+            ? ansis.yellow('○')
             : ansis.green('○')
       const time = new Date(error.timestamp).toLocaleTimeString()
       lines.push(`  ${severityIcon} ${ansis.dim(time)} ${ansis.cyan(error.type)}: ${error.message.slice(0, 50)}`)
@@ -487,7 +506,7 @@ class DashboardRenderer {
 
     const lines: string[] = [
       ansis.bold.white('  Agent Tasks'),
-      ansis.dim('  ' + '─'.repeat(76)),
+      ansis.dim(`  ${'─'.repeat(76)}`),
     ]
 
     if (stats.length === 0) {
@@ -499,9 +518,11 @@ class DashboardRenderer {
     lines.push(`  ${ansis.dim('Agent'.padEnd(30))} ${ansis.dim('Tasks'.padEnd(8))} ${ansis.dim('Success'.padEnd(10))} ${ansis.dim('Avg Time')}`)
 
     for (const agent of stats.slice(0, 5)) {
-      const successRate = (agent.successRate * 100).toFixed(0) + '%'
-      const rateColor = agent.successRate >= 0.95 ? ansis.green
-        : agent.successRate >= 0.8 ? ansis.yellow
+      const successRate = `${(agent.successRate * 100).toFixed(0)}%`
+      const rateColor = agent.successRate >= 0.95
+        ? ansis.green
+        : agent.successRate >= 0.8
+          ? ansis.yellow
           : ansis.red
 
       lines.push(
@@ -547,7 +568,8 @@ export class PerformanceDashboard implements Dashboard {
    * Show the dashboard
    */
   show(): void {
-    if (this.isRunning) return
+    if (this.isRunning)
+      return
 
     this.isRunning = true
 
@@ -623,9 +645,12 @@ export class PerformanceDashboard implements Dashboard {
 
     // Determine health
     let health: HealthStatus = 'healthy'
-    if (errorStats.errorsBySeverity.critical > 0) health = 'critical'
-    else if (errorStats.errorsBySeverity.high > 0) health = 'unhealthy'
-    else if (memStats.current.heapUsedPercent > 0.9) health = 'degraded'
+    if (errorStats.errorsBySeverity.critical > 0)
+      health = 'critical'
+    else if (errorStats.errorsBySeverity.high > 0)
+      health = 'unhealthy'
+    else if (memStats.current.heapUsedPercent > 0.9)
+      health = 'degraded'
 
     const system: SystemOverview = {
       status: health,

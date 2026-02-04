@@ -12,22 +12,21 @@
  *   ccjk ccjk:mcp --json             - JSON output for automation
  */
 
-import type { SupportedLang } from '../constants'
-import type { McpServiceTemplate } from '../config/mcp-templates'
 import type { ProjectAnalysis } from '../analyzers/types'
-import consola from 'consola'
-import inquirer from 'inquirer'
-import { readFile, writeFile } from 'node:fs/promises'
+import type { McpServiceTemplate } from '../config/mcp-templates'
+import type { SupportedLang } from '../constants'
 import { join } from 'node:path'
 import { cwd } from 'node:process'
 import ansis from 'ansis'
-import { ensureI18nInitialized, i18n } from '../i18n'
+import consola from 'consola'
+import inquirer from 'inquirer'
 import { analyzeProject } from '../analyzers'
-import { mcpServiceTemplates, getCompatibleMcpServiceTemplates, isTemplateCompatible } from '../config/mcp-templates'
-import { backupMcpConfig, mergeMcpServers, readMcpConfig, writeMcpConfig } from '../utils/claude-config'
-import { commandExists, isWindows } from '../utils/platform'
+import { getTemplatesClient } from '../cloud-client'
+import { getCompatibleMcpServiceTemplates, mcpServiceTemplates } from '../config/mcp-templates'
 import { CLAUDE_DIR } from '../constants'
-import { getTemplatesClient, type Template } from '../cloud-client'
+import { ensureI18nInitialized, i18n } from '../i18n'
+import { backupMcpConfig, mergeMcpServers, readMcpConfig, writeMcpConfig } from '../utils/claude-config'
+import { commandExists } from '../utils/platform'
 
 /**
  * Command options interface
@@ -100,11 +99,11 @@ export interface CcjkMcpResult {
 /**
  * Service tier classification
  */
-const SERVICE_TIERS = {
+const SERVICE_TIERS: Record<'core' | 'ondemand' | 'scenario', string[]> = {
   core: ['typescript-language-server', 'python-lsp-server', 'gopls', 'rust-analyzer'],
   ondemand: ['eslint-mcp', 'prettier-mcp', 'git-mcp'],
-  scenario: ['playwright-mcp', 'puppeteer-mcp']
-} as const
+  scenario: ['playwright-mcp', 'puppeteer-mcp'],
+}
 
 /**
  * Main command handler
@@ -127,14 +126,14 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
     project: {
       type: 'unknown',
       languages: [],
-      frameworks: []
+      frameworks: [],
     },
     services: [],
     installed: [],
     skipped: [],
     failed: [],
     duration: 0,
-    configPath: join(CLAUDE_DIR, 'mcp.json')
+    configPath: join(CLAUDE_DIR, 'mcp.json'),
   }
 
   try {
@@ -174,7 +173,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
 
       if (coreServices.length > 0) {
         console.log(ansis.bold(`${isZh ? '核心服务' : 'Core Services'}:`))
-        coreServices.forEach(service => {
+        coreServices.forEach((service) => {
           const installed = isServiceInstalled(service.id)
           const status = installed ? ansis.green('✅') : ansis.yellow('⭕')
           const name = isZh ? service.name['zh-CN'] : service.name.en
@@ -186,7 +185,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
 
       if (ondemandServices.length > 0) {
         console.log(ansis.bold(`${isZh ? '按需服务' : 'On-Demand Services'}:`))
-        ondemandServices.forEach(service => {
+        ondemandServices.forEach((service) => {
           const installed = isServiceInstalled(service.id)
           const status = installed ? ansis.green('✅') : ansis.yellow('⭕')
           const name = isZh ? service.name['zh-CN'] : service.name.en
@@ -198,7 +197,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
 
       if (scenarioServices.length > 0) {
         console.log(ansis.bold(`${isZh ? '场景服务' : 'Scenario Services'}:`))
-        scenarioServices.forEach(service => {
+        scenarioServices.forEach((service) => {
           const installed = isServiceInstalled(service.id)
           const status = installed ? ansis.green('✅') : ansis.yellow('⭕')
           const name = isZh ? service.name['zh-CN'] : service.name.en
@@ -216,7 +215,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
         type: 'confirm',
         name: 'confirm',
         message: `${isZh ? '安装推荐服务' : 'Install recommended services'}?`,
-        default: true
+        default: true,
       }])
 
       if (!confirm) {
@@ -234,8 +233,8 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
         choices: selectedServices.map(s => ({
           name: `${s.id} - ${isZh ? s.name['zh-CN'] : s.name.en}`,
           value: s.id,
-          checked: true
-        }))
+          checked: true,
+        })),
       }])
 
       servicesToInstall = selectedServices.filter(s => selected.includes(s.id))
@@ -244,7 +243,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
     // Step 4: Filter out already installed services (unless forced)
     const alreadyInstalled: string[] = []
     if (!options.force) {
-      servicesToInstall = servicesToInstall.filter(s => {
+      servicesToInstall = servicesToInstall.filter((s) => {
         const installed = isServiceInstalled(s.id)
         if (installed) {
           alreadyInstalled.push(s.id)
@@ -270,7 +269,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
       if (!options.json) {
         console.log(ansis.yellow(isZh ? '\n🔍 Dry run 模式 - 预览安装计划' : '\n🔍 Dry run mode - Installation preview'))
         console.log('')
-        servicesToInstall.forEach(service => {
+        servicesToInstall.forEach((service) => {
           const name = isZh ? service.name['zh-CN'] : service.name.en
           console.log(`  • ${service.id} (${name})`)
         })
@@ -292,9 +291,11 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
 
       if (installResult.status === 'installed') {
         result.installed.push(service.id)
-      } else if (installResult.status === 'skipped') {
+      }
+      else if (installResult.status === 'skipped') {
         result.skipped.push(service.id)
-      } else {
+      }
+      else {
         result.failed.push(service.id)
       }
 
@@ -336,7 +337,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
             type: service.type,
             command: service.command,
             args: service.args,
-            env: service.env
+            env: service.env,
           }
         }
       }
@@ -346,7 +347,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
       writeMcpConfig(mergedConfig)
 
       if (!options.json) {
-        result.installed.forEach(serviceId => {
+        result.installed.forEach((serviceId) => {
           const service = mcpServiceTemplates[serviceId] || servicesToInstall.find(s => s.id === serviceId)
           const name = service
             ? (isZh ? service.name['zh-CN'] : service.name.en)
@@ -384,7 +385,8 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
       console.log('')
       if (result.success) {
         console.log(ansis.green.bold(`${isZh ? `✅ 成功配置 ${result.installed.length} 个 MCP 服务！` : `✅ Successfully configured ${result.installed.length} MCP service(s)!`}`))
-      } else {
+      }
+      else {
         console.log(ansis.yellow.bold(`${isZh ? `⚠️ 部分服务配置失败` : `⚠️ Some services failed to configure`}`))
       }
 
@@ -398,7 +400,8 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
 
     result.duration = Date.now() - startTime
     return result
-  } catch (error) {
+  }
+  catch (error) {
     consola.error(isZh ? 'MCP 服务配置失败' : 'MCP service configuration failed', error)
     result.success = false
     result.duration = Date.now() - startTime
@@ -411,7 +414,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
  */
 async function getRecommendedServices(
   analysis: ProjectAnalysis,
-  options: CcjkMcpOptions
+  options: CcjkMcpOptions,
 ): Promise<McpServiceTemplate[]> {
   const services: McpServiceTemplate[] = []
   const projectType = analysis.projectType.toLowerCase()
@@ -428,17 +431,17 @@ async function getRecommendedServices(
       consola.success(isZh ? `从云端获取 ${cloudMcpServices.length} 个 MCP 服务` : `Fetched ${cloudMcpServices.length} MCP services from cloud`)
 
       // Filter by project relevance
-      const relevantServices = cloudMcpServices.filter(mcp => {
+      const relevantServices = cloudMcpServices.filter((mcp) => {
         const tags = mcp.tags || []
         const category = mcp.category || ''
         const compatibility = mcp.compatibility || {}
 
         // Check if MCP matches project
         return (
-          tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag)) ||
-          (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase())) ||
-          (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase())) ||
-          category === 'core' // Always include core services
+          tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag))
+          || (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase()))
+          || (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase()))
+          || category === 'core' // Always include core services
         )
       })
 
@@ -449,25 +452,28 @@ async function getRecommendedServices(
 
         if (localTemplate) {
           services.push(localTemplate)
-        } else {
+        }
+        else {
           // Create a template from cloud data
           const cloudTemplate: McpServiceTemplate = {
             id: mcp.id || mcp.name_en.toLowerCase().replace(/\s+/g, '-'),
             name: {
-              en: mcp.name_en,
-              'zh-CN': mcp.name_zh_cn || mcp.name_en
+              'en': mcp.name_en,
+              'zh-CN': mcp.name_zh_cn || mcp.name_en,
             },
             description: {
-              en: mcp.description_en || '',
-              'zh-CN': mcp.description_zh_cn || mcp.description_en || ''
+              'en': mcp.description_en || '',
+              'zh-CN': mcp.description_zh_cn || mcp.description_en || '',
             },
             type: 'stdio',
             command: mcp.npm_package ? 'npx' : 'node',
             args: mcp.npm_package ? ['-y', mcp.npm_package] : [],
             installCommand: mcp.install_command || `npm install -g ${mcp.npm_package || mcp.id}`,
+            installCheck: mcp.npm_package ? `npx ${mcp.npm_package} --version` : 'echo ok',
+            category: 'tooling',
             requiredFor: [],
             optionalFor: ['all'],
-            env: {}
+            env: {},
           }
           services.push(cloudTemplate)
         }
@@ -477,7 +483,8 @@ async function getRecommendedServices(
         return services
       }
     }
-  } catch (error) {
+  }
+  catch (error) {
     consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
   }
 
@@ -500,15 +507,15 @@ async function getRecommendedServices(
     }
 
     // Check if required for project type
-    if (service.requiredFor.includes(projectType) ||
-        service.requiredFor.includes('all')) {
+    if (service.requiredFor.includes(projectType)
+      || service.requiredFor.includes('all')) {
       services.push(service)
       continue
     }
 
     // Check if optional for project type
-    if (service.optionalFor.includes(projectType) ||
-        service.optionalFor.includes('all')) {
+    if (service.optionalFor.includes(projectType)
+      || service.optionalFor.includes('all')) {
       services.push(service)
       continue
     }
@@ -524,7 +531,7 @@ async function getRecommendedServices(
 
   // Remove duplicates
   const uniqueServices = Array.from(
-    new Map(services.map(s => [s.id, s])).values()
+    new Map(services.map(s => [s.id, s])).values(),
   )
 
   return uniqueServices
@@ -535,7 +542,7 @@ async function getRecommendedServices(
  */
 function filterServicesByTier(
   services: McpServiceTemplate[],
-  tier?: 'core' | 'ondemand' | 'scenario' | 'all'
+  tier?: 'core' | 'ondemand' | 'scenario' | 'all',
 ): McpServiceTemplate[] {
   if (!tier || tier === 'all') {
     return services
@@ -550,7 +557,7 @@ function filterServicesByTier(
  */
 function filterServicesByExclusion(
   services: McpServiceTemplate[],
-  exclude?: string[]
+  exclude?: string[],
 ): McpServiceTemplate[] {
   if (!exclude || exclude.length === 0) {
     return services
@@ -572,12 +579,12 @@ function isServiceInstalled(serviceId: string): boolean {
  */
 async function installServiceDependencies(
   service: McpServiceTemplate,
-  options: CcjkMcpOptions
+  options: CcjkMcpOptions,
 ): Promise<McpInstallResult> {
   const result: McpInstallResult = {
     id: service.id,
     name: i18n.language === 'zh-CN' ? service.name['zh-CN'] : service.name.en,
-    status: 'installed'
+    status: 'installed',
   }
 
   try {
@@ -598,9 +605,11 @@ async function installServiceDependencies(
     if (options.autoInstall) {
       consola.info(`Installing ${service.id}...`)
       const { exec } = await import('tinyexec')
-      await exec(service.installCommand, { cwd: cwd() })
+      const [cmd, ...args] = service.installCommand.split(' ')
+      await exec(cmd, args)
       result.dependenciesInstalled = true
-    } else {
+    }
+    else {
       result.status = 'skipped'
       result.error = i18n.language === 'zh-CN'
         ? '依赖未安装，使用 --auto-install 自动安装'
@@ -608,7 +617,8 @@ async function installServiceDependencies(
     }
 
     return result
-  } catch (error) {
+  }
+  catch (error) {
     result.status = 'failed'
     result.error = error instanceof Error ? error.message : String(error)
     return result
@@ -623,7 +633,8 @@ async function checkCommandExists(command: string): Promise<boolean> {
     // Extract command name (first part before space)
     const cmdName = command.split(' ')[0]
     return commandExists(cmdName)
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -634,9 +645,11 @@ async function checkCommandExists(command: string): Promise<boolean> {
 async function verifyService(service: McpServiceTemplate): Promise<boolean> {
   try {
     const { exec } = await import('tinyexec')
-    await exec(service.installCheck, { stdio: 'ignore', timeout: 5000 })
-    return true
-  } catch {
+    const [cmd, ...args] = service.installCheck.split(' ')
+    const result = await exec(cmd, args, { timeout: 5000 })
+    return result.exitCode === 0
+  }
+  catch {
     return false
   }
 }
@@ -666,14 +679,14 @@ export function formatResultForConsole(result: CcjkMcpResult): string {
   lines.push('')
 
   lines.push(ansis.bold(isZh ? '安装的服务' : 'Installed Services'))
-  result.installed.forEach(id => {
+  result.installed.forEach((id) => {
     lines.push(`  ${ansis.green('✓')} ${id}`)
   })
   lines.push('')
 
   if (result.skipped.length > 0) {
     lines.push(ansis.bold(isZh ? '跳过的服务' : 'Skipped Services'))
-    result.skipped.forEach(id => {
+    result.skipped.forEach((id) => {
       lines.push(`  ${ansis.yellow('○')} ${id}`)
     })
     lines.push('')
@@ -681,7 +694,7 @@ export function formatResultForConsole(result: CcjkMcpResult): string {
 
   if (result.failed.length > 0) {
     lines.push(ansis.bold(isZh ? '失败的服务' : 'Failed Services'))
-    result.failed.forEach(id => {
+    result.failed.forEach((id) => {
       lines.push(`  ${ansis.red('✗')} ${id}`)
     })
     lines.push('')

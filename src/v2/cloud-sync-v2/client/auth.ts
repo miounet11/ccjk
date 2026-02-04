@@ -3,12 +3,12 @@
  * Handles OAuth2 flows, JWT tokens, and API keys
  */
 
-import {
-  TokenResponse,
+import type {
   RefreshTokenResponse,
-  OAuthState,
+  TokenResponse,
+} from './types.js'
+import {
   AuthenticationError,
-  AuthorizationError,
 } from './types.js'
 
 export interface AuthConfig {
@@ -24,7 +24,7 @@ export class AuthManager {
 
   constructor(
     private baseURL: string,
-    private timeout: number = 30000
+    private timeout: number = 30000,
   ) {}
 
   /**
@@ -80,13 +80,14 @@ export class AuthManager {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ refreshToken }),
-        }
+        },
       )
 
       this.setTokens(response.accessToken, refreshToken, response.expiresIn)
 
       return response.accessToken
-    } catch (error) {
+    }
+    catch (error) {
       this.clearTokens()
       throw new AuthenticationError('Failed to refresh access token')
     }
@@ -162,7 +163,8 @@ export class AuthManager {
     try {
       const token = await this.getValidToken()
       return `Bearer ${token}`
-    } catch {
+    }
+    catch {
       return null
     }
   }
@@ -173,7 +175,7 @@ export class AuthManager {
    */
   authorizeWithGitHub(
     redirectUri: string,
-    scopes: string[] = ['read:user', 'user:email']
+    scopes: string[] = ['read:user', 'user:email'],
   ): string {
     const state = this.generateState()
     const params = new URLSearchParams({
@@ -191,7 +193,7 @@ export class AuthManager {
    */
   async handleGitHubCallback(
     code: string,
-    state: string
+    state: string,
   ): Promise<TokenResponse> {
     return this.request<TokenResponse>('/auth/github/callback', {
       method: 'POST',
@@ -208,7 +210,7 @@ export class AuthManager {
    */
   authorizeWithGoogle(
     redirectUri: string,
-    scopes: string[] = ['openid', 'profile', 'email']
+    scopes: string[] = ['openid', 'profile', 'email'],
   ): string {
     const state = this.generateState()
     const params = new URLSearchParams({
@@ -227,7 +229,7 @@ export class AuthManager {
    */
   async handleGoogleCallback(
     code: string,
-    state: string
+    state: string,
   ): Promise<TokenResponse> {
     return this.request<TokenResponse>('/auth/google/callback', {
       method: 'POST',
@@ -251,7 +253,8 @@ export class AuthManager {
         },
       })
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -261,7 +264,7 @@ export class AuthManager {
    */
   private async request<T>(
     path: string,
-    options: RequestInit
+    options: RequestInit,
   ): Promise<T> {
     const url = `${this.baseURL}${path}`
 
@@ -277,19 +280,20 @@ export class AuthManager {
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Unknown error' }))
+        const error = await response.json().catch(() => ({ message: 'Unknown error' })) as { message?: string }
         throw new AuthenticationError(error.message || 'Authentication failed')
       }
 
-      return await response.json()
-    } catch (error) {
+      return await response.json() as T
+    }
+    catch (error: unknown) {
       clearTimeout(timeoutId)
 
       if (error instanceof AuthenticationError) {
         throw error
       }
 
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new AuthenticationError('Request timeout')
       }
 
@@ -333,15 +337,18 @@ export class AuthTokenStorage {
   constructor(private storageKey: string = 'ccjk_auth_tokens') {}
 
   async save(config: AuthConfig): Promise<void> {
-    if (typeof window !== 'undefined' && window.localStorage) {
+    // Check for browser environment
+    const isBrowser = typeof globalThis !== 'undefined' && 'localStorage' in globalThis
+    if (isBrowser) {
       // Browser environment
       const encrypted = await this.encrypt(JSON.stringify(config))
-      localStorage.setItem(this.storageKey, encrypted)
-    } else if (typeof process !== 'undefined') {
+      ;(globalThis as any).localStorage.setItem(this.storageKey, encrypted)
+    }
+    else if (typeof process !== 'undefined') {
       // Node.js environment
-      const fs = await import('fs/promises')
-      const path = await import('path')
-      const os = await import('os')
+      const fs = await import('node:fs/promises')
+      const path = await import('node:path')
+      const os = await import('node:os')
 
       const configDir = path.join(os.homedir(), '.ccjk')
       const configPath = path.join(configDir, `${this.storageKey}.json`)
@@ -352,25 +359,30 @@ export class AuthTokenStorage {
   }
 
   async load(): Promise<AuthConfig | null> {
-    if (typeof window !== 'undefined' && window.localStorage) {
+    // Check for browser environment
+    const isBrowser = typeof globalThis !== 'undefined' && 'localStorage' in globalThis
+    if (isBrowser) {
       // Browser environment
-      const encrypted = localStorage.getItem(this.storageKey)
-      if (!encrypted) return null
+      const encrypted = (globalThis as any).localStorage.getItem(this.storageKey)
+      if (!encrypted)
+        return null
 
       const decrypted = await this.decrypt(encrypted)
       return JSON.parse(decrypted)
-    } else if (typeof process !== 'undefined') {
+    }
+    else if (typeof process !== 'undefined') {
       // Node.js environment
-      const fs = await import('fs/promises')
-      const path = await import('path')
-      const os = await import('os')
+      const fs = await import('node:fs/promises')
+      const path = await import('node:path')
+      const os = await import('node:os')
 
       const configPath = path.join(os.homedir(), '.ccjk', `${this.storageKey}.json`)
 
       try {
         const content = await fs.readFile(configPath, 'utf-8')
         return JSON.parse(content)
-      } catch {
+      }
+      catch {
         return null
       }
     }
@@ -379,18 +391,22 @@ export class AuthTokenStorage {
   }
 
   async clear(): Promise<void> {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem(this.storageKey)
-    } else if (typeof process !== 'undefined') {
-      const fs = await import('fs/promises')
-      const path = await import('path')
-      const os = await import('os')
+    // Check for browser environment
+    const isBrowser = typeof globalThis !== 'undefined' && 'localStorage' in globalThis
+    if (isBrowser) {
+      ;(globalThis as any).localStorage.removeItem(this.storageKey)
+    }
+    else if (typeof process !== 'undefined') {
+      const fs = await import('node:fs/promises')
+      const path = await import('node:path')
+      const os = await import('node:os')
 
       const configPath = path.join(os.homedir(), '.ccjk', `${this.storageKey}.json`)
 
       try {
         await fs.unlink(configPath)
-      } catch {
+      }
+      catch {
         // Ignore if file doesn't exist
       }
     }
@@ -414,7 +430,7 @@ export class AutoRefreshManager {
 
   constructor(
     private authManager: AuthManager,
-    private checkInterval: number = 60000 // Check every minute
+    private checkInterval: number = 60000, // Check every minute
   ) {}
 
   start(): void {
@@ -428,7 +444,8 @@ export class AutoRefreshManager {
           // This would use the isTokenExpired method if it were public
           await this.authManager.getValidToken()
         }
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Auto-refresh failed:', error)
       }
     }, this.checkInterval)

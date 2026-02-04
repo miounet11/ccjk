@@ -4,19 +4,19 @@ on:
   pull_request:
     paths:
       - 'src/i18n/locales/**'
-      - 'scripts/check-i18n.ts'
-      - '.github/workflows/i18n-check.yml'
+      - scripts/check-i18n.ts
+      - .github/workflows/i18n-check.yml
   push:
     branches:
       - main
       - develop
     paths:
       - 'src/i18n/locales/**'
-      - 'scripts/check-i18n.ts'
+      - scripts/check-i18n.ts
   workflow_dispatch:
     inputs:
       generate_report:
-        description: 'Generate detailed report'
+        description: Generate detailed report
         required: false
         default: false
         type: boolean
@@ -42,7 +42,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

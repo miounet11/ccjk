@@ -15,18 +15,14 @@
  * @module commands/thinking
  */
 
-import type { SupportedLang } from '../constants'
 import type { ThinkingCommandOptions, ThinkingTaskComplexity } from '../types/thinking'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import {
-  DEFAULT_BUDGET_TOKENS,
   getThinkingManager,
   MAX_BUDGET_TOKENS,
   MIN_BUDGET_TOKENS,
-  resetThinkingManager,
   shouldUseThinkingMode,
-  THINKING_SUPPORTED_MODELS,
 } from '../brain/thinking-mode'
 import { i18n } from '../i18n'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'

@@ -1,5 +1,5 @@
-import type { HookTrigger } from './types.js'
 import type { ProjectAnalysis } from '../analyzers/types.js'
+import type { HookTrigger } from './types.js'
 import { existsSync } from 'node:fs'
 import { join } from 'pathe'
 
@@ -8,7 +8,7 @@ import { join } from 'pathe'
  */
 export async function validateHookTrigger(
   trigger: HookTrigger,
-  projectInfo: ProjectAnalysis
+  projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   try {
     const { matcher, condition } = trigger
@@ -40,7 +40,8 @@ export async function validateHookTrigger(
       default:
         throw new Error(`Unknown trigger type: ${type}`)
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error(`Trigger validation failed: ${error}`)
     return false
   }
@@ -52,7 +53,7 @@ export async function validateHookTrigger(
 async function validateGitTrigger(
   pattern: string,
   condition: string | undefined,
-  projectInfo: ProjectAnalysis
+  projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   // Check if git repository exists
   const gitDir = join(process.cwd(), '.git')
@@ -79,7 +80,7 @@ async function validateGitTrigger(
     'update',
     'pre-applypatch',
     'post-applypatch',
-    'applypatch-msg'
+    'applypatch-msg',
   ]
 
   if (!validGitHooks.includes(pattern)) {
@@ -95,7 +96,7 @@ async function validateGitTrigger(
       'branch=',
       'files=',
       'message=',
-      'merge'
+      'merge',
     ]
 
     const hasValidCondition = validConditions.some(c => condition.includes(c))
@@ -118,7 +119,7 @@ async function validateGitTrigger(
 async function validateFileTrigger(
   pattern: string,
   condition: string | undefined,
-  projectInfo: ProjectAnalysis
+  projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   // Validate glob pattern
   if (!pattern || pattern.length === 0) {
@@ -132,7 +133,7 @@ async function validateFileTrigger(
     '**/.ccjk/**',
     '**/dist/**',
     '**/build/**',
-    '**/*.{exe,dll,so,dylib}'
+    '**/*.{exe,dll,so,dylib}',
   ]
 
   const isDangerous = dangerousPatterns.some(p => pattern.includes(p))
@@ -149,7 +150,7 @@ async function validateFileTrigger(
       'size>',
       'size<',
       'count>',
-      'count<'
+      'count<',
     ]
 
     const hasValidCondition = validFileConditions.some(c => condition.includes(c))
@@ -167,7 +168,7 @@ async function validateFileTrigger(
 async function validateCommandTrigger(
   pattern: string,
   condition: string | undefined,
-  projectInfo: ProjectAnalysis
+  projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   // Validate command pattern
   if (!pattern || pattern.length === 0) {
@@ -191,7 +192,7 @@ async function validateCommandTrigger(
     'pytest',
     'jest',
     'vitest',
-    'mocha'
+    'mocha',
   ]
 
   const isValidPattern = validPatterns.some(p => pattern.includes(p))
@@ -208,7 +209,7 @@ async function validateCommandTrigger(
       'duration<',
       'stdout=',
       'stderr=',
-      'output='
+      'output=',
     ]
 
     const hasValidCondition = validCommandConditions.some(c => condition.includes(c))
@@ -225,7 +226,7 @@ async function validateCommandTrigger(
  */
 async function validateScheduleTrigger(
   pattern: string,
-  condition: string | undefined
+  condition: string | undefined,
 ): Promise<boolean> {
   // Validate cron pattern
   const cronParts = pattern.split(' ')
@@ -235,23 +236,24 @@ async function validateScheduleTrigger(
 
   // Basic validation of cron parts
   const validateCronPart = (part: string, min: number, max: number): boolean => {
-    if (part === '*') return true
+    if (part === '*')
+      return true
     if (part.includes('/')) {
       const [, step] = part.split('/')
-      const stepNum = parseInt(step)
+      const stepNum = Number.parseInt(step)
       return !isNaN(stepNum) && stepNum > 0
     }
     if (part.includes('-')) {
       const [start, end] = part.split('-')
-      const startNum = parseInt(start)
-      const endNum = parseInt(end)
+      const startNum = Number.parseInt(start)
+      const endNum = Number.parseInt(end)
       return !isNaN(startNum) && !isNaN(endNum) && startNum <= endNum
     }
     if (part.includes(',')) {
       return part.split(',').every(p => validateCronPart(p, min, max))
     }
 
-    const num = parseInt(part)
+    const num = Number.parseInt(part)
     return !isNaN(num) && num >= min && num <= max
   }
 
@@ -261,7 +263,7 @@ async function validateScheduleTrigger(
     validateCronPart(cronParts[1], 0, 23), // hours
     validateCronPart(cronParts[2], 1, 31), // days
     validateCronPart(cronParts[3], 1, 12), // months
-    validateCronPart(cronParts[4], 0, 7),  // weekdays
+    validateCronPart(cronParts[4], 0, 7), // weekdays
   ]
 
   if (!validations.every(v => v)) {
@@ -276,7 +278,7 @@ async function validateScheduleTrigger(
  */
 async function validateWebhookTrigger(
   pattern: string,
-  condition: string | undefined
+  condition: string | undefined,
 ): Promise<boolean> {
   // Validate webhook URL
   try {
@@ -284,7 +286,8 @@ async function validateWebhookTrigger(
     if (!['http:', 'https:'].includes(url.protocol)) {
       throw new Error(`Invalid webhook protocol: ${url.protocol}`)
     }
-  } catch {
+  }
+  catch {
     throw new Error(`Invalid webhook URL: ${pattern}`)
   }
 
@@ -295,7 +298,7 @@ async function validateWebhookTrigger(
       'header=',
       'body=',
       'status=',
-      'content-type='
+      'content-type=',
     ]
 
     const hasValidCondition = validWebhookConditions.some(c => condition.includes(c))
@@ -315,7 +318,7 @@ export async function testHookTrigger(
   context: {
     event: string
     data?: any
-  }
+  },
 ): Promise<boolean> {
   const { matcher, condition } = trigger
   const [type, pattern] = matcher.split(':', 2)
@@ -325,7 +328,8 @@ export async function testHookTrigger(
       return context.event === `git:${pattern}`
 
     case 'file':
-      if (context.event !== 'file:change') return false
+      if (context.event !== 'file:change')
+        return false
       // Check if changed files match pattern
       const changedFiles = context.data?.files || []
       return changedFiles.some((file: string) => {
@@ -365,12 +369,12 @@ export async function getTriggerStats(): Promise<{
       file: 10,
       command: 8,
       schedule: 3,
-      webhook: 1
+      webhook: 1,
     },
     byStatus: {
       active: 35,
-      inactive: 7
-    }
+      inactive: 7,
+    },
   }
 }
 
@@ -378,7 +382,7 @@ export async function getTriggerStats(): Promise<{
  * Detect potential trigger conflicts
  */
 export async function detectTriggerConflicts(
-  triggers: HookTrigger[]
+  triggers: HookTrigger[],
 ): Promise<Array<{
   trigger1: HookTrigger
   trigger2: HookTrigger
@@ -401,7 +405,7 @@ export async function detectTriggerConflicts(
         conflicts.push({
           trigger1: t1,
           trigger2: t2,
-          conflict: 'Identical matchers'
+          conflict: 'Identical matchers',
         })
       }
 
@@ -415,7 +419,7 @@ export async function detectTriggerConflicts(
           conflicts.push({
             trigger1: t1,
             trigger2: t2,
-            conflict: 'Potentially overlapping file patterns'
+            conflict: 'Potentially overlapping file patterns',
           })
         }
       }
@@ -429,7 +433,7 @@ export async function detectTriggerConflicts(
  * Optimize trigger performance
  */
 export async function optimizeTriggers(
-  triggers: HookTrigger[]
+  triggers: HookTrigger[],
 ): Promise<{
   optimized: HookTrigger[]
   suggestions: string[]
@@ -439,7 +443,8 @@ export async function optimizeTriggers(
   // Group similar triggers
   const byType = triggers.reduce((groups, trigger) => {
     const type = trigger.matcher.split(':')[0]
-    if (!groups[type]) groups[type] = []
+    if (!groups[type])
+      groups[type] = []
     groups[type].push(trigger)
     return groups
   }, {} as Record<string, HookTrigger[]>)
@@ -448,7 +453,7 @@ export async function optimizeTriggers(
   for (const [type, typeTriggers] of Object.entries(byType)) {
     if (typeTriggers.length > 5) {
       suggestions.push(
-        `Consider combining ${typeTriggers.length} ${type} triggers for better performance`
+        `Consider combining ${typeTriggers.length} ${type} triggers for better performance`,
       )
     }
 
@@ -458,13 +463,13 @@ export async function optimizeTriggers(
 
       if (type === 'file' && pattern.includes('**/**')) {
         suggestions.push(
-          `Trigger "${trigger.matcher}" uses inefficient pattern, consider using single **`
+          `Trigger "${trigger.matcher}" uses inefficient pattern, consider using single **`,
         )
       }
 
       if (type === 'command' && pattern.includes('*')) {
         suggestions.push(
-          `Command trigger "${trigger.matcher}" uses wildcard which may impact performance`
+          `Command trigger "${trigger.matcher}" uses wildcard which may impact performance`,
         )
       }
     }
@@ -472,6 +477,6 @@ export async function optimizeTriggers(
 
   return {
     optimized: triggers, // For now, return same triggers
-    suggestions
+    suggestions,
   }
 }

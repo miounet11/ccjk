@@ -8,12 +8,12 @@
  * @module context/startup
  */
 
-import { mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
+import { mkdir } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
-import { getCompactAdvisor } from './compact-advisor'
 import { getPlanPersistenceManager } from '../workflow/plan-persistence'
+import { getCompactAdvisor } from './compact-advisor'
 
 /**
  * Plan directories to ensure exist

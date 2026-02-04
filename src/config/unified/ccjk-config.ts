@@ -5,10 +5,10 @@
  * This replaces the functionality from ccjk-config.ts with a cleaner API
  */
 
-import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../../constants'
+import type { CodeToolType, SupportedLang } from '../../constants'
 import type { ClaudeCodeProfile } from '../../types/claude-code-config'
 import type { ZcfTomlConfig } from '../../types/toml-config'
-import type { CcjkConfig, ClaudeCodeToolConfig, CodexToolConfig, GeneralConfig, PartialCcjkConfig, ToolsConfig } from './types'
+import type { CcjkConfig, ClaudeCodeToolConfig, CodexToolConfig, GeneralConfig, PartialCcjkConfig } from './types'
 
 import { dirname } from 'pathe'
 import { parse, stringify } from 'smol-toml'

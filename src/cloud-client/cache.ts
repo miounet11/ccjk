@@ -7,18 +7,18 @@
 
 import type { CloudClient } from './client'
 import type {
-  ProjectAnalysisResponse,
-  TemplateResponse,
   BatchTemplateRequest,
   BatchTemplateResponse,
   CacheEntry,
   CloudClientConfig,
   ProjectAnalysisRequest,
+  ProjectAnalysisResponse,
+  TemplateResponse,
 } from './types'
-import consola from 'consola'
-import { hash } from 'ohash'
 import fs from 'node:fs'
 import path from 'node:path'
+import consola from 'consola'
+import { hash } from 'ohash'
 
 /**
  * Simple in-memory cache with filesystem persistence
@@ -196,7 +196,7 @@ export class CloudCache {
   /**
    * Get cache statistics
    */
-  getStats(): { size: number; keys: string[] } {
+  getStats(): { size: number, keys: string[] } {
     return {
       size: this.memoryCache.size,
       keys: Array.from(this.memoryCache.keys()),

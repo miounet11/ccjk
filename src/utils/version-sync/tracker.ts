@@ -7,7 +7,7 @@ import { existsSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
-import { compare, valid } from 'semver'
+import semver from 'semver'
 import { exec } from 'tinyexec'
 
 export interface VersionInfo {
@@ -34,7 +34,7 @@ async function detectFromCLI(): Promise<string | null> {
 
     // Parse version from output like "claude 2.1.9" or "2.1.9"
     const match = output.match(/(\d+\.\d+\.\d+)/)
-    if (match && valid(match[1])) {
+    if (match && semver.valid(match[1])) {
       return match[1]
     }
   }
@@ -55,7 +55,7 @@ async function detectFromNPM(): Promise<string | null> {
 
     // Navigate npm list structure
     const claudeCode = data.dependencies?.['@anthropic-ai/claude-code']
-    if (claudeCode?.version && valid(claudeCode.version)) {
+    if (claudeCode?.version && semver.valid(claudeCode.version)) {
       return claudeCode.version
     }
   }
@@ -179,7 +179,7 @@ export async function getVersionHistory(): Promise<VersionHistory | null> {
  * Compare two versions
  */
 export function compareVersions(v1: string, v2: string): number {
-  return compare(v1, v2)
+  return semver.compare(v1, v2)
 }
 
 /**

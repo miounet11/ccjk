@@ -2,17 +2,10 @@
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["ES2020"],
-    "rootDir": "./src",
     "baseUrl": ".",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "strict": true,
-    "declaration": true,
-    "outDir": "./dist",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
+    "rootDir": "./src",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "paths": {
       "@ccjk/v2/hooks": ["src/v2/hooks-v2"],
       "@ccjk/v2/skills": ["src/v2/skills-v2"],
@@ -23,8 +16,17 @@
       "@ccjk/v2/actionbook": ["src/v2/actionbook"],
       "@ccjk/v2/integration": ["src/v2/integration"],
       "@ccjk/v2/*": ["src/v2/*"]
-    }
+    },
+    "resolveJsonModule": true,
+    "strict": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "downlevelIteration": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/examples/**"]
 }

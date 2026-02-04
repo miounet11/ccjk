@@ -162,7 +162,7 @@ const ORCHESTRATION_RULES: Record<IntentType, OrchestrationRule> = {
     intent: IntentType.INQUIRY,
     minConfidence: 0.3,
     primaryStrategy: {
-      type: 'builtin',
+      type: 'skill',
       name: 'answer',
       action: 'respond',
     },
@@ -372,7 +372,7 @@ export class AutoOrchestrator {
    */
   private createStepFromStrategy(
     strategy: {
-      type: 'skill' | 'agent' | 'mcp' | 'hybrid' | 'builtin'
+      type: 'skill' | 'agent' | 'mcp' | 'hybrid'
       name: string
       action: string
     },
@@ -382,9 +382,13 @@ export class AutoOrchestrator {
   ): OrchestrationStep {
     const estimatedDuration = this.getEstimatedDuration(strategy.type)
 
+    // Map 'hybrid' to 'skill' for the step type
+    const stepType: 'skill' | 'agent' | 'mcp' | 'builtin' =
+      strategy.type === 'hybrid' ? 'skill' : strategy.type as 'skill' | 'agent' | 'mcp'
+
     return {
       id: `${strategy.type}-${strategy.name}-${Date.now()}`,
-      type: strategy.type as 'skill' | 'agent' | 'mcp' | 'builtin',
+      type: stepType,
       name: strategy.name,
       action: strategy.action,
       order,
@@ -405,6 +409,7 @@ export class AutoOrchestrator {
   private getEstimatedDuration(type: string): number {
     switch (type) {
       case 'skill':
+      case 'hybrid':
         return this.config.defaultSkillDuration
       case 'agent':
         return this.config.defaultAgentDuration
@@ -462,7 +467,7 @@ export class AutoOrchestrator {
     // Collect MCPs
     const mcpSteps = steps.filter(s => s.type === 'mcp')
     if (mcpSteps.length > 0) {
-      resources.mcps = [...new Set(mcpSteps.map(s => s.name))]
+      resources.mcps = Array.from(new Set(mcpSteps.map(s => s.name)))
     }
 
     return resources

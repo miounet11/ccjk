@@ -7,9 +7,8 @@
  */
 
 import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
 import * as os from 'node:os'
-import { spawn } from 'node:child_process'
+import * as path from 'node:path'
 
 /**
  * Session metadata
@@ -80,7 +79,8 @@ export class SessionManager {
     try {
       const data = await fs.readFile(sessionPath, 'utf-8')
       session = JSON.parse(data)
-    } catch {
+    }
+    catch {
       session = {
         metadata: {
           id: this.currentSessionId,
@@ -122,7 +122,8 @@ export class SessionManager {
       const loaded = JSON.parse(data)
       this.currentSessionId = identifier
       return loaded
-    } catch {
+    }
+    catch {
       return null
     }
   }
@@ -185,7 +186,8 @@ export class SessionManager {
       const session = JSON.parse(data)
       await this.saveSessionToFile(this.currentSessionId, session)
       return session
-    } catch {
+    }
+    catch {
       return null
     }
   }
@@ -233,13 +235,14 @@ export class SessionManager {
         const data = await fs.readFile(sessionPath, 'utf-8')
         const session = JSON.parse(data) as Session
         sessions.push(session.metadata)
-      } catch {
+      }
+      catch {
         // Skip invalid sessions
       }
     }
 
     return sessions.sort((a, b) =>
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     )
   }
 
@@ -291,7 +294,8 @@ export class SessionManager {
       }
 
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -314,15 +318,17 @@ export class SessionManager {
           const data = await fs.readFile(snapshotPath, 'utf-8')
           const snapshot = JSON.parse(data) as SessionSnapshot
           snapshots.push(snapshot)
-        } catch {
+        }
+        catch {
           // Skip invalid snapshots
         }
       }
 
       return snapshots.sort((a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       )
-    } catch {
+    }
+    catch {
       return []
     }
   }
@@ -365,5 +371,3 @@ export class SessionManager {
     return `${sessionId}-snap-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   }
 }
-
-export { SessionManager }

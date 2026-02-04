@@ -12,9 +12,9 @@
  *   ccjk qs                       - Short alias
  */
 
-import type { SupportedLang, CodeToolType } from '../constants'
-import type { InitOptions } from './init'
 import type { SmartDefaults } from '../config/smart-defaults'
+import type { CodeToolType, SupportedLang } from '../constants'
+import type { InitOptions } from './init'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { version } from '../../package.json'
@@ -59,7 +59,7 @@ function displayHeader(): void {
   console.log('')
   console.log(ansis.bold.green('⚡ CCJK Quick Setup'))
   console.log(ansis.gray(`   v${version} • One-click configuration`))
-  console.log(ansis.gray('   ' + '─'.repeat(50)))
+  console.log(ansis.gray(`   ${'─'.repeat(50)}`))
   console.log('')
 }
 
@@ -79,7 +79,7 @@ function displaySuccess(result: QuickSetupResult, defaults: SmartDefaults): void
 
   console.log('')
   console.log(ansis.bold.green('✅ Setup Complete!'))
-  console.log(ansis.gray('   ' + '─'.repeat(50)))
+  console.log(ansis.gray(`   ${'─'.repeat(50)}`))
   console.log('')
   console.log(ansis.bold('📦 Configured:'))
   console.log(`  • MCP Services: ${ansis.green(defaults.mcpServices.join(', '))}`)
@@ -106,7 +106,7 @@ function displaySuccess(result: QuickSetupResult, defaults: SmartDefaults): void
 function displayError(result: QuickSetupResult): void {
   console.log('')
   console.log(ansis.bold.red('❌ Setup Failed'))
-  console.log(ansis.gray('   ' + '─'.repeat(50)))
+  console.log(ansis.gray(`   ${'─'.repeat(50)}`))
   console.log('')
 
   if (result.errors) {

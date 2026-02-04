@@ -6,9 +6,6 @@
  * @module cloud-sync-v2/offline-queue
  */
 
-import { createHash, randomUUID } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
 import type {
   CRDTSnapshot,
   OperationType,
@@ -16,8 +13,10 @@ import type {
   QueuedOperation,
   QueueState,
   SyncItemType,
-  Timestamp,
 } from './types'
+import { randomUUID } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { DEFAULT_QUEUE_CONFIG } from './types'
 
 // ============================================================================

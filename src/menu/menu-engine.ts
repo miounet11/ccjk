@@ -3,16 +3,16 @@
  */
 
 import type {
-  MenuItem,
-  MenuConfig,
-  MenuState,
-  MenuSelection,
-  ProjectInfo,
   ApiStatus,
+  MenuConfig,
+  MenuItem,
   MenuRenderOptions,
+  MenuSelection,
+  MenuState,
+  ProjectInfo,
 } from './types.js'
+import { getLocalizedLabel, mainMenuConfig } from './menu-config.js'
 import { MenuRenderer } from './menu-renderer.js'
-import { mainMenuConfig, getLocalizedLabel } from './menu-config.js'
 
 /**
  * 菜单引擎类
@@ -74,7 +74,8 @@ export class MenuEngine {
       // 动态导入以避免循环依赖
       const { detectProjectInfo } = await import('./utils/project-detector.js')
       this.state.projectInfo = await detectProjectInfo()
-    } catch {
+    }
+    catch {
       // 如果检测失败，使用默认值
       this.state.projectInfo = {
         name: 'Unknown',
@@ -92,7 +93,8 @@ export class MenuEngine {
       // 动态导入以避免循环依赖
       const { detectApiStatus } = await import('./adapters/api-adapter.js')
       this.state.apiStatus = await detectApiStatus()
-    } catch {
+    }
+    catch {
       // 如果检测失败，使用默认值
       this.state.apiStatus = {
         configured: false,
@@ -105,7 +107,8 @@ export class MenuEngine {
    * 执行菜单动作
    */
   private async executeAction(item: MenuItem): Promise<boolean> {
-    if (!item.action) return false
+    if (!item.action)
+      return false
 
     const { type, handler } = item.action
 
@@ -176,7 +179,7 @@ export class MenuEngine {
 
           const subSelection = await this.renderer.renderSubmenu(
             item,
-            this.state.currentPath
+            this.state.currentPath,
           )
 
           return this.handleSelection(subSelection)
@@ -204,7 +207,7 @@ export class MenuEngine {
         const selection = await this.renderer.renderMainMenu(
           this.config,
           this.state.projectInfo,
-          this.state.apiStatus
+          this.state.apiStatus,
         )
 
         // 处理选择
@@ -213,11 +216,13 @@ export class MenuEngine {
         if (result === 'exit') {
           running = false
         }
-      } catch (error) {
+      }
+      catch (error) {
         // 处理用户中断 (Ctrl+C)
         if ((error as any)?.isTtyError || (error as any)?.message?.includes('User force closed')) {
           running = false
-        } else {
+        }
+        else {
           console.error('Menu error:', error)
           running = false
         }

@@ -38,7 +38,7 @@ export function parseArgs(input: string): string[] {
       continue
     }
 
-    if ((char === '"' || char === "'") && !inQuote) {
+    if ((char === '"' || char === '\'') && !inQuote) {
       inQuote = true
       quoteChar = char
       continue
@@ -145,7 +145,7 @@ export function validateArgs(
           break
         case 'path':
           // Basic path validation - no null bytes or control characters
-          if (/[\x00-\x1f]/.test(value)) {
+          if (/[\x00-\x1F]/.test(value)) {
             errors.push(`Argument $${i} (${def.name}) contains invalid path characters`)
           }
           break
@@ -200,10 +200,10 @@ export function processSkillArgs(
   rawArgs: string,
   definitions?: SkillArgument[],
 ): {
-    content: string
-    args: string[]
-    errors: string[]
-  } {
+  content: string
+  args: string[]
+  errors: string[]
+} {
   // Parse raw arguments
   let args = parseArgs(rawArgs)
 

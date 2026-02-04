@@ -1,0 +1,64 @@
+{
+  "templates": [
+    {
+      "id": "react-specialist",
+      "name": "React Specialist",
+      "category": "frontend",
+      "priority": 1,
+      "file": "react-specialist.json",
+      "tags": ["react", "nextjs", "frontend", "performance", "accessibility"],
+      "frameworks": ["react", "nextjs"],
+      "languages": ["typescript", "javascript"]
+    },
+    {
+      "id": "typescript-architect",
+      "name": "TypeScript Architect",
+      "category": "fullstack",
+      "priority": 1,
+      "file": "typescript-architect.json",
+      "tags": ["typescript", "architecture", "design-patterns"],
+      "frameworks": [],
+      "languages": ["typescript"]
+    },
+    {
+      "id": "fullstack-developer",
+      "name": "Fullstack Developer",
+      "category": "fullstack",
+      "priority": 2,
+      "file": "fullstack-developer.json",
+      "tags": ["fullstack", "api", "database", "frontend", "backend"],
+      "frameworks": ["react", "nextjs", "express", "nestjs"],
+      "languages": ["typescript", "javascript"]
+    },
+    {
+      "id": "python-expert",
+      "name": "Python Expert",
+      "category": "backend",
+      "priority": 1,
+      "file": "python-expert.json",
+      "tags": ["python", "django", "fastapi", "flask", "data-science"],
+      "frameworks": ["django", "fastapi", "flask"],
+      "languages": ["python"]
+    },
+    {
+      "id": "go-expert",
+      "name": "Go Expert",
+      "category": "backend",
+      "priority": 1,
+      "file": "go-expert.json",
+      "tags": ["go", "golang", "microservices", "performance"],
+      "frameworks": ["gin", "echo", "fiber"],
+      "languages": ["go"]
+    },
+    {
+      "id": "testing-automation-expert",
+      "name": "Testing Automation Expert",
+      "category": "testing",
+      "priority": 2,
+      "file": "testing-automation-expert.json",
+      "tags": ["testing", "automation", "ci-cd", "quality"],
+      "frameworks": ["jest", "vitest", "playwright", "cypress"],
+      "languages": ["typescript", "javascript", "python"]
+    }
+  ]
+}

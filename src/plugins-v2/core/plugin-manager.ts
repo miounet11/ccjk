@@ -28,22 +28,24 @@ import type {
   PluginPackage,
   PluginSource,
   ScriptDefinition,
+  ScriptResult,
+  SkillDocument,
   UpdateInfo,
 } from '../types'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { x } from 'tinyexec'
+import { CCJK_CONFIG_DIR, CCJK_PLUGINS_DIR, CCJK_SKILLS_DIR, CLAUDE_AGENTS_DIR } from '../../constants'
+import { getAgentsDir, writeAgentFile } from '../agent-writer'
 import { getIntentEngine } from '../intent/intent-engine'
 import { getScriptRunner } from '../scripts/script-runner'
-import { getSkillParser } from '../skills/skill-parser'
-import { writeAgentFile, getAgentsDir } from '../agent-writer'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-import { CCJK_PLUGINS_DIR, CCJK_SKILLS_DIR, CLAUDE_AGENTS_DIR, CCJK_CONFIG_DIR } from '../../constants'
+import { getSkillParser } from '../skills/skill-parser'
 
 const PLUGINS_DIR = CCJK_PLUGINS_DIR
 const SKILLS_DIR = CCJK_SKILLS_DIR
@@ -355,7 +357,7 @@ export class PluginManager {
     }
 
     // Load SKILL.md if exists
-    const skill = existsSync(skillPath) ? parser.parse(skillPath) : undefined
+    const skill = existsSync(skillPath) ? await Promise.resolve(parser.parse(skillPath)) : undefined
 
     // Load scripts
     const scripts = this.loadScripts(dirPath)
@@ -375,7 +377,7 @@ export class PluginManager {
   /**
    * Generate manifest from SKILL.md
    */
-  private generateManifestFromSkill(skill: ReturnType<typeof getSkillParser>['parse'], dirPath: string): PluginManifest {
+  private generateManifestFromSkill(skill: SkillDocument, dirPath: string): PluginManifest {
     const dirName = dirPath.split('/').pop() || 'unknown'
 
     return {
@@ -483,7 +485,7 @@ export class PluginManager {
   private registerAllIntents(): void {
     const engine = getIntentEngine()
 
-    for (const plugin of this.plugins.values()) {
+    for (const plugin of Array.from(this.plugins.values())) {
       if (plugin.intents) {
         engine.registerRules(plugin.intents)
       }
@@ -550,7 +552,7 @@ export class PluginManager {
    * Writes agent to project-local `.claude/agents/` in Markdown format
    * for Claude Code compatibility.
    */
-  async createAgent(definition: AgentDefinition, options?: { projectDir?: string; global?: boolean }): Promise<void> {
+  async createAgent(definition: AgentDefinition, options?: { projectDir?: string, global?: boolean }): Promise<void> {
     // Validate skills exist
     for (const skillRef of definition.skills) {
       if (!this.plugins.has(skillRef.pluginId)) {
@@ -603,7 +605,8 @@ export class PluginManager {
             if (agent) {
               this.agents.set(agent.id, agent)
             }
-          } catch {
+          }
+          catch {
             // Skip invalid agent files
           }
         }
@@ -622,7 +625,8 @@ export class PluginManager {
             if (!this.agents.has(agent.id)) {
               this.agents.set(agent.id, agent)
             }
-          } catch {
+          }
+          catch {
             // Skip invalid agent files
           }
         }
@@ -636,7 +640,8 @@ export class PluginManager {
   private parseMarkdownAgent(content: string, filename: string): AgentDefinition | null {
     // Extract frontmatter
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/)
-    if (!frontmatterMatch) return null
+    if (!frontmatterMatch)
+      return null
 
     const frontmatter = frontmatterMatch[1]
     const lines = frontmatter.split('\n')
@@ -648,7 +653,8 @@ export class PluginManager {
 
     for (const line of lines) {
       const colonIndex = line.indexOf(':')
-      if (colonIndex === -1) continue
+      if (colonIndex === -1)
+        continue
 
       const key = line.slice(0, colonIndex).trim()
       const value = line.slice(colonIndex + 1).trim()
@@ -656,9 +662,11 @@ export class PluginManager {
       if (key === 'name') {
         id = value
         name = value
-      } else if (key === 'description') {
+      }
+      else if (key === 'description') {
         description = value
-      } else if (key === 'tools') {
+      }
+      else if (key === 'tools') {
         tools.push(...value.split(',').map(t => t.trim()).filter(Boolean))
       }
     }
@@ -669,9 +677,10 @@ export class PluginManager {
 
     return {
       id,
-      name: { en: name, 'zh-CN': name },
-      description: { en: description, 'zh-CN': description },
+      name: { 'en': name, 'zh-CN': name },
+      description: { 'en': description, 'zh-CN': description },
       persona,
+      instructions: persona, // Use persona as instructions
       skills: [],
       mcpServers: [],
       capabilities: [],
@@ -740,7 +749,7 @@ export class PluginManager {
     pluginId: string,
     scriptName: string,
     options: { args?: string[], cwd?: string } = {},
-  ): Promise<ReturnType<typeof getScriptRunner>['execute']> {
+  ): Promise<ScriptResult> {
     const plugin = this.plugins.get(pluginId)
     if (!plugin) {
       throw new Error(`Plugin not found: ${pluginId}`)
@@ -785,7 +794,7 @@ export class PluginManager {
    * Emit an event
    */
   private emit(event: PluginEvent): void {
-    for (const handler of this.eventHandlers) {
+    for (const handler of Array.from(this.eventHandlers)) {
       try {
         handler(event)
       }

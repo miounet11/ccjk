@@ -5,8 +5,7 @@
  * Maintains a bidirectional dependency graph for cascade updates.
  */
 
-import type { SymbolTable, Import } from '../types.js'
-import * as fs from 'node:fs/promises'
+import type { SymbolTable } from '../types.js'
 import * as path from 'node:path'
 
 /**
@@ -97,8 +96,9 @@ export class DependencyTracker {
     while (queue.length > 0) {
       const current = queue.shift()!
       const directDependents = this.getDependents(current)
+      const dependentsArray = Array.from(directDependents)
 
-      for (const dependent of directDependents) {
+      for (const dependent of dependentsArray) {
         if (!transitive.has(dependent)) {
           transitive.add(dependent)
           queue.push(dependent)
@@ -120,8 +120,9 @@ export class DependencyTracker {
     while (queue.length > 0) {
       const current = queue.shift()!
       const directDeps = this.getDependencies(current)
+      const depsArray = Array.from(directDeps)
 
-      for (const dep of directDeps) {
+      for (const dep of depsArray) {
         if (!visited.has(dep)) {
           visited.add(dep)
           transitive.add(dep)
@@ -148,7 +149,8 @@ export class DependencyTracker {
       path.push(node)
 
       const neighbors = this.graph.edges.get(node) || new Set()
-      for (const neighbor of neighbors) {
+      const neighborsArray = Array.from(neighbors)
+      for (const neighbor of neighborsArray) {
         if (!visited.has(neighbor)) {
           if (dfs(neighbor)) {
             return true
@@ -166,7 +168,8 @@ export class DependencyTracker {
       return false
     }
 
-    for (const node of this.graph.nodes.keys()) {
+    const nodesArray = Array.from(this.graph.nodes.keys())
+    for (const node of nodesArray) {
       if (!visited.has(node)) {
         dfs(node)
       }
@@ -181,9 +184,10 @@ export class DependencyTracker {
   getAffectedFiles(filePath: string): Set<string> {
     const affected = new Set<string>()
     const dependents = this.getTransitiveDependents(filePath)
+    const dependentsArray = Array.from(dependents)
 
     // Add all transitive dependents
-    for (const dependent of dependents) {
+    for (const dependent of dependentsArray) {
       affected.add(dependent)
     }
 
@@ -201,7 +205,8 @@ export class DependencyTracker {
     const node = this.graph.nodes.get(filePath)
     if (node) {
       // Remove from dependents of dependencies
-      for (const dep of node.dependencies) {
+      const depsArray = Array.from(node.dependencies)
+      for (const dep of depsArray) {
         const depNode = this.graph.nodes.get(dep)
         if (depNode) {
           depNode.dependents.delete(filePath)
@@ -215,7 +220,8 @@ export class DependencyTracker {
     this.graph.edges.delete(filePath)
 
     // Remove edges pointing to this file
-    for (const [source, targets] of this.graph.edges) {
+    const edgesArray = Array.from(this.graph.edges)
+    for (const [source, targets] of edgesArray) {
       targets.delete(filePath)
     }
   }
@@ -239,8 +245,9 @@ export class DependencyTracker {
   } {
     let totalDependencies = 0
     let totalDependents = 0
+    const nodesArray = Array.from(this.graph.nodes.values())
 
-    for (const node of this.graph.nodes.values()) {
+    for (const node of nodesArray) {
       totalDependencies += node.dependencies.size
       totalDependents += node.dependents.size
     }
@@ -250,7 +257,8 @@ export class DependencyTracker {
     const avgDependents = nodeCount > 0 ? totalDependents / nodeCount : 0
 
     let edgeCount = 0
-    for (const targets of this.graph.edges.values()) {
+    const edgesValuesArray = Array.from(this.graph.edges.values())
+    for (const targets of edgesValuesArray) {
       edgeCount += targets.size
     }
 
@@ -316,7 +324,7 @@ export class DependencyTracker {
 
       // Add .ts extension if missing
       if (!path.extname(resolved)) {
-        return resolved + '.ts'
+        return `${resolved}.ts`
       }
 
       return resolved

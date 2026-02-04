@@ -1,4 +1,4 @@
-import type { UnifiedPlugin, UnifiedPluginConfig, PluginSourceType, SearchOptions } from './types'
+import type { PluginSourceType, SearchOptions, UnifiedPlugin, UnifiedPluginConfig } from './types'
 import { AdapterFactory } from './adapters/factory'
 
 export interface RouterContext {
@@ -112,8 +112,9 @@ export class PluginRouter {
     nativePlugin: UnifiedPlugin,
     context: RouterContext,
   ): PluginSourceType {
-    // Priority 1: User preference from config
-    const preferredSources = context.config.preferredSources
+    // Priority 1: User preference from config (if available)
+    // Note: preferredSources is optional in UnifiedPluginConfig
+    const preferredSources = (context.config as any).preferredSources as PluginSourceType[] | undefined
     if (preferredSources && preferredSources.length > 0) {
       for (const source of preferredSources) {
         if (source === 'ccjk' && ccjkPlugin)
@@ -215,7 +216,7 @@ export class PluginRouter {
 
     // If explicit source specified, search only that source
     if (context.explicitSource) {
-      const adapter = AdapterFactory.create(context.explicitSource, this.config)
+      const adapter = AdapterFactory.getAdapter(context.explicitSource)
       return adapter.search(searchOptions)
     }
 
@@ -283,8 +284,8 @@ export class PluginRouter {
 
     try {
       const adapter = AdapterFactory.getAdapter(source)
-      await adapter.install(parsed.name)
-      return { success: true, source }
+      const result = await adapter.install(parsed.name, {})
+      return { success: result.success, source, error: result.error }
     }
     catch (error) {
       return {

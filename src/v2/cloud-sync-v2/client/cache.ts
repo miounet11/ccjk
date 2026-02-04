@@ -2,7 +2,14 @@
  * Response cache for API requests
  */
 
-import { ResponseCache, CacheEntry, CacheConfig } from './types.js'
+import type { CacheConfig, CacheEntry } from './types.js'
+
+export interface ResponseCache {
+  get<T>(key: string): Promise<T | null>
+  set<T>(key: string, value: T, ttl?: number): Promise<void>
+  invalidate(pattern: string): Promise<void>
+  clear(): Promise<void>
+}
 
 export class ResponseCacheImpl implements ResponseCache {
   private cache = new Map<string, CacheEntry<any>>()
@@ -16,10 +23,12 @@ export class ResponseCacheImpl implements ResponseCache {
    * Get a cached response
    */
   async get<T>(key: string): Promise<T | null> {
-    if (!this.config.enabled) return null
+    if (!this.config.enabled)
+      return null
 
     const entry = this.cache.get(key)
-    if (!entry) return null
+    if (!entry)
+      return null
 
     // Check if entry has expired
     if (Date.now() > entry.expiresAt) {
@@ -34,7 +43,8 @@ export class ResponseCacheImpl implements ResponseCache {
    * Cache a response
    */
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
-    if (!this.config.enabled) return
+    if (!this.config.enabled)
+      return
 
     const now = Date.now()
     const expiresAt = now + (ttl ?? this.config.defaultTTL)
@@ -60,7 +70,8 @@ export class ResponseCacheImpl implements ResponseCache {
     const regex = new RegExp(pattern)
     const keysToDelete: string[] = []
 
-    for (const key of this.cache.keys()) {
+    const keys = Array.from(this.cache.keys())
+    for (const key of keys) {
       if (regex.test(key)) {
         keysToDelete.push(key)
       }
@@ -92,7 +103,8 @@ export class ResponseCacheImpl implements ResponseCache {
     let oldestEntry = now
     let newestEntry = 0
 
-    for (const entry of this.cache.values()) {
+    const entries = Array.from(this.cache.values())
+    for (const entry of entries) {
       oldestEntry = Math.min(oldestEntry, entry.cachedAt)
       newestEntry = Math.max(newestEntry, entry.cachedAt)
     }
@@ -113,7 +125,8 @@ export class ResponseCacheImpl implements ResponseCache {
     let oldestKey: string | null = null
     let oldestTime = Date.now()
 
-    for (const [key, entry] of this.cache.entries()) {
+    const entries = Array.from(this.cache.entries())
+    for (const [key, entry] of entries) {
       if (entry.cachedAt < oldestTime) {
         oldestTime = entry.cachedAt
         oldestKey = key
@@ -183,7 +196,7 @@ export class CacheKeyBuilder {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash + char) & 0xffffffff
+      hash = ((hash << 5) - hash + char) & 0xFFFFFFFF
     }
     return Math.abs(hash).toString(16)
   }
@@ -257,7 +270,7 @@ export function parseCacheHeaders(headers: Headers): CacheHeaders {
 
     const maxAgeMatch = cacheControl.match(/max-age=(\d+)/)
     if (maxAgeMatch) {
-      result.maxAge = parseInt(maxAgeMatch[1], 10) * 1000 // Convert to milliseconds
+      result.maxAge = Number.parseInt(maxAgeMatch[1], 10) * 1000 // Convert to milliseconds
     }
   }
 
@@ -320,7 +333,7 @@ export class ConditionalCache extends ResponseCacheImpl {
     key: string,
     value: any,
     headers: CacheHeaders,
-    ttl?: number
+    ttl?: number,
   ): Promise<void> {
     await this.set(key, value, ttl)
 
@@ -377,10 +390,13 @@ export class LRUCache<K, V> {
     // Remove if already exists
     if (this.cache.has(key)) {
       this.cache.delete(key)
-    } else if (this.cache.size >= this.maxSize) {
+    }
+    else if (this.cache.size >= this.maxSize) {
       // Remove least recently used (first item)
       const firstKey = this.cache.keys().next().value
-      this.cache.delete(firstKey)
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey)
+      }
     }
 
     this.cache.set(key, value)
@@ -409,7 +425,7 @@ export class LRUCache<K, V> {
 export class CacheMiddleware {
   constructor(
     private cache: ResponseCacheImpl,
-    private config: CacheConfig
+    private config: CacheConfig,
   ) {}
 
   /**
@@ -417,8 +433,8 @@ export class CacheMiddleware {
    */
   async intercept<T>(
     key: string,
-    fn: () => Promise<{ data: T; headers: CacheHeaders }>
-  ): Promise<{ data: T; fromCache: boolean }> {
+    fn: () => Promise<{ data: T, headers: CacheHeaders }>,
+  ): Promise<{ data: T, fromCache: boolean }> {
     if (!this.config.enabled) {
       const result = await fn()
       return { data: result.data, fromCache: false }
@@ -489,4 +505,3 @@ export class CacheStats {
   }
 }
 
-export type { ResponseCache } from './types.js'

@@ -6,177 +6,184 @@
  * @module commands
  */
 
-import { Command } from 'commander'
-import chalk from 'chalk'
-import { HistoryManager } from '../history'
 import type { HistoryEntryType } from '../history'
+import ansis from 'ansis'
+import { HistoryManager } from '../history'
+
+export interface HistoryOptions {
+  type?: string
+  query?: string
+  limit?: string
+  force?: boolean
+  days?: string
+}
 
 /**
- * Register history commands
+ * List history entries
  */
-export function registerHistoryCommands(program: Command): void {
-  const histCmd = program
-    .command('history')
-    .alias('hist')
-    .description('History management commands')
+export async function listHistory(options: HistoryOptions = {}): Promise<void> {
+  try {
+    const manager = new HistoryManager()
+    await manager.initialize()
 
-  // List history
-  histCmd
-    .command('list')
-    .alias('ls')
-    .description('List command history')
-    .option('-t, --type <type>', 'Filter by type (command|prompt|session)')
-    .option('-q, --query <query>', 'Search query')
-    .option('-l, --limit <n>', 'Limit number of results', '20')
-    .action(async (options: any) => {
-      try {
-        const manager = new HistoryManager()
-        await manager.initialize()
-
-        const entries = await manager.search({
-          type: options.type as HistoryEntryType,
-          query: options.query,
-          limit: parseInt(options.limit),
-        })
-
-        if (entries.length === 0) {
-          console.log(chalk.yellow('No history entries found'))
-          return
-        }
-
-        console.log(chalk.bold(`\n📜 History (${entries.length}):\n`))
-
-        for (const entry of entries) {
-          const icon = getTypeIcon(entry.type)
-          const time = new Date(entry.timestamp).toLocaleString()
-
-          console.log(`${icon} ${chalk.gray(time)}`)
-          console.log(`   ${chalk.white(entry.content)}`)
-
-          if (entry.sessionId) {
-            console.log(`   ${chalk.gray(`Session: ${entry.sessionId}`)}`)
-          }
-          console.log()
-        }
-      } catch (error: any) {
-        console.error(chalk.red('❌ Failed to list history:'), error.message)
-        process.exit(1)
-      }
+    const entries = await manager.search({
+      type: options.type as HistoryEntryType,
+      query: options.query,
+      limit: options.limit ? Number.parseInt(options.limit) : 20,
     })
 
-  // Search history
-  histCmd
-    .command('search <query>')
-    .description('Search command history')
-    .option('-t, --type <type>', 'Filter by type')
-    .option('-l, --limit <n>', 'Limit number of results', '10')
-    .action(async (query: string, options: any) => {
-      try {
-        const manager = new HistoryManager()
-        await manager.initialize()
+    if (entries.length === 0) {
+      console.log(ansis.yellow('No history entries found'))
+      return
+    }
 
-        const entries = await manager.search({
-          query,
-          type: options.type as HistoryEntryType,
-          limit: parseInt(options.limit),
-        })
+    console.log(ansis.bold(`\n📜 History (${entries.length}):\n`))
 
-        if (entries.length === 0) {
-          console.log(chalk.yellow(`No results found for: ${query}`))
-          return
-        }
+    for (const entry of entries) {
+      const icon = getTypeIcon(entry.type)
+      const time = new Date(entry.timestamp).toLocaleString()
 
-        console.log(chalk.bold(`\n🔍 Search Results (${entries.length}):\n`))
+      console.log(`${icon} ${ansis.gray(time)}`)
+      console.log(`   ${ansis.white(entry.content)}`)
 
-        for (const entry of entries) {
-          const icon = getTypeIcon(entry.type)
-          const time = new Date(entry.timestamp).toLocaleString()
-
-          console.log(`${icon} ${chalk.gray(time)}`)
-
-          // Highlight query in content
-          const highlighted = entry.content.replace(
-            new RegExp(query, 'gi'),
-            match => chalk.yellow.bold(match)
-          )
-          console.log(`   ${highlighted}`)
-          console.log()
-        }
-      } catch (error: any) {
-        console.error(chalk.red('❌ Failed to search history:'), error.message)
-        process.exit(1)
+      if (entry.sessionId) {
+        console.log(`   ${ansis.gray(`Session: ${entry.sessionId}`)}`)
       }
+      console.log()
+    }
+  }
+  catch (error: any) {
+    console.error(ansis.red('❌ Failed to list history:'), error.message)
+    process.exit(1)
+  }
+}
+
+/**
+ * Search history entries
+ */
+export async function searchHistory(query: string, options: HistoryOptions = {}): Promise<void> {
+  try {
+    const manager = new HistoryManager()
+    await manager.initialize()
+
+    const entries = await manager.search({
+      query,
+      type: options.type as HistoryEntryType,
+      limit: options.limit ? Number.parseInt(options.limit) : 10,
     })
 
-  // Show statistics
-  histCmd
-    .command('stats')
-    .description('Show history statistics')
-    .action(async () => {
-      try {
-        const manager = new HistoryManager()
-        await manager.initialize()
+    if (entries.length === 0) {
+      console.log(ansis.yellow(`No results found for: ${query}`))
+      return
+    }
 
-        const stats = await manager.getStats()
+    console.log(ansis.bold(`\n🔍 Search Results (${entries.length}):\n`))
 
-        console.log(chalk.bold('\n📊 History Statistics:\n'))
-        console.log(chalk.white(`Total entries: ${stats.total}`))
+    for (const entry of entries) {
+      const icon = getTypeIcon(entry.type)
+      const time = new Date(entry.timestamp).toLocaleString()
 
-        console.log(chalk.bold('\nBy Type:'))
-        for (const [type, count] of Object.entries(stats.byType)) {
-          const icon = getTypeIcon(type as HistoryEntryType)
-          console.log(`  ${icon} ${type}: ${count}`)
-        }
+      console.log(`${icon} ${ansis.gray(time)}`)
 
-        if (stats.mostUsedCommands.length > 0) {
-          console.log(chalk.bold('\nMost Used Commands:'))
-          for (let i = 0; i < Math.min(10, stats.mostUsedCommands.length); i++) {
-            const { command, count } = stats.mostUsedCommands[i]
-            console.log(`  ${i + 1}. ${chalk.cyan(command)} ${chalk.gray(`(${count} times)`)}`)
-          }
-        }
+      // Highlight query in content
+      const highlighted = entry.content.replace(
+        new RegExp(query, 'gi'),
+        match => ansis.yellow.bold(match),
+      )
+      console.log(`   ${highlighted}`)
+      console.log()
+    }
+  }
+  catch (error: any) {
+    console.error(ansis.red('❌ Failed to search history:'), error.message)
+    process.exit(1)
+  }
+}
 
-        if (stats.recentSessions.length > 0) {
-          console.log(chalk.bold('\nRecent Sessions:'))
-          for (const sessionId of stats.recentSessions.slice(0, 5)) {
-            console.log(`  • ${chalk.cyan(sessionId)}`)
-          }
-        }
-      } catch (error: any) {
-        console.error(chalk.red('❌ Failed to get statistics:'), error.message)
-        process.exit(1)
+/**
+ * Show history statistics
+ */
+export async function historyStats(): Promise<void> {
+  try {
+    const manager = new HistoryManager()
+    await manager.initialize()
+
+    const stats = await manager.getStats()
+
+    console.log(ansis.bold('\n📊 History Statistics:\n'))
+    console.log(ansis.white(`Total entries: ${stats.total}`))
+
+    console.log(ansis.bold('\nBy Type:'))
+    for (const [type, count] of Object.entries(stats.byType)) {
+      const icon = getTypeIcon(type as HistoryEntryType)
+      console.log(`  ${icon} ${type}: ${count}`)
+    }
+
+    if (stats.mostUsedCommands.length > 0) {
+      console.log(ansis.bold('\nMost Used Commands:'))
+      for (let i = 0; i < Math.min(10, stats.mostUsedCommands.length); i++) {
+        const { command, count } = stats.mostUsedCommands[i]
+        console.log(`  ${i + 1}. ${ansis.cyan(command)} ${ansis.gray(`(${count} times)`)}`)
       }
-    })
+    }
 
-  // Clear history
-  histCmd
-    .command('clear')
-    .description('Clear all history')
-    .option('-f, --force', 'Skip confirmation')
-    .option('--days <n>', 'Clear entries older than N days')
-    .action(async (options: any) => {
-      try {
-        if (!options.force) {
-          console.log(chalk.yellow('⚠️  This will clear your command history.'))
-          console.log(chalk.yellow('   Use --force to confirm.'))
-          process.exit(0)
-        }
-
-        const manager = new HistoryManager()
-        await manager.initialize()
-
-        if (options.days) {
-          const removed = await manager.clearOld(parseInt(options.days))
-          console.log(chalk.green(`✅ Cleared ${removed} old entries`))
-        } else {
-          await manager.clear()
-          console.log(chalk.green('✅ History cleared'))
-        }
-      } catch (error: any) {
-        console.error(chalk.red('❌ Failed to clear history:'), error.message)
-        process.exit(1)
+    if (stats.recentSessions.length > 0) {
+      console.log(ansis.bold('\nRecent Sessions:'))
+      for (const sessionId of stats.recentSessions.slice(0, 5)) {
+        console.log(`  • ${ansis.cyan(sessionId)}`)
       }
-    })
+    }
+  }
+  catch (error: any) {
+    console.error(ansis.red('❌ Failed to get statistics:'), error.message)
+    process.exit(1)
+  }
+}
+
+/**
+ * Clear history
+ */
+export async function clearHistory(options: HistoryOptions = {}): Promise<void> {
+  try {
+    if (!options.force) {
+      console.log(ansis.yellow('⚠️  This will clear your command history.'))
+      console.log(ansis.yellow('   Use --force to confirm.'))
+      process.exit(0)
+    }
+
+    const manager = new HistoryManager()
+    await manager.initialize()
+
+    if (options.days) {
+      const removed = await manager.clearOld(Number.parseInt(options.days))
+      console.log(ansis.green(`✅ Cleared ${removed} old entries`))
+    }
+    else {
+      await manager.clear()
+      console.log(ansis.green('✅ History cleared'))
+    }
+  }
+  catch (error: any) {
+    console.error(ansis.red('❌ Failed to clear history:'), error.message)
+    process.exit(1)
+  }
+}
+
+/**
+ * Show history help
+ */
+export function historyHelp(): void {
+  console.log('\n📜 History Commands:')
+  console.log('  ccjk history list          - List command history')
+  console.log('  ccjk history search <q>    - Search history')
+  console.log('  ccjk history stats         - Show statistics')
+  console.log('  ccjk history clear         - Clear history')
+  console.log('\nOptions:')
+  console.log('  -t, --type <type>          - Filter by type (command|prompt|session)')
+  console.log('  -q, --query <query>        - Search query')
+  console.log('  -l, --limit <n>            - Limit results (default: 20)')
+  console.log('  -f, --force                - Skip confirmation')
+  console.log('  --days <n>                 - Clear entries older than N days\n')
 }
 
 /**

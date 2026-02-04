@@ -372,20 +372,20 @@ export interface WatchEvent {
 /**
  * Platform-specific error codes
  */
-export type PlatformErrorCode =
-  | 'ENOENT' // File not found
-  | 'EACCES' // Permission denied
-  | 'EEXIST' // File exists
-  | 'ENOTDIR' // Not a directory
-  | 'EISDIR' // Is a directory
-  | 'ENOTEMPTY' // Directory not empty
-  | 'EBUSY' // Resource busy
-  | 'ENAMETOOLONG' // Name too long
-  | 'ENOSPC' // No space left
-  | 'EROFS' // Read-only file system
-  | 'EPERM' // Operation not permitted
-  | 'ETIMEDOUT' // Operation timed out
-  | 'UNKNOWN' // Unknown error
+export type PlatformErrorCode
+  = | 'ENOENT' // File not found
+    | 'EACCES' // Permission denied
+    | 'EEXIST' // File exists
+    | 'ENOTDIR' // Not a directory
+    | 'EISDIR' // Is a directory
+    | 'ENOTEMPTY' // Directory not empty
+    | 'EBUSY' // Resource busy
+    | 'ENAMETOOLONG' // Name too long
+    | 'ENOSPC' // No space left
+    | 'EROFS' // Read-only file system
+    | 'EPERM' // Operation not permitted
+    | 'ETIMEDOUT' // Operation timed out
+    | 'UNKNOWN' // Unknown error
 
 /**
  * Platform error with additional context
@@ -414,7 +414,7 @@ export interface PlatformError extends Error {
 /**
  * Platform-specific value
  */
-export type PlatformSpecific<T> = {
+export interface PlatformSpecific<T> {
   windows?: T
   macos?: T
   linux?: T
@@ -424,8 +424,8 @@ export type PlatformSpecific<T> = {
 /**
  * Get platform-specific value helper type
  */
-export type GetPlatformValue<T extends PlatformSpecific<unknown>> =
-  T extends PlatformSpecific<infer V> ? V : never
+export type GetPlatformValue<T extends PlatformSpecific<unknown>>
+  = T extends PlatformSpecific<infer V> ? V : never
 
 /**
  * Environment variable definition

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { MockFactory, TestDataGenerator, AssertionHelpers } from '@helpers'
+import { AssertionHelpers, MockFactory, TestDataGenerator } from '@helpers'
 import { createTestTempDir } from '@v2/setup'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * Integration test suite for CCJK API provider management
@@ -8,7 +8,7 @@ import { createTestTempDir } from '@v2/setup'
  * NOTE: These tests are skipped because they test mock objects rather than real code.
  * They serve as a template for future integration tests.
  */
-describe.skip('CCJK API Provider Integration', () => {
+describe.skip('cCJK API Provider Integration', () => {
   let mockSuite: any
   let testDir: string
   let apiManager: any
@@ -65,7 +65,7 @@ describe.skip('CCJK API Provider Integration', () => {
     vi.clearAllMocks()
   })
 
-  describe('API Provider Configuration', () => {
+  describe('aPI Provider Configuration', () => {
     it('should configure API provider with valid credentials', async () => {
       // Arrange
       const providerConfig = {
@@ -157,7 +157,7 @@ describe.skip('CCJK API Provider Integration', () => {
     })
   })
 
-  describe('Provider Management Integration', () => {
+  describe('provider Management Integration', () => {
     it('should list available API providers', async () => {
       // Arrange
       apiManager.getProviders.mockResolvedValue(Object.keys(testProviders).map(key => ({
@@ -245,7 +245,7 @@ describe.skip('CCJK API Provider Integration', () => {
     })
   })
 
-  describe('Configuration Persistence Integration', () => {
+  describe('configuration Persistence Integration', () => {
     it('should persist API configuration to config file', async () => {
       // Arrange
       const apiConfig = {
@@ -285,7 +285,7 @@ describe.skip('CCJK API Provider Integration', () => {
         expect.objectContaining({
           apiProvider: 'GLM',
           apiKey: 'glm-test-key-123',
-        })
+        }),
       )
     })
 
@@ -297,7 +297,7 @@ describe.skip('CCJK API Provider Integration', () => {
       })
 
       configManager.load.mockResolvedValue(savedConfig)
-      configManager.get.mockImplementation((key) => savedConfig[key])
+      configManager.get.mockImplementation(key => savedConfig[key])
 
       // Act
       const loadedConfig = await configManager.load()
@@ -311,7 +311,7 @@ describe.skip('CCJK API Provider Integration', () => {
     })
   })
 
-  describe('Error Handling Integration', () => {
+  describe('error Handling Integration', () => {
     it('should handle API authentication failures', async () => {
       // Arrange
       const invalidConfig = {
@@ -324,7 +324,7 @@ describe.skip('CCJK API Provider Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         apiManager.test(invalidConfig),
-        /Authentication failed/
+        /Authentication failed/,
       )
     })
 
@@ -340,7 +340,7 @@ describe.skip('CCJK API Provider Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         apiManager.test(providerConfig),
-        /Network error/
+        /Network error/,
       )
     })
 
@@ -370,7 +370,7 @@ describe.skip('CCJK API Provider Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectRejects(
         apiManager.configure(failingConfig),
-        /Invalid provider configuration/
+        /Invalid provider configuration/,
       )
 
       // Verify rollback occurred
@@ -378,7 +378,7 @@ describe.skip('CCJK API Provider Integration', () => {
     })
   })
 
-  describe('Performance Integration', () => {
+  describe('performance Integration', () => {
     it('should complete API configuration within time limits', async () => {
       // Arrange
       const maxConfigTime = 3000 // 3 seconds
@@ -395,7 +395,7 @@ describe.skip('CCJK API Provider Integration', () => {
       // Act & Assert
       await AssertionHelpers.expectCompletesWithinTime(
         () => apiManager.configure(providerConfig),
-        maxConfigTime
+        maxConfigTime,
       )
     })
 
@@ -424,7 +424,7 @@ describe.skip('CCJK API Provider Integration', () => {
     })
   })
 
-  describe('Cross-Component Integration', () => {
+  describe('cross-Component Integration', () => {
     it('should integrate API configuration with workflow execution', async () => {
       // Arrange
       const apiConfig = {

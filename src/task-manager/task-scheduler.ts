@@ -25,7 +25,7 @@ export class TaskScheduler {
   createSchedule(tasks: Task[]): TaskSchedule {
     // Filter out completed and cancelled tasks
     const activeTasks = tasks.filter(
-      t => t.status !== 'completed' && t.status !== 'cancelled'
+      t => t.status !== 'completed' && t.status !== 'cancelled',
     )
 
     // Get execution order
@@ -35,13 +35,13 @@ export class TaskScheduler {
     const parallelGroups = this.dependencyTracker.getParallelGroups(activeTasks)
 
     // Get blocked tasks
-    const blocked = activeTasks.filter(task => {
+    const blocked = activeTasks.filter((task) => {
       if (task.dependsOn.length === 0) {
         return false
       }
 
       // Check if any dependency is not completed
-      return task.dependsOn.some(depId => {
+      return task.dependsOn.some((depId) => {
         const depTask = tasks.find(t => t.id === depId)
         return depTask && depTask.status !== 'completed'
       })
@@ -58,7 +58,7 @@ export class TaskScheduler {
    * Get next available tasks (no blocking dependencies)
    */
   getNextAvailableTasks(tasks: Task[]): Task[] {
-    return tasks.filter(task => {
+    return tasks.filter((task) => {
       // Must be pending
       if (task.status !== 'pending') {
         return false
@@ -69,7 +69,7 @@ export class TaskScheduler {
         return true
       }
 
-      return task.dependsOn.every(depId => {
+      return task.dependsOn.every((depId) => {
         const depTask = tasks.find(t => t.id === depId)
         return depTask?.status === 'completed'
       })
@@ -97,4 +97,3 @@ export class TaskScheduler {
     })
   }
 }
-

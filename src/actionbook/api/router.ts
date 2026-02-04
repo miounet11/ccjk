@@ -4,13 +4,13 @@
  * Main API router that combines all query interfaces.
  */
 
-import type { QueryAPI, ASTNode, SymbolTable, CallGraph, ComplexityMetrics, Pattern } from '../types.js'
+import type { ASTNode, CallGraph, ComplexityMetrics, Pattern, QueryAPI, SymbolTable } from '../types.js'
 import { getGlobalIndex } from '../cache/index.js'
 
 // Import query modules
 import * as astQueries from './queries/ast.js'
-import * as symbolQueries from './queries/symbols.js'
 import * as callGraphQueries from './queries/call-graph.js'
+import * as symbolQueries from './queries/symbols.js'
 
 /**
  * Query API implementation
@@ -115,7 +115,7 @@ export class QueryAPIRouter implements QueryAPI {
    * Get cache statistics
    */
   async getStats(): Promise<{
-    l1: { hits: number; misses: number; size: number; hitRate: number }
+    l1: { hits: number, misses: number, size: number, hitRate: number }
     l2: { size: number }
     combined: { hitRate: number }
   }> {

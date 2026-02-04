@@ -7,10 +7,10 @@
  * @module skills-v3/skill-manager
  */
 
+import type { SkillRegistry } from './skill-registry'
 import type {
   DependencyResolution,
   HotReloadEvents,
-  LocalizedString,
   LoaderOptions,
   ParseResult,
   ParserOptions,
@@ -22,13 +22,12 @@ import type {
   SkillRegistryEntry,
   SkillSource,
   SkillV3,
-  SkillV3Input,
 } from './types'
 import { HotReloadManager } from './hot-reload'
-import { SkillLoader } from './skill-loader'
 import { getSkillMigrator } from './migrator'
 import { SkillParser } from './parser'
-import { getSkillRegistry, SkillRegistry } from './skill-registry'
+import { SkillLoader } from './skill-loader'
+import { getSkillRegistry } from './skill-registry'
 
 // ============================================================================
 // Skill Manager Class

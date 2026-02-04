@@ -3,96 +3,96 @@
  * Detects frameworks like Gin, Echo, etc.
  */
 
+import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
+import consola from 'consola'
 import fs from 'fs-extra'
 import path from 'pathe'
-import consola from 'consola'
-import type { LanguageDetection, FrameworkDetectionResult } from './types.js'
 
 const logger = consola.withTag('go-analyzer')
 
 // Go framework detection patterns
 const FRAMEWORK_PATTERNS = {
-  'gin': {
+  gin: {
     imports: ['github.com/gin-gonic/gin'],
     indicators: ['gin.Default()', 'gin.Context'],
   },
-  'echo': {
+  echo: {
     imports: ['github.com/labstack/echo/v4'],
     indicators: ['echo.New()', 'echo.Context'],
   },
-  'fiber': {
+  fiber: {
     imports: ['github.com/gofiber/fiber/v2'],
     indicators: ['fiber.New()', 'fiber.Ctx'],
   },
-  'chi': {
+  chi: {
     imports: ['github.com/go-chi/chi/v5'],
     indicators: ['chi.NewRouter()', 'chi.Router'],
   },
-  'mux': {
+  mux: {
     imports: ['github.com/gorilla/mux'],
     indicators: ['mux.NewRouter()', 'mux.Router'],
   },
-  'httprouter': {
+  httprouter: {
     imports: ['github.com/julienschmidt/httprouter'],
     indicators: ['httprouter.New()', 'httprouter.Params'],
   },
-  'fasthttp': {
+  fasthttp: {
     imports: ['github.com/valyala/fasthttp'],
     indicators: ['fasthttp.Server', 'fasthttp.RequestHandler'],
   },
-  'grpc': {
+  grpc: {
     imports: ['google.golang.org/grpc'],
     indicators: ['grpc.NewServer()', 'grpc.Dial'],
   },
-  'protobuf': {
+  protobuf: {
     imports: ['google.golang.org/protobuf'],
     indicators: ['.proto', 'proto.Marshal'],
   },
-  'gorm': {
+  gorm: {
     imports: ['gorm.io/gorm'],
     indicators: ['gorm.Open', 'gorm.DB'],
   },
-  'sql': {
+  sql: {
     imports: ['database/sql'],
     indicators: ['sql.Open', 'sql.DB'],
   },
-  'ent': {
+  ent: {
     imports: ['entgo.io/ent'],
     indicators: ['ent.Client', 'ent.Schema'],
   },
-  'cobra': {
+  cobra: {
     imports: ['github.com/spf13/cobra'],
     indicators: ['cobra.Command', 'cobra.Execute'],
   },
-  'viper': {
+  viper: {
     imports: ['github.com/spf13/viper'],
     indicators: ['viper.New', 'viper.Get'],
   },
-  'testify': {
+  testify: {
     imports: ['github.com/stretchr/testify'],
     indicators: ['assert.Equal', 'require.NoError'],
   },
-  'mock': {
+  mock: {
     imports: ['github.com/golang/mock'],
     indicators: ['gomock.Controller', 'mockgen'],
   },
-  'redis': {
+  redis: {
     imports: ['github.com/redis/go-redis/v9'],
     indicators: ['redis.NewClient', 'redis.Client'],
   },
-  'mongo': {
+  mongo: {
     imports: ['go.mongodb.org/mongo-driver'],
     indicators: ['mongo.Connect', 'mongo.Database'],
   },
-  'prometheus': {
+  prometheus: {
     imports: ['github.com/prometheus/client_golang'],
     indicators: ['prometheus.Counter', 'promhttp.Handler'],
   },
-  'jaeger': {
+  jaeger: {
     imports: ['github.com/uber/jaeger-client-go'],
     indicators: ['jaeger.NewTracer', 'jaeger.Config'],
   },
-  'kubernetes': {
+  kubernetes: {
     imports: ['k8s.io/client-go'],
     indicators: ['kubernetes.Clientset', 'k8s.io'],
   },
@@ -118,7 +118,8 @@ export async function analyzeGoProject(
       const content = await fs.readFile(goModPath, 'utf-8')
       goMod = parseGoMod(content)
     }
-  } catch (error) {
+  }
+  catch (error) {
     logger.warn('Failed to read go.mod:', error)
   }
 
@@ -172,8 +173,8 @@ export async function analyzeGoProject(
 /**
  * Parse go.mod file
  */
-function parseGoMod(content: string): { module?: string; go?: string; requires: Record<string, string> } {
-  const result: { module?: string; go?: string; requires: Record<string, string> } = {
+function parseGoMod(content: string): { module?: string, go?: string, requires: Record<string, string> } {
+  const result: { module?: string, go?: string, requires: Record<string, string> } = {
     requires: {},
   }
 
@@ -184,15 +185,18 @@ function parseGoMod(content: string): { module?: string; go?: string; requires: 
 
     if (trimmed.startsWith('module')) {
       result.module = trimmed.split(' ')[1]
-    } else if (trimmed.startsWith('go')) {
+    }
+    else if (trimmed.startsWith('go')) {
       result.go = trimmed.split(' ')[1]
-    } else if (trimmed.startsWith('require')) {
+    }
+    else if (trimmed.startsWith('require')) {
       // Handle single require
       const parts = trimmed.split(' ')
       if (parts.length >= 3) {
         result.requires[parts[1]] = parts[2]
       }
-    } else if (trimmed.includes(' ')) {
+    }
+    else if (trimmed.includes(' ')) {
       // Handle require block
       const parts = trimmed.split(' ')
       if (parts.length >= 2 && !trimmed.startsWith('//')) {
@@ -225,7 +229,8 @@ async function scanGoImports(
         }
         imports[importPath].push(file)
       }
-    } catch (error) {
+    }
+    catch (error) {
       logger.warn(`Failed to read ${file}:`, error)
     }
   }
@@ -266,7 +271,13 @@ function extractGoImports(content: string): string[] {
 function getFrameworkCategory(framework: string): string {
   const categories = {
     web: [
-      'gin', 'echo', 'fiber', 'chi', 'mux', 'httprouter', 'fasthttp',
+      'gin',
+      'echo',
+      'fiber',
+      'chi',
+      'mux',
+      'httprouter',
+      'fasthttp',
     ],
     rpc: ['grpc', 'protobuf'],
     database: ['gorm', 'sql', 'ent'],
@@ -311,7 +322,8 @@ async function detectAdditionalPatterns(
           evidence: ['Found go.mod'],
         })
       }
-    } catch (error) {
+    }
+    catch (error) {
       logger.warn('Failed to read go.mod:', error)
     }
   }

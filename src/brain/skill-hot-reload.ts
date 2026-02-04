@@ -9,7 +9,6 @@
  */
 
 import type { FSWatcher } from 'chokidar'
-import type { SkillMdFile } from '../types/skill-md'
 import type { SkillParseResult } from './skill-parser'
 import type { SkillRegistryEntry } from './skill-registry'
 import type { MessageType } from './types'
@@ -706,7 +705,7 @@ export class SkillHotReload extends EventEmitter {
   private publishMessage(type: string, payload: Record<string, unknown>): void {
     this.messageBus.publish(
       'notification',
-      'system',
+      'coordinator',
       'all',
       `Skill hot reload: ${type}`,
       payload,

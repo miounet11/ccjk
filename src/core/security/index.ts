@@ -25,6 +25,30 @@
  * ```
  */
 
+// Credential Manager
+export {
+  createCredentialManager,
+  CredentialManager,
+  getCredentialManager,
+  resetCredentialManager,
+} from './credential-manager'
+
+// Encryption
+export {
+  EncryptionService,
+  encryptionService,
+} from './encryption'
+
+// Keychain backends
+export {
+  createKeychainBackend,
+  FileStorageBackend,
+  getKeychainBackendType,
+  LinuxSecretServiceBackend,
+  MacOSKeychainBackend,
+  WindowsCredentialBackend,
+} from './keychain'
+
 // Types
 export type {
   CredentialEvent,
@@ -43,27 +67,3 @@ export type {
   StorageBackend,
   StoredCredential,
 } from './types'
-
-// Encryption
-export {
-  EncryptionService,
-  encryptionService,
-} from './encryption'
-
-// Keychain backends
-export {
-  createKeychainBackend,
-  FileStorageBackend,
-  getKeychainBackendType,
-  LinuxSecretServiceBackend,
-  MacOSKeychainBackend,
-  WindowsCredentialBackend,
-} from './keychain'
-
-// Credential Manager
-export {
-  createCredentialManager,
-  CredentialManager,
-  getCredentialManager,
-  resetCredentialManager,
-} from './credential-manager'

@@ -8,12 +8,15 @@
  * @module brain/mayor/mayor-agent
  */
 
+import type { Convoy, ConvoyManager } from '../convoy/convoy-manager'
+import type { ProgressUpdate } from '../convoy/progress-tracker'
+import type { PersistentMailboxManager } from '../messaging/persistent-mailbox'
 import type { AgentRole } from '../types'
 import { EventEmitter } from 'node:events'
 import { nanoid } from 'nanoid'
-import { getGlobalConvoyManager, type ConvoyManager, type Convoy } from '../convoy/convoy-manager'
-import { ProgressTracker, type ProgressUpdate } from '../convoy/progress-tracker'
-import { getGlobalMailboxManager, type PersistentMailboxManager } from '../messaging/persistent-mailbox'
+import { getGlobalConvoyManager } from '../convoy/convoy-manager'
+import { ProgressTracker } from '../convoy/progress-tracker'
+import { getGlobalMailboxManager } from '../messaging/persistent-mailbox'
 
 /**
  * User intent analysis result
@@ -318,7 +321,8 @@ export class MayorAgent extends EventEmitter {
    * Start monitoring convoy progress
    */
   startMonitoring(convoyId: string): void {
-    if (this.progressTrackers.has(convoyId)) return
+    if (this.progressTrackers.has(convoyId))
+      return
 
     const tracker = new ProgressTracker(this.convoyManager, {
       updateInterval: this.config.progressInterval,
@@ -433,10 +437,14 @@ export class MayorAgent extends EventEmitter {
     const componentCount = entities.components?.length ?? 0
     const wordCount = input.split(/\s+/).length
 
-    if (wordCount < 10 && fileCount <= 1) return 'trivial'
-    if (wordCount < 20 && fileCount <= 2) return 'simple'
-    if (wordCount < 50 && fileCount <= 5) return 'moderate'
-    if (wordCount < 100 || componentCount > 3) return 'complex'
+    if (wordCount < 10 && fileCount <= 1)
+      return 'trivial'
+    if (wordCount < 20 && fileCount <= 2)
+      return 'simple'
+    if (wordCount < 50 && fileCount <= 5)
+      return 'moderate'
+    if (wordCount < 100 || componentCount > 3)
+      return 'complex'
     return 'very_complex'
   }
 
@@ -490,9 +498,12 @@ export class MayorAgent extends EventEmitter {
     const effortMap = { minimal: 1, small: 2, medium: 4, large: 8 }
     const total = tasks.reduce((sum, t) => sum + effortMap[t.estimatedEffort], 0)
 
-    if (total <= 4) return 'Small'
-    if (total <= 10) return 'Medium'
-    if (total <= 20) return 'Large'
+    if (total <= 4)
+      return 'Small'
+    if (total <= 10)
+      return 'Medium'
+    if (total <= 20)
+      return 'Large'
     return 'Very Large'
   }
 

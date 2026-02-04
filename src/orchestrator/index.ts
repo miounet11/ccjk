@@ -5,95 +5,63 @@
  * @module orchestrator
  */
 
-// 核心类型
+// 适配器
+export {
+  // Agents
+  AgentsAdapter,
+  createAgentsAdapter,
+  createHooksAdapter,
+  createMCPAdapter,
+  createSkillsAdapter,
+  // Hooks
+  HooksAdapter,
+  // MCP
+  MCPAdapter,
+  // Skills
+  SkillsAdapter,
+} from './adapters'
+
 export type {
-  // Task types
-  Task,
-  TaskType,
-  TaskStatus,
-  TaskPriority,
-  TaskResult,
-  // Context types
-  Context,
-  ContextConfig,
-  SharedState,
-  LifecycleState,
-  LifecyclePhase,
-  // Dependency types
-  Dependency,
-  DependencyType,
-  ResolvedDependency,
-  DependencyResolverFn,
-  // Event types
-  EventType,
-  EventPayload,
-  EventListener,
-  // Agent types
-  AgentState,
-  AgentStatus,
+  // Agents types
+  AgentConfig,
+  AgentFactory,
+  AgentInstance,
+  AgentMessage,
+  HookContext,
+  // Hooks types
+  HookDefinition,
+  HookHandler,
+  HookTiming,
   // MCP types
-  MCPResponse,
-  // Orchestrator types
-  OrchestratorOptions,
-  IOrchestrator,
-  IEventBus,
-  IContextStore,
-  ILifecycleManager,
-  IDependencyResolver,
-} from './types'
-
-// 核心引擎
-export { Orchestrator } from './core'
-
-// 事件系统
-export { EventBus } from './events'
+  MCPServiceConfig,
+  MCPServiceFactory,
+  MCPServiceInstance,
+  MCPTool,
+  // Skills types
+  SkillDefinition,
+} from './adapters'
 
 // 上下文管理
 export { ContextStore } from './context'
 
-// 生命周期管理
-export { LifecycleManager } from './lifecycle'
-export type { LifecycleOptions, TaskExecutor } from './lifecycle'
+// 核心引擎
+export { Orchestrator } from './core'
 
+/**
+ * 默认导出 Orchestrator 类
+ */
+export { Orchestrator as default } from './core'
 // 依赖解析
 export { DependencyResolver } from './dependency-resolver'
+
 export type { DependencyResolverOptions } from './dependency-resolver'
+// 事件系统
+export { EventBus } from './events'
 
-// 适配器
-export {
-  // Skills
-  SkillsAdapter,
-  createSkillsAdapter,
-  // Agents
-  AgentsAdapter,
-  createAgentsAdapter,
-  // Hooks
-  HooksAdapter,
-  createHooksAdapter,
-  // MCP
-  MCPAdapter,
-  createMCPAdapter,
-} from './adapters'
+// 生命周期管理
+export { LifecycleManager } from './lifecycle'
 
-export type {
-  // Skills types
-  SkillDefinition,
-  // Agents types
-  AgentConfig,
-  AgentMessage,
-  AgentInstance,
-  AgentFactory,
-  // Hooks types
-  HookDefinition,
-  HookTiming,
-  HookHandler,
-  HookContext,
-  // MCP types
-  MCPServiceConfig,
-  MCPTool,
-  MCPServiceInstance,
-  MCPServiceFactory,
-} from './adapters'
+export type { LifecycleOptions, TaskExecutor } from './lifecycle'
 
 /**
  * 创建 Orchestrator 实例的便捷函数
@@ -102,7 +70,39 @@ export function createOrchestrator(options?: import('./types').OrchestratorOptio
   return new (require('./core').Orchestrator)(options)
 }
 
-/**
- * 默认导出 Orchestrator 类
- */
-export { Orchestrator as default } from './core'
+// 核心类型
+export type {
+  // Agent types
+  AgentState,
+  AgentStatus,
+  // Context types
+  Context,
+  ContextConfig,
+  // Dependency types
+  Dependency,
+  DependencyResolverFn,
+  DependencyType,
+  EventListener,
+  EventPayload,
+  // Event types
+  EventType,
+  IContextStore,
+  IDependencyResolver,
+  IEventBus,
+  ILifecycleManager,
+  IOrchestrator,
+  LifecyclePhase,
+  LifecycleState,
+  // MCP types
+  MCPResponse,
+  // Orchestrator types
+  OrchestratorOptions,
+  ResolvedDependency,
+  SharedState,
+  // Task types
+  Task,
+  TaskPriority,
+  TaskResult,
+  TaskStatus,
+  TaskType,
+} from './types'

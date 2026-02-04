@@ -2,10 +2,10 @@
  * Tests for LifecycleManager
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { LifecycleManager } from '../../src/orchestrator/lifecycle'
+import type { Context, IEventBus, Task } from '../../src/orchestrator/types'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { EventBus } from '../../src/orchestrator/events'
-import type { Task, Context, IEventBus } from '../../src/orchestrator/types'
+import { LifecycleManager } from '../../src/orchestrator/lifecycle'
 
 describe('lifecycleManager', () => {
   let eventBus: IEventBus

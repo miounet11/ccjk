@@ -4,7 +4,7 @@
  */
 
 import { execSync } from 'node:child_process'
-import { readdir, readFile, stat, unlink, writeFile } from 'node:fs/promises'
+import { readFile, unlink } from 'node:fs/promises'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CliGuard } from '../../src/core/cli-guard'

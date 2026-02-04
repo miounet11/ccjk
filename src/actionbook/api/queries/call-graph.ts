@@ -4,7 +4,7 @@
  * Query interface for call graph data.
  */
 
-import type { CallGraph, CallNode, CallEdge } from '../../types.js'
+import type { CallEdge, CallGraph, CallNode } from '../../types.js'
 import { getGlobalIndex } from '../../cache/index.js'
 
 /**
@@ -105,7 +105,7 @@ export async function queryCallChain(
   }
 
   // BFS to find shortest path
-  const queue: Array<{ node: string; path: string[] }> = [
+  const queue: Array<{ node: string, path: string[] }> = [
     { node: fromNode.id, path: [fromNode.id] },
   ]
   const visited = new Set<string>([fromNode.id])
@@ -175,7 +175,7 @@ export async function queryCallFrequency(filePath: string): Promise<Map<string, 
 /**
  * Query most called functions
  */
-export async function queryMostCalledFunctions(filePath: string, limit = 10): Promise<Array<{ name: string; count: number }>> {
+export async function queryMostCalledFunctions(filePath: string, limit = 10): Promise<Array<{ name: string, count: number }>> {
   const frequency = await queryCallFrequency(filePath)
 
   return Array.from(frequency.entries())
@@ -199,7 +199,7 @@ export async function queryFunctionDepth(filePath: string, functionName: string)
   }
 
   // Find shortest distance from any entry point
-  const queue: Array<{ node: string; depth: number }> = callGraph.entryPoints.map(id => ({
+  const queue: Array<{ node: string, depth: number }> = callGraph.entryPoints.map(id => ({
     node: id,
     depth: 0,
   }))

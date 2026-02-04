@@ -8,14 +8,13 @@
  */
 
 import type { CliOptions } from '../cli-lazy'
-import type { PatternTestResult, RuleDiagnostics } from '../core/permissions/wildcard-rules'
-import type { Permission, PermissionType, ResourceCategory, WildcardPermissionRule } from '../permissions/permission-manager'
+import type { Permission, PermissionType, ResourceCategory } from '../permissions/permission-manager'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { exec } from 'tinyexec'
 import { i18n } from '../i18n'
-import { getPermissionManager, PermissionManager, SAMPLE_PATTERNS } from '../permissions/permission-manager'
+import { getPermissionManager, SAMPLE_PATTERNS } from '../permissions/permission-manager'
 
 const permissionManager = getPermissionManager()
 

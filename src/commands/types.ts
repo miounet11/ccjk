@@ -2,8 +2,6 @@
  * Command Registry Types
  */
 
-import type { CliCommand } from 'cac'
-
 /**
  * Command category for organization
  */

@@ -7,18 +7,18 @@
  * @module commands/ccjk-skills
  */
 
-import type { SupportedLang } from '../constants'
 import type { ProjectAnalysis } from '../analyzers'
-import type { CcjkSkill, SkillCategory, SkillInstallResult } from '../skills/types'
+import type { SupportedLang } from '../constants'
+import type { SkillCategory, SkillInstallResult } from '../skills/types'
 import { promises as fs } from 'node:fs'
 import { homedir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { join } from 'node:path'
 import ansis from 'ansis'
 import consola from 'consola'
 import inquirer from 'inquirer'
-import { i18n } from '../i18n'
 import { analyzeProject } from '../analyzers'
-import { getTemplatesClient, type Template } from '../cloud-client'
+import { getTemplatesClient } from '../cloud-client'
+import { i18n } from '../i18n'
 import { getSkillParser } from '../plugins-v2'
 
 // ============================================================================
@@ -126,7 +126,8 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
         console.log(ansis.yellow(`  ${i18n.t('ccjk-skills:noSkillsFound')}`))
         console.log('')
         console.log(ansis.dim(`  ${i18n.t('ccjk-skills:tryDifferentProject')}`))
-      } else {
+      }
+      else {
         console.log(JSON.stringify({
           status: 'completed',
           skillsFound: 0,
@@ -143,7 +144,8 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
     if (selectedSkills.length === 0) {
       if (!opts.json) {
         console.log(ansis.yellow(`  ${i18n.t('ccjk-skills:noSkillsSelected')}`))
-      } else {
+      }
+      else {
         console.log(JSON.stringify({
           status: 'completed',
           skillsFound: recommendedSkills.length,
@@ -178,7 +180,8 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
         console.log(ansis.dim(`    • ${i18n.t('ccjk-skills:useAgentsCommand')}`))
         console.log(ansis.dim(`    • ${i18n.t('ccjk-skills:useSetupCommand')}`))
       }
-    } else {
+    }
+    else {
       console.log(JSON.stringify({
         status: 'completed',
         skillsFound: recommendedSkills.length,
@@ -191,7 +194,8 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
     }
 
     logger.success(`Completed in ${Date.now() - startTime}ms`)
-  } catch (error) {
+  }
+  catch (error) {
     logger.error('Failed to install skills:', error)
 
     if (options.json) {
@@ -199,7 +203,8 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
         status: 'error',
         error: error instanceof Error ? error.message : String(error),
       }))
-    } else {
+    }
+    else {
       console.error(ansis.red(`\n  ${i18n.t('ccjk-skills:error')}: ${error instanceof Error ? error.message : String(error)}`))
     }
 
@@ -258,16 +263,16 @@ async function getRecommendedSkills(
       logger.success(isZh ? `从云端获取 ${cloudSkills.length} 个技能` : `Fetched ${cloudSkills.length} skills from cloud`)
 
       // Filter by project relevance
-      const relevantSkills = cloudSkills.filter(skill => {
+      const relevantSkills = cloudSkills.filter((skill) => {
         const tags = skill.tags || []
         const category = skill.category || ''
         const compatibility = skill.compatibility || {}
 
         // Check if skill matches project
         return (
-          tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag)) ||
-          (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase())) ||
-          (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase()))
+          tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag))
+          || (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase()))
+          || (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase()))
         )
       })
 
@@ -276,12 +281,12 @@ async function getRecommendedSkills(
         recommendations.push({
           id: skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-'),
           name: {
-            en: skill.name_en,
-            'zh-CN': skill.name_zh_cn || skill.name_en
+            'en': skill.name_en,
+            'zh-CN': skill.name_zh_cn || skill.name_en,
           },
           description: {
-            en: skill.description_en || '',
-            'zh-CN': skill.description_zh_cn || skill.description_en || ''
+            'en': skill.description_en || '',
+            'zh-CN': skill.description_zh_cn || skill.description_en || '',
           },
           category: (skill.category || 'custom') as SkillCategory,
           priority: skill.rating_average ? skill.rating_average * 2 : 7,
@@ -293,7 +298,8 @@ async function getRecommendedSkills(
         })
       }
     }
-  } catch (error) {
+  }
+  catch (error) {
     logger.warn('Cloud recommendations failed, using local fallback:', error)
   }
 
@@ -321,13 +327,13 @@ async function getRecommendedSkills(
 
   if (options.tags.length > 0) {
     filtered = filtered.filter(s =>
-      options.tags.some(tag => s.tags.includes(tag))
+      options.tags.some(tag => s.tags.includes(tag)),
     )
   }
 
   if (options.exclude.length > 0) {
     filtered = filtered.filter(s =>
-      !options.exclude.includes(s.id)
+      !options.exclude.includes(s.id),
     )
   }
 
@@ -359,10 +365,10 @@ async function getLocalRecommendations(
   if (langMap.typescript > 0.5) {
     skills.push({
       id: 'ts-best-practices',
-      name: { en: 'TypeScript Best Practices', 'zh-CN': 'TypeScript 最佳实践' },
+      name: { 'en': 'TypeScript Best Practices', 'zh-CN': 'TypeScript 最佳实践' },
       description: {
-        en: 'TypeScript 5.3+ best practices and patterns for type-safe development',
-        'zh-CN': 'TypeScript 5.3+ 最佳实践和类型安全开发模式'
+        'en': 'TypeScript 5.3+ best practices and patterns for type-safe development',
+        'zh-CN': 'TypeScript 5.3+ 最佳实践和类型安全开发模式',
       },
       category: 'dev',
       priority: 8,
@@ -376,10 +382,10 @@ async function getLocalRecommendations(
   if (fwMap.react > 0.5) {
     skills.push({
       id: 'react-patterns',
-      name: { en: 'React Patterns', 'zh-CN': 'React 设计模式' },
+      name: { 'en': 'React Patterns', 'zh-CN': 'React 设计模式' },
       description: {
-        en: 'React component design patterns and optimization techniques',
-        'zh-CN': 'React 组件设计模式和优化技巧'
+        'en': 'React component design patterns and optimization techniques',
+        'zh-CN': 'React 组件设计模式和优化技巧',
       },
       category: 'dev',
       priority: 7,
@@ -393,10 +399,10 @@ async function getLocalRecommendations(
   if (fwMap.next > 0.5) {
     skills.push({
       id: 'nextjs-optimization',
-      name: { en: 'Next.js Optimization', 'zh-CN': 'Next.js 性能优化' },
+      name: { 'en': 'Next.js Optimization', 'zh-CN': 'Next.js 性能优化' },
       description: {
-        en: 'Next.js performance optimization and best practices',
-        'zh-CN': 'Next.js 性能优化和最佳实践'
+        'en': 'Next.js performance optimization and best practices',
+        'zh-CN': 'Next.js 性能优化和最佳实践',
       },
       category: 'dev',
       priority: 7,
@@ -410,10 +416,10 @@ async function getLocalRecommendations(
   if (langMap.python > 0.5) {
     skills.push({
       id: 'python-pep8',
-      name: { en: 'Python PEP 8', 'zh-CN': 'Python PEP 8' },
+      name: { 'en': 'Python PEP 8', 'zh-CN': 'Python PEP 8' },
       description: {
-        en: 'Python coding standards and best practices following PEP 8',
-        'zh-CN': '遵循 PEP 8 的 Python 编码标准和最佳实践'
+        'en': 'Python coding standards and best practices following PEP 8',
+        'zh-CN': '遵循 PEP 8 的 Python 编码标准和最佳实践',
       },
       category: 'dev',
       priority: 7,
@@ -427,10 +433,10 @@ async function getLocalRecommendations(
   if (analysis.configFiles.some(f => f.includes('test'))) {
     skills.push({
       id: 'testing-best-practices',
-      name: { en: 'Testing Best Practices', 'zh-CN': '测试最佳实践' },
+      name: { 'en': 'Testing Best Practices', 'zh-CN': '测试最佳实践' },
       description: {
-        en: 'Testing-driven development workflows and best practices',
-        'zh-CN': '测试驱动开发工作流和最佳实践'
+        'en': 'Testing-driven development workflows and best practices',
+        'zh-CN': '测试驱动开发工作流和最佳实践',
       },
       category: 'testing',
       priority: 6,
@@ -444,10 +450,10 @@ async function getLocalRecommendations(
   if (analysis.configFiles.includes('.git')) {
     skills.push({
       id: 'git-workflow',
-      name: { en: 'Git Workflow', 'zh-CN': 'Git 工作流' },
+      name: { 'en': 'Git Workflow', 'zh-CN': 'Git 工作流' },
       description: {
-        en: 'Git branch management strategies and best practices',
-        'zh-CN': 'Git 分支管理策略和最佳实践'
+        'en': 'Git branch management strategies and best practices',
+        'zh-CN': 'Git 分支管理策略和最佳实践',
       },
       category: 'git',
       priority: 5,
@@ -555,7 +561,8 @@ async function installSkills(
         if (!parsed.title || !parsed.description) {
           throw new Error('Invalid SKILL.md format')
         }
-      } catch (error) {
+      }
+      catch (error) {
         throw new Error(`Generated SKILL.md is invalid: ${error instanceof Error ? error.message : String(error)}`)
       }
 
@@ -568,7 +575,8 @@ async function installSkills(
         success: true,
         path: skillMdPath,
       })
-    } catch (error) {
+    }
+    catch (error) {
       if (!options.json) {
         console.log(ansis.red('✗'))
         if (!(error instanceof Error && error.message.includes('DRY RUN'))) {
@@ -622,7 +630,8 @@ async function loadSkillTemplate(skill: RecommendedSkill): Promise<string | null
             return content
           }
         }
-      } catch (error) {
+      }
+      catch (error) {
         consola.warn(`Failed to fetch cloud template ${templatePath}:`, error)
         // Fall through to local templates
       }
@@ -641,11 +650,11 @@ async function loadSkillTemplate(skill: RecommendedSkill): Promise<string | null
     }
 
     return null
-  } catch {
+  }
+  catch {
     return null
   }
 }
-
 
 /**
  * Generate SKILL.md from template content
@@ -694,7 +703,8 @@ async function fileExists(path: string): Promise<boolean> {
   try {
     await fs.access(path)
     return true
-  } catch {
+  }
+  catch {
     return false
   }
 }

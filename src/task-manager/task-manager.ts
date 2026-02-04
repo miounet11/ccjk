@@ -7,17 +7,16 @@
  */
 
 import type {
-  Task,
-  TaskStatus,
-  TaskPriority,
   CreateTaskOptions,
-  UpdateTaskOptions,
-  TaskDependency,
+  Task,
+  TaskGraphNode,
+  TaskManagerOptions,
+  TaskPriority,
   TaskSchedule,
   TaskSearchOptions,
   TaskStats,
-  TaskGraphNode,
-  TaskManagerOptions,
+  TaskStatus,
+  UpdateTaskOptions,
 } from './types'
 import { TaskDependencyTracker } from './dependency-tracker'
 import { TaskScheduler } from './task-scheduler'
@@ -81,7 +80,7 @@ export class TaskManager {
    */
   async updateTask(taskId: string, updates: UpdateTaskOptions): Promise<Task | null> {
     // For cloud storage, use the storage's updateTask method
-    if (this.storage['storageType'] === 'cloud') {
+    if (this.storage.storageType === 'cloud') {
       const updated = await this.storage.updateTask(taskId, updates)
       if (updated && updates.status === 'completed') {
         await this.updateBlockedTasks(taskId)
@@ -238,7 +237,8 @@ export class TaskManager {
     const visited = new Set<string>()
 
     const collect = (id: string) => {
-      if (visited.has(id)) return
+      if (visited.has(id))
+        return
       visited.add(id)
 
       const task = allTasks.find(t => t.id === id)
@@ -381,4 +381,3 @@ export class TaskManager {
     return `TASK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
   }
 }
-

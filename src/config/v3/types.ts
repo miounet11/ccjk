@@ -63,17 +63,17 @@ export interface ValidationWarning {
 /**
  * Validation error codes
  */
-export type ValidationErrorCode =
-  | 'REQUIRED_FIELD'
-  | 'INVALID_TYPE'
-  | 'INVALID_FORMAT'
-  | 'INVALID_ENUM'
-  | 'INVALID_URL'
-  | 'INVALID_API_KEY'
-  | 'MIN_LENGTH'
-  | 'MAX_LENGTH'
-  | 'PATTERN_MISMATCH'
-  | 'CUSTOM_VALIDATION'
+export type ValidationErrorCode
+  = | 'REQUIRED_FIELD'
+    | 'INVALID_TYPE'
+    | 'INVALID_FORMAT'
+    | 'INVALID_ENUM'
+    | 'INVALID_URL'
+    | 'INVALID_API_KEY'
+    | 'MIN_LENGTH'
+    | 'MAX_LENGTH'
+    | 'PATTERN_MISMATCH'
+    | 'CUSTOM_VALIDATION'
 
 /**
  * Migration result from config migration
@@ -113,13 +113,13 @@ export interface DiffEntry {
 /**
  * JSON Schema field types
  */
-export type SchemaFieldType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'object'
-  | 'array'
-  | 'null'
+export type SchemaFieldType
+  = | 'string'
+    | 'number'
+    | 'boolean'
+    | 'object'
+    | 'array'
+    | 'null'
 
 /**
  * Schema field definition
@@ -271,58 +271,58 @@ export interface IConfigManagerV3 {
   /**
    * Get configuration value by path
    */
-  get<T>(path: string): T
+  get: <T>(path: string) => T
 
   /**
    * Set configuration value by path
    */
-  set(path: string, value: unknown): void
+  set: (path: string, value: unknown) => void
 
   /**
    * Validate current configuration
    */
-  validate(): ValidationResult
+  validate: () => ValidationResult
 
   /**
    * Migrate configuration from older versions
    */
-  migrate(): MigrationResult
+  migrate: () => MigrationResult
 
   /**
    * Watch for configuration changes
    * @returns Unsubscribe function
    */
-  watch(callback: ConfigChangeHandler): () => void
+  watch: (callback: ConfigChangeHandler) => () => void
 
   /**
    * Export configuration as JSON string
    */
-  export(): string
+  export: () => string
 
   /**
    * Import configuration from JSON string
    */
-  import(data: string): void
+  import: (data: string) => void
 
   /**
    * Get configuration diff between current and provided config
    */
-  diff(other: Partial<ConfigV3>): ConfigDiff
+  diff: (other: Partial<ConfigV3>) => ConfigDiff
 
   /**
    * Reset configuration to defaults
    */
-  reset(): void
+  reset: () => void
 
   /**
    * Get current environment
    */
-  getEnvironment(): Environment
+  getEnvironment: () => Environment
 
   /**
    * Set current environment
    */
-  setEnvironment(env: Environment): void
+  setEnvironment: (env: Environment) => void
 }
 
 /**

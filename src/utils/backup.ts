@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs'
-import { join } from 'pathe'
-import dayjs from 'dayjs'
 import { consola } from 'consola'
+import dayjs from 'dayjs'
+import { join } from 'pathe'
 import { i18n } from '../i18n'
 
 export interface BackupOptions {
@@ -13,7 +13,7 @@ export interface BackupOptions {
 
 export async function createBackup(
   operation: string,
-  options: BackupOptions = {}
+  options: BackupOptions = {},
 ): Promise<string> {
   const timestamp = dayjs().format('YYYYMMDD-HHmmss')
   const backupName = options.name || operation
@@ -47,11 +47,13 @@ export async function createBackup(
         const stats = await fs.stat(sourcePath)
         if (stats.isDirectory()) {
           await copyDirectory(sourcePath, destPath)
-        } else {
+        }
+        else {
           await fs.mkdir(join(destPath, '..'), { recursive: true })
           await fs.copyFile(sourcePath, destPath)
         }
-      } catch (error) {
+      }
+      catch (error) {
         // File doesn't exist, skip
       }
     }
@@ -68,12 +70,13 @@ export async function createBackup(
     await fs.writeFile(
       join(backupDir, 'backup-manifest.json'),
       JSON.stringify(manifest, null, 2),
-      'utf-8'
+      'utf-8',
     )
 
     consola.success(i18n.t('backup.created', { path: backupDir }))
     return backupDir
-  } catch (error) {
+  }
+  catch (error) {
     consola.error(i18n.t('backup.failed'), error)
     throw error
   }
@@ -101,20 +104,24 @@ export async function restoreBackup(backupPath: string): Promise<void> {
           const stats = await fs.stat(sourcePath)
           if (stats.isDirectory()) {
             await copyDirectory(sourcePath, destPath)
-          } else {
+          }
+          else {
             await fs.mkdir(join(destPath, '..'), { recursive: true })
             await fs.copyFile(sourcePath, destPath)
           }
-        } catch (error) {
+        }
+        catch (error) {
           consola.warn(i18n.t('backup.restoreFailed', { file }))
         }
-      } catch (error) {
+      }
+      catch (error) {
         // File doesn't exist in backup, skip
       }
     }
 
     consola.success(i18n.t('backup.restoreComplete'))
-  } catch (error) {
+  }
+  catch (error) {
     consola.error(i18n.t('backup.restoreFailed'), error)
     throw error
   }
@@ -135,13 +142,15 @@ export async function listBackups(): Promise<string[]> {
         if (stats.isDirectory()) {
           backups.push(fullPath)
         }
-      } catch (error) {
+      }
+      catch (error) {
         // Skip invalid entries
       }
     }
 
     return backups.sort((a, b) => b.localeCompare(a)) // Newest first
-  } catch (error) {
+  }
+  catch (error) {
     return []
   }
 }
@@ -159,7 +168,8 @@ export async function cleanupOldBackups(keepCount: number = 5): Promise<void> {
     try {
       await fs.rm(backup, { recursive: true, force: true })
       consola.info(i18n.t('backup.removed', { path: backup }))
-    } catch (error) {
+    }
+    catch (error) {
       consola.warn(i18n.t('backup.removeFailed', { path: backup }))
     }
   }
@@ -175,7 +185,8 @@ async function copyDirectory(src: string, dest: string): Promise<void> {
 
     if (entry.isDirectory()) {
       await copyDirectory(srcPath, destPath)
-    } else {
+    }
+    else {
       await fs.copyFile(srcPath, destPath)
     }
   }
@@ -202,13 +213,15 @@ export async function validateBackup(backupPath: string): Promise<boolean> {
       try {
         await fs.access(join(backupPath, file))
         foundFiles++
-      } catch (error) {
+      }
+      catch (error) {
         // File not found
       }
     }
 
     return foundFiles > 0
-  } catch (error) {
+  }
+  catch (error) {
     return false
   }
 }

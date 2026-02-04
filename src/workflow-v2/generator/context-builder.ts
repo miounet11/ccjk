@@ -5,9 +5,9 @@
  * from the file system, dependencies, and environment.
  */
 
-import type { ProjectContext, ContextBuilderConfig } from '../types.js'
-import { promises as fs } from 'fs'
-import { join } from 'path'
+import type { ContextBuilderConfig, ProjectContext } from '../types.js'
+import { promises as fs } from 'node:fs'
+import { join } from 'node:path'
 import { glob } from 'glob'
 
 export class ContextBuilder {
@@ -77,11 +77,11 @@ export class ContextBuilder {
       const hasConfig = structure.some(f => f.includes('config.') || f.includes('.config.') || f.includes('rc.'))
 
       const mainFiles = structure.filter(f =>
-        f.includes('index.') ||
-        f.includes('main.') ||
-        f.includes('app.') ||
-        f.includes('cli.') ||
-        f.includes('package.json')
+        f.includes('index.')
+        || f.includes('main.')
+        || f.includes('app.')
+        || f.includes('cli.')
+        || f.includes('package.json'),
       ).slice(0, 10)
 
       return {
@@ -222,7 +222,7 @@ export class ContextBuilder {
         express: ['express'],
         fastify: ['fastify'],
         nest: ['@nestjs/core'],
-        'electron': ['electron'],
+        electron: ['electron'],
         vite: ['vite'],
         webpack: ['webpack'],
       }

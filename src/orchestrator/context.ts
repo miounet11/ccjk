@@ -1,5 +1,5 @@
-import { nanoid } from 'nanoid'
 import type { ContextData, ContextSnapshot } from './types'
+import { nanoid } from 'nanoid'
 
 /**
  * Context Store Options

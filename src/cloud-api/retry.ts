@@ -141,7 +141,7 @@ export async function withRetry<T>(
  * Create a retryable fetch function
  */
 export function createRetryableFetch(options: RetryOptions = {}): typeof fetch {
-  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  return async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
     return withRetry(async () => {
       const response = await fetch(input, init)
 

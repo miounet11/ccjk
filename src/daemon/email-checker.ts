@@ -3,12 +3,10 @@
  * Checks for new emails via IMAP and parses commands
  */
 
-import type { Email, EmailConfig } from '../types'
-import Imap from 'imap'
-import { simpleParser } from 'mailparser'
+import type { Email, EmailConfig } from './types/index.js'
 
 export class EmailChecker {
-  private imap: Imap
+  private imap: any
   private config: EmailConfig
   private connected: boolean = false
 
@@ -20,14 +18,22 @@ export class EmailChecker {
       ...config,
     }
 
-    this.imap = new Imap({
-      user: this.config.email,
-      password: this.config.password,
-      host: this.config.imapHost!,
-      port: this.config.imapPort!,
-      tls: this.config.tls!,
-      tlsOptions: { rejectUnauthorized: false },
-    })
+    // Lazy load imap package
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const ImapConstructor = require('imap')
+      this.imap = new ImapConstructor({
+        user: this.config.email,
+        password: this.config.password,
+        host: this.config.imapHost!,
+        port: this.config.imapPort!,
+        tls: this.config.tls!,
+        tlsOptions: { rejectUnauthorized: false },
+      })
+    }
+    catch (error) {
+      throw new Error('imap package is not installed. Install it with: pnpm add imap @types/imap')
+    }
 
     this.setupEventHandlers()
   }
@@ -90,14 +96,14 @@ export class EmailChecker {
       await this.connect()
 
       return new Promise((resolve, reject) => {
-        this.imap.openBox('INBOX', false, (err, box) => {
+        this.imap.openBox('INBOX', false, (err: Error | null, box: any) => {
           if (err) {
             reject(err)
             return
           }
 
           // Search for unread emails with [CCJK] in subject
-          this.imap.search(['UNSEEN', ['SUBJECT', '[CCJK]']], (searchErr, results) => {
+          this.imap.search(['UNSEEN', ['SUBJECT', '[CCJK]']], (searchErr: Error | null, results: number[]) => {
             if (searchErr) {
               reject(searchErr)
               return
@@ -114,9 +120,19 @@ export class EmailChecker {
               markSeen: true, // Mark as read after fetching
             })
 
-            fetch.on('message', (msg, seqno) => {
-              msg.on('body', (stream) => {
-                simpleParser(stream, (parseErr, parsed) => {
+            fetch.on('message', (msg: any, seqno: number) => {
+              msg.on('body', (stream: NodeJS.ReadableStream) => {
+                // Lazy load mailparser
+                let simpleParserFn: any
+                try {
+                  // eslint-disable-next-line @typescript-eslint/no-require-imports
+                  simpleParserFn = require('mailparser').simpleParser
+                }
+                catch {
+                  console.error('mailparser package is not installed. Install it with: pnpm add mailparser @types/mailparser')
+                  return
+                }
+                simpleParserFn(stream, (parseErr: Error | null, parsed: any) => {
                   if (parseErr) {
                     console.error('Email parse error:', parseErr)
                     return
@@ -133,12 +149,12 @@ export class EmailChecker {
                 })
               })
 
-              msg.once('attributes', (attrs) => {
+              msg.once('attributes', (attrs: any) => {
                 // Can access email attributes here if needed
               })
             })
 
-            fetch.once('error', (fetchErr) => {
+            fetch.once('error', (fetchErr: Error) => {
               reject(fetchErr)
             })
 

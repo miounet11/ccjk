@@ -1,51 +1,14 @@
 {
   "name": "@ccjk/actionbook",
+  "type": "module",
   "version": "1.0.0",
   "description": "High-performance precomputation engine for code analysis with LevelDB storage and incremental indexing",
-  "type": "module",
-  "main": "./index.js",
-  "types": "./index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./index.js",
-      "types": "./index.d.ts"
-    }
+  "author": "CCJK Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ccjk-cc/actionbook"
   },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "example": "node --loader tsx/esm example.ts"
-  },
-  "dependencies": {
-    "@typescript-eslint/parser": "^6.0.0",
-    "@typescript-eslint/types": "^6.0.0",
-    "chokidar": "^3.5.3",
-    "level": "^8.0.0",
-    "lru-cache": "^10.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "eslint": "^8.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
-  },
-  "files": [
-    "index.js",
-    "index.d.ts",
-    "types.js",
-    "types.d.ts",
-    "precompute/",
-    "cache/",
-    "api/",
-    "indexer/",
-    "README.md"
-  ],
   "keywords": [
     "code-analysis",
     "ast",
@@ -56,10 +19,47 @@
     "caching",
     "incremental-indexing"
   ],
-  "license": "MIT",
-  "author": "CCJK Team",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ccjk-cc/actionbook"
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "files": [
+    "README.md",
+    "api/",
+    "cache/",
+    "index.d.ts",
+    "index.js",
+    "types.d.ts",
+    "types.js",
+    "precompute/",
+    "indexer/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "example": "node --loader tsx/esm example.ts"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "catalog:",
+    "@typescript-eslint/types": "catalog:",
+    "chokidar": "catalog:conflicts_chokidar_h3_5_3",
+    "level": "catalog:",
+    "lru-cache": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:conflicts_conflicts_@types/node_h20_11_5_h20_0_0",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "eslint": "catalog:conflicts_eslint_h8_0_0",
+    "tsx": "catalog:conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0",
+    "typescript": "catalog:conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_0_0",
+    "vitest": "catalog:conflicts_vitest_h1_0_0"
   }
 }

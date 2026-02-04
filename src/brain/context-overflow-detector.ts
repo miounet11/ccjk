@@ -147,7 +147,7 @@ export class ContextOverflowDetector {
     }
 
     // URLs and paths tend to tokenize poorly
-    const urlMatches = text.match(/https?:\/\/[^\s]+/g)
+    const urlMatches = text.match(/https?:\/\/\S+/g)
     if (urlMatches) {
       const urlLength = urlMatches.reduce((sum, url) => sum + url.length, 0)
       adjustment += Math.ceil(urlLength * 0.1 / this.config.charsPerToken)

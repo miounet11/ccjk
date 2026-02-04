@@ -3,7 +3,7 @@ import type { SupportedLang } from '../constants'
 /**
  * Skill category types
  */
-export type SkillCategory = 'git' | 'dev' | 'seo' | 'devops' | 'testing' | 'docs' | 'review' | 'debug' | 'custom'
+export type SkillCategory = 'git' | 'dev' | 'seo' | 'devops' | 'testing' | 'docs' | 'review' | 'debug' | 'planning' | 'custom'
 
 /**
  * Skill definition interface

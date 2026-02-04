@@ -400,8 +400,8 @@ export function deepFreeze<T>(obj: T): Readonly<T> {
   Object.freeze(obj)
 
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const value = obj[key]
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = (obj as any)[key]
       if (typeof value === 'object' && value !== null) {
         deepFreeze(value)
       }
@@ -415,7 +415,7 @@ export function deepFreeze<T>(obj: T): Readonly<T> {
  * Merge multiple objects
  */
 export function merge<T extends object>(...objects: Partial<T>[]): T {
-  return objects.reduce((acc, obj) => ({ ...acc, ...obj }), {} as T)
+  return objects.reduce((acc, obj) => ({ ...acc, ...obj }), {} as Partial<T>) as T
 }
 
 /**

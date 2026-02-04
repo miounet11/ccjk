@@ -21,9 +21,9 @@
  */
 
 import type { AgentDefinition } from './types'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs'
-import { CLAUDE_AGENTS_DIR, CCJK_CONFIG_DIR } from '../constants'
+import { CCJK_CONFIG_DIR, CLAUDE_AGENTS_DIR } from '../constants'
 
 // Claude Code compatible location (project-local)
 const getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'agents')
@@ -125,7 +125,7 @@ function agentToMarkdown(agent: AgentDefinition, options?: AgentWriteOptions): s
     }
   }
 
-  return frontmatter.join('\n') + body.join('\n') + '\n'
+  return `${frontmatter.join('\n') + body.join('\n')}\n`
 }
 
 /**
@@ -134,13 +134,20 @@ function agentToMarkdown(agent: AgentDefinition, options?: AgentWriteOptions): s
 function selectAgentColor(agent: AgentDefinition): AgentColor {
   const caps = agent.capabilities || []
 
-  if (caps.includes('code-generation') || caps.includes('code-review')) return 'blue'
-  if (caps.includes('testing')) return 'green'
-  if (caps.includes('debugging')) return 'orange'
-  if (caps.includes('deployment')) return 'purple'
-  if (caps.includes('documentation')) return 'cyan'
-  if (caps.includes('git-operations')) return 'yellow'
-  if (caps.includes('web-search') || caps.includes('api-integration')) return 'pink'
+  if (caps.includes('code-generation') || caps.includes('code-review'))
+    return 'blue'
+  if (caps.includes('testing'))
+    return 'green'
+  if (caps.includes('debugging'))
+    return 'orange'
+  if (caps.includes('deployment'))
+    return 'purple'
+  if (caps.includes('documentation'))
+    return 'cyan'
+  if (caps.includes('git-operations'))
+    return 'yellow'
+  if (caps.includes('web-search') || caps.includes('api-integration'))
+    return 'pink'
 
   // Default color based on hash of agent id
   const hash = agent.id?.split('').reduce((a, c) => a + c.charCodeAt(0), 0) || 0
@@ -175,7 +182,7 @@ function formatCapability(cap: string): string {
  */
 export async function writeAgentFile(
   agent: AgentDefinition,
-  options?: AgentWriteOptions
+  options?: AgentWriteOptions,
 ): Promise<string> {
   const format = options?.format || 'markdown'
   const agentId = generateAgentId(agent)
@@ -200,7 +207,8 @@ export async function writeAgentFile(
   let content: string
   if (format === 'markdown') {
     content = agentToMarkdown(agent, options)
-  } else {
+  }
+  else {
     content = JSON.stringify(agent, null, options?.pretty ? 2 : 0)
   }
 
@@ -213,7 +221,7 @@ export async function writeAgentFile(
  */
 export async function writeMultipleAgents(
   agents: AgentDefinition[],
-  options?: AgentWriteOptions
+  options?: AgentWriteOptions,
 ): Promise<string[]> {
   const results: string[] = []
 
@@ -231,7 +239,7 @@ export async function writeMultipleAgents(
 export async function updateAgentFile(
   agentId: string,
   updates: Partial<AgentDefinition>,
-  options?: { projectDir?: string; global?: boolean }
+  options?: { projectDir?: string, global?: boolean },
 ): Promise<boolean> {
   const isGlobal = options?.global || false
   const agentsDir = isGlobal
@@ -250,7 +258,8 @@ export async function updateAgentFile(
       const updatedAgent = { ...existingAgent, ...updates } as AgentDefinition
       await writeAgentFile(updatedAgent, { format: 'markdown', projectDir: options?.projectDir, global: isGlobal })
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -261,7 +270,8 @@ export async function updateAgentFile(
       const updatedAgent = { ...existingContent, ...updates }
       writeFileSync(jsonPath, JSON.stringify(updatedAgent, null, 2), 'utf-8')
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -287,9 +297,10 @@ function parseMarkdownAgent(content: string): Partial<AgentDefinition> {
 
       if (key === 'name') {
         result.id = value
-        result.name = { en: value, 'zh-CN': value }
-      } else if (key === 'description') {
-        result.description = { en: value, 'zh-CN': value }
+        result.name = { 'en': value, 'zh-CN': value }
+      }
+      else if (key === 'description') {
+        result.description = { 'en': value, 'zh-CN': value }
       }
     }
   }
@@ -308,7 +319,7 @@ function parseMarkdownAgent(content: string): Partial<AgentDefinition> {
  */
 export async function deleteAgentFile(
   agentId: string,
-  options?: { projectDir?: string; global?: boolean }
+  options?: { projectDir?: string, global?: boolean },
 ): Promise<boolean> {
   const { unlink } = await import('node:fs/promises')
   const isGlobal = options?.global || false
@@ -327,14 +338,16 @@ export async function deleteAgentFile(
       await unlink(mdPath)
       deleted = true
     }
-  } catch { /* ignore */ }
+  }
+  catch { /* ignore */ }
 
   try {
     if (existsSync(jsonPath)) {
       await unlink(jsonPath)
       deleted = true
     }
-  } catch { /* ignore */ }
+  }
+  catch { /* ignore */ }
 
   return deleted
 }

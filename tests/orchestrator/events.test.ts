@@ -4,11 +4,12 @@
  * Comprehensive test suite for the EventBus implementation
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { EventBus, createEventBus } from '../../src/orchestrator/events'
+import type { EventBus } from '../../src/orchestrator/events'
 import type { OrchestratorEventType } from '../../src/orchestrator/types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createEventBus } from '../../src/orchestrator/events'
 
-describe('EventBus', () => {
+describe('eventBus', () => {
   let eventBus: EventBus
 
   beforeEach(() => {
@@ -36,7 +37,7 @@ describe('EventBus', () => {
         expect.objectContaining({
           type: 'workflow:start',
           data: { workflowId: 'test-workflow' },
-        })
+        }),
       )
     })
 
@@ -101,7 +102,7 @@ describe('EventBus', () => {
       expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { first: true },
-        })
+        }),
       )
     })
   })
@@ -118,7 +119,7 @@ describe('EventBus', () => {
         expect.objectContaining({
           type: 'workflow:start',
           data: { id: 'test' },
-        })
+        }),
       )
     })
 
@@ -166,7 +167,7 @@ describe('EventBus', () => {
       await eventBus.emit('task:start', {})
 
       const workflowHistory = eventBus.getHistory(
-        entry => entry.event.toString().startsWith('workflow:')
+        entry => entry.event.toString().startsWith('workflow:'),
       )
 
       expect(workflowHistory).toHaveLength(2)
@@ -226,7 +227,7 @@ describe('EventBus', () => {
 
     it('should timeout if event not received', async () => {
       await expect(
-        eventBus.waitFor('workflow:complete', 50)
+        eventBus.waitFor('workflow:complete', 50),
       ).rejects.toThrow('Timeout waiting for event')
     })
   })

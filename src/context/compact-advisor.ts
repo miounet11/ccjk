@@ -5,9 +5,8 @@
  * 在 Plan 完成后提供清理建议，与 Claude Code CLI 协同
  */
 
+import type { PlanDocument } from '../workflow/plan-persistence.js'
 import { i18n } from '../i18n/index.js'
-import { estimateTokens } from '../utils/context/token-estimator.js'
-import type { PlanDocument } from './plan-persistence.js'
 
 // ============================================================================
 // Types
@@ -24,17 +23,17 @@ export interface ContextState {
   planningMessageCount?: number
 }
 
-export type CompactReason =
-  | 'plan_complete'      // Plan 阶段完成
-  | 'token_threshold'    // Token 超过阈值
-  | 'message_threshold'  // 消息数超过阈值
-  | 'user_request'       // 用户请求
+export type CompactReason
+  = | 'plan_complete' // Plan 阶段完成
+    | 'token_threshold' // Token 超过阈值
+    | 'message_threshold' // 消息数超过阈值
+    | 'user_request' // 用户请求
 
-export type ContextAction =
-  | { type: 'suggest_clear', reason: CompactReason, message: string }
-  | { type: 'auto_save_plan', planPath: string }
-  | { type: 'warning', message: string }
-  | { type: 'none' }
+export type ContextAction
+  = | { type: 'suggest_clear', reason: CompactReason, message: string }
+    | { type: 'auto_save_plan', planPath: string }
+    | { type: 'warning', message: string }
+    | { type: 'none' }
 
 export interface CompactSuggestion {
   /** 是否建议清理 */
@@ -69,11 +68,11 @@ export interface CompactAdvisorConfig {
 // ============================================================================
 
 export const DEFAULT_COMPACT_CONFIG: CompactAdvisorConfig = {
-  warningThreshold: 0.7,      // 70% 时警告
-  compactThreshold: 0.85,     // 85% 时建议清理
-  messageThreshold: 100,      // 100 条消息
+  warningThreshold: 0.7, // 70% 时警告
+  compactThreshold: 0.85, // 85% 时建议清理
+  messageThreshold: 100, // 100 条消息
   planningMessageThreshold: 50, // Plan 阶段 50 条消息
-  defaultMaxTokens: 200000,   // 200k tokens (Claude 3.5 Sonnet)
+  defaultMaxTokens: 200000, // 200k tokens (Claude 3.5 Sonnet)
 }
 
 // ============================================================================
@@ -146,7 +145,7 @@ export class CompactAdvisor {
       /##\s*(任务(清单|列表)|Task List|Tasks)/i,
       /##\s*(验收标准|Acceptance Criteria)/i,
       /✅\s*(规划完成|Plan Complete|Planning Complete)/i,
-      /---\s*\n\s*💡\s*(下一步|Next Step)/i,
+      /---[\t\v\f\r \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]*\n\s*💡\s*(下一步|Next Step)/i,
     ]
 
     return completionPatterns.some(pattern => pattern.test(planContent))

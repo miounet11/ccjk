@@ -268,7 +268,9 @@ export class SmartBashTool {
     for (let i = 0; i < maxRetries; i++) {
       try {
         const result = await exec(command, [], {
-          cwd: options?.cwd || process.cwd(),
+          nodeOptions: {
+            cwd: options?.cwd || process.cwd(),
+          },
           timeout: options?.timeout || 30000,
         })
 

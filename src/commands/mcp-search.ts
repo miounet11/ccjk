@@ -15,10 +15,10 @@
  */
 
 import type { CodeToolType, SupportedLang } from '../constants'
-import type { ContextWindowAnalysis, McpAutoThreshold, McpToolSearchConfig } from '../types'
+import type { McpAutoThreshold } from '../types'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { DEFAULT_MCP_TOOL_SEARCH_CONFIG, getMcpToolSearchConfig } from '../config/mcp-services'
+import { DEFAULT_MCP_TOOL_SEARCH_CONFIG } from '../config/mcp-services'
 import { McpSearch as McpSearchCore } from '../core/mcp-search'
 import { i18n } from '../i18n'
 import { readMcpConfig, writeMcpConfig } from '../utils/claude-config'
@@ -52,9 +52,10 @@ export async function mcpSearchStatus(options: McpSearchCommandOptions = {}): Pr
 
   if (toolSearchConfig) {
     // Threshold
-    const thresholdStr = formatThresholdDisplay(toolSearchConfig.autoEnableThreshold)
+    const threshold = toolSearchConfig.mcpAutoEnableThreshold ?? DEFAULT_MCP_TOOL_SEARCH_CONFIG.mcpAutoEnableThreshold
+    const thresholdStr = formatThresholdDisplay(threshold)
     console.log(`${ansis.bold(isZh ? '阈值' : 'Threshold')}: ${ansis.yellow(thresholdStr)}`)
-    console.log(ansis.dim(getThresholdDescription(toolSearchConfig.autoEnableThreshold, lang)))
+    console.log(ansis.dim(getThresholdDescription(threshold, lang)))
     console.log('')
 
     // Dynamic discovery
@@ -85,7 +86,7 @@ export async function mcpSearchStatus(options: McpSearchCommandOptions = {}): Pr
   const analysis = McpSearchCore.analyzeContextWindowUsage({
     mcpServers: config?.mcpServers,
     excludedServices: toolSearchConfig?.excludedServices,
-    threshold: toolSearchConfig?.autoEnableThreshold,
+    threshold: toolSearchConfig?.mcpAutoEnableThreshold,
   })
 
   console.log(`${ansis.bold(isZh ? '📊 上下文窗口分析' : '📊 Context Window Analysis')}`)
@@ -144,7 +145,7 @@ export async function mcpSearchEnable(options: McpSearchCommandOptions = {}): Pr
   if (result.success) {
     console.log('')
     console.log(ansis.green(`✅ ${isZh ? 'MCP 工具搜索自动模式已启用' : 'MCP Tool Search Auto-Mode enabled'}`))
-    console.log(ansis.dim(`${isZh ? '阈值' : 'Threshold'}: ${formatThresholdDisplay(result.config?.autoEnableThreshold)}`))
+    console.log(ansis.dim(`${isZh ? '阈值' : 'Threshold'}: ${formatThresholdDisplay(result.config?.mcpAutoEnableThreshold ?? DEFAULT_MCP_TOOL_SEARCH_CONFIG.mcpAutoEnableThreshold)}`))
     console.log('')
 
     if (result.appliedChanges && result.appliedChanges.length > 0) {
@@ -310,7 +311,7 @@ export async function mcpSearchExclude(
   if (!serviceId) {
     // Interactive mode - show available services
     const availableServices = Object.keys(config.mcpServers || {})
-      .filter(id => !config.mcpToolSearch.excludedServices!.includes(id))
+      .filter(id => !config.mcpToolSearch!.excludedServices!.includes(id))
 
     if (availableServices.length === 0) {
       console.log('')

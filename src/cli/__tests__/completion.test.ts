@@ -4,14 +4,15 @@
  * Tests command completion generation for all supported shells.
  */
 
+import type { CommandInfo, ShellType } from '../completion'
 import { describe, expect, it } from 'vitest'
 import {
+
   completionProvider,
   getAvailableAgents,
   getAvailableSkills,
   getInstalledMcpServices,
-  type CommandInfo,
-  type ShellType,
+
 } from '../completion'
 import { generateBashCompletion } from '../completions/bash'
 import { generateFishCompletion } from '../completions/fish'

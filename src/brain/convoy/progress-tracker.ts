@@ -6,7 +6,7 @@
  * @module brain/convoy/progress-tracker
  */
 
-import type { Convoy, ConvoyTask, ConvoyManager } from './convoy-manager'
+import type { Convoy, ConvoyManager, ConvoyTask } from './convoy-manager'
 import { EventEmitter } from 'node:events'
 
 /**
@@ -102,7 +102,8 @@ export class ProgressTracker extends EventEmitter {
    */
   getProgress(convoyId: string): ProgressUpdate | null {
     const convoy = this.convoyManager.get(convoyId)
-    if (!convoy) return null
+    if (!convoy)
+      return null
 
     return this.buildProgressUpdate(convoy)
   }
@@ -112,7 +113,8 @@ export class ProgressTracker extends EventEmitter {
    */
   getProgressBar(convoyId: string): string {
     const convoy = this.convoyManager.get(convoyId)
-    if (!convoy) return ''
+    if (!convoy)
+      return ''
 
     return this.buildProgressBar(convoy.progress)
   }
@@ -122,7 +124,8 @@ export class ProgressTracker extends EventEmitter {
    */
   getFormattedProgress(convoyId: string): string {
     const update = this.getProgress(convoyId)
-    if (!update) return 'Convoy not found'
+    if (!update)
+      return 'Convoy not found'
 
     const lines = [
       `${update.convoyName} [${update.convoyId}]`,
@@ -278,7 +281,8 @@ export class ProgressTracker extends EventEmitter {
   }
 
   private formatTime(ms: number): string {
-    if (ms < 0) return '0s'
+    if (ms < 0)
+      return '0s'
 
     const seconds = Math.floor(ms / 1000)
     const minutes = Math.floor(seconds / 60)

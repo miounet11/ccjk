@@ -13,11 +13,12 @@ import type {
   StartupModule,
   StartupResult,
 } from '../utils/startup-orchestrator/types'
+import type { EventEmitResult, StartupEventBus } from './event-bus'
 import {
+
   getStartupEventBus,
   resetStartupEventBus,
-  type StartupEventBus,
-  type EventEmitResult,
+
 } from './event-bus'
 
 /**
@@ -394,7 +395,8 @@ export class IntelligentBootstrap {
     const moduleMap = new Map(modules.map(m => [m.name, m]))
 
     const visit = (name: string): void => {
-      if (visited.has(name)) return
+      if (visited.has(name))
+        return
       if (visiting.has(name)) {
         throw new Error(`Circular dependency detected: ${name}`)
       }

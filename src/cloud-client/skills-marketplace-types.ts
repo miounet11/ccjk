@@ -62,44 +62,44 @@ export interface Quota {
 /**
  * Skill category enumeration
  */
-export type SkillCategory =
-  | 'development'
-  | 'productivity'
-  | 'writing'
-  | 'analysis'
-  | 'automation'
-  | 'integration'
-  | 'utility'
-  | 'other'
+export type SkillCategory
+  = | 'development'
+    | 'productivity'
+    | 'writing'
+    | 'analysis'
+    | 'automation'
+    | 'integration'
+    | 'utility'
+    | 'other'
 
 /**
  * Skill provider enumeration
  */
-export type SkillProvider =
-  | 'official'
-  | 'community'
-  | 'verified'
-  | 'third-party'
+export type SkillProvider
+  = | 'official'
+    | 'community'
+    | 'verified'
+    | 'third-party'
 
 /**
  * Skill status enumeration
  */
-export type SkillStatus =
-  | 'active'
-  | 'deprecated'
-  | 'beta'
-  | 'archived'
+export type SkillStatus
+  = | 'active'
+    | 'deprecated'
+    | 'beta'
+    | 'archived'
 
 /**
  * Supported AI agents
  */
-export type SupportedAgent =
-  | 'claude-code'
-  | 'codex'
-  | 'aider'
-  | 'continue'
-  | 'cline'
-  | 'cursor'
+export type SupportedAgent
+  = | 'claude-code'
+    | 'codex'
+    | 'aider'
+    | 'continue'
+    | 'cline'
+    | 'cursor'
 
 /**
  * Skill metadata

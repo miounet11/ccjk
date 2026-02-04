@@ -5,87 +5,101 @@
  * @module cloud-client
  */
 
+// Import classes
+import type { CloudClient } from './client'
+
 // Import dependencies
 import consola from 'consola'
+import { CachedCloudClient, CloudCache } from './cache'
+import { createCloudClient } from './client'
+import { getCloudRecommendedHooks, getCommunityHooks, submitHookAnalytics } from './hook-recommendations.js'
+// Import recommendations
+import { getCloudMcpRecommendations, getCloudRecommendations, getCloudSkillRecommendations } from './recommendations'
 
-// Import classes
-import { CloudClient, createCloudClient } from './client'
-import { CloudCache, CachedCloudClient } from './cache'
 import { RetryableCloudClient } from './retry'
 import { initializeTelemetry } from './telemetry'
 
-// Import recommendations
-import { getCloudRecommendations, getCloudSkillRecommendations, getCloudMcpRecommendations } from './recommendations'
-import { getCloudRecommendedHooks, submitHookAnalytics, getCommunityHooks } from './hook-recommendations.js'
-
 // Import v8 Templates Client
-import { TemplatesClient, getTemplatesClient, createTemplatesClient } from './templates-client'
+import { createTemplatesClient, getTemplatesClient, TemplatesClient } from './templates-client'
 
-// Export types
-export * from './types'
+// Export caching
+export { CachedCloudClient, CloudCache } from './cache'
 
 // Export core client
 export { CloudClient, createCloudClient } from './client'
 
-// Export caching
-export { CloudCache, CachedCloudClient } from './cache'
+// Ratings API
+export {
+  createRating,
+  getSkillRatings,
+  isDuplicateRatingError,
+  isSkillNotFoundError,
+  isUnauthorizedError,
+  ratingsApi,
+  RatingsApiError,
+  RatingsApiErrorCode,
+} from './ratings-api.js'
+
+export type {
+  CreateRatingData,
+  CreateRatingResponse,
+  GetSkillRatingsParams,
+  GetSkillRatingsResponse,
+  RatingSortOption,
+} from './ratings-api.js'
 
 // Export retry logic
-export { RetryableCloudClient, withRetry, retryUtils } from './retry'
-
-// Export telemetry
-export {
-  TelemetryReporter,
-  initializeTelemetry,
-  getTelemetry,
-  stopTelemetry,
-  trackEvent,
-  telemetryUtils,
-} from './telemetry'
+export { RetryableCloudClient, retryUtils, withRetry } from './retry'
 
 // Export recommendations
 export {
-  getCloudRecommendations,
-  getCloudSkillRecommendations,
   getCloudMcpRecommendations,
+  getCloudRecommendations,
   getCloudRecommendedHooks,
-  submitHookAnalytics,
+  getCloudSkillRecommendations,
   getCommunityHooks,
+  submitHookAnalytics,
 }
 
 // Export v8 Templates Client
 export {
-  TemplatesClient,
-  getTemplatesClient,
   createTemplatesClient,
+  getTemplatesClient,
+  TemplatesClient,
 }
-export type {
-  Template,
-  TemplateType as V8TemplateType,
-  TemplateSearchParams,
-  TemplateListResponse,
-  BatchTemplateRequest as V8BatchTemplateRequest,
-  BatchTemplateResponse as V8BatchTemplateResponse,
-  TemplatesClientConfig,
-} from './templates-client'
+// Skills Marketplace API
+export { skillsMarketplaceApi } from './skills-marketplace-api.js'
 
-// Re-export all interfaces for convenience
+/**
+ * Export default client factory
+ */
+// Skills Marketplace API Types
 export type {
-  ProjectAnalysisRequest,
-  ProjectAnalysisResponse,
-  Recommendation,
-  TemplateResponse,
-  BatchTemplateRequest,
-  BatchTemplateResponse,
-  UsageReport,
-  UsageReportResponse,
-  HealthCheckResponse,
-  CloudClientError,
-  CacheEntry,
-  TemplateParameter,
-  TemplateType,
-  MetricType,
-} from './types'
+  ApiResponse,
+  CreateRatingRequest,
+  InstallSkillRequest,
+  MarketplaceFilters,
+  MarketplaceParams,
+  MarketplaceResponse,
+  Pagination,
+  Quota,
+  Rating,
+  RatingsParams,
+  RatingSummary,
+  RecommendationsParams,
+  SearchParams,
+  SearchResponse,
+  Skill,
+  SkillCategory,
+  SkillMetadata,
+  SkillProvider,
+  SkillStatus,
+  SuggestionsParams,
+  SupportedAgent,
+  TrendingParams,
+  UpdateSkillRequest,
+  UserSkill,
+} from './skills-marketplace-types.js'
 
 /**
  * Fallback Cloud Client with Local Fallback Support
@@ -290,10 +304,14 @@ export class FallbackCloudClient {
    * Detect project type
    */
   private detectProjectType(request: any): string {
-    if (request.dependencies?.react) return 'react'
-    if (request.dependencies?.vue) return 'vue'
-    if (request.dependencies?.express) return 'nodejs'
-    if (request.devDependencies?.typescript) return 'typescript'
+    if (request.dependencies?.react)
+      return 'react'
+    if (request.dependencies?.vue)
+      return 'vue'
+    if (request.dependencies?.express)
+      return 'nodejs'
+    if (request.devDependencies?.typescript)
+      return 'typescript'
     return 'generic'
   }
 
@@ -304,15 +322,24 @@ export class FallbackCloudClient {
     const frameworks: string[] = []
     const deps = { ...request.dependencies, ...request.devDependencies }
 
-    if (deps.react) frameworks.push('react')
-    if (deps.vue) frameworks.push('vue')
-    if (deps.angular) frameworks.push('angular')
-    if (deps.svelte) frameworks.push('svelte')
-    if (deps.express) frameworks.push('express')
-    if (deps.fastify) frameworks.push('fastify')
-    if (deps.typescript) frameworks.push('typescript')
-    if (deps.webpack) frameworks.push('webpack')
-    if (deps.vite) frameworks.push('vite')
+    if (deps.react)
+      frameworks.push('react')
+    if (deps.vue)
+      frameworks.push('vue')
+    if (deps.angular)
+      frameworks.push('angular')
+    if (deps.svelte)
+      frameworks.push('svelte')
+    if (deps.express)
+      frameworks.push('express')
+    if (deps.fastify)
+      frameworks.push('fastify')
+    if (deps.typescript)
+      frameworks.push('typescript')
+    if (deps.webpack)
+      frameworks.push('webpack')
+    if (deps.vite)
+      frameworks.push('vite')
 
     return frameworks
   }
@@ -341,77 +368,64 @@ export function createCompleteCloudClient(config?: Partial<import('./types').Clo
   return fallbackClient
 }
 
-/**
- * Export default client factory
- */
-// Skills Marketplace API Types
-export type {
-  ApiResponse,
-  Pagination,
-  Quota,
-  SkillCategory,
-  SkillProvider,
-  SkillStatus,
-  SupportedAgent,
-  SkillMetadata,
-  Skill,
-  UserSkill,
-  Rating,
-  RatingSummary,
-  MarketplaceParams,
-  SearchParams,
-  SuggestionsParams,
-  TrendingParams,
-  RecommendationsParams,
-  RatingsParams,
-  InstallSkillRequest,
-  UpdateSkillRequest,
-  CreateRatingRequest,
-  MarketplaceFilters,
-  MarketplaceResponse,
-  SearchResponse,
-} from './skills-marketplace-types.js'
+// Export telemetry
+export {
+  getTelemetry,
+  initializeTelemetry,
+  stopTelemetry,
+  TelemetryReporter,
+  telemetryUtils,
+  trackEvent,
+} from './telemetry'
 
-// Skills Marketplace API
-export { skillsMarketplaceApi } from './skills-marketplace-api.js'
+export type {
+  Template,
+  TemplateListResponse,
+  TemplatesClientConfig,
+  TemplateSearchParams,
+  BatchTemplateRequest as V8BatchTemplateRequest,
+  BatchTemplateResponse as V8BatchTemplateResponse,
+  TemplateType as V8TemplateType,
+} from './templates-client'
+
+// Export types
+export * from './types'
+// Re-export all interfaces for convenience
+export type {
+  BatchTemplateRequest,
+  BatchTemplateResponse,
+  CacheEntry,
+  CloudClientError,
+  HealthCheckResponse,
+  MetricType,
+  ProjectAnalysisRequest,
+  ProjectAnalysisResponse,
+  Recommendation,
+  TemplateParameter,
+  TemplateResponse,
+  TemplateType,
+  UsageReport,
+  UsageReportResponse,
+} from './types'
 
 // User Skills API
 export type { AuthRequestOptions } from './user-skills-api.js'
 export {
-  userSkillsApi,
-  getUserSkills,
-  installSkill,
-  uninstallSkill,
-  updateSkill,
+  canInstallMore,
+  getDisabledSkills,
+  getEnabledSkills,
+  getQuotaUsagePercentage,
   getRecommendations,
   getUserQuota,
-  canInstallMore,
-  getQuotaUsagePercentage,
+  getUserSkills,
+  installSkill,
   isSkillInstalled,
-  getEnabledSkills,
-  getDisabledSkills,
-  sortByUsage,
   sortByLastUsed,
+  sortByUsage,
+  uninstallSkill,
+  updateSkill,
+  userSkillsApi,
 } from './user-skills-api.js'
-
-// Ratings API
-export {
-  ratingsApi,
-  getSkillRatings,
-  createRating,
-  RatingsApiError,
-  RatingsApiErrorCode,
-  isDuplicateRatingError,
-  isUnauthorizedError,
-  isSkillNotFoundError,
-} from './ratings-api.js'
-export type {
-  GetSkillRatingsParams,
-  GetSkillRatingsResponse,
-  CreateRatingData,
-  CreateRatingResponse,
-  RatingSortOption,
-} from './ratings-api.js'
 
 export default {
   createClient: createCompleteCloudClient,

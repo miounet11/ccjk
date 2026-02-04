@@ -42,20 +42,20 @@ export interface ProviderRegistry {
 /**
  * Provider category
  */
-export type ProviderCategory =
-  | 'official'      // Official providers (Anthropic, OpenAI)
-  | 'relay'         // Relay/proxy services (302.AI)
-  | 'domestic'      // Domestic Chinese providers (GLM, Kimi, MiniMax)
-  | 'custom'        // User-created custom providers
+export type ProviderCategory
+  = | 'official' // Official providers (Anthropic, OpenAI)
+    | 'relay' // Relay/proxy services (302.AI)
+    | 'domestic' // Domestic Chinese providers (GLM, Kimi, MiniMax)
+    | 'custom' // User-created custom providers
 
 /**
  * Provider status
  */
-export type ProviderStatus =
-  | 'active'        // Active and working
-  | 'maintenance'   // Under maintenance
-  | 'deprecated'    // Deprecated, will be removed
-  | 'testing'       // In testing phase
+export type ProviderStatus
+  = | 'active' // Active and working
+    | 'maintenance' // Under maintenance
+    | 'deprecated' // Deprecated, will be removed
+    | 'testing' // In testing phase
 
 // ============================================================================
 // API Request/Response Types
@@ -190,9 +190,23 @@ export const SHORTCODE_RULES = {
   pattern: /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{1,2}$/,
   /** Reserved shortcodes that cannot be used */
   reserved: [
-    'help', 'menu', 'init', 'setup', 'config', 'update',
-    'doctor', 'mcp', 'skills', 'agents', 'hooks', 'api',
-    'cloud', 'system', 'version', 'test', 'debug',
+    'help',
+    'menu',
+    'init',
+    'setup',
+    'config',
+    'update',
+    'doctor',
+    'mcp',
+    'skills',
+    'agents',
+    'hooks',
+    'api',
+    'cloud',
+    'system',
+    'version',
+    'test',
+    'debug',
   ],
 }
 
@@ -200,11 +214,16 @@ export const SHORTCODE_RULES = {
  * Validate shortcode format
  */
 export function isValidShortcode(shortcode: string): boolean {
-  if (!shortcode) return false
-  if (shortcode.length < SHORTCODE_RULES.minLength) return false
-  if (shortcode.length > SHORTCODE_RULES.maxLength) return false
-  if (!SHORTCODE_RULES.pattern.test(shortcode)) return false
-  if (SHORTCODE_RULES.reserved.includes(shortcode.toLowerCase())) return false
+  if (!shortcode)
+    return false
+  if (shortcode.length < SHORTCODE_RULES.minLength)
+    return false
+  if (shortcode.length > SHORTCODE_RULES.maxLength)
+    return false
+  if (!SHORTCODE_RULES.pattern.test(shortcode))
+    return false
+  if (SHORTCODE_RULES.reserved.includes(shortcode.toLowerCase()))
+    return false
   return true
 }
 

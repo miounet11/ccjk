@@ -7,7 +7,6 @@
  * @module brain/task-decomposer
  */
 
-import type { AgentCapability } from '../types/agent.js'
 import type {
   DecompositionStrategy,
   Task,
@@ -18,7 +17,29 @@ import type {
   TaskGraphNode,
   TaskStage,
 } from './orchestrator-types.js'
+import type { AgentCapability } from '../types/agent.js'
 import { nanoid } from 'nanoid'
+
+/**
+ * Convert capability name strings to AgentCapability objects
+ */
+function toAgentCapabilities(names: string[]): AgentCapability[] {
+  return names.map(name => ({
+    id: name,
+    name,
+    model: 'sonnet' as const,
+    specialties: [name],
+    strength: 0.8,
+    costFactor: 1.0,
+  }))
+}
+
+/**
+ * Extract capability names from AgentCapability objects
+ */
+function fromAgentCapabilities(capabilities: AgentCapability[]): string[] {
+  return capabilities.map(cap => cap.id)
+}
 
 /**
  * Task decomposition options
@@ -382,21 +403,21 @@ export class TaskDecomposer {
    * @param task - Task to analyze
    * @returns Sequential steps
    */
-  private identifySequentialSteps(task: Task): Array<{ name: string, description: string, capabilities: AgentCapability[] }> {
+  private identifySequentialSteps(task: Task): Array<{ name: string, description: string, capabilities: string[] }> {
     // Simple heuristic: split by common sequential keywords
-    const steps: Array<{ name: string, description: string, capabilities: AgentCapability[] }> = []
+    const steps: Array<{ name: string, description: string, capabilities: string[] }> = []
 
     // Default sequential breakdown
     steps.push({
       name: `${task.name} - Preparation`,
       description: `Prepare for ${task.description}`,
-      capabilities: task.requiredCapabilities,
+      capabilities: fromAgentCapabilities(task.requiredCapabilities),
     })
 
     steps.push({
       name: `${task.name} - Execution`,
       description: `Execute ${task.description}`,
-      capabilities: task.requiredCapabilities,
+      capabilities: fromAgentCapabilities(task.requiredCapabilities),
     })
 
     steps.push({
@@ -414,8 +435,8 @@ export class TaskDecomposer {
    * @param task - Task to analyze
    * @returns Parallel steps
    */
-  private identifyParallelSteps(task: Task): Array<{ name: string, description: string, capabilities: AgentCapability[] }> {
-    const steps: Array<{ name: string, description: string, capabilities: AgentCapability[] }> = []
+  private identifyParallelSteps(task: Task): Array<{ name: string, description: string, capabilities: string[] }> {
+    const steps: Array<{ name: string, description: string, capabilities: string[] }> = []
 
     // If task has multiple files, create parallel tasks for each
     if (task.input.files && task.input.files.length > 1) {
@@ -423,13 +444,13 @@ export class TaskDecomposer {
         steps.push({
           name: `${task.name} - ${file}`,
           description: `${task.description} for ${file}`,
-          capabilities: task.requiredCapabilities,
+          capabilities: fromAgentCapabilities(task.requiredCapabilities),
         })
       }
     }
     else {
       // Default parallel breakdown by capability
-      const capabilityGroups = this.groupCapabilities(task.requiredCapabilities)
+      const capabilityGroups = this.groupCapabilities(fromAgentCapabilities(task.requiredCapabilities))
       for (const [group, capabilities] of capabilityGroups) {
         steps.push({
           name: `${task.name} - ${group}`,
@@ -448,8 +469,8 @@ export class TaskDecomposer {
    * @param task - Task to analyze
    * @returns Task phases
    */
-  private identifyPhases(task: Task): Array<{ name: string, description: string, capabilities: AgentCapability[] }> {
-    const phases: Array<{ name: string, description: string, capabilities: AgentCapability[] }> = []
+  private identifyPhases(task: Task): Array<{ name: string, description: string, capabilities: string[] }> {
+    const phases: Array<{ name: string, description: string, capabilities: string[] }> = []
 
     // Common software development phases
     phases.push({
@@ -461,7 +482,7 @@ export class TaskDecomposer {
     phases.push({
       name: `${task.name} - Implementation`,
       description: `Implement ${task.description}`,
-      capabilities: task.requiredCapabilities,
+      capabilities: fromAgentCapabilities(task.requiredCapabilities),
     })
 
     phases.push({
@@ -479,26 +500,26 @@ export class TaskDecomposer {
    * @param task - Task to analyze
    * @returns Pipeline stages
    */
-  private identifyPipelineStages(task: Task): Array<{ name: string, description: string, capabilities: AgentCapability[] }> {
-    const stages: Array<{ name: string, description: string, capabilities: AgentCapability[] }> = []
+  private identifyPipelineStages(task: Task): Array<{ name: string, description: string, capabilities: string[] }> {
+    const stages: Array<{ name: string, description: string, capabilities: string[] }> = []
 
     // Data processing pipeline
     stages.push({
       name: `${task.name} - Input Processing`,
       description: `Process input for ${task.description}`,
-      capabilities: task.requiredCapabilities,
+      capabilities: fromAgentCapabilities(task.requiredCapabilities),
     })
 
     stages.push({
       name: `${task.name} - Transformation`,
       description: `Transform data for ${task.description}`,
-      capabilities: task.requiredCapabilities,
+      capabilities: fromAgentCapabilities(task.requiredCapabilities),
     })
 
     stages.push({
       name: `${task.name} - Output Generation`,
       description: `Generate output for ${task.description}`,
-      capabilities: task.requiredCapabilities,
+      capabilities: fromAgentCapabilities(task.requiredCapabilities),
     })
 
     return stages
@@ -519,7 +540,7 @@ export class TaskDecomposer {
       mapTasks.push(this.createSubtask(task, {
         name: `${task.name} - Map ${i + 1}`,
         description: `Process ${typeof item === 'string' ? item : `item ${i + 1}`}`,
-        capabilities: task.requiredCapabilities,
+        capabilities: fromAgentCapabilities(task.requiredCapabilities),
       }, i))
     }
 
@@ -554,7 +575,7 @@ export class TaskDecomposer {
    */
   private createSubtask(
     parentTask: Task,
-    step: { name: string, description: string, capabilities: AgentCapability[] },
+    step: { name: string, description: string, capabilities: string[] },
     index: number,
   ): Task {
     const now = new Date().toISOString()
@@ -566,7 +587,7 @@ export class TaskDecomposer {
       type: parentTask.type,
       priority: parentTask.priority,
       status: 'pending',
-      requiredCapabilities: step.capabilities,
+      requiredCapabilities: toAgentCapabilities(step.capabilities),
       input: {
         parameters: parentTask.input.parameters,
         files: parentTask.input.files,
@@ -602,8 +623,8 @@ export class TaskDecomposer {
    * @param capabilities - Capabilities to group
    * @returns Grouped capabilities
    */
-  private groupCapabilities(capabilities: AgentCapability[]): Map<string, AgentCapability[]> {
-    const groups = new Map<string, AgentCapability[]>()
+  private groupCapabilities(capabilities: string[]): Map<string, string[]> {
+    const groups = new Map<string, string[]>()
 
     for (const capability of capabilities) {
       const category = capability.split('-')[0]

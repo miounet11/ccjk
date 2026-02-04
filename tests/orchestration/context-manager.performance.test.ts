@@ -3,14 +3,14 @@
  * Validates compression effectiveness and speed
  */
 
+import type { Message } from '../../src/types/orchestration'
 import { describe, expect, it } from 'vitest'
 import { OrchestrationContextManager } from '../../src/orchestration/context-manager'
-import type { Message } from '../../src/types/orchestration'
 
-describe('Context Manager Performance Tests', () => {
+describe('context Manager Performance Tests', () => {
   const manager = new OrchestrationContextManager()
 
-  describe('Compression Effectiveness', () => {
+  describe('compression Effectiveness', () => {
     it('should achieve 94%+ compression for 100 messages', async () => {
       const messages: Message[] = Array.from({ length: 100 }, (_, i) => ({
         id: `${i}`,
@@ -78,7 +78,7 @@ describe('Context Manager Performance Tests', () => {
     })
   })
 
-  describe('Compression Quality', () => {
+  describe('compression Quality', () => {
     it('should preserve critical information (decisions, errors, solutions)', async () => {
       const messages: Message[] = [
         { id: '1', role: 'user', content: 'We decided to use TypeScript for type safety', timestamp: Date.now() },
@@ -123,7 +123,7 @@ describe('Context Manager Performance Tests', () => {
     })
   })
 
-  describe('Memory Efficiency', () => {
+  describe('memory Efficiency', () => {
     it('should maintain low memory footprint', async () => {
       const messages: Message[] = Array.from({ length: 1000 }, (_, i) => ({
         id: `${i}`,
@@ -147,7 +147,7 @@ describe('Context Manager Performance Tests', () => {
     })
   })
 
-  describe('Real-World Scenarios', () => {
+  describe('real-World Scenarios', () => {
     it('should handle typical AI coding session', async () => {
       const messages: Message[] = [
         // Initial requirements

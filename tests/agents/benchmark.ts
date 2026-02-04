@@ -79,7 +79,7 @@ async function runBenchmark(): Promise<BenchmarkResult[]> {
 }
 
 function printResults(results: BenchmarkResult[]): void {
-  console.log('\n' + '='.repeat(80))
+  console.log(`\n${'='.repeat(80)}`)
   console.log('Multi-Agent Orchestration Performance Benchmark')
   console.log('='.repeat(80))
   console.log()
@@ -116,4 +116,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     .catch(console.error)
 }
 
-export { runBenchmark, printResults }
+export { printResults, runBenchmark }

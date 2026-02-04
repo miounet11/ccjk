@@ -4,12 +4,9 @@
  * Merges context-menu, context-compression, and new context management features
  */
 
-import type { SupportedLang } from '../../constants'
-
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import { join } from 'pathe'
-import { CLAUDE_DIR } from '../../constants'
 import { getTranslation } from '../../i18n'
 
 /**

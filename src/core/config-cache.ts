@@ -8,10 +8,10 @@
  * - Expensive computations
  */
 
+import { mkdirSync } from 'node:fs'
 import { join } from 'pathe'
 import { exists } from '../utils/fs-operations'
-import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
-import { getHomeDir } from '../utils/platform'
+import { getHomeDir } from '../utils/platform/paths'
 
 /**
  * Cache entry structure
@@ -82,7 +82,7 @@ export class ConfigCache {
 
     // Check if expired
     const now = Date.now()
-    const ttl = maxAge ?? this.config.defaultTTL
+    const ttl = maxAge ?? this.config.defaultTTL!
 
     if (now - entry.timestamp > ttl) {
       this.cache.delete(key)
@@ -123,7 +123,7 @@ export class ConfigCache {
       expiresAt = now + options.ttl
     }
     else {
-      expiresAt = now + this.config.defaultTTL
+      expiresAt = now + this.config.defaultTTL!
     }
 
     // Calculate size if not provided
@@ -221,7 +221,7 @@ export class ConfigCache {
     }
 
     // If over capacity, remove old/unused entries
-    if (currentSize + requiredSize > this.config.maxSize) {
+    if (currentSize + requiredSize > this.config.maxSize!) {
       const entries = Array.from(this.cache.entries())
       // Sort by: 1) expiration time, 2) hit count (ascending)
       entries.sort((a, b) => {
@@ -238,7 +238,7 @@ export class ConfigCache {
       for (const [key, entry] of entries) {
         this.cache.delete(key)
         freedSpace += entry.size
-        if (currentSize + requiredSize - freedSpace <= this.config.maxSize) {
+        if (currentSize + requiredSize - freedSpace <= this.config.maxSize!) {
           break
         }
       }
@@ -268,7 +268,7 @@ export class ConfigCache {
       if (removed > 0) {
         // Cleanup stats can be logged here
       }
-    }, this.config.cleanupInterval)
+    }, this.config.cleanupInterval!)
   }
 
   /**
@@ -322,7 +322,7 @@ export function getConfigCache(): ConfigCache {
 
     // Create directory if needed
     if (!exists(cacheDir)) {
-      import('fs-extra').mkdirpSync(cacheDir)
+      mkdirSync(cacheDir, { recursive: true })
     }
 
     globalConfigCache = new ConfigCache()

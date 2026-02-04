@@ -313,11 +313,11 @@ export const hookManager = new HookManager()
  * Claude Code hook event types
  * Maps to Claude Code's hook system events
  */
-export type ClaudeCodeHookEvent =
-  | 'PreToolUse'
-  | 'PostToolUse'
-  | 'Notification'
-  | 'Stop'
+export type ClaudeCodeHookEvent
+  = | 'PreToolUse'
+    | 'PostToolUse'
+    | 'Notification'
+    | 'Stop'
 
 /**
  * Claude Code hook configuration format
@@ -360,25 +360,28 @@ export function convertToClaudeCodeHooks(ccjkHooks: HooksConfig): ClaudeCodeHook
   const claudeHooks: ClaudeCodeHooksConfig = {}
 
   for (const [type, hooks] of Object.entries(ccjkHooks)) {
-    if (!hooks || hooks.length === 0) continue
+    if (!hooks || hooks.length === 0)
+      continue
 
     const claudeEvent = HOOK_TYPE_MAP[type as HookType]
-    if (!claudeEvent) continue
+    if (!claudeEvent)
+      continue
 
     // Group hooks by their enabled status
-    const enabledHooks = hooks.filter(h => h.enabled !== false)
-    if (enabledHooks.length === 0) continue
+    const enabledHooks = hooks.filter((h: Hook) => h.enabled !== false)
+    if (enabledHooks.length === 0)
+      continue
 
     // Create Claude Code hook entry
     const claudeHook: ClaudeCodeHook = {
       matcher: '.*', // Match all tools by default
-      hooks: enabledHooks.map(h => h.command),
+      hooks: enabledHooks.map((h: Hook) => h.command),
     }
 
     // Use the minimum timeout from all hooks (convert ms to seconds)
     const timeouts = enabledHooks
-      .filter(h => h.timeout)
-      .map(h => Math.ceil((h.timeout || 5000) / 1000))
+      .filter((h: Hook) => h.timeout)
+      .map((h: Hook) => Math.ceil((h.timeout || 5000) / 1000))
     if (timeouts.length > 0) {
       claudeHook.timeout = Math.min(...timeouts)
     }

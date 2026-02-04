@@ -33,7 +33,7 @@
 
 import type { ClaudeSettings as ClaudeSettingsType } from '../../types/config'
 // Type exports - re-export from types module
-import type { CcjkConfig, ConfigScope, RuntimeState, ValidationResult } from './types'
+import type { CcjkConfig, RuntimeState } from './types'
 
 import { createDefaultCcjkConfig, getCcjkConfig, readCcjkConfig, updateCcjkConfig, validateCcjkConfig, writeCcjkConfig } from './ccjk-config'
 import { getClaudeConfig, mergeClaudeSettings as mergeClaudeSettingsImpl, readClaudeConfig, updateClaudeConfig, validateClaudeConfig, writeClaudeConfig } from './claude-config'
@@ -49,7 +49,7 @@ export type { ClaudeSettings } from '../../types/config'
 export * from './ccjk-config'
 
 // Claude Code Configuration Manager (settings.json)
-export * from './claude-config'
+export { readClaudeConfig, writeClaudeConfig, updateClaudeConfig, getClaudeConfig, validateClaudeConfig } from './claude-config'
 
 // Credential Manager
 export * from './credentials'
@@ -58,7 +58,7 @@ export * from './credentials'
 export * from './merger'
 
 // Migration System
-export * from './migration'
+export { runMigrations, needsMigration, getMigrationStatus, detectLegacyConfigs } from './migration'
 
 // Runtime State Manager (state.json)
 export * from './state-manager'

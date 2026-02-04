@@ -12,7 +12,7 @@
  * @module brain/auto-session-saver
  */
 
-import type { Session, SessionHistoryEntry } from './session-manager'
+import type { SessionHistoryEntry } from './session-manager'
 import { EventEmitter } from 'node:events'
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
@@ -27,13 +27,13 @@ import { SessionManager } from './session-manager'
 /**
  * Auto-save trigger types
  */
-export type AutoSaveTrigger =
-  | 'message_count'
-  | 'time_interval'
-  | 'exit'
-  | 'crash_recovery'
-  | 'manual'
-  | 'context_compact'
+export type AutoSaveTrigger
+  = | 'message_count'
+    | 'time_interval'
+    | 'exit'
+    | 'crash_recovery'
+    | 'manual'
+    | 'context_compact'
 
 /**
  * Auto-save event data

@@ -9,7 +9,6 @@
  * - Keyboard shortcut indicators
  */
 
-import type { SupportedLang } from '../../../constants'
 import type { MenuCategory, MenuItem, MenuItemRenderData, MenuRenderOptions, MenuSection } from '../types'
 import ansis from 'ansis'
 import { i18n } from '../../../i18n/index'

@@ -3,30 +3,20 @@
  * Tests MCP server installation, configuration, and lifecycle management
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  runCcjk,
-  assertSuccess,
-  assertFailure,
-  assertOutputContains,
-  assertFile,
-  waitForFile,
-  createFile,
   readJsonFile,
+  runCcjk,
   writeJsonFile,
-  sleep,
-  createMockMcpServer,
 } from './helpers'
 import {
-  getE2EEnvironment,
   createTestProject,
-  getTestConfigDir,
   getTestHomeDir,
 } from './setup'
 
-describe.skip('E2E: MCP Management Workflow', () => {
+describe.skip('e2E: MCP Management Workflow', () => {
   let testProjectDir: string
 
   beforeEach(async () => {
@@ -43,7 +33,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // MCP Server Listing Tests
   // ==========================================================================
 
-  describe('MCP Server Listing', () => {
+  describe('mCP Server Listing', () => {
     it('should list available MCP servers', async () => {
       const result = await runCcjk(['mcp', 'list'], {
         timeout: 30000,
@@ -100,7 +90,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // MCP Server Installation Tests
   // ==========================================================================
 
-  describe('MCP Server Installation', () => {
+  describe('mCP Server Installation', () => {
     it('should install MCP server from registry', async () => {
       const result = await runCcjk(['mcp', 'install', 'filesystem'], {
         input: ['y'], // Confirm installation
@@ -112,8 +102,11 @@ describe.skip('E2E: MCP Management Workflow', () => {
 
     it('should install MCP server with custom config', async () => {
       const result = await runCcjk([
-        'mcp', 'install', 'filesystem',
-        '--config', JSON.stringify({ allowedPaths: ['/tmp'] }),
+        'mcp',
+        'install',
+        'filesystem',
+        '--config',
+        JSON.stringify({ allowedPaths: ['/tmp'] }),
       ], {
         input: ['y'],
         timeout: 120000,
@@ -136,7 +129,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
       const claudeSettingsPath = join(getTestHomeDir(), '.claude', 'settings.json')
       const settings = readJsonFile(claudeSettingsPath) || { mcpServers: {} }
       settings.mcpServers = {
-        'filesystem': {
+        filesystem: {
           command: 'npx',
           args: ['-y', '@anthropic/mcp-server-filesystem'],
         },
@@ -174,7 +167,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // MCP Server Uninstallation Tests
   // ==========================================================================
 
-  describe('MCP Server Uninstallation', () => {
+  describe('mCP Server Uninstallation', () => {
     beforeEach(async () => {
       // Pre-install a server for uninstall tests
       const claudeSettingsPath = join(getTestHomeDir(), '.claude', 'settings.json')
@@ -240,7 +233,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // MCP Server Configuration Tests
   // ==========================================================================
 
-  describe('MCP Server Configuration', () => {
+  describe('mCP Server Configuration', () => {
     beforeEach(async () => {
       // Pre-install a server
       const claudeSettingsPath = join(getTestHomeDir(), '.claude', 'settings.json')
@@ -267,8 +260,11 @@ describe.skip('E2E: MCP Management Workflow', () => {
 
     it('should update server configuration', async () => {
       const result = await runCcjk([
-        'mcp', 'config', 'configurable-server',
-        '--set', 'env.NEW_VAR=new-value',
+        'mcp',
+        'config',
+        'configurable-server',
+        '--set',
+        'env.NEW_VAR=new-value',
       ], {
         timeout: 30000,
       })
@@ -278,8 +274,11 @@ describe.skip('E2E: MCP Management Workflow', () => {
 
     it('should validate configuration changes', async () => {
       const result = await runCcjk([
-        'mcp', 'config', 'configurable-server',
-        '--set', 'invalid.nested.path=value',
+        'mcp',
+        'config',
+        'configurable-server',
+        '--set',
+        'invalid.nested.path=value',
       ], {
         timeout: 30000,
       })
@@ -332,7 +331,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // MCP Server Lifecycle Tests
   // ==========================================================================
 
-  describe('MCP Server Lifecycle', () => {
+  describe('mCP Server Lifecycle', () => {
     it('should start MCP server', async () => {
       // This test depends on having a real MCP server installed
       const result = await runCcjk(['mcp', 'start', 'test-server'], {
@@ -379,7 +378,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // Project-Level MCP Configuration Tests
   // ==========================================================================
 
-  describe('Project-Level MCP Configuration', () => {
+  describe('project-Level MCP Configuration', () => {
     it('should create project .mcp.json', async () => {
       const result = await runCcjk(['mcp', 'init'], {
         input: ['y'],
@@ -443,7 +442,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // MCP Registry Tests
   // ==========================================================================
 
-  describe('MCP Registry', () => {
+  describe('mCP Registry', () => {
     it('should fetch registry updates', async () => {
       const result = await runCcjk(['mcp', 'update-registry'], {
         timeout: 60000,
@@ -482,7 +481,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // Error Handling Tests
   // ==========================================================================
 
-  describe('Error Handling', () => {
+  describe('error Handling', () => {
     it('should handle network errors gracefully', async () => {
       const result = await runCcjk(['mcp', 'install', 'filesystem'], {
         env: {
@@ -530,7 +529,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
   // Integration Tests
   // ==========================================================================
 
-  describe('Integration', () => {
+  describe('integration', () => {
     it('should work with Claude Code settings', async () => {
       // Verify integration with Claude Code's settings.json
       const result = await runCcjk(['mcp', 'list', '--format', 'json'], {
@@ -571,7 +570,7 @@ describe.skip('E2E: MCP Management Workflow', () => {
         runCcjk(['mcp', 'status'], { timeout: 30000 }),
       ])
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.timedOut).toBe(false)
       })
     })

@@ -6,7 +6,7 @@
  * Provides real-time validation feedback and compliance scoring.
  */
 
-import type { HookProtocol, HookValidationResult, HookContext } from './types'
+import type { HookContext, HookProtocol, HookValidationResult } from './types'
 
 /**
  * Hook validation rule
@@ -52,13 +52,13 @@ export class HookValidator {
       description: 'Ensures all required fields are present in the protocol',
       validate: async (hook: HookProtocol) => {
         return !!(
-          hook.id &&
-          hook.name &&
-          hook.level &&
-          hook.template &&
-          hook.variables !== undefined &&
-          hook.priority !== undefined &&
-          hook.mandatory !== undefined
+          hook.id
+          && hook.name
+          && hook.level
+          && hook.template
+          && hook.variables !== undefined
+          && hook.priority !== undefined
+          && hook.mandatory !== undefined
         )
       },
       errorMessage: 'Protocol is missing required fields',
@@ -78,7 +78,8 @@ export class HookValidator {
           const variableRegex = /\{\{(\w+(?:\.\w+)*)\}\}/g
           const matches = template.match(variableRegex)
 
-          if (!matches) return true
+          if (!matches)
+            return true
 
           // Validate each variable is in the variables list
           for (const match of matches) {
@@ -108,9 +109,9 @@ export class HookValidator {
         // Check if hook contexts match current context
         if (hook.contexts.length > 0) {
           const contextMatch = hook.contexts.some((c: string) =>
-            c === context.taskType ||
-            c === context.phase ||
-            c === context.agentType
+            c === context.taskType
+            || c === context.phase
+            || c === context.agentType,
           )
           return contextMatch
         }

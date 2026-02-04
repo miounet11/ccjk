@@ -13,17 +13,12 @@
  *   ccjk ccjk:all --dry-run          - Preview without installing
  */
 
-import type { SupportedLang } from '../constants'
 import type { CloudSetupOptions, CloudSetupResult } from '../orchestrators/cloud-setup-orchestrator'
-import { homedir } from 'node:os'
-import { join } from 'node:path'
-import { cwd } from 'node:process'
 import ansis from 'ansis'
 import consola from 'consola'
+import { createCompleteCloudClient } from '../cloud-client'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { CloudSetupOrchestrator } from '../orchestrators/cloud-setup-orchestrator'
-import { createCompleteCloudClient } from '../cloud-client'
-import { isWindows } from '../utils/platform'
 
 // ============================================================================
 // Types
@@ -176,8 +171,7 @@ async function checkCloudAvailability(options: CcjkAllOptions): Promise<void> {
 
   try {
     const client = createCompleteCloudClient({
-      endpoint: options.cloudEndpoint,
-      language: options.lang,
+      baseURL: options.cloudEndpoint || 'https://api.ccjk.cloud',
     })
 
     const startTime = Date.now()
@@ -204,16 +198,16 @@ function displayCompletion(result: CloudSetupResult): void {
   console.log('')
   console.log(ansis.green(`  ${i18n.t('ccjk-all:setupComplete')}`))
 
-  const totalInstalled =
-    result.installed.skills.length +
-    result.installed.mcpServices.length +
-    result.installed.agents.length +
-    result.installed.hooks.length
+  const totalInstalled
+    = result.installed.skills.length
+      + result.installed.mcpServices.length
+      + result.installed.agents.length
+      + result.installed.hooks.length
 
   console.log(`  ${i18n.t('ccjk-all:installedCount', { count: totalInstalled, duration: (result.duration / 1000).toFixed(1) })}`)
 
   // Display cloud insights
-  if (result.insights?.insights?.length > 0) {
+  if (result.insights?.insights && result.insights.insights.length > 0) {
     console.log(`\n  ${ansis.bold(i18n.t('ccjk-all:cloudFeedback'))}`)
     for (const insight of result.insights.insights) {
       console.log(`    ${ansis.cyan('•')} ${insight}`)
@@ -250,22 +244,22 @@ function displayHelp(): void {
   console.log('')
 
   console.log(ansis.bold(i18n.t('ccjk-all:options')))
-  console.log('  --strategy \u003ctype\u003e          Cloud strategy (cloud-smart, cloud-conservative, local-fallback)')
-  console.log('  --use-cloud \u003cbool\u003e        Use cloud recommendations (default: true)')
-  console.log('  --cloud-endpoint \u003curl\u003e   Cloud API endpoint')
-  console.log('  --cache-strategy \u003ctype\u003e  Cache strategy (aggressive, normal, disabled)')
+  console.log('  --strategy \u003Ctype\u003E          Cloud strategy (cloud-smart, cloud-conservative, local-fallback)')
+  console.log('  --use-cloud \u003Cbool\u003E        Use cloud recommendations (default: true)')
+  console.log('  --cloud-endpoint \u003Curl\u003E   Cloud API endpoint')
+  console.log('  --cache-strategy \u003Ctype\u003E  Cache strategy (aggressive, normal, disabled)')
   console.log('  --show-reasons           Show recommendation reasons')
   console.log('  --show-confidence        Show confidence scores')
   console.log('  --show-comparison        Show community comparison')
   console.log('  --submit-telemetry       Submit anonymous telemetry (default: true)')
   console.log('  --include-feedback       Include feedback after installation')
   console.log('  --generate-report        Generate detailed report')
-  console.log('  --report-format \u003ctype\u003e   Report format (markdown, json, html)')
-  console.log('  --target-dir \u003cpath\u003e      Target directory (default: current directory)')
+  console.log('  --report-format \u003Ctype\u003E   Report format (markdown, json, html)')
+  console.log('  --target-dir \u003Cpath\u003E      Target directory (default: current directory)')
   console.log('  --interactive            Interactive mode (default: true)')
   console.log('  --dry-run                Preview without installing')
   console.log('  --force                  Force installation')
-  console.log('  --lang \u003clang\u003e            Language (en, zh-CN)')
+  console.log('  --lang \u003Clang\u003E            Language (en, zh-CN)')
   console.log('  --json                   JSON output')
   console.log('  --quiet                  Quiet mode')
   console.log('  --verbose                Verbose output')

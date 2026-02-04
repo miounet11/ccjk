@@ -7,8 +7,7 @@
 
 import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../../constants'
 import type { ClaudeCodeProfile } from '../../types/claude-code-config'
-import type { ClaudeSettings, McpServerConfig } from '../../types/config'
-import type { ZcfTomlConfig } from '../../types/toml-config'
+import type { ClaudeSettings } from '../../types/config'
 
 /**
  * Configuration scope determines where config is read from/written to

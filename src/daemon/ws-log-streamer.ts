@@ -147,7 +147,7 @@ export enum WSState {
  * Handles real-time bidirectional communication with cloud API
  */
 export class WSLogStreamer extends EventEmitter {
-  private config: WSClientConfig
+  protected config: WSClientConfig
   private ws: WebSocket | null = null
   private state: WSState = WSState.Disconnected
   private reconnectTimer: NodeJS.Timeout | null = null
@@ -477,6 +477,13 @@ export class WSLogStreamer extends EventEmitter {
   getActiveStreamsCount(): number {
     return this.activeStreams.size
   }
+
+  /**
+   * Get device ID
+   */
+  getDeviceId(): string {
+    return this.config.deviceId
+  }
 }
 
 /**
@@ -622,14 +629,14 @@ export class DaemonLogStreamer {
    * Subscribe to command-specific logs
    */
   subscribeToCommand(commandId: string): void {
-    this.streamer.subscribe(this.streamer.config.deviceId, commandId)
+    this.streamer.subscribe(this.streamer.getDeviceId(), commandId)
   }
 
   /**
    * Unsubscribe from command logs
    */
   unsubscribeFromCommand(commandId: string): void {
-    const streamId = `${this.streamer.config.deviceId}:${commandId}`
+    const streamId = `${this.streamer.getDeviceId()}:${commandId}`
     this.streamer.unsubscribe(streamId)
   }
 

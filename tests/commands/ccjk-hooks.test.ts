@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ccjkHooks } from '../../src/commands/ccjk-hooks.js'
+import inquirer from 'inquirer'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProjectAnalyzer } from '../../src/analyzers/index.js'
+import { getTemplatesClient } from '../../src/cloud-client/index.js'
+import { ccjkHooks } from '../../src/commands/ccjk-hooks.js'
 import { hookManager } from '../../src/hooks/hook-manager.js'
 import { loadHookTemplates } from '../../src/hooks/template-loader.js'
 import { validateHookTrigger } from '../../src/hooks/trigger-validator.js'
 import { i18n } from '../../src/i18n/index.js'
-import { getTemplatesClient } from '../../src/cloud-client/index.js'
-import inquirer from 'inquirer'
 
 // Mock dependencies
 vi.mock('../../src/analyzers/index.js')
@@ -23,17 +23,17 @@ vi.mock('consola', () => {
     error: vi.fn(),
     info: vi.fn(),
     debug: vi.fn(),
-    withTag: vi.fn(() => mockLogger)
+    withTag: vi.fn(() => mockLogger),
   }
   return { default: mockLogger, consola: mockLogger }
 })
 vi.mock('@clack/prompts', () => ({
-  prompt: vi.fn()
+  prompt: vi.fn(),
 }))
 vi.mock('inquirer', () => ({
   default: {
-    prompt: vi.fn().mockResolvedValue({ shouldInstall: true, selectedHooks: [] })
-  }
+    prompt: vi.fn().mockResolvedValue({ shouldInstall: true, selectedHooks: [] }),
+  },
 }))
 
 describe('ccjkHooks', () => {
@@ -48,7 +48,7 @@ describe('ccjkHooks', () => {
     dependencies: ['react', 'react-dom'],
     devDependencies: ['typescript', 'eslint', 'prettier'],
     scripts: { test: 'jest', build: 'tsc' },
-    configFiles: ['package.json', 'tsconfig.json']
+    configFiles: ['package.json', 'tsconfig.json'],
   }
 
   const mockHooks = [
@@ -62,7 +62,7 @@ describe('ccjkHooks', () => {
       trigger: { matcher: 'git:pre-commit' },
       action: { command: 'eslint', args: ['--fix', '--staged'], timeout: 30000 },
       enabled: true,
-      priority: 100
+      priority: 100,
     },
     {
       id: 'pre-commit-prettier',
@@ -74,7 +74,7 @@ describe('ccjkHooks', () => {
       trigger: { matcher: 'git:pre-commit' },
       action: { command: 'prettier', args: ['--write', '--staged'], timeout: 15000 },
       enabled: true,
-      priority: 90
+      priority: 90,
     },
     {
       id: 'post-test-coverage',
@@ -86,8 +86,8 @@ describe('ccjkHooks', () => {
       trigger: { matcher: 'command:npm test' },
       action: { command: 'npm', args: ['run', 'coverage:report'], timeout: 30000 },
       enabled: true,
-      priority: 100
-    }
+      priority: 100,
+    },
   ]
 
   beforeEach(() => {
@@ -95,7 +95,7 @@ describe('ccjkHooks', () => {
 
     // Setup mocks
     vi.mocked(ProjectAnalyzer).mockImplementation(() => ({
-      analyze: vi.fn().mockResolvedValue(mockProjectInfo)
+      analyze: vi.fn().mockResolvedValue(mockProjectInfo),
     }) as any)
     vi.mocked(loadHookTemplates).mockResolvedValue(mockHooks as any)
     vi.mocked(validateHookTrigger).mockResolvedValue(true)
@@ -105,7 +105,7 @@ describe('ccjkHooks', () => {
 
     // Mock getTemplatesClient to throw so it falls back to local templates
     vi.mocked(getTemplatesClient).mockReturnValue({
-      getHooks: vi.fn().mockRejectedValue(new Error('Network error'))
+      getHooks: vi.fn().mockRejectedValue(new Error('Network error')),
     } as any)
 
     // Mock inquirer prompt
@@ -165,7 +165,7 @@ describe('ccjkHooks', () => {
   describe('error handling', () => {
     it('should handle project analysis errors', async () => {
       vi.mocked(ProjectAnalyzer).mockImplementation(() => ({
-        analyze: vi.fn().mockRejectedValue(new Error('Analysis failed'))
+        analyze: vi.fn().mockRejectedValue(new Error('Analysis failed')),
       }) as any)
 
       await expect(ccjkHooks({})).rejects.toThrow('Analysis failed')
@@ -179,7 +179,7 @@ describe('ccjkHooks', () => {
 
     it('should return error in JSON mode', async () => {
       vi.mocked(ProjectAnalyzer).mockImplementation(() => ({
-        analyze: vi.fn().mockRejectedValue(new Error('Analysis failed'))
+        analyze: vi.fn().mockRejectedValue(new Error('Analysis failed')),
       }) as any)
 
       const result = await ccjkHooks({ json: true })

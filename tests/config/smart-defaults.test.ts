@@ -1,45 +1,44 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join } from 'pathe';
-import { SmartDefaultsDetector, detectSmartDefaults, needsApiKeyPrompt, smartDefaults } from '../../src/config/smart-defaults';
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'pathe'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { detectSmartDefaults, needsApiKeyPrompt, smartDefaults, SmartDefaultsDetector } from '../../src/config/smart-defaults'
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
   readFileSync: vi.fn(),
-}));
+}))
 
 // Mock node:os
 vi.mock('node:os', () => ({
   homedir: vi.fn(() => '/mock/home'),
-}));
+}))
 
 // Mock platform detection
 vi.mock('../../src/utils/platform', () => ({
   getPlatform: vi.fn(() => 'linux'),
-}));
+}))
 
-describe('SmartDefaultsDetector', () => {
-  let detector: SmartDefaultsDetector;
-  const originalEnv = process.env;
+describe('smartDefaultsDetector', () => {
+  let detector: SmartDefaultsDetector
+  const originalEnv = process.env
 
   beforeEach(() => {
-    detector = new SmartDefaultsDetector();
-    process.env = { ...originalEnv };
-    vi.clearAllMocks();
+    detector = new SmartDefaultsDetector()
+    process.env = { ...originalEnv }
+    vi.clearAllMocks()
 
     // Setup default mocks
-    vi.mocked(existsSync).mockReturnValue(false);
-  });
+    vi.mocked(existsSync).mockReturnValue(false)
+  })
 
   afterEach(() => {
-    process.env = originalEnv;
-  });
+    process.env = originalEnv
+  })
 
   describe('detect()', () => {
     it('should detect basic environment defaults', async () => {
-      const defaults = await detector.detect();
+      const defaults = await detector.detect()
 
       expect(defaults).toMatchObject({
         platform: 'linux',
@@ -50,115 +49,115 @@ describe('SmartDefaultsDetector', () => {
           'ccjk:feat',
           'ccjk:workflow',
           'ccjk:init-project',
-          'ccjk:git-worktree'
+          'ccjk:git-worktree',
         ],
         agents: ['typescript-cli-architect', 'ccjk-testing-specialist'],
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      });
-    });
+          ccusage: false,
+        },
+      })
+    })
 
     it('should detect API key from environment variables', async () => {
-      process.env.ANTHROPIC_API_KEY = 'sk-ant-test123';
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-test123'
 
-      const defaults = await detector.detect();
+      const defaults = await detector.detect()
 
-      expect(defaults.apiKey).toBe('sk-ant-test123');
-      expect(defaults.apiProvider).toBe('anthropic');
-    });
+      expect(defaults.apiKey).toBe('sk-ant-test123')
+      expect(defaults.apiProvider).toBe('anthropic')
+    })
 
     it('should detect API key from Claude Code config', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.config', 'claude', 'config.json');
-      });
+        return path === join('/mock/home', '.config', 'claude', 'config.json')
+      })
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
-        apiKey: 'sk-ant-config123'
-      }));
+        apiKey: 'sk-ant-config123',
+      }))
 
-      const defaults = await detector.detect();
+      const defaults = await detector.detect()
 
-      expect(defaults.apiKey).toBe('sk-ant-config123');
-      expect(defaults.apiProvider).toBe('anthropic');
-    });
+      expect(defaults.apiKey).toBe('sk-ant-config123')
+      expect(defaults.apiProvider).toBe('anthropic')
+    })
 
     it('should detect code tool type from existing installations', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.config', 'claude');
-      });
+        return path === join('/mock/home', '.config', 'claude')
+      })
 
-      const defaults = await detector.detect();
+      const defaults = await detector.detect()
 
-      expect(defaults.codeToolType).toBe('claude-code');
-    });
+      expect(defaults.codeToolType).toBe('claude-code')
+    })
 
     it('should detect installed tools', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.local', 'bin', 'ccr') ||
-               path === join('/mock/home', '.local', 'bin', 'cometix') ||
-               path === join('/mock/home', '.local', 'bin', 'ccusage');
-      });
+        return path === join('/mock/home', '.local', 'bin', 'ccr')
+          || path === join('/mock/home', '.local', 'bin', 'cometix')
+          || path === join('/mock/home', '.local', 'bin', 'ccusage')
+      })
 
-      const defaults = await detector.detect();
+      const defaults = await detector.detect()
 
-      expect(defaults.tools.ccr).toBe(true);
-      expect(defaults.tools.cometix).toBe(true);
-      expect(defaults.tools.ccusage).toBe(true);
-    });
-  });
+      expect(defaults.tools.ccr).toBe(true)
+      expect(defaults.tools.cometix).toBe(true)
+      expect(defaults.tools.ccusage).toBe(true)
+    })
+  })
 
   describe('getRecommendedMcpServices()', () => {
     it('should return core services for unknown platform', () => {
-      const services = detector.getRecommendedMcpServices('unknown');
-      expect(services).toEqual(['filesystem', 'git', 'fetch']);
-    });
+      const services = detector.getRecommendedMcpServices('unknown')
+      expect(services).toEqual(['filesystem', 'git', 'fetch'])
+    })
 
     it('should return platform-specific services for macOS', () => {
-      const services = detector.getRecommendedMcpServices('darwin');
-      expect(services).toEqual(['filesystem', 'git', 'fetch', 'macos-shortcuts']);
-    });
+      const services = detector.getRecommendedMcpServices('darwin')
+      expect(services).toEqual(['filesystem', 'git', 'fetch', 'macos-shortcuts'])
+    })
 
     it('should return platform-specific services for Linux', () => {
-      const services = detector.getRecommendedMcpServices('linux');
-      expect(services).toEqual(['filesystem', 'git', 'fetch', 'linux-desktop']);
-    });
+      const services = detector.getRecommendedMcpServices('linux')
+      expect(services).toEqual(['filesystem', 'git', 'fetch', 'linux-desktop'])
+    })
 
     it('should return platform-specific services for Windows', () => {
-      const services = detector.getRecommendedMcpServices('win32');
-      expect(services).toEqual(['filesystem', 'git', 'fetch', 'windows-registry']);
-    });
-  });
+      const services = detector.getRecommendedMcpServices('win32')
+      expect(services).toEqual(['filesystem', 'git', 'fetch', 'windows-registry'])
+    })
+  })
 
   describe('getRecommendedSkills()', () => {
     it('should return beginner skills', () => {
-      const skills = detector.getRecommendedSkills('beginner');
+      const skills = detector.getRecommendedSkills('beginner')
       expect(skills).toEqual([
         'ccjk:git-commit',
         'ccjk:init-project',
-        'ccjk:workflow'
-      ]);
-    });
+        'ccjk:workflow',
+      ])
+    })
 
     it('should return intermediate skills', () => {
-      const skills = detector.getRecommendedSkills('intermediate');
+      const skills = detector.getRecommendedSkills('intermediate')
       expect(skills).toEqual([
         'ccjk:git-commit',
         'ccjk:init-project',
         'ccjk:feat',
         'ccjk:workflow',
-        'ccjk:git-worktree'
-      ]);
-    });
+        'ccjk:git-worktree',
+      ])
+    })
 
     it('should return advanced skills', () => {
-      const skills = detector.getRecommendedSkills('advanced');
+      const skills = detector.getRecommendedSkills('advanced')
       expect(skills).toEqual([
         'ccjk:git-commit',
         'ccjk:init-project',
@@ -166,21 +165,21 @@ describe('SmartDefaultsDetector', () => {
         'ccjk:workflow',
         'ccjk:git-worktree',
         'ccjk:git-rollback',
-        'ccjk:git-cleanBranches'
-      ]);
-    });
+        'ccjk:git-cleanBranches',
+      ])
+    })
 
     it('should default to intermediate skills', () => {
-      const skills = detector.getRecommendedSkills();
+      const skills = detector.getRecommendedSkills()
       expect(skills).toEqual([
         'ccjk:git-commit',
         'ccjk:init-project',
         'ccjk:feat',
         'ccjk:workflow',
-        'ccjk:git-worktree'
-      ]);
-    });
-  });
+        'ccjk:git-worktree',
+      ])
+    })
+  })
 
   describe('validateDefaults()', () => {
     it('should validate correct defaults', () => {
@@ -196,22 +195,22 @@ describe('SmartDefaultsDetector', () => {
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      };
+          ccusage: false,
+        },
+      }
 
-      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(existsSync).mockReturnValue(true)
 
-      const result = detector.validateDefaults(defaults);
+      const result = detector.validateDefaults(defaults)
 
-      expect(result.valid).toBe(true);
-      expect(result.issues).toEqual([]);
-    });
+      expect(result.valid).toBe(true)
+      expect(result.issues).toEqual([])
+    })
 
     it('should detect invalid API key format', () => {
       const defaults = {
@@ -226,22 +225,22 @@ describe('SmartDefaultsDetector', () => {
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      };
+          ccusage: false,
+        },
+      }
 
-      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(existsSync).mockReturnValue(true)
 
-      const result = detector.validateDefaults(defaults);
+      const result = detector.validateDefaults(defaults)
 
-      expect(result.valid).toBe(false);
-      expect(result.issues).toContain('API key format appears invalid (should start with sk-ant-)');
-    });
+      expect(result.valid).toBe(false)
+      expect(result.issues).toContain('API key format appears invalid (should start with sk-ant-)')
+    })
 
     it('should detect unsupported platform', () => {
       const defaults = {
@@ -256,22 +255,22 @@ describe('SmartDefaultsDetector', () => {
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      };
+          ccusage: false,
+        },
+      }
 
-      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(existsSync).mockReturnValue(true)
 
-      const result = detector.validateDefaults(defaults);
+      const result = detector.validateDefaults(defaults)
 
-      expect(result.valid).toBe(false);
-      expect(result.issues).toContain('Platform unsupported may not be fully supported');
-    });
+      expect(result.valid).toBe(false)
+      expect(result.issues).toContain('Platform unsupported may not be fully supported')
+    })
 
     it('should detect inaccessible home directory', () => {
       const defaults = {
@@ -286,44 +285,44 @@ describe('SmartDefaultsDetector', () => {
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      };
+          ccusage: false,
+        },
+      }
 
-      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(existsSync).mockReturnValue(false)
 
-      const result = detector.validateDefaults(defaults);
+      const result = detector.validateDefaults(defaults)
 
-      expect(result.valid).toBe(false);
-      expect(result.issues).toContain('Home directory is not accessible');
-    });
-  });
-});
+      expect(result.valid).toBe(false)
+      expect(result.issues).toContain('Home directory is not accessible')
+    })
+  })
+})
 
 describe('smart-defaults', () => {
   beforeEach(() => {
     // Clear all mocks before each test
-    vi.clearAllMocks();
+    vi.clearAllMocks()
     // Clear environment variables
-    delete process.env.ANTHROPIC_API_KEY;
-    delete process.env.OPENAI_API_KEY;
-    delete process.env.OPENROUTER_API_KEY;
-  });
+    delete process.env.ANTHROPIC_API_KEY
+    delete process.env.OPENAI_API_KEY
+    delete process.env.OPENROUTER_API_KEY
+  })
 
   afterEach(() => {
-    vi.restoreAllMocks();
-  });
+    vi.restoreAllMocks()
+  })
 
   describe('detectSmartDefaults', () => {
     it('should return enhanced default values when no API key is detected', async () => {
-      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(existsSync).mockReturnValue(false)
 
-      const defaults = await detectSmartDefaults();
+      const defaults = await detectSmartDefaults()
 
       expect(defaults).toMatchObject({
         platform: 'linux',
@@ -334,98 +333,98 @@ describe('smart-defaults', () => {
           'ccjk:feat',
           'ccjk:workflow',
           'ccjk:init-project',
-          'ccjk:git-worktree'
+          'ccjk:git-worktree',
         ],
         agents: ['typescript-cli-architect', 'ccjk-testing-specialist'],
         codeToolType: 'claude-code',
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      });
-    });
+          ccusage: false,
+        },
+      })
+    })
 
     it('should detect ANTHROPIC_API_KEY from environment', async () => {
-      process.env.ANTHROPIC_API_KEY = 'sk-ant-test-key';
-      vi.mocked(existsSync).mockReturnValue(false);
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-test-key'
+      vi.mocked(existsSync).mockReturnValue(false)
 
-      const defaults = await detectSmartDefaults();
+      const defaults = await detectSmartDefaults()
 
-      expect(defaults.apiProvider).toBe('anthropic');
-      expect(defaults.apiKey).toBe('sk-ant-test-key');
-    });
+      expect(defaults.apiProvider).toBe('anthropic')
+      expect(defaults.apiKey).toBe('sk-ant-test-key')
+    })
 
     it('should read API key from existing Claude Code config', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.config', 'claude', 'config.json');
-      });
-      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ apiKey: 'sk-ant-config-key' }));
+        return path === join('/mock/home', '.config', 'claude', 'config.json')
+      })
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ apiKey: 'sk-ant-config-key' }))
 
-      const defaults = await detectSmartDefaults();
+      const defaults = await detectSmartDefaults()
 
-      expect(defaults.apiProvider).toBe('anthropic');
-      expect(defaults.apiKey).toBe('sk-ant-config-key');
-    });
+      expect(defaults.apiProvider).toBe('anthropic')
+      expect(defaults.apiKey).toBe('sk-ant-config-key')
+    })
 
     it('should prioritize environment variable over config file', async () => {
-      process.env.ANTHROPIC_API_KEY = 'sk-ant-env-key';
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-env-key'
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.config', 'claude', 'config.json');
-      });
-      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ apiKey: 'sk-ant-config-key' }));
+        return path === join('/mock/home', '.config', 'claude', 'config.json')
+      })
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ apiKey: 'sk-ant-config-key' }))
 
-      const defaults = await detectSmartDefaults();
+      const defaults = await detectSmartDefaults()
 
-      expect(defaults.apiProvider).toBe('anthropic');
-      expect(defaults.apiKey).toBe('sk-ant-env-key');
-    });
+      expect(defaults.apiProvider).toBe('anthropic')
+      expect(defaults.apiKey).toBe('sk-ant-env-key')
+    })
 
     it('should handle invalid JSON in config file gracefully', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.config', 'claude', 'config.json');
-      });
-      vi.mocked(readFileSync).mockReturnValue('invalid json');
+        return path === join('/mock/home', '.config', 'claude', 'config.json')
+      })
+      vi.mocked(readFileSync).mockReturnValue('invalid json')
 
-      const defaults = await detectSmartDefaults();
+      const defaults = await detectSmartDefaults()
 
-      expect(defaults.apiProvider).toBe('anthropic'); // Default fallback
-      expect(defaults.apiKey).toBeUndefined();
-    });
+      expect(defaults.apiProvider).toBe('anthropic') // Default fallback
+      expect(defaults.apiKey).toBeUndefined()
+    })
 
     it('should detect claude-code as code tool type when config exists', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.config', 'claude');
-      });
+        return path === join('/mock/home', '.config', 'claude')
+      })
 
-      const defaults = await detectSmartDefaults();
+      const defaults = await detectSmartDefaults()
 
-      expect(defaults.codeToolType).toBe('claude-code');
-    });
+      expect(defaults.codeToolType).toBe('claude-code')
+    })
 
     it('should detect codex as code tool type when .codex exists', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.codex');
-      });
+        return path === join('/mock/home', '.codex')
+      })
 
-      const defaults = await detectSmartDefaults();
+      const defaults = await detectSmartDefaults()
 
-      expect(defaults.codeToolType).toBe('codex');
-    });
+      expect(defaults.codeToolType).toBe('codex')
+    })
 
     it('should default to claude-code when no tool is detected', async () => {
-      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(existsSync).mockReturnValue(false)
 
-      const defaults = await detectSmartDefaults();
+      const defaults = await detectSmartDefaults()
 
-      expect(defaults.codeToolType).toBe('claude-code');
-    });
-  });
+      expect(defaults.codeToolType).toBe('claude-code')
+    })
+  })
 
   describe('needsApiKeyPrompt', () => {
     it('should return true when no API provider is set', () => {
@@ -439,17 +438,17 @@ describe('smart-defaults', () => {
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      };
+          ccusage: false,
+        },
+      }
 
-      expect(needsApiKeyPrompt(defaults)).toBe(true);
-    });
+      expect(needsApiKeyPrompt(defaults)).toBe(true)
+    })
 
     it('should return true when API provider is set but no key', () => {
       const defaults = {
@@ -463,17 +462,17 @@ describe('smart-defaults', () => {
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      };
+          ccusage: false,
+        },
+      }
 
-      expect(needsApiKeyPrompt(defaults)).toBe(true);
-    });
+      expect(needsApiKeyPrompt(defaults)).toBe(true)
+    })
 
     it('should return false when both provider and key are set', () => {
       const defaults = {
@@ -488,29 +487,29 @@ describe('smart-defaults', () => {
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
-          sixStepWorkflow: true
+          sixStepWorkflow: true,
         },
         tools: {
           ccr: false,
           cometix: false,
-          ccusage: false
-        }
-      };
+          ccusage: false,
+        },
+      }
 
-      expect(needsApiKeyPrompt(defaults)).toBe(false);
-    });
-  });
+      expect(needsApiKeyPrompt(defaults)).toBe(false)
+    })
+  })
 
   describe('smartDefaults singleton', () => {
     it('should be an instance of SmartDefaultsDetector', () => {
-      expect(smartDefaults).toBeInstanceOf(SmartDefaultsDetector);
-    });
+      expect(smartDefaults).toBeInstanceOf(SmartDefaultsDetector)
+    })
 
     it('should provide the same interface as the class', async () => {
-      expect(typeof smartDefaults.detect).toBe('function');
-      expect(typeof smartDefaults.validateDefaults).toBe('function');
-      expect(typeof smartDefaults.getRecommendedMcpServices).toBe('function');
-      expect(typeof smartDefaults.getRecommendedSkills).toBe('function');
-    });
-  });
-});
+      expect(typeof smartDefaults.detect).toBe('function')
+      expect(typeof smartDefaults.validateDefaults).toBe('function')
+      expect(typeof smartDefaults.getRecommendedMcpServices).toBe('function')
+      expect(typeof smartDefaults.getRecommendedSkills).toBe('function')
+    })
+  })
+})

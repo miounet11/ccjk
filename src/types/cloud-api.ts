@@ -279,12 +279,12 @@ export interface RegenerateTokenResponse {
 /**
  * Notification type
  */
-export type NotificationType =
-  | 'task_progress'
-  | 'task_completed'
-  | 'task_failed'
-  | 'ask_user'
-  | 'custom'
+export type NotificationType
+  = | 'task_progress'
+    | 'task_completed'
+    | 'task_failed'
+    | 'ask_user'
+    | 'custom'
 
 /**
  * Notification channel
@@ -534,19 +534,19 @@ export interface ApiErrorResponse {
 /**
  * Cloud API error codes
  */
-export type CloudApiErrorCode =
-  | 'UNAUTHORIZED'
-  | 'FORBIDDEN'
-  | 'NOT_FOUND'
-  | 'VALIDATION_ERROR'
-  | 'RATE_LIMITED'
-  | 'INTERNAL_ERROR'
-  | 'DEVICE_NOT_FOUND'
-  | 'BIND_CODE_EXPIRED'
-  | 'BIND_CODE_USED'
-  | 'CHANNEL_NOT_CONFIGURED'
-  | 'NETWORK_ERROR'
-  | 'TIMEOUT'
+export type CloudApiErrorCode
+  = | 'UNAUTHORIZED'
+    | 'FORBIDDEN'
+    | 'NOT_FOUND'
+    | 'VALIDATION_ERROR'
+    | 'RATE_LIMITED'
+    | 'INTERNAL_ERROR'
+    | 'DEVICE_NOT_FOUND'
+    | 'BIND_CODE_EXPIRED'
+    | 'BIND_CODE_USED'
+    | 'CHANNEL_NOT_CONFIGURED'
+    | 'NETWORK_ERROR'
+    | 'TIMEOUT'
 
 /**
  * Cloud API error
@@ -620,11 +620,11 @@ export interface CloudApiResponse<T> {
 export interface CloudRecommendation {
   id: string
   name: {
-    en: string
+    'en': string
     'zh-CN': string
   }
   description: {
-    en: string
+    'en': string
     'zh-CN': string
   }
   category: 'workflow' | 'mcp' | 'agent' | 'tool' | 'skill'

@@ -12,10 +12,10 @@
  *   node scripts/cleanup.js --dry-run # Preview what would be deleted
  */
 
-import { existsSync, readdirSync, statSync } from 'node:fs'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { execSync } from 'node:child_process'
+import { existsSync, readdirSync, statSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootDir = join(__dirname, '..')
@@ -84,11 +84,11 @@ const CLEANUP_PATTERNS = {
 
 // Logging utilities
 const log = {
-  info: (msg) => console.log(`\x1b[36mℹ\x1b[0m ${msg}`),
-  success: (msg) => console.log(`\x1b[32m✓\x1b[0m ${msg}`),
-  warning: (msg) => console.log(`\x1b[33m⚠\x1b[0m ${msg}`),
-  error: (msg) => console.log(`\x1b[31m✗\x1b[0m ${msg}`),
-  dry: (msg) => console.log(`\x1b[90m○\x1b[0m ${msg} (dry-run)`),
+  info: msg => console.log(`\x1B[36mℹ\x1B[0m ${msg}`),
+  success: msg => console.log(`\x1B[32m✓\x1B[0m ${msg}`),
+  warning: msg => console.log(`\x1B[33m⚠\x1B[0m ${msg}`),
+  error: msg => console.log(`\x1B[31m✗\x1B[0m ${msg}`),
+  dry: msg => console.log(`\x1B[90m○\x1B[0m ${msg} (dry-run)`),
 }
 
 /**
@@ -108,11 +108,11 @@ function findFiles(dir, patterns) {
       // Simple glob matching for * at end or beginning
       if (pattern.includes('*')) {
         const regex = new RegExp(
-          '^' +
+          `^${
             pattern
               .replace(/\./g, '\\.')
-              .replace(/\*/g, '.*') +
-            '$'
+              .replace(/\*/g, '.*')
+          }$`,
         )
 
         for (const item of items) {
@@ -122,7 +122,8 @@ function findFiles(dir, patterns) {
             files.push({ path: fullPath, name: item, size: stats.size })
           }
         }
-      } else {
+      }
+      else {
         // Exact match
         if (items.includes(pattern)) {
           const fullPath = join(dir, pattern)
@@ -131,7 +132,8 @@ function findFiles(dir, patterns) {
         }
       }
     }
-  } catch (error) {
+  }
+  catch (error) {
     log.error(`Error reading ${dir}: ${error.message}`)
   }
 
@@ -163,7 +165,8 @@ function findDirectories(dir, patterns) {
         }
       }
     }
-  } catch (error) {
+  }
+  catch (error) {
     log.error(`Error reading ${dir}: ${error.message}`)
   }
 
@@ -174,8 +177,10 @@ function findDirectories(dir, patterns) {
  * Format file size for display
  */
 function formatSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  if (bytes < 1024)
+    return `${bytes} B`
+  if (bytes < 1024 * 1024)
+    return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
@@ -194,7 +199,8 @@ function deleteItem(item) {
       log.info(`Deleted: ${item.name} (${formatSize(item.size)})`)
     }
     return true
-  } catch (error) {
+  }
+  catch (error) {
     log.error(`Failed to delete ${item.name}: ${error.message}`)
     return false
   }
@@ -225,17 +231,17 @@ function scanForCleanup() {
   results.tempDirs = findDirectories(rootDir, CLEANUP_PATTERNS.tempDirs)
 
   // Calculate totals
-  const totalItems =
-    results.temporaryDocs.length +
-    results.tempFiles.length +
-    results.buildArtifacts.length +
-    results.debugFiles.length +
-    results.tempDirs.length
+  const totalItems
+    = results.temporaryDocs.length
+      + results.tempFiles.length
+      + results.buildArtifacts.length
+      + results.debugFiles.length
+      + results.tempDirs.length
 
   const totalSize = [
     ...results.temporaryDocs,
     ...results.tempFiles,
-    ...results.buildArtifacts.filter((f) => f.size),
+    ...results.buildArtifacts.filter(f => f.size),
     ...results.debugFiles,
   ].reduce((sum, f) => sum + (f.size || 0), 0)
 
@@ -246,7 +252,7 @@ function scanForCleanup() {
  * Display cleanup summary
  */
 function displaySummary({ results, totalItems, totalSize }) {
-  console.log('\n\x1b[1m📊 Cleanup Summary\x1b[0m\n')
+  console.log('\n\x1B[1m📊 Cleanup Summary\x1B[0m\n')
 
   const categories = [
     { name: 'Temporary Documentation', items: results.temporaryDocs },
@@ -269,7 +275,7 @@ function displaySummary({ results, totalItems, totalSize }) {
     }
   }
 
-  console.log(`\n  \x1b[1mTotal:\x1b[0m ${totalItems} items (${formatSize(totalSize)})`)
+  console.log(`\n  \x1B[1mTotal:\x1B[0m ${totalItems} items (${formatSize(totalSize)})`)
 }
 
 /**
@@ -279,7 +285,7 @@ function performCleanup({ results }) {
   let deleted = 0
   let failed = 0
 
-  console.log('\n\x1b[1m🧹 Cleaning...\x1b[0m\n')
+  console.log('\n\x1B[1m🧹 Cleaning...\x1B[0m\n')
 
   const categories = [
     results.temporaryDocs,
@@ -293,7 +299,8 @@ function performCleanup({ results }) {
     for (const item of category) {
       if (deleteItem(item)) {
         deleted++
-      } else {
+      }
+      else {
         failed++
       }
     }
@@ -306,7 +313,7 @@ function performCleanup({ results }) {
  * Main cleanup function
  */
 function main() {
-  console.log('\n\x1b[1m🚀 CCJK Cleanup Script\x1b[0m\n')
+  console.log('\n\x1B[1m🚀 CCJK Cleanup Script\x1B[0m\n')
 
   if (CONFIG.dryRun) {
     log.warning('DRY RUN MODE - No files will be deleted')
@@ -337,24 +344,28 @@ function main() {
           const { deleted, failed } = performCleanup({ results })
           console.log(`\n${deleted} items deleted, ${failed} failed`)
           log.success('Cleanup complete! ✨\n')
-        } else {
+        }
+        else {
           log.info('Cleanup cancelled')
         }
         process.exit(0)
       })
-    } else {
+    }
+    else {
       log.warning('Non-interactive mode - use --auto flag to confirm')
       process.exit(1)
     }
-  } else {
+  }
+  else {
     // Auto mode or dry run
     const { deleted, failed } = performCleanup({ results })
 
     if (!CONFIG.dryRun) {
       console.log(`\n${deleted} items deleted, ${failed} failed`)
       log.success('Cleanup complete! ✨\n')
-    } else {
-      console.log('\n\x1b[90m(Dry run complete - no files were deleted)\x1b[0m\n')
+    }
+    else {
+      console.log('\n\x1B[90m(Dry run complete - no files were deleted)\x1B[0m\n')
     }
   }
 }

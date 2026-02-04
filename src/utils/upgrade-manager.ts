@@ -1,7 +1,7 @@
 import process from 'node:process'
 import ansis from 'ansis'
 import ora from 'ora'
-import semver from 'semver'
+import * as semver from 'semver'
 import { exec } from 'tinyexec'
 import { version as currentVersion } from '../../package.json'
 import { STATUS } from './banner'

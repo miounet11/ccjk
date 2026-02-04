@@ -6,17 +6,16 @@
  * @module keybinding
  */
 
-import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
-import * as os from 'node:os'
 import type {
   Keybinding,
   KeybindingConfig,
-  KeyEvent,
-  KeybindingManagerOptions,
-  KeybindingConflict,
   KeybindingContext,
+  KeybindingManagerOptions,
+  KeyEvent,
 } from './types'
+import * as fs from 'node:fs/promises'
+import * as os from 'node:os'
+import * as path from 'node:path'
 import { DEFAULT_KEYBINDINGS } from './defaults'
 
 /**
@@ -55,7 +54,7 @@ export class KeybindingManager {
     const conflict = this.checkConflict(keybinding.key, keybinding.when)
     if (conflict) {
       throw new Error(
-        `Keybinding conflict: ${keybinding.key} is already bound to ${conflict.command}`
+        `Keybinding conflict: ${keybinding.key} is already bound to ${conflict.command}`,
       )
     }
 
@@ -100,7 +99,7 @@ export class KeybindingManager {
       const conflict = this.checkConflict(updates.key, updates.when || binding.when)
       if (conflict && conflict.id !== id) {
         throw new Error(
-          `Keybinding conflict: ${updates.key} is already bound to ${conflict.command}`
+          `Keybinding conflict: ${updates.key} is already bound to ${conflict.command}`,
         )
       }
     }
@@ -142,7 +141,7 @@ export class KeybindingManager {
   findByKey(key: string, context?: KeybindingContext): Keybinding | undefined {
     const normalized = this.normalizeKey(key)
 
-    for (const binding of this.keybindings.values()) {
+    for (const binding of Array.from(this.keybindings.values())) {
       if (!binding.enabled) {
         continue
       }
@@ -181,7 +180,7 @@ export class KeybindingManager {
   private checkConflict(key: string, when?: KeybindingContext): Keybinding | null {
     const normalized = this.normalizeKey(key)
 
-    for (const binding of this.keybindings.values()) {
+    for (const binding of Array.from(this.keybindings.values())) {
       if (this.normalizeKey(binding.key) === normalized) {
         // Check if contexts overlap
         if (!when || !binding.when || binding.when === 'global' || when === 'global' || binding.when === when) {
@@ -208,7 +207,8 @@ export class KeybindingManager {
   private async load(): Promise<void> {
     if (this.storageType === 'local') {
       await this.loadFromLocal()
-    } else {
+    }
+    else {
       await this.loadFromCloud()
     }
   }
@@ -219,7 +219,8 @@ export class KeybindingManager {
   private async save(): Promise<void> {
     if (this.storageType === 'local') {
       await this.saveToLocal()
-    } else {
+    }
+    else {
       await this.saveToCloud()
     }
   }
@@ -236,7 +237,8 @@ export class KeybindingManager {
       for (const binding of config.keybindings) {
         this.keybindings.set(binding.id, binding)
       }
-    } catch (error) {
+    }
+    catch (error) {
       // File doesn't exist, use defaults
     }
   }
@@ -283,10 +285,14 @@ export class KeybindingManager {
   private eventToKeyString(event: KeyEvent): string {
     const parts: string[] = []
 
-    if (event.ctrl) parts.push('ctrl')
-    if (event.alt) parts.push('alt')
-    if (event.shift) parts.push('shift')
-    if (event.meta) parts.push('meta')
+    if (event.ctrl)
+      parts.push('ctrl')
+    if (event.alt)
+      parts.push('alt')
+    if (event.shift)
+      parts.push('shift')
+    if (event.meta)
+      parts.push('meta')
 
     parts.push(event.key.toLowerCase())
 

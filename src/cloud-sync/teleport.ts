@@ -210,7 +210,7 @@ export class TeleportManager {
       context: options.includeContext !== false
         ? {
             workingDirectory: process.cwd(),
-            gitBranch: session.gitInfo?.branch,
+            gitBranch: undefined,
             files: [],
           }
         : undefined,
@@ -313,7 +313,7 @@ export class TeleportManager {
         success: true,
         sessionId: newSession.id,
         message: `Session imported successfully as: ${newSession.id}`,
-        imported: transfer.data.messages?.length || 0,
+        imported: transfer.data?.messages?.length || 0,
       }
     }
     catch (error) {
@@ -401,7 +401,7 @@ export class TeleportManager {
     const now = Date.now()
     let cleaned = 0
 
-    for (const [transferId, transfer] of this.pendingTransfers) {
+    for (const [transferId, transfer] of Array.from(this.pendingTransfers.entries())) {
       const completedAt = transfer.completedAt || transfer.createdAt
       const age = now - completedAt.getTime()
 

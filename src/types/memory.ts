@@ -6,14 +6,14 @@
 /**
  * Memory entry types for categorization
  */
-export type MemoryType =
-  | 'decision'      // Architectural/design decisions
-  | 'pattern'       // Code patterns and conventions
-  | 'preference'    // User preferences
-  | 'context'       // Project context
-  | 'learning'      // Learned insights
-  | 'error'         // Error patterns and solutions
-  | 'workflow'      // Workflow patterns
+export type MemoryType
+  = | 'decision' // Architectural/design decisions
+    | 'pattern' // Code patterns and conventions
+    | 'preference' // User preferences
+    | 'context' // Project context
+    | 'learning' // Learned insights
+    | 'error' // Error patterns and solutions
+    | 'workflow' // Workflow patterns
 
 /**
  * Memory entry importance levels

@@ -2,20 +2,20 @@
  * Tests for Agent Registry
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   AGENT_REGISTRY,
   getAgentById,
+  getAgentsByCost,
   getAgentsByExpertise,
   getCollaborators,
-  getAgentsByCost,
+  getRegistryStats,
   sortAgentsByCost,
   sortAgentsByExpertise,
-  getRegistryStats,
 } from '../../src/agents/registry'
 
-describe('Agent Registry', () => {
-  describe('AGENT_REGISTRY', () => {
+describe('agent Registry', () => {
+  describe('aGENT_REGISTRY', () => {
     it('should have all required agents', () => {
       expect(AGENT_REGISTRY.length).toBeGreaterThan(0)
 
@@ -28,7 +28,7 @@ describe('Agent Registry', () => {
     })
 
     it('should have valid agent structure', () => {
-      AGENT_REGISTRY.forEach(agent => {
+      AGENT_REGISTRY.forEach((agent) => {
         expect(agent).toHaveProperty('id')
         expect(agent).toHaveProperty('name')
         expect(agent).toHaveProperty('expertise')
@@ -107,7 +107,7 @@ describe('Agent Registry', () => {
       const collaboratorIds = collaborators.map(c => c.id)
 
       // All returned IDs should be in the agent's canCollaborate list
-      collaboratorIds.forEach(id => {
+      collaboratorIds.forEach((id) => {
         expect(agent!.canCollaborate).toContain(id)
       })
     })
