@@ -5,6 +5,7 @@
 
 import type { CapabilityScanResult, WelcomeOptions } from './types'
 import ansis from 'ansis'
+import { version as pkgVersion } from '../../../package.json'
 
 const BOX_CHARS = {
   topLeft: '╭',
@@ -55,14 +56,7 @@ function leftText(text: string, width: number): string {
  * Get version from package.json
  */
 function getVersion(): string {
-  try {
-    // eslint-disable-next-line ts/no-require-imports
-    const pkg = require('../../../package.json')
-    return pkg.version || '0.0.0'
-  }
-  catch {
-    return '0.0.0'
-  }
+  return pkgVersion || '0.0.0'
 }
 
 /**
