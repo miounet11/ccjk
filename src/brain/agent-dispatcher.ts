@@ -970,9 +970,11 @@ export class AgentDispatcher {
   private matchesCriteria(agent: CloudAgent, criteria: AgentFilterCriteria): boolean {
     // Check capabilities
     if (criteria.capabilities && criteria.capabilities.length > 0) {
-      const hasAllCapabilities = criteria.capabilities.every(cap =>
-        agent.definition.capabilities.includes(cap.name),
-      )
+      const hasAllCapabilities = criteria.capabilities.every((cap) => {
+        // Support both string and AgentCapability object
+        const capName = typeof cap === 'string' ? cap : cap.name
+        return agent.definition.capabilities.includes(capName)
+      })
       if (!hasAllCapabilities) {
         return false
       }

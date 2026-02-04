@@ -218,14 +218,14 @@ describe('agentDispatcher', () => {
 
     it('should map agent types to roles correctly', () => {
       const mappings = [
-        { type: 'typescript', expected: 'typescript-cli-architect' },
-        { type: 'i18n', expected: 'ccjk-i18n-specialist' },
-        { type: 'tools', expected: 'ccjk-tools-integration-specialist' },
-        { type: 'template', expected: 'ccjk-template-engine' },
-        { type: 'config', expected: 'ccjk-config-architect' },
-        { type: 'testing', expected: 'ccjk-testing-specialist' },
-        { type: 'devops', expected: 'ccjk-devops-engineer' },
-        { type: 'default', expected: 'system' },
+        { type: 'typescript', expected: 'coder' },
+        { type: 'i18n', expected: 'specialist' },
+        { type: 'tools', expected: 'specialist' },
+        { type: 'template', expected: 'specialist' },
+        { type: 'config', expected: 'architect' },
+        { type: 'testing', expected: 'tester' },
+        { type: 'devops', expected: 'specialist' },
+        { type: 'default', expected: 'coordinator' },
       ]
 
       mappings.forEach(({ type, expected }) => {
