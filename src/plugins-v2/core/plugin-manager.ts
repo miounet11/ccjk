@@ -549,7 +549,7 @@ export class PluginManager {
   /**
    * Create an agent from skills and MCP servers
    *
-   * Writes agent to project-local `.claude/agents/` in Markdown format
+   * Writes agent to project-local `.claude-code/agents/` in Markdown format
    * for Claude Code compatibility.
    */
   async createAgent(definition: AgentDefinition, options?: { projectDir?: string, global?: boolean }): Promise<void> {
@@ -589,7 +589,7 @@ export class PluginManager {
    * Load installed agents from both project-local and global directories
    *
    * Supports:
-   * - Project-local `.claude/agents/*.md` (Claude Code format)
+   * - Project-local `.claude-code/agents/*.md` (Claude Code format)
    * - Global `~/.claude/agents/*.md` (Claude Code compatible)
    */
   private async loadInstalledAgents(): Promise<void> {

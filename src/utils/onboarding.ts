@@ -425,7 +425,7 @@ export async function runOnboarding(projectDir: string = process.cwd()): Promise
   }
 
   if (agents.length === 0) {
-    result.recommendations.push('Add custom agents in .claude/agents/ for specialized assistance')
+    result.recommendations.push('Add custom agents in .claude-code/agents/ for specialized assistance')
   }
 
   // Step 4: Scan skills

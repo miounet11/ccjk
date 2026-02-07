@@ -38,7 +38,7 @@ import { getMcpServerManager } from '../mcp/mcp-integration'
 // ============================================================================
 
 // Claude Code compatible location (project-local)
-const getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'agents')
+const getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude-code', 'agents')
 
 // Global agents location - uses ~/.claude/agents for Claude Code compatibility
 const GLOBAL_AGENTS_DIR = CLAUDE_AGENTS_DIR
@@ -360,7 +360,7 @@ export class AgentCreator {
   }
 
   /**
-   * Write agent to Claude Code compatible location (project-local .claude/agents/)
+   * Write agent to Claude Code compatible location (project-local .claude-code/agents/)
    */
   async writeToClaudeCode(
     agent: AgentDefinition,

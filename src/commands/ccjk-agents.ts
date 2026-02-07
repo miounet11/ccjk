@@ -351,8 +351,11 @@ async function createAgent(
       return agentName
     }
 
-    // Write agent file
-    await writeAgentFile(agentDef)
+    // Write agent file to project .claude-code/agents/
+    await writeAgentFile(agentDef, {
+      projectDir: cwd(),
+      global: false,
+    })
 
     // Register with agent manager
     await registerAgent(agentDef)
@@ -427,8 +430,11 @@ async function createCustomAgent(
       return agentName
     }
 
-    // Write and register
-    await writeAgentFile(agentDef)
+    // Write and register to project .claude-code/agents/
+    await writeAgentFile(agentDef, {
+      projectDir: cwd(),
+      global: false,
+    })
     await registerAgent(agentDef)
 
     return agentName
