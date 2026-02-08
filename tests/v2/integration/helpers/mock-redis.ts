@@ -216,14 +216,14 @@ role:master
   /**
    * Create event emitter interface
    */
-  on(event: string, handler: Function): void {
+  on(_event: string, _handler: Function): void {
     // Mock implementation
   }
 
   /**
    * Emit event
    */
-  emit(event: string, ...args: any[]): void {
+  emit(_event: string, ..._args: any[]): void {
     // Mock implementation
   }
 
@@ -259,11 +259,11 @@ role:master
   /**
    * Create queue
    */
-  async createQueue(name: string, options: any = {}): Promise<any> {
+  async createQueue(name: string, _options: any = {}): Promise<any> {
     const queue = {
       name,
       length: 0,
-      push: vi.fn(async (item: any) => {
+      push: vi.fn(async (_item: any) => {
         queue.length++
         return queue.length
       }),
@@ -286,7 +286,7 @@ role:master
   /**
    * Create stream
    */
-  async createStream(name: string, options: any = {}): Promise<any> {
+  async createStream(name: string, _options: any = {}): Promise<any> {
     const stream = {
       name,
       add: vi.fn(async (data: any) => {
@@ -317,7 +317,7 @@ export function createMockRedisCluster(nodes: any[]): any {
     connect: vi.fn().mockResolvedValue(true),
     disconnect: vi.fn().mockResolvedValue(true),
     nodes: nodes.map(() => createMockRedis()),
-    getNodeByKey: vi.fn((key: string) => createMockRedis()),
+    getNodeByKey: vi.fn((_key: string) => createMockRedis()),
     failover: vi.fn().mockResolvedValue(true),
   }
 
@@ -327,7 +327,7 @@ export function createMockRedisCluster(nodes: any[]): any {
 /**
  * Create Redis sentinel mock
  */
-export function createMockRedisSentinel(sentinels: any[]): any {
+export function createMockRedisSentinel(_sentinels: any[]): any {
   const sentinel = {
     connect: vi.fn().mockResolvedValue(true),
     disconnect: vi.fn().mockResolvedValue(true),

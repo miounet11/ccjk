@@ -47,7 +47,7 @@ export class SmartPathResolver {
         permissions: validation.permissions,
       }
     }
-    catch (error: any) {
+    catch (_error: any) {
       return {
         path: inputPath,
         valid: false,

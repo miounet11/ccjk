@@ -31,7 +31,7 @@ export class ResultSender {
         },
       })
     }
-    catch (error) {
+    catch (_error) {
       throw new Error('nodemailer package is not installed. Install it with: pnpm add nodemailer @types/nodemailer')
     }
   }

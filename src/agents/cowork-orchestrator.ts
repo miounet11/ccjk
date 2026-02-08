@@ -722,7 +722,7 @@ export class CoworkOrchestrator extends EventEmitter {
 
   private async executeParallel(
     plan: OrchestrationPlan,
-    options: ExecutionOptions,
+    _options: ExecutionOptions,
   ): Promise<OrchestrationResult> {
     const completedTasks = new Map<string, unknown>()
     const failedTasks = new Map<string, Error>()
@@ -762,7 +762,7 @@ export class CoworkOrchestrator extends EventEmitter {
 
   private async executeSequential(
     plan: OrchestrationPlan,
-    options: ExecutionOptions,
+    _options: ExecutionOptions,
   ): Promise<OrchestrationResult> {
     const completedTasks = new Map<string, unknown>()
     const failedTasks = new Map<string, Error>()
@@ -796,7 +796,7 @@ export class CoworkOrchestrator extends EventEmitter {
 
   private async executeHierarchical(
     plan: OrchestrationPlan,
-    options: ExecutionOptions,
+    _options: ExecutionOptions,
   ): Promise<OrchestrationResult> {
     const completedTasks = new Map<string, unknown>()
     const failedTasks = new Map<string, Error>()
@@ -854,7 +854,7 @@ export class CoworkOrchestrator extends EventEmitter {
 
   private async executePipeline(
     plan: OrchestrationPlan,
-    options: ExecutionOptions,
+    _options: ExecutionOptions,
   ): Promise<OrchestrationResult> {
     const completedTasks = new Map<string, unknown>()
     const failedTasks = new Map<string, Error>()
@@ -897,7 +897,7 @@ export class CoworkOrchestrator extends EventEmitter {
 
   private async executeMapReduce(
     plan: OrchestrationPlan,
-    options: ExecutionOptions,
+    _options: ExecutionOptions,
   ): Promise<OrchestrationResult> {
     // Simple map-reduce: first half is map, second is reduce
     const midPoint = Math.floor(plan.tasks.length / 2)
@@ -1003,7 +1003,7 @@ export class CoworkOrchestrator extends EventEmitter {
       const now = Date.now()
       const staleThreshold = 60000 // 1 minute
 
-      for (const [id, agent] of this.agents) {
+      for (const [_id, agent] of this.agents) {
         if (
           agent.state === 'busy'
           && !agent.currentTask

@@ -19,13 +19,13 @@ import { AssertionHelpers } from '../helpers'
 import { createTestTempDir } from '../setup'
 
 describe.skip('traceability Chain Integration', () => {
-  let testDir: string
+  let _testDir: string
   let traceabilityEngine: any
   let errorClassifier: any
   let constraintIdentifier: any
   let patternMatcher: any
   let solutionGenerator: any
-  let knowledgeBase: any
+  let _knowledgeBase: any
 
   beforeEach(async () => {
     testDir = createTestTempDir('traceability-test')

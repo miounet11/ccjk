@@ -26,7 +26,7 @@ import { ensureI18nInitialized, i18n } from '../../i18n'
  * @param codeType - Code tool type (claude-code or codex)
  * @param options - Command options
  */
-async function listProviders(codeType: CodeToolType, options: ApiConfigOptions): Promise<void> {
+async function listProviders(codeType: CodeToolType, _options: ApiConfigOptions): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   try {
@@ -101,7 +101,7 @@ async function listProviders(codeType: CodeToolType, options: ApiConfigOptions):
  * @param codeType - Code tool type
  * @param options - Command options
  */
-async function showCurrentConfig(codeType: CodeToolType, options: ApiConfigOptions): Promise<void> {
+async function showCurrentConfig(codeType: CodeToolType, _options: ApiConfigOptions): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   try {
@@ -174,7 +174,7 @@ async function setProviderApi(
   providerId: string,
   apiKey: string,
   codeType: CodeToolType,
-  options: ApiConfigOptions,
+  _options: ApiConfigOptions,
 ): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 

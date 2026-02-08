@@ -206,7 +206,7 @@ export async function showApiConfigMenu(locale: string = 'zh-CN'): Promise<void>
   const options = getApiConfigOptions(locale)
 
   // 构建选择列表
-  const choices = options.map((opt, index) => ({
+  const choices = options.map((opt, _index) => ({
     name: `${opt.icon} ${opt.label}${opt.recommended ? ansis.green(' (推荐)') : ''}\n   ${ansis.dim(opt.description)}`,
     value: opt.id,
     short: opt.label,

@@ -692,7 +692,7 @@ export class LspManager {
   /**
    * Emit an event
    */
-  private emit(event: string, ...args: any[]): void {
+  private emit(_event: string, ..._args: any[]): void {
     // TODO: Implement event emitter if needed
   }
 }

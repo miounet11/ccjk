@@ -36,7 +36,7 @@ export interface WorkflowConfig {
   commands: string[]
   agents: WorkflowAgent[]
   autoInstallAgents: boolean
-  category: 'essential' | 'sixStep' | 'git' | 'interview'
+  category: 'essential' | 'sixStep' | 'git' | 'interview' | 'specFirstTDD' | 'continuousDelivery' | 'refactoringMaster' | 'linearMethod'
   displayCategory: WorkflowDisplayCategory
   outputDir: string
   metadata: WorkflowMetadata

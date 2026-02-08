@@ -61,7 +61,7 @@ export class Router {
     const queryTokens = this.tokenize(queryLower)
 
     // Check each skill for matches
-    for (const [id, skill] of this.skills.entries()) {
+    for (const [_id, skill] of this.skills.entries()) {
       const keywords = this.extractKeywords(skill)
       const matchedKeywords = this.matchKeywords(queryTokens, keywords)
       const score = this.calculateScore(matchedKeywords, skill)

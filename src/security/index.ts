@@ -220,7 +220,7 @@ export class ProcessManager {
         process.kill(info.pid, 'SIGTERM')
         this.unregister(info.pid, 'failed')
       }
-      catch (error) {
+      catch (_error) {
         // Process might already be dead
       }
     }
@@ -235,7 +235,7 @@ export class ProcessManager {
       this.unregister(pid, 'failed')
       return true
     }
-    catch (error) {
+    catch (_error) {
       return false
     }
   }
@@ -260,7 +260,7 @@ export class ProcessManager {
         try {
           process.kill(pid, 0) // Check if process exists
         }
-        catch (error) {
+        catch (_error) {
           // Process doesn't exist, remove it
           this.processes.delete(pid)
           cleaned++

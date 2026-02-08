@@ -77,7 +77,7 @@ export class Provider302AI implements IProvider {
       })
 
       if (!response.ok) {
-        const errorText = await response.text()
+        const _errorText = await response.text()
         return {
           valid: false,
           errors: [`Connection failed: ${response.status} ${response.statusText}`],
@@ -142,7 +142,7 @@ export class Provider302AI implements IProvider {
     return 'An unexpected error occurred. Please check your configuration and try again.'
   }
 
-  autoFillFromApiKey(apiKey: string): Partial<ProviderSetup> {
+  autoFillFromApiKey(_apiKey: string): Partial<ProviderSetup> {
     // 302.AI uses standard format, return default model
     return {
       model: this.config.defaultModel,

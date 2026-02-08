@@ -351,7 +351,7 @@ export class SkillParser {
     let currentKey: string | null = null
     let currentValue: unknown = null
     let isArray = false
-    const indentLevel = 0
+    const _indentLevel = 0
 
     for (const line of lines) {
       const trimmed = line.trim()

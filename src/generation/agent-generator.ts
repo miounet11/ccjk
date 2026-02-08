@@ -133,7 +133,7 @@ function buildTags(category: string, analysis: any): string[] {
 /**
  * Get agent template for category
  */
-function getAgentTemplate(category: string, projectType: string): Partial<GeneratedAgent> | null {
+function getAgentTemplate(category: string, _projectType: string): Partial<GeneratedAgent> | null {
   const templates: Record<string, Partial<GeneratedAgent>> = {
     'code-generation': {
       id: 'code-generator',

@@ -301,7 +301,7 @@ export class PluginRouter {
    */
   async uninstall(
     pluginId: string,
-    context: RouterContext,
+    _context: RouterContext,
   ): Promise<{ success: boolean, error?: string }> {
     const parsed = this.parsePluginId(pluginId)
 

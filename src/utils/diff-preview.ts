@@ -264,17 +264,14 @@ export function formatDiff(
 
     // Hunk lines
     for (const line of hunk.lines) {
-      let prefix = ' '
       let lineStr = line.content
 
       if (line.type === 'add') {
-        prefix = '+'
         if (color)
           lineStr = ansis.green(`+${line.content}`)
         else lineStr = `+${line.content}`
       }
       else if (line.type === 'remove') {
-        prefix = '-'
         if (color)
           lineStr = ansis.red(`-${line.content}`)
         else lineStr = `-${line.content}`

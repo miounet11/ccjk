@@ -342,11 +342,11 @@ export function backupState(statePath: string = STATE_FILE): string | null {
  * Clean up old backup files
  */
 export function cleanupOldBackups(
-  keep: number = 5,
+  _keep: number = 5,
   statePath: string = STATE_FILE,
 ): void {
-  const stateDir = CCJK_CONFIG_DIR
-  const baseName = statePath.split('/').pop() || 'state.json'
+  const _stateDir = CCJK_CONFIG_DIR
+  const _baseName = statePath.split('/').pop() || 'state.json'
 
   // This would require fs.readdir which we don't have in current utils
   // For now, manual cleanup is recommended

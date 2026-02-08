@@ -144,7 +144,7 @@ export abstract class BaseCodeTool implements ICodeTool {
       await this.loadConfig()
       return { ...this.config }
     }
-    catch (error) {
+    catch (_error) {
       return { ...this.config }
     }
   }
@@ -235,7 +235,7 @@ export abstract class BaseCodeTool implements ICodeTool {
       const loadedConfig = JSON.parse(data)
       this.config = { ...this.config, ...loadedConfig }
     }
-    catch (error) {
+    catch (_error) {
       // Config file doesn't exist or is invalid - use current config
     }
   }
@@ -261,7 +261,7 @@ export abstract class BaseCodeTool implements ICodeTool {
     try {
       await fs.unlink(this.configPath)
     }
-    catch (error) {
+    catch (_error) {
       // File doesn't exist - that's fine
     }
   }
@@ -306,7 +306,7 @@ export abstract class BaseCodeTool implements ICodeTool {
       const { stdout } = await execAsync(`which ${this.getMetadata().name}`)
       return stdout.trim()
     }
-    catch (error) {
+    catch (_error) {
       return undefined
     }
   }

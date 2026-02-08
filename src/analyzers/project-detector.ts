@@ -3,11 +3,14 @@
  */
 
 import type { BuildSystem, DetectorConfig, FrameworkDetectionResult, LanguageDetection, PackageManager, ProjectAnalysis } from './types.js'
+import { existsSync, promises as fsp } from 'node:fs'
 import consola from 'consola'
-import { existsSync } from 'node:fs'
-import { promises as fsp } from 'node:fs'
 import path from 'pathe'
 import { glob } from 'tinyglobby'
+import { analyzeGoProject } from './go-analyzer.js'
+import { analyzePythonProject } from './python-analyzer.js'
+import { analyzeRustProject } from './rust-analyzer.js'
+import { analyzeTypeScriptProject } from './typescript-analyzer.js'
 
 // fs-extra compatibility helpers
 async function pathExists(p: string): Promise<boolean> {
@@ -20,14 +23,10 @@ async function pathExists(p: string): Promise<boolean> {
   }
 }
 
-async function readJson(p: string): Promise<any> {
+async function _readJson(p: string): Promise<any> {
   const content = await fsp.readFile(p, 'utf-8')
   return JSON.parse(content)
 }
-import { analyzeGoProject } from './go-analyzer.js'
-import { analyzePythonProject } from './python-analyzer.js'
-import { analyzeRustProject } from './rust-analyzer.js'
-import { analyzeTypeScriptProject } from './typescript-analyzer.js'
 
 const logger = consola.withTag('project-detector')
 

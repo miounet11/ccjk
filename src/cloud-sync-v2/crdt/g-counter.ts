@@ -117,7 +117,7 @@ export class GCounter {
    * @returns Merge result
    */
   merge(remoteState: GCounterState): MergeResult<number> {
-    const oldValue = this.value()
+    const _oldValue = this.value()
     let changed = false
 
     for (const [nodeId, count] of remoteState) {

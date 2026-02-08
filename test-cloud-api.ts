@@ -42,7 +42,7 @@ async function runTests() {
 
   // 测试 1: 创建任务
   await test('创建任务', async () => {
-    const elapsed = timer()
+    const _elapsed = timer()
     const task = await taskManager.createTask({
       name: '测试任务管理功能',
       description: '验证云端 API 的完整对接',
@@ -59,7 +59,7 @@ async function runTests() {
 
   // 测试 2: 获取任务列表
   await test('获取任务列表', async () => {
-    const elapsed = timer()
+    const _elapsed = timer()
     const tasks = await taskManager.listTasks()
 
     if (!Array.isArray(tasks))
@@ -73,7 +73,7 @@ async function runTests() {
   // 测试 3: 更新任务状态
   let testTaskId = ''
   await test('更新任务状态', async () => {
-    const elapsed = timer()
+    const _elapsed = timer()
 
     // 先创建一个新任务
     const newTask = await taskManager.createTask({
@@ -103,7 +103,7 @@ async function runTests() {
 
   // 测试 4: 删除任务
   await test('删除任务', async () => {
-    const elapsed = timer()
+    const _elapsed = timer()
     const result = await taskManager.deleteTask(testTaskId)
 
     if (!result)
@@ -119,7 +119,7 @@ async function runTests() {
 
   // 测试 5: 任务依赖图
   await test('任务依赖图', async () => {
-    const elapsed = timer()
+    const _elapsed = timer()
 
     // 创建依赖任务
     const task1 = await taskManager.createTask({ name: '基础任务', priority: 'high' as TaskPriority })
@@ -140,7 +140,7 @@ async function runTests() {
 
   // 测试 6: 任务调度
   await test('任务调度', async () => {
-    const elapsed = timer()
+    const _elapsed = timer()
     const schedule = await taskManager.getSchedule()
 
     if (!schedule || !Array.isArray(schedule.order))
@@ -151,7 +151,7 @@ async function runTests() {
 
   // 测试 7: 任务统计
   await test('任务统计', async () => {
-    const elapsed = timer()
+    const _elapsed = timer()
     const stats = await taskManager.getStats()
 
     if (!stats || typeof stats.total !== 'number')

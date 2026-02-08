@@ -81,7 +81,7 @@ async function main() {
     dependsOn: [task1.id],
   })
 
-  const task3 = await brain.convoyManager.addTask(convoy.id, 'Add test', {
+  const _task3 = await brain.convoyManager.addTask(convoy.id, 'Add test', {
     description: 'Add regression test',
     dependsOn: [task2.id],
   })

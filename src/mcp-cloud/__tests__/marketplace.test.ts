@@ -162,7 +162,7 @@ describe('searchEngine', () => {
 
   describe('search', () => {
     it('should search services with query', async () => {
-      const results = await searchEngine.search('file')
+      const _results = await searchEngine.search('file')
       expect(mockRegistry.searchServices).toHaveBeenCalledWith('file', undefined)
     })
 
@@ -338,14 +338,14 @@ describe('serviceBrowser', () => {
 
   describe('browseByCategory', () => {
     it('should return services by category', async () => {
-      const services = await browser.browseByCategory('storage')
+      const _services = await browser.browseByCategory('storage')
       expect(mockRegistry.getByCategory).toHaveBeenCalledWith('storage')
     })
   })
 
   describe('browseTrending', () => {
     it('should return trending services', async () => {
-      const services = await browser.browseTrending(5)
+      const _services = await browser.browseTrending(5)
       expect(mockRegistry.getTrending).toHaveBeenCalledWith(5)
     })
 
@@ -365,7 +365,7 @@ describe('serviceBrowser', () => {
 
   describe('getServiceDetails', () => {
     it('should return service details', async () => {
-      const service = await browser.getServiceDetails('filesystem')
+      const _service = await browser.getServiceDetails('filesystem')
       expect(mockRegistry.getService).toHaveBeenCalledWith('filesystem')
     })
   })

@@ -17,7 +17,7 @@ const AGENTS_DIR = CLAUDE_AGENTS_DIR
  */
 export async function registerAgent(agent: Partial<CloudAgent> | AgentDefinition | any): Promise<void> {
   const agentId = 'id' in agent ? agent.id! : generateAgentId(agent)
-  const agentPath = join(AGENTS_DIR, `${agentId}.json`)
+  const _agentPath = join(AGENTS_DIR, `${agentId}.json`)
 
   // Ensure agents directory exists
   if (!existsSync(AGENTS_DIR)) {

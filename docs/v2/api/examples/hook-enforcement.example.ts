@@ -75,13 +75,13 @@ async function hookEnforcementExample() {
 
   // Execute L2 hook (can be bypassed)
   try {
-    const apiResult = await enforcer.execute('api-call', {
+    const _apiResult = await enforcer.execute('api-call', {
       url: 'https://api.example.com/users',
       method: 'GET',
     })
     console.log('API call successful')
   }
-  catch (error) {
+  catch (_error) {
     console.log('API call failed, bypassing...')
     await enforcer.bypass('api-call', 'API unavailable, using cache')
   }

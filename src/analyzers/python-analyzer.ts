@@ -4,8 +4,8 @@
  */
 
 import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
-import consola from 'consola'
 import { promises as fsp } from 'node:fs'
+import consola from 'consola'
 import path from 'pathe'
 import { parse } from 'smol-toml'
 
@@ -20,7 +20,7 @@ async function pathExists(p: string): Promise<boolean> {
   }
 }
 
-async function readFile(p: string): Promise<string> {
+async function _readFile(p: string): Promise<string> {
   return fsp.readFile(p, 'utf-8')
 }
 
@@ -161,7 +161,7 @@ const FRAMEWORK_PATTERNS = {
 export async function analyzePythonProject(
   projectPath: string,
   files: string[],
-  languages: LanguageDetection[],
+  _languages: LanguageDetection[],
 ): Promise<FrameworkDetectionResult[]> {
   logger.info('Analyzing Python project')
 

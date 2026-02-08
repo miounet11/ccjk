@@ -80,7 +80,7 @@ export function formatMenuItem(
   number: number,
   options: Partial<MenuRenderOptions> = {},
 ): MenuItemRenderData {
-  const opts = { ...defaultRenderOptions, ...options }
+  const _opts = { ...defaultRenderOptions, ...options }
 
   return {
     item,
@@ -127,7 +127,7 @@ export function renderMenuItemLine(data: MenuItemRenderData, options: Partial<Me
  */
 export function groupItemsIntoSections(
   items: MenuItem[],
-  options: Partial<MenuRenderOptions> = {},
+  _options: Partial<MenuRenderOptions> = {},
 ): MenuSection[] {
   const sections: Map<string, MenuItem[]> = new Map()
 
@@ -408,7 +408,7 @@ export function renderNotification(
     success: '✅',
   }[type]
 
-  const colorFn = {
+  const _colorFn = {
     info: ansis.blue,
     warning: ansis.yellow,
     error: ansis.red,

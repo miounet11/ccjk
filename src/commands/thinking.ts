@@ -30,7 +30,7 @@ import { handleExitPromptError, handleGeneralError } from '../utils/error-handle
 /**
  * Display thinking mode status
  */
-export async function thinkingStatus(options: ThinkingCommandOptions = {}): Promise<void> {
+export async function thinkingStatus(_options: ThinkingCommandOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   console.log('')
@@ -84,7 +84,7 @@ export async function thinkingStatus(options: ThinkingCommandOptions = {}): Prom
 /**
  * Enable thinking mode
  */
-export async function thinkingEnable(options: ThinkingCommandOptions = {}): Promise<void> {
+export async function thinkingEnable(_options: ThinkingCommandOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   const manager = getThinkingManager()
@@ -109,7 +109,7 @@ export async function thinkingEnable(options: ThinkingCommandOptions = {}): Prom
 /**
  * Disable thinking mode
  */
-export async function thinkingDisable(options: ThinkingCommandOptions = {}): Promise<void> {
+export async function thinkingDisable(_options: ThinkingCommandOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   const manager = getThinkingManager()
@@ -131,7 +131,7 @@ export async function thinkingDisable(options: ThinkingCommandOptions = {}): Pro
 /**
  * Toggle thinking mode
  */
-export async function thinkingToggle(options: ThinkingCommandOptions = {}): Promise<void> {
+export async function thinkingToggle(_options: ThinkingCommandOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   const manager = getThinkingManager()
@@ -149,7 +149,7 @@ export async function thinkingToggle(options: ThinkingCommandOptions = {}): Prom
 /**
  * Set budget tokens
  */
-export async function thinkingBudget(tokens: string, options: ThinkingCommandOptions = {}): Promise<void> {
+export async function thinkingBudget(tokens: string, _options: ThinkingCommandOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   const tokenValue = Number.parseInt(tokens, 10)
@@ -193,7 +193,7 @@ export async function thinkingBudget(tokens: string, options: ThinkingCommandOpt
 /**
  * Configure sub-agent inheritance
  */
-export async function thinkingInheritance(enabled: boolean, options: ThinkingCommandOptions = {}): Promise<void> {
+export async function thinkingInheritance(enabled: boolean, _options: ThinkingCommandOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   const manager = getThinkingManager()
@@ -216,7 +216,7 @@ export async function thinkingInheritance(enabled: boolean, options: ThinkingCom
 /**
  * Reset thinking mode to defaults
  */
-export async function thinkingReset(options: ThinkingCommandOptions = {}): Promise<void> {
+export async function thinkingReset(_options: ThinkingCommandOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   // Confirm reset
@@ -440,7 +440,7 @@ export function thinkingCheck(complexity: ThinkingTaskComplexity, model?: string
 /**
  * Show thinking mode help
  */
-export function thinkingHelp(options: ThinkingCommandOptions = {}): void {
+export function thinkingHelp(_options: ThinkingCommandOptions = {}): void {
   const isZh = i18n.language === 'zh-CN'
 
   console.log('')

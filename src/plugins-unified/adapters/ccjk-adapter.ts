@@ -169,7 +169,7 @@ export class CcjkAdapter extends BasePluginAdapter {
   /**
    * Uninstall a plugin
    */
-  async uninstall(id: string): Promise<UninstallResult> {
+  async uninstall(_id: string): Promise<UninstallResult> {
     try {
       // TODO: Get userId and token from auth context
       // For now, throw an error indicating authentication is required
@@ -196,7 +196,7 @@ export class CcjkAdapter extends BasePluginAdapter {
         return this.createUpdateError('Plugin not found')
       }
 
-      const previousVersion = currentPlugin.version
+      const _previousVersion = currentPlugin.version
 
       // TODO: Get userId and token from auth context
       // For now, throw an error indicating authentication is required
@@ -292,7 +292,7 @@ export class CcjkAdapter extends BasePluginAdapter {
   /**
    * Check if a plugin is installed
    */
-  async isInstalled(id: string): Promise<boolean> {
+  async isInstalled(_id: string): Promise<boolean> {
     try {
       // TODO: Get userId and token from auth context
       // For now, return false

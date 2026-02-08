@@ -8,7 +8,7 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import ansis from 'ansis'
 
-const { cyan, yellow, gray, green, red, blue, bold, dim } = ansis
+const { cyan, yellow, gray, green, red, blue: _blue, bold, dim: _dim } = ansis
 
 // ============================================================================
 // 类型定义

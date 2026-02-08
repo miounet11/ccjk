@@ -357,7 +357,7 @@ export class ErrorRecovery extends EventEmitter {
 
       return result
     }
-    catch (error) {
+    catch (_error) {
       return null
     }
   }

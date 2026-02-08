@@ -60,7 +60,7 @@ export class LevelDBStorage {
         }
       }
     }
-    catch (error) {
+    catch (_error) {
       // Ignore if directory doesn't exist yet
     }
   }
@@ -128,7 +128,7 @@ export class LevelDBStorage {
     try {
       await fs.unlink(filePath)
     }
-    catch (error) {
+    catch (_error) {
       // Ignore if file doesn't exist
     }
   }
@@ -194,7 +194,7 @@ export class LevelDBStorage {
           .map(file => fs.unlink(path.join(this.dbPath, file))),
       )
     }
-    catch (error) {
+    catch (_error) {
       // Ignore errors
     }
   }

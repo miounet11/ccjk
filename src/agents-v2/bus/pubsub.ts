@@ -3,8 +3,8 @@
  * Redis-based publish-subscribe messaging system
  */
 
-import type { IPubSub, Message, MessageHandler } from '../types.js'
 import type { Redis } from 'ioredis'
+import type { IPubSub, Message, MessageHandler } from '../types.js'
 
 export interface SubscriptionOptions {
   pattern?: boolean
@@ -245,7 +245,7 @@ export class PubSub implements IPubSub {
   private async handlePatternMessage(pattern: string, channel: string, messageData: string): Promise<void> {
     try {
       const message: Message = JSON.parse(messageData)
-      const channelName = this.extractChannelName(channel)
+      const _channelName = this.extractChannelName(channel)
 
       this.metrics.messagesReceived++
 

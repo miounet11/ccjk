@@ -100,7 +100,7 @@ export async function ccjkHooks(
         }
       }
     }
-    catch (error) {
+    catch (_error) {
       // Fallback to local templates
       consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
       const templates = await loadHookTemplates()

@@ -5,8 +5,8 @@
 
 import type { HealthMonitor } from './health-monitor'
 import type { MetricsCollector } from './metrics'
-import type { RecoveryAction, RecoveryStrategy, SelfHealingConfig } from './types'
 import type { AgentMetrics } from './orchestrator-types'
+import type { RecoveryAction, RecoveryStrategy, SelfHealingConfig } from './types'
 
 export interface FaultDetectionResult {
   agentId: string

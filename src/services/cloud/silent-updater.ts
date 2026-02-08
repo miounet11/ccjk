@@ -21,12 +21,12 @@ import { platform } from 'node:os'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
+import { CCJK_CONFIG_DIR } from '../../constants'
+import { getCloudState, updateCloudState } from './auto-bootstrap'
 
 // ESM compatible __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-import { CCJK_CONFIG_DIR } from '../../constants'
-import { getCloudState, updateCloudState } from './auto-bootstrap'
 
 // ============================================================================
 // Constants

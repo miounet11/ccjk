@@ -12,7 +12,6 @@
 
 import type { SupportedLang } from '../constants'
 import type { SetupOrchestratorOptions, SetupResult } from '../orchestrators/setup-orchestrator'
-import { cwd } from 'node:process'
 import ansis from 'ansis'
 import { consola } from 'consola'
 import { ProjectAnalyzer } from '../analyzers'

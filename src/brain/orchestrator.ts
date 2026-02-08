@@ -8,27 +8,6 @@
  */
 
 import type { AgentCapability, CloudAgent } from '../types/agent.js'
-
-/**
- * Convert AgentCapability array to string array of capability IDs
- */
-function fromAgentCapabilities(capabilities: AgentCapability[]): string[] {
-  return capabilities.map(cap => cap.id)
-}
-
-/**
- * Convert string array of capability IDs to AgentCapability array
- */
-function toAgentCapabilities(capabilities: string[]): AgentCapability[] {
-  return capabilities.map(id => ({
-    id,
-    name: id,
-    model: 'sonnet' as const,
-    specialties: [id],
-    strength: 0.8,
-    costFactor: 1.0,
-  }))
-}
 import type { SkillMdFile } from '../types/skill-md.js'
 import type {
   AgentDispatcherOptions,
@@ -60,6 +39,27 @@ import { AgentDispatcher } from './agent-dispatcher.js'
 import { AgentForkManager } from './agent-fork.js'
 import { ResultAggregator } from './result-aggregator.js'
 import { TaskDecomposer } from './task-decomposer.js'
+
+/**
+ * Convert AgentCapability array to string array of capability IDs
+ */
+function fromAgentCapabilities(capabilities: AgentCapability[]): string[] {
+  return capabilities.map(cap => cap.id)
+}
+
+/**
+ * Convert string array of capability IDs to AgentCapability array
+ */
+function toAgentCapabilities(capabilities: string[]): AgentCapability[] {
+  return capabilities.map(id => ({
+    id,
+    name: id,
+    model: 'sonnet' as const,
+    specialties: [id],
+    strength: 0.8,
+    costFactor: 1.0,
+  }))
+}
 
 /**
  * Orchestrator events

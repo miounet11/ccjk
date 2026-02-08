@@ -28,8 +28,8 @@ function formatSessionDisplay(session: any, index: number): string {
   const id = ansis.gray.dim(`[${session.id.substring(0, 8)}]`)
   const branch = session.metadata?.branch ? ansis.cyan(`(${session.metadata.branch})`) : ''
   const forked = session.metadata?.forkedFrom ? ansis.dim('⑂') : ''
-  const historyCount = session.history.length
-  const lastUsed = session.lastUsedAt.toLocaleString()
+  const _historyCount = session.history.length
+  const _lastUsed = session.lastUsedAt.toLocaleString()
 
   return `${pinned} ${ansis.green(indexStr)}. ${name} ${id} ${branch} ${forked}`
 }

@@ -238,7 +238,7 @@ const advancedProfile: UserProfile = {
   experience: 'advanced',
 }
 
-const pythonProfile: UserProfile = {
+const _pythonProfile: UserProfile = {
   id: 'user3',
   techStack: ['python', 'django', 'fastapi'],
   projectTypes: ['backend', 'api'],

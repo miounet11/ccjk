@@ -9,8 +9,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * They serve as a template for future integration tests.
  */
 describe.skip('cCJK Workflow Execution Engine', () => {
-  let mockSuite: any
-  let testDir: string
+  let _mockSuite: any
+  let _testDir: string
   let workflowEngine: any
   let testWorkflow: any
 
@@ -102,7 +102,7 @@ describe.skip('cCJK Workflow Execution Engine', () => {
 
       workflowEngine.validate.mockImplementation((workflow) => {
         // Simulate circular dependency detection
-        const stepIds = workflow.steps.map(s => s.id)
+        const _stepIds = workflow.steps.map(s => s.id)
         const hasCycle = workflow.steps.some(step =>
           step.dependsOn?.includes(step.id),
         )
@@ -201,7 +201,7 @@ describe.skip('cCJK Workflow Execution Engine', () => {
         ],
       })
 
-      workflowEngine.execute.mockImplementation(async (workflow) => {
+      workflowEngine.execute.mockImplementation(async (_workflow) => {
         const results = []
         const startTime = Date.now()
 
@@ -265,7 +265,7 @@ describe.skip('cCJK Workflow Execution Engine', () => {
       })
 
       // Act
-      const executionPromise = workflowEngine.execute(testWorkflow)
+      const _executionPromise = workflowEngine.execute(testWorkflow)
       const cancelResult = await workflowEngine.cancel()
 
       // Assert

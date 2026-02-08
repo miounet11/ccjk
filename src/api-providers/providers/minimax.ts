@@ -162,7 +162,7 @@ export class ProviderMiniMax implements IProvider {
     return 'An error occurred. Please verify your API Key and Group ID.'
   }
 
-  autoFillFromApiKey(apiKey: string): Partial<ProviderSetup> {
+  autoFillFromApiKey(_apiKey: string): Partial<ProviderSetup> {
     return {
       model: this.config.defaultModel,
     }

@@ -536,7 +536,7 @@ export class ProcessPool extends EventEmitter {
   /**
    * Determine specialization for a task
    */
-  private determineSpecialization(taskType: string, data: unknown): ProcessSpecialization {
+  private determineSpecialization(taskType: string, _data: unknown): ProcessSpecialization {
     // Check for CPU-intensive tasks
     const cpuTasks = ['crypto', 'hash', 'compression', 'encoding', 'decoding', 'compute']
     if (cpuTasks.some(t => taskType.includes(t))) {
@@ -618,7 +618,7 @@ export class ProcessPool extends EventEmitter {
    */
   private findAvailableProcess(): ProcessWorkerInfo | null {
     // Prefer idle process with matching specialization
-    for (const [id, process] of this.processes) {
+    for (const [_id, process] of this.processes) {
       if (process.state === 'idle') {
         return process
       }
@@ -672,8 +672,8 @@ export class ProcessPool extends EventEmitter {
     taskId: string,
     result: unknown,
     duration: number,
-    memoryUsage?: number,
-    cpuUsage?: number,
+    _memoryUsage?: number,
+    _cpuUsage?: number,
   ): void {
     const workerInfo = this.processes.get(processId)
     const task = this.pendingTasks.get(taskId)
@@ -860,7 +860,7 @@ export class ProcessPool extends EventEmitter {
         })
       })
     }
-    catch (error) {
+    catch (_error) {
       // Force kill if graceful shutdown fails
       try {
         workerInfo.process.kill('SIGKILL')

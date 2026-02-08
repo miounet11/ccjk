@@ -511,8 +511,8 @@ export class AgentDispatcher {
     const softTimeout = Math.floor(timeout * 0.8) // 80% 时发出警告
     const warningTimeout = Math.floor(timeout * 0.6) // 60% 时发出提示
 
-    let softTimeoutReached = false
-    let warningTimeoutReached = false
+    let _softTimeoutReached = false
+    let _warningTimeoutReached = false
 
     // 60% 超时提示
     const warningTimer = setTimeout(() => {

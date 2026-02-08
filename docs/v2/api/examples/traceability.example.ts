@@ -507,12 +507,12 @@ async function logPermissionChange(change) {
   console.log('Permission change logged:', change)
 }
 
-async function exportData(dataType, filters, format) {
+async function exportData(_dataType, _filters: any, _format: any) {
   // Implementation
   return Array.from({ length: 100 }).fill({ id: 1, data: 'sensitive' })
 }
 
-async function checkComplianceRequirements(req) {
+async function checkComplianceRequirements(_req) {
   // Implementation
   return { allowed: true }
 }
@@ -528,7 +528,7 @@ async function generateComplianceReport(history) {
   }
 }
 
-async function checkServiceHealth(service) {
+async function checkServiceHealth(_service) {
   // Implementation
   return { healthy: Math.random() > 0.1, details: { responseTime: 100 } }
 }
@@ -538,12 +538,12 @@ async function triggerAlert(alert) {
   console.log('ALERT:', alert.type, alert.service || alert.metric)
 }
 
-async function getPerformanceMetric(metric) {
+async function getPerformanceMetric(_metric) {
   // Implementation
   return Math.random() * 100
 }
 
-async function getGeoLocation(ip) {
+async function getGeoLocation(_ip) {
   // Implementation
   return { country: 'US', city: 'New York' }
 }

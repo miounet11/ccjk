@@ -158,7 +158,7 @@ export class SmartWriteTool {
   private async overwriteFile(
     filePath: string,
     content: string,
-    options?: WriteOptions,
+    _options?: WriteOptions,
   ): Promise<WriteResult> {
     try {
       writeFileSync(filePath, content, 'utf-8')
@@ -292,7 +292,7 @@ export class SmartWriteTool {
       // 简化版本：假设有权限
       return { allowed: true }
     }
-    catch (error) {
+    catch (_error) {
       return {
         allowed: false,
         suggestion: 'Check file permissions or run with appropriate privileges',

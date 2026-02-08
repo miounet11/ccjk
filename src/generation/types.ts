@@ -4,8 +4,8 @@
  * Type definitions for intelligent Agent/Skills generation based on project analysis
  */
 
-import type { SupportedLang } from '../constants'
 import type { ProjectAnalysis as AnalyzerProjectAnalysis } from '../analyzers/types'
+import type { SupportedLang } from '../constants'
 
 // Re-export for convenience
 export type { SupportedLang }
@@ -13,20 +13,20 @@ export type { SupportedLang }
 /**
  * Project type classification
  */
-export type ProjectType =
-  | 'web-frontend'
-  | 'web-backend'
-  | 'fullstack'
-  | 'cli'
-  | 'library'
-  | 'mobile'
-  | 'desktop'
-  | 'api'
-  | 'microservice'
-  | 'monorepo'
-  | 'frontend'
-  | 'backend'
-  | 'unknown'
+export type ProjectType
+  = | 'web-frontend'
+    | 'web-backend'
+    | 'fullstack'
+    | 'cli'
+    | 'library'
+    | 'mobile'
+    | 'desktop'
+    | 'api'
+    | 'microservice'
+    | 'monorepo'
+    | 'frontend'
+    | 'backend'
+    | 'unknown'
 
 /**
  * Technology stack information
@@ -244,17 +244,17 @@ export interface GeneratedSkill {
   source: 'smart-analysis' | 'template' | 'custom'
 }
 
-export type SkillCategory =
-  | 'development'
-  | 'testing'
-  | 'deployment'
-  | 'documentation'
-  | 'debugging'
-  | 'refactoring'
-  | 'security'
-  | 'performance'
-  | 'git'
-  | 'custom'
+export type SkillCategory
+  = | 'development'
+    | 'testing'
+    | 'deployment'
+    | 'documentation'
+    | 'debugging'
+    | 'refactoring'
+    | 'security'
+    | 'performance'
+    | 'git'
+    | 'custom'
 
 export interface SkillTrigger {
   /** Trigger type */

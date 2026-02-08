@@ -20,7 +20,7 @@
  * @module core/lifecycle-hooks
  */
 
-import type { CCJKHookType, HookHandler, HookContext as BridgeHookContext } from './hook-skill-bridge'
+import type { HookContext as BridgeHookContext, CCJKHookType, HookHandler } from './hook-skill-bridge'
 import { getHookSkillBridge, triggerHooks } from './hook-skill-bridge'
 
 // Re-export HookContext from hook-skill-bridge for convenience
@@ -52,7 +52,7 @@ export interface LifecycleHook {
   readonly name: string
   readonly phase: HookPhase
   readonly priority?: number
-  execute(context: BridgeHookContext): Promise<HookResult>
+  execute: (context: BridgeHookContext) => Promise<HookResult>
 }
 
 // ============================================================================

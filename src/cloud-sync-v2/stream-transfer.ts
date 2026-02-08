@@ -20,7 +20,7 @@ import { promisify } from 'node:util'
 import { createGunzip, createGzip } from 'node:zlib'
 import { DEFAULT_TRANSFER_CONFIG } from './types'
 
-const pipelineAsync = promisify(pipeline)
+const _pipelineAsync = promisify(pipeline)
 
 // ============================================================================
 // Chunk Manager

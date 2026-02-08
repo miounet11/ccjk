@@ -32,8 +32,8 @@ import type {
   InstallationPlan,
   ProjectAnalysis,
 } from './types.js'
-import consola from 'consola'
 import { promises as fsp } from 'node:fs'
+import consola from 'consola'
 import path from 'pathe'
 
 // fs-extra compatibility helpers
@@ -52,7 +52,7 @@ async function readJson(p: string): Promise<any> {
   return JSON.parse(content)
 }
 
-async function readFile(p: string): Promise<string> {
+async function _readFile(p: string): Promise<string> {
   return fsp.readFile(p, 'utf-8')
 }
 
@@ -78,7 +78,7 @@ export async function analyzeDependencies(
 
   const projectPath = analysis.rootPath
   const packageManager = analysis.packageManager
-  const languages = analysis.languages
+  const _languages = analysis.languages
 
   // Resolve dependencies based on project type
   let direct: DependencyNode[] = []
@@ -447,9 +447,9 @@ function generateInstallationPlan(
 
   // Separate by type
   const runtime = order.filter(d => d.type === 'runtime')
-  const dev = order.filter(d => d.type === 'dev')
-  const peer = order.filter(d => d.type === 'peer')
-  const optional = order.filter(d => d.type === 'optional')
+  const _dev = order.filter(d => d.type === 'dev')
+  const _peer = order.filter(d => d.type === 'peer')
+  const _optional = order.filter(d => d.type === 'optional')
 
   // Count parallelizable dependencies
   const parallelizable = runtime.length
@@ -542,7 +542,7 @@ function generateInstallationCommands(packageManager?: string): InstallationComm
  */
 function detectConflicts(
   dependencies: DependencyNode[],
-  graph: Map<string, DependencyNode[]>,
+  _graph: Map<string, DependencyNode[]>,
 ): DependencyConflict[] {
   const conflicts: DependencyConflict[] = []
   const versionMap = new Map<string, Set<string>>()

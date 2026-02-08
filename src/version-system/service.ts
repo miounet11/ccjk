@@ -398,7 +398,7 @@ export class VersionService extends EventEmitter {
         await this.updateTool(tool, undefined, options)
         results.set(tool, true)
       }
-      catch (error) {
+      catch (_error) {
         results.set(tool, false)
       }
     }

@@ -400,7 +400,7 @@ describe('lifecycleManager', () => {
     })
 
     it('should cleanup even on task error', async () => {
-      let cleanupCalled = false
+      let _cleanupCalled = false
 
       eventBus.on('lifecycle:cleanup', () => {
         cleanupCalled = true

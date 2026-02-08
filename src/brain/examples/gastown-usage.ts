@@ -131,7 +131,7 @@ async function exampleConvoyManagement() {
     dependsOn: [task2.id],
   })
 
-  const task4 = await convoyManager.addTask(convoy.id, 'Write tests', {
+  const _task4 = await convoyManager.addTask(convoy.id, 'Write tests', {
     description: 'Create unit and integration tests',
     dependsOn: [task3.id],
   })

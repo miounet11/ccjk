@@ -238,7 +238,7 @@ export class ThinkingModeManager {
   /**
    * Get thinking mode status for display
    */
-  getStatus(enabledOnly: boolean = false): ThinkingModeStatus {
+  getStatus(_enabledOnly: boolean = false): ThinkingModeStatus {
     const isZh = i18n.language === 'zh-CN'
 
     return {

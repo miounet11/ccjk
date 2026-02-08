@@ -19,7 +19,7 @@ import { AssertionHelpers } from '../helpers'
 import { createTestTempDir } from '../setup'
 
 describe.skip('agents Network Integration', () => {
-  let testDir: string
+  let _testDir: string
   let agentRegistry: any
   let redisBus: any
   let requestHandler: any
@@ -737,7 +737,7 @@ describe.skip('agents Network Integration', () => {
           timestamp: new Date(),
         })
       }
-      catch (error) {
+      catch (_error) {
         // Expected error on first attempt
       }
 

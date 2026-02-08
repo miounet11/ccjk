@@ -187,7 +187,7 @@ export class VersionChecker implements IVersionSource {
       const { stdout } = await this.execWithTimeout(command, timeout)
       return stdout.trim()
     }
-    catch (error) {
+    catch (_error) {
       // Fallback to tool-specific version command
       return await this.getToolSpecificVersion(tool)
     }
@@ -203,7 +203,7 @@ export class VersionChecker implements IVersionSource {
       const output = stdout || stderr
       return this.parseVersion(output)
     }
-    catch (error) {
+    catch (_error) {
       return undefined
     }
   }
@@ -217,7 +217,7 @@ export class VersionChecker implements IVersionSource {
       await execAsync(command)
       return true
     }
-    catch (error) {
+    catch (_error) {
       return false
     }
   }
@@ -270,7 +270,7 @@ export class VersionChecker implements IVersionSource {
 
       return 'equal'
     }
-    catch (error) {
+    catch (_error) {
       return 'invalid'
     }
   }

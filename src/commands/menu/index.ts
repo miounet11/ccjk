@@ -796,7 +796,7 @@ async function showMarketplaceMenu(): Promise<void> {
 }
 
 async function showHooksSyncMenu(): Promise<void> {
-  const lang = i18n.language as SupportedLang
+  const _lang = i18n.language as SupportedLang
 
   console.log(ansis.green(i18n.t('menu:hooksSync.title')))
   console.log('  -------- Hooks Cloud Sync --------')

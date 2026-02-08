@@ -206,7 +206,7 @@ export class SessionManager {
     }
 
     const snapshotId = this.generateSnapshotId()
-    const snapshot: SessionSnapshot = {
+    const _snapshot: SessionSnapshot = {
       id: snapshotId,
       timestamp: new Date().toISOString(),
       description,

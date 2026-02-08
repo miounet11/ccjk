@@ -479,7 +479,7 @@ export async function runAllExamples() {
   try {
     // Run examples
     const workflow1 = await example1_BasicGeneration()
-    const workflow2 = await example2_UsingFragments()
+    const _workflow2 = await example2_UsingFragments()
     example3_Validation(workflow1)
     example4_Optimization(workflow1)
     example5_CustomFragments()

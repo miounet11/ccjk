@@ -25,7 +25,7 @@ const fileOperationMatcher: HookMatcher = {
  * This function executes when the hook is triggered
  */
 const fileOperationExecutor: HookExecutor = async (context) => {
-  const { userQuery, metadata } = context
+  const { userQuery, metadata: _metadata } = context
 
   // Extract file paths from the query
   const filePaths = (userQuery.match(/[\w\-./]+\.(ts|js|json|md)/g) || []).slice(0, 5)

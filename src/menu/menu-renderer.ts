@@ -90,7 +90,7 @@ export class MenuRenderer {
     const description = item.description
       ? ansis.dim(getLocalizedLabel(item.description, this.locale))
       : ''
-    const shortcut = item.shortcut ? `${item.shortcut}.` : `${index + 1}.`
+    const _shortcut = item.shortcut ? `${item.shortcut}.` : `${index + 1}.`
 
     // 简约风格：图标 + 标签 + 描述
     const mainText = `${icon} ${label}`.trim()

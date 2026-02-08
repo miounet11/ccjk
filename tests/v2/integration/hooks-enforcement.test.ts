@@ -12,7 +12,7 @@ import { MockFactory } from '../helpers'
 import { createTestTempDir } from '../setup'
 
 describe.skip('hook Enforcement Integration', () => {
-  let testDir: string
+  let _testDir: string
   let hookManager: any
   let hookRegistry: any
   let auditLogger: any
@@ -400,7 +400,7 @@ describe.skip('hook Enforcement Integration', () => {
   describe('edge Cases and Error Scenarios', () => {
     it('should handle circular hook dependencies', async () => {
       // Arrange
-      const circularHooks = [
+      const _circularHooks = [
         MockFactory.createHook({
           id: 'hook-a',
           level: 'L2',
@@ -425,7 +425,7 @@ describe.skip('hook Enforcement Integration', () => {
 
     it('should handle hook execution timeout', async () => {
       // Arrange
-      const slowHook = MockFactory.createHook({
+      const _slowHook = MockFactory.createHook({
         id: 'slow-operation',
         level: 'L2',
         timeout: 100, // 100ms timeout

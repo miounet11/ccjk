@@ -22,11 +22,11 @@ import ansis from 'ansis'
 import * as Handlebars from 'handlebars'
 import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
+import { getPluginManager } from '../plugins-v2'
 
 // ESM compatible __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-import { getPluginManager } from '../plugins-v2'
 
 // ============================================================================
 // Command Handler
@@ -230,7 +230,8 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
     message: 'Priority (1-10, higher = more priority):',
     default: 5,
     validate: (input: number | undefined) => {
-      if (input === undefined) return 'Please enter a number'
+      if (input === undefined)
+        return 'Please enter a number'
       return input >= 1 && input <= 10 ? true : 'Must be between 1 and 10'
     },
   })

@@ -534,7 +534,7 @@ export class AgentForkManager {
       return
     }
 
-    const fork = this.getForkOrThrow(forkId)
+    const _fork = this.getForkOrThrow(forkId)
     const timeout = (hook.timeout ?? this.options.defaultHookTimeout) * 1000
 
     this.addTranscript(forkId, {
@@ -614,7 +614,7 @@ export class AgentForkManager {
    * @returns Fork configuration
    */
   private buildForkConfig(forkId: string): ForkContextConfig {
-    const fork = this.getForkOrThrow(forkId)
+    const _fork = this.getForkOrThrow(forkId)
 
     // Get the skill config that was used to create this fork
     // In a real implementation, we'd store the config with the state
@@ -636,7 +636,7 @@ export class AgentForkManager {
    * @param forkId - Fork context ID
    * @returns Skill file
    */
-  private findSkillForFork(forkId: string): SkillMdFile {
+  private findSkillForFork(_forkId: string): SkillMdFile {
     // This would be implemented by storing the skill with the fork state
     // For now, return a minimal skill
     return {
@@ -659,7 +659,7 @@ export class AgentForkManager {
    * @param forkId - Fork context ID
    * @returns Session ID
    */
-  private getSessionIdForFork(forkId: string): string {
+  private getSessionIdForFork(_forkId: string): string {
     return generateSessionId()
   }
 

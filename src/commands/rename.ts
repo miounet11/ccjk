@@ -17,7 +17,7 @@ import { i18n } from '../i18n'
 import { getSessionManager } from '../session-manager'
 
 const CLAUDE_DIR = join(homedir(), '.claude')
-const SESSIONS_DIR = join(CLAUDE_DIR, 'sessions')
+const _SESSIONS_DIR = join(CLAUDE_DIR, 'sessions')
 const CURRENT_SESSION_FILE = join(CLAUDE_DIR, 'current-session.json')
 
 interface CurrentSession {
@@ -113,7 +113,7 @@ function generateNameSuggestions(): string[] {
 /**
  * Format session name with timestamp
  */
-function formatSessionName(baseName: string): string {
+function _formatSessionName(baseName: string): string {
   const timestamp = new Date().toISOString().slice(0, 10)
   return `${baseName}-${timestamp}`
 }

@@ -657,7 +657,7 @@ export class McpSearchToolIntegration implements McpSearchTool {
    * Search for available tools across all MCP services
    * This is a stub implementation - production would query actual MCP servers
    */
-  async searchTools(query: string): Promise<ToolSearchResult[]> {
+  async searchTools(_query: string): Promise<ToolSearchResult[]> {
     // Stub: Return empty array
     // In production, this would:
     // 1. Query all MCP servers for their tool lists
@@ -686,7 +686,7 @@ export class McpSearchToolIntegration implements McpSearchTool {
   /**
    * Get detailed information about a specific tool
    */
-  async getToolDetails(toolName: string): Promise<ToolDescriptor | null> {
+  async getToolDetails(_toolName: string): Promise<ToolDescriptor | null> {
     // Stub: Return null
     // In production, this would:
     // 1. Find the service providing this tool

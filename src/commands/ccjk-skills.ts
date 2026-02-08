@@ -15,16 +15,16 @@ import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
-
-// ESM compatible __dirname
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 import consola from 'consola'
 import inquirer from 'inquirer'
 import { analyzeProject } from '../analyzers'
 import { getTemplatesClient } from '../cloud-client'
 import { i18n } from '../i18n'
 import { getSkillParser } from '../plugins-v2'
+
+// ESM compatible __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // ============================================================================
 // Types
@@ -224,7 +224,7 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
 /**
  * Display project analysis information
  */
-function displayProjectInfo(analysis: ProjectAnalysis, lang: SupportedLang): void {
+function displayProjectInfo(analysis: ProjectAnalysis, _lang: SupportedLang): void {
   const pm = analysis.packageManager || 'unknown'
   const frameworks = analysis.frameworks.map(f => f.name).join(', ')
   const languages = analysis.languages
@@ -270,7 +270,7 @@ async function getRecommendedSkills(
       // Filter by project relevance
       const relevantSkills = cloudSkills.filter((skill) => {
         const tags = skill.tags || []
-        const category = skill.category || ''
+        const _category = skill.category || ''
         const compatibility = skill.compatibility || {}
 
         // Check if skill matches project
@@ -673,7 +673,7 @@ function generateSkillMdFromTemplate(skill: RecommendedSkill, templateContent: s
 /**
  * Display installation results
  */
-function displayInstallationResults(results: SkillInstallResult[], lang: SupportedLang): void {
+function displayInstallationResults(results: SkillInstallResult[], _lang: SupportedLang): void {
   console.log('')
 
   const successful = results.filter(r => r.success)

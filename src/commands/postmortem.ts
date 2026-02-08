@@ -3,8 +3,8 @@
  * 尸检报告命令行接口
  */
 
-import process from 'node:process'
 import type { CAC } from 'cac'
+import process from 'node:process'
 import ansis from 'ansis'
 import ora from 'ora'
 import { getPostmortemManager } from '../postmortem/manager'
@@ -188,89 +188,89 @@ export function createPostmortemCommand(program: CAC) {
   // ========================================================================
   const showCmd = cmd.command('show <id>', '显示 Postmortem 详情')
   showCmd.action(async (id: string) => {
-      try {
-        const manager = getPostmortemManager(process.cwd())
-        const report = manager.getReport(id)
+    try {
+      const manager = getPostmortemManager(process.cwd())
+      const report = manager.getReport(id)
 
-        if (!report) {
-          console.log(ansis.red(`未找到 Postmortem: ${id}`))
-          process.exit(1)
-        }
-
-        const severityColors: Record<string, typeof ansis.red> = {
-          critical: ansis.red,
-          high: ansis.yellow,
-          medium: ansis.blue,
-          low: ansis.green,
-        }
-
-        const color = severityColors[report.severity] || ansis.white
-
-        console.log()
-        console.log(color.bold(`═══════════════════════════════════════════════════════════`))
-        console.log(color.bold(`  ${report.id}: ${report.title}`))
-        console.log(color.bold(`═══════════════════════════════════════════════════════════`))
-
-        console.log()
-        console.log(ansis.cyan('📊 元数据'))
-        console.log(`   严重程度: ${color(report.severity.toUpperCase())}`)
-        console.log(`   类别: ${report.category}`)
-        console.log(`   状态: ${report.status}`)
-        console.log(`   创建时间: ${report.createdAt}`)
-
-        console.log()
-        console.log(ansis.cyan('📝 问题描述'))
-        console.log(report.description.split('\n').map(l => `   ${l}`).join('\n'))
-
-        console.log()
-        console.log(ansis.cyan('🔍 根本原因'))
-        for (const cause of report.rootCause) {
-          console.log(`   • ${cause}`)
-        }
-
-        console.log()
-        console.log(ansis.cyan('✅ 修复方案'))
-        console.log(`   ${report.solution.description}`)
-
-        if (report.solution.codeExample) {
-          console.log()
-          console.log(ansis.red('   ❌ 错误写法:'))
-          console.log(ansis.dim(report.solution.codeExample.bad.split('\n').map(l => `      ${l}`).join('\n')))
-          console.log()
-          console.log(ansis.green('   ✅ 正确写法:'))
-          console.log(ansis.dim(report.solution.codeExample.good.split('\n').map(l => `      ${l}`).join('\n')))
-        }
-
-        console.log()
-        console.log(ansis.cyan('🛡️ 预防措施'))
-        for (const measure of report.preventionMeasures) {
-          console.log(`   • ${measure}`)
-        }
-
-        console.log()
-        console.log(ansis.cyan('🤖 AI 开发指令'))
-        for (const directive of report.aiDirectives) {
-          console.log(`   • ${directive}`)
-        }
-
-        if (report.relatedFiles.length > 0) {
-          console.log()
-          console.log(ansis.cyan('📁 相关文件'))
-          for (const file of report.relatedFiles.slice(0, 10)) {
-            console.log(`   • ${file}`)
-          }
-          if (report.relatedFiles.length > 10) {
-            console.log(ansis.dim(`   ... 还有 ${report.relatedFiles.length - 10} 个文件`))
-          }
-        }
-
-        console.log()
-      }
-      catch (error) {
-        console.error(ansis.red('获取详情失败'), error)
+      if (!report) {
+        console.log(ansis.red(`未找到 Postmortem: ${id}`))
         process.exit(1)
       }
-    })
+
+      const severityColors: Record<string, typeof ansis.red> = {
+        critical: ansis.red,
+        high: ansis.yellow,
+        medium: ansis.blue,
+        low: ansis.green,
+      }
+
+      const color = severityColors[report.severity] || ansis.white
+
+      console.log()
+      console.log(color.bold(`═══════════════════════════════════════════════════════════`))
+      console.log(color.bold(`  ${report.id}: ${report.title}`))
+      console.log(color.bold(`═══════════════════════════════════════════════════════════`))
+
+      console.log()
+      console.log(ansis.cyan('📊 元数据'))
+      console.log(`   严重程度: ${color(report.severity.toUpperCase())}`)
+      console.log(`   类别: ${report.category}`)
+      console.log(`   状态: ${report.status}`)
+      console.log(`   创建时间: ${report.createdAt}`)
+
+      console.log()
+      console.log(ansis.cyan('📝 问题描述'))
+      console.log(report.description.split('\n').map(l => `   ${l}`).join('\n'))
+
+      console.log()
+      console.log(ansis.cyan('🔍 根本原因'))
+      for (const cause of report.rootCause) {
+        console.log(`   • ${cause}`)
+      }
+
+      console.log()
+      console.log(ansis.cyan('✅ 修复方案'))
+      console.log(`   ${report.solution.description}`)
+
+      if (report.solution.codeExample) {
+        console.log()
+        console.log(ansis.red('   ❌ 错误写法:'))
+        console.log(ansis.dim(report.solution.codeExample.bad.split('\n').map(l => `      ${l}`).join('\n')))
+        console.log()
+        console.log(ansis.green('   ✅ 正确写法:'))
+        console.log(ansis.dim(report.solution.codeExample.good.split('\n').map(l => `      ${l}`).join('\n')))
+      }
+
+      console.log()
+      console.log(ansis.cyan('🛡️ 预防措施'))
+      for (const measure of report.preventionMeasures) {
+        console.log(`   • ${measure}`)
+      }
+
+      console.log()
+      console.log(ansis.cyan('🤖 AI 开发指令'))
+      for (const directive of report.aiDirectives) {
+        console.log(`   • ${directive}`)
+      }
+
+      if (report.relatedFiles.length > 0) {
+        console.log()
+        console.log(ansis.cyan('📁 相关文件'))
+        for (const file of report.relatedFiles.slice(0, 10)) {
+          console.log(`   • ${file}`)
+        }
+        if (report.relatedFiles.length > 10) {
+          console.log(ansis.dim(`   ... 还有 ${report.relatedFiles.length - 10} 个文件`))
+        }
+      }
+
+      console.log()
+    }
+    catch (error) {
+      console.error(ansis.red('获取详情失败'), error)
+      process.exit(1)
+    }
+  })
 
   // ========================================================================
   // check - 检查代码是否可能触发已知问题
@@ -354,79 +354,79 @@ export function createPostmortemCommand(program: CAC) {
   // ========================================================================
   const syncCmd = cmd.command('sync', '将 Postmortem 同步到 CLAUDE.md')
   syncCmd.action(async () => {
-      const spinner = ora('正在同步到 CLAUDE.md...').start()
+    const spinner = ora('正在同步到 CLAUDE.md...').start()
 
-      try {
-        const manager = getPostmortemManager(process.cwd())
-        const result = await manager.syncToClaudeMd()
+    try {
+      const manager = getPostmortemManager(process.cwd())
+      const result = await manager.syncToClaudeMd()
 
-        spinner.succeed(ansis.green('同步完成'))
+      spinner.succeed(ansis.green('同步完成'))
 
-        console.log()
-        console.log(`   ${ansis.yellow('同步条目:')} ${result.synced} 个`)
-        console.log(`   ${ansis.yellow('目标文件:')} ${result.claudeMdPath}`)
-        console.log()
-        console.log(ansis.dim('💡 AI 在开发时会自动参考这些 Postmortem 避免重复犯错'))
-      }
-      catch (error) {
-        spinner.fail(ansis.red('同步失败'))
-        console.error(error)
-        process.exit(1)
-      }
-    })
+      console.log()
+      console.log(`   ${ansis.yellow('同步条目:')} ${result.synced} 个`)
+      console.log(`   ${ansis.yellow('目标文件:')} ${result.claudeMdPath}`)
+      console.log()
+      console.log(ansis.dim('💡 AI 在开发时会自动参考这些 Postmortem 避免重复犯错'))
+    }
+    catch (error) {
+      spinner.fail(ansis.red('同步失败'))
+      console.error(error)
+      process.exit(1)
+    }
+  })
 
   // ========================================================================
   // stats - 显示统计信息
   // ========================================================================
   const statsCmd = cmd.command('stats', '显示 Postmortem 统计信息')
   statsCmd.action(async () => {
-      try {
-        const manager = getPostmortemManager(process.cwd())
-        const index = manager.loadIndex()
+    try {
+      const manager = getPostmortemManager(process.cwd())
+      const index = manager.loadIndex()
 
-        if (!index) {
-          console.log(ansis.yellow('暂无统计数据'))
-          console.log(ansis.dim('运行 `ccjk postmortem init` 初始化系统'))
-          return
-        }
-
-        console.log()
-        console.log(ansis.cyan.bold('📊 Postmortem 统计'))
-        console.log(ansis.dim('─'.repeat(40)))
-
-        console.log()
-        console.log(ansis.yellow('总计:'), index.stats.total, '个报告')
-
-        console.log()
-        console.log(ansis.yellow('按严重程度:'))
-        console.log(`   🔴 Critical: ${index.stats.bySeverity.critical}`)
-        console.log(`   🟠 High: ${index.stats.bySeverity.high}`)
-        console.log(`   🟡 Medium: ${index.stats.bySeverity.medium}`)
-        console.log(`   🟢 Low: ${index.stats.bySeverity.low}`)
-
-        console.log()
-        console.log(ansis.yellow('按类别:'))
-        for (const [category, count] of Object.entries(index.stats.byCategory)) {
-          if (count > 0) {
-            console.log(`   ${category}: ${count}`)
-          }
-        }
-
-        console.log()
-        console.log(ansis.yellow('按状态:'))
-        console.log(`   ⚡ Active: ${index.stats.byStatus.active}`)
-        console.log(`   ✅ Resolved: ${index.stats.byStatus.resolved}`)
-        console.log(`   👀 Monitoring: ${index.stats.byStatus.monitoring}`)
-        console.log(`   📦 Archived: ${index.stats.byStatus.archived}`)
-
-        console.log()
-        console.log(ansis.dim(`最后更新: ${index.lastUpdated}`))
+      if (!index) {
+        console.log(ansis.yellow('暂无统计数据'))
+        console.log(ansis.dim('运行 `ccjk postmortem init` 初始化系统'))
+        return
       }
-      catch (error) {
-        console.error(ansis.red('获取统计失败'), error)
-        process.exit(1)
+
+      console.log()
+      console.log(ansis.cyan.bold('📊 Postmortem 统计'))
+      console.log(ansis.dim('─'.repeat(40)))
+
+      console.log()
+      console.log(ansis.yellow('总计:'), index.stats.total, '个报告')
+
+      console.log()
+      console.log(ansis.yellow('按严重程度:'))
+      console.log(`   🔴 Critical: ${index.stats.bySeverity.critical}`)
+      console.log(`   🟠 High: ${index.stats.bySeverity.high}`)
+      console.log(`   🟡 Medium: ${index.stats.bySeverity.medium}`)
+      console.log(`   🟢 Low: ${index.stats.bySeverity.low}`)
+
+      console.log()
+      console.log(ansis.yellow('按类别:'))
+      for (const [category, count] of Object.entries(index.stats.byCategory)) {
+        if (count > 0) {
+          console.log(`   ${category}: ${count}`)
+        }
       }
-    })
+
+      console.log()
+      console.log(ansis.yellow('按状态:'))
+      console.log(`   ⚡ Active: ${index.stats.byStatus.active}`)
+      console.log(`   ✅ Resolved: ${index.stats.byStatus.resolved}`)
+      console.log(`   👀 Monitoring: ${index.stats.byStatus.monitoring}`)
+      console.log(`   📦 Archived: ${index.stats.byStatus.archived}`)
+
+      console.log()
+      console.log(ansis.dim(`最后更新: ${index.lastUpdated}`))
+    }
+    catch (error) {
+      console.error(ansis.red('获取统计失败'), error)
+      process.exit(1)
+    }
+  })
 
   return cmd
 }

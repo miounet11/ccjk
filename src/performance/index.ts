@@ -84,7 +84,7 @@ export class FileIndexManager {
           }
         }
       }
-      catch (error) {
+      catch (_error) {
         // Skip directories we can't read
       }
     }

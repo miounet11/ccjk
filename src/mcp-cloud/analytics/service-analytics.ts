@@ -277,7 +277,7 @@ export class ServiceAnalytics {
       const data = await fs.promises.readFile(this.eventsPath, 'utf-8')
       this.events = JSON.parse(data)
     }
-    catch (error) {
+    catch (_error) {
       this.events = []
     }
   }

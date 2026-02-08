@@ -221,7 +221,7 @@ export class ProviderCustom implements IProvider {
     return 'An error occurred. Please verify all configuration fields and try again.'
   }
 
-  autoFillFromApiKey(apiKey: string): Partial<ProviderSetup> {
+  autoFillFromApiKey(_apiKey: string): Partial<ProviderSetup> {
     // Cannot auto-fill for custom providers
     return {}
   }

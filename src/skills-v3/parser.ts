@@ -51,7 +51,7 @@ const VALID_CATEGORIES: SkillCategory[] = [
 ]
 
 /** Required V3 fields */
-const REQUIRED_FIELDS = ['id', 'version', 'triggers', 'template'] as const
+const _REQUIRED_FIELDS = ['id', 'version', 'triggers', 'template'] as const
 
 /** Valid hook types */
 const VALID_HOOK_TYPES = [

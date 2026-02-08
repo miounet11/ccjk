@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * They serve as a template for future integration tests.
  */
 describe.skip('cCJK MCP Service Management', () => {
-  let mockSuite: any
+  let _mockSuite: any
   let testDir: string
   let mcpManager: any
   let testMCPService: any

@@ -258,7 +258,7 @@ export class CliInterceptor extends EventEmitter {
   /**
    * Show intent message to user
    */
-  private showIntentMessage(input: string): void {
+  private showIntentMessage(_input: string): void {
     // This will be displayed to the user
     console.log('\n🧠 Analyzing your request...')
     console.log('   System will automatically handle: skills, agents, MCP tools\n')

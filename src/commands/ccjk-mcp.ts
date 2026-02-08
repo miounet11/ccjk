@@ -176,7 +176,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
         coreServices.forEach((service) => {
           const installed = isServiceInstalled(service.id)
           const status = installed ? ansis.green('✅') : ansis.yellow('⭕')
-          const name = isZh ? service.name['zh-CN'] : service.name.en
+          const _name = isZh ? service.name['zh-CN'] : service.name.en
           const desc = isZh ? service.description['zh-CN'] : service.description.en
           console.log(`  ${status} ${ansis.bold(service.id.padEnd(30))} - ${desc}`)
         })
@@ -188,7 +188,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
         ondemandServices.forEach((service) => {
           const installed = isServiceInstalled(service.id)
           const status = installed ? ansis.green('✅') : ansis.yellow('⭕')
-          const name = isZh ? service.name['zh-CN'] : service.name.en
+          const _name = isZh ? service.name['zh-CN'] : service.name.en
           const desc = isZh ? service.description['zh-CN'] : service.description.en
           console.log(`  ${status} ${ansis.bold(service.id.padEnd(30))} - ${desc}`)
         })
@@ -200,7 +200,7 @@ export async function ccjkMcp(options: CcjkMcpOptions = {}): Promise<CcjkMcpResu
         scenarioServices.forEach((service) => {
           const installed = isServiceInstalled(service.id)
           const status = installed ? ansis.green('✅') : ansis.yellow('⭕')
-          const name = isZh ? service.name['zh-CN'] : service.name.en
+          const _name = isZh ? service.name['zh-CN'] : service.name.en
           const desc = isZh ? service.description['zh-CN'] : service.description.en
           console.log(`  ${status} ${ansis.bold(service.id.padEnd(30))} - ${desc}`)
         })
@@ -484,7 +484,7 @@ async function getRecommendedServices(
       }
     }
   }
-  catch (error) {
+  catch (_error) {
     consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
   }
 

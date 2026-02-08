@@ -20,7 +20,7 @@ import { AssertionHelpers } from '../helpers'
 import { createTestTempDir } from '../setup'
 
 describe.skip('end-to-End Workflow Integration', () => {
-  let testDir: string
+  let _testDir: string
   let workflowEngine: any
   let inputProcessor: any
   let hookManager: any
@@ -680,7 +680,7 @@ describe.skip('end-to-End Workflow Integration', () => {
   describe('workflow Metrics and Reporting', () => {
     it('should collect comprehensive workflow metrics', async () => {
       // Arrange
-      const userInput: UserInput = {
+      const _userInput: UserInput = {
         id: 'input-metrics-001',
         type: 'natural-language',
         content: 'Metrics collection test',
@@ -835,19 +835,19 @@ describe.skip('end-to-End Workflow Integration', () => {
       const validationSteps = []
 
       // Hook validation
-      hookManager.validateHooks.mockImplementation((hooks) => {
+      hookManager.validateHooks.mockImplementation((_hooks) => {
         validationSteps.push('hooks-validated')
         return { valid: true }
       })
 
       // Skill validation
-      skillManager.loadSkills.mockImplementation(async (input) => {
+      skillManager.loadSkills.mockImplementation(async (_input) => {
         validationSteps.push('skills-loaded')
         return [{ id: 'validation-skill', valid: true }]
       })
 
       // Solution validation
-      solutionGenerator.validate.mockImplementation((solution) => {
+      solutionGenerator.validate.mockImplementation((_solution) => {
         validationSteps.push('solution-validated')
         return { valid: true, confidence: 0.95 }
       })

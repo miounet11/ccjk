@@ -49,7 +49,7 @@ function writeMcpConfig(config: ClaudeConfiguration): void {
  */
 export async function handleMcpCommand(args: string[] = []): Promise<void> {
   const cli = cac()
-  const t = getTranslation()
+  const _t = getTranslation()
 
   // Main mcp command
   const mcp = cli.command('mcp').action(() => {
@@ -86,7 +86,7 @@ export async function handleMcpCommand(args: string[] = []): Promise<void> {
     .action(async (names: string[]) => {
       console.log(ansis.green(`\n📦 Installing MCP Services: ${names.join(', ')}\n`))
 
-      const config = readMcpConfig() || { mcpServers: {} }
+      const _config = readMcpConfig() || { mcpServers: {} }
       const installed: string[] = []
       const failed: string[] = []
 
@@ -192,7 +192,7 @@ export async function handleMcpCommand(args: string[] = []): Promise<void> {
 
       // Check each server command
       let healthyCount = 0
-      for (const [name, server] of Object.entries(servers)) {
+      for (const [_name, server] of Object.entries(servers)) {
         // Simple command existence check
         const commandExists = server.command && !server.command.startsWith('missing')
         if (commandExists)
@@ -237,7 +237,7 @@ export async function handleMcpCommand(args: string[] = []): Promise<void> {
  * Show MCP menu (interactive)
  */
 async function showMcpMenu(): Promise<void> {
-  const t = getTranslation()
+  const _t = getTranslation()
 
   console.log(ansis.green.bold('\n🔌 MCP Services Menu\n'))
 

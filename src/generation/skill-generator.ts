@@ -4,7 +4,7 @@
  * Generates Claude Code compatible skills based on project analysis
  */
 
-import type { GeneratedSkill, GenerationContext, SkillAction, SkillTrigger } from './types'
+import type { GeneratedSkill, GenerationContext } from './types'
 import consola from 'consola'
 import { recommendSkillCategories } from './project-analyzer'
 
@@ -49,7 +49,7 @@ async function generateSkillsForCategory(
   category: string,
   context: GenerationContext,
 ): Promise<GeneratedSkill[]> {
-  const { analysis, preferences } = context
+  const { analysis, preferences: _preferences } = context
   const skills: GeneratedSkill[] = []
 
   // Get skill templates for category
@@ -96,7 +96,7 @@ function buildSkillTags(category: string, analysis: any): string[] {
  */
 function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSkill>[] {
   const templates: Record<string, Partial<GeneratedSkill>[]> = {
-    'development': [
+    development: [
       {
         id: 'quick-scaffold',
         name: {
@@ -147,7 +147,7 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
       },
     ],
 
-    'testing': [
+    testing: [
       {
         id: 'generate-tests',
         name: {
@@ -200,7 +200,7 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
       },
     ],
 
-    'git': [
+    git: [
       {
         id: 'smart-commit',
         name: {
@@ -259,7 +259,7 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
       },
     ],
 
-    'debugging': [
+    debugging: [
       {
         id: 'debug-error',
         name: {
@@ -309,7 +309,7 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
       },
     ],
 
-    'refactoring': [
+    refactoring: [
       {
         id: 'refactor-code',
         name: {
@@ -358,7 +358,7 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
       },
     ],
 
-    'documentation': [
+    documentation: [
       {
         id: 'generate-docs',
         name: {
@@ -407,7 +407,7 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
       },
     ],
 
-    'deployment': [
+    deployment: [
       {
         id: 'deploy-preview',
         name: {
@@ -456,7 +456,7 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
       },
     ],
 
-    'security': [
+    security: [
       {
         id: 'security-scan',
         name: {
@@ -482,7 +482,7 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
       },
     ],
 
-    'performance': [
+    performance: [
       {
         id: 'performance-analyze',
         name: {

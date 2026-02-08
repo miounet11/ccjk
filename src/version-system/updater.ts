@@ -119,7 +119,7 @@ export class VersionUpdater implements IVersionUpdater {
           await this.rollback(tool)
           status.message = 'Update failed, rolled back to previous version'
         }
-        catch (rollbackError) {
+        catch (_rollbackError) {
           status.message = 'Update failed and rollback failed'
         }
       }
@@ -140,7 +140,7 @@ export class VersionUpdater implements IVersionUpdater {
       await execAsync(command)
       return true
     }
-    catch (error) {
+    catch (_error) {
       return false
     }
   }
@@ -168,9 +168,9 @@ export class VersionUpdater implements IVersionUpdater {
    * Download update
    */
   private async downloadUpdate(
-    tool: string,
-    version: string,
-    options: UpdateOptions,
+    _tool: string,
+    _version: string,
+    _options: UpdateOptions,
   ): Promise<void> {
     // For npm packages, download is part of install
     // For other tools, implement specific download logic
@@ -336,7 +336,7 @@ export class VersionUpdater implements IVersionUpdater {
         .sort()
         .reverse()
     }
-    catch (error) {
+    catch (_error) {
       return []
     }
   }
@@ -361,7 +361,7 @@ export class VersionUpdater implements IVersionUpdater {
 
       return deleted
     }
-    catch (error) {
+    catch (_error) {
       return 0
     }
   }

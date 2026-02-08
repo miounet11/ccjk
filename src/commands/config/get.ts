@@ -56,7 +56,7 @@ function getNestedValue(obj: unknown, path: string): unknown {
  * @param options - Command options
  * @returns The found value with source information, or null
  */
-function findValueAcrossSources(path: string, options: GetConfigOptions): {
+function findValueAcrossSources(path: string, _options: GetConfigOptions): {
   value: unknown
   source: 'ccjk' | 'claude' | 'state'
   sourcePath: string

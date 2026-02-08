@@ -5,8 +5,6 @@
  * They provide basic functionality while the backend issues are being resolved.
  */
 
-import type { TemplateItem } from '../types/cloud-api'
-
 /**
  * Internal fallback template structure
  */
@@ -29,7 +27,7 @@ interface FallbackTemplate {
  */
 export const FALLBACK_TEMPLATES: Record<string, FallbackTemplate> = {
   // Git workflow skill
-  'skill_git_workflow': {
+  skill_git_workflow: {
     id: 'skill_git_workflow',
     name: 'Git Workflow',
     content: `# Git Workflow Skill
@@ -55,7 +53,7 @@ This skill helps you manage git operations efficiently.
   },
 
   // Code review skill
-  'skill_code_review': {
+  skill_code_review: {
     id: 'skill_code_review',
     name: 'Code Review',
     content: `# Code Review Skill
@@ -79,7 +77,7 @@ Ask Claude to review your code changes or specific files.
   },
 
   // Documentation skill
-  'skill_documentation': {
+  skill_documentation: {
     id: 'skill_documentation',
     name: 'Documentation',
     content: `# Documentation Skill
@@ -103,7 +101,7 @@ Ask Claude to document your code or generate documentation files.
   },
 
   // Testing skill
-  'skill_testing': {
+  skill_testing: {
     id: 'skill_testing',
     name: 'Testing',
     content: `# Testing Skill
@@ -127,7 +125,7 @@ Ask Claude to write tests for your code or suggest test scenarios.
   },
 
   // Refactoring skill
-  'skill_refactoring': {
+  skill_refactoring: {
     id: 'skill_refactoring',
     name: 'Refactoring',
     content: `# Refactoring Skill
@@ -166,19 +164,19 @@ export function getFallbackTemplate(templateId: string): FallbackTemplate | unde
   const normalizedId = templateId.toLowerCase()
 
   if (normalizedId.includes('git') || normalizedId.includes('commit')) {
-    return FALLBACK_TEMPLATES['skill_git_workflow']
+    return FALLBACK_TEMPLATES.skill_git_workflow
   }
   if (normalizedId.includes('review')) {
-    return FALLBACK_TEMPLATES['skill_code_review']
+    return FALLBACK_TEMPLATES.skill_code_review
   }
   if (normalizedId.includes('doc')) {
-    return FALLBACK_TEMPLATES['skill_documentation']
+    return FALLBACK_TEMPLATES.skill_documentation
   }
   if (normalizedId.includes('test')) {
-    return FALLBACK_TEMPLATES['skill_testing']
+    return FALLBACK_TEMPLATES.skill_testing
   }
   if (normalizedId.includes('refactor')) {
-    return FALLBACK_TEMPLATES['skill_refactoring']
+    return FALLBACK_TEMPLATES.skill_refactoring
   }
 
   return undefined

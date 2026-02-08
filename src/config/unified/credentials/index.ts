@@ -7,11 +7,11 @@
 export * from './manager'
 export type {
   Credential,
-  CredentialWithValue,
-  EncryptedCredentialStorage,
-  EncryptedCredential,
-  CredentialStorageOptions,
   CredentialQueryOptions,
+  CredentialStorageOptions,
+  CredentialWithValue,
+  EncryptedCredential,
+  EncryptedCredentialStorage,
   KeyDerivationOptions,
 } from './types'
 export { DEFAULT_KEY_DERIVATION } from './types'

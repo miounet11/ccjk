@@ -483,7 +483,7 @@ export class WildcardPatternMatcher {
   /**
    * Calculate specificity for nested path patterns
    */
-  private calculateNestedSpecificity(pattern: string, positions: number[]): number {
+  private calculateNestedSpecificity(pattern: string, _positions: number[]): number {
     let score = 25
     // More specific paths have higher specificity
     const segments = pattern.split('/').filter(s => s && s !== '**')

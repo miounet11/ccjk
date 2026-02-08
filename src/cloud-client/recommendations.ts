@@ -55,7 +55,7 @@ export async function getCloudSkillRecommendations(
 ): Promise<any[]> {
   try {
     const client = createCloudClient()
-    const response = await client.analyzeProject({
+    const _response = await client.analyzeProject({
       projectRoot: analysis.rootPath || process.cwd(),
       dependencies: analysis.dependencies?.direct.reduce((acc, d) => {
         acc[d.name] = d.version || '*'
@@ -79,7 +79,7 @@ export async function getCloudMcpRecommendations(
 ): Promise<any[]> {
   try {
     const client = createCloudClient()
-    const response = await client.analyzeProject({
+    const _response = await client.analyzeProject({
       projectRoot: analysis.rootPath || process.cwd(),
       dependencies: analysis.dependencies?.direct.reduce((acc, d) => {
         acc[d.name] = d.version || '*'

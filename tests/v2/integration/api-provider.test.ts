@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * They serve as a template for future integration tests.
  */
 describe.skip('cCJK API Provider Integration', () => {
-  let mockSuite: any
+  let _mockSuite: any
   let testDir: string
   let apiManager: any
   let configManager: any
@@ -254,7 +254,7 @@ describe.skip('cCJK API Provider Integration', () => {
         baseURL: testProviders.GLM.baseURL,
       }
 
-      const expectedConfig = TestDataGenerator.generateCCJKConfig({
+      const _expectedConfig = TestDataGenerator.generateCCJKConfig({
         apiProvider: 'GLM',
         apiKey: 'glm-test-key-123',
       })

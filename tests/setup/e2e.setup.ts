@@ -72,7 +72,7 @@ async function waitForAllServices(): Promise<void> {
         console.log(`✅ ${service.name} is ready`)
         break
       }
-      catch (error) {
+      catch (_error) {
         attempts++
         if (attempts === maxAttempts) {
           throw new Error(`❌ ${service.name} failed to start after ${maxAttempts} attempts`)
@@ -163,7 +163,7 @@ async function setupTestData(): Promise<void> {
   // This would create test users, configurations, etc.
   // For now, we'll simulate the setup
 
-  const testData = {
+  const _testData = {
     users: [
       { id: 'test-user-1', name: 'Test User 1' },
       { id: 'test-user-2', name: 'Test User 2' },
@@ -187,7 +187,7 @@ async function setupTestEnvironment(): Promise<void> {
   console.log('🌍 Setting up test environment...')
 
   // Create test directories
-  const testDirs = [
+  const _testDirs = [
     resolve(process.cwd(), 'tmp/e2e'),
     resolve(process.cwd(), 'tmp/e2e/configs'),
     resolve(process.cwd(), 'tmp/e2e/logs'),
@@ -300,7 +300,7 @@ export const E2ETestUtils = {
   /**
    * Check if file exists
    */
-  async fileExists(path: string): Promise<boolean> {
+  async fileExists(_path: string): Promise<boolean> {
     // This would check actual file existence
     return true
   },

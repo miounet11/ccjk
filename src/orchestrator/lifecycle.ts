@@ -10,9 +10,9 @@ import type {
   ILifecycleManager,
   LifecyclePhase,
   Task,
+  TaskError,
   TaskExecutor,
   TaskResult,
-  TaskError,
 } from './types'
 
 // Re-export for backwards compatibility

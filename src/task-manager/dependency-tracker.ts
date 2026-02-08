@@ -19,7 +19,7 @@ export class TaskDependencyTracker {
     const visited = new Set<string>()
     const stack = new Set<string>()
 
-    const dfs = async (currentId: string): Promise<boolean> => {
+    const _dfs = async (currentId: string): Promise<boolean> => {
       if (stack.has(currentId)) {
         return true // Found a cycle
       }

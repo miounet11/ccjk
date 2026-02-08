@@ -50,7 +50,7 @@ describe.skip('cCJK Configuration Management', () => {
   describe('configuration Loading', () => {
     it('should load default configuration when no config exists', async () => {
       // Arrange
-      const expectedConfig = TestDataGenerator.generateCCJKConfig()
+      const _expectedConfig = TestDataGenerator.generateCCJKConfig()
       mockSuite.fs.existsSync.mockReturnValue(false)
 
       // Act

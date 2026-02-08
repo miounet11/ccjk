@@ -51,7 +51,7 @@ export class OrchestrationContextManager {
     const {
       keepRecentN = 10,
       importanceThreshold = 0.5,
-      maxTokens = 10000,
+      _maxTokens = 10000,
       preserveCode = true,
       preserveDecisions = true,
       strategy = 'balanced',
@@ -206,7 +206,7 @@ export class OrchestrationContextManager {
   /**
    * Generate summary
    */
-  private generateSummary(messages: Message[], keyPoints: KeyPoint[], strategy: string): string {
+  private generateSummary(messages: Message[], keyPoints: KeyPoint[], _strategy: string): string {
     const parts: string[] = []
 
     // Ultra-compact summary for aggressive compression

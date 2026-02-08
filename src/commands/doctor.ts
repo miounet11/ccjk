@@ -119,7 +119,7 @@ async function checkSettings(): Promise<CheckResult> {
 
     return { name: 'settings.json', status: 'ok', message: 'Valid configuration' }
   }
-  catch (error) {
+  catch (_error) {
     return {
       name: 'settings.json',
       status: 'error',
@@ -399,7 +399,7 @@ async function fixSettingsFile(): Promise<void> {
       console.log(ansis.green(`✔ ${isZh ? '已备份旧设置' : 'Backed up settings'}: ${backupPath}`))
     }
   }
-  catch (error) {
+  catch (_error) {
     console.log(ansis.yellow(`⚠️ ${isZh ? '备份失败，继续...' : 'Backup failed, continuing...'}`))
   }
 

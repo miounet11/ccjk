@@ -6,7 +6,7 @@
  * @module task-manager
  */
 
-import type { Task, TaskManagerOptions, TaskSearchOptions, TaskStatus, TaskPriority } from './types'
+import type { Task, TaskManagerOptions, TaskPriority, TaskSearchOptions, TaskStatus } from './types'
 import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
 import * as path from 'node:path'
@@ -216,7 +216,7 @@ export class TaskStorage {
     try {
       await fs.mkdir(dir, { recursive: true })
     }
-    catch (error) {
+    catch (_error) {
       // Directory might already exist
     }
   }
@@ -233,7 +233,7 @@ export class TaskStorage {
         this.cache.set(task.id, task)
       }
     }
-    catch (error) {
+    catch (_error) {
       // File doesn't exist or is invalid, start with empty cache
       this.cache.clear()
     }
@@ -447,7 +447,7 @@ export class TaskStorage {
       const cloudTasks = result.data?.items || []
 
       // Map database field names to our Task interface
-      return cloudTasks.map((task) => ({
+      return cloudTasks.map(task => ({
         id: task.id,
         name: task.name,
         description: task.description || '',

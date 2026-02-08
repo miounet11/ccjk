@@ -85,32 +85,32 @@ export class ArchitectureAgent extends BaseAgent {
         parameters: {
           requirements: 'string',
           constraints: 'object',
-          qualityAttributes: 'array'
-        }
+          qualityAttributes: 'array',
+        },
       },
       {
         name: 'analyze-architecture',
         description: 'Analyze existing architecture and identify improvements',
         parameters: {
           codebase: 'string',
-          focus: 'string[]'
-        }
+          focus: 'string[]',
+        },
       },
       {
         name: 'evaluate-scalability',
         description: 'Evaluate system scalability and provide recommendations',
         parameters: {
           currentLoad: 'object',
-          projectedGrowth: 'object'
-        }
+          projectedGrowth: 'object',
+        },
       },
       {
         name: 'security-review',
         description: 'Comprehensive security architecture review',
         parameters: {
           scope: 'string',
-          threatModel: 'object'
-        }
+          threatModel: 'object',
+        },
       },
       {
         name: 'technology-selection',
@@ -118,8 +118,8 @@ export class ArchitectureAgent extends BaseAgent {
         parameters: {
           requirements: 'object',
           constraints: 'object',
-          team: 'object'
-        }
+          team: 'object',
+        },
       },
       {
         name: 'migration-strategy',
@@ -127,9 +127,9 @@ export class ArchitectureAgent extends BaseAgent {
         parameters: {
           currentState: 'object',
           targetState: 'object',
-          constraints: 'object'
-        }
-      }
+          constraints: 'object',
+        },
+      },
     ]
 
     super(
@@ -137,9 +137,9 @@ export class ArchitectureAgent extends BaseAgent {
         name: 'architecture-agent',
         description: 'World-class system architecture design and evaluation',
         capabilities,
-        verbose: true
+        verbose: true,
       },
-      context
+      context,
     )
   }
 
@@ -198,7 +198,8 @@ export class ArchitectureAgent extends BaseAgent {
 
       this.setState(AgentState.COMPLETED)
       return result
-    } catch (error) {
+    }
+    catch (error) {
       this.setState(AgentState.ERROR)
       return this.handleError(error instanceof Error ? error : new Error(String(error)))
     }
@@ -221,7 +222,7 @@ export class ArchitectureAgent extends BaseAgent {
     return {
       success: false,
       error,
-      message: `Architecture Agent failed: ${error.message}`
+      message: `Architecture Agent failed: ${error.message}`,
     }
   }
 
@@ -231,7 +232,8 @@ export class ArchitectureAgent extends BaseAgent {
   private async designSystem(params: any): Promise<SystemDesign> {
     this.log('Designing system architecture with opus-level reasoning...')
 
-    const { requirements, constraints, qualityAttributes } = params
+    const { requirements, qualityAttributes: _qualityAttributes } = params
+    const _constraints = params.constraints
 
     // This would integrate with Claude API using opus model
     // For now, return structured design template
@@ -243,14 +245,14 @@ export class ArchitectureAgent extends BaseAgent {
         environment: 'cloud-native',
         infrastructure: 'kubernetes',
         scalingStrategy: 'horizontal-auto-scaling',
-        monitoringApproach: 'observability-driven'
+        monitoringApproach: 'observability-driven',
       },
       qualityAttributes: qualityAttributes?.map((attr: string) => ({
         attribute: attr,
         target: 'world-class',
         measurement: 'continuous',
-        strategies: []
-      })) || []
+        strategies: [],
+      })) || [],
     }
 
     // Apply architectural patterns based on requirements
@@ -278,14 +280,14 @@ export class ArchitectureAgent extends BaseAgent {
         patterns: [],
         strengths: [],
         weaknesses: [],
-        technicalDebt: []
+        technicalDebt: [],
       },
       recommendations: [],
       designPatterns: [],
       technologyStack: {
         current: {},
-        recommended: {}
-      }
+        recommended: {},
+      },
     }
 
     // Perform comprehensive analysis
@@ -310,7 +312,7 @@ export class ArchitectureAgent extends BaseAgent {
       bottlenecks: await this.identifyBottlenecks(currentLoad),
       scalingRecommendations: this.generateScalingStrategy(projectedGrowth),
       costProjections: this.projectScalingCosts(projectedGrowth),
-      riskAssessment: this.assessScalingRisks(projectedGrowth)
+      riskAssessment: this.assessScalingRisks(projectedGrowth),
     }
   }
 
@@ -327,7 +329,7 @@ export class ArchitectureAgent extends BaseAgent {
       vulnerabilities: await this.identifyVulnerabilities(scope),
       securityControls: this.recommendSecurityControls(threatModel),
       complianceGaps: this.assessCompliance(scope),
-      remediationPlan: this.createRemediationPlan(scope)
+      remediationPlan: this.createRemediationPlan(scope),
     }
   }
 
@@ -344,7 +346,7 @@ export class ArchitectureAgent extends BaseAgent {
       rationale: this.provideTechnologyRationale(requirements),
       alternatives: this.identifyAlternatives(requirements),
       migrationPath: this.designMigrationPath(constraints),
-      teamConsiderations: this.assessTeamFit(team)
+      teamConsiderations: this.assessTeamFit(team),
     }
   }
 
@@ -354,14 +356,14 @@ export class ArchitectureAgent extends BaseAgent {
   private async designMigrationStrategy(params: any): Promise<any> {
     this.log('Designing migration strategy...')
 
-    const { currentState, targetState, constraints } = params
+    const { currentState, targetState, constraints: _constraints } = params
 
     return {
       phases: this.defineMigrationPhases(currentState, targetState),
       riskMitigation: this.identifyMigrationRisks(currentState, targetState),
       rollbackStrategy: this.designRollbackStrategy(currentState),
       timeline: this.estimateMigrationTimeline(currentState, targetState),
-      successCriteria: this.defineSuccessCriteria(targetState)
+      successCriteria: this.defineSuccessCriteria(targetState),
     }
   }
 
@@ -372,121 +374,121 @@ export class ArchitectureAgent extends BaseAgent {
     this.designPatternLibrary.set('microservices', {
       applicability: 'distributed systems, scalability requirements',
       benefits: ['independent deployment', 'technology diversity', 'fault isolation'],
-      tradeoffs: ['increased complexity', 'network overhead', 'data consistency challenges']
+      tradeoffs: ['increased complexity', 'network overhead', 'data consistency challenges'],
     })
 
     this.designPatternLibrary.set('event-driven', {
       applicability: 'asynchronous processing, loose coupling',
       benefits: ['scalability', 'flexibility', 'real-time processing'],
-      tradeoffs: ['eventual consistency', 'debugging complexity', 'message ordering']
+      tradeoffs: ['eventual consistency', 'debugging complexity', 'message ordering'],
     })
 
     this.designPatternLibrary.set('cqrs', {
       applicability: 'complex domains, read-write separation',
       benefits: ['optimized queries', 'scalability', 'clear separation'],
-      tradeoffs: ['increased complexity', 'eventual consistency', 'learning curve']
+      tradeoffs: ['increased complexity', 'eventual consistency', 'learning curve'],
     })
 
     // Add more patterns...
   }
 
-  private applyArchitecturalPatterns(design: SystemDesign, requirements: any): void {
+  private applyArchitecturalPatterns(_design: SystemDesign, _requirements: any): void {
     // Apply patterns based on requirements
     this.log('Applying architectural patterns...')
   }
 
-  private async analyzePatterns(analysis: ArchitectureAnalysis, codebase: string): Promise<void> {
+  private async analyzePatterns(_analysis: ArchitectureAnalysis, _codebase: string): Promise<void> {
     // Analyze existing patterns in codebase
     this.log('Analyzing architectural patterns...')
   }
 
-  private async identifyTechnicalDebt(analysis: ArchitectureAnalysis, codebase: string): Promise<void> {
+  private async identifyTechnicalDebt(_analysis: ArchitectureAnalysis, _codebase: string): Promise<void> {
     // Identify technical debt
     this.log('Identifying technical debt...')
   }
 
-  private async generateRecommendations(analysis: ArchitectureAnalysis, focus?: string[]): Promise<void> {
+  private async generateRecommendations(_analysis: ArchitectureAnalysis, _focus?: string[]): Promise<void> {
     // Generate prioritized recommendations
     this.log('Generating recommendations...')
   }
 
-  private assessCurrentCapacity(currentLoad: any): any {
-    return { status: 'assessed', details: currentLoad }
+  private assessCurrentCapacity(_currentLoad: any): any {
+    return { status: 'assessed', details: _currentLoad }
   }
 
-  private async identifyBottlenecks(currentLoad: any): Promise<any[]> {
+  private async identifyBottlenecks(_currentLoad: any): Promise<any[]> {
     return []
   }
 
-  private generateScalingStrategy(projectedGrowth: any): any {
-    return { strategy: 'horizontal-scaling', details: projectedGrowth }
+  private generateScalingStrategy(_projectedGrowth: any): any {
+    return { strategy: 'horizontal-scaling', details: _projectedGrowth }
   }
 
-  private projectScalingCosts(projectedGrowth: any): any {
-    return { estimated: 'calculated', growth: projectedGrowth }
+  private projectScalingCosts(_projectedGrowth: any): any {
+    return { estimated: 'calculated', growth: _projectedGrowth }
   }
 
-  private assessScalingRisks(projectedGrowth: any): any {
+  private assessScalingRisks(_projectedGrowth: any): any {
     return { risks: [], mitigation: [] }
   }
 
-  private async analyzeThreatModel(threatModel: any): Promise<any> {
+  private async analyzeThreatModel(_threatModel: any): Promise<any> {
     return { threats: [], severity: 'assessed' }
   }
 
-  private async identifyVulnerabilities(scope: string): Promise<any[]> {
+  private async identifyVulnerabilities(_scope: string): Promise<any[]> {
     return []
   }
 
-  private recommendSecurityControls(threatModel: any): any {
+  private recommendSecurityControls(_threatModel: any): any {
     return { controls: [], priority: 'high' }
   }
 
-  private assessCompliance(scope: string): any {
+  private assessCompliance(_scope: string): any {
     return { gaps: [], standards: [] }
   }
 
-  private createRemediationPlan(scope: string): any {
+  private createRemediationPlan(_scope: string): any {
     return { plan: [], timeline: 'defined' }
   }
 
-  private async evaluateTechnologies(requirements: any, constraints: any): Promise<any> {
+  private async evaluateTechnologies(_requirements: any, _constraints: any): Promise<any> {
     return { stack: {}, rationale: 'evaluated' }
   }
 
-  private provideTechnologyRationale(requirements: any): any {
+  private provideTechnologyRationale(_requirements: any): any {
     return { rationale: 'provided' }
   }
 
-  private identifyAlternatives(requirements: any): any[] {
+  private identifyAlternatives(_requirements: any): any[] {
     return []
   }
 
-  private designMigrationPath(constraints: any): any {
+  private designMigrationPath(_constraints: any): any {
     return { path: 'defined' }
   }
 
-  private assessTeamFit(team: any): any {
+  private assessTeamFit(_team: any): any {
     return { fit: 'assessed', recommendations: [] }
   }
 
-  private defineMigrationPhases(currentState: any, targetState: any): any[] {
+  private defineMigrationPhases(_currentState: any, _targetState: any): any[] {
     return []
   }
 
-  private identifyMigrationRisks(currentState: any, targetState: any): any {
+  private identifyMigrationRisks(_currentState: any, _targetState: any): any {
     return { risks: [], mitigation: [] }
   }
 
-  private designRollbackStrategy(currentState: any): any {
+  private designRollbackStrategy(_currentState: any): any {
     return { strategy: 'defined' }
   }
 
-  private estimateMigrationTimeline(currentState: any, targetState: any): any {
+  private estimateMigrationTimeline(_currentState: any, _targetState: any): any {
     return { timeline: 'estimated' }
   }
 
-  private defineSuccessCriteria(targetState: any): any[] {
+  private defineSuccessCriteria(_targetState: any): any[] {
     return []
   }
 }

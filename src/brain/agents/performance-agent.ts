@@ -20,13 +20,13 @@ interface PerformanceProfile {
   metrics: {
     cpu: {
       usage: number
-      hotspots: { function: string; percentage: number; file: string; line: number }[]
+      hotspots: { function: string, percentage: number, file: string, line: number }[]
     }
     memory: {
       heapUsed: number
       heapTotal: number
       external: number
-      leaks: { location: string; size: number; type: string }[]
+      leaks: { location: string, size: number, type: string }[]
     }
     io: {
       reads: number
@@ -36,7 +36,7 @@ interface PerformanceProfile {
     network: {
       requests: number
       bandwidth: number
-      latency: { p50: number; p95: number; p99: number }
+      latency: { p50: number, p95: number, p99: number }
     }
   }
   bottlenecks: {
@@ -106,40 +106,40 @@ export class PerformanceAgent extends BaseAgent {
         parameters: {
           target: 'string',
           duration: 'number',
-          metrics: 'string[]'
-        }
+          metrics: 'string[]',
+        },
       },
       {
         name: 'optimize-algorithm',
         description: 'Analyze and optimize algorithm complexity',
         parameters: {
           function: 'string',
-          constraints: 'object'
-        }
+          constraints: 'object',
+        },
       },
       {
         name: 'optimize-database',
         description: 'Optimize database queries and schema',
         parameters: {
           queries: 'string[]',
-          schema: 'object'
-        }
+          schema: 'object',
+        },
       },
       {
         name: 'optimize-frontend',
         description: 'Optimize frontend performance (Core Web Vitals)',
         parameters: {
           url: 'string',
-          metrics: 'string[]'
-        }
+          metrics: 'string[]',
+        },
       },
       {
         name: 'detect-memory-leaks',
         description: 'Detect and fix memory leaks',
         parameters: {
           target: 'string',
-          duration: 'number'
-        }
+          duration: 'number',
+        },
       },
       {
         name: 'load-test',
@@ -147,17 +147,17 @@ export class PerformanceAgent extends BaseAgent {
         parameters: {
           target: 'string',
           scenario: 'object',
-          duration: 'number'
-        }
+          duration: 'number',
+        },
       },
       {
         name: 'benchmark',
         description: 'Benchmark code performance and compare alternatives',
         parameters: {
           code: 'string[]',
-          iterations: 'number'
-        }
-      }
+          iterations: 'number',
+        },
+      },
     ]
 
     super(
@@ -165,9 +165,9 @@ export class PerformanceAgent extends BaseAgent {
         name: 'performance-agent',
         description: 'Advanced performance optimization and analysis',
         capabilities,
-        verbose: true
+        verbose: true,
       },
-      context
+      context,
     )
   }
 
@@ -216,9 +216,10 @@ export class PerformanceAgent extends BaseAgent {
       return {
         success: true,
         data: result,
-        message: 'Performance analysis completed successfully'
+        message: 'Performance analysis completed successfully',
       }
-    } catch (error) {
+    }
+    catch (error) {
       this.setState(AgentState.ERROR)
       return this.handleError(error instanceof Error ? error : new Error(String(error)))
     }
@@ -240,7 +241,7 @@ export class PerformanceAgent extends BaseAgent {
     return {
       success: false,
       error,
-      message: `Performance Agent failed: ${error.message}`
+      message: `Performance Agent failed: ${error.message}`,
     }
   }
 
@@ -257,26 +258,26 @@ export class PerformanceAgent extends BaseAgent {
       metrics: {
         cpu: {
           usage: 0,
-          hotspots: []
+          hotspots: [],
         },
         memory: {
           heapUsed: 0,
           heapTotal: 0,
           external: 0,
-          leaks: []
+          leaks: [],
         },
         io: {
           reads: 0,
           writes: 0,
-          latency: 0
+          latency: 0,
         },
         network: {
           requests: 0,
           bandwidth: 0,
-          latency: { p50: 0, p95: 0, p99: 0 }
-        }
+          latency: { p50: 0, p95: 0, p99: 0 },
+        },
       },
-      bottlenecks: []
+      bottlenecks: [],
     }
 
     // Perform profiling
@@ -323,7 +324,7 @@ export class PerformanceAgent extends BaseAgent {
       optimizedComplexity: optimized.complexity,
       recommendation: optimized.recommendation,
       implementation: optimized.code,
-      benchmarks
+      benchmarks,
     }
   }
 
@@ -359,7 +360,7 @@ export class PerformanceAgent extends BaseAgent {
     const analysis = {
       coreWebVitals: await this.measureCoreWebVitals(url, metrics),
       recommendations: [] as any[],
-      optimizations: [] as any[]
+      optimizations: [] as any[],
     }
 
     // Analyze each metric
@@ -390,7 +391,7 @@ export class PerformanceAgent extends BaseAgent {
       leaks,
       fixes,
       snapshots: snapshots.length,
-      duration
+      duration,
     }
   }
 
@@ -406,7 +407,7 @@ export class PerformanceAgent extends BaseAgent {
       scenario,
       results: await this.executeLoadTest(target, scenario, duration),
       bottlenecks: await this.analyzeLoadTestResults(target, scenario),
-      recommendations: await this.generateScalingRecommendations(target, scenario)
+      recommendations: await this.generateScalingRecommendations(target, scenario),
     }
   }
 
@@ -427,7 +428,7 @@ export class PerformanceAgent extends BaseAgent {
     return {
       results,
       winner: this.selectBestPerformer(results),
-      analysis: this.analyzeBenchmarkResults(results)
+      analysis: this.analyzeBenchmarkResults(results),
     }
   }
 
@@ -440,22 +441,22 @@ export class PerformanceAgent extends BaseAgent {
     // Add more baselines...
   }
 
-  private async profileCPU(profile: PerformanceProfile, target: string, duration: number): Promise<void> {
+  private async profileCPU(_profile: PerformanceProfile, _target: string, _duration: number): Promise<void> {
     // CPU profiling implementation
     this.log('Profiling CPU usage...')
   }
 
-  private async profileMemory(profile: PerformanceProfile, target: string, duration: number): Promise<void> {
+  private async profileMemory(_profile: PerformanceProfile, _target: string, _duration: number): Promise<void> {
     // Memory profiling implementation
     this.log('Profiling memory usage...')
   }
 
-  private async profileIO(profile: PerformanceProfile, target: string, duration: number): Promise<void> {
+  private async profileIO(_profile: PerformanceProfile, _target: string, _duration: number): Promise<void> {
     // I/O profiling implementation
     this.log('Profiling I/O operations...')
   }
 
-  private async profileNetwork(profile: PerformanceProfile, target: string, duration: number): Promise<void> {
+  private async profileNetwork(_profile: PerformanceProfile, _target: string, _duration: number): Promise<void> {
     // Network profiling implementation
     this.log('Profiling network operations...')
   }
@@ -471,7 +472,7 @@ export class PerformanceAgent extends BaseAgent {
         severity: 'high',
         location: 'application',
         impact: 'High CPU usage affecting responsiveness',
-        recommendation: 'Optimize hot code paths and consider async processing'
+        recommendation: 'Optimize hot code paths and consider async processing',
       })
     }
 
@@ -482,41 +483,41 @@ export class PerformanceAgent extends BaseAgent {
         severity: 'critical',
         location: 'heap',
         impact: 'Memory pressure may cause GC pauses',
-        recommendation: 'Reduce memory allocation and implement object pooling'
+        recommendation: 'Reduce memory allocation and implement object pooling',
       })
     }
   }
 
-  private analyzeComplexity(code: string): { time: string; space: string } {
+  private analyzeComplexity(_code: string): { time: string, space: string } {
     // Analyze algorithm complexity
     // This would use static analysis or ML models
     return { time: 'O(n)', space: 'O(1)' }
   }
 
-  private async generateOptimizedAlgorithm(code: string, constraints: any): Promise<any> {
+  private async generateOptimizedAlgorithm(_code: string, _constraints: any): Promise<any> {
     // Generate optimized algorithm using Claude API
     return {
       code: '// optimized code',
       complexity: { time: 'O(log n)', space: 'O(1)' },
-      recommendation: 'Use binary search instead of linear search'
+      recommendation: 'Use binary search instead of linear search',
     }
   }
 
-  private async benchmarkAlgorithms(original: string, optimized: string): Promise<any[]> {
+  private async benchmarkAlgorithms(_original: string, _optimized: string): Promise<any[]> {
     // Benchmark both algorithms
     return [
       { inputSize: 100, currentTime: 10, optimizedTime: 5 },
       { inputSize: 1000, currentTime: 100, optimizedTime: 20 },
-      { inputSize: 10000, currentTime: 1000, optimizedTime: 50 }
+      { inputSize: 10000, currentTime: 1000, optimizedTime: 50 },
     ]
   }
 
-  private async analyzeQuery(query: string, schema: any): Promise<any> {
+  private async analyzeQuery(_query: string, _schema: any): Promise<any> {
     // Analyze database query
     return { needsOptimization: true, issues: [] }
   }
 
-  private async optimizeQuery(query: string, analysis: any): Promise<OptimizationResult> {
+  private async optimizeQuery(query: string, _analysis: any): Promise<OptimizationResult> {
     // Optimize database query
     return {
       target: query,
@@ -526,57 +527,57 @@ export class PerformanceAgent extends BaseAgent {
       improvement: { percentage: 95, absolute: 950 },
       changes: [],
       tradeoffs: [],
-      risks: []
+      risks: [],
     }
   }
 
-  private async measureCoreWebVitals(url: string, metrics: string[]): Promise<any> {
+  private async measureCoreWebVitals(_url: string, _metrics: string[]): Promise<any> {
     // Measure Core Web Vitals
     return {
       LCP: 2.5,
       FID: 100,
       CLS: 0.1,
       TTFB: 600,
-      FCP: 1.8
+      FCP: 1.8,
     }
   }
 
-  private async analyzeFrontendMetric(metric: string, vitals: any): Promise<any[]> {
+  private async analyzeFrontendMetric(_metric: string, _vitals: any): Promise<any[]> {
     // Analyze frontend metric
     return []
   }
 
-  private async generateFrontendOptimizations(recommendations: any[]): Promise<any[]> {
+  private async generateFrontendOptimizations(_recommendations: any[]): Promise<any[]> {
     // Generate frontend optimizations
     return []
   }
 
-  private async captureMemorySnapshots(target: string, duration: number): Promise<any[]> {
+  private async captureMemorySnapshots(_target: string, _duration: number): Promise<any[]> {
     // Capture memory snapshots
     return []
   }
 
-  private analyzeMemoryGrowth(snapshots: any[]): any[] {
+  private analyzeMemoryGrowth(_snapshots: any[]): any[] {
     // Analyze memory growth patterns
     return []
   }
 
-  private async generateLeakFixes(leaks: any[]): Promise<any[]> {
+  private async generateLeakFixes(_leaks: any[]): Promise<any[]> {
     // Generate fixes for memory leaks
     return []
   }
 
-  private async executeLoadTest(target: string, scenario: any, duration: number): Promise<any> {
+  private async executeLoadTest(_target: string, _scenario: any, _duration: number): Promise<any> {
     // Execute load test
     return {}
   }
 
-  private async analyzeLoadTestResults(target: string, scenario: any): Promise<any[]> {
+  private async analyzeLoadTestResults(_target: string, _scenario: any): Promise<any[]> {
     // Analyze load test results
     return []
   }
 
-  private async generateScalingRecommendations(target: string, scenario: any): Promise<any[]> {
+  private async generateScalingRecommendations(_target: string, _scenario: any): Promise<any[]> {
     // Generate scaling recommendations
     return []
   }
@@ -591,7 +592,7 @@ export class PerformanceAgent extends BaseAgent {
     return results[0]
   }
 
-  private analyzeBenchmarkResults(results: any[]): any {
+  private analyzeBenchmarkResults(_results: any[]): any {
     // Analyze benchmark results
     return { summary: 'analyzed' }
   }

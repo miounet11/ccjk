@@ -9,7 +9,6 @@
 
 import type { AgentPool } from './agent-pool.js'
 import type { Communication } from './communication.js'
-import { createCommunication } from './communication.js'
 import type { ErrorRecovery } from './error-recovery.js'
 import type { TaskScheduler } from './task-scheduler.js'
 import type {
@@ -29,6 +28,7 @@ import type {
 } from './types.js'
 import { nanoid } from 'nanoid'
 import { createAgentPool } from './agent-pool.js'
+import { createCommunication } from './communication.js'
 import { createErrorRecovery } from './error-recovery.js'
 import { createTaskScheduler } from './task-scheduler.js'
 
@@ -758,7 +758,7 @@ export class OrchestratorV3 {
   /**
    * Emit event
    */
-  private emit(event: string, ...args: unknown[]): void {
+  private emit(_event: string, ..._args: unknown[]): void {
     // This would use EventEmitter in a real implementation
     // For now, we'll handle it as a no-op since we can't extend EventEmitter
     // and implement this pattern cleanly in TypeScript

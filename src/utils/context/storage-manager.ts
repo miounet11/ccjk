@@ -19,11 +19,11 @@ import { homedir, tmpdir } from 'node:os'
 import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
+import { getProjectIdentity } from './project-hash'
 
 // ESM compatible __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-import { getProjectIdentity } from './project-hash'
 
 /**
  * Storage manager class

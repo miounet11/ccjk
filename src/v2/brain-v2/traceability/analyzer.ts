@@ -67,7 +67,7 @@ export class TraceabilityAnalyzer {
 
     // Simple classification logic (can be enhanced with ML)
     let errorType = 'unknown'
-    let layer: TraceabilityLayer = TraceabilityLayer.L1_ERROR
+    const layer: TraceabilityLayer = TraceabilityLayer.L1_ERROR
 
     if (errorMessage.includes('TypeError') || errorMessage.includes('type')) {
       errorType = 'type_error'
@@ -134,7 +134,7 @@ export class TraceabilityAnalyzer {
    */
   private async checkDomainConstraints(
     error: ErrorClassification,
-    patterns: PatternMatch[],
+    _patterns: PatternMatch[],
   ): Promise<DomainConstraint[]> {
     const constraints: DomainConstraint[] = []
 
@@ -159,8 +159,8 @@ export class TraceabilityAnalyzer {
    */
   private generateSolution(
     error: ErrorClassification,
-    patterns: PatternMatch[],
-    constraints: DomainConstraint[],
+    _patterns: PatternMatch[],
+    _constraints: DomainConstraint[],
   ): Solution {
     // Solution generation logic (can be enhanced with AI)
     const steps: string[] = []

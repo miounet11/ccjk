@@ -4,8 +4,8 @@
  */
 
 import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
-import consola from 'consola'
 import { promises as fsp } from 'node:fs'
+import consola from 'consola'
 import path from 'pathe'
 
 // fs-extra compatibility helpers
@@ -166,7 +166,7 @@ const FRAMEWORK_PATTERNS = {
 export async function analyzeTypeScriptProject(
   projectPath: string,
   files: string[],
-  languages: LanguageDetection[],
+  _languages: LanguageDetection[],
 ): Promise<FrameworkDetectionResult[]> {
   logger.info('Analyzing TypeScript/JavaScript project')
 

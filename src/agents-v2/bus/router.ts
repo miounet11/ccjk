@@ -56,7 +56,7 @@ export class MessageRouter implements IMessageRouter {
     }
 
     // Find matching routes
-    for (const [pattern, rule] of this.routes.entries()) {
+    for (const [pattern, _rule] of this.routes.entries()) {
       if (this.matchesPattern(message, pattern)) {
         const routeTargets = this.cache.get(pattern)
         if (routeTargets) {

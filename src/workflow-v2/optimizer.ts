@@ -109,7 +109,7 @@ export class WorkflowOptimizer {
    */
   private optimizeParallelization(workflow: Workflow): Improvement[] {
     const improvements: Improvement[] = []
-    const dependencyGraph = this.buildDependencyGraph(workflow)
+    const _dependencyGraph = this.buildDependencyGraph(workflow)
     const stepLevels = this.calculateStepLevels(workflow)
 
     // Find steps at the same level that can be parallelized
@@ -177,7 +177,7 @@ export class WorkflowOptimizer {
    */
   private optimizeDependencies(workflow: Workflow): Improvement[] {
     const improvements: Improvement[] = []
-    const dependencyGraph = this.buildDependencyGraph(workflow)
+    const _dependencyGraph = this.buildDependencyGraph(workflow)
 
     for (const step of workflow.steps) {
       if (!step.dependencies || step.dependencies.length === 0) {
@@ -583,7 +583,7 @@ export class WorkflowOptimizer {
   /**
    * Apply parallelization improvements
    */
-  private applyParallelization(steps: WorkflowStep[], improvements: Improvement[]): WorkflowStep[] {
+  private applyParallelization(steps: WorkflowStep[], _improvements: Improvement[]): WorkflowStep[] {
     // Implementation would add parallel execution metadata
     return steps
   }

@@ -61,7 +61,7 @@ interface CoverageAnalysis {
       statements: number
     }
     uncoveredLines: number[]
-    uncoveredBranches: { line: number; branch: number }[]
+    uncoveredBranches: { line: number, branch: number }[]
   }[]
   gaps: {
     file: string
@@ -85,7 +85,7 @@ interface MutationTestResult {
   mutationScore: number
   survivors: {
     mutant: string
-    location: { file: string; line: number }
+    location: { file: string, line: number }
     operator: string
     suggestion: string
   }[]
@@ -105,65 +105,65 @@ export class TestingAgent extends BaseAgent {
           target: 'string',
           type: 'string',
           framework: 'string',
-          coverage: 'number'
-        }
+          coverage: 'number',
+        },
       },
       {
         name: 'analyze-coverage',
         description: 'Analyze test coverage and identify gaps',
         parameters: {
           target: 'string',
-          threshold: 'number'
-        }
+          threshold: 'number',
+        },
       },
       {
         name: 'improve-tests',
         description: 'Improve existing test quality and coverage',
         parameters: {
           tests: 'string[]',
-          goals: 'object'
-        }
+          goals: 'object',
+        },
       },
       {
         name: 'mutation-testing',
         description: 'Perform mutation testing to assess test quality',
         parameters: {
           target: 'string',
-          mutators: 'string[]'
-        }
+          mutators: 'string[]',
+        },
       },
       {
         name: 'property-testing',
         description: 'Generate property-based tests',
         parameters: {
           target: 'string',
-          properties: 'string[]'
-        }
+          properties: 'string[]',
+        },
       },
       {
         name: 'test-refactoring',
         description: 'Refactor tests for better maintainability',
         parameters: {
           tests: 'string[]',
-          goals: 'string[]'
-        }
+          goals: 'string[]',
+        },
       },
       {
         name: 'test-quality',
         description: 'Assess test suite quality',
         parameters: {
           suite: 'string',
-          metrics: 'string[]'
-        }
+          metrics: 'string[]',
+        },
       },
       {
         name: 'generate-fixtures',
         description: 'Generate test fixtures and mock data',
         parameters: {
           schema: 'object',
-          count: 'number'
-        }
-      }
+          count: 'number',
+        },
+      },
     ]
 
     super(
@@ -171,9 +171,9 @@ export class TestingAgent extends BaseAgent {
         name: 'testing-agent',
         description: 'Advanced test generation and quality analysis',
         capabilities,
-        verbose: true
+        verbose: true,
       },
-      context
+      context,
     )
     this.initializeTestPatterns()
   }
@@ -227,9 +227,10 @@ export class TestingAgent extends BaseAgent {
       return {
         success: true,
         data: result,
-        message: 'Testing analysis completed successfully'
+        message: 'Testing analysis completed successfully',
       }
-    } catch (error) {
+    }
+    catch (error) {
       this.setState(AgentState.ERROR)
       return this.handleError(error instanceof Error ? error : new Error(String(error)))
     }
@@ -250,7 +251,7 @@ export class TestingAgent extends BaseAgent {
     return {
       success: false,
       error,
-      message: `Testing Agent failed: ${error.message}`
+      message: `Testing Agent failed: ${error.message}`,
     }
   }
 
@@ -271,14 +272,14 @@ export class TestingAgent extends BaseAgent {
         lines: 0,
         branches: 0,
         functions: 0,
-        statements: 0
+        statements: 0,
       },
       quality: {
         score: 0,
         maintainability: 0,
         readability: 0,
-        completeness: 0
-      }
+        completeness: 0,
+      },
     }
 
     // Analyze target code
@@ -319,11 +320,11 @@ export class TestingAgent extends BaseAgent {
         lines: 0,
         branches: 0,
         functions: 0,
-        statements: 0
+        statements: 0,
       },
       files: [],
       gaps: [],
-      recommendations: []
+      recommendations: [],
     }
 
     // Collect coverage data
@@ -358,7 +359,7 @@ export class TestingAgent extends BaseAgent {
 
     return {
       improvements,
-      summary: this.summarizeImprovements(improvements)
+      summary: this.summarizeImprovements(improvements),
     }
   }
 
@@ -377,7 +378,7 @@ export class TestingAgent extends BaseAgent {
       timeout: 0,
       noCoverage: 0,
       mutationScore: 0,
-      survivors: []
+      survivors: [],
     }
 
     // Generate mutants
@@ -390,17 +391,20 @@ export class TestingAgent extends BaseAgent {
 
       if (testResult.killed) {
         result.killed++
-      } else if (testResult.timeout) {
+      }
+      else if (testResult.timeout) {
         result.timeout++
-      } else if (testResult.noCoverage) {
+      }
+      else if (testResult.noCoverage) {
         result.noCoverage++
-      } else {
+      }
+      else {
         result.survived++
         result.survivors.push({
           mutant: mutant.code,
           location: mutant.location,
           operator: mutant.operator,
-          suggestion: await this.generateMutantKillSuggestion(mutant)
+          suggestion: await this.generateMutantKillSuggestion(mutant),
         })
       }
     }
@@ -425,7 +429,7 @@ export class TestingAgent extends BaseAgent {
       framework: 'fast-check',
       tests: [],
       coverage: { lines: 0, branches: 0, functions: 0, statements: 0 },
-      quality: { score: 0, maintainability: 0, readability: 0, completeness: 0 }
+      quality: { score: 0, maintainability: 0, readability: 0, completeness: 0 },
     }
 
     // Generate property tests for each property
@@ -454,7 +458,7 @@ export class TestingAgent extends BaseAgent {
 
     return {
       refactorings,
-      summary: this.summarizeRefactorings(refactorings)
+      summary: this.summarizeRefactorings(refactorings),
     }
   }
 
@@ -470,7 +474,7 @@ export class TestingAgent extends BaseAgent {
       overall: 0,
       metrics: {} as any,
       issues: [] as any[],
-      recommendations: [] as any[]
+      recommendations: [] as any[],
     }
 
     // Assess each metric
@@ -501,7 +505,7 @@ export class TestingAgent extends BaseAgent {
     return {
       fixtures: await this.generateFixtureData(schema, count),
       mocks: await this.generateMockData(schema),
-      factories: await this.generateFactories(schema)
+      factories: await this.generateFactories(schema),
     }
   }
 
@@ -511,177 +515,177 @@ export class TestingAgent extends BaseAgent {
     // Initialize common test patterns
     this.testPatterns.set('arrange-act-assert', {
       description: 'AAA pattern for test structure',
-      template: '// Arrange\n// Act\n// Assert'
+      template: '// Arrange\n// Act\n// Assert',
     })
 
     this.testPatterns.set('given-when-then', {
       description: 'BDD-style test structure',
-      template: '// Given\n// When\n// Then'
+      template: '// Given\n// When\n// Then',
     })
   }
 
   private async loadTestTemplates(): Promise<void> {
     // Load test templates for different frameworks
     this.testTemplates.set('vitest', {
-      unit: 'describe(\'{{name}}\', () => { test(\'{{test}}\', () => { }) })'
+      unit: 'describe(\'{{name}}\', () => { test(\'{{test}}\', () => { }) })',
     })
 
     this.testTemplates.set('jest', {
-      unit: 'describe(\'{{name}}\', () => { it(\'{{test}}\', () => { }) })'
+      unit: 'describe(\'{{name}}\', () => { it(\'{{test}}\', () => { }) })',
     })
   }
 
-  private async analyzeTargetCode(target: string): Promise<any> {
+  private async analyzeTargetCode(_target: string): Promise<any> {
     // Analyze target code to understand what to test
     return {
       functions: [],
       classes: [],
       complexity: 'moderate',
-      dependencies: []
+      dependencies: [],
     }
   }
 
-  private async generatePositiveTests(analysis: any, framework: string): Promise<TestCase[]> {
+  private async generatePositiveTests(_analysis: any, _framework: string): Promise<TestCase[]> {
     // Generate positive test cases
     return []
   }
 
-  private async generateNegativeTests(analysis: any, framework: string): Promise<TestCase[]> {
+  private async generateNegativeTests(_analysis: any, _framework: string): Promise<TestCase[]> {
     // Generate negative test cases
     return []
   }
 
-  private async generateEdgeCaseTests(analysis: any, framework: string): Promise<TestCase[]> {
+  private async generateEdgeCaseTests(_analysis: any, _framework: string): Promise<TestCase[]> {
     // Generate edge case tests
     return []
   }
 
-  private async generateBoundaryTests(analysis: any, framework: string): Promise<TestCase[]> {
+  private async generateBoundaryTests(_analysis: any, _framework: string): Promise<TestCase[]> {
     // Generate boundary tests
     return []
   }
 
-  private async estimateCoverage(tests: TestCase[], target: string): Promise<any> {
+  private async estimateCoverage(_tests: TestCase[], _target: string): Promise<any> {
     // Estimate coverage from generated tests
     return {
       lines: 85,
       branches: 80,
       functions: 90,
-      statements: 85
+      statements: 85,
     }
   }
 
-  private async assessSuiteQuality(suite: TestSuite): Promise<any> {
+  private async assessSuiteQuality(_suite: TestSuite): Promise<any> {
     // Assess test suite quality
     return {
       score: 85,
       maintainability: 80,
       readability: 90,
-      completeness: 85
+      completeness: 85,
     }
   }
 
-  private async generateAdditionalTests(suite: TestSuite, target: string, coverage: number): Promise<TestCase[]> {
+  private async generateAdditionalTests(_suite: TestSuite, _target: string, _coverage: number): Promise<TestCase[]> {
     // Generate additional tests to reach coverage target
     return []
   }
 
-  private async collectCoverageData(target: string): Promise<any> {
+  private async collectCoverageData(_target: string): Promise<any> {
     // Collect coverage data
     return {
       lines: 75,
       branches: 70,
       functions: 80,
-      statements: 75
+      statements: 75,
     }
   }
 
-  private async collectFileCoverage(target: string): Promise<any[]> {
+  private async collectFileCoverage(_target: string): Promise<any[]> {
     // Collect per-file coverage
     return []
   }
 
-  private async identifyCoverageGaps(files: any[], threshold: number): Promise<any[]> {
+  private async identifyCoverageGaps(_files: any[], _threshold: number): Promise<any[]> {
     // Identify coverage gaps
     return []
   }
 
-  private async generateCoverageRecommendations(gaps: any[]): Promise<any[]> {
+  private async generateCoverageRecommendations(_gaps: any[]): Promise<any[]> {
     // Generate recommendations to improve coverage
     return []
   }
 
-  private async analyzeTestFile(testFile: string): Promise<any> {
+  private async analyzeTestFile(_testFile: string): Promise<any> {
     // Analyze test file
     return {}
   }
 
-  private async improveTestFile(testFile: string, analysis: any, goals: any): Promise<any> {
+  private async improveTestFile(_testFile: string, _analysis: any, _goals: any): Promise<any> {
     // Improve test file
     return {}
   }
 
-  private summarizeImprovements(improvements: any[]): any {
+  private summarizeImprovements(_improvements: any[]): any {
     // Summarize improvements
     return {}
   }
 
-  private async generateMutants(target: string, mutators: string[]): Promise<any[]> {
+  private async generateMutants(_target: string, _mutators: string[]): Promise<any[]> {
     // Generate mutants
     return []
   }
 
-  private async testMutant(mutant: any): Promise<any> {
+  private async testMutant(_mutant: any): Promise<any> {
     // Test mutant
     return { killed: true, timeout: false, noCoverage: false }
   }
 
-  private async generateMutantKillSuggestion(mutant: any): Promise<string> {
+  private async generateMutantKillSuggestion(_mutant: any): Promise<string> {
     // Generate suggestion to kill mutant
     return 'Add test case to verify this behavior'
   }
 
-  private async generatePropertyTestCases(target: string, property: string): Promise<TestCase[]> {
+  private async generatePropertyTestCases(_target: string, _property: string): Promise<TestCase[]> {
     // Generate property test cases
     return []
   }
 
-  private async refactorTestFile(testFile: string, goals: string[]): Promise<any> {
+  private async refactorTestFile(_testFile: string, _goals: string[]): Promise<any> {
     // Refactor test file
     return {}
   }
 
-  private summarizeRefactorings(refactorings: any[]): any {
+  private summarizeRefactorings(_refactorings: any[]): any {
     // Summarize refactorings
     return {}
   }
 
-  private async assessMetric(suite: string, metric: string): Promise<number> {
+  private async assessMetric(_suite: string, _metric: string): Promise<number> {
     // Assess specific metric
     return 85
   }
 
-  private async identifyTestIssues(suite: string): Promise<any[]> {
+  private async identifyTestIssues(_suite: string): Promise<any[]> {
     // Identify test issues
     return []
   }
 
-  private async generateQualityRecommendations(assessment: any): Promise<any[]> {
+  private async generateQualityRecommendations(_assessment: any): Promise<any[]> {
     // Generate quality recommendations
     return []
   }
 
-  private async generateFixtureData(schema: any, count: number): Promise<any[]> {
+  private async generateFixtureData(_schema: any, _count: number): Promise<any[]> {
     // Generate fixture data
     return []
   }
 
-  private async generateMockData(schema: any): Promise<any> {
+  private async generateMockData(_schema: any): Promise<any> {
     // Generate mock data
     return {}
   }
 
-  private async generateFactories(schema: any): Promise<any> {
+  private async generateFactories(_schema: any): Promise<any> {
     // Generate factories
     return {}
   }

@@ -1,6 +1,6 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { join } from 'pathe'
 import type { ProjectAnalysis, ProjectType, TechStack } from '../types'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { join } from 'pathe'
 
 /**
  * Project analyzer for smart agent/skills generation
@@ -402,11 +402,16 @@ export class ProjectAnalyzer {
     let confidence = 0.5 // Base confidence
 
     // Increase confidence based on detected information
-    if (techStack.languages.length > 0) confidence += 0.1
-    if (techStack.runtime !== 'unknown') confidence += 0.1
-    if (techStack.packageManager) confidence += 0.1
-    if (frameworks.length > 0) confidence += 0.1
-    if (frameworks.length > 2) confidence += 0.1
+    if (techStack.languages.length > 0)
+      confidence += 0.1
+    if (techStack.runtime !== 'unknown')
+      confidence += 0.1
+    if (techStack.packageManager)
+      confidence += 0.1
+    if (frameworks.length > 0)
+      confidence += 0.1
+    if (frameworks.length > 2)
+      confidence += 0.1
 
     return Math.min(confidence, 1.0)
   }

@@ -134,7 +134,7 @@ export class DependencyResolver {
       await execAsync(`npm list -g ${packageName}`)
       return true
     }
-    catch (error) {
+    catch (_error) {
       return false
     }
   }
@@ -148,7 +148,7 @@ export class DependencyResolver {
       const deps = JSON.parse(stdout)
       return Object.keys(deps || {})
     }
-    catch (error) {
+    catch (_error) {
       return []
     }
   }
@@ -167,7 +167,7 @@ export class DependencyResolver {
       // Simple version comparison (can be enhanced with semver)
       return this.compareVersions(availableVersion, requiredVersion) >= 0
     }
-    catch (error) {
+    catch (_error) {
       return false
     }
   }

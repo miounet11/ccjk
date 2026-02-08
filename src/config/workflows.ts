@@ -12,7 +12,7 @@ export interface WorkflowConfigBase {
   commands: string[]
   agents: Array<{ id: string, filename: string, required: boolean }>
   autoInstallAgents: boolean
-  category: 'essential' | 'sixStep' | 'git' | 'interview'
+  category: 'essential' | 'sixStep' | 'git' | 'interview' | 'specFirstTDD' | 'continuousDelivery' | 'refactoringMaster' | 'linearMethod'
   displayCategory: WorkflowDisplayCategory
   outputDir: string
   metadata: WorkflowMetadata

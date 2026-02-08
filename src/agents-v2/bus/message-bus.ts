@@ -403,7 +403,7 @@ export class MessageBus implements IMessageBus {
     this.metrics.queueDepth = totalQueueDepth
 
     // Calculate throughput (messages per second)
-    const now = Date.now()
+    const _now = Date.now()
     // This would need historical tracking for accurate throughput
 
     // Calculate error rate

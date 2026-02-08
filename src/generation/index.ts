@@ -3,15 +3,15 @@
  * Automatically generates Claude Code compatible agents and skills based on project analysis
  */
 
-export { ProjectAnalyzer, analyzeProject } from './analyzer/project-analyzer'
-export { TemplateSelector, selectTemplates } from './selector/template-selector'
-export { ConfigGenerator, generateConfigs, writeConfigs } from './generator/config-generator'
-export * from './types'
-
 import type { GeneratedConfig, ProjectAnalysis, TemplateSelection } from './types'
 import { analyzeProject } from './analyzer/project-analyzer'
 import { generateConfigs, writeConfigs } from './generator/config-generator'
 import { selectTemplates } from './selector/template-selector'
+
+export { analyzeProject, ProjectAnalyzer } from './analyzer/project-analyzer'
+export { ConfigGenerator, generateConfigs, writeConfigs } from './generator/config-generator'
+export { selectTemplates, TemplateSelector } from './selector/template-selector'
+export * from './types'
 
 /**
  * Smart generation workflow

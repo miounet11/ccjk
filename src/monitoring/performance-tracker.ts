@@ -617,7 +617,7 @@ export function trackErrors(type?: string) {
         return await originalMethod.apply(this, args)
       }
       catch (error) {
-        const errorType = type || `${(target as object).constructor.name}.${propertyKey}`
+        const _errorType = type || `${(target as object).constructor.name}.${propertyKey}`
         tracker.trackException(error as Error, { method: propertyKey, args })
         throw error
       }

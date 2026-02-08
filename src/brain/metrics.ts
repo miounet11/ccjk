@@ -160,8 +160,8 @@ export class MetricsCollector {
 
     const cpuUsage = cpuRecords.length > 0 ? cpuRecords[cpuRecords.length - 1].value : 0
     const memoryUsage = memoryRecords.length > 0 ? memoryRecords[memoryRecords.length - 1].value : 0
-    const avgResponseTime = this.calculateAverage(responseTimeRecords.map(r => r.value))
-    const errorRate = taskMetrics ? taskMetrics.failedTasks / taskMetrics.totalTasks : 0
+    const _avgResponseTime = this.calculateAverage(responseTimeRecords.map(r => r.value))
+    const _errorRate = taskMetrics ? taskMetrics.failedTasks / taskMetrics.totalTasks : 0
 
     return {
       tasksExecuted: taskMetrics?.totalTasks ?? 0,

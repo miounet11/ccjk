@@ -154,7 +154,7 @@ export class ProviderAnthropic implements IProvider {
     return 'An error occurred. Please check your API key and try again.'
   }
 
-  autoFillFromApiKey(apiKey: string): Partial<ProviderSetup> {
+  autoFillFromApiKey(_apiKey: string): Partial<ProviderSetup> {
     return {
       model: this.config.defaultModel,
     }

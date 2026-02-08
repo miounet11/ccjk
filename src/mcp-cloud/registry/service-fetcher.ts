@@ -32,7 +32,7 @@ export class ServiceFetcher {
     try {
       return await this.request<MCPServiceDetail>(`/services/${id}`)
     }
-    catch (error) {
+    catch (_error) {
       return null
     }
   }
@@ -61,7 +61,7 @@ export class ServiceFetcher {
     try {
       return await this.request<ServiceRatings>(`/services/${serviceId}/ratings`)
     }
-    catch (error) {
+    catch (_error) {
       return null
     }
   }

@@ -53,7 +53,7 @@ export async function validateHookTrigger(
 async function validateGitTrigger(
   pattern: string,
   condition: string | undefined,
-  projectInfo: ProjectAnalysis,
+  _projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   // Check if git repository exists
   const gitDir = join(process.cwd(), '.git')
@@ -119,7 +119,7 @@ async function validateGitTrigger(
 async function validateFileTrigger(
   pattern: string,
   condition: string | undefined,
-  projectInfo: ProjectAnalysis,
+  _projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   // Validate glob pattern
   if (!pattern || pattern.length === 0) {
@@ -168,7 +168,7 @@ async function validateFileTrigger(
 async function validateCommandTrigger(
   pattern: string,
   condition: string | undefined,
-  projectInfo: ProjectAnalysis,
+  _projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   // Validate command pattern
   if (!pattern || pattern.length === 0) {
@@ -226,7 +226,7 @@ async function validateCommandTrigger(
  */
 async function validateScheduleTrigger(
   pattern: string,
-  condition: string | undefined,
+  _condition: string | undefined,
 ): Promise<boolean> {
   // Validate cron pattern
   const cronParts = pattern.split(' ')
@@ -320,7 +320,7 @@ export async function testHookTrigger(
     data?: any
   },
 ): Promise<boolean> {
-  const { matcher, condition } = trigger
+  const { matcher, condition: _condition } = trigger
   const [type, pattern] = matcher.split(':', 2)
 
   switch (type) {

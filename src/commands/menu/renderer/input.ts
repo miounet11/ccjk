@@ -127,7 +127,7 @@ export async function promptMenuSelection(
   const validShortcuts = items.map(i => i.shortcut).filter(Boolean).join('')
   const validNumbers = Array.from({ length: itemCount + 1 }, (_, i) => i.toString()).join('')
   const alwaysValid = ['0', 'q', 'b', 'm']
-  const validChars = [...new Set([...alwaysValid, ...validShortcuts, ...validNumbers])].join('')
+  const _validChars = [...new Set([...alwaysValid, ...validShortcuts, ...validNumbers])].join('')
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',

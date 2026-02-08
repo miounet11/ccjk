@@ -224,7 +224,7 @@ export class HistoryManager {
       const data = await fs.readFile(this.storagePath, 'utf-8')
       this.entries = JSON.parse(data)
     }
-    catch (error) {
+    catch (_error) {
       // File doesn't exist, start with empty history
       this.entries = []
     }

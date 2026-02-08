@@ -114,7 +114,7 @@ function calculateHalsteadMetrics(ast: ASTNode): HalsteadMetrics {
 
   const vocabulary = n1 + n2
   const length = N1 + N2
-  const calculatedLength = n1 * Math.log2(n1) + n2 * Math.log2(n2)
+  const _calculatedLength = n1 * Math.log2(n1) + n2 * Math.log2(n2)
   const volume = length * Math.log2(vocabulary)
   const difficulty = (n1 / 2) * (N2 / n2)
   const effort = difficulty * volume

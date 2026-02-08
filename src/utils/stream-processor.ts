@@ -75,7 +75,7 @@ export async function processLargeFile(
  */
 export async function streamJSON<T = any>(
   filePath: string,
-  options: StreamProcessorOptions = {},
+  _options: StreamProcessorOptions = {},
 ): Promise<T | null> {
   const chunks: Buffer[] = []
 
@@ -99,7 +99,7 @@ export async function streamJSON<T = any>(
 export async function streamWriteJSON<T>(
   filePath: string,
   data: T,
-  options: StreamProcessorOptions = {},
+  _options: StreamProcessorOptions = {},
 ): Promise<void> {
   await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8')
 }
@@ -172,7 +172,7 @@ export async function batchProcessFiles<T = any>(
         const result = await processor(file)
         results.set(file, result)
       }
-      catch (error) {
+      catch (_error) {
         results.set(file, null as any)
       }
       finally {

@@ -365,7 +365,7 @@ export async function submitHookAnalytics(
     console.log(`Analytics: Hook ${hookName} ${result} for ${projectInfo.projectType} project`)
     // In real implementation, this would send to analytics service
   }
-  catch (error) {
+  catch (_error) {
     // Fail silently for analytics
   }
 }

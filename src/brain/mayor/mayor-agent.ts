@@ -448,7 +448,7 @@ export class MayorAgent extends EventEmitter {
     return 'very_complex'
   }
 
-  private determineRequiredRoles(type: Intent['type'], entities: Intent['entities']): AgentRole[] {
+  private determineRequiredRoles(type: Intent['type'], _entities: Intent['entities']): AgentRole[] {
     const roles: AgentRole[] = ['researcher']
 
     switch (type) {
@@ -480,7 +480,7 @@ export class MayorAgent extends EventEmitter {
     return `${typeLabel}: ${words}${input.split(/\s+/).length > 10 ? '...' : ''}`
   }
 
-  private suggestApproach(type: Intent['type'], complexity: Intent['complexity']): string {
+  private suggestApproach(type: Intent['type'], _complexity: Intent['complexity']): string {
     const approaches: Record<Intent['type'], string> = {
       feature: 'Design-first approach with incremental implementation',
       bugfix: 'Reproduce, isolate, fix, and verify',

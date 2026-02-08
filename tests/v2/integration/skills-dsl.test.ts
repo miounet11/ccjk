@@ -20,13 +20,13 @@ import { AssertionHelpers, MockFactory } from '../helpers'
 import { createTestTempDir } from '../setup'
 
 describe.skip('skills DSL Integration', () => {
-  let testDir: string
+  let _testDir: string
   let skillDSLParser: any
   let skillExecutor: any
   let reasoningEngine: any
   let keywordRouter: any
   let dualSkillLoader: any
-  let skillRegistry: any
+  let _skillRegistry: any
 
   beforeEach(async () => {
     testDir = createTestTempDir('skills-dsl-test')
@@ -692,7 +692,7 @@ describe.skip('skills DSL Integration', () => {
       // Act - Execute complete workflow
       const ast = await skillDSLParser.parse(userInput)
       const route = await keywordRouter.route(userInput, [])
-      const skills = await dualSkillLoader.load({
+      const _skills = await dualSkillLoader.load({
         primary: { id: route.skillId },
         secondary: { id: route.skillId },
       })

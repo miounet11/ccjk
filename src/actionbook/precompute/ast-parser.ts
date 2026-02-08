@@ -48,7 +48,7 @@ export function parseSourceToAST(source: string, filePath: string): ASTNode | nu
 /**
  * Convert ESTree node to our ASTNode format
  */
-function convertESTreeToASTNode(node: any, parent?: any): ASTNode {
+function convertESTreeToASTNode(node: any, _parent?: any): ASTNode {
   const astNode: ASTNode = {
     type: node.type,
     name: getNodeName(node),

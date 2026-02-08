@@ -82,7 +82,7 @@ export class WorkflowManager {
   async generateFromFragments(
     fragmentIds: string[],
     context: ProjectContext,
-    config?: GeneratorConfig,
+    _config?: GeneratorConfig,
   ): Promise<WorkflowGenerationResult> {
     // Get fragments from library
     const fragments: Fragment[] = []

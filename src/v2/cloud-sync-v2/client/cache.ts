@@ -5,10 +5,10 @@
 import type { CacheConfig, CacheEntry } from './types.js'
 
 export interface ResponseCache {
-  get<T>(key: string): Promise<T | null>
-  set<T>(key: string, value: T, ttl?: number): Promise<void>
-  invalidate(pattern: string): Promise<void>
-  clear(): Promise<void>
+  get: <T>(key: string) => Promise<T | null>
+  set: <T>(key: string, value: T, ttl?: number) => Promise<void>
+  invalidate: (pattern: string) => Promise<void>
+  clear: () => Promise<void>
 }
 
 export class ResponseCacheImpl implements ResponseCache {
@@ -504,4 +504,3 @@ export class CacheStats {
     this.errors = 0
   }
 }
-

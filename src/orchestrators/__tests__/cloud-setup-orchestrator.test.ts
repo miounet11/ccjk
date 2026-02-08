@@ -263,7 +263,7 @@ describe('cloudSetupOrchestrator', () => {
 
   describe('executeWithFallback', () => {
     it('should execute cloud setup on success', async () => {
-      const mockResult = {
+      const _mockResult = {
         success: true,
         requestId: 'test-request',
         confidence: 95,

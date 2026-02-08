@@ -294,7 +294,7 @@ async function benchmarkBrainV2(runner: BenchmarkRunner) {
     async () => {
       // Simulate L1→L3→L2 analysis
       const error = mockErrors[0]
-      const l1 = error.code
+      const _l1 = error.code
       const l3 = error.domain
       l3 === 'rust' ? 'Arc' : 'Interface'
     },

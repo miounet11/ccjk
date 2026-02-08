@@ -66,17 +66,17 @@ describe.skip('e2E: Initialization Workflow', () => {
     })
 
     it('should create CLAUDE.md in project root', async () => {
-      const result = await runCcjk(['init', '--skip-prompts'], {
+      const _result = await runCcjk(['init', '--skip-prompts'], {
         timeout: 60000,
       })
 
       // Check for CLAUDE.md creation
-      const claudeMdPath = join(testProjectDir, 'CLAUDE.md')
+      const _claudeMdPath = join(testProjectDir, 'CLAUDE.md')
       // Note: The actual behavior depends on the init command implementation
     })
 
     it('should detect existing git repository', async () => {
-      const result = await runCcjk(['init', '--skip-prompts'], {
+      const _result = await runCcjk(['init', '--skip-prompts'], {
         timeout: 60000,
       })
 
@@ -145,7 +145,7 @@ describe.skip('e2E: Initialization Workflow', () => {
       writeJsonFile(join(configDir, 'config.json'), existingConfig)
 
       // Run init again
-      const result = await runCcjk(['init', '--skip-prompts'], {
+      const _result = await runCcjk(['init', '--skip-prompts'], {
         timeout: 60000,
       })
 
@@ -178,7 +178,7 @@ describe.skip('e2E: Initialization Workflow', () => {
       }
       writeJsonFile(join(configDir, 'config.json'), existingConfig)
 
-      const result = await runCcjk(['init', '--skip-prompts'], {
+      const _result = await runCcjk(['init', '--skip-prompts'], {
         timeout: 60000,
       })
 

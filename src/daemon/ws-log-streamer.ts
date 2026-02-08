@@ -238,7 +238,7 @@ export class WSLogStreamer extends EventEmitter {
    * Connect using fetch with Server-Sent Events fallback
    * This is needed for Node.js environments without native WebSocket
    */
-  private async connectWithFetch(url: string): Promise<void> {
+  private async connectWithFetch(_url: string): Promise<void> {
     // For Node.js environments, we'll create a simulated WebSocket
     // In production, you would use the 'ws' package
     this.debugLog('Creating simulated WebSocket connection')

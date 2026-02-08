@@ -399,7 +399,7 @@ export class AutoSessionSaver extends EventEmitter {
         this.callbacks.onCrashRecoveryAvailable?.(recoveryData)
       }
     }
-    catch (error) {
+    catch (_error) {
       // Recovery file is corrupted, clean it up
       await this.cleanupRecoveryFile()
     }
@@ -502,7 +502,7 @@ export class AutoSessionSaver extends EventEmitter {
       try {
         await unlink(recoveryPath)
       }
-      catch (error) {
+      catch (_error) {
         // Ignore cleanup errors
       }
     }

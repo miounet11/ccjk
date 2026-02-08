@@ -449,7 +449,7 @@ export class SmartBashTool {
   private async fixCommandNotFoundError(command: string): Promise<boolean> {
     // 尝试建议替代命令
     const cmd = command.split(/\s+/)[0]
-    const alternative = await this.suggestAlternative(cmd)
+    const _alternative = await this.suggestAlternative(cmd)
 
     // 这里不能自动替换命令，只能返回 false
     // 实际应该通过建议让用户知道
@@ -459,7 +459,7 @@ export class SmartBashTool {
   /**
    * 获取建议
    */
-  private getSuggestion(error: any, command: string): string {
+  private getSuggestion(error: any, _command: string): string {
     const analysis = this.analyzeError(error)
     return analysis.suggestion
   }

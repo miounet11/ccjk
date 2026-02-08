@@ -31,7 +31,7 @@ export class EmailChecker {
         tlsOptions: { rejectUnauthorized: false },
       })
     }
-    catch (error) {
+    catch (_error) {
       throw new Error('imap package is not installed. Install it with: pnpm add imap @types/imap')
     }
 
@@ -96,7 +96,7 @@ export class EmailChecker {
       await this.connect()
 
       return new Promise((resolve, reject) => {
-        this.imap.openBox('INBOX', false, (err: Error | null, box: any) => {
+        this.imap.openBox('INBOX', false, (err: Error | null, _box: any) => {
           if (err) {
             reject(err)
             return
@@ -120,7 +120,7 @@ export class EmailChecker {
               markSeen: true, // Mark as read after fetching
             })
 
-            fetch.on('message', (msg: any, seqno: number) => {
+            fetch.on('message', (msg: any, _seqno: number) => {
               msg.on('body', (stream: NodeJS.ReadableStream) => {
                 // Lazy load mailparser
                 let simpleParserFn: any
@@ -149,7 +149,7 @@ export class EmailChecker {
                 })
               })
 
-              msg.once('attributes', (attrs: any) => {
+              msg.once('attributes', (_attrs: any) => {
                 // Can access email attributes here if needed
               })
             })

@@ -247,7 +247,7 @@ export class SkillManager {
   /**
    * Load all skills
    */
-  async loadAll(options?: Partial<LoaderOptions>): Promise<{
+  async loadAll(_options?: Partial<LoaderOptions>): Promise<{
     skills: SkillV3[]
     registered: number
     errors: string[]

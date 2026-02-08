@@ -11,10 +11,10 @@
  */
 
 import type { BackgroundTask, TaskOptions, TaskOutput } from '../brain/background-manager'
-import { cancelBackgroundTask, executeBackground, getBackgroundManager } from '../brain/background-manager'
 import type { SupportedLang } from '../constants'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { cancelBackgroundTask, executeBackground, getBackgroundManager } from '../brain/background-manager'
 import { i18n } from '../i18n'
 
 /**

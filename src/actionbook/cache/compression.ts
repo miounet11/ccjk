@@ -101,7 +101,7 @@ export async function compressData(
       ratio: compressed.length / originalSize,
     }
   }
-  catch (error) {
+  catch (_error) {
     // Fallback to uncompressed on error
     return {
       data: buffer,

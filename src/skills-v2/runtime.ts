@@ -343,7 +343,7 @@ export class Runtime {
    * Extract constraints from skill
    */
   private extractConstraints(skill: Skill): any[] {
-    const constraints: Array<{ condition: string; validation: string; message: string }> = []
+    const constraints: Array<{ condition: string, validation: string, message: string }> = []
     const l3Layer = skill.ast.layers.find(l => l.layer === Layer.L3)
     if (l3Layer) {
       return l3Layer.constraints.map(c => ({
@@ -358,7 +358,7 @@ export class Runtime {
   /**
    * Generate constraint adjustments
    */
-  private generateConstraintAdjustments(violations: any[], constraints: any[]): any[] {
+  private generateConstraintAdjustments(violations: any[], _constraints: any[]): any[] {
     const adjustments = []
 
     for (const violation of violations) {
@@ -385,7 +385,7 @@ export class Runtime {
   /**
    * Select design pattern
    */
-  private selectPattern(skill: Skill, l3Result: any): any {
+  private selectPattern(skill: Skill, _l3Result: any): any {
     const l2Layer = skill.ast.layers.find(l => l.layer === Layer.L2)
     if (l2Layer && l2Layer.patterns.length > 0) {
       return {
@@ -414,7 +414,7 @@ ${pattern.implementation}`
   /**
    * Generate examples
    */
-  private generateExamples(pattern: any, l3Result: any): string[] {
+  private generateExamples(pattern: any, _l3Result: any): string[] {
     return pattern.examples.map((ex: string) => `// Example: ${ex}`)
   }
 
@@ -432,7 +432,7 @@ ${pattern.implementation}`
   /**
    * Select corrective pattern
    */
-  private selectCorrectivePattern(violations: any[]): any {
+  private selectCorrectivePattern(_violations: any[]): any {
     return {
       name: 'Constraint Compliance Wrapper',
       description: 'Pattern that ensures domain constraints are satisfied',
@@ -451,7 +451,7 @@ ${pattern.implementation || '// TODO: Implement corrective measures'}`
   /**
    * Generate corrective examples
    */
-  private generateCorrectiveExamples(pattern: any): string[] {
+  private generateCorrectiveExamples(_pattern: any): string[] {
     return [
       '// Before: Violates constraints',
       '// After: Complies with all domain rules',

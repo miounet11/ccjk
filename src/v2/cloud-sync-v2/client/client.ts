@@ -7,16 +7,6 @@ import type {
   CacheConfig,
   RetryConfig,
 } from './types.js'
-
-interface RequestOptions {
-  headers?: Record<string, string>
-  timeout?: number
-  retries?: number
-  cache?: boolean
-  signal?: AbortSignal
-  params?: Record<string, any>
-  body?: any
-}
 import { AuthManager } from './auth.js'
 import { CacheKeyBuilder, parseCacheHeaders, ResponseCacheImpl } from './cache.js'
 import { DEFAULT_CONFIG } from './config.js'
@@ -30,6 +20,16 @@ import {
   ServerError,
   ValidationError,
 } from './types.js'
+
+interface RequestOptions {
+  headers?: Record<string, string>
+  timeout?: number
+  retries?: number
+  cache?: boolean
+  signal?: AbortSignal
+  params?: Record<string, any>
+  body?: any
+}
 
 export interface ClientConfig {
   baseURL?: string

@@ -247,7 +247,7 @@ export class FallbackCloudClient {
   /**
    * Get local fallback template
    */
-  private getLocalTemplate(id: string, language?: string): any {
+  private getLocalTemplate(id: string, _language?: string): any {
     // Basic local templates
     const templates: Record<string, any> = {
       'basic-workflow': {

@@ -8,12 +8,12 @@ import type {
   AgentResult,
   AgentMessage as BaseAgentMessage,
 } from './agents/base-agent'
+import type { TaskPriority } from './task-queue'
 import type {
   AgentRole,
   BrainConfig,
   HealthStatus,
 } from './types'
-import type { TaskPriority } from './task-queue'
 import process from 'node:process'
 import { AgentRegistry, AgentState, BaseAgent } from './agents/base-agent'
 import { CodeAgent } from './agents/code-agent'

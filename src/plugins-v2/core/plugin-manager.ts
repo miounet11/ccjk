@@ -271,7 +271,7 @@ export class PluginManager {
   /**
    * Install from cloud registry
    */
-  private async installFromCloud(url: string, options: InstallOptions = {}): Promise<InstallResult> {
+  private async installFromCloud(url: string, _options: InstallOptions = {}): Promise<InstallResult> {
     // TODO: Implement cloud installation
     // This will integrate with existing cloud-plugins system
     return { success: false, pluginId: '', error: 'Cloud installation not yet implemented in v2' }
@@ -280,7 +280,7 @@ export class PluginManager {
   /**
    * Install from NPM
    */
-  private async installFromNpm(packageName: string, options: InstallOptions = {}): Promise<InstallResult> {
+  private async installFromNpm(packageName: string, _options: InstallOptions = {}): Promise<InstallResult> {
     const targetDir = join(PLUGINS_DIR, packageName.replace(/\//g, '-'))
 
     try {
@@ -434,7 +434,7 @@ export class PluginManager {
   /**
    * Load intents from directory
    */
-  private loadIntents(dirPath: string, pluginId: string): PluginPackage['intents'] {
+  private loadIntents(dirPath: string, _pluginId: string): PluginPackage['intents'] {
     const intentsPath = join(dirPath, 'intents', 'intents.yaml')
 
     if (!existsSync(intentsPath))

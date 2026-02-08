@@ -221,7 +221,7 @@ export class ORSet<T> {
    * @returns Merge result
    */
   merge(remoteState: ORSetState<T>): MergeResult<T[]> {
-    const oldValues = new Set(this.values().map(v => this.keyFn(v)))
+    const _oldValues = new Set(this.values().map(v => this.keyFn(v)))
     let changed = false
 
     // Merge tombstones first

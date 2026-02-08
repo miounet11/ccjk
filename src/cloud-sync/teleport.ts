@@ -246,7 +246,7 @@ export class TeleportManager {
    */
   async importSession(
     url: string,
-    options: TeleportOptions = {},
+    _options: TeleportOptions = {},
   ): Promise<TeleportResult> {
     try {
       // Extract transfer ID from URL

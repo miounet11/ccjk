@@ -87,7 +87,7 @@ export class AuthManager {
 
       return response.accessToken
     }
-    catch (error) {
+    catch (_error) {
       this.clearTokens()
       throw new AuthenticationError('Failed to refresh access token')
     }

@@ -421,7 +421,7 @@ export class PermissionManager {
   /**
    * List all permissions (legacy format)
    */
-  listPermissions(type?: PermissionType, scope?: PermissionScope): Permission[] {
+  listPermissions(type?: PermissionType, _scope?: PermissionScope): Permission[] {
     const rules = this.wildcardRules.getAllRules()
 
     let filtered = rules
@@ -591,7 +591,7 @@ export class PermissionManager {
    * Get current configuration
    */
   getConfig(): WildcardPermissionConfig {
-    const stats = this.wildcardRules.getStats()
+    const _stats = this.wildcardRules.getStats()
     return {
       disallowedTools: [],
       maxCacheSize: 1000,

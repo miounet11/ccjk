@@ -149,7 +149,7 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
         consola.success(isZh ? `从云端获取 ${recommendations.length} 个专业代理` : `Fetched ${recommendations.length} specialist agents from cloud`)
       }
     }
-    catch (error) {
+    catch (_error) {
       consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
     }
 

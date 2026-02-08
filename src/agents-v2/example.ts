@@ -16,7 +16,7 @@ async function example1_Setup() {
 
   // Create the agent system with default configuration
   const system = await createAgentSystem()
-  const { redis, registry, messageBus, router, queue, pubsub } = system
+  const { redis, registry, messageBus, router: _router, queue: _queue, pubsub: _pubsub } = system
 
   try {
     // Connect to Redis
@@ -72,8 +72,8 @@ async function example1_Setup() {
           default: 'typescript',
         },
       ],
-      handler: async (params, context) => {
-        const { code, language } = params
+      handler: async (params, _context) => {
+        const { code: _code, language: _language } = params
         // Simulate code analysis
         return {
           issues: [],

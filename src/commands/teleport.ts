@@ -173,7 +173,7 @@ export async function listSharedSessions(options: {
 /**
  * List local transfer history
  */
-async function listLocalTransfers(options: {
+async function listLocalTransfers(_options: {
   lang?: SupportedLang
 }): Promise<void> {
   const transfers = listTeleportTransfers()
@@ -211,7 +211,7 @@ async function listLocalTransfers(options: {
 /**
  * List remote sessions
  */
-async function listRemoteSessions(options: {
+async function listRemoteSessions(_options: {
   lang?: SupportedLang
 }): Promise<void> {
   console.log(ansis.gray('Connecting to remote service...'))

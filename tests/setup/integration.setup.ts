@@ -65,7 +65,7 @@ async function waitForServices(): Promise<void> {
         console.log(`✅ ${service.name} is ready`)
         break
       }
-      catch (error) {
+      catch (_error) {
         attempts++
         if (attempts === maxAttempts) {
           throw new Error(`❌ ${service.name} failed to start after ${maxAttempts} attempts`)
@@ -119,7 +119,7 @@ async function checkElasticsearch(): Promise<void> {
       throw new Error('Elasticsearch not configured')
     }
   }
-  catch (error) {
+  catch (_error) {
     throw new Error('Elasticsearch health check failed')
   }
 }

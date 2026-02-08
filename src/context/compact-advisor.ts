@@ -258,7 +258,7 @@ export class CompactAdvisor {
     return `Current session has ${count} messages. Consider clearing to maintain response quality.`
   }
 
-  private getWarningMessage(usagePercent: number, current: number, max: number): string {
+  private getWarningMessage(usagePercent: number, _current: number, _max: number): string {
     const isZh = i18n.language === 'zh-CN'
     const percent = (usagePercent * 100).toFixed(1)
 
@@ -278,7 +278,7 @@ export class CompactAdvisor {
     return `✅ Context is healthy (${percent}%), no action needed.`
   }
 
-  private getPlanCompleteMessage(plan: PlanDocument, context: ContextState, usagePercent: number): string {
+  private getPlanCompleteMessage(plan: PlanDocument, _context: ContextState, _usagePercent: number): string {
     const isZh = i18n.language === 'zh-CN'
 
     if (isZh) {

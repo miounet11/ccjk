@@ -233,7 +233,7 @@ export async function mcpSearchThreshold(
     try {
       threshold = McpSearchCore.parseAutoMode(thresholdArg)
     }
-    catch (error) {
+    catch (_error) {
       console.log('')
       console.log(ansis.red(`❌ ${isZh ? '无效的阈值' : 'Invalid threshold'}: ${thresholdArg}`))
       console.log(ansis.dim(isZh

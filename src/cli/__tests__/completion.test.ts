@@ -136,7 +136,7 @@ describe('completion', () => {
     })
 
     it('should handle option value completion', () => {
-      const script = generateBashCompletion(testCommands)
+      const _script = generateBashCompletion(testCommands)
 
       // Option value completion is only generated for commands without subcommands
       // The testCommands has subcommands, so we need a separate test case

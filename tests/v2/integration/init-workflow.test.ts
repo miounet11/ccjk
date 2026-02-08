@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * They serve as a template for future integration tests.
  */
 describe.skip('cCJK Initialization Integration', () => {
-  let mockSuite: any
+  let _mockSuite: any
   let testDir: string
   let initCommand: any
   let configManager: any
@@ -247,7 +247,7 @@ describe.skip('cCJK Initialization Integration', () => {
       workflowEngine.execute.mockRejectedValue(new Error('Workflow execution failed'))
 
       initCommand.execute.mockImplementation(async () => {
-        const loadedConfig = await configManager.load()
+        const _loadedConfig = await configManager.load()
         try {
           await workflowEngine.execute(workflow)
         }
@@ -360,7 +360,7 @@ describe.skip('cCJK Initialization Integration', () => {
           const config = await initCommand.setupConfiguration()
           return { success: true, config, attempts: attemptCount }
         }
-        catch (error) {
+        catch (_error) {
           // Retry once
           const config = await initCommand.setupConfiguration()
           return { success: true, config, attempts: attemptCount }

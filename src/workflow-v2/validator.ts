@@ -358,7 +358,7 @@ export class WorkflowValidator {
   /**
    * Validate resource availability
    */
-  private validateResourceAvailability(workflow: Workflow, context: ProjectContext): ValidationWarning[] {
+  private validateResourceAvailability(workflow: Workflow, _context: ProjectContext): ValidationWarning[] {
     const warnings: ValidationWarning[] = []
 
     // Check for required tools
@@ -440,7 +440,7 @@ export class WorkflowValidator {
   /**
    * Validate performance issues
    */
-  private validatePerformance(workflow: Workflow): ValidationWarning[] {
+  private validatePerformance(_workflow: Workflow): ValidationWarning[] {
     // TODO: Implement performance validation
     return []
   }
@@ -450,8 +450,8 @@ export class WorkflowValidator {
    */
   private generateSuggestions(
     workflow: Workflow,
-    errors: ValidationError[],
-    warnings: ValidationWarning[],
+    _errors: ValidationError[],
+    _warnings: ValidationWarning[],
   ): string[] {
     const suggestions: string[] = []
 
@@ -494,7 +494,7 @@ export class WorkflowValidator {
    */
   private findParallelizableSteps(workflow: Workflow): string[] {
     const dependencyGraph = new Map<string, string[]>()
-    const stepIds = new Set(workflow.steps.map(s => s.id))
+    const _stepIds = new Set(workflow.steps.map(s => s.id))
 
     // Build dependency graph
     for (const step of workflow.steps) {

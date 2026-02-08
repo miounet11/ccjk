@@ -205,7 +205,7 @@ export class UpstreamErrorHandler {
    */
   private getRecoveryInfo(
     type: UpstreamErrorType,
-    statusCode?: number,
+    _statusCode?: number,
   ): { recoverable: boolean, suggestedAction: UpstreamError['suggestedAction'] } {
     switch (type) {
       case 'context_overflow':

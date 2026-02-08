@@ -12,7 +12,7 @@ import {
 } from '../../src/skills/auto-trigger'
 
 describe('auto-trigger', () => {
-  const mockSkills: CcjkSkill[] = [
+  const _mockSkills: CcjkSkill[] = [
     {
       id: 'git-commit',
       name: { 'en': 'Git Commit', 'zh-CN': 'Git 提交' },

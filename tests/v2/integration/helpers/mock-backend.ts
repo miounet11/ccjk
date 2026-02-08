@@ -165,7 +165,7 @@ export class MockBackend {
    * Execute skill
    */
   async executeSkill(skillId: string, input: any): Promise<any> {
-    this.registerEndpoint('POST', `/skills/${skillId}/execute`, async (data) => {
+    this.registerEndpoint('POST', `/skills/${skillId}/execute`, async (_data) => {
       return {
         status: 200,
         data: {

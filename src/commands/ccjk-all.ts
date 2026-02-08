@@ -165,7 +165,7 @@ function displayHeader(): void {
  */
 async function checkCloudAvailability(options: CcjkAllOptions): Promise<void> {
   const logger = consola.withTag('cloud-check')
-  const isZh = i18n.language === 'zh-CN'
+  const _isZh = i18n.language === 'zh-CN'
 
   console.log(`  ${ansis.bold(i18n.t('ccjk-all:connectingToCloud'))}`)
 
@@ -231,7 +231,7 @@ function displayCompletion(result: CloudSetupResult): void {
  * Display help
  */
 function displayHelp(): void {
-  const isZh = i18n.language === 'zh-CN'
+  const _isZh = i18n.language === 'zh-CN'
 
   console.log('')
   console.log(ansis.bold.cyan('━'.repeat(60)))

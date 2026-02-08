@@ -10,8 +10,6 @@
 import type {
   CreateProviderInput,
   ProviderCreateResponse,
-  ProviderListResponse,
-  ProviderQueryResponse,
   ProviderRegistry,
 } from '../types/provider'
 import type { CloudApiClient } from './cloud/api-client'

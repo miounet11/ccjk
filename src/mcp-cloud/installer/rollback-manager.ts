@@ -180,7 +180,7 @@ export class RollbackManager {
 
       this.rollbackPoints = new Map(Object.entries(parsed))
     }
-    catch (error) {
+    catch (_error) {
       this.rollbackPoints = new Map()
     }
   }

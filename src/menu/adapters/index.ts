@@ -149,12 +149,12 @@ export async function getRecentSessions(): Promise<Array<{ id: string, name: str
   return []
 }
 
-export async function createSession(name?: string): Promise<string> {
+export async function createSession(_name?: string): Promise<string> {
   // TODO: 实现会话创建
   return `session-${Date.now()}`
 }
 
-export async function restoreSession(sessionId: string): Promise<boolean> {
+export async function restoreSession(_sessionId: string): Promise<boolean> {
   // TODO: 实现会话恢复
   return false
 }

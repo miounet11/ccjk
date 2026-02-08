@@ -52,7 +52,7 @@ function resolveCodeType(codeType?: unknown): CodeToolType {
  *
  * @param options - Command options
  */
-async function listClaudeCodeProfiles(options: SwitchConfigOptions): Promise<void> {
+async function listClaudeCodeProfiles(_options: SwitchConfigOptions): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   try {
@@ -130,7 +130,7 @@ async function listClaudeCodeProfiles(options: SwitchConfigOptions): Promise<voi
  *
  * @param options - Command options
  */
-async function listCodexProviders(options: SwitchConfigOptions): Promise<void> {
+async function listCodexProviders(_options: SwitchConfigOptions): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   try {
@@ -189,7 +189,7 @@ async function listCodexProviders(options: SwitchConfigOptions): Promise<void> {
  * @param target - Target profile ID or special value
  * @param options - Command options
  */
-async function switchClaudeCodeProfile(target: string, options: SwitchConfigOptions): Promise<void> {
+async function switchClaudeCodeProfile(target: string, _options: SwitchConfigOptions): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   try {
@@ -318,7 +318,7 @@ async function switchClaudeCodeProfile(target: string, options: SwitchConfigOpti
  * @param target - Target provider ID or 'official'
  * @param options - Command options
  */
-async function switchCodexProvider(target: string, options: SwitchConfigOptions): Promise<void> {
+async function switchCodexProvider(target: string, _options: SwitchConfigOptions): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   try {

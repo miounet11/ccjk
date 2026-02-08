@@ -54,7 +54,7 @@ async function deriveMasterKey(): Promise<Buffer> {
 
   // Create a machine-specific salt
   const machineId = `${hostname()}-${platform()}-${getuid?.() || 'n/a'}-${getgid?.() || 'n/a'}`
-  const salt = createHash('sha256').update(machineId).digest()
+  const _salt = createHash('sha256').update(machineId).digest()
 
   // In production, use proper key derivation with user-provided password
   // For now, use a simpler approach - the machine-specific hash

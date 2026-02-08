@@ -443,7 +443,7 @@ export class LspClient extends EventEmitter {
   /**
    * Get diagnostics for a document
    */
-  async getDiagnostics(uri: string): Promise<LspDiagnostic[]> {
+  async getDiagnostics(_uri: string): Promise<LspDiagnostic[]> {
     // Note: Most LSP servers push diagnostics via notifications
     // This is a placeholder for pulling diagnostics
     return []
@@ -634,7 +634,7 @@ export class LspClient extends EventEmitter {
    * Reject all pending requests
    */
   private rejectAllPending(error: Error): void {
-    for (const [id, pending] of this.pendingRequests) {
+    for (const [_id, pending] of this.pendingRequests) {
       clearTimeout(pending.timeout)
       pending.reject(error)
     }

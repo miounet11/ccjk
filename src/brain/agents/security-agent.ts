@@ -113,65 +113,65 @@ export class SecurityAgent extends BaseAgent {
         parameters: {
           scope: 'string',
           depth: 'string',
-          standards: 'string[]'
-        }
+          standards: 'string[]',
+        },
       },
       {
         name: 'vulnerability-scan',
         description: 'Scan for security vulnerabilities (OWASP Top 10)',
         parameters: {
           target: 'string',
-          types: 'string[]'
-        }
+          types: 'string[]',
+        },
       },
       {
         name: 'dependency-audit',
         description: 'Audit dependencies for known vulnerabilities',
         parameters: {
           packageManager: 'string',
-          severity: 'string'
-        }
+          severity: 'string',
+        },
       },
       {
         name: 'threat-modeling',
         description: 'Create threat model for system',
         parameters: {
           system: 'object',
-          methodology: 'string'
-        }
+          methodology: 'string',
+        },
       },
       {
         name: 'compliance-check',
         description: 'Check compliance with security standards',
         parameters: {
           standards: 'string[]',
-          scope: 'string'
-        }
+          scope: 'string',
+        },
       },
       {
         name: 'security-review',
         description: 'Security code review with best practices',
         parameters: {
           files: 'string[]',
-          focus: 'string[]'
-        }
+          focus: 'string[]',
+        },
       },
       {
         name: 'penetration-test',
         description: 'Guided penetration testing recommendations',
         parameters: {
           target: 'string',
-          scope: 'string'
-        }
+          scope: 'string',
+        },
       },
       {
         name: 'security-hardening',
         description: 'Generate security hardening recommendations',
         parameters: {
           environment: 'string',
-          components: 'string[]'
-        }
-      }
+          components: 'string[]',
+        },
+      },
     ]
 
     super(
@@ -179,9 +179,9 @@ export class SecurityAgent extends BaseAgent {
         name: 'security-agent',
         description: 'Advanced security analysis and vulnerability detection',
         capabilities,
-        verbose: true
+        verbose: true,
       },
-      context
+      context,
     )
   }
 
@@ -234,9 +234,10 @@ export class SecurityAgent extends BaseAgent {
       return {
         success: true,
         data: result,
-        message: 'Security analysis completed successfully'
+        message: 'Security analysis completed successfully',
       }
-    } catch (error) {
+    }
+    catch (error) {
       this.setState(AgentState.ERROR)
       return this.handleError(error instanceof Error ? error : new Error(String(error)))
     }
@@ -258,7 +259,7 @@ export class SecurityAgent extends BaseAgent {
     return {
       success: false,
       error,
-      message: `Security Agent failed: ${error.message}`
+      message: `Security Agent failed: ${error.message}`,
     }
   }
 
@@ -268,7 +269,7 @@ export class SecurityAgent extends BaseAgent {
   private async performSecurityAudit(params: any): Promise<SecurityAuditReport> {
     this.log('Performing comprehensive security audit...')
 
-    const { scope, depth = 'deep', standards = ['OWASP', 'CWE'] } = params
+    const { scope, _depth = 'deep', standards = ['OWASP', 'CWE'] } = params
 
     const report: SecurityAuditReport = {
       timestamp: Date.now(),
@@ -279,13 +280,13 @@ export class SecurityAgent extends BaseAgent {
         high: 0,
         medium: 0,
         low: 0,
-        info: 0
+        info: 0,
       },
       vulnerabilities: [],
       dependencies: [],
       compliance: [],
       recommendations: [],
-      riskScore: 0
+      riskScore: 0,
     }
 
     // Perform multi-layered security analysis
@@ -354,7 +355,7 @@ export class SecurityAgent extends BaseAgent {
     return {
       vulnerabilities: await this.scanDependencyVulnerabilities(packageManager, severity),
       outdated: await this.findOutdatedDependencies(packageManager),
-      recommendations: await this.generateDependencyRecommendations(packageManager)
+      recommendations: await this.generateDependencyRecommendations(packageManager),
     }
   }
 
@@ -369,7 +370,7 @@ export class SecurityAgent extends BaseAgent {
     const model: ThreatModel = {
       assets: [],
       threats: [],
-      attackVectors: []
+      attackVectors: [],
     }
 
     // Identify assets
@@ -415,7 +416,7 @@ export class SecurityAgent extends BaseAgent {
     return {
       findings: await this.reviewCodeSecurity(files, focus),
       bestPractices: await this.checkSecurityBestPractices(files),
-      recommendations: await this.generateReviewRecommendations(files)
+      recommendations: await this.generateReviewRecommendations(files),
     }
   }
 
@@ -431,7 +432,7 @@ export class SecurityAgent extends BaseAgent {
       testPlan: await this.createPenetrationTestPlan(target, scope),
       testCases: await this.generateTestCases(target, scope),
       tools: this.recommendPenetrationTestingTools(scope),
-      methodology: this.describePenetrationTestingMethodology(scope)
+      methodology: this.describePenetrationTestingMethodology(scope),
     }
   }
 
@@ -447,7 +448,7 @@ export class SecurityAgent extends BaseAgent {
       infrastructure: await this.hardenInfrastructure(environment),
       application: await this.hardenApplication(components),
       network: await this.hardenNetwork(environment),
-      data: await this.hardenDataSecurity(components)
+      data: await this.hardenDataSecurity(components),
     }
   }
 
@@ -475,27 +476,27 @@ export class SecurityAgent extends BaseAgent {
     this.log('Loading vulnerability database...')
   }
 
-  private async scanInjectionVulnerabilities(target: string): Promise<SecurityVulnerability[]> {
+  private async scanInjectionVulnerabilities(_target: string): Promise<SecurityVulnerability[]> {
     // Scan for injection vulnerabilities
     return []
   }
 
-  private async scanAuthenticationIssues(target: string): Promise<SecurityVulnerability[]> {
+  private async scanAuthenticationIssues(_target: string): Promise<SecurityVulnerability[]> {
     // Scan for authentication issues
     return []
   }
 
-  private async scanXSSVulnerabilities(target: string): Promise<SecurityVulnerability[]> {
+  private async scanXSSVulnerabilities(_target: string): Promise<SecurityVulnerability[]> {
     // Scan for XSS vulnerabilities
     return []
   }
 
-  private async scanCSRFVulnerabilities(target: string): Promise<SecurityVulnerability[]> {
+  private async scanCSRFVulnerabilities(_target: string): Promise<SecurityVulnerability[]> {
     // Scan for CSRF vulnerabilities
     return []
   }
 
-  private async scanCryptographicIssues(target: string): Promise<SecurityVulnerability[]> {
+  private async scanCryptographicIssues(_target: string): Promise<SecurityVulnerability[]> {
     // Scan for cryptographic issues
     return []
   }
@@ -505,32 +506,32 @@ export class SecurityAgent extends BaseAgent {
     return vulnerabilities.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
   }
 
-  private async scanDependencyVulnerabilities(packageManager: string, severity: string): Promise<any[]> {
+  private async scanDependencyVulnerabilities(_packageManager: string, _severity: string): Promise<any[]> {
     // Scan dependencies for vulnerabilities
     return []
   }
 
-  private async findOutdatedDependencies(packageManager: string): Promise<any[]> {
+  private async findOutdatedDependencies(_packageManager: string): Promise<any[]> {
     // Find outdated dependencies
     return []
   }
 
-  private async generateDependencyRecommendations(packageManager: string): Promise<any[]> {
+  private async generateDependencyRecommendations(_packageManager: string): Promise<any[]> {
     // Generate dependency recommendations
     return []
   }
 
-  private async identifyAssets(system: any): Promise<any[]> {
+  private async identifyAssets(_system: any): Promise<any[]> {
     // Identify system assets
     return []
   }
 
-  private async identifyThreats(system: any, methodology: string): Promise<any[]> {
+  private async identifyThreats(_system: any, _methodology: string): Promise<any[]> {
     // Identify threats using STRIDE or other methodology
     return []
   }
 
-  private async identifyAttackVectors(system: any): Promise<any[]> {
+  private async identifyAttackVectors(_system: any): Promise<any[]> {
     // Identify attack vectors
     return []
   }
@@ -538,75 +539,75 @@ export class SecurityAgent extends BaseAgent {
   private calculateThreatRisks(model: ThreatModel): void {
     // Calculate risk levels for threats
     const likelihoodScore = { 'very-low': 1, 'low': 2, 'medium': 3, 'high': 4, 'very-high': 5 }
-    const impactScore = { 'negligible': 1, 'minor': 2, 'moderate': 3, 'major': 4, 'catastrophic': 5 }
+    const impactScore = { negligible: 1, minor: 2, moderate: 3, major: 4, catastrophic: 5 }
 
     for (const threat of model.threats) {
       threat.riskLevel = likelihoodScore[threat.likelihood] * impactScore[threat.impact]
     }
   }
 
-  private async checkStandardCompliance(standard: string, scope: string): Promise<any> {
+  private async checkStandardCompliance(standard: string, _scope: string): Promise<any> {
     // Check compliance with specific standard
     return {
       standard,
       status: 'partial',
-      gaps: []
+      gaps: [],
     }
   }
 
-  private async reviewCodeSecurity(files: string[], focus: string[]): Promise<any[]> {
+  private async reviewCodeSecurity(_files: string[], _focus: string[]): Promise<any[]> {
     // Review code for security issues
     return []
   }
 
-  private async checkSecurityBestPractices(files: string[]): Promise<any[]> {
+  private async checkSecurityBestPractices(_files: string[]): Promise<any[]> {
     // Check security best practices
     return []
   }
 
-  private async generateReviewRecommendations(files: string[]): Promise<any[]> {
+  private async generateReviewRecommendations(_files: string[]): Promise<any[]> {
     // Generate review recommendations
     return []
   }
 
-  private async createPenetrationTestPlan(target: string, scope: string): Promise<any> {
+  private async createPenetrationTestPlan(_target: string, _scope: string): Promise<any> {
     // Create penetration test plan
     return {}
   }
 
-  private async generateTestCases(target: string, scope: string): Promise<any[]> {
+  private async generateTestCases(_target: string, _scope: string): Promise<any[]> {
     // Generate test cases
     return []
   }
 
-  private recommendPenetrationTestingTools(scope: string): string[] {
+  private recommendPenetrationTestingTools(_scope: string): string[] {
     // Recommend penetration testing tools
     return ['Burp Suite', 'OWASP ZAP', 'Metasploit', 'Nmap', 'SQLMap']
   }
 
-  private describePenetrationTestingMethodology(scope: string): any {
+  private describePenetrationTestingMethodology(_scope: string): any {
     // Describe penetration testing methodology
     return {
-      phases: ['reconnaissance', 'scanning', 'exploitation', 'post-exploitation', 'reporting']
+      phases: ['reconnaissance', 'scanning', 'exploitation', 'post-exploitation', 'reporting'],
     }
   }
 
-  private async hardenInfrastructure(environment: string): Promise<any[]> {
+  private async hardenInfrastructure(_environment: string): Promise<any[]> {
     // Generate infrastructure hardening recommendations
     return []
   }
 
-  private async hardenApplication(components: string[]): Promise<any[]> {
+  private async hardenApplication(_components: string[]): Promise<any[]> {
     // Generate application hardening recommendations
     return []
   }
 
-  private async hardenNetwork(environment: string): Promise<any[]> {
+  private async hardenNetwork(_environment: string): Promise<any[]> {
     // Generate network hardening recommendations
     return []
   }
 
-  private async hardenDataSecurity(components: string[]): Promise<any[]> {
+  private async hardenDataSecurity(_components: string[]): Promise<any[]> {
     // Generate data security hardening recommendations
     return []
   }
@@ -619,7 +620,7 @@ export class SecurityAgent extends BaseAgent {
     }
   }
 
-  private async generateSecurityRecommendations(report: SecurityAuditReport): Promise<any[]> {
+  private async generateSecurityRecommendations(_report: SecurityAuditReport): Promise<any[]> {
     // Generate security recommendations
     return []
   }

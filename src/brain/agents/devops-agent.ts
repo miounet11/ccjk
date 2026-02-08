@@ -128,16 +128,16 @@ export class DevOpsAgent extends BaseAgent {
         parameters: {
           platform: 'string',
           requirements: 'object',
-          environment: 'string'
-        }
+          environment: 'string',
+        },
       },
       {
         name: 'optimize-pipeline',
         description: 'Optimize existing CI/CD pipeline',
         parameters: {
           pipeline: 'string',
-          goals: 'string[]'
-        }
+          goals: 'string[]',
+        },
       },
       {
         name: 'generate-iac',
@@ -145,16 +145,16 @@ export class DevOpsAgent extends BaseAgent {
         parameters: {
           provider: 'string',
           requirements: 'object',
-          tool: 'string'
-        }
+          tool: 'string',
+        },
       },
       {
         name: 'containerize',
         description: 'Containerize application with Docker',
         parameters: {
           application: 'string',
-          requirements: 'object'
-        }
+          requirements: 'object',
+        },
       },
       {
         name: 'kubernetes-config',
@@ -162,24 +162,24 @@ export class DevOpsAgent extends BaseAgent {
         parameters: {
           application: 'string',
           replicas: 'number',
-          resources: 'object'
-        }
+          resources: 'object',
+        },
       },
       {
         name: 'deployment-strategy',
         description: 'Design deployment strategy',
         parameters: {
           type: 'string',
-          constraints: 'object'
-        }
+          constraints: 'object',
+        },
       },
       {
         name: 'monitoring-setup',
         description: 'Setup monitoring and observability',
         parameters: {
           stack: 'string',
-          metrics: 'string[]'
-        }
+          metrics: 'string[]',
+        },
       },
       {
         name: 'disaster-recovery',
@@ -187,9 +187,9 @@ export class DevOpsAgent extends BaseAgent {
         parameters: {
           rto: 'number',
           rpo: 'number',
-          scope: 'string'
-        }
-      }
+          scope: 'string',
+        },
+      },
     ]
 
     super(
@@ -197,9 +197,9 @@ export class DevOpsAgent extends BaseAgent {
         name: 'devops-agent',
         description: 'World-class CI/CD, deployment, and infrastructure automation',
         capabilities,
-        verbose: true
+        verbose: true,
       },
-      context
+      context,
     )
   }
 
@@ -220,7 +220,7 @@ export class DevOpsAgent extends BaseAgent {
 
       let result: any
       switch (capability) {
-      case 'design-pipeline':
+        case 'design-pipeline':
           result = await this.designPipeline(parameters)
           break
         case 'optimize-pipeline':
@@ -252,9 +252,10 @@ export class DevOpsAgent extends BaseAgent {
       return {
         success: true,
         data: result,
-        message: 'DevOps operation completed successfully'
+        message: 'DevOps operation completed successfully',
       }
-    } catch (error) {
+    }
+    catch (error) {
       this.setState(AgentState.ERROR)
       return this.handleError(error instanceof Error ? error : new Error(String(error)))
     }
@@ -276,7 +277,7 @@ export class DevOpsAgent extends BaseAgent {
     return {
       success: false,
       error,
-      message: `DevOps Agent failed: ${error.message}`
+      message: `DevOps Agent failed: ${error.message}`,
     }
   }
 
@@ -294,7 +295,7 @@ export class DevOpsAgent extends BaseAgent {
       stages: [],
       triggers: [],
       environment: [],
-      notifications: []
+      notifications: [],
     }
 
     // Design stages based on requirements
@@ -333,7 +334,7 @@ export class DevOpsAgent extends BaseAgent {
     return {
       original: pipeline,
       optimizations,
-      estimatedImprovement: this.calculateImprovement(optimizations)
+      estimatedImprovement: this.calculateImprovement(optimizations),
     }
   }
 
@@ -351,7 +352,7 @@ export class DevOpsAgent extends BaseAgent {
       networking: {},
       compute: {},
       storage: {},
-      monitoring: {}
+      monitoring: {},
     }
 
     // Generate networking resources
@@ -385,7 +386,7 @@ export class DevOpsAgent extends BaseAgent {
       dockerCompose: await this.generateDockerCompose(application, requirements),
       dockerignore: await this.generateDockerignore(application),
       buildScript: await this.generateBuildScript(application),
-      optimizations: await this.suggestDockerOptimizations(application)
+      optimizations: await this.suggestDockerOptimizations(application),
     }
   }
 
@@ -404,7 +405,7 @@ export class DevOpsAgent extends BaseAgent {
       configMap: await this.generateK8sConfigMap(application),
       secrets: await this.generateK8sSecrets(application),
       hpa: await this.generateK8sHPA(application, resources),
-      networkPolicy: await this.generateK8sNetworkPolicy(application)
+      networkPolicy: await this.generateK8sNetworkPolicy(application),
     }
   }
 
@@ -424,8 +425,8 @@ export class DevOpsAgent extends BaseAgent {
       rollbackStrategy: {
         automatic: true,
         conditions: [],
-        steps: []
-      }
+        steps: [],
+      },
     }
 
     // Design steps based on strategy type
@@ -453,7 +454,7 @@ export class DevOpsAgent extends BaseAgent {
       logging: await this.setupLogging(stack),
       tracing: await this.setupTracing(stack),
       alerting: await this.setupAlerting(stack, metrics),
-      dashboards: await this.generateDashboards(stack, metrics)
+      dashboards: await this.generateDashboards(stack, metrics),
     }
   }
 
@@ -470,7 +471,7 @@ export class DevOpsAgent extends BaseAgent {
       recoveryProcedures: await this.designRecoveryProcedures(rto, scope),
       failoverStrategy: await this.designFailoverStrategy(rto, scope),
       testingPlan: await this.designDRTestingPlan(rto, rpo),
-      documentation: await this.generateDRDocumentation(rto, rpo, scope)
+      documentation: await this.generateDRDocumentation(rto, rpo, scope),
     }
   }
 
@@ -481,7 +482,7 @@ export class DevOpsAgent extends BaseAgent {
     this.pipelineTemplates.set('github-actions', {
       build: 'name: Build\nruns-on: ubuntu-latest\nsteps: []',
       test: 'name: Test\nruns-on: ubuntu-latest\nsteps: []',
-      deploy: 'name: Deploy\nruns-on: ubuntu-latest\nsteps: []'
+      deploy: 'name: Deploy\nruns-on: ubuntu-latest\nsteps: []',
     })
   }
 
@@ -491,11 +492,11 @@ export class DevOpsAgent extends BaseAgent {
       vpc: {},
       ec2: {},
       rds: {},
-      s3: {}
+      s3: {},
     })
   }
 
-  private async createBuildStage(requirements: any): Promise<PipelineStage> {
+  private async createBuildStage(_requirements: any): Promise<PipelineStage> {
     return {
       name: 'build',
       jobs: [
@@ -505,14 +506,14 @@ export class DevOpsAgent extends BaseAgent {
             { name: 'Checkout code', type: 'action', action: 'actions/checkout@v3' },
             { name: 'Setup Node.js', type: 'action', action: 'actions/setup-node@v3' },
             { name: 'Install dependencies', type: 'run', command: 'npm ci' },
-            { name: 'Build', type: 'run', command: 'npm run build' }
-          ]
-        }
-      ]
+            { name: 'Build', type: 'run', command: 'npm run build' },
+          ],
+        },
+      ],
     }
   }
 
-  private async createTestStage(requirements: any): Promise<PipelineStage> {
+  private async createTestStage(_requirements: any): Promise<PipelineStage> {
     return {
       name: 'test',
       jobs: [
@@ -520,14 +521,14 @@ export class DevOpsAgent extends BaseAgent {
           name: 'unit-tests',
           steps: [
             { name: 'Run unit tests', type: 'run', command: 'npm test' },
-            { name: 'Upload coverage', type: 'action', action: 'codecov/codecov-action@v3' }
-          ]
-        }
-      ]
+            { name: 'Upload coverage', type: 'action', action: 'codecov/codecov-action@v3' },
+          ],
+        },
+      ],
     }
   }
 
-  private async createSecurityStage(requirements: any): Promise<PipelineStage> {
+  private async createSecurityStage(_requirements: any): Promise<PipelineStage> {
     return {
       name: 'security',
       jobs: [
@@ -535,43 +536,43 @@ export class DevOpsAgent extends BaseAgent {
           name: 'security-scan',
           steps: [
             { name: 'Run security scan', type: 'run', command: 'npm audit' },
-            { name: 'SAST scan', type: 'action', action: 'github/codeql-action/analyze@v2' }
-          ]
-        }
-      ]
+            { name: 'SAST scan', type: 'action', action: 'github/codeql-action/analyze@v2' },
+          ],
+        },
+      ],
     }
   }
 
-  private async createDeployStage(requirements: any, environment: string): Promise<PipelineStage> {
+  private async createDeployStage(_requirements: any, environment: string): Promise<PipelineStage> {
     return {
       name: 'deploy',
       jobs: [
         {
           name: `deploy-${environment}`,
           steps: [
-            { name: 'Deploy application', type: 'run', command: 'npm run deploy' }
-          ]
-        }
+            { name: 'Deploy application', type: 'run', command: 'npm run deploy' },
+          ],
+        },
       ],
-      condition: `environment == '${environment}'`
+      condition: `environment == '${environment}'`,
     }
   }
 
-  private configureTriggers(requirements: any): any[] {
+  private configureTriggers(_requirements: any): any[] {
     return [
       { type: 'push', branches: ['main', 'develop'] },
-      { type: 'pull_request', branches: ['main'] }
+      { type: 'pull_request', branches: ['main'] },
     ]
   }
 
-  private setupEnvironments(requirements: any): any[] {
+  private setupEnvironments(_requirements: any): any[] {
     return [
       { name: 'production', variables: {}, secrets: ['API_KEY', 'DATABASE_URL'] },
-      { name: 'staging', variables: {}, secrets: ['API_KEY', 'DATABASE_URL'] }
+      { name: 'staging', variables: {}, secrets: ['API_KEY', 'DATABASE_URL'] },
     ]
   }
 
-  private configureNotifications(requirements: any): any[] {
+  private configureNotifications(_requirements: any): any[] {
     return []
   }
 
@@ -579,75 +580,75 @@ export class DevOpsAgent extends BaseAgent {
     return { goal, improvements: [] }
   }
 
-  private calculateImprovement(optimizations: any[]): any {
+  private calculateImprovement(_optimizations: any[]): any {
     return { speed: '30%', cost: '20%', reliability: '15%' }
   }
 
-  private async generateNetworking(provider: string, requirements: any): Promise<any> {
+  private async generateNetworking(_provider: string, _requirements: any): Promise<any> {
     return {}
   }
 
-  private async generateCompute(provider: string, requirements: any): Promise<any> {
+  private async generateCompute(_provider: string, _requirements: any): Promise<any> {
     return {}
   }
 
-  private async generateStorage(provider: string, requirements: any): Promise<any> {
+  private async generateStorage(_provider: string, _requirements: any): Promise<any> {
     return {}
   }
 
-  private async generateMonitoring(provider: string, requirements: any): Promise<any> {
+  private async generateMonitoring(_provider: string, _requirements: any): Promise<any> {
     return {}
   }
 
-  private async convertToIaC(config: InfrastructureConfig, tool: string): Promise<string> {
+  private async convertToIaC(_config: InfrastructureConfig, _tool: string): Promise<string> {
     return '// IaC code'
   }
 
-  private async generateDockerfile(application: string, requirements: any): Promise<string> {
+  private async generateDockerfile(_application: string, _requirements: any): Promise<string> {
     return 'FROM node:18-alpine\nWORKDIR /app\nCOPY . .\nRUN npm ci\nCMD ["npm", "start"]'
   }
 
-  private async generateDockerCompose(application: string, requirements: any): Promise<string> {
+  private async generateDockerCompose(_application: string, _requirements: any): Promise<string> {
     return 'version: "3.8"\nservices:\n  app:\n    build: .\n    ports:\n      - "3000:3000"'
   }
 
-  private async generateDockerignore(application: string): Promise<string> {
+  private async generateDockerignore(_application: string): Promise<string> {
     return 'node_modules\n.git\n.env'
   }
 
-  private async generateBuildScript(application: string): Promise<string> {
+  private async generateBuildScript(_application: string): Promise<string> {
     return '#!/bin/bash\ndocker build -t app:latest .'
   }
 
-  private async suggestDockerOptimizations(application: string): Promise<string[]> {
+  private async suggestDockerOptimizations(_application: string): Promise<string[]> {
     return ['Use multi-stage builds', 'Minimize layers', 'Use .dockerignore']
   }
 
-  private async generateK8sDeployment(application: string, replicas: number, resources: any): Promise<string> {
+  private async generateK8sDeployment(_application: string, _replicas: number, _resources: any): Promise<string> {
     return 'apiVersion: apps/v1\nkind: Deployment'
   }
 
-  private async generateK8sService(application: string): Promise<string> {
+  private async generateK8sService(_application: string): Promise<string> {
     return 'apiVersion: v1\nkind: Service'
   }
 
-  private async generateK8sIngress(application: string): Promise<string> {
+  private async generateK8sIngress(_application: string): Promise<string> {
     return 'apiVersion: networking.k8s.io/v1\nkind: Ingress'
   }
 
-  private async generateK8sConfigMap(application: string): Promise<string> {
+  private async generateK8sConfigMap(_application: string): Promise<string> {
     return 'apiVersion: v1\nkind: ConfigMap'
   }
 
-  private async generateK8sSecrets(application: string): Promise<string> {
+  private async generateK8sSecrets(_application: string): Promise<string> {
     return 'apiVersion: v1\nkind: Secret'
   }
 
-  private async generateK8sHPA(application: string, resources: any): Promise<string> {
+  private async generateK8sHPA(_application: string, _resources: any): Promise<string> {
     return 'apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler'
   }
 
-  private async generateK8sNetworkPolicy(application: string): Promise<string> {
+  private async generateK8sNetworkPolicy(_application: string): Promise<string> {
     return 'apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy'
   }
 
@@ -656,60 +657,60 @@ export class DevOpsAgent extends BaseAgent {
       'blue-green': 'Deploy new version alongside old, switch traffic when ready',
       'canary': 'Gradually roll out to subset of users',
       'rolling': 'Incrementally replace instances',
-      'recreate': 'Stop old version, deploy new version'
+      'recreate': 'Stop old version, deploy new version',
     }
     return descriptions[type] || 'Custom deployment strategy'
   }
 
-  private async designStrategySteps(type: string, constraints: any): Promise<any[]> {
+  private async designStrategySteps(_type: string, _constraints: any): Promise<any[]> {
     return []
   }
 
-  private async configureHealthChecks(constraints: any): Promise<any[]> {
+  private async configureHealthChecks(_constraints: any): Promise<any[]> {
     return []
   }
 
-  private async designRollbackStrategy(type: string, constraints: any): Promise<any> {
+  private async designRollbackStrategy(_type: string, _constraints: any): Promise<any> {
     return { automatic: true, conditions: [], steps: [] }
   }
 
-  private async setupMetricsCollection(stack: string, metrics: string[]): Promise<any> {
+  private async setupMetricsCollection(_stack: string, _metrics: string[]): Promise<any> {
     return {}
   }
 
-  private async setupLogging(stack: string): Promise<any> {
+  private async setupLogging(_stack: string): Promise<any> {
     return {}
   }
 
-  private async setupTracing(stack: string): Promise<any> {
+  private async setupTracing(_stack: string): Promise<any> {
     return {}
   }
 
-  private async setupAlerting(stack: string, metrics: string[]): Promise<any> {
+  private async setupAlerting(_stack: string, _metrics: string[]): Promise<any> {
     return {}
   }
 
-  private async generateDashboards(stack: string, metrics: string[]): Promise<any[]> {
+  private async generateDashboards(_stack: string, _metrics: string[]): Promise<any[]> {
     return []
   }
 
-  private async designBackupStrategy(rpo: number, scope: string): Promise<any> {
+  private async designBackupStrategy(_rpo: number, _scope: string): Promise<any> {
     return {}
   }
 
-  private async designRecoveryProcedures(rto: number, scope: string): Promise<any> {
+  private async designRecoveryProcedures(_rto: number, _scope: string): Promise<any> {
     return {}
   }
 
-  private async designFailoverStrategy(rto: number, scope: string): Promise<any> {
+  private async designFailoverStrategy(_rto: number, _scope: string): Promise<any> {
     return {}
   }
 
-  private async designDRTestingPlan(rto: number, rpo: number): Promise<any> {
+  private async designDRTestingPlan(_rto: number, _rpo: number): Promise<any> {
     return {}
   }
 
-  private async generateDRDocumentation(rto: number, rpo: number, scope: string): Promise<any> {
+  private async generateDRDocumentation(_rto: number, _rpo: number, _scope: string): Promise<any> {
     return {}
   }
 }

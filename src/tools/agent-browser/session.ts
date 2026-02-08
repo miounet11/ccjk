@@ -5,7 +5,7 @@
 
 import ansis from 'ansis'
 
-const { cyan, yellow, gray, green, red, blue, bold, dim } = ansis
+const { cyan: _cyan, yellow, gray: _gray, green, red: _red, blue: _blue, bold: _bold, dim: _dim } = ansis
 
 // ============================================================================
 // 类型定义

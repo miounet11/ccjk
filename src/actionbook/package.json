@@ -33,10 +33,10 @@
     "cache/",
     "index.d.ts",
     "index.js",
-    "types.d.ts",
-    "types.js",
+    "indexer/",
     "precompute/",
-    "indexer/"
+    "types.d.ts",
+    "types.js"
   ],
   "scripts": {
     "build": "tsc",

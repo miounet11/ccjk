@@ -17,8 +17,8 @@ import type {
   OrchestratorOptions,
   ResolvedDependency,
   Task,
-  TaskResult,
   TaskError,
+  TaskResult,
 } from './types'
 import { nanoid } from 'nanoid'
 import { ContextStore } from './context'
@@ -271,14 +271,14 @@ export class Orchestrator implements IOrchestrator {
       deps.push({
         id: nanoid(),
         type: 'skill',
-        name: task.name
+        name: task.name,
       })
     }
     else if (task.type === 'agent') {
       deps.push({
         id: nanoid(),
         type: 'agent',
-        name: task.name
+        name: task.name,
       })
     }
 

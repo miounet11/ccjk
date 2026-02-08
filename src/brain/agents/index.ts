@@ -15,21 +15,21 @@ import type {
   AgentResult as AgentResultType,
 } from './base-agent'
 import process from 'node:process'
+import { AIMLAgent as AIMLAgentClass } from './ai-ml-agent'
+import { ArchitectureAgent as ArchitectureAgentClass } from './architecture-agent'
 import {
   AgentRegistry as AgentRegistryClass,
   AgentState as AgentStateEnum,
   BaseAgent as BaseAgentClass,
 } from './base-agent'
 import { CodeAgent as CodeAgentClass } from './code-agent'
+import { DataAgent as DataAgentClass } from './data-agent'
+import { DevOpsAgent as DevOpsAgentClass } from './devops-agent'
 import { ExecutorAgent as ExecutorAgentClass } from './executor-agent'
-import { ResearchAgent as ResearchAgentClass } from './research-agent'
-import { ArchitectureAgent as ArchitectureAgentClass } from './architecture-agent'
 import { PerformanceAgent as PerformanceAgentClass } from './performance-agent'
+import { ResearchAgent as ResearchAgentClass } from './research-agent'
 import { SecurityAgent as SecurityAgentClass } from './security-agent'
 import { TestingAgent as TestingAgentClass } from './testing-agent'
-import { DevOpsAgent as DevOpsAgentClass } from './devops-agent'
-import { DataAgent as DataAgentClass } from './data-agent'
-import { AIMLAgent as AIMLAgentClass } from './ai-ml-agent'
 
 // Re-export Base Agent System
 export const AgentRegistry = AgentRegistryClass
@@ -290,19 +290,19 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
     type: 'code-agent',
     model: 'sonnet',
     description: 'Code analysis, review, and refactoring',
-    capabilities: ['analyze', 'review', 'refactor', 'performance', 'metrics']
+    capabilities: ['analyze', 'review', 'refactor', 'performance', 'metrics'],
   },
   'research-agent': {
     type: 'research-agent',
     model: 'sonnet',
     description: 'Documentation search and knowledge integration',
-    capabilities: ['search', 'integrate', 'compare', 'synthesize', 'index']
+    capabilities: ['search', 'integrate', 'compare', 'synthesize', 'index'],
   },
   'executor-agent': {
     type: 'executor-agent',
     model: 'sonnet',
     description: 'Command execution and file operations',
-    capabilities: ['execute', 'file-operation', 'batch', 'validate', 'rollback']
+    capabilities: ['execute', 'file-operation', 'batch', 'validate', 'rollback'],
   },
   'architecture-agent': {
     type: 'architecture-agent',
@@ -314,8 +314,8 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
       'evaluate-scalability',
       'security-review',
       'technology-selection',
-      'migration-strategy'
-    ]
+      'migration-strategy',
+    ],
   },
   'performance-agent': {
     type: 'performance-agent',
@@ -328,8 +328,8 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
       'optimize-frontend',
       'detect-memory-leaks',
       'load-test',
-      'benchmark'
-    ]
+      'benchmark',
+    ],
   },
   'security-agent': {
     type: 'security-agent',
@@ -343,8 +343,8 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
       'compliance-check',
       'security-review',
       'penetration-test',
-      'security-hardening'
-    ]
+      'security-hardening',
+    ],
   },
   'testing-agent': {
     type: 'testing-agent',
@@ -358,8 +358,8 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
       'property-testing',
       'test-refactoring',
       'test-quality',
-      'generate-fixtures'
-    ]
+      'generate-fixtures',
+    ],
   },
   'devops-agent': {
     type: 'devops-agent',
@@ -373,8 +373,8 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
       'kubernetes-config',
       'deployment-strategy',
       'monitoring-setup',
-      'disaster-recovery'
-    ]
+      'disaster-recovery',
+    ],
   },
   'data-agent': {
     type: 'data-agent',
@@ -388,8 +388,8 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
       'generate-migration',
       'data-modeling',
       'streaming-pipeline',
-      'data-governance'
-    ]
+      'data-governance',
+    ],
   },
   'ai-ml-agent': {
     type: 'ai-ml-agent',
@@ -403,9 +403,9 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
       'evaluate-model',
       'optimize-model',
       'mlops-setup',
-      'automl'
-    ]
-  }
+      'automl',
+    ],
+  },
 }
 
 /**
@@ -416,95 +416,95 @@ export function getRecommendedAgent(task: string): AgentType {
 
   // Architecture tasks
   if (
-    taskLower.includes('architecture') ||
-    taskLower.includes('design system') ||
-    taskLower.includes('scalability') ||
-    taskLower.includes('microservice')
+    taskLower.includes('architecture')
+    || taskLower.includes('design system')
+    || taskLower.includes('scalability')
+    || taskLower.includes('microservice')
   ) {
     return AGENT_TYPES.ARCHITECTURE
   }
 
   // Security tasks
   if (
-    taskLower.includes('security') ||
-    taskLower.includes('vulnerability') ||
-    taskLower.includes('owasp') ||
-    taskLower.includes('penetration') ||
-    taskLower.includes('compliance')
+    taskLower.includes('security')
+    || taskLower.includes('vulnerability')
+    || taskLower.includes('owasp')
+    || taskLower.includes('penetration')
+    || taskLower.includes('compliance')
   ) {
     return AGENT_TYPES.SECURITY
   }
 
   // Performance tasks
   if (
-    taskLower.includes('performance') ||
-    taskLower.includes('optimize') ||
-    taskLower.includes('benchmark') ||
-    taskLower.includes('memory leak') ||
-    taskLower.includes('profil')
+    taskLower.includes('performance')
+    || taskLower.includes('optimize')
+    || taskLower.includes('benchmark')
+    || taskLower.includes('memory leak')
+    || taskLower.includes('profil')
   ) {
     return AGENT_TYPES.PERFORMANCE
   }
 
   // Testing tasks
   if (
-    taskLower.includes('test') ||
-    taskLower.includes('coverage') ||
-    taskLower.includes('mutation') ||
-    taskLower.includes('fixture')
+    taskLower.includes('test')
+    || taskLower.includes('coverage')
+    || taskLower.includes('mutation')
+    || taskLower.includes('fixture')
   ) {
     return AGENT_TYPES.TESTING
   }
 
   // DevOps tasks
   if (
-    taskLower.includes('ci/cd') ||
-    taskLower.includes('pipeline') ||
-    taskLower.includes('docker') ||
-    taskLower.includes('kubernetes') ||
-    taskLower.includes('deploy') ||
-    taskLower.includes('infrastructure')
+    taskLower.includes('ci/cd')
+    || taskLower.includes('pipeline')
+    || taskLower.includes('docker')
+    || taskLower.includes('kubernetes')
+    || taskLower.includes('deploy')
+    || taskLower.includes('infrastructure')
   ) {
     return AGENT_TYPES.DEVOPS
   }
 
   // Data tasks
   if (
-    taskLower.includes('data pipeline') ||
-    taskLower.includes('etl') ||
-    taskLower.includes('schema') ||
-    taskLower.includes('data quality') ||
-    taskLower.includes('warehouse')
+    taskLower.includes('data pipeline')
+    || taskLower.includes('etl')
+    || taskLower.includes('schema')
+    || taskLower.includes('data quality')
+    || taskLower.includes('warehouse')
   ) {
     return AGENT_TYPES.DATA
   }
 
   // AI/ML tasks
   if (
-    taskLower.includes('machine learning') ||
-    taskLower.includes('ml') ||
-    taskLower.includes('model') ||
-    taskLower.includes('training') ||
-    taskLower.includes('automl') ||
-    taskLower.includes('feature engineering')
+    taskLower.includes('machine learning')
+    || taskLower.includes('ml')
+    || taskLower.includes('model')
+    || taskLower.includes('training')
+    || taskLower.includes('automl')
+    || taskLower.includes('feature engineering')
   ) {
     return AGENT_TYPES.AI_ML
   }
 
   // Code tasks
   if (
-    taskLower.includes('code') ||
-    taskLower.includes('refactor') ||
-    taskLower.includes('review')
+    taskLower.includes('code')
+    || taskLower.includes('refactor')
+    || taskLower.includes('review')
   ) {
     return AGENT_TYPES.CODE
   }
 
   // Research tasks
   if (
-    taskLower.includes('research') ||
-    taskLower.includes('documentation') ||
-    taskLower.includes('search')
+    taskLower.includes('research')
+    || taskLower.includes('documentation')
+    || taskLower.includes('search')
   ) {
     return AGENT_TYPES.RESEARCH
   }

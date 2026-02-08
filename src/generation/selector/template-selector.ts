@@ -1,7 +1,7 @@
+import type { AgentTemplate, ProjectAnalysis, SkillTemplate, TemplateSelection } from '../types'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
-import type { AgentTemplate, ProjectAnalysis, SkillTemplate, TemplateSelection } from '../types'
 
 // ESM compatible __dirname
 const __filename = fileURLToPath(import.meta.url)

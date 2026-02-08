@@ -93,7 +93,7 @@ describe('e2E: Cloud Sync Workflow', () => {
   describe('cloud Synchronization', () => {
     beforeEach(async () => {
       // Initialize local cloud provider
-      const result = await runCcjk(['cloud', 'init', 'local'], {
+      const _result = await runCcjk(['cloud', 'init', 'local'], {
         input: ['y'],
         timeout: 30000,
       })

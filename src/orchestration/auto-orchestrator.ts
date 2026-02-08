@@ -383,8 +383,8 @@ export class AutoOrchestrator {
     const estimatedDuration = this.getEstimatedDuration(strategy.type)
 
     // Map 'hybrid' to 'skill' for the step type
-    const stepType: 'skill' | 'agent' | 'mcp' | 'builtin' =
-      strategy.type === 'hybrid' ? 'skill' : strategy.type as 'skill' | 'agent' | 'mcp'
+    const stepType: 'skill' | 'agent' | 'mcp' | 'builtin'
+      = strategy.type === 'hybrid' ? 'skill' : strategy.type as 'skill' | 'agent' | 'mcp'
 
     return {
       id: `${strategy.type}-${strategy.name}-${Date.now()}`,
@@ -440,7 +440,7 @@ export class AutoOrchestrator {
    */
   private collectResources(
     steps: OrchestrationStep[],
-    rule: OrchestrationRule,
+    _rule: OrchestrationRule,
   ): {
     skills?: string[]
     agents?: string[]

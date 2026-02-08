@@ -1,5 +1,10 @@
 import type { SupportedLang } from '../../constants'
 import { promises as fsp } from 'node:fs'
+import { join } from 'pathe'
+import { CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_FILE, CODEX_DIR, CODEX_PROMPTS_DIR } from '../../constants'
+import { i18n } from '../../i18n'
+import { writeFileAtomic } from '../fs-operations'
+import { moveToTrash } from '../trash'
 
 async function pathExists(p: string): Promise<boolean> {
   try {
@@ -10,11 +15,6 @@ async function pathExists(p: string): Promise<boolean> {
     return false
   }
 }
-import { join } from 'pathe'
-import { CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_FILE, CODEX_DIR, CODEX_PROMPTS_DIR } from '../../constants'
-import { i18n } from '../../i18n'
-import { writeFileAtomic } from '../fs-operations'
-import { moveToTrash } from '../trash'
 
 export type CodexUninstallItem
   = 'config'

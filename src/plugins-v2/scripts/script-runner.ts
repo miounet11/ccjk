@@ -259,7 +259,7 @@ export class ScriptRunner {
           cwd: options.cwd,
           env: {
             ...Object.fromEntries(
-              Object.entries(process.env).filter(([, v]) => v !== undefined)
+              Object.entries(process.env).filter(([, v]) => v !== undefined),
             ) as Record<string, string>,
             ...options.env,
           },
@@ -298,7 +298,7 @@ export class ScriptRunner {
         cwd: options.cwd,
         env: {
           ...Object.fromEntries(
-            Object.entries(process.env).filter(([, v]) => v !== undefined)
+            Object.entries(process.env).filter(([, v]) => v !== undefined),
           ) as Record<string, string>,
           ...options.env,
         },

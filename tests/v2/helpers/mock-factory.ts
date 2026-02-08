@@ -179,7 +179,7 @@ export class MockFactory {
    */
   static createI18nMock(translations: Record<string, string> = {}) {
     return {
-      t: vi.fn().mockImplementation((key: string, options?: any) => {
+      t: vi.fn().mockImplementation((key: string, _options?: any) => {
         return translations[key] || key
       }),
       changeLanguage: vi.fn().mockResolvedValue(undefined),
@@ -244,7 +244,7 @@ export class MockFactory {
   ) {
     const { delay = 0, shouldReject = false, rejectionReason = new Error('Mock rejection') } = options
 
-    return vi.fn().mockImplementation(async (...args: any[]) => {
+    return vi.fn().mockImplementation(async (..._args: any[]) => {
       if (delay > 0) {
         await new Promise(resolve => setTimeout(resolve, delay))
       }

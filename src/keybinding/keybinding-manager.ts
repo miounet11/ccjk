@@ -238,7 +238,7 @@ export class KeybindingManager {
         this.keybindings.set(binding.id, binding)
       }
     }
-    catch (error) {
+    catch (_error) {
       // File doesn't exist, use defaults
     }
   }

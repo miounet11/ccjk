@@ -205,8 +205,8 @@ export class PostProcessor {
    */
   private validateStep(
     step: WorkflowStep,
-    workflow: Workflow,
-    context: ProjectContext,
+    _workflow: Workflow,
+    _context: ProjectContext,
   ): ValidationError[] {
     const errors: ValidationError[] = []
 
@@ -320,7 +320,7 @@ export class PostProcessor {
   /**
    * Check if command is valid
    */
-  private isValidCommand(command: string, context: ProjectContext): boolean {
+  private isValidCommand(command: string, _context: ProjectContext): boolean {
     // Basic validation - check if command starts with a valid program
     const parts = command.trim().split(/\s+/)
     const cmd = parts[0]

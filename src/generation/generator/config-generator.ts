@@ -1,8 +1,8 @@
+import type { AgentTemplate, GeneratedConfig, SkillTemplate, TemplateSelection } from '../types'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
-import type { AgentTemplate, GeneratedConfig, SkillTemplate, TemplateSelection } from '../types'
 
 // ESM compatible __dirname
 const __filename = fileURLToPath(import.meta.url)

@@ -84,7 +84,7 @@ export class CacheManager {
       // Clean expired entries
       this.cleanExpired()
     }
-    catch (error) {
+    catch (_error) {
       // Ignore errors, start with empty cache
       this.cache = new Map()
     }

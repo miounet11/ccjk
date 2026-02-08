@@ -143,7 +143,7 @@ export class MultiAgentOrchestrator {
   /**
    * Determine execution order for an agent's tasks
    */
-  private determineExecutionOrder(agent: AgentCapability, tasks: Task[]): number {
+  private determineExecutionOrder(agent: AgentCapability, _tasks: Task[]): number {
     // Agents with higher model priority go first
     const modelPriority: Record<string, number> = {
       opus: 1,

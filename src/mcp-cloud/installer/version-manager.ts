@@ -99,7 +99,7 @@ export class VersionManager {
       const versions = JSON.parse(stdout)
       return Array.isArray(versions) ? versions : [versions]
     }
-    catch (error) {
+    catch (_error) {
       return []
     }
   }
@@ -112,7 +112,7 @@ export class VersionManager {
       const { stdout } = await execAsync(`npm view ${packageName} version`)
       return stdout.trim()
     }
-    catch (error) {
+    catch (_error) {
       return null
     }
   }
@@ -195,7 +195,7 @@ export class VersionManager {
         this.installations.set(record.serviceId, record)
       })
     }
-    catch (error) {
+    catch (_error) {
       // Start with empty installations
       this.installations.clear()
     }

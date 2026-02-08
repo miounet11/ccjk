@@ -6,6 +6,9 @@
  * @module cloud-sync-v2/sync-engine
  */
 
+import type { EncryptionManager } from './encryption'
+import type { OfflineQueue } from './offline-queue'
+import type { StreamTransferEngine } from './stream-transfer'
 import type {
   CRDTSnapshot,
   NodeId,
@@ -13,7 +16,6 @@ import type {
   ProgressCallback,
   QueuedOperation,
   SyncEngineV2Config,
-  SyncEventsV2,
   SyncItemType,
   SyncItemV2,
   SyncResultV2,
@@ -22,10 +24,9 @@ import type {
 } from './types'
 import { randomUUID } from 'node:crypto'
 import { EventEmitter } from 'node:events'
-import { createGCounter, LWWRegister, ORSet } from './crdt'
-import { createEncryptionManager, EncryptionManager } from './encryption'
-import { createOfflineQueue, OfflineQueue } from './offline-queue'
-import { createStreamTransferEngine, StreamTransferEngine } from './stream-transfer'
+import { createEncryptionManager } from './encryption'
+import { createOfflineQueue } from './offline-queue'
+import { createStreamTransferEngine } from './stream-transfer'
 import {
   DEFAULT_SYNC_ENGINE_V2_CONFIG,
 } from './types'
@@ -601,7 +602,7 @@ export class SyncEngineV2 extends EventEmitter {
    */
   private async pullItem<T>(
     item: SyncItemV2<T>,
-    onProgress?: ProgressCallback,
+    _onProgress?: ProgressCallback,
   ): Promise<void> {
     // Save to local storage
     await this.localAdapter.save(item)

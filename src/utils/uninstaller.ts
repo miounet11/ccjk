@@ -1,6 +1,12 @@
 import type { SupportedLang } from '../constants'
-import { homedir } from 'node:os'
 import { promises as fsp } from 'node:fs'
+import { homedir } from 'node:os'
+import { join } from 'pathe'
+import { exec } from 'tinyexec'
+import { ZCF_CONFIG_FILE } from '../constants'
+import { i18n } from '../i18n'
+import { readJsonConfig, writeJsonConfig } from './json-config'
+import { moveToTrash } from './trash'
 
 async function pathExists(p: string): Promise<boolean> {
   try {
@@ -11,12 +17,6 @@ async function pathExists(p: string): Promise<boolean> {
     return false
   }
 }
-import { join } from 'pathe'
-import { exec } from 'tinyexec'
-import { ZCF_CONFIG_FILE } from '../constants'
-import { i18n } from '../i18n'
-import { readJsonConfig, writeJsonConfig } from './json-config'
-import { moveToTrash } from './trash'
 
 export type UninstallItem
   = | 'output-styles'

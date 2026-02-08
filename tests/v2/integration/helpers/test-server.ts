@@ -191,7 +191,7 @@ export class TestClient {
   /**
    * Make GET request
    */
-  async get(path: string): Promise<any> {
+  async get(_path: string): Promise<any> {
     // Mock implementation
     return {
       status: 200,
@@ -213,7 +213,7 @@ export class TestClient {
   /**
    * Make WebSocket connection
    */
-  async connectWebSocket(path: string): Promise<any> {
+  async connectWebSocket(_path: string): Promise<any> {
     // Mock implementation
     return {
       on: vi.fn(),
@@ -226,7 +226,7 @@ export class TestClient {
   /**
    * Connect to Redis
    */
-  async connectRedis(host: string, port: number): Promise<any> {
+  async connectRedis(_host: string, _port: number): Promise<any> {
     return TestServer.createMockRedis()
   }
 }

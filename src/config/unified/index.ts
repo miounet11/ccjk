@@ -49,7 +49,7 @@ export type { ClaudeSettings } from '../../types/config'
 export * from './ccjk-config'
 
 // Claude Code Configuration Manager (settings.json)
-export { readClaudeConfig, writeClaudeConfig, updateClaudeConfig, getClaudeConfig, validateClaudeConfig } from './claude-config'
+export { getClaudeConfig, readClaudeConfig, updateClaudeConfig, validateClaudeConfig, writeClaudeConfig } from './claude-config'
 
 // Credential Manager
 export * from './credentials'
@@ -58,7 +58,7 @@ export * from './credentials'
 export * from './merger'
 
 // Migration System
-export { runMigrations, needsMigration, getMigrationStatus, detectLegacyConfigs } from './migration'
+export { detectLegacyConfigs, getMigrationStatus, needsMigration, runMigrations } from './migration'
 
 // Runtime State Manager (state.json)
 export * from './state-manager'

@@ -221,7 +221,7 @@ export class DependencyTracker {
 
     // Remove edges pointing to this file
     const edgesArray = Array.from(this.graph.edges)
-    for (const [source, targets] of edgesArray) {
+    for (const [_source, targets] of edgesArray) {
       targets.delete(filePath)
     }
   }

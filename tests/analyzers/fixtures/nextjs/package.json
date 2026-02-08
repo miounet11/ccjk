@@ -9,17 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.1.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "typescript": "^5",
-    "eslint": "^8",
-    "eslint-config-next": "14.1.0",
-    "tailwindcss": "^3.3.0"
+    "@types/node": "catalog:conflicts_conflicts_@types/node_h20_11_5_h20",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "eslint": "catalog:conflicts_conflicts_eslint_h8_0_0_h8",
+    "eslint-config-next": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5"
   }
 }

@@ -355,7 +355,7 @@ export class BackgroundTaskManager {
 
     this.activeTaskCount++
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       // Agent execution simulation
       // In real implementation, this would call the actual agent
       task.status = 'running'

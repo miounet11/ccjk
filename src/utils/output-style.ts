@@ -146,7 +146,7 @@ function getTemplatePermissions(): string[] {
       return template.permissions?.allow || []
     }
   }
-  catch (error) {
+  catch (_error) {
     // Silently fall back to default
   }
   // Default permissions if template not found

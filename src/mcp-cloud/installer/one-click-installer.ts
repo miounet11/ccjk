@@ -37,7 +37,7 @@ export class OneClickInstaller {
     service: MCPService,
     options: InstallOptions = {},
   ): Promise<InstallResult> {
-    const startTime = Date.now()
+    const _startTime = Date.now()
 
     try {
       // Check if already installed
@@ -73,7 +73,7 @@ export class OneClickInstaller {
       const version = options.version || service.version
       const installCommand = this.buildInstallCommand(service, version, options)
 
-      const { stdout, stderr } = await execAsync(installCommand)
+      const { stdout: _stdout, stderr } = await execAsync(installCommand)
 
       // Save configuration
       if (options.autoConfig) {
@@ -243,7 +243,7 @@ export class OneClickInstaller {
 
       return true
     }
-    catch (error) {
+    catch (_error) {
       return false
     }
   }

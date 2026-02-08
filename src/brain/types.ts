@@ -161,11 +161,11 @@ export interface Subscription {
  * Message storage interface
  */
 export interface MessageStorage {
-  save(message: AgentMessage): Promise<void>
-  load(filter?: MessageFilter): Promise<AgentMessage[]>
-  delete(messageId: string): Promise<void>
-  clear(): Promise<void>
-  getStats(): Promise<{ count: number, size: number }>
+  save: (message: AgentMessage) => Promise<void>
+  load: (filter?: MessageFilter) => Promise<AgentMessage[]>
+  delete: (messageId: string) => Promise<void>
+  clear: () => Promise<void>
+  getStats: () => Promise<{ count: number, size: number }>
 }
 
 /**

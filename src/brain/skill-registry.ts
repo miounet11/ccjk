@@ -678,7 +678,7 @@ export class SkillRegistry extends EventEmitter {
    */
   private updateDependencyGraph(id: string, dependencies: string[]): void {
     // Remove old dependency relationships
-    Array.from(this.skills.entries()).forEach(([depId, entry]) => {
+    Array.from(this.skills.entries()).forEach(([_depId, entry]) => {
       if (entry.dependencies.includes(id)) {
         entry.dependents.delete(id)
       }

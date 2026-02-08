@@ -90,7 +90,7 @@ export async function showContextStatus(): Promise<void> {
 
   for (const file of contextFiles.slice(0, 10)) {
     const tokens = estimateTokens(readFileSync(file, 'utf-8'))
-    const size = lstatSync(file).size
+    const _size = lstatSync(file).size
     console.log(`  ${ansis.white(file)} ${ansis.dim(`(${tokens.toLocaleString()} ${t('context.tokens')})`)}`)
   }
 
@@ -363,7 +363,7 @@ function formatBytes(bytes: number): string {
  * Main context command handler
  */
 export async function handleContextCommand(args: string[]): Promise<void> {
-  const [action, ...rest] = args
+  const [action, ..._rest] = args
 
   switch (action) {
     case 'analyze':

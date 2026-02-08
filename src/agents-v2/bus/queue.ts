@@ -3,8 +3,8 @@
  * Priority-based message queue using Redis Sorted Sets
  */
 
-import type { IMessageQueue, Message, MessagePriority } from '../types.js'
 import type { Redis } from 'ioredis'
+import type { IMessageQueue, Message, MessagePriority } from '../types.js'
 
 export interface QueueStats {
   size: number
@@ -82,7 +82,7 @@ export class MessageQueue implements IMessageQueue {
       return null
     }
 
-    const [messageData, score] = result
+    const [messageData, _score] = result
 
     try {
       const message: Message = JSON.parse(messageData)
@@ -185,7 +185,7 @@ export class MessageQueue implements IMessageQueue {
         const oldest: Message = JSON.parse(oldestResult[0])
         oldestMessage = new Date(oldest.timestamp)
       }
-      catch (error) {
+      catch (_error) {
         // Ignore parse errors
       }
     }
@@ -195,7 +195,7 @@ export class MessageQueue implements IMessageQueue {
         const newest: Message = JSON.parse(newestResult[0])
         newestMessage = new Date(newest.timestamp)
       }
-      catch (error) {
+      catch (_error) {
         // Ignore parse errors
       }
     }
@@ -238,7 +238,7 @@ export class MessageQueue implements IMessageQueue {
             break
           }
         }
-        catch (error) {
+        catch (_error) {
           // Ignore parse errors
         }
       }

@@ -343,7 +343,7 @@ export class SkillRegistry extends EventEmitter {
   /**
    * Detect conflicts for a skill
    */
-  detectConflicts(skill: SkillV3, existingSkill?: SkillV3): SkillConflict[] {
+  detectConflicts(skill: SkillV3, _existingSkill?: SkillV3): SkillConflict[] {
     const conflicts: SkillConflict[] = []
 
     // Check for trigger conflicts

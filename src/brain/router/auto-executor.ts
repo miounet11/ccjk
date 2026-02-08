@@ -309,7 +309,7 @@ export class AutoExecutor extends EventEmitter {
   /**
    * Detect which MCP tools are needed
    */
-  private async detectMcpRequirement(input: string, intent: AnalyzedIntent): Promise<McpRequirement> {
+  private async detectMcpRequirement(input: string, _intent: AnalyzedIntent): Promise<McpRequirement> {
     const normalized = input.toLowerCase()
     const tools: string[] = []
 

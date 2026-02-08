@@ -7,6 +7,7 @@
  * @module brain/task-decomposer
  */
 
+import type { AgentCapability } from '../types/agent.js'
 import type {
   DecompositionStrategy,
   Task,
@@ -17,7 +18,6 @@ import type {
   TaskGraphNode,
   TaskStage,
 } from './orchestrator-types.js'
-import type { AgentCapability } from '../types/agent.js'
 import { nanoid } from 'nanoid'
 
 /**

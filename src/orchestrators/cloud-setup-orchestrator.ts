@@ -19,8 +19,7 @@ import type { CcjkSkillsOptions } from '../commands/ccjk-skills'
 import type { SupportedLang } from '../constants'
 import { createHash } from 'node:crypto'
 import { promises as fs, readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import ansis from 'ansis'
 import consola from 'consola'
 import { analyzeProject } from '../analyzers'
@@ -263,7 +262,7 @@ export class CloudSetupOrchestrator {
     })
 
     // Generate project fingerprint
-    const fingerprint = this.generateProjectFingerprint(analysis)
+    const _fingerprint = this.generateProjectFingerprint(analysis)
 
     if (options.interactive !== false) {
       this.displayProjectInfo(analysis)
@@ -374,7 +373,7 @@ export class CloudSetupOrchestrator {
 
       return recommendations
     }
-    catch (error) {
+    catch (_error) {
       this.logger.warn('Failed to get cloud recommendations, using local fallback')
       return this.getLocalRecommendations(analysis)
     }
@@ -562,7 +561,7 @@ export class CloudSetupOrchestrator {
   /**
    * Extract insights from response
    */
-  private extractInsights(response: ProjectAnalysisResponse): CloudInsights {
+  private extractInsights(_response: ProjectAnalysisResponse): CloudInsights {
     return {
       insights: [
         i18n.t('cloud-setup:cloudRecommendationsGenerated'),

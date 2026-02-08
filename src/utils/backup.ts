@@ -53,7 +53,7 @@ export async function createBackup(
           await fs.copyFile(sourcePath, destPath)
         }
       }
-      catch (error) {
+      catch (_error) {
         // File doesn't exist, skip
       }
     }
@@ -110,11 +110,11 @@ export async function restoreBackup(backupPath: string): Promise<void> {
             await fs.copyFile(sourcePath, destPath)
           }
         }
-        catch (error) {
+        catch (_error) {
           consola.warn(i18n.t('backup.restoreFailed', { file }))
         }
       }
-      catch (error) {
+      catch (_error) {
         // File doesn't exist in backup, skip
       }
     }
@@ -143,14 +143,14 @@ export async function listBackups(): Promise<string[]> {
           backups.push(fullPath)
         }
       }
-      catch (error) {
+      catch (_error) {
         // Skip invalid entries
       }
     }
 
     return backups.sort((a, b) => b.localeCompare(a)) // Newest first
   }
-  catch (error) {
+  catch (_error) {
     return []
   }
 }
@@ -169,7 +169,7 @@ export async function cleanupOldBackups(keepCount: number = 5): Promise<void> {
       await fs.rm(backup, { recursive: true, force: true })
       consola.info(i18n.t('backup.removed', { path: backup }))
     }
-    catch (error) {
+    catch (_error) {
       consola.warn(i18n.t('backup.removeFailed', { path: backup }))
     }
   }
@@ -214,14 +214,14 @@ export async function validateBackup(backupPath: string): Promise<boolean> {
         await fs.access(join(backupPath, file))
         foundFiles++
       }
-      catch (error) {
+      catch (_error) {
         // File not found
       }
     }
 
     return foundFiles > 0
   }
-  catch (error) {
+  catch (_error) {
     return false
   }
 }

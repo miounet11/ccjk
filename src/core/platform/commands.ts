@@ -374,7 +374,7 @@ export function buildCommandWithEnv(
  * @param shell - Shell type
  * @returns Shell command and flag for executing commands
  */
-function getShellCommand(shell: ShellType): { cmd: string, flag: string } {
+function _getShellCommand(shell: ShellType): { cmd: string, flag: string } {
   switch (shell) {
     case 'powershell':
       return { cmd: 'powershell.exe', flag: '-Command' }
@@ -403,7 +403,7 @@ export async function executeCommand(
   command: string,
   options: CommandOptions = {},
 ): Promise<CommandResult> {
-  const platform = getPlatformInfo()
+  const _platform = getPlatformInfo()
   const startTime = Date.now()
 
   const {
@@ -563,7 +563,7 @@ export function spawnCommand(
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now()
-    const platform = getPlatformInfo()
+    const _platform = getPlatformInfo()
 
     const {
       cwd = process.cwd(),

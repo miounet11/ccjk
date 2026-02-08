@@ -213,7 +213,7 @@ export class ContextWebSocketClient {
   /**
    * Handle connection close
    */
-  private handleClose(event: { code: number; reason: string }): void {
+  private handleClose(event: { code: number, reason: string }): void {
     this.stopHeartbeat()
     this.ws = null
 

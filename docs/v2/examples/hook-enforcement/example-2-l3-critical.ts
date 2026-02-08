@@ -26,7 +26,7 @@ const systemFileProtectionMatcher: HookMatcher = {
  * Critical executor with strict blocking logic
  */
 const systemFileProtectionExecutor: HookExecutor = async (context) => {
-  const { userQuery, metadata } = context
+  const { userQuery, metadata: _metadata } = context
 
   // Define protected paths
   const protectedPaths = [

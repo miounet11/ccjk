@@ -392,7 +392,7 @@ export class SetupOrchestrator {
     return hooks
   }
 
-  private async showPlanAndConfirm(plan: any, options: SetupOrchestratorOptions): Promise<boolean> {
+  private async showPlanAndConfirm(_plan: any, _options: SetupOrchestratorOptions): Promise<boolean> {
     // Implementation would show interactive plan and get user confirmation
     // For now, return true
     return true
@@ -690,7 +690,7 @@ export class SetupOrchestrator {
     }
   }
 
-  private async rollbackPhase(phase: string, phaseResult: PhaseResult): Promise<void> {
+  private async rollbackPhase(phase: string, _phaseResult: PhaseResult): Promise<void> {
     // Implement phase-specific rollback logic
     switch (phase) {
       case 'skills':

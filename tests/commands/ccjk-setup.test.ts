@@ -71,11 +71,11 @@ describe('ccjk:setup command', () => {
 
   describe('execution modes', () => {
     it('should run with default options', async () => {
-      const context = {
+      const _context = {
         options: { verbose: false },
       }
 
-      const args = {
+      const _args = {
         profile: 'recommended',
         interactive: true,
         parallel: true,

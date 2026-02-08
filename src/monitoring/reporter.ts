@@ -70,7 +70,7 @@ function getTimeRangeBoundaries(range: ReportTimeRange, custom?: { start?: numbe
 /**
  * Format time range for display
  */
-function formatTimeRange(range: ReportTimeRange): string {
+function _formatTimeRange(range: ReportTimeRange): string {
   switch (range) {
     case 'hourly': return 'Last Hour'
     case 'daily': return 'Last 24 Hours'
@@ -148,7 +148,7 @@ function analyzeTrend(
 /**
  * Detect anomalies using statistical methods
  */
-function detectAnomalies(
+function _detectAnomalies(
   values: { timestamp: number, value: number }[],
   metricName: string,
 ): AnomalyDetection[] {

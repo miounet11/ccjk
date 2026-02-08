@@ -174,7 +174,7 @@ export class MCPUpdateManager {
       // This would fetch from npm or GitHub
       return `Release notes for ${packageName}@${version}`
     }
-    catch (error) {
+    catch (_error) {
       return 'Release notes not available'
     }
   }
