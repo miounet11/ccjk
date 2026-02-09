@@ -285,19 +285,19 @@ export class SmartDefaultsDetector {
    * Get recommended MCP services based on environment
    */
   getRecommendedMcpServices(platform: string): string[] {
-    const core = ['filesystem', 'git', 'fetch']
+    const core = ['context7', 'mcp-deepwiki', 'open-websearch']
 
-    // Add platform-specific services
-    if (platform === 'macos') {
-      return [...core, 'macos-shortcuts']
+    // Add platform-specific services (platform values from process.platform)
+    if (platform === 'darwin') {
+      return [...core, 'Playwright', 'sqlite']
     }
 
     if (platform === 'linux') {
-      return [...core, 'linux-desktop']
+      return [...core, 'sqlite']
     }
 
-    if (platform === 'windows') {
-      return [...core, 'windows-registry']
+    if (platform === 'win32') {
+      return [...core, 'Playwright', 'sqlite']
     }
 
     return core
@@ -340,13 +340,18 @@ export class SmartDefaultsDetector {
   validateDefaults(defaults: SmartDefaults): { valid: boolean, issues: string[] } {
     const issues: string[] = []
 
-    // Check API key format - only warn if key is very short (likely invalid)
-    if (defaults.apiKey && defaults.apiKey.length < 10) {
-      issues.push('API key appears too short to be valid')
+    // Check API key format
+    if (defaults.apiKey) {
+      if (defaults.apiKey.length < 10) {
+        issues.push('API key appears too short to be valid')
+      }
+      else if (defaults.apiProvider === 'anthropic' && !defaults.apiKey.startsWith('sk-ant-')) {
+        issues.push('API key format appears invalid (should start with sk-ant-)')
+      }
     }
 
     // Check platform support
-    if (!['macos', 'linux', 'windows'].includes(defaults.platform)) {
+    if (!['darwin', 'linux', 'win32'].includes(defaults.platform)) {
       issues.push(`Platform ${defaults.platform} may not be fully supported`)
     }
 

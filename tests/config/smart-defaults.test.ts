@@ -75,6 +75,11 @@ describe('smartDefaultsDetector', () => {
     })
 
     it('should detect API key from Claude Code config', async () => {
+      // Clear env vars so config file detection is tested
+      delete process.env.ANTHROPIC_API_KEY
+      delete process.env.CLAUDE_API_KEY
+      delete process.env.API_KEY
+
       vi.mocked(existsSync).mockImplementation((path) => {
         return path === join('/mock/home', '.config', 'claude', 'config.json')
       })
@@ -116,22 +121,22 @@ describe('smartDefaultsDetector', () => {
   describe('getRecommendedMcpServices()', () => {
     it('should return core services for unknown platform', () => {
       const services = detector.getRecommendedMcpServices('unknown')
-      expect(services).toEqual(['filesystem', 'git', 'fetch'])
+      expect(services).toEqual(['context7', 'mcp-deepwiki', 'open-websearch'])
     })
 
     it('should return platform-specific services for macOS', () => {
       const services = detector.getRecommendedMcpServices('darwin')
-      expect(services).toEqual(['filesystem', 'git', 'fetch', 'macos-shortcuts'])
+      expect(services).toEqual(['context7', 'mcp-deepwiki', 'open-websearch', 'Playwright', 'sqlite'])
     })
 
     it('should return platform-specific services for Linux', () => {
       const services = detector.getRecommendedMcpServices('linux')
-      expect(services).toEqual(['filesystem', 'git', 'fetch', 'linux-desktop'])
+      expect(services).toEqual(['context7', 'mcp-deepwiki', 'open-websearch', 'sqlite'])
     })
 
     it('should return platform-specific services for Windows', () => {
       const services = detector.getRecommendedMcpServices('win32')
-      expect(services).toEqual(['filesystem', 'git', 'fetch', 'windows-registry'])
+      expect(services).toEqual(['context7', 'mcp-deepwiki', 'open-websearch', 'Playwright', 'sqlite'])
     })
   })
 
@@ -386,6 +391,11 @@ describe('smart-defaults', () => {
     })
 
     it('should handle invalid JSON in config file gracefully', async () => {
+      // Clear env vars so only config file is tested
+      delete process.env.ANTHROPIC_API_KEY
+      delete process.env.CLAUDE_API_KEY
+      delete process.env.API_KEY
+
       vi.mocked(existsSync).mockImplementation((path) => {
         return path === join('/mock/home', '.config', 'claude', 'config.json')
       })
@@ -393,7 +403,7 @@ describe('smart-defaults', () => {
 
       const defaults = await detectSmartDefaults()
 
-      expect(defaults.apiProvider).toBe('anthropic') // Default fallback
+      expect(defaults.apiProvider).toBeUndefined() // No key means no provider
       expect(defaults.apiKey).toBeUndefined()
     })
 
