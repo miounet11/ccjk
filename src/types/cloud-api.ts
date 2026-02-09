@@ -627,7 +627,7 @@ export interface CloudRecommendation {
     'en': string
     'zh-CN': string
   }
-  category: 'workflow' | 'mcp' | 'agent' | 'tool' | 'skill'
+  category: 'skill' | 'mcp' | 'agent' | 'hook'
   relevanceScore: number
   tags: string[]
   templateId?: string

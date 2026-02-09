@@ -128,5 +128,17 @@ catalogs:
     typescript: ^5
   conflicts_conflicts_conflicts_conflicts_eslint_h8_0_0_h8_h9_36_0_h8:
     eslint: ^8
+  conflicts_fdir_h6_4_6:
+    fdir: ^6.4.6
+  conflicts_ofetch_h1_4_1:
+    ofetch: ^1.4.1
+  conflicts_tinyglobby_h0_2_14:
+    tinyglobby: ^0.2.14
+  conflicts_web-tree-sitter_h0_24_7:
+    web-tree-sitter: ^0.24.7
+  conflicts_@types/semver_h7_7_0:
+    '@types/semver': ^7.7.0
+  conflicts_@types/uuid_h10_0_0:
+    '@types/uuid': ^10.0.0
 onlyBuiltDependencies:
   - esbuild

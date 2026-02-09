@@ -324,8 +324,8 @@ function applyDefaultsToInitOptions(
     provider: skipApiConfig ? undefined : provider,
     // Recommended MCP services based on platform
     mcpServices: defaults.mcpServices,
-    // Essential skills (git-commit, feat, workflow, init-project)
-    workflows: defaults.skills.map(s => s.replace('ccjk:', '')),
+    // Skills to install (separate from workflows)
+    skills: defaults.skills.map(s => s.replace('ccjk:', '')),
     codeType: defaults.codeToolType || 'claude-code',
     configAction: 'backup',
     // Minimal options for speed
@@ -489,6 +489,21 @@ export async function quickSetup(options: QuickSetupOptions = {}): Promise<Quick
     displayStep(4, 4, 'Executing installation...')
 
     await init(initOptions)
+
+    // Install skills (separate from workflows)
+    if (Array.isArray(initOptions.skills) && initOptions.skills.length > 0) {
+      try {
+        const { ccjkSkills } = await import('./ccjk-skills')
+        await ccjkSkills({
+          interactive: false,
+          force: false,
+        })
+      }
+      catch (error) {
+        const msg = error instanceof Error ? error.message : String(error)
+        console.log(ansis.yellow(`  ⚠ Skills installation skipped: ${msg}`))
+      }
+    }
 
     result.steps.installation = true
     result.steps.validation = true

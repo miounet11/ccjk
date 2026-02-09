@@ -91,7 +91,7 @@ describe('cloudSetupOrchestrator', () => {
           id: 'ts-best-practices',
           name: { en: 'TypeScript Best Practices' },
           description: { en: 'Essential for TypeScript' },
-          category: 'workflow',
+          category: 'skill',
           relevanceScore: 0.98,
         }],
         mcpServices: [],

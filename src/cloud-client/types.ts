@@ -33,8 +33,8 @@ export interface Recommendation {
   name: Record<string, string>
   /** Description (multilingual) */
   description: Record<string, string>
-  /** Category: workflow, mcp, agent, tool */
-  category: 'workflow' | 'mcp' | 'agent' | 'tool'
+  /** Category: skill, mcp, agent, hook */
+  category: 'skill' | 'mcp' | 'agent' | 'hook'
   /** Relevance score (0-1) */
   relevanceScore: number
   /** Install command */

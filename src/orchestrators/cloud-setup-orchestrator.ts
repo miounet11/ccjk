@@ -362,10 +362,10 @@ export class CloudSetupOrchestrator {
       // Categorize recommendations
       const fingerprint = this.generateProjectFingerprint(analysis)
       const recommendations: CloudRecommendations = {
-        skills: response.recommendations.filter((r: Recommendation) => r.category === 'workflow'),
+        skills: response.recommendations.filter((r: Recommendation) => r.category === 'skill'),
         mcpServices: response.recommendations.filter((r: Recommendation) => r.category === 'mcp'),
         agents: response.recommendations.filter((r: Recommendation) => r.category === 'agent'),
-        hooks: response.recommendations.filter((r: Recommendation) => r.category === 'tool'),
+        hooks: response.recommendations.filter((r: Recommendation) => r.category === 'hook'),
         confidence: this.calculateConfidence(response.recommendations),
         fingerprint,
         insights: this.extractInsights(response),
@@ -453,7 +453,7 @@ export class CloudSetupOrchestrator {
         id: 'ts-best-practices',
         name: { 'en': 'TypeScript Best Practices', 'zh-CN': 'TypeScript 最佳实践' },
         description: { 'en': 'Essential for TypeScript 5.3+ strict mode', 'zh-CN': 'TypeScript 5.3+ 严格模式必备' },
-        category: 'workflow',
+        category: 'skill',
         relevanceScore: 0.98,
         tags: ['typescript', 'type-checking'],
       })
@@ -465,7 +465,7 @@ export class CloudSetupOrchestrator {
         id: 'react-design-patterns',
         name: { 'en': 'React Design Patterns', 'zh-CN': 'React 设计模式' },
         description: { 'en': 'React 18+ hooks and composition', 'zh-CN': 'React 18+ Hooks 和组合' },
-        category: 'workflow',
+        category: 'skill',
         relevanceScore: 0.95,
         tags: ['react', 'hooks', 'frontend'],
       })
@@ -477,7 +477,7 @@ export class CloudSetupOrchestrator {
         id: 'nextjs-optimization',
         name: { 'en': 'Next.js Optimization', 'zh-CN': 'Next.js 优化' },
         description: { 'en': 'App router and server components', 'zh-CN': 'App Router 和服务器组件' },
-        category: 'workflow',
+        category: 'skill',
         relevanceScore: 0.92,
         tags: ['nextjs', 'ssr', 'performance'],
       })
@@ -489,7 +489,7 @@ export class CloudSetupOrchestrator {
         id: 'vue-design-patterns',
         name: { 'en': 'Vue Design Patterns', 'zh-CN': 'Vue 设计模式' },
         description: { 'en': 'Vue 3 Composition API patterns', 'zh-CN': 'Vue 3 组合式 API 模式' },
-        category: 'workflow',
+        category: 'skill',
         relevanceScore: 0.95,
         tags: ['vue', 'composition-api', 'frontend'],
       })
@@ -501,7 +501,7 @@ export class CloudSetupOrchestrator {
         id: 'nodejs-workflow',
         name: { 'en': 'Node.js Workflow', 'zh-CN': 'Node.js 工作流' },
         description: { 'en': 'Node.js development tools', 'zh-CN': 'Node.js 开发工具' },
-        category: 'workflow',
+        category: 'skill',
         relevanceScore: 0.90,
         tags: ['nodejs', 'backend'],
       })
@@ -513,7 +513,7 @@ export class CloudSetupOrchestrator {
         id: 'nestjs-workflow',
         name: { 'en': 'NestJS Workflow', 'zh-CN': 'NestJS 工作流' },
         description: { 'en': 'NestJS backend development', 'zh-CN': 'NestJS 后端开发' },
-        category: 'workflow',
+        category: 'skill',
         relevanceScore: 0.92,
         tags: ['nestjs', 'backend', 'typescript'],
       })
@@ -525,7 +525,7 @@ export class CloudSetupOrchestrator {
         id: 'python-workflow',
         name: { 'en': 'Python Workflow', 'zh-CN': 'Python 工作流' },
         description: { 'en': 'Python development best practices', 'zh-CN': 'Python 开发最佳实践' },
-        category: 'workflow',
+        category: 'skill',
         relevanceScore: 0.88,
         tags: ['python', 'backend'],
       })
@@ -533,10 +533,10 @@ export class CloudSetupOrchestrator {
 
     const fingerprint = this.generateProjectFingerprint(analysis)
     return {
-      skills: recommendations.filter(r => r.category === 'workflow'),
+      skills: recommendations.filter(r => r.category === 'skill'),
       mcpServices: recommendations.filter(r => r.category === 'mcp'),
       agents: recommendations.filter(r => r.category === 'agent'),
-      hooks: recommendations.filter(r => r.category === 'tool'),
+      hooks: recommendations.filter(r => r.category === 'hook'),
       confidence: 0.7, // Local fallback has lower confidence
       fingerprint,
       insights: {

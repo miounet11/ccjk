@@ -79,6 +79,7 @@ export interface InitOptions {
   provider?: string // API provider preset (302ai, glm, minimax, kimi, custom)
   mcpServices?: string[] | string | boolean
   workflows?: string[] | string | boolean
+  skills?: string[] // Skill IDs to install (e.g., 'git-commit', 'code-review')
   outputStyles?: string[] | string | boolean
   defaultOutputStyle?: string
   allLang?: string // New: unified language parameter
@@ -337,7 +338,7 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
       }
     }
     options.mcpServices = defaults.mcpServices
-    options.workflows = defaults.skills.map(skill => skill.replace('ccjk:', '')) // Remove ccjk: prefix
+    options.skills = defaults.skills.map(skill => skill.replace('ccjk:', '')) // Remove ccjk: prefix
     options.codeType = defaults.codeToolType || 'claude-code'
     options.configAction = 'backup'
     options.installCometixLine = defaults.tools.cometix
@@ -360,6 +361,22 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
 
     const startTime = Date.now()
     await init(options)
+
+    // Step 6.5: Install skills
+    if (Array.isArray(options.skills) && options.skills.length > 0) {
+      try {
+        const { ccjkSkills } = await import('./ccjk-skills')
+        await ccjkSkills({
+          interactive: false,
+          force: options.force,
+        })
+      }
+      catch (error) {
+        const msg = error instanceof Error ? error.message : String(error)
+        console.log(ansis.yellow(`  ⚠ Skills installation skipped: ${msg}`))
+      }
+    }
+
     const duration = Math.round((Date.now() - startTime) / 1000)
 
     // Step 7: Success message with timing
