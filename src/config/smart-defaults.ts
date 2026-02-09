@@ -70,12 +70,8 @@ export class SmartDefaultsDetector {
       apiKey,
       apiProvider,
 
-      // Core MCP services (essential 3)
-      mcpServices: [
-        'filesystem',
-        'git',
-        'fetch',
-      ],
+      // Recommended MCP services based on platform
+      mcpServices: this.getRecommendedMcpServices(platform),
 
       // Essential skills (common 5)
       skills: [

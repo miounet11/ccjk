@@ -193,8 +193,8 @@ async function promptCustomConfig(): Promise<{
       type: 'confirm',
       name: 'customizeMcp',
       message: isZh
-        ? '是否自定义 MCP 服务? (默认: filesystem, git, fetch)'
-        : 'Customize MCP services? (default: filesystem, git, fetch)',
+        ? '是否自定义 MCP 服务? (默认: context7, mcp-deepwiki, open-websearch)'
+        : 'Customize MCP services? (default: context7, mcp-deepwiki, open-websearch)',
       default: false,
     },
     {
@@ -229,18 +229,19 @@ async function promptMcpServices(): Promise<string[]> {
     name: 'services',
     message: isZh ? '选择 MCP 服务:' : 'Select MCP services:',
     choices: [
-      { name: 'filesystem (文件系统)', value: 'filesystem', checked: true },
-      { name: 'git (Git 操作)', value: 'git', checked: true },
-      { name: 'fetch (网络请求)', value: 'fetch', checked: true },
-      { name: 'github (GitHub 集成)', value: 'github' },
-      { name: 'brave-search (Brave 搜索)', value: 'brave-search' },
+      { name: 'context7 (文档查询)', value: 'context7', checked: true },
+      { name: 'mcp-deepwiki (DeepWiki)', value: 'mcp-deepwiki', checked: true },
+      { name: 'open-websearch (网络搜索)', value: 'open-websearch', checked: true },
+      { name: 'spec-workflow (规范工作流)', value: 'spec-workflow' },
+      { name: 'serena (Serena 助手)', value: 'serena' },
+      { name: 'Playwright (浏览器自动化)', value: 'Playwright' },
       { name: 'sqlite (数据库)', value: 'sqlite' },
       { name: isZh ? '全部' : 'All', value: '__all__' },
     ],
   })
 
   if (services.includes('__all__')) {
-    return ['filesystem', 'git', 'fetch', 'github', 'brave-search', 'sqlite']
+    return ['context7', 'mcp-deepwiki', 'open-websearch', 'spec-workflow', 'serena', 'Playwright', 'sqlite']
   }
 
   return services
@@ -321,7 +322,7 @@ function applyDefaultsToInitOptions(
     apiType: skipApiConfig ? 'skip' : 'api_key',
     apiKey: skipApiConfig ? undefined : apiKey,
     provider: skipApiConfig ? undefined : provider,
-    // Core MCP services only (filesystem, git, fetch)
+    // Recommended MCP services based on platform
     mcpServices: defaults.mcpServices,
     // Essential skills (git-commit, feat, workflow, init-project)
     workflows: defaults.skills.map(s => s.replace('ccjk:', '')),

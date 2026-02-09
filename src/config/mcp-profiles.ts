@@ -40,7 +40,7 @@ export const MCP_PROFILES: McpProfile[] = [
     nameZh: '开发模式',
     description: 'Suitable for daily development',
     descriptionZh: '适合日常开发',
-    services: ['context7', 'open-websearch', 'mcp-deepwiki', 'filesystem'],
+    services: ['context7', 'open-websearch', 'mcp-deepwiki', 'sqlite'],
     maxServices: 5,
     tier: 'ondemand',
     isDefault: true,
