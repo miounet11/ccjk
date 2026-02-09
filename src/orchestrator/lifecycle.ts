@@ -86,23 +86,28 @@ export class LifecycleManager implements ILifecycleManager {
     try {
       // Phase 1: Init
       await this.runPhase('initializing', task, extContext)
+      await this.eventBus.emit('lifecycle:init' as EventType, { task, context: extContext })
 
       // Phase 2: Validate
       await this.runPhase('ready', task, extContext)
+      await this.eventBus.emit('lifecycle:validate' as EventType, { task, context: extContext })
 
       // Phase 3: Execute (with timeout and retry)
       const result = await this.executeWithRetry(task, extContext)
 
       // Phase 4: Cleanup
       await this.runPhase('stopped', task, extContext)
+      await this.eventBus.emit('lifecycle:cleanup' as EventType, { task, context: extContext })
 
       // Mark as completed
-      extContext.lifecycle.phase = 'stopped'
+      extContext.lifecycle.phase = 'completed'
       extContext.lifecycle.endTime = Date.now()
 
       return {
         taskId: task.id,
         status: 'completed',
+        success: true,
+        data: result as Record<string, unknown>,
         output: result as Record<string, unknown>,
         duration: Date.now() - startTime,
         retryCount: 0,
@@ -139,6 +144,8 @@ export class LifecycleManager implements ILifecycleManager {
       return {
         taskId: task.id,
         status: 'failed',
+        success: false,
+        data: undefined,
         error: taskError,
         duration: Date.now() - startTime,
         retryCount: 0,
@@ -174,7 +181,7 @@ export class LifecycleManager implements ILifecycleManager {
    */
   async cleanup(context: Context): Promise<void> {
     const extContext = this.ensureExtendedContext(context)
-    extContext.lifecycle.phase = 'stopping'
+    extContext.lifecycle.phase = 'cleanup'
 
     // 清理 shared 数据中的资源
     for (const [, value] of extContext.shared.custom) {
@@ -431,28 +438,5 @@ export class LifecycleManager implements ILifecycleManager {
       default:
         return true
     }
-  }
-
-  /**
-   * 评估条件表达式
-   */
-  private async evaluateCondition(condition: string | ((context: Record<string, unknown>) => boolean | Promise<boolean>), results: Record<string, unknown>): Promise<boolean> {
-    // 如果是字符串条件，简单实现：支持 "stepId.success" 格式
-    if (typeof condition === 'string') {
-      const match = condition.match(/^(\w+)\.success$/)
-      if (match) {
-        const stepId = match[1]
-        const result = results[stepId] as { success?: boolean } | undefined
-        return result?.success === true
-      }
-      return true
-    }
-
-    // 如果是函数条件，直接调用
-    if (typeof condition === 'function') {
-      return await condition(results)
-    }
-
-    return true
   }
 }

@@ -8,7 +8,7 @@ import { vi } from 'vitest'
 export class TestServer {
   private port: number
   private server: any
-  private routes: Map<string, Function>
+  private routes: Map<string, (...args: any[]) => any>
 
   constructor(port = 0) {
     this.port = port
@@ -39,7 +39,7 @@ export class TestServer {
   /**
    * Add route handler
    */
-  addRoute(path: string, handler: Function): void {
+  addRoute(path: string, handler: (...args: any[]) => any): void {
     this.routes.set(path, handler)
   }
 

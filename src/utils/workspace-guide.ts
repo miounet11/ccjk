@@ -307,11 +307,9 @@ async function checkTrustedDirectories(cwd: string): Promise<WorkspaceCheckResul
  * Check 5: Path contains special characters
  */
 async function checkPathCharacters(cwd: string): Promise<WorkspaceCheckResult> {
-  // Check for problematic characters (avoid control characters in regex)
-  // eslint-disable-next-line no-control-regex
+  // Check for problematic characters
   const problematicChars = /[<>:"|?*\x00-\x1F]/
   const hasSpaces = cwd.includes(' ')
-  // eslint-disable-next-line no-control-regex
   const hasUnicode = /[^\x00-\x7F]/.test(cwd)
 
   if (problematicChars.test(cwd)) {

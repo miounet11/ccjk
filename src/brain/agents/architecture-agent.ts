@@ -232,7 +232,7 @@ export class ArchitectureAgent extends BaseAgent {
   private async designSystem(params: any): Promise<SystemDesign> {
     this.log('Designing system architecture with opus-level reasoning...')
 
-    const { requirements, qualityAttributes: _qualityAttributes } = params
+    const { requirements, qualityAttributes } = params
     const _constraints = params.constraints
 
     // This would integrate with Claude API using opus model

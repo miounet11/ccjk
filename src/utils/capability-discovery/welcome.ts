@@ -32,7 +32,6 @@ function createBorderLine(width: number, type: 'top' | 'bottom' | 'middle'): str
  */
 function centerText(text: string, width: number): string {
   // Strip ANSI codes for length calculation
-  // eslint-disable-next-line no-control-regex
   const plainText = text.replace(/\x1B\[[0-9;]*m/g, '')
   const padding = Math.max(0, width - plainText.length - 2)
   const leftPad = Math.floor(padding / 2)
@@ -46,7 +45,6 @@ function centerText(text: string, width: number): string {
  */
 function leftText(text: string, width: number): string {
   // Strip ANSI codes for length calculation
-  // eslint-disable-next-line no-control-regex
   const plainText = text.replace(/\x1B\[[0-9;]*m/g, '')
   const padding = Math.max(0, width - plainText.length - 2)
   return `${BOX_CHARS.vertical} ${text}${' '.repeat(padding - 1)}${BOX_CHARS.vertical}`

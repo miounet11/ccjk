@@ -46,6 +46,15 @@
 
   "allowBrowser": false,
 
+  "statusLine": {},
+
+  "plansDirectory": ".claude/plans",
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": [],
+    "Notification": [],
+    "Stop": []
+  },
   "permissions": {
     "allow": [
       "AllowEdit",

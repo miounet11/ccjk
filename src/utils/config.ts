@@ -149,6 +149,27 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
   return apiConfig
 }
 
+/**
+ * Configure hooks in settings.json
+ * Adds default hooks configuration if the version supports it
+ */
+export function configureHooks(hooks: Record<string, unknown[]>): void {
+  let settings = getDefaultSettings()
+
+  const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  if (existingSettings) {
+    settings = existingSettings
+  }
+
+  // Merge hooks with existing hooks configuration
+  settings.hooks = {
+    ...(settings.hooks || {}),
+    ...hooks,
+  }
+
+  writeJsonConfig(SETTINGS_FILE, settings)
+}
+
 export function mergeConfigs(sourceFile: string, targetFile: string): void {
   if (!exists(sourceFile))
     return
@@ -422,8 +443,9 @@ export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string
     directive = `Always respond in ${aiOutputLang}`
   }
 
-  // Write to CLAUDE.md file directly without markers
-  writeFileAtomic(claudeFile, directive)
+  // Write to CLAUDE.md file with memory scope frontmatter
+  const frontmatter = '---\nscope: user\n---'
+  writeFileAtomic(claudeFile, `${frontmatter}\n\n${directive}`)
 }
 
 /**

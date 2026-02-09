@@ -306,33 +306,36 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
       console.log('')
     }
 
-    // Step 3: Only prompt for API key if needed
+    // Step 3: Configure API provider
     if (!defaults.apiKey && !options.skipPrompt) {
       console.log(ansis.yellow('⚠ No API key detected in environment'))
-      console.log(ansis.gray('Please provide your Anthropic API key to continue:\n'))
+      console.log('')
 
-      const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
-        type: 'password',
-        name: 'apiKey',
-        message: 'Enter your Anthropic API key:',
-        validate: (value: string) => {
-          if (!value)
-            return 'API key is required'
-          if (!value.startsWith('sk-ant-'))
-            return 'API key should start with sk-ant-'
-          return true
-        },
-      })
+      // Show provider selection
+      const { showApiConfigMenu } = await import('./api-config-selector')
+      const apiResult = await showApiConfigMenu(
+        i18n.language === 'zh-CN' ? '🔑 选择 API 配置方式' : '🔑 Select API Configuration',
+      )
 
-      defaults.apiKey = apiKey
-      defaults.apiProvider = 'anthropic'
+      if (apiResult.cancelled) {
+        console.log(ansis.yellow(i18n.language === 'zh-CN' ? '⚠ 已跳过 API 配置，稍后可通过菜单选项 3 配置' : '⚠ API config skipped, configure later via menu option 3'))
+      }
+      else if (apiResult.apiKey) {
+        defaults.apiKey = apiResult.apiKey
+        defaults.apiProvider = apiResult.provider || 'anthropic'
+      }
     }
 
     // Step 4: Set up options with smart defaults
     options.skipPrompt = true
     options.skipBanner = true
-    options.apiType = 'api_key'
-    options.apiKey = defaults.apiKey
+    if (defaults.apiKey) {
+      options.apiType = 'api_key'
+      options.apiKey = defaults.apiKey
+      if (defaults.apiProvider && defaults.apiProvider !== 'anthropic') {
+        options.provider = defaults.apiProvider
+      }
+    }
     options.mcpServices = defaults.mcpServices
     options.workflows = defaults.skills.map(skill => skill.replace('ccjk:', '')) // Remove ccjk: prefix
     options.codeType = defaults.codeToolType || 'claude-code'

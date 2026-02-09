@@ -88,6 +88,9 @@ export interface ClaudeSettings {
   /** Custom directory for storing plans */
   plansDirectory?: string
 
+  /** Enable auto mode for MCP tool search */
+  toolSearchAutoMode?: boolean
+
   /** Show duration for each turn in conversation */
   showTurnDuration?: boolean
 
@@ -170,6 +173,9 @@ export interface ClaudeSettings {
     /** Include source attribution */
     attribution?: boolean
   }
+
+  /** Hooks configuration for lifecycle events */
+  hooks?: Record<string, unknown[]>
 
   /** MCP servers configuration (legacy field, now in config.json) */
   mcpServers?: Record<string, McpServerConfig>

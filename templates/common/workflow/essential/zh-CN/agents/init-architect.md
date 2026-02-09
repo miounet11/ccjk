@@ -1,4 +1,5 @@
 ---
+subagent_type: Plan
 name: init-architect
 description: 自适应初始化：根级简明 + 模块级详尽；分阶段遍历并回报覆盖率
 tools: Read, Write, Glob, Grep

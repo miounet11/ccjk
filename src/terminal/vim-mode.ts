@@ -418,7 +418,6 @@ export function findTextObject(
       const matches: Array<{ start: number, end: number }> = []
       let match: RegExpExecArray | null
 
-      // eslint-disable-next-line no-cond-assign
       while ((match = wordRegex.exec(line)) !== null) {
         matches.push({ start: match.index, end: match.index + match[0].length })
       }
@@ -446,7 +445,6 @@ export function findTextObject(
       const matches: Array<{ start: number, end: number }> = []
       let match: RegExpExecArray | null
 
-      // eslint-disable-next-line no-cond-assign
       while ((match = wordRegex.exec(line)) !== null) {
         matches.push({ start: match.index, end: match.index + match[0].length })
       }

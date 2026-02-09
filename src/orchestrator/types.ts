@@ -466,6 +466,12 @@ export interface TaskResult {
   /** Execution status */
   status: TaskStatus
 
+  /** Whether the task succeeded */
+  success?: boolean
+
+  /** Result data from execution */
+  data?: Record<string, unknown>
+
   /** Output data */
   output?: Record<string, unknown>
 
@@ -855,6 +861,8 @@ export type LifecyclePhase
     | 'resuming'
     | 'stopping'
     | 'stopped'
+    | 'cleanup'
+    | 'completed'
     | 'error'
 
 /**

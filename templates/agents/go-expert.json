@@ -1,5 +1,6 @@
 {
   "id": "go-expert",
+  "subagent_type": "general-purpose",
   "name": {
     "en": "Go Expert",
     "zh-CN": "Go 专家"

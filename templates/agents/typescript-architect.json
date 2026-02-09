@@ -1,5 +1,6 @@
 {
   "id": "typescript-architect",
+  "subagent_type": "Plan",
   "name": {
     "en": "TypeScript Architect",
     "zh-CN": "TypeScript 架构师"

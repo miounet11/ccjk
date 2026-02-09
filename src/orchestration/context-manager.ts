@@ -51,7 +51,7 @@ export class OrchestrationContextManager {
     const {
       keepRecentN = 10,
       importanceThreshold = 0.5,
-      _maxTokens = 10000,
+      maxTokens: _maxTokens = 10000,
       preserveCode = true,
       preserveDecisions = true,
       strategy = 'balanced',

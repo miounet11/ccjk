@@ -1,5 +1,6 @@
 {
   "id": "python-expert",
+  "subagent_type": "general-purpose",
   "name": {
     "en": "Python Expert",
     "zh-CN": "Python 专家"

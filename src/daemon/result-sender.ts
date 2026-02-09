@@ -19,7 +19,6 @@ export class ResultSender {
 
     // Lazy load nodemailer package
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const nodemailer = require('nodemailer')
       this.transporter = nodemailer.createTransport({
         host: this.config.smtpHost,

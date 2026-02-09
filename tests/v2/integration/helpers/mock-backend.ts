@@ -4,7 +4,7 @@
  */
 
 export class MockBackend {
-  private endpoints: Map<string, Function> = new Map()
+  private endpoints: Map<string, (...args: any[]) => any> = new Map()
   private authToken: string | null = null
   private rateLimitRemaining = 1000
   private requestLog: any[] = []
@@ -14,7 +14,7 @@ export class MockBackend {
   /**
    * Register API endpoint
    */
-  registerEndpoint(method: string, path: string, handler: Function): void {
+  registerEndpoint(method: string, path: string, handler: (...args: any[]) => any): void {
     const key = `${method.toUpperCase()}:${path}`
     this.endpoints.set(key, handler)
   }

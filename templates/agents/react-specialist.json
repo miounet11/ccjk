@@ -1,5 +1,6 @@
 {
   "id": "react-specialist",
+  "subagent_type": "general-purpose",
   "name": {
     "en": "React Specialist",
     "zh-CN": "React 专家"

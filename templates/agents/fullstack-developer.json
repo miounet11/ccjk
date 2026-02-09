@@ -1,5 +1,6 @@
 {
   "id": "fullstack-developer",
+  "subagent_type": "general-purpose",
   "name": {
     "en": "Full-Stack Developer",
     "zh-CN": "全栈开发者"

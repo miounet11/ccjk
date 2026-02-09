@@ -883,7 +883,6 @@ export class ClaudeCodeConfigManager {
     // URL验证
     if (profile.baseUrl) {
       try {
-        // eslint-disable-next-line no-new
         new URL(profile.baseUrl)
       }
       catch {

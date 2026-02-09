@@ -20,7 +20,6 @@ export class EmailChecker {
 
     // Lazy load imap package
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const ImapConstructor = require('imap')
       this.imap = new ImapConstructor({
         user: this.config.email,
@@ -125,7 +124,6 @@ export class EmailChecker {
                 // Lazy load mailparser
                 let simpleParserFn: any
                 try {
-                  // eslint-disable-next-line @typescript-eslint/no-require-imports
                   simpleParserFn = require('mailparser').simpleParser
                 }
                 catch {

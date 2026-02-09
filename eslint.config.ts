@@ -12,6 +12,7 @@ export default antfu({
     'docs/docs/sdk/**',
     'html/assets/**',
     'dist/**',
+    'tests/analyzers/fixtures/**',
   ],
   rules: {
     'no-console': 'off',

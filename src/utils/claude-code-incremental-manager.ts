@@ -171,7 +171,6 @@ async function handleAddProfile(): Promise<void> {
         }
         // Basic URL validation
         try {
-          // eslint-disable-next-line no-new
           new URL(trimmed)
           return true
         }
@@ -393,7 +392,6 @@ async function handleEditProfile(profiles: ClaudeCodeProfile[]): Promise<void> {
           return i18n.t('multi-config:baseUrlRequired')
         }
         try {
-          // eslint-disable-next-line no-new
           new URL(trimmed)
           return true
         }
@@ -548,7 +546,6 @@ async function handleCopyProfile(profiles: ClaudeCodeProfile[]): Promise<void> {
             return i18n.t('multi-config:baseUrlRequired')
           }
           try {
-            // eslint-disable-next-line no-new
             new URL(trimmed)
             return true
           }

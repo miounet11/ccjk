@@ -43,7 +43,7 @@ export class CompatibilityChecker {
       // CCJK 1.x 兼容 Claude Code 1.x
       {
         ccjkVersion: { min: '1.0.0', max: '2.0.0' },
-        claudeCodeVersion: { min: '1.0.0', max: '2.0.0' },
+        claudeCodeVersion: { min: '1.0.0', max: '3.0.0' },
         compatible: true,
         message: 'CCJK 1.x is compatible with Claude Code 1.x',
       },

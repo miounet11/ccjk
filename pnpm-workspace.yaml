@@ -124,5 +124,9 @@ catalogs:
     uuid: ^11.1.0
   conflicts_vitest_h1_0_0:
     vitest: ^1.0.0
+  conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5:
+    typescript: ^5
+  conflicts_conflicts_conflicts_conflicts_eslint_h8_0_0_h8_h9_36_0_h8:
+    eslint: ^8
 onlyBuiltDependencies:
   - esbuild

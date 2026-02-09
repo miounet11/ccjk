@@ -28,7 +28,6 @@ export async function parseAST(filePath: string): Promise<ASTNode | null> {
 export function parseSourceToAST(source: string, filePath: string): ASTNode | null {
   try {
     // Use require for CommonJS module compatibility
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const parser = require('@typescript-eslint/parser')
     const estree = parser.parse(source, {
       sourceType: 'module',

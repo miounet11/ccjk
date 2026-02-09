@@ -8,7 +8,7 @@ import { vi } from 'vitest'
 export class MockRedis {
   private data: Map<string, any> = new Map()
   private hashes: Map<string, Map<string, any>> = new Map()
-  private pubsub: Map<string, Function[]> = new Map()
+  private pubsub: Map<string, (...args: any[]) => any[]> = new Map()
   private connected = false
   private messageId = 0
 
@@ -126,7 +126,7 @@ export class MockRedis {
   /**
    * Subscribe to channel
    */
-  async subscribe(channel: string, listener: Function): Promise<string> {
+  async subscribe(channel: string, listener: (...args: any[]) => any): Promise<string> {
     if (!this.connected)
       throw new Error('Redis not connected')
     if (!this.pubsub.has(channel)) {
@@ -139,7 +139,7 @@ export class MockRedis {
   /**
    * Unsubscribe from channel
    */
-  async unsubscribe(channel: string, listener?: Function): Promise<boolean> {
+  async unsubscribe(channel: string, listener?: (...args: any[]) => any): Promise<boolean> {
     if (!this.connected)
       throw new Error('Redis not connected')
     const subscribers = this.pubsub.get(channel)
@@ -216,7 +216,7 @@ role:master
   /**
    * Create event emitter interface
    */
-  on(_event: string, _handler: Function): void {
+  on(_event: string, _handler: (...args: any[]) => any): void {
     // Mock implementation
   }
 

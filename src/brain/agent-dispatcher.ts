@@ -516,7 +516,7 @@ export class AgentDispatcher {
 
     // 60% 超时提示
     const warningTimer = setTimeout(() => {
-      warningTimeoutReached = true
+      _warningTimeoutReached = true
       if (this.options.verbose) {
         console.log(`\n💭 Agent ${agent.id} 正在执行中，请稍候...`)
       }
@@ -524,7 +524,7 @@ export class AgentDispatcher {
 
     // 80% 软超时警告
     const softTimer = setTimeout(() => {
-      softTimeoutReached = true
+      _softTimeoutReached = true
       console.log(`\n⚠️ 任务执行时间较长 (已超过 ${Math.floor(softTimeout / 1000)}s)，可能需要：`)
       console.log(`   1. 等待完成（剩余约 ${Math.floor((timeout - softTimeout) / 1000)}s）`)
       console.log('   2. 使用 Ctrl+C 中断后执行 /compact 清理上下文')

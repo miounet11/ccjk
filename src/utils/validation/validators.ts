@@ -69,7 +69,7 @@ export function isNonEmptyArray(value: any): value is any[] {
 /**
  * Check if value is a function
  */
-export function isFunction(value: any): value is Function {
+export function isFunction(value: any): value is (...args: any[]) => any {
   return typeof value === 'function'
 }
 

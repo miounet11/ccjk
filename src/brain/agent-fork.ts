@@ -337,7 +337,7 @@ export function parseSkillForkConfig(skill: SkillMdFile): Omit<Partial<ForkConte
 export class AgentForkManager {
   private options: Required<ForkContextOptions>
   private forks: Map<string, ForkContextState> = new Map()
-  private listeners: Map<keyof ForkContextEvents, Set<Function>> = new Map()
+  private listeners: Map<keyof ForkContextEvents, Set<(...args: any[]) => any>> = new Map()
   private activeForksCount = 0
 
   constructor(options: ForkContextOptions = {}) {

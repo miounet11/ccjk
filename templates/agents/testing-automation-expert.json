@@ -1,5 +1,6 @@
 {
   "id": "testing-automation-expert",
+  "subagent_type": "general-purpose",
   "name": {
     "en": "Testing Automation Expert",
     "zh-CN": "测试自动化专家"

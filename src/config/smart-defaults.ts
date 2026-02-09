@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
@@ -31,6 +32,19 @@ export interface SmartDefaults {
     cometix: boolean
     ccusage: boolean
   }
+
+  // Claude Code native features (version-dependent)
+  nativeFeatures: {
+    hooks: boolean
+    plansDirectory: boolean
+    memory: boolean
+    subagents: boolean
+    toolSearch: boolean
+    statusLine: boolean
+  }
+
+  // Detected Claude Code version
+  claudeCodeVersion?: string
 }
 
 /**
@@ -45,6 +59,7 @@ export class SmartDefaultsDetector {
     const platform = getPlatform()
     const apiKey = this.detectApiKey()
     const apiProvider = this.detectApiProvider(apiKey)
+    const ccVersion = this.detectClaudeCodeVersion()
 
     return {
       // Environment detection
@@ -93,14 +108,69 @@ export class SmartDefaultsDetector {
         cometix: this.shouldEnableCometix(),
         ccusage: this.shouldEnableCCUsage(),
       },
+
+      // Claude Code native features
+      claudeCodeVersion: ccVersion,
+      nativeFeatures: this.detectNativeFeatures(ccVersion),
     }
+  }
+
+  /**
+   * Detect installed Claude Code version
+   */
+  private detectClaudeCodeVersion(): string | undefined {
+    try {
+      const output = execSync('claude --version 2>/dev/null || echo ""', {
+        encoding: 'utf-8',
+        timeout: 5000,
+      }).trim()
+
+      // Parse version from output (e.g., "claude 1.0.16" or "1.0.16")
+      const match = output.match(/(\d+\.\d+\.\d+)/)
+      return match ? match[1] : undefined
+    }
+    catch {
+      return undefined
+    }
+  }
+
+  /**
+   * Detect which Claude Code native features are available
+   * based on installed version
+   */
+  private detectNativeFeatures(version?: string): SmartDefaults['nativeFeatures'] {
+    return {
+      hooks: this.versionSupports(version, '1.0.6'),
+      plansDirectory: this.versionSupports(version, '1.0.10'),
+      memory: this.versionSupports(version, '1.0.12'),
+      subagents: this.versionSupports(version, '1.0.3'),
+      toolSearch: this.versionSupports(version, '1.0.10'),
+      statusLine: this.versionSupports(version, '1.0.8'),
+    }
+  }
+
+  /**
+   * Check if a version meets the minimum requirement
+   */
+  private versionSupports(version: string | undefined, minVersion: string): boolean {
+    if (!version)
+      return false
+    const parts = version.split('.').map(Number)
+    const minParts = minVersion.split('.').map(Number)
+    for (let i = 0; i < 3; i++) {
+      if ((parts[i] || 0) > (minParts[i] || 0))
+        return true
+      if ((parts[i] || 0) < (minParts[i] || 0))
+        return false
+    }
+    return true // equal
   }
 
   /**
    * Detect API key from environment variables
    */
   private detectApiKey(): string | undefined {
-    // Check common environment variables
+    // Check common environment variables (in priority order)
     const envVars = [
       'ANTHROPIC_API_KEY',
       'CLAUDE_API_KEY',
@@ -109,7 +179,7 @@ export class SmartDefaultsDetector {
 
     for (const envVar of envVars) {
       const value = process.env[envVar]
-      if (value && value.startsWith('sk-ant-')) {
+      if (value && value.length >= 10) {
         return value
       }
     }
@@ -120,7 +190,7 @@ export class SmartDefaultsDetector {
       try {
         const configContent = readFileSync(claudeConfigPath, 'utf-8')
         const config = JSON.parse(configContent)
-        if (config.apiKey && config.apiKey.startsWith('sk-ant-')) {
+        if (config.apiKey && config.apiKey.length >= 10) {
           return config.apiKey
         }
       }
@@ -135,9 +205,9 @@ export class SmartDefaultsDetector {
   /**
    * Detect API provider based on API key pattern
    */
-  private detectApiProvider(apiKey?: string): string {
+  private detectApiProvider(apiKey?: string): string | undefined {
     if (!apiKey) {
-      return 'anthropic' // Default to official
+      return undefined // No key, no provider detected
     }
 
     // Anthropic official API key pattern
@@ -145,8 +215,8 @@ export class SmartDefaultsDetector {
       return 'anthropic'
     }
 
-    // Default fallback
-    return 'anthropic'
+    // Other providers use various key formats - cannot auto-detect
+    return undefined
   }
 
   /**
@@ -218,7 +288,7 @@ export class SmartDefaultsDetector {
     const core = ['filesystem', 'git', 'fetch']
 
     // Add platform-specific services
-    if (platform === 'darwin') {
+    if (platform === 'macos') {
       return [...core, 'macos-shortcuts']
     }
 
@@ -226,7 +296,7 @@ export class SmartDefaultsDetector {
       return [...core, 'linux-desktop']
     }
 
-    if (platform === 'win32') {
+    if (platform === 'windows') {
       return [...core, 'windows-registry']
     }
 
@@ -270,13 +340,13 @@ export class SmartDefaultsDetector {
   validateDefaults(defaults: SmartDefaults): { valid: boolean, issues: string[] } {
     const issues: string[] = []
 
-    // Check API key format
-    if (defaults.apiKey && !defaults.apiKey.startsWith('sk-ant-')) {
-      issues.push('API key format appears invalid (should start with sk-ant-)')
+    // Check API key format - only warn if key is very short (likely invalid)
+    if (defaults.apiKey && defaults.apiKey.length < 10) {
+      issues.push('API key appears too short to be valid')
     }
 
     // Check platform support
-    if (!['darwin', 'linux', 'win32'].includes(defaults.platform)) {
+    if (!['macos', 'linux', 'windows'].includes(defaults.platform)) {
       issues.push(`Platform ${defaults.platform} may not be fully supported`)
     }
 

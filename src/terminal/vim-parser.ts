@@ -405,7 +405,6 @@ export class VimParser {
     const words: Array<{ start: number, end: number }> = []
     let match: RegExpExecArray | null
 
-    // eslint-disable-next-line no-cond-assign
     while ((match = wordRegex.exec(line)) !== null) {
       words.push({ start: match.index, end: match.index + match[0].length })
     }
@@ -431,7 +430,6 @@ export class VimParser {
     const words: Array<{ start: number, end: number }> = []
     let match: RegExpExecArray | null
 
-    // eslint-disable-next-line no-cond-assign
     while ((match = wordRegex.exec(line)) !== null) {
       words.push({ start: match.index, end: match.index + match[0].length })
     }
@@ -458,7 +456,6 @@ export class VimParser {
     const words: Array<{ start: number, end: number }> = []
     let match: RegExpExecArray | null
 
-    // eslint-disable-next-line no-cond-assign
     while ((match = wordRegex.exec(line)) !== null) {
       words.push({ start: match.index, end: match.index + match[0].length })
     }
