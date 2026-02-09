@@ -39,6 +39,19 @@ export function mergeMcpServers(
   return config
 }
 
+/**
+ * Replace MCP servers entirely (clean install, no leftover services)
+ * Unlike mergeMcpServers, this removes services not in the new set.
+ */
+export function replaceMcpServers(
+  existing: ClaudeConfiguration | null,
+  newServers: Record<string, McpServerConfig>,
+): ClaudeConfiguration {
+  const config: ClaudeConfiguration = existing ? { ...existing } : { mcpServers: {} }
+  config.mcpServers = { ...newServers }
+  return config
+}
+
 function applyPlatformCommand(config: McpServerConfig): void {
   // Only process if command exists (avoid wrapping configs without command, e.g., SSE services)
   if (isWindows() && config.command) {

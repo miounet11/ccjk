@@ -219,9 +219,12 @@ export class SmartDefaultsDetector {
    * Detect installed code tool type
    */
   private detectCodeToolType(): string {
-    // Check for Claude Code installation
-    const claudeCodePath = join(homedir(), '.config', 'claude')
-    if (existsSync(claudeCodePath)) {
+    // Check for Claude Code installation (~/.claude on macOS/Linux, ~/.config/claude on some systems)
+    const claudeCodePaths = [
+      join(homedir(), '.claude'),
+      join(homedir(), '.config', 'claude'),
+    ]
+    if (claudeCodePaths.some(p => existsSync(p))) {
       return 'claude-code'
     }
 

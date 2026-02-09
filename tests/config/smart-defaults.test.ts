@@ -43,7 +43,7 @@ describe('smartDefaultsDetector', () => {
       expect(defaults).toMatchObject({
         platform: 'linux',
         homeDir: '/mock/home',
-        mcpServices: ['filesystem', 'git', 'fetch'],
+        mcpServices: ['context7', 'mcp-deepwiki', 'open-websearch', 'sqlite'],
         skills: [
           'ccjk:git-commit',
           'ccjk:feat',
@@ -93,7 +93,17 @@ describe('smartDefaultsDetector', () => {
       expect(defaults.apiProvider).toBe('anthropic')
     })
 
-    it('should detect code tool type from existing installations', async () => {
+    it('should detect code tool type from ~/.claude', async () => {
+      vi.mocked(existsSync).mockImplementation((path) => {
+        return path === join('/mock/home', '.claude')
+      })
+
+      const defaults = await detector.detect()
+
+      expect(defaults.codeToolType).toBe('claude-code')
+    })
+
+    it('should detect code tool type from ~/.config/claude', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
         return path === join('/mock/home', '.config', 'claude')
       })
@@ -332,7 +342,7 @@ describe('smart-defaults', () => {
       expect(defaults).toMatchObject({
         platform: 'linux',
         homeDir: '/mock/home',
-        mcpServices: ['filesystem', 'git', 'fetch'],
+        mcpServices: ['context7', 'mcp-deepwiki', 'open-websearch', 'sqlite'],
         skills: [
           'ccjk:git-commit',
           'ccjk:feat',
@@ -407,9 +417,9 @@ describe('smart-defaults', () => {
       expect(defaults.apiKey).toBeUndefined()
     })
 
-    it('should detect claude-code as code tool type when config exists', async () => {
+    it('should detect claude-code as code tool type when ~/.claude exists', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.config', 'claude')
+        return path === join('/mock/home', '.claude')
       })
 
       const defaults = await detectSmartDefaults()

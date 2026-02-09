@@ -1,0 +1,397 @@
+/**
+ * MCP Gatekeeper
+ *
+ * Hook-based tool control system that manages which MCP services
+ * are active during Claude Code conversations.
+ *
+ * Uses Claude Code's PreToolUse hook to intercept and gate MCP tool calls,
+ * preventing unnecessary token overhead from unused services.
+ */
+
+import { chmodSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { dirname, join } from 'pathe'
+import { readMcpConfig } from './claude-config'
+
+// ==================== Constants ====================
+
+const CCJK_DIR = join(homedir(), '.ccjk')
+const GATEKEEPER_CONFIG_FILE = join(CCJK_DIR, 'mcp-gatekeeper.json')
+const HOOKS_DIR = join(homedir(), '.claude', 'hooks')
+const HOOK_SCRIPT_FILE = join(HOOKS_DIR, 'mcp-gatekeeper.sh')
+const SETTINGS_FILE = join(homedir(), '.claude', 'settings.json')
+
+/** Services with heavy tool counts that should default to on-demand */
+const ON_DEMAND_SERVICES = new Set(['Playwright', 'serena'])
+
+// ==================== Types ====================
+
+export type ServiceMode = 'always' | 'on-demand'
+
+export interface ServiceGateConfig {
+  enabled: boolean
+  mode: ServiceMode
+}
+
+export interface GatekeeperConfig {
+  enabled: boolean
+  services: Record<string, ServiceGateConfig>
+}
+
+// ==================== Config Management ====================
+
+/**
+ * Read gatekeeper configuration
+ */
+export function readGatekeeperConfig(): GatekeeperConfig | null {
+  try {
+    if (!existsSync(GATEKEEPER_CONFIG_FILE)) return null
+    const content = readFileSync(GATEKEEPER_CONFIG_FILE, 'utf-8')
+    return JSON.parse(content)
+  }
+  catch {
+    return null
+  }
+}
+
+/**
+ * Write gatekeeper configuration
+ */
+export function writeGatekeeperConfig(config: GatekeeperConfig): void {
+  const dir = dirname(GATEKEEPER_CONFIG_FILE)
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true })
+  }
+  writeFileSync(GATEKEEPER_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8')
+}
+
+/**
+ * Get default gatekeeper config based on installed MCP services
+ */
+export function getDefaultGatekeeperConfig(): GatekeeperConfig {
+  const mcpConfig = readMcpConfig()
+  const servers = mcpConfig?.mcpServers || {}
+  const services: Record<string, ServiceGateConfig> = {}
+
+  for (const id of Object.keys(servers)) {
+    services[id] = {
+      enabled: !ON_DEMAND_SERVICES.has(id),
+      mode: ON_DEMAND_SERVICES.has(id) ? 'on-demand' : 'always',
+    }
+  }
+
+  return { enabled: true, services }
+}
+
+/**
+ * Sync gatekeeper config with currently installed MCP services.
+ * Adds new services, removes stale ones, preserves user settings for existing.
+ */
+export function syncGatekeeperFromMcp(): GatekeeperConfig {
+  const existing = readGatekeeperConfig()
+  const mcpConfig = readMcpConfig()
+  const installedIds = new Set(Object.keys(mcpConfig?.mcpServers || {}))
+
+  const services: Record<string, ServiceGateConfig> = {}
+
+  for (const id of installedIds) {
+    if (existing?.services[id]) {
+      // Preserve user's existing setting
+      services[id] = existing.services[id]
+    }
+    else {
+      // New service — use smart default
+      services[id] = {
+        enabled: !ON_DEMAND_SERVICES.has(id),
+        mode: ON_DEMAND_SERVICES.has(id) ? 'on-demand' : 'always',
+      }
+    }
+  }
+  // Stale services (in gatekeeper but not in MCP) are dropped
+
+  const config: GatekeeperConfig = {
+    enabled: existing?.enabled ?? true,
+    services,
+  }
+
+  writeGatekeeperConfig(config)
+  return config
+}
+
+// ==================== Service Control ====================
+
+/**
+ * Enable a specific MCP service in the gatekeeper
+ */
+export function enableService(serviceId: string): boolean {
+  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig()
+  if (!config.services[serviceId]) {
+    return false
+  }
+  config.services[serviceId].enabled = true
+  writeGatekeeperConfig(config)
+  return true
+}
+
+/**
+ * Disable a specific MCP service in the gatekeeper
+ */
+export function disableService(serviceId: string): boolean {
+  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig()
+  if (!config.services[serviceId]) {
+    return false
+  }
+  config.services[serviceId].enabled = false
+  writeGatekeeperConfig(config)
+  return true
+}
+
+/**
+ * Toggle the entire gatekeeper on/off
+ */
+export function toggleGatekeeper(enabled: boolean): void {
+  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig()
+  config.enabled = enabled
+  writeGatekeeperConfig(config)
+}
+
+// ==================== Hook Script ====================
+
+/**
+ * Generate the gatekeeper hook shell script.
+ * This script is called by Claude Code's PreToolUse hook.
+ * It reads the gatekeeper config and blocks disabled MCP services.
+ */
+export function generateHookScript(): string {
+  // Use node instead of python3 for better cross-platform compatibility
+  // and because CCJK users are guaranteed to have node installed
+  return `#!/usr/bin/env bash
+# MCP Gatekeeper Hook - Auto-generated by CCJK
+# Blocks disabled MCP service tool calls to reduce token overhead.
+# Config: ~/.ccjk/mcp-gatekeeper.json
+#
+# Exit codes:
+#   0 = allow tool call
+#   2 = block tool call (with reason on stdout)
+
+CONFIG_FILE="$HOME/.ccjk/mcp-gatekeeper.json"
+
+# If config doesn't exist, allow all
+if [ ! -f "$CONFIG_FILE" ]; then
+  exit 0
+fi
+
+# Read tool info from stdin
+TOOL_INPUT=$(cat)
+
+# Use node for reliable JSON parsing
+node -e '
+const fs = require("fs");
+const input = JSON.parse(process.argv[1]);
+const toolName = input.tool_name || "";
+
+// Only gate MCP tools (pattern: mcp__<server>__<tool>)
+if (!toolName.startsWith("mcp__")) {
+  process.exit(0);
+}
+
+// Extract server name: mcp__<server>__<tool>
+const parts = toolName.split("__");
+const serverName = parts[1] || "";
+
+try {
+  const config = JSON.parse(fs.readFileSync(process.env.HOME + "/.ccjk/mcp-gatekeeper.json", "utf-8"));
+
+  // If gatekeeper is disabled globally, allow all
+  if (!config.enabled) {
+    process.exit(0);
+  }
+
+  const svc = (config.services || {})[serverName];
+
+  // If service not in config, allow by default
+  if (!svc) {
+    process.exit(0);
+  }
+
+  // If service is enabled, allow
+  if (svc.enabled) {
+    process.exit(0);
+  }
+
+  // Service is disabled — block with message
+  console.log("MCP service \"" + serverName + "\" is disabled by CCJK gatekeeper. Enable with: npx ccjk mcp --gate-enable " + serverName);
+  process.exit(2);
+} catch (e) {
+  // On any error, allow the call
+  process.exit(0);
+}
+' "$TOOL_INPUT" 2>/dev/null
+
+exit $?
+`
+}
+
+/**
+ * Install the gatekeeper hook script to ~/.claude/hooks/
+ */
+export function installHookScript(): void {
+  if (!existsSync(HOOKS_DIR)) {
+    mkdirSync(HOOKS_DIR, { recursive: true })
+  }
+
+  const script = generateHookScript()
+  writeFileSync(HOOK_SCRIPT_FILE, script, 'utf-8')
+  chmodSync(HOOK_SCRIPT_FILE, 0o755)
+}
+
+/**
+ * Register the gatekeeper hook in Claude Code settings.json
+ * Adds a PreToolUse hook that matches all MCP tool calls.
+ */
+export function registerHookInSettings(): void {
+  let settings: Record<string, unknown> = {}
+
+  if (existsSync(SETTINGS_FILE)) {
+    try {
+      settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
+    }
+    catch {
+      // If settings is corrupt, start fresh
+    }
+  }
+
+  // Initialize hooks if not present
+  if (!settings.hooks || typeof settings.hooks !== 'object') {
+    settings.hooks = {}
+  }
+
+  const hooks = settings.hooks as Record<string, unknown[]>
+
+  // Define the gatekeeper hook entry
+  const gatekeeperHook = {
+    matcher: 'mcp__.*',
+    hooks: [{
+      type: 'command',
+      command: HOOK_SCRIPT_FILE,
+    }],
+  }
+
+  // Check if gatekeeper hook already registered in PreToolUse
+  if (!hooks.PreToolUse) {
+    hooks.PreToolUse = []
+  }
+
+  const preToolUse = hooks.PreToolUse as Array<{ matcher?: string, hooks?: unknown[] }>
+  const existingIdx = preToolUse.findIndex(
+    h => h.hooks?.some((hh: any) => typeof hh === 'object' && hh.command?.includes('mcp-gatekeeper')),
+  )
+
+  if (existingIdx >= 0) {
+    // Update existing hook
+    preToolUse[existingIdx] = gatekeeperHook
+  }
+  else {
+    // Add new hook
+    preToolUse.push(gatekeeperHook)
+  }
+
+  // Write settings back
+  const dir = dirname(SETTINGS_FILE)
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true })
+  }
+  writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
+}
+
+/**
+ * Unregister the gatekeeper hook from Claude Code settings.json
+ */
+export function unregisterHookFromSettings(): void {
+  if (!existsSync(SETTINGS_FILE)) return
+
+  try {
+    const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
+    const hooks = settings.hooks as Record<string, unknown[]> | undefined
+    if (!hooks?.PreToolUse) return
+
+    const preToolUse = hooks.PreToolUse as Array<{ matcher?: string, hooks?: unknown[] }>
+    hooks.PreToolUse = preToolUse.filter(
+      h => !h.hooks?.some((hh: any) => typeof hh === 'object' && hh.command?.includes('mcp-gatekeeper')),
+    )
+
+    // Clean up empty hooks object
+    if (hooks.PreToolUse.length === 0) {
+      delete hooks.PreToolUse
+    }
+    if (Object.keys(hooks).length === 0) {
+      settings.hooks = {}
+    }
+
+    writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
+  }
+  catch {
+    // Silently fail
+  }
+}
+
+// ==================== Full Installation ====================
+
+/**
+ * Install the complete gatekeeper system:
+ * 1. Generate default config from installed MCP services
+ * 2. Install the hook script
+ * 3. Register the hook in Claude Code settings
+ */
+export function installGatekeeper(): GatekeeperConfig {
+  // Sync config with installed MCP services
+  const config = syncGatekeeperFromMcp()
+
+  // Install hook script
+  installHookScript()
+
+  // Register in settings.json
+  registerHookInSettings()
+
+  return config
+}
+
+/**
+ * Uninstall the gatekeeper system
+ */
+export function uninstallGatekeeper(): void {
+  unregisterHookFromSettings()
+
+  // Optionally remove hook script (keep config for re-enable)
+  if (existsSync(HOOK_SCRIPT_FILE)) {
+    unlinkSync(HOOK_SCRIPT_FILE)
+  }
+}
+
+// ==================== Status ====================
+
+/**
+ * Get gatekeeper status summary
+ */
+export function getGatekeeperStatus(): {
+  installed: boolean
+  enabled: boolean
+  services: Array<{ id: string, enabled: boolean, mode: ServiceMode }>
+} {
+  const config = readGatekeeperConfig()
+  const hookExists = existsSync(HOOK_SCRIPT_FILE)
+
+  if (!config) {
+    return { installed: hookExists, enabled: false, services: [] }
+  }
+
+  return {
+    installed: hookExists,
+    enabled: config.enabled,
+    services: Object.entries(config.services).map(([id, svc]) => ({
+      id,
+      enabled: svc.enabled,
+      mode: svc.mode,
+    })),
+  }
+}
