@@ -9,16 +9,57 @@ export default defineBuildConfig({
   clean: true,
   rollup: {
     emitCJS: false,
+    // Inline ALL npm dependencies into the bundle.
+    // This is critical because `npm install -g` does not reliably
+    // install transitive dependencies, causing "Cannot find package" errors.
     inlineDependencies: true,
+    resolve: {
+      preferBuiltins: true,
+    },
   },
+  // Only externalize packages that use native bindings or are build-time only.
+  // All other dependencies MUST be inlined.
   externals: [
-    'fs',
-    'node:fs',
-    'node:fs/promises',
     'fdir',
     'tinyglobby',
     'glob',
   ],
+  hooks: {
+    'rollup:options': (_ctx, options) => {
+      // Force inline all dependencies by overriding the external function.
+      // unbuild's inlineDependencies sometimes fails to inline certain packages.
+      const originalExternal = options.external as Function
+      options.external = (id: string, importer: string | undefined, isResolved: boolean) => {
+        // Never externalize npm dependencies — they must be bundled
+        if (typeof id === 'string' && !id.startsWith('node:') && !id.startsWith('.') && !id.startsWith('/')) {
+          // Check if it's a Node.js builtin (without node: prefix)
+          const nodeBuiltins = new Set([
+            'fs', 'path', 'os', 'url', 'child_process', 'process', 'crypto',
+            'util', 'stream', 'events', 'http', 'https', 'net', 'tls', 'zlib',
+            'buffer', 'querystring', 'readline', 'assert', 'async_hooks',
+            'worker_threads', 'perf_hooks', 'diagnostics_channel', 'string_decoder',
+            'tty', 'module', 'timers', 'timers/promises', 'fs/promises',
+          ])
+          const pkgName = id.split('/')[0]
+          if (nodeBuiltins.has(pkgName) || nodeBuiltins.has(id)) {
+            return true // externalize Node.js builtins
+          }
+          // Explicitly allowed externals (native/optional packages)
+          const allowedExternals = new Set(['fdir', 'tinyglobby', 'glob'])
+          if (allowedExternals.has(pkgName)) {
+            return true
+          }
+          return false // inline everything else
+        }
+        // For relative/absolute paths and node: prefixed, use original logic
+        if (typeof originalExternal === 'function') {
+          return originalExternal(id, importer, isResolved)
+        }
+        return false
+      }
+    },
+  // Copy i18n JSON files to dist
+    'build:done': async () => {
   // Copy i18n JSON files to dist
   hooks: {
     'build:done': async () => {
