@@ -291,7 +291,8 @@ export function syncMcpPermissions(): void {
     const mcpPerms = mcpServerIds.map(id => `mcp__${id}`)
     settings.permissions.allow = [...nonMcpPerms, ...mcpPerms]
 
-    writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf-8')
+    // Use atomic write to prevent corruption and race conditions
+    writeJsonConfig(settingsPath, settings)
   }
   catch {}
 }

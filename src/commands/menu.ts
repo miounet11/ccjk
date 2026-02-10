@@ -168,6 +168,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('-.')} ${isZh ? '卸载和删除配置' : 'Uninstall & Remove Config'} ${ansis.dim(isZh ? '- 从系统中删除 Claude Code 配置和工具' : '- Remove Claude Code config and tools from system')}`)
   console.log(`  ${ansis.green('+.')} ${isZh ? '检查更新' : 'Check Updates'} ${ansis.dim(isZh ? '- 检查并更新 Claude Code、CCR 的版本' : '- Check and update Claude Code, CCR versions')}`)
   console.log(`  ${ansis.green('D.')} ${isZh ? '一键体检' : 'Diagnostics'} ${ansis.dim(isZh ? '- 诊断问题并自动修复' : '- Diagnose issues and auto-fix')}`)
+  console.log(`  ${ansis.green('B.')} ${isZh ? '🧠 Brain Dashboard' : '🧠 Brain Dashboard'} ${ansis.dim(isZh ? '- 查看配置健康分数和优化建议' : '- Setup health score & recommendations')}`)
   console.log(`  ${ansis.green('H.')} ${isZh ? '帮助文档' : 'Help'} ${ansis.dim(isZh ? '- 查看使用指南' : '- View user guide')}`)
   console.log(`  ${ansis.green('Q.')} ${isZh ? '退出' : 'Exit'}`)
   console.log('')
@@ -178,7 +179,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     message: isZh ? '请输入选项:' : 'Enter option:',
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'k', 'm', 'a', 'r', 's', '-', '+', 'd', 'h', 'q']
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'k', 'm', 'a', 'r', 'b', 's', '-', '+', 'd', 'h', 'q']
       return valid.includes(normalized) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
@@ -256,6 +257,14 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     case 'r': {
       // CCR
       await runCcrMenuFeature()
+      printSeparator()
+      return undefined
+    }
+
+    case 'b': {
+      // Brain Dashboard
+      const { status } = await import('./status')
+      await status()
       printSeparator()
       return undefined
     }

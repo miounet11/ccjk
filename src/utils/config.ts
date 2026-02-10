@@ -91,14 +91,16 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
   if (!apiConfig)
     return null
 
-  // Get default configuration from template
-  let settings = getDefaultSettings()
-
-  // Merge with existing user configuration if available
+  // Read existing settings first — user config takes priority
+  // Only fall back to template defaults if no settings.json exists at all
   const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  let settings: ClaudeSettings
   if (existingSettings) {
-    // Use deepMerge for deep merge, preserving user's custom configuration
-    settings = deepMerge(settings, existingSettings)
+    settings = existingSettings
+  }
+  else {
+    // First-time setup: start from template defaults
+    settings = getDefaultSettings()
   }
 
   // Ensure env object exists
@@ -126,6 +128,7 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
   writeJsonConfig(SETTINGS_FILE, settings)
 
   // Set primaryApiKey for third-party API (Claude Code 2.0 requirement)
+  // Re-read settings after write to avoid race with other writers
   if (apiConfig.authType) {
     try {
       setPrimaryApiKey()
@@ -133,17 +136,39 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
     catch (error) {
       ensureI18nInitialized()
       console.error(i18n.t('mcp:primaryApiKeySetFailed'), error)
-      // Don't fail the API configuration
     }
   }
 
-  // Add hasCompletedOnboarding flag after successful API configuration
+  // Add hasCompletedOnboarding flag — re-read from disk to avoid clobbering
   try {
     addCompletedOnboarding()
   }
   catch (error) {
-    // Log error but don't fail the API configuration
     console.error('Failed to set onboarding flag', error)
+  }
+
+  // Verify the write actually persisted
+  const verification = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  if (verification?.env) {
+    const envKey = apiConfig.authType === 'api_key' ? 'ANTHROPIC_API_KEY' : 'ANTHROPIC_AUTH_TOKEN'
+    if (verification.env[envKey] !== apiConfig.key) {
+      console.error(ansis.red('⚠ API config write verification failed — retrying...'))
+      // Re-read, re-apply, re-write
+      const freshSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || settings
+      if (!freshSettings.env) freshSettings.env = {}
+      if (apiConfig.authType === 'api_key') {
+        freshSettings.env.ANTHROPIC_API_KEY = apiConfig.key
+        delete freshSettings.env.ANTHROPIC_AUTH_TOKEN
+      }
+      else if (apiConfig.authType === 'auth_token') {
+        freshSettings.env.ANTHROPIC_AUTH_TOKEN = apiConfig.key
+        delete freshSettings.env.ANTHROPIC_API_KEY
+      }
+      if (apiConfig.url) {
+        freshSettings.env.ANTHROPIC_BASE_URL = apiConfig.url
+      }
+      writeJsonConfig(SETTINGS_FILE, freshSettings)
+    }
   }
 
   return apiConfig

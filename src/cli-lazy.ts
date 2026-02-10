@@ -1472,6 +1472,45 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
 
+  // ==================== Brain Dashboard ====================
+  {
+    name: 'status',
+    description: 'Brain Dashboard - setup health score and recommendations',
+    aliases: ['st', 'brain'],
+    tier: 'core',
+    options: [
+      { flags: '--json', description: 'Output as JSON' },
+      { flags: '--compact', description: 'Compact output' },
+    ],
+    loader: async () => {
+      const { status } = await import('./commands/status')
+      return async (options: CliOptions) => {
+        await status({
+          json: options.json as boolean,
+          compact: options.compact as boolean,
+        })
+      }
+    },
+  },
+  {
+    name: 'boost',
+    description: 'One-click optimization - auto-apply all recommendations',
+    tier: 'core',
+    options: [
+      { flags: '--dry-run, -d', description: 'Preview without applying' },
+      { flags: '--yes, -y', description: 'Skip confirmation' },
+    ],
+    loader: async () => {
+      const { boost } = await import('./commands/boost')
+      return async (options: CliOptions) => {
+        await boost({
+          dryRun: options.dryRun as boolean,
+          yes: options.yes as boolean,
+        })
+      }
+    },
+  },
+
   // ==================== Plugin Management ====================
   {
     name: 'add <source>',
@@ -1880,6 +1919,8 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
     body: [
       `  ${cyan('ccjk')}                    Interactive menu ${green('(default)')}`,
       `  ${cyan('ccjk quick-setup')}  ${gray('qs')}    One-click configuration ${green('NEW')}`,
+      `  ${cyan('ccjk status')}       ${gray('st')}    Brain Dashboard - health score ${green('NEW')}`,
+      `  ${cyan('ccjk boost')}              One-click optimization ${green('NEW')}`,
       `  ${cyan('ccjk init')}         ${gray('i')}     Initialize configuration`,
       `  ${cyan('ccjk update')}       ${gray('u')}     Update prompts & workflows`,
       `  ${cyan('ccjk doctor')}             Health check & diagnostics`,
@@ -2083,6 +2124,16 @@ async function tryQuickProviderLaunch(): Promise<boolean> {
 }
 
 /**
+ * Flag to prevent background cloud services from running during interactive config.
+ * Exported so that config operations can check/set it.
+ */
+export let isInteractiveConfigActive = false
+
+export function setInteractiveConfigActive(active: boolean): void {
+  isInteractiveConfigActive = active
+}
+
+/**
  * 云服务自动引导（后台静默执行）
  *
  * 功能：
@@ -2094,8 +2145,18 @@ async function tryQuickProviderLaunch(): Promise<boolean> {
  * - 显示欢迎界面和可用能力
  *
  * 全程静默，不打扰用户，不阻塞 CLI
+ * Skipped entirely when user enters interactive menu (no args) to avoid
+ * race conditions with config writes.
  */
 function bootstrapCloudServices(): void {
+  // Skip background bootstrap when entering interactive menu —
+  // the menu writes to settings.json and background tasks can clobber those writes
+  const args = process.argv.slice(2)
+  const isInteractiveMenu = args.length === 0 || (args.length === 1 && ['-l', '--lang'].includes(args[0]))
+  if (isInteractiveMenu) {
+    return
+  }
+
   // 使用 setImmediate 确保不阻塞 CLI 启动
   setImmediate(async () => {
     try {
