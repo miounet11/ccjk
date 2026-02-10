@@ -1195,14 +1195,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
             writeMcpConfig(mergedConfig)
             syncMcpPermissions()
 
-            // Install MCP gatekeeper (hook-based tool control)
-            try {
-              const { installGatekeeper } = await import('../utils/mcp-gatekeeper')
-              installGatekeeper()
-            }
-            catch {
-              // Gatekeeper is optional, don't block init
-            }
+            // MCP gatekeeper disabled: each MCP call forks bash+node even when
+            // no gatekeeper config exists. Enable manually: ccjk mcp --gatekeeper
 
             console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`))
 
