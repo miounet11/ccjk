@@ -34,11 +34,35 @@ export default defineBuildConfig({
         if (typeof id === 'string' && !id.startsWith('node:') && !id.startsWith('.') && !id.startsWith('/')) {
           // Check if it's a Node.js builtin (without node: prefix)
           const nodeBuiltins = new Set([
-            'fs', 'path', 'os', 'url', 'child_process', 'process', 'crypto',
-            'util', 'stream', 'events', 'http', 'https', 'net', 'tls', 'zlib',
-            'buffer', 'querystring', 'readline', 'assert', 'async_hooks',
-            'worker_threads', 'perf_hooks', 'diagnostics_channel', 'string_decoder',
-            'tty', 'module', 'timers', 'timers/promises', 'fs/promises',
+            'fs',
+            'path',
+            'os',
+            'url',
+            'child_process',
+            'process',
+            'crypto',
+            'util',
+            'stream',
+            'events',
+            'http',
+            'https',
+            'net',
+            'tls',
+            'zlib',
+            'buffer',
+            'querystring',
+            'readline',
+            'assert',
+            'async_hooks',
+            'worker_threads',
+            'perf_hooks',
+            'diagnostics_channel',
+            'string_decoder',
+            'tty',
+            'module',
+            'timers',
+            'timers/promises',
+            'fs/promises',
           ])
           const pkgName = id.split('/')[0]
           if (nodeBuiltins.has(pkgName) || nodeBuiltins.has(id)) {
@@ -118,7 +142,7 @@ export default defineBuildConfig({
 
         for (const file of jsonFiles) {
           // Use pathe.join for proper cross-platform path handling
-          const relativePath = file.replace(/^src[\/\\]i18n[\/\\]/, '')
+          const relativePath = file.replace(/^src[/\\]i18n[/\\]/, '')
           const destFile = join('dist', 'i18n', relativePath)
           const destDir = dirname(destFile)
 

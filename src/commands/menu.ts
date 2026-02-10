@@ -1,6 +1,6 @@
 import type { CodeToolType, SupportedLang } from '../constants'
-import process from 'node:process'
 import { existsSync } from 'node:fs'
+import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
