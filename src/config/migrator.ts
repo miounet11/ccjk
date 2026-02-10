@@ -62,7 +62,7 @@ export const DEFAULT_SETTINGS_V2: Partial<ClaudeSettings> = {
 
   // Auto-enable MCP servers after 5 uses
   auto: {
-    mcp: 5,
+    mcp: 0,
   },
 
   // Default agent - empty means use Claude's default
