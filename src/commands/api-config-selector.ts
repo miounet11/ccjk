@@ -49,9 +49,11 @@ function getCurrentCodeTool(): CodeToolType {
  * Show unified API configuration menu
  *
  * @param title - Optional custom title for the menu
+ * @param options - Additional options
+ * @param options.context - 'init' skips management sub-menu for custom config, 'menu' shows full management
  * @returns API configuration result
  */
-export async function showApiConfigMenu(title?: string): Promise<ApiConfigResult> {
+export async function showApiConfigMenu(title?: string, options?: { context?: 'init' | 'menu' }): Promise<ApiConfigResult> {
   const lang = i18n.language
   const isZh = lang === 'zh-CN'
 
@@ -83,7 +85,7 @@ export async function showApiConfigMenu(title?: string): Promise<ApiConfigResult
       return await handleOfficialLogin(codeTool, isZh)
 
     case 'custom':
-      return await handleCustomConfig(isZh)
+      return await handleCustomConfig(isZh, options?.context)
 
     case 'ccr':
       return await handleCcrProxy(codeTool, isZh)
@@ -131,18 +133,19 @@ async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promi
 
 /**
  * Handle custom API configuration
- * Goes directly to add/edit profile instead of showing a management sub-menu
+ * @param context - 'init' goes directly to add profile, 'menu' shows full management
  */
-async function handleCustomConfig(_isZh: boolean): Promise<ApiConfigResult> {
+async function handleCustomConfig(_isZh: boolean, context?: 'init' | 'menu'): Promise<ApiConfigResult> {
   try {
     const codeTool = getCurrentCodeTool()
 
-    if (codeTool === 'claude-code') {
-      // Go directly to add profile flow, skip the management menu
+    if (codeTool === 'claude-code' && context === 'init') {
+      // During init flow, skip management menu and go directly to add profile
       const { addProfileDirect } = await import('../utils/claude-code-incremental-manager')
       await addProfileDirect()
     }
     else {
+      // From main menu, show full management (add/edit/copy/delete)
       await handleCustomApiMode()
     }
     return { mode: 'custom', success: true, cancelled: false }

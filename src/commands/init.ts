@@ -329,6 +329,7 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
       const { showApiConfigMenu } = await import('./api-config-selector')
       const apiResult = await showApiConfigMenu(
         i18n.language === 'zh-CN' ? '🔑 选择 API 配置方式' : '🔑 Select API Configuration',
+        { context: 'init' },
       )
 
       if (apiResult.cancelled) {
