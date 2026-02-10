@@ -58,10 +58,7 @@ export default defineBuildConfig({
         return false
       }
     },
-  // Copy i18n JSON files to dist
-    'build:done': async () => {
-  // Copy i18n JSON files to dist
-  hooks: {
+    // Copy i18n JSON files to dist
     'build:done': async () => {
       try {
         // Enhanced cross-platform file discovery for Windows CI compatibility
@@ -113,7 +110,7 @@ export default defineBuildConfig({
         }
 
         if (jsonFiles.length === 0) {
-          console.error('❌ No i18n JSON files found in src/i18n/locales')
+          console.error('\u274C No i18n JSON files found in src/i18n/locales')
           throw new Error('No i18n files found - this will break the application')
         }
 
@@ -121,19 +118,18 @@ export default defineBuildConfig({
 
         for (const file of jsonFiles) {
           // Use pathe.join for proper cross-platform path handling
-          const relativePath = file.replace(/^src[/\\]i18n[/\\]/, '')
+          const relativePath = file.replace(/^src[\/\\]i18n[\/\\]/, '')
           const destFile = join('dist', 'i18n', relativePath)
           const destDir = dirname(destFile)
 
           await mkdir(destDir, { recursive: true })
           await copyFile(file, destFile)
-          console.log(`✅ Copied ${file} → ${destFile}`)
         }
 
-        console.log(`🎉 Successfully copied ${jsonFiles.length} i18n files`)
+        console.log(`\uD83C\uDF89 Successfully copied ${jsonFiles.length} i18n files`)
       }
       catch (error) {
-        console.error('❌ Failed to copy i18n files:', error)
+        console.error('\u274C Failed to copy i18n files:', error)
         throw error
       }
     },

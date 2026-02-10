@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -120,7 +120,7 @@ describe('mcp-gatekeeper', () => {
     it('should create config from MCP services when no existing config', () => {
       readMcpConfig.mockReturnValue({
         mcpServers: {
-          context7: { command: 'npx', args: [] },
+          'context7': { command: 'npx', args: [] },
           'mcp-deepwiki': { command: 'npx', args: [] },
         },
       })
@@ -145,7 +145,7 @@ describe('mcp-gatekeeper', () => {
 
       readMcpConfig.mockReturnValue({
         mcpServers: {
-          context7: { command: 'npx', args: [] },
+          'context7': { command: 'npx', args: [] },
           'mcp-deepwiki': { command: 'npx', args: [] },
         },
       })
@@ -161,7 +161,7 @@ describe('mcp-gatekeeper', () => {
       const existingConfig = {
         enabled: true,
         services: {
-          context7: { enabled: true, mode: 'always' as const },
+          'context7': { enabled: true, mode: 'always' as const },
           'old-service': { enabled: true, mode: 'always' as const },
         },
       }

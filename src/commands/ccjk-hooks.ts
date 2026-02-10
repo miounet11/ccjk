@@ -47,13 +47,21 @@ export async function ccjkHooks(
     }
 
     // Step 2: Get recommended hooks
-    let recommendedHooks: HookTemplate[] = []
     const isZh = i18n.language === 'zh-CN'
 
+    // Load local templates first (always available)
+    const allHookTemplates = await loadHookTemplates()
+    let recommendedHooks: HookTemplate[] = allHookTemplates.filter(template =>
+      template.projectTypes.includes(projectType),
+    )
+
+    // Optionally enhance with cloud recommendations (3s timeout)
     try {
-      // Try cloud v8 Templates API first
       const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' })
-      const cloudHooks = await templatesClient.getHooks()
+      const cloudHooks = await Promise.race([
+        templatesClient.getHooks(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+      ])
 
       if (cloudHooks.length > 0) {
         consola.success(isZh ? `从云端获取 ${cloudHooks.length} 个钩子` : `Fetched ${cloudHooks.length} hooks from cloud`)
@@ -76,8 +84,15 @@ export async function ccjkHooks(
           )
         })
 
-        // Convert cloud templates to HookTemplate format
+        // Track local hook names to avoid duplicates
+        const localHookNames = new Set(recommendedHooks.map(h => h.name.toLowerCase()))
+
+        // Add cloud hooks that aren't already in local
         for (const hook of (relevantHooks.length > 0 ? relevantHooks : cloudHooks.slice(0, 10))) {
+          const hookName = (hook.name_zh_cn && isZh ? hook.name_zh_cn : hook.name_en).toLowerCase()
+          if (localHookNames.has(hookName)) {
+            continue
+          }
           const hookConfig: HookTemplate = {
             name: hook.name_zh_cn && isZh ? hook.name_zh_cn : hook.name_en,
             description: hook.description_zh_cn && isZh ? hook.description_zh_cn : (hook.description_en || ''),
@@ -100,21 +115,8 @@ export async function ccjkHooks(
         }
       }
     }
-    catch (_error) {
-      // Fallback to local templates
-      consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
-      const templates = await loadHookTemplates()
-      recommendedHooks = templates.filter(template =>
-        template.projectTypes.includes(projectType),
-      )
-    }
-
-    // If still no hooks, use local templates
-    if (recommendedHooks.length === 0) {
-      const templates = await loadHookTemplates()
-      recommendedHooks = templates.filter(template =>
-        template.projectTypes.includes(projectType),
-      )
+    catch {
+      // Cloud unavailable, local templates are sufficient
     }
 
     // Step 3: Filter hooks based on options

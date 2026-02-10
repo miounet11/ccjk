@@ -257,15 +257,25 @@ async function getRecommendedSkills(
   const frameworks = analysis.frameworks.map(f => f.name.toLowerCase())
   const projectType = analysis.projectType?.toLowerCase() || ''
 
+  // Load local templates first (always available)
+  const localSkills = await getLocalRecommendations(analysis, options)
+  recommendations.push(...localSkills)
+
+  // Optionally enhance with cloud recommendations (3s timeout)
   try {
-    // Use new v8 Templates API
     const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' })
 
     logger.info('Fetching cloud recommendations...')
-    const cloudSkills = await templatesClient.getSkills()
+    const cloudSkills = await Promise.race([
+      templatesClient.getSkills(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+    ])
 
     if (cloudSkills.length > 0) {
       logger.success(isZh ? `从云端获取 ${cloudSkills.length} 个技能` : `Fetched ${cloudSkills.length} skills from cloud`)
+
+      // Track local skill IDs to avoid duplicates
+      const localSkillIds = new Set(recommendations.map(s => s.id))
 
       // Filter by project relevance
       const relevantSkills = cloudSkills.filter((skill) => {
@@ -281,10 +291,14 @@ async function getRecommendedSkills(
         )
       })
 
-      // Convert cloud templates to RecommendedSkill format
+      // Add cloud skills that aren't already in local
       for (const skill of (relevantSkills.length > 0 ? relevantSkills : cloudSkills.slice(0, 10))) {
+        const skillId = skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-')
+        if (localSkillIds.has(skillId)) {
+          continue
+        }
         recommendations.push({
-          id: skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-'),
+          id: skillId,
           name: {
             'en': skill.name_en,
             'zh-CN': skill.name_zh_cn || skill.name_en,
@@ -297,22 +311,19 @@ async function getRecommendedSkills(
           priority: skill.rating_average ? skill.rating_average * 2 : 7,
           source: 'cloud',
           tags: skill.tags || [],
-          templatePath: skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-'),
+          templatePath: skillId,
           // Store template content from V8 API response
           templateContent: skill.template_content || skill.content,
         })
       }
     }
   }
-  catch (error) {
-    logger.warn('Cloud recommendations failed, using local fallback:', error)
+  catch {
+    // Cloud unavailable, local templates are sufficient
+    logger.debug('Cloud recommendations unavailable, using local templates only')
   }
 
-  // Add local recommendations
-  const localSkills = await getLocalRecommendations(analysis, options)
-  recommendations.push(...localSkills)
-
-  // Remove duplicates (cloud takes precedence)
+  // Remove duplicates (local takes precedence)
   const seen = new Set<string>()
   const unique: RecommendedSkill[] = []
 

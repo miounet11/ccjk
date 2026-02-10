@@ -45,7 +45,8 @@ export interface GatekeeperConfig {
  */
 export function readGatekeeperConfig(): GatekeeperConfig | null {
   try {
-    if (!existsSync(GATEKEEPER_CONFIG_FILE)) return null
+    if (!existsSync(GATEKEEPER_CONFIG_FILE))
+      return null
     const content = readFileSync(GATEKEEPER_CONFIG_FILE, 'utf-8')
     return JSON.parse(content)
   }
@@ -308,12 +309,14 @@ export function registerHookInSettings(): void {
  * Unregister the gatekeeper hook from Claude Code settings.json
  */
 export function unregisterHookFromSettings(): void {
-  if (!existsSync(SETTINGS_FILE)) return
+  if (!existsSync(SETTINGS_FILE))
+    return
 
   try {
     const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
     const hooks = settings.hooks as Record<string, unknown[]> | undefined
-    if (!hooks?.PreToolUse) return
+    if (!hooks?.PreToolUse)
+      return
 
     const preToolUse = hooks.PreToolUse as Array<{ matcher?: string, hooks?: unknown[] }>
     hooks.PreToolUse = preToolUse.filter(

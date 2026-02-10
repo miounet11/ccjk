@@ -4,7 +4,7 @@
  * Handles writing agent definitions to disk in Claude Code compatible format.
  *
  * Claude Code expects agents as Markdown files with YAML frontmatter in:
- * - Project-local: `.claude-code/agents/*.md`
+ * - Project-local: `.claude/agents/*.md`
  * - Global: `~/.claude/agents/*.md` (Claude Code compatible)
  *
  * Format:
@@ -26,7 +26,7 @@ import { join } from 'pathe'
 import { CCJK_CONFIG_DIR, CLAUDE_AGENTS_DIR } from '../constants'
 
 // Claude Code compatible location (project-local)
-const getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude-code', 'agents')
+const getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'agents')
 
 // Global agents location - uses ~/.claude/agents for Claude Code compatibility
 const GLOBAL_AGENTS_DIR = CLAUDE_AGENTS_DIR
@@ -177,7 +177,7 @@ function formatCapability(cap: string): string {
 /**
  * Write agent definition to file
  *
- * By default, writes to project-local `.claude-code/agents/` in Markdown format
+ * By default, writes to project-local `.claude/agents/` in Markdown format
  * for Claude Code compatibility.
  */
 export async function writeAgentFile(

@@ -20,9 +20,10 @@ import {
   backupMcpConfig,
   buildMcpServerConfig,
   fixWindowsMcpConfig,
-  mergeMcpServers,
   readMcpConfig,
+  replaceMcpServers,
   setPrimaryApiKey,
+  syncMcpPermissions,
   writeMcpConfig,
 } from '../utils/claude-config'
 import { runCodexFullInit } from '../utils/code-tools/codex'
@@ -291,6 +292,18 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
  */
 export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
   try {
+    // Capture original skipPrompt before it gets overwritten for the downstream init() call
+    const userSkipPrompt = options.skipPrompt ?? false
+
+    // Clean up legacy zcf namespace directories
+    try {
+      const { cleanupZcfNamespace } = await import('../utils/cleanup-migration.js')
+      cleanupZcfNamespace()
+    }
+    catch {
+      // Silent fail
+    }
+
     console.log(ansis.bold.green('\n🚀 CCJK One-Click Installation\n'))
 
     // Step 1: Detect smart defaults
@@ -355,6 +368,19 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
     console.log(ansis.gray(`  • Skills: ${defaults.skills.length} selected`))
     console.log(ansis.gray(`  • Agents: ${defaults.agents.length} selected`))
     console.log('')
+
+    // Step 5.5: Confirm before proceeding
+    if (!userSkipPrompt) {
+      const { promptBoolean } = await import('../utils/toggle-prompt')
+      const confirmed = await promptBoolean({
+        message: i18n.language === 'zh-CN' ? '确认安装以上配置？' : 'Proceed with installation?',
+        defaultValue: true,
+      })
+      if (!confirmed) {
+        console.log(ansis.yellow(i18n.language === 'zh-CN' ? '已取消安装' : 'Installation cancelled'))
+        return
+      }
+    }
 
     // Step 6: Run full init with smart defaults
     console.log(ansis.gray('🔧 Installing with smart defaults...\n'))
@@ -468,6 +494,18 @@ async function handleSuperpowersInstallation(options: InitOptions): Promise<void
 }
 
 export async function init(options: InitOptions = {}): Promise<void> {
+  // Clean up legacy zcf namespace directories to prevent duplicate skills/agents
+  try {
+    const { cleanupZcfNamespace } = await import('../utils/cleanup-migration.js')
+    const { removed } = cleanupZcfNamespace()
+    if (removed.length > 0) {
+      console.log(ansis.dim(`Cleaned up legacy zcf namespace: ${removed.join(', ')}`))
+    }
+  }
+  catch {
+    // Silent fail - cleanup is best-effort
+  }
+
   // Handle smart generation mode
   if (options.smart) {
     return await smartInit(options)
@@ -1144,9 +1182,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
             newServers[service.id] = config
           }
 
-          // Merge with existing config
+          // Replace MCP servers with clean slate (init flow removes stale services)
           const existingConfig = readMcpConfig()
-          let mergedConfig = mergeMcpServers(existingConfig, newServers)
+          let mergedConfig = replaceMcpServers(existingConfig, newServers)
 
           // Fix Windows config if needed
           mergedConfig = fixWindowsMcpConfig(mergedConfig)
@@ -1154,6 +1192,17 @@ export async function init(options: InitOptions = {}): Promise<void> {
           // Write the config with error handling
           try {
             writeMcpConfig(mergedConfig)
+            syncMcpPermissions()
+
+            // Install MCP gatekeeper (hook-based tool control)
+            try {
+              const { installGatekeeper } = await import('../utils/mcp-gatekeeper')
+              installGatekeeper()
+            }
+            catch {
+              // Gatekeeper is optional, don't block init
+            }
+
             console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`))
 
             // Check and display performance warning

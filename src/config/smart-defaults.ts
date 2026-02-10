@@ -216,9 +216,17 @@ export class SmartDefaultsDetector {
   }
 
   /**
-   * Detect installed code tool type
+   * Detect installed code tool type (instance method delegates to static)
    */
   private detectCodeToolType(): string {
+    return SmartDefaultsDetector.detectCodeToolType()
+  }
+
+  /**
+   * Detect installed code tool type by checking filesystem markers.
+   * This is a static method so it can be called without instantiating the full detector.
+   */
+  static detectCodeToolType(): string {
     // Check for Claude Code installation (~/.claude on macOS/Linux, ~/.config/claude on some systems)
     const claudeCodePaths = [
       join(homedir(), '.claude'),
@@ -382,6 +390,15 @@ export async function detectSmartDefaults(): Promise<SmartDefaults> {
  */
 export function needsApiKeyPrompt(defaults: SmartDefaults): boolean {
   return !defaults.apiProvider || !defaults.apiKey
+}
+
+/**
+ * Detect the code tool type by checking filesystem markers.
+ * Standalone function that does not require instantiating SmartDefaultsDetector.
+ * @returns Detected code tool type string (e.g., 'claude-code' or 'codex')
+ */
+export function detectCodeToolType(): string {
+  return SmartDefaultsDetector.detectCodeToolType()
 }
 
 // Export singleton instance

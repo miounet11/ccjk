@@ -109,14 +109,35 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
     consola.log('')
     consola.info(isZh ? '📋 获取推荐中...' : '📋 Getting recommendations...')
 
-    let recommendations: AgentRecommendation[] = []
+    // Load local templates first (always available)
+    const allTemplates = await loadAgentTemplates()
+    let recommendations: AgentRecommendation[] = allTemplates.filter(t =>
+      t.skills.some(skill =>
+        frameworks.includes(skill)
+        || languages.includes(skill)
+        || projectType.includes(skill),
+      )
+      || t.capabilities.some(cap =>
+        frameworks.includes(cap)
+        || languages.includes(cap)
+        || projectType.includes(cap),
+      ),
+    )
 
+    if (recommendations.length === 0) {
+      consola.warn(isZh ? '未找到合适的代理，使用所有模板' : 'No suitable agents found, using all templates')
+      recommendations = allTemplates
+    }
+
+    // Optionally enhance with cloud recommendations (3s timeout)
     try {
-      // Use new v8 Templates API
       const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' })
 
       // Get specialist agents matching project frameworks/languages
-      const cloudAgents = await templatesClient.getSpecialistAgents()
+      const cloudAgents = await Promise.race([
+        templatesClient.getSpecialistAgents(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+      ])
 
       // Filter by project relevance
       const relevantAgents = cloudAgents.filter((agent) => {
@@ -132,47 +153,34 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
         )
       })
 
-      // Convert Template to AgentRecommendation format
-      recommendations = (relevantAgents.length > 0 ? relevantAgents : cloudAgents.slice(0, 10)).map(agent => ({
-        id: agent.id,
-        name: agent.name_zh_cn && isZh ? agent.name_zh_cn : agent.name_en,
-        description: agent.description_zh_cn && isZh ? agent.description_zh_cn : (agent.description_en || ''),
-        skills: agent.tags || [],
-        mcpServers: [],
-        persona: agent.name_en,
-        capabilities: [],
-        confidence: agent.rating_average / 5 || 0.8,
-        reason: `${isZh ? '推荐理由' : 'Recommended'}: ${agent.category}`,
-      }))
+      // Track local agent names to avoid duplicates
+      const localAgentNames = new Set(recommendations.map(a => (typeof a.name === 'string' ? a.name : '').toLowerCase()))
 
-      if (recommendations.length > 0) {
-        consola.success(isZh ? `从云端获取 ${recommendations.length} 个专业代理` : `Fetched ${recommendations.length} specialist agents from cloud`)
+      // Add cloud agents that aren't already in local
+      const cloudToAdd = (relevantAgents.length > 0 ? relevantAgents : cloudAgents.slice(0, 10))
+      for (const agent of cloudToAdd) {
+        const agentName = (agent.name_zh_cn && isZh ? agent.name_zh_cn : agent.name_en).toLowerCase()
+        if (localAgentNames.has(agentName)) {
+          continue
+        }
+        recommendations.push({
+          name: agent.name_zh_cn && isZh ? agent.name_zh_cn : agent.name_en,
+          description: agent.description_zh_cn && isZh ? agent.description_zh_cn : (agent.description_en || ''),
+          skills: agent.tags || [],
+          mcpServers: [],
+          persona: agent.name_en,
+          capabilities: [],
+          confidence: agent.rating_average / 5 || 0.8,
+          reason: `${isZh ? '推荐理由' : 'Recommended'}: ${agent.category}`,
+        })
+      }
+
+      if (cloudToAdd.length > 0) {
+        consola.success(isZh ? `从云端获取 ${cloudToAdd.length} 个专业代理` : `Fetched ${cloudToAdd.length} specialist agents from cloud`)
       }
     }
-    catch (_error) {
-      consola.warn(isZh ? '云端获取失败，使用本地模板' : 'Cloud fetch failed, using local templates')
-    }
-
-    // Fallback to local templates if cloud is unavailable
-    if (!recommendations || recommendations.length === 0) {
-      const templates = await loadAgentTemplates()
-      recommendations = templates.filter(t =>
-        t.skills.some(skill =>
-          frameworks.includes(skill)
-          || languages.includes(skill)
-          || projectType.includes(skill),
-        )
-        || t.capabilities.some(cap =>
-          frameworks.includes(cap)
-          || languages.includes(cap)
-          || projectType.includes(cap),
-        ),
-      )
-    }
-
-    if (recommendations.length === 0) {
-      consola.warn(isZh ? '未找到合适的代理，使用所有模板' : 'No suitable agents found, using all templates')
-      recommendations = await loadAgentTemplates()
+    catch {
+      // Cloud unavailable, local templates are sufficient
     }
 
     // Display recommendations

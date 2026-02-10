@@ -1,7 +1,8 @@
 import type { CodeToolType } from '../constants'
+import { detectCodeToolType } from '../config/smart-defaults'
 import { DEFAULT_CODE_TOOL_TYPE } from '../constants'
 import { i18n } from '../i18n'
-import { readZcfConfigAsync } from './ccjk-config'
+import { readZcfConfigAsync, saveZcfConfig } from './ccjk-config'
 
 /**
  * Code type abbreviation mapping
@@ -54,7 +55,30 @@ export async function resolveCodeType(codeTypeParam?: string): Promise<CodeToolT
     )
   }
 
-  // No parameter provided, use config default
+  // No parameter provided, prefer fresh detection over stored config
+  // This fixes stale 'codex' values persisted in ~/.ccjk/config.toml
+  try {
+    const freshDetected = detectCodeToolType() as CodeToolType
+    if (isValidCodeType(freshDetected)) {
+      // Update stored config with fresh detection result
+      try {
+        const config = await readZcfConfigAsync()
+        if (config && config.codeToolType !== freshDetected) {
+          config.codeToolType = freshDetected
+          await saveZcfConfig(config)
+        }
+      }
+      catch {
+        // Config update is best-effort, don't block on failure
+      }
+      return freshDetected
+    }
+  }
+  catch {
+    // If fresh detection fails, fall through to stored config
+  }
+
+  // Fallback: try stored config
   try {
     const config = await readZcfConfigAsync()
     if (config?.codeToolType && isValidCodeType(config.codeToolType)) {
@@ -65,7 +89,7 @@ export async function resolveCodeType(codeTypeParam?: string): Promise<CodeToolT
     // If config reading fails, continue to fallback
   }
 
-  // Fallback to default
+  // Final fallback to default
   return DEFAULT_CODE_TOOL_TYPE
 }
 

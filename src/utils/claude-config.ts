@@ -1,4 +1,5 @@
 import type { ClaudeConfiguration, McpServerConfig } from '../types'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
@@ -267,4 +268,30 @@ export function setPrimaryApiKey(): void {
     // Don't throw error to avoid breaking the main flow
     // This is important but shouldn't block the configuration process
   }
+}
+
+export function syncMcpPermissions(): void {
+  const mcpConfig = readMcpConfig()
+  const mcpServerIds = Object.keys(mcpConfig?.mcpServers || {})
+
+  const settingsPath = join(CLAUDE_DIR, 'settings.json')
+  if (!existsSync(settingsPath))
+    return
+
+  try {
+    const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'))
+    if (!settings.permissions?.allow)
+      return
+
+    // Remove stale mcp__ permissions
+    const nonMcpPerms = settings.permissions.allow.filter(
+      (p: string) => !p.startsWith('mcp__'),
+    )
+    // Add current MCP permissions
+    const mcpPerms = mcpServerIds.map(id => `mcp__${id}`)
+    settings.permissions.allow = [...nonMcpPerms, ...mcpPerms]
+
+    writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf-8')
+  }
+  catch {}
 }
