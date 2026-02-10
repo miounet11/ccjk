@@ -89,6 +89,15 @@ async function promptContinueAdding(): Promise<boolean> {
 }
 
 /**
+ * Direct entry point for adding a profile (skips management menu).
+ * Used by api-config-selector when user picks "Custom API Configuration".
+ */
+export async function addProfileDirect(): Promise<void> {
+  ensureI18nInitialized()
+  return handleAddProfile()
+}
+
+/**
  * Handle adding a new Claude Code profile
  */
 async function handleAddProfile(): Promise<void> {

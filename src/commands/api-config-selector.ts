@@ -131,11 +131,20 @@ async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promi
 
 /**
  * Handle custom API configuration
+ * Goes directly to add/edit profile instead of showing a management sub-menu
  */
 async function handleCustomConfig(_isZh: boolean): Promise<ApiConfigResult> {
   try {
-    // Directly call handleCustomApiMode to avoid duplicate menu
-    await handleCustomApiMode()
+    const codeTool = getCurrentCodeTool()
+
+    if (codeTool === 'claude-code') {
+      // Go directly to add profile flow, skip the management menu
+      const { addProfileDirect } = await import('../utils/claude-code-incremental-manager')
+      await addProfileDirect()
+    }
+    else {
+      await handleCustomApiMode()
+    }
     return { mode: 'custom', success: true, cancelled: false }
   }
   catch {
