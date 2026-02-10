@@ -2180,12 +2180,11 @@ function bootstrapCloudServices(): void {
       const { setupBrainHook } = await import('./brain/integration/cli-hook')
       await setupBrainHook({
         enabled: true,
-        silent: false, // 显示智能路由信息
+        silent: true, // 静默模式，不打扰用户
         fallbackToClaudeCode: true,
       })
 
-      // 5. 显示欢迎界面（仅在非命令模式下显示）
-      await showWelcomeIfNeeded()
+      // 5. 欢迎界面已移除 — 遵循反侵略原则，不打扰用户
     }
     catch {
       // 云服务错误静默处理，不影响用户使用
