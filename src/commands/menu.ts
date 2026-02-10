@@ -1,4 +1,5 @@
 import type { CodeToolType, SupportedLang } from '../constants'
+import process from 'node:process'
 import { existsSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
@@ -414,5 +415,9 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
     if (!handleExitPromptError(error)) {
       handleGeneralError(error)
     }
+  }
+  finally {
+    // Ensure clean exit - inquirer may leave stdin open which keeps the event loop alive
+    process.exit(0)
   }
 }
