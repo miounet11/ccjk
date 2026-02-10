@@ -12,19 +12,19 @@ import { handleExitPromptError, handleGeneralError } from '../utils/error-handle
 import {
   changeScriptLanguageFeature,
   configureAiMemoryFeature,
+  configureApiFeature,
   configureDefaultModelFeature,
   configureEnvPermissionFeature,
+  configureMcpFeature,
 } from '../utils/features'
 import { normalizeMenuInput } from '../utils/input-normalizer'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { runCcrMenuFeature } from '../utils/tools'
-import { showApiConfigMenu } from './api-config-selector'
 import { ccjkAgents } from './ccjk-agents'
-import { ccjkMcp } from './ccjk-mcp'
 import { ccjkSkills } from './ccjk-skills'
 import { checkUpdates } from './check-updates'
 import { doctor } from './doctor'
-import { simplifiedInit } from './init'
+import { init } from './init'
 import { uninstall } from './uninstall'
 import { update } from './update'
 
@@ -192,64 +192,43 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   switch (normalized) {
     // -------- Claude Code --------
     case '1': {
-      // Full Init
-      console.log('')
-      console.log(ansis.green(isZh ? '⚡ 完整初始化...' : '⚡ Full Init...'))
-      console.log('')
-      await simplifiedInit({ skipPrompt: false })
+      // Full Init - call init() directly like zcf
+      await init({ skipBanner: true })
       break
     }
 
     case '2': {
-      // Import Workflows
-      console.log('')
-      console.log(ansis.green(isZh ? '📚 导入工作流...' : '📚 Importing Workflows...'))
-      console.log('')
+      // Import Workflows - same as zcf
       await update({ skipBanner: true })
       break
     }
 
     case '3': {
-      // Configure API or CCR Proxy
-      console.log('')
-      console.log(ansis.green(isZh ? '🔑 配置 API...' : '🔑 Configuring API...'))
-      console.log('')
-      await showApiConfigMenu()
+      // Configure API or CCR Proxy - use configureApiFeature() like zcf
+      await configureApiFeature()
       break
     }
 
     case '4': {
-      // Configure MCP
-      console.log('')
-      console.log(ansis.green(isZh ? '🔌 配置 MCP...' : '🔌 Configuring MCP...'))
-      console.log('')
-      await ccjkMcp({} as any)
+      // Configure MCP - use configureMcpFeature() like zcf
+      await configureMcpFeature()
       break
     }
 
     case '5': {
-      // Configure Default Model
-      console.log('')
-      console.log(ansis.green(isZh ? '🤖 配置默认模型...' : '🤖 Configuring Default Model...'))
-      console.log('')
+      // Configure Default Model - same as zcf
       await configureDefaultModelFeature()
       break
     }
 
     case '6': {
-      // Configure Claude Memory
-      console.log('')
-      console.log(ansis.green(isZh ? '🧠 配置 Claude 全局记忆...' : '🧠 Configuring Claude Memory...'))
-      console.log('')
+      // Configure Claude Memory - same as zcf
       await configureAiMemoryFeature()
       break
     }
 
     case '7': {
-      // Import Recommended Env & Permissions
-      console.log('')
-      console.log(ansis.green(isZh ? '📦 导入推荐配置...' : '📦 Importing Recommended Config...'))
-      console.log('')
+      // Import Recommended Env & Permissions - same as zcf
       await configureEnvPermissionFeature()
       break
     }
@@ -257,93 +236,79 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     // --------- 其他工具 ----------
     case 'k': {
       // Skills Manager
-      console.log('')
-      console.log(ansis.green(isZh ? '📚 Skills 管理...' : '📚 Skills Manager...'))
-      console.log('')
       await ccjkSkills({} as any)
       break
     }
 
     case 'm': {
-      // MCP Manager
-      console.log('')
-      console.log(ansis.green(isZh ? '🔌 MCP 管理...' : '🔌 MCP Manager...'))
-      console.log('')
-      await ccjkMcp({} as any)
+      // MCP Manager - reuse configureMcpFeature for consistency
+      await configureMcpFeature()
       break
     }
 
     case 'a': {
       // Agents Manager
-      console.log('')
-      console.log(ansis.green(isZh ? '🤖 Agents 管理...' : '🤖 Agents Manager...'))
-      console.log('')
       await ccjkAgents({} as any)
       break
     }
 
     case 'r': {
       // CCR
-      console.log('')
-      console.log(ansis.green(isZh ? '🔄 CCR 代理管理...' : '🔄 CCR Proxy Manager...'))
-      console.log('')
       await runCcrMenuFeature()
-      break
+      printSeparator()
+      return undefined
     }
 
     // ------------ CCJK ------------
     case '0': {
-      // Language Settings
+      // Language Settings - matches zcf pattern
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)
-      break
+      printSeparator()
+      return undefined
     }
 
     case 's': {
-      // Switch Code Tool
-      console.log('')
-      console.log(ansis.green(isZh ? '🛠️ 切换代码工具...' : '🛠️ Switching Code Tool...'))
-      console.log('')
-      await handleCodeToolSwitch(getCurrentCodeTool())
-      break
+      // Switch Code Tool - matches zcf pattern
+      const switched = await handleCodeToolSwitch(getCurrentCodeTool())
+      if (switched) {
+        return 'switch'
+      }
+      printSeparator()
+      return undefined
     }
 
     case '-': {
       // Uninstall
-      console.log('')
-      console.log(ansis.green(isZh ? '🗑️ 卸载 CCJK...' : '🗑️ Uninstalling CCJK...'))
-      console.log('')
       await uninstall()
-      break
+      printSeparator()
+      return undefined
     }
 
     case '+': {
       // Check Updates
-      console.log('')
-      console.log(ansis.green(isZh ? '📦 检查更新...' : '📦 Checking Updates...'))
-      console.log('')
       await checkUpdates()
-      break
+      printSeparator()
+      return undefined
     }
 
     case 'd': {
       // Diagnostics
-      console.log('')
-      console.log(ansis.green(isZh ? '🔧 一键体检...' : '🔧 Running Diagnostics...'))
-      console.log('')
       await doctor()
-      break
+      printSeparator()
+      return undefined
     }
 
     case 'h': {
       // Help Documentation
       showHelpDocumentation(isZh)
-      break
+      printSeparator()
+      return undefined
     }
 
     case 'q': {
       // Exit
-      console.log(ansis.green(isZh ? '👋 再见！' : '👋 Goodbye!'))
+      console.log(ansis.cyan(i18n.t('common:goodbye')))
       return 'exit'
     }
 
@@ -428,7 +393,7 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       }
     }
 
-    // Menu loop
+    // Menu loop - matches zcf pattern
     let exitMenu = false
     while (!exitMenu) {
       const codeTool = getCurrentCodeTool()
@@ -438,6 +403,10 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
 
       if (result === 'exit') {
         exitMenu = true
+      }
+      else if (result === 'switch') {
+        // Loop will read updated config and refresh banner
+        continue
       }
     }
   }
