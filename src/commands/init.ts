@@ -1595,99 +1595,82 @@ async function saveSingleConfigToToml(
   }
 }
 
+async function buildClaudeCodeProfile(params: {
+  name: string
+  key: string
+  authType: 'api_key' | 'auth_token'
+  url?: string
+  provider?: string
+  primaryModel?: string
+  defaultHaikuModel?: string
+  defaultSonnetModel?: string
+  defaultOpusModel?: string
+}): Promise<ClaudeCodeProfile> {
+  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
+
+  let { url: baseUrl, authType, primaryModel, defaultHaikuModel, defaultSonnetModel, defaultOpusModel } = params
+  baseUrl = baseUrl || API_DEFAULT_URL
+
+  if (params.provider && params.provider !== 'custom') {
+    const { getProviderPreset } = await import('../config/api-providers')
+    const preset = getProviderPreset(params.provider)
+
+    if (preset?.claudeCode) {
+      baseUrl = params.url || preset.claudeCode.baseUrl
+      authType = preset.claudeCode.authType
+      if (preset.claudeCode.defaultModels && preset.claudeCode.defaultModels.length > 0) {
+        const [p, h, s, o] = preset.claudeCode.defaultModels
+        primaryModel = primaryModel || p
+        defaultHaikuModel = defaultHaikuModel || h
+        defaultSonnetModel = defaultSonnetModel || s
+        defaultOpusModel = defaultOpusModel || o
+      }
+    }
+  }
+
+  return {
+    name: params.name,
+    authType,
+    apiKey: params.key,
+    baseUrl,
+    primaryModel,
+    defaultHaikuModel,
+    defaultSonnetModel,
+    defaultOpusModel,
+    id: ClaudeCodeConfigManager.generateProfileId(params.name),
+  }
+}
+
 async function convertSingleConfigToProfile(
   apiConfig: { authType: 'api_key' | 'auth_token', key: string, url?: string },
   provider?: string,
   options?: { apiModel?: string, apiHaikuModel?: string, apiSonnetModel?: string, apiOpusModel?: string },
 ): Promise<ClaudeCodeProfile> {
-  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
-
-  // Generate configuration name based on provider or use default
-  const configName = provider && provider !== 'custom'
-    ? provider
-    : 'custom-config'
-
-  // Apply provider preset if specified
-  let baseUrl = apiConfig.url || API_DEFAULT_URL
-  let primaryModel = options?.apiModel
-  let defaultHaikuModel = options?.apiHaikuModel
-  let defaultSonnetModel = options?.apiSonnetModel
-  let defaultOpusModel = options?.apiOpusModel
-  let authType = apiConfig.authType
-
-  if (provider && provider !== 'custom') {
-    const { getProviderPreset } = await import('../config/api-providers')
-    const preset = getProviderPreset(provider)
-
-    if (preset?.claudeCode) {
-      baseUrl = apiConfig.url || preset.claudeCode.baseUrl
-      authType = preset.claudeCode.authType
-      if (preset.claudeCode.defaultModels && preset.claudeCode.defaultModels.length > 0) {
-        const [p, h, s, o] = preset.claudeCode.defaultModels
-        primaryModel = primaryModel || p
-        defaultHaikuModel = defaultHaikuModel || h
-        defaultSonnetModel = defaultSonnetModel || s
-        defaultOpusModel = defaultOpusModel || o
-      }
-    }
-  }
-
-  const profile: ClaudeCodeProfile = {
-    name: configName,
-    authType,
-    apiKey: apiConfig.key,
-    baseUrl,
-    primaryModel,
-    defaultHaikuModel,
-    defaultSonnetModel,
-    defaultOpusModel,
-    id: ClaudeCodeConfigManager.generateProfileId(configName),
-  }
-
-  return profile
+  return buildClaudeCodeProfile({
+    name: provider && provider !== 'custom' ? provider : 'custom-config',
+    key: apiConfig.key,
+    authType: apiConfig.authType,
+    url: apiConfig.url,
+    provider,
+    primaryModel: options?.apiModel,
+    defaultHaikuModel: options?.apiHaikuModel,
+    defaultSonnetModel: options?.apiSonnetModel,
+    defaultOpusModel: options?.apiOpusModel,
+  })
 }
 
 async function convertToClaudeCodeProfile(config: ApiConfigDefinition): Promise<ClaudeCodeProfile> {
-  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
-
-  // Apply provider preset if specified
-  let baseUrl = config.url
-  let primaryModel = config.primaryModel
-  let defaultHaikuModel = config.defaultHaikuModel
-  let defaultSonnetModel = config.defaultSonnetModel
-  let defaultOpusModel = config.defaultOpusModel
-  let authType = config.type || 'api_key'
-
-  if (config.provider && config.provider !== 'custom') {
-    const { getProviderPreset } = await import('../config/api-providers')
-    const preset = getProviderPreset(config.provider)
-
-    if (preset?.claudeCode) {
-      baseUrl = baseUrl || preset.claudeCode.baseUrl
-      authType = preset.claudeCode.authType
-      if (preset.claudeCode.defaultModels && preset.claudeCode.defaultModels.length > 0) {
-        const [p, h, s, o] = preset.claudeCode.defaultModels
-        primaryModel = primaryModel || p
-        defaultHaikuModel = defaultHaikuModel || h
-        defaultSonnetModel = defaultSonnetModel || s
-        defaultOpusModel = defaultOpusModel || o
-      }
-    }
-  }
-
-  const profile: ClaudeCodeProfile = {
+  return buildClaudeCodeProfile({
     name: config.name!,
-    authType,
-    apiKey: config.key,
-    baseUrl,
-    primaryModel,
-    defaultHaikuModel,
-    defaultSonnetModel,
-    defaultOpusModel,
-    id: ClaudeCodeConfigManager.generateProfileId(config.name!),
-  }
-
-  return profile
+    key: config.key!,
+    authType: (config.type === 'ccr_proxy' ? 'api_key' : config.type) || 'api_key',
+    url: config.url,
+    provider: config.provider,
+    primaryModel: config.primaryModel,
+    defaultHaikuModel: config.defaultHaikuModel,
+    defaultSonnetModel: config.defaultSonnetModel,
+    defaultOpusModel: config.defaultOpusModel,
+  })
 }
 
 /**

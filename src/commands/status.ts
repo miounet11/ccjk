@@ -1,15 +1,14 @@
+import type { ProjectProfile } from '../discovery/types'
+import type { HealthReport, HealthResult, Recommendation } from '../health/types'
 /**
  * CCJK Status Dashboard - "Brain Dashboard"
  *
  * Usage: ccjk status
  */
-import process from 'node:process'
 import ansis from 'ansis'
 import { analyzeProject } from '../discovery/project-analyzer'
 import { getRecommendations } from '../discovery/skill-matcher'
-import type { ProjectProfile } from '../discovery/types'
 import { runHealthCheck } from '../health/index'
-import type { HealthReport, HealthResult, Recommendation } from '../health/types'
 
 // ============================================================================
 // Rendering helpers
@@ -35,12 +34,12 @@ function stripAnsi(s: string): string {
 }
 
 function renderBox(lines: string[], width: number = 55): string {
-  const top = ansis.gray('╭' + '─'.repeat(width - 2) + '╮')
-  const bot = ansis.gray('╰' + '─'.repeat(width - 2) + '╯')
+  const top = ansis.gray(`╭${'─'.repeat(width - 2)}╮`)
+  const bot = ansis.gray(`╰${'─'.repeat(width - 2)}╯`)
   const pad = (s: string) => {
     const stripped = stripAnsi(s)
     const remaining = width - 4 - stripped.length
-    return ansis.gray('│') + '  ' + s + ' '.repeat(Math.max(0, remaining)) + '  ' + ansis.gray('│')
+    return `${ansis.gray('│')}  ${s}${' '.repeat(Math.max(0, remaining))}  ${ansis.gray('│')}`
   }
   return [top, ...lines.map(pad), bot].join('\n')
 }
@@ -49,8 +48,10 @@ function renderScoreBar(score: number): string {
   const filled = Math.round(score / 5)
   const empty = 20 - filled
   let bar = ''
-  if (score >= 80) bar = ansis.green('█'.repeat(filled))
-  else if (score >= 50) bar = ansis.yellow('█'.repeat(filled))
+  if (score >= 80)
+    bar = ansis.green('█'.repeat(filled))
+  else if (score >= 50)
+    bar = ansis.yellow('█'.repeat(filled))
   else bar = ansis.red('█'.repeat(filled))
   bar += ansis.gray('░'.repeat(empty))
   return bar
@@ -72,7 +73,8 @@ function renderHeader(report: HealthReport, profile: ProjectProfile): string[] {
 
   if (profile.projectName) {
     const stackParts: string[] = []
-    if (profile.language !== 'unknown') stackParts.push(profile.language)
+    if (profile.language !== 'unknown')
+      stackParts.push(profile.language)
     stackParts.push(...profile.frameworks.slice(0, 3))
     const stack = stackParts.length > 0 ? ansis.gray(` (${stackParts.join(', ')})`) : ''
     lines.push(ansis.gray('Project: ') + ansis.white(profile.projectName) + stack)
@@ -102,7 +104,8 @@ function renderSetupStatus(results: HealthResult[]): string[] {
 }
 
 function renderRecommendations(recs: Recommendation[], maxShow: number = 4): string[] {
-  if (recs.length === 0) return []
+  if (recs.length === 0)
+    return []
 
   const lines: string[] = []
   lines.push('')
@@ -126,7 +129,8 @@ function renderRecommendations(recs: Recommendation[], maxShow: number = 4): str
 
 function renderProjectRecs(profile: ProjectProfile): string[] {
   const { skills, mcpServices } = getRecommendations(profile)
-  if (skills.length === 0 && mcpServices.length === 0) return []
+  if (skills.length === 0 && mcpServices.length === 0)
+    return []
 
   const lines: string[] = []
   lines.push('')

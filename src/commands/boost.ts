@@ -1,14 +1,13 @@
+import type { Recommendation } from '../health/types'
 /**
  * CCJK Boost Command - One-Click Optimization
  *
  * Usage: ccjk boost [--dry-run] [--yes]
  */
-import process from 'node:process'
 import ansis from 'ansis'
 import { analyzeProject } from '../discovery/project-analyzer'
 import { getRecommendations } from '../discovery/skill-matcher'
 import { runHealthCheck } from '../health/index'
-import type { Recommendation } from '../health/types'
 
 export interface BoostOptions {
   dryRun?: boolean
@@ -121,7 +120,8 @@ export async function boost(options: BoostOptions = {}): Promise<void> {
   for (const a of actions) {
     const priority = a.rec.priority === 'high' ? ansis.red('[HIGH]') : ansis.yellow('[MED]')
     console.log(`  ${priority} ${a.label}`)
-    if (a.rec.command) console.log(`         ${ansis.gray(a.rec.command)}`)
+    if (a.rec.command)
+      console.log(`         ${ansis.gray(a.rec.command)}`)
   }
 
   if (options.dryRun) {
@@ -132,7 +132,8 @@ export async function boost(options: BoostOptions = {}): Promise<void> {
   if (!options.yes) {
     const { default: inquirer } = await import('inquirer')
     const { confirm } = await inquirer.prompt([{
-      type: 'confirm', name: 'confirm',
+      type: 'confirm',
+      name: 'confirm',
       message: `Apply ${actions.length} optimization${actions.length > 1 ? 's' : ''}?`,
       default: true,
     }])

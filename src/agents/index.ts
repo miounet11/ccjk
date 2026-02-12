@@ -23,22 +23,6 @@ export {
 export { AgentCommunication } from './communication.js'
 export { createCommunication, MESSAGE_TYPES } from './communication.js'
 
-export {
-  type AgentState,
-  CoworkOrchestrator,
-  type ExecutionOptions,
-  type ExecutionStrategy,
-  type OrchestrationPlan,
-  type OrchestrationResult,
-  type OrchestratorConfig,
-  type ProgressEvent,
-  type SubAgentConfig,
-  type SubAgentInstance,
-  type SubAgentTask,
-  type SubAgentType,
-  type TaskProgress,
-  type TaskStep,
-} from './cowork-orchestrator.js'
 // Multi-Agent Orchestration System (v6.0.0)
 export { MultiAgentOrchestrator } from './multi-agent-orchestrator.js'
 // Agent Orchestration System

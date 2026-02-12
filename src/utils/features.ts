@@ -858,57 +858,21 @@ async function updateCodexModelProvider(modelProvider: string): Promise<void> {
 }
 
 // Helper function to ensure language directive exists in AGENTS.md
-async function ensureLanguageDirectiveInAgents(aiOutputLang: string): Promise<void> {
-  const { readFile, writeFileAtomic, exists } = await import('./fs-operations')
-  const { homedir } = await import('node:os')
-  const { join } = await import('pathe')
+const LANG_DIRECTIVE_RE = /\*\*Most Important:\s*Always respond in [^*]+\*\*/i
+const LANG_DIRECTIVE_RE_G = /\*\*Most Important:\s*Always respond in [^*]+\*\*\s*/g
 
-  const CODEX_AGENTS_FILE = join(homedir(), '.codex', 'AGENTS.md')
-
-  if (!exists(CODEX_AGENTS_FILE)) {
-    console.log(ansis.yellow(i18n.t('codex:agentsFileNotFound')))
-    return
-  }
-
-  // Read current content
-  const content = readFile(CODEX_AGENTS_FILE)
-
-  // Language mapping for display
-  const languageLabels: Record<string, string> = {
-    'Chinese': 'Chinese-simplified',
-    'English': 'English',
-    'zh-CN': 'Chinese-simplified',
-    'en': 'English',
-  }
-
-  const langLabel = languageLabels[aiOutputLang] || aiOutputLang
-
-  // Check if language directive already exists
-  const hasLanguageDirective = /\*\*Most Important:\s*Always respond in [^*]+\*\*/i.test(content)
-
-  if (!hasLanguageDirective) {
-    // Add language directive if not present
-    const { backupCodexAgents, getBackupMessage } = await import('./code-tools/codex')
-
-    // Create backup before modification
-    const backupPath = backupCodexAgents()
-    if (backupPath) {
-      console.log(ansis.gray(getBackupMessage(backupPath)))
-    }
-
-    let updatedContent = content
-    if (!updatedContent.endsWith('\n')) {
-      updatedContent += '\n'
-    }
-    updatedContent += `\n**Most Important:Always respond in ${langLabel}**\n`
-
-    writeFileAtomic(CODEX_AGENTS_FILE, updatedContent)
-    console.log(ansis.gray(`  ${i18n.t('configuration:addedLanguageDirective')}: ${langLabel}`))
-  }
+const codexLanguageLabels: Record<string, string> = {
+  'Chinese': 'Chinese-simplified',
+  'English': 'English',
+  'zh-CN': 'Chinese-simplified',
+  'en': 'English',
 }
 
-// Helper function to update Codex language directive in AGENTS.md
-async function updateCodexLanguageDirective(aiOutputLang: string): Promise<void> {
+/**
+ * Set or update the language directive in Codex AGENTS.md.
+ * mode='ensure' only adds if missing; mode='update' always replaces.
+ */
+async function setCodexLanguageDirective(aiOutputLang: string, mode: 'ensure' | 'update'): Promise<void> {
   const { readFile, writeFileAtomic, exists } = await import('./fs-operations')
   const { backupCodexAgents, getBackupMessage } = await import('./code-tools/codex')
   const { homedir } = await import('node:os')
@@ -921,37 +885,36 @@ async function updateCodexLanguageDirective(aiOutputLang: string): Promise<void>
     return
   }
 
-  // Create backup before modification
-  const backupPath = backupCodexAgents()
-  if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
-  }
-
-  // Read current content
   let content = readFile(CODEX_AGENTS_FILE)
+  const langLabel = codexLanguageLabels[aiOutputLang] || aiOutputLang
 
-  // Language mapping for display
-  const languageLabels: Record<string, string> = {
-    'Chinese': 'Chinese-simplified',
-    'English': 'English',
-    'zh-CN': 'Chinese-simplified',
-    'en': 'English',
-  }
+  if (mode === 'ensure' && LANG_DIRECTIVE_RE.test(content))
+    return
 
-  const langLabel = languageLabels[aiOutputLang] || aiOutputLang
+  // Backup before modification
+  const backupPath = backupCodexAgents()
+  if (backupPath)
+    console.log(ansis.gray(getBackupMessage(backupPath)))
 
-  // Remove existing language directive if present
-  content = content.replace(/\*\*Most Important:\s*Always respond in [^*]+\*\*\s*/g, '')
+  // Remove existing directive if present
+  content = content.replace(LANG_DIRECTIVE_RE_G, '')
 
-  // Add new language directive at the end
-  if (!content.endsWith('\n')) {
+  if (!content.endsWith('\n'))
     content += '\n'
-  }
-
   content += `\n**Most Important:Always respond in ${langLabel}**\n`
 
-  // Write updated content atomically to prevent corruption
   writeFileAtomic(CODEX_AGENTS_FILE, content)
+
+  if (mode === 'ensure')
+    console.log(ansis.gray(`  ${i18n.t('configuration:addedLanguageDirective')}: ${langLabel}`))
+}
+
+async function ensureLanguageDirectiveInAgents(aiOutputLang: string): Promise<void> {
+  return setCodexLanguageDirective(aiOutputLang, 'ensure')
+}
+
+async function updateCodexLanguageDirective(aiOutputLang: string): Promise<void> {
+  return setCodexLanguageDirective(aiOutputLang, 'update')
 }
 
 // Configure environment variables and permissions

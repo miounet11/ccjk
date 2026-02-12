@@ -184,50 +184,6 @@ const COMMANDS: CommandDefinition[] = [
 
   // ==================== Extended Commands ====================
   {
-    name: 'serve',
-    description: 'Start CCJK as MCP server',
-    tier: 'extended',
-    options: [
-      { flags: '--mcp', description: 'Enable MCP server mode' },
-      { flags: '--stdio', description: 'Use stdio transport (default)' },
-      { flags: '--http', description: 'Use HTTP transport' },
-      { flags: '--port <port>', description: 'HTTP server port (default: 3000)' },
-      { flags: '--host <host>', description: 'HTTP server host (default: localhost)' },
-      { flags: '--debug', description: 'Enable debug logging' },
-    ],
-    loader: async () => {
-      return async (options) => {
-        if (!options.mcp) {
-          console.error('Error: --mcp flag is required for serve command')
-          console.log('Usage: ccjk serve --mcp [--stdio|--http] [--port 3000]')
-          process.exit(1)
-        }
-
-        const { startMCPServer } = await import('./mcp/mcp-server')
-
-        const transport = options.http ? 'http' : 'stdio'
-        const port = options.port ? Number.parseInt(options.port as string, 10) : 3000
-        const host = options.host as string || 'localhost'
-        const debug = options.debug as boolean || false
-
-        console.error(`Starting CCJK MCP Server (${transport} mode)...`)
-
-        await startMCPServer({
-          transport,
-          port,
-          host,
-          debug,
-        })
-
-        // Keep process alive
-        if (transport === 'http') {
-          console.error(`MCP Server running on http://${host}:${port}`)
-          console.error('Press Ctrl+C to stop')
-        }
-      }
-    },
-  },
-  {
     name: 'mcp <action> [...args]',
     description: 'MCP Server management',
     tier: 'extended',
@@ -448,50 +404,6 @@ const COMMANDS: CommandDefinition[] = [
         else {
           console.error(`Unknown config action: ${actionStr}`)
           console.log('Available actions: list, get, set, unset, reset, edit, validate')
-        }
-      }
-    },
-  },
-  {
-    name: 'daemon <action>',
-    description: 'Remote control daemon management',
-    tier: 'extended',
-    options: [
-      { flags: '--debug, -d', description: 'Enable debug logging' },
-    ],
-    loader: async () => {
-      return async (_options: CliOptions, action: unknown) => {
-        const actionStr = action as string
-
-        if (actionStr === 'setup') {
-          const { setupDaemon } = await import('./daemon/cli')
-          await setupDaemon()
-        }
-        else if (actionStr === 'start') {
-          const { startDaemon } = await import('./daemon/cli')
-          await startDaemon()
-        }
-        else if (actionStr === 'stop') {
-          const { stopDaemon } = await import('./daemon/cli')
-          await stopDaemon()
-        }
-        else if (actionStr === 'status') {
-          const { showStatus } = await import('./daemon/cli')
-          await showStatus()
-        }
-        else if (actionStr === 'logs') {
-          const { showLogs } = await import('./daemon/cli')
-          await showLogs()
-        }
-        else {
-          console.error(`Unknown daemon action: ${actionStr}`)
-          console.log('Available actions: setup, start, stop, status, logs')
-          console.log('\nUsage:')
-          console.log('  ccjk daemon setup   - Configure email settings')
-          console.log('  ccjk daemon start   - Start the daemon')
-          console.log('  ccjk daemon stop    - Stop the daemon')
-          console.log('  ccjk daemon status  - Show daemon status')
-          console.log('  ccjk daemon logs    - Show daemon logs')
         }
       }
     },

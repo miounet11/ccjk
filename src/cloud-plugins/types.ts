@@ -1,6 +1,29 @@
 import type { SupportedLang } from '../constants'
-import type { AgentExtension, McpServiceExtension, WorkflowExtension } from '../plugins/types'
 import type { CcjkSkill } from '../skills/types'
+
+/** Agent extension provided by a plugin */
+export interface AgentExtension {
+  id: string
+  name: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>
+  template: string
+}
+
+/** MCP service extension provided by a plugin */
+export interface McpServiceExtension {
+  id: string
+  name: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>
+  config: Record<string, unknown>
+}
+
+/** Workflow extension provided by a plugin */
+export interface WorkflowExtension {
+  id: string
+  name: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>
+  steps: string[]
+}
 
 /**
  * Plugin category types
