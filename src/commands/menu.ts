@@ -263,8 +263,8 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 
     case 'b': {
       // Brain Dashboard
-      const { status } = await import('./status')
-      await status()
+      const { statusCommand } = await import('./status')
+      await statusCommand()
       printSeparator()
       return undefined
     }

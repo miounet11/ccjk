@@ -1,8 +1,10 @@
+import type { ProjectContext } from './project-scanner'
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { getPlatform } from '../utils/platform'
+import { scanProject } from './project-scanner'
 
 export interface SmartDefaults {
   // Environment detection
@@ -45,6 +47,15 @@ export interface SmartDefaults {
 
   // Detected Claude Code version
   claudeCodeVersion?: string
+
+  // Project context (detected from CWD)
+  projectContext?: ProjectContext
+
+  // Recommended hook template IDs based on project
+  recommendedHooks: string[]
+
+  /** True when an SSH session is detected — can be used by quick-setup to show a notice */
+  sshDetected?: boolean
 }
 
 /**
@@ -55,11 +66,12 @@ export class SmartDefaultsDetector {
   /**
    * Detect environment and generate smart defaults
    */
-  async detect(): Promise<SmartDefaults> {
+  async detect(cwd?: string): Promise<SmartDefaults> {
     const platform = getPlatform()
     const apiKey = this.detectApiKey()
     const apiProvider = this.detectApiProvider(apiKey)
     const ccVersion = this.detectClaudeCodeVersion()
+    const projectContext = scanProject(cwd)
 
     return {
       // Environment detection
@@ -70,23 +82,27 @@ export class SmartDefaultsDetector {
       apiKey,
       apiProvider,
 
-      // Recommended MCP services based on platform
-      mcpServices: this.getRecommendedMcpServices(platform),
+      // Recommended MCP services based on platform + project
+      mcpServices: this.getRecommendedMcpServices(platform, projectContext),
 
-      // Essential skills (common 5)
-      skills: [
-        'ccjk:git-commit',
-        'ccjk:feat',
-        'ccjk:workflow',
-        'ccjk:init-project',
-        'ccjk:git-worktree',
-      ],
+      // Essential skills — reduced in CI/container (non-interactive)
+      skills: (projectContext.runtime.isCI || projectContext.runtime.isContainer)
+        ? ['ccjk:git-commit']
+        : [
+            'ccjk:git-commit',
+            'ccjk:feat',
+            'ccjk:workflow',
+            'ccjk:init-project',
+            'ccjk:git-worktree',
+          ],
 
-      // Core agents (universal 2)
-      agents: [
-        'typescript-cli-architect',
-        'ccjk-testing-specialist',
-      ],
+      // Core agents — skip in CI/container (non-interactive)
+      agents: (projectContext.runtime.isCI || projectContext.runtime.isContainer)
+        ? []
+        : [
+            'typescript-cli-architect',
+            'ccjk-testing-specialist',
+          ],
 
       // Code tool detection
       codeToolType: this.detectCodeToolType(),
@@ -94,7 +110,7 @@ export class SmartDefaultsDetector {
       // Workflow preferences
       workflows: {
         outputStyle: 'engineer-professional',
-        gitWorkflow: 'conventional-commits',
+        gitWorkflow: projectContext.usesConventionalCommits ? 'conventional-commits' : 'conventional-commits',
         sixStepWorkflow: true,
       },
 
@@ -108,6 +124,15 @@ export class SmartDefaultsDetector {
       // Claude Code native features
       claudeCodeVersion: ccVersion,
       nativeFeatures: this.detectNativeFeatures(ccVersion),
+
+      // Project context
+      projectContext,
+
+      // Recommended hooks based on project toolchain
+      recommendedHooks: this.getRecommendedHooks(projectContext),
+
+      // SSH session flag for quick-setup notice
+      sshDetected: projectContext.runtime.isSSH || undefined,
     }
   }
 
@@ -289,25 +314,101 @@ export class SmartDefaultsDetector {
   }
 
   /**
-   * Get recommended MCP services based on environment
+   * Get recommended MCP services based on environment + project context
    */
-  getRecommendedMcpServices(platform: string): string[] {
+  getRecommendedMcpServices(platform: string, project?: ProjectContext): string[] {
+    const runtime = project?.runtime
+
+    // CI: only core documentation MCPs — no browser, no DB, no heavy services
+    if (runtime?.isCI) {
+      return ['context7', 'mcp-deepwiki']
+    }
+
+    // Container: core only — ephemeral environments, skip heavy MCPs
+    if (runtime?.isContainer) {
+      return ['context7', 'mcp-deepwiki']
+    }
+
     const core = ['context7', 'mcp-deepwiki', 'open-websearch']
+    const extras: string[] = []
 
-    // Add platform-specific services (platform values from process.platform)
-    if (platform === 'darwin') {
-      return [...core, 'Playwright', 'sqlite']
+    // Browser-based MCP: only if runtime has a browser
+    const hasBrowser = runtime?.hasBrowser ?? (platform === 'darwin' || platform === 'win32')
+    if (hasBrowser) {
+      extras.push('Playwright')
     }
 
-    if (platform === 'linux') {
-      return [...core, 'sqlite']
+    // SQLite: useful for most projects
+    extras.push('sqlite')
+
+    // Serena: useful for large codebases with LSP needs (TypeScript, Java, C#)
+    // Skip on headless servers (needs interactive git workflows)
+    if (project && ['typescript', 'java', 'csharp'].includes(project.language)) {
+      if (!(runtime?.isHeadless)) {
+        extras.push('serena')
+      }
     }
 
-    if (platform === 'win32') {
-      return [...core, 'Playwright', 'sqlite']
+    return [...core, ...extras]
+  }
+
+  /**
+   * Get recommended hook template IDs based on project toolchain
+   */
+  getRecommendedHooks(project: ProjectContext): string[] {
+    const runtime = project.runtime
+
+    // CI: only linting and test hooks — skip interactive/dev-server hooks
+    if (runtime.isCI) {
+      const hooks: string[] = []
+      if (project.linter !== 'none') hooks.push('pre-commit-lint-check')
+      if (project.testRunner !== 'none') hooks.push('test-before-commit')
+      return hooks
     }
 
-    return core
+    // Container: minimal hooks for ephemeral environments
+    if (runtime.isContainer) {
+      const hooks: string[] = []
+      if (project.linter !== 'none') hooks.push('pre-commit-lint-check')
+      if (project.testRunner !== 'none') hooks.push('test-before-commit')
+      return hooks
+    }
+
+    const hooks: string[] = []
+
+    // Block dev servers — skip on headless (no dev server on headless)
+    if (!runtime.isHeadless) {
+      hooks.push('block-dev-server')
+    }
+
+    // Git push confirmation — always useful
+    hooks.push('git-push-confirm')
+
+    // Console.log / print warning — language-aware
+    const jsLangs: string[] = ['typescript', 'javascript']
+    if (jsLangs.includes(project.language)) {
+      hooks.push('warn-console-log')
+    }
+
+    // Block unwanted doc files — useful when AI tends to create random .md files
+    hooks.push('block-unwanted-docs')
+
+    // Test-before-commit: only if project has a test runner
+    if (project.testRunner !== 'none') {
+      hooks.push('test-before-commit')
+    }
+
+    // Format-on-save: only if project has a formatter
+    if (project.formatter !== 'none') {
+      hooks.push('auto-format-on-save')
+    }
+
+    // Lint check: only if project has a linter
+    if (project.linter !== 'none') {
+      hooks.push('pre-commit-lint-check')
+    }
+
+    return hooks
   }
 
   /**

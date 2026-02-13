@@ -514,6 +514,143 @@
       "variables": ["branch"]
     },
     {
+      "id": "block-dev-server",
+      "name": "Block Dev Server in Claude Code",
+      "category": "ai-safety",
+      "description": "Prevent long-running dev servers (npm run dev, yarn start, etc.) from blocking Claude Code sessions",
+      "hook": {
+        "name": "Block Dev Server in Claude Code",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "pre-tool-use"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "echo '$CCJK_TOOL_INPUT' | grep -qiE '(npm run dev|yarn dev|pnpm dev|next dev|vite|webpack serve|ng serve|npm start|yarn start)' && echo '[BLOCKED] Dev server commands block the session. Run in a separate terminal.' >&2 && exit 1 || exit 0",
+              "failOnError": true
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "tool",
+            "operator": "eq",
+            "value": "Bash"
+          }
+        ],
+        "privacy": "private",
+        "enabled": true
+      },
+      "variables": []
+    },
+    {
+      "id": "block-unwanted-docs",
+      "name": "Block Unwanted Doc Files",
+      "category": "ai-safety",
+      "description": "Prevent AI from creating random markdown or text files that nobody asked for",
+      "hook": {
+        "name": "Block Unwanted Doc Files",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "pre-tool-use"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "echo '$CCJK_TOOL_INPUT' | grep -qiE '\\.(md|txt|rst)$' && echo '$CCJK_TOOL_INPUT' | grep -qviE '(README|CHANGELOG|LICENSE|CLAUDE|CONTRIBUTING|TODO)' && echo '[BLOCKED] Creating doc files not explicitly requested. Ask the user first.' >&2 && exit 1 || exit 0",
+              "failOnError": true
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "tool",
+            "operator": "eq",
+            "value": "Write"
+          }
+        ],
+        "privacy": "private",
+        "enabled": false
+      },
+      "variables": []
+    },
+    {
+      "id": "warn-console-log",
+      "name": "Console.log Warning",
+      "category": "ai-safety",
+      "description": "Warn when console.log statements are left in edited code files",
+      "hook": {
+        "name": "Console.log Warning",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "post-tool-use"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "FILE=$(echo '$CCJK_TOOL_INPUT' | grep -oE '[^ ]+\\.(ts|tsx|js|jsx)'); [ -n \"$FILE\" ] && [ -f \"$FILE\" ] && LINES=$(grep -n 'console\\.log' \"$FILE\" | head -5); [ -n \"$LINES\" ] && echo \"[WARNING] console.log found in $FILE:\" >&2 && echo \"$LINES\" >&2 || true",
+              "continueOnError": true
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "tool",
+            "operator": "in",
+            "value": ["Edit", "Write"]
+          }
+        ],
+        "privacy": "private",
+        "enabled": true
+      },
+      "variables": []
+    },
+    {
+      "id": "git-push-confirm",
+      "name": "Git Push Confirmation",
+      "category": "ai-safety",
+      "description": "Prompt for review before pushing to remote, especially on main/master branches",
+      "hook": {
+        "name": "Git Push Confirmation",
+        "version": "1.0.0",
+        "trigger": {
+          "type": "event",
+          "event": "pre-tool-use"
+        },
+        "actions": [
+          {
+            "type": "run_command",
+            "config": {
+              "command": "BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); echo \"[REVIEW] About to push branch '$BRANCH' to remote. Verify changes are ready.\" >&2; echo '$CCJK_TOOL_INPUT' | grep -qiE 'push.*(main|master|release)' && echo '[CAUTION] Pushing to protected branch!' >&2 || true",
+              "continueOnError": true
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "field": "tool",
+            "operator": "eq",
+            "value": "Bash"
+          },
+          {
+            "field": "command",
+            "operator": "contains",
+            "value": "git push"
+          }
+        ],
+        "privacy": "private",
+        "enabled": true
+      },
+      "variables": []
+    },
+    {
       "id": "performance-monitor",
       "name": "Performance Monitor",
       "category": "monitoring",
@@ -680,6 +817,18 @@
         "zh-CN": "用于性能和系统监控的钩子"
       },
       "icon": "📊"
+    },
+    {
+      "id": "ai-safety",
+      "name": {
+        "en": "AI Safety Guards",
+        "zh-CN": "AI 安全防护"
+      },
+      "description": {
+        "en": "Hooks that prevent common AI coding pitfalls: blocking dev servers, unwanted files, debug leftovers",
+        "zh-CN": "防止常见 AI 编码陷阱的钩子：阻止开发服务器、多余文件、调试残留"
+      },
+      "icon": "🛡️"
     }
   ]
 }

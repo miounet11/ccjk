@@ -86,6 +86,9 @@ function displaySuccess(result: QuickSetupResult, defaults: SmartDefaults): void
   console.log(`  • Skills: ${ansis.green(defaults.skills.length)} enabled`)
   console.log(`  • Agents: ${ansis.green(defaults.agents.length)} ready`)
   console.log(`  • Provider: ${ansis.green(defaults.apiProvider || 'anthropic')}`)
+  if (defaults.recommendedHooks.length > 0) {
+    console.log(`  • Hooks: ${ansis.green(defaults.recommendedHooks.join(', '))}`)
+  }
   console.log('')
   console.log(ansis.bold.green('⏱️  ') + ansis.white(`Completed in ${result.duration}s`))
   console.log('')
@@ -369,6 +372,14 @@ export async function quickSetup(options: QuickSetupOptions = {}): Promise<Quick
 
     console.log(`  ${ansis.gray('Platform:')} ${ansis.green(defaults.platform)}`)
     console.log(`  ${ansis.gray('Code Tool:')} ${ansis.green(defaults.codeToolType || 'claude-code')}`)
+    if (defaults.projectContext) {
+      const ctx = defaults.projectContext
+      const parts = [ctx.language, ctx.framework !== 'none' ? ctx.framework : null, ctx.testRunner !== 'none' ? ctx.testRunner : null, ctx.packageManager !== 'none' ? ctx.packageManager : null].filter(Boolean)
+      console.log(`  ${ansis.gray('Project:')} ${ansis.green(parts.join(' + '))}`)
+      if (ctx.runtime.isHeadless) console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('headless server')}`)
+      if (ctx.runtime.isContainer) console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('container')}`)
+      if (ctx.runtime.isCI) console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('CI/CD')}`)
+    }
     console.log('')
 
     // Step 2: API Key Configuration
@@ -507,6 +518,18 @@ export async function quickSetup(options: QuickSetupOptions = {}): Promise<Quick
 
     result.steps.installation = true
     result.steps.validation = true
+
+    // Auto-install recommended hooks
+    try {
+      const { installRecommendedHooks } = await import('../utils/hook-installer')
+      const hooksAdded = await installRecommendedHooks(defaults.recommendedHooks)
+      if (hooksAdded > 0) {
+        console.log(`  ${ansis.green('✓')} Installed ${ansis.cyan(String(hooksAdded))} recommended hooks`)
+      }
+    }
+    catch {
+      // Hooks are nice-to-have, not critical
+    }
 
     // Calculate duration
     result.duration = Math.round((Date.now() - startTime) / 1000)

@@ -1395,9 +1395,9 @@ const COMMANDS: CommandDefinition[] = [
       { flags: '--compact', description: 'Compact output' },
     ],
     loader: async () => {
-      const { status } = await import('./commands/status')
+      const { statusCommand } = await import('./commands/status')
       return async (options: CliOptions) => {
-        await status({
+        await statusCommand({
           json: options.json as boolean,
           compact: options.compact as boolean,
         })
