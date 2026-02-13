@@ -55,30 +55,7 @@ export async function resolveCodeType(codeTypeParam?: string): Promise<CodeToolT
     )
   }
 
-  // No parameter provided, prefer fresh detection over stored config
-  // This fixes stale 'codex' values persisted in ~/.ccjk/config.toml
-  try {
-    const freshDetected = detectCodeToolType() as CodeToolType
-    if (isValidCodeType(freshDetected)) {
-      // Update stored config with fresh detection result
-      try {
-        const config = await readZcfConfigAsync()
-        if (config && config.codeToolType !== freshDetected) {
-          config.codeToolType = freshDetected
-          await saveZcfConfig(config)
-        }
-      }
-      catch {
-        // Config update is best-effort, don't block on failure
-      }
-      return freshDetected
-    }
-  }
-  catch {
-    // If fresh detection fails, fall through to stored config
-  }
-
-  // Fallback: try stored config
+  // No parameter provided — respect stored config first (user's explicit choice via "S. Switch")
   try {
     const config = await readZcfConfigAsync()
     if (config?.codeToolType && isValidCodeType(config.codeToolType)) {
@@ -86,7 +63,18 @@ export async function resolveCodeType(codeTypeParam?: string): Promise<CodeToolT
     }
   }
   catch {
-    // If config reading fails, continue to fallback
+    // If config reading fails, fall through to detection
+  }
+
+  // No stored config — use fresh detection as fallback
+  try {
+    const freshDetected = detectCodeToolType() as CodeToolType
+    if (isValidCodeType(freshDetected)) {
+      return freshDetected
+    }
+  }
+  catch {
+    // If detection fails, use default
   }
 
   // Final fallback to default

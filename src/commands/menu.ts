@@ -195,7 +195,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     // -------- Claude Code --------
     case '1': {
       // Full Init - call init() directly like zcf
-      await init({ skipBanner: true })
+      await init({ skipBanner: true, codeType: 'claude-code' })
       break
     }
 

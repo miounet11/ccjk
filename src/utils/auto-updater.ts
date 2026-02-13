@@ -219,8 +219,18 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
           await execWithSudoIfNeeded('claude', ['update'])
         }
       }
-      updateSpinner.succeed(format(i18n.t('updater:updateSuccess'), { tool: 'Claude Code' }))
-      return true
+      // Verify the command actually works after update
+      const { commandExists } = await import('./platform')
+      const claudeWorks = await commandExists('claude')
+      if (claudeWorks) {
+        updateSpinner.succeed(format(i18n.t('updater:updateSuccess'), { tool: 'Claude Code' }))
+      }
+      else {
+        updateSpinner.warn(format(i18n.t('updater:updateSuccess'), { tool: 'Claude Code' }))
+        console.log(ansis.yellow('  ⚠ claude command not found in PATH after update'))
+        console.log(ansis.gray('  Try: npm install -g @anthropic-ai/claude-code'))
+      }
+      return claudeWorks
     }
     catch (error) {
       updateSpinner.fail(format(i18n.t('updater:updateFailed'), { tool: 'Claude Code' }))
