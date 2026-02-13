@@ -265,7 +265,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       // Brain Dashboard
       const { statusCommand } = await import('./status')
       await statusCommand()
-      printSeparator()
+      await inquirer.prompt({ type: 'input', name: '_', message: isZh ? '按回车返回菜单...' : 'Press Enter to return...' })
       return undefined
     }
 
