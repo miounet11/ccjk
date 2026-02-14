@@ -16,6 +16,46 @@ import { findCommandPath, getHomebrewCommandPaths, getPlatform } from './platfor
 const execAsync = promisify(exec)
 
 /**
+ * Check if the wrong claude-code package is installed
+ * @returns Object with detection result and package name
+ */
+export async function detectWrongClaudeCodePackage(): Promise<{
+  hasWrongPackage: boolean
+  wrongPackageName: string | null
+  correctPackageName: string
+}> {
+  try {
+    // Check if 'claude-code' (wrong package) is installed globally
+    const { stdout } = await execAsync('npm list -g --depth=0 --json')
+    const packages = JSON.parse(stdout)
+    const dependencies = packages.dependencies || {}
+
+    // Check for the wrong package name
+    if ('claude-code' in dependencies) {
+      return {
+        hasWrongPackage: true,
+        wrongPackageName: 'claude-code',
+        correctPackageName: '@anthropic-ai/claude-code',
+      }
+    }
+
+    return {
+      hasWrongPackage: false,
+      wrongPackageName: null,
+      correctPackageName: '@anthropic-ai/claude-code',
+    }
+  }
+  catch {
+    // If npm list fails, assume no wrong package
+    return {
+      hasWrongPackage: false,
+      wrongPackageName: null,
+      correctPackageName: '@anthropic-ai/claude-code',
+    }
+  }
+}
+
+/**
  * Get installed version of a command-line tool
  *
  * This function detects the version regardless of installation method (npm, Homebrew, etc.)
@@ -926,7 +966,12 @@ export async function checkClaudeCodeVersion(): Promise<{
   commandPath: string | null
   installationSource: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found'
   isBroken?: boolean
+  hasWrongPackage?: boolean
+  wrongPackageName?: string | null
 }> {
+  // Check for wrong package installation first
+  const wrongPackageInfo = await detectWrongClaudeCodePackage()
+
   let currentVersion = await getInstalledVersion('claude')
   const initialGetVersionSuccess = currentVersion !== null
 
@@ -992,6 +1037,8 @@ export async function checkClaudeCodeVersion(): Promise<{
     commandPath,
     installationSource,
     isBroken: !initialGetVersionSuccess && currentVersion !== null,
+    hasWrongPackage: wrongPackageInfo.hasWrongPackage,
+    wrongPackageName: wrongPackageInfo.wrongPackageName,
   }
 }
 

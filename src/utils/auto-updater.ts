@@ -104,8 +104,57 @@ export async function updateClaudeCode(force = false, skipPrompt = false): Promi
   const spinner = ora(i18n.t('updater:checkingVersion')).start()
 
   try {
-    const { installed, currentVersion, latestVersion, needsUpdate, isHomebrew, installationSource, isBroken } = await checkClaudeCodeVersion()
+    const { installed, currentVersion, latestVersion, needsUpdate, isHomebrew, installationSource, isBroken, hasWrongPackage, wrongPackageName } = await checkClaudeCodeVersion()
     spinner.stop()
+
+    // Check for wrong package installation first
+    if (hasWrongPackage && wrongPackageName) {
+      console.log(ansis.yellow(`\n⚠️  ${i18n.t('installation:wrongPackageDetected')}`))
+      console.log(ansis.red(`   ${i18n.t('installation:installedPackage')}: ${wrongPackageName}`))
+      console.log(ansis.green(`   ${i18n.t('installation:correctPackage')}: @anthropic-ai/claude-code`))
+      console.log()
+
+      if (!skipPrompt) {
+        const inquirer = (await import('inquirer')).default
+        const { shouldFix } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'shouldFix',
+            message: i18n.t('installation:confirmFixWrongPackage'),
+            default: true,
+          },
+        ])
+
+        if (!shouldFix) {
+          console.log(ansis.gray(i18n.t('installation:wrongPackageSkipped')))
+          return false
+        }
+      }
+
+      // Uninstall wrong package and install correct one
+      const fixSpinner = ora(i18n.t('installation:fixingWrongPackage')).start()
+
+      try {
+        // Uninstall wrong package
+        await execWithSudoIfNeeded('npm', ['uninstall', '-g', wrongPackageName])
+        fixSpinner.text = i18n.t('installation:installingCorrectPackage')
+
+        // Install correct package
+        await execWithSudoIfNeeded('npm', ['install', '-g', '@anthropic-ai/claude-code', '--force'])
+
+        fixSpinner.succeed(ansis.green(`✓ ${i18n.t('installation:wrongPackageFixed')}`))
+        console.log(ansis.green(`\n✓ ${i18n.t('installation:nowUsingCorrectPackage')}`))
+        return true
+      }
+      catch (error) {
+        fixSpinner.fail(ansis.red(`✗ ${i18n.t('installation:wrongPackageFixFailed')}`))
+        console.error(ansis.red(error instanceof Error ? error.message : String(error)))
+        console.log(ansis.gray(`\n${i18n.t('installation:manualFixHint')}:`))
+        console.log(ansis.gray(`  npm uninstall -g ${wrongPackageName}`))
+        console.log(ansis.gray(`  npm install -g @anthropic-ai/claude-code`))
+        return false
+      }
+    }
 
     if (!installed) {
       console.log(ansis.yellow(i18n.t('updater:claudeCodeNotInstalled')))
