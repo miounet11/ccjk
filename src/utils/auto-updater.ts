@@ -330,7 +330,22 @@ export async function checkAndUpdateTools(skipPrompt = false): Promise<void> {
 
   const results: Array<{ tool: string, success: boolean, error?: string }> = []
 
+  // Check and update CCJK first
+  console.log(ansis.bold('📦 CCJK'))
+  try {
+    await checkCcjkVersionAndPrompt(skipPrompt)
+    results.push({ tool: 'CCJK', success: true })
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`❌ ${format(i18n.t('updater:updateFailed'), { tool: 'CCJK' })}: ${errorMessage}`))
+    results.push({ tool: 'CCJK', success: false, error: errorMessage })
+  }
+
+  console.log() // Empty line
+
   // Check and update CCR with error handling
+  console.log(ansis.bold('🔀 CCR'))
   try {
     const success = await updateCcr(false, skipPrompt)
     results.push({ tool: 'CCR', success })
@@ -378,5 +393,79 @@ export async function checkAndUpdateTools(skipPrompt = false): Promise<void> {
         console.log(ansis.red(`❌ ${result.tool}: ${i18n.t('updater:failed')} ${result.error ? `(${result.error})` : ''}`))
       }
     }
+  }
+}
+
+/**
+ * Check CCJK version and prompt for update if needed
+ * @param skipPrompt - Whether to skip the update prompt
+ */
+async function checkCcjkVersionAndPrompt(skipPrompt: boolean): Promise<void> {
+  try {
+    // Get current version from package.json
+    const { readFileSync } = await import('node:fs')
+    const { fileURLToPath } = await import('node:url')
+    const { dirname, join } = await import('pathe')
+    const __dirname = dirname(fileURLToPath(import.meta.url))
+    const pkgPath = join(__dirname, '..', '..', 'package.json')
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    const currentVersion = pkg.version
+
+    console.log(ansis.cyan(`${i18n.t('updater:currentVersion')} v${currentVersion}`))
+
+    // Fetch latest version from npm
+    const { stdout } = await exec('npm', ['view', 'ccjk', 'version'])
+    const latestVersion = stdout.trim()
+    console.log(ansis.cyan(`${i18n.t('updater:latestVersion')} v${latestVersion}`))
+
+    if (currentVersion === latestVersion) {
+      console.log(ansis.green(`✓ ${i18n.t('updater:alreadyLatest')}`))
+      return
+    }
+
+    // Prompt for update
+    if (!skipPrompt) {
+      const inquirer = (await import('inquirer')).default
+      const { shouldUpdate } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'shouldUpdate',
+          message: format(i18n.t('updater:updatePrompt'), { tool: 'CCJK', version: latestVersion }),
+          default: true,
+        },
+      ])
+
+      if (!shouldUpdate) {
+        console.log(ansis.gray(i18n.t('updater:updateSkipped')))
+        return
+      }
+    }
+
+    // Clear npx cache
+    console.log(ansis.dim('Clearing npx cache...'))
+    try {
+      await exec('npm', ['cache', 'clean', '--force'])
+    }
+    catch {
+      // Cache clean is best-effort
+    }
+
+    // Update ccjk globally
+    const ora = (await import('ora')).default
+    const updateSpinner = ora('Updating CCJK...').start()
+    try {
+      await execWithSudoIfNeeded('npm', ['install', '-g', 'ccjk@latest', '--force'])
+      updateSpinner.succeed(ansis.green(`✓ CCJK updated to v${latestVersion}`))
+      console.log(ansis.yellow('\n⚠ Please restart ccjk to use the new version'))
+      process.exit(0)
+    }
+    catch (error) {
+      updateSpinner.fail(ansis.red('✗ CCJK update failed'))
+      console.error(ansis.red(error instanceof Error ? error.message : String(error)))
+      console.log(ansis.gray('\nTry manually: npm install -g ccjk@latest'))
+    }
+  }
+  catch (error) {
+    console.error(ansis.red(`${i18n.t('updater:checkFailed')} ${error instanceof Error ? error.message : String(error)}`))
   }
 }
