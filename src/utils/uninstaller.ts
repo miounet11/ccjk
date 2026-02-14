@@ -2,6 +2,7 @@ import type { SupportedLang } from '../constants'
 import { promises as fsp } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import ansis from 'ansis'
 import { exec } from 'tinyexec'
 import { ZCF_CONFIG_FILE } from '../constants'
 import { i18n } from '../i18n'
@@ -514,6 +515,15 @@ export class ZcfUninstaller {
     }
 
     try {
+      // Create backup before uninstall
+      const backupPath = await this.createBackupBeforeUninstall()
+      if (backupPath) {
+        console.log(ansis.green(`\n✔ ${i18n.t('uninstall:backupCreated', { path: backupPath })}`))
+        console.log(ansis.cyan(`  ${i18n.t('uninstall:backupLocation')}: ${backupPath}`))
+        console.log(ansis.gray(`  ${i18n.t('uninstall:backupRestoreHint')}`))
+        console.log()
+      }
+
       // Remove all directories
       const directoriesToRemove = [
         { path: join(homedir(), '.claude'), name: '~/.claude/' },
@@ -658,6 +668,45 @@ export class ZcfUninstaller {
           errors: [`Unknown uninstall item: ${item}`],
           warnings: [],
         }
+    }
+  }
+
+  /**
+   * Create backup before complete uninstall
+   * Saves important files to ~/.ccjk/uninstall_backups/ to prevent loss
+   */
+  private async createBackupBeforeUninstall(): Promise<string | null> {
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+      // Save backup outside ~/.claude to prevent deletion during uninstall
+      const backupDir = join(homedir(), '.ccjk', 'uninstall_backups', `backup_${timestamp}`)
+      await fsp.mkdir(backupDir, { recursive: true })
+
+      const filesToBackup = [
+        { src: join(homedir(), '.claude', 'settings.json'), name: 'settings.json' },
+        { src: join(homedir(), '.claude', 'claude.json'), name: 'claude.json' },
+        { src: join(homedir(), '.claude', 'CLAUDE.md'), name: 'CLAUDE.md' },
+        { src: join(homedir(), '.claude', 'keybindings.json'), name: 'keybindings.json' },
+      ]
+
+      let backedUpCount = 0
+      for (const file of filesToBackup) {
+        if (await pathExists(file.src)) {
+          try {
+            await fsp.copyFile(file.src, join(backupDir, file.name))
+            backedUpCount++
+          }
+          catch (error: any) {
+            console.warn(`Failed to backup ${file.name}: ${error.message}`)
+          }
+        }
+      }
+
+      return backedUpCount > 0 ? backupDir : null
+    }
+    catch (error: any) {
+      console.error(`Failed to create backup: ${error.message}`)
+      return null
     }
   }
 }
