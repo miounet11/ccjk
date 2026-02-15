@@ -846,6 +846,24 @@ const COMMANDS: CommandDefinition[] = [
 
   // ==================== Thinking Mode Commands ====================
   {
+    name: 'agent-teams',
+    description: 'Toggle Claude Code Agent Teams (experimental)',
+    aliases: ['teams'],
+    tier: 'extended',
+    options: [
+      { flags: '--on', description: 'Enable Agent Teams' },
+      { flags: '--off', description: 'Disable Agent Teams' },
+      { flags: '--status', description: 'Show current status' },
+      { flags: '--mode <mode>', description: 'Set teammate mode (auto/in-process/tmux)' },
+    ],
+    loader: async () => {
+      const { agentTeamsCommand } = await import('./commands/agent-teams')
+      return async (options: any) => {
+        await agentTeamsCommand(options)
+      }
+    },
+  },
+  {
     name: 'thinking [action] [...args]',
     description: 'Thinking Mode (Opus 4.5+ extended reasoning)',
     aliases: ['think'],

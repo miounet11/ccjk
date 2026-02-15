@@ -19,6 +19,7 @@ export async function showCometixMenu(): Promise<boolean> {
     console.log(`  ${ansis.green('1.')} ${i18n.t('cometix:cometixMenuOptions.installOrUpdate')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.installOrUpdate')}`)}`)
     console.log(`  ${ansis.green('2.')} ${i18n.t('cometix:cometixMenuOptions.printConfig')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.printConfig')}`)}`)
     console.log(`  ${ansis.green('3.')} ${i18n.t('cometix:cometixMenuOptions.customConfig')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.customConfig')}`)}`)
+    console.log(`  ${ansis.green('4.')} 🤖 Agent Teams ${ansis.gray('- Toggle on/off')}`)
     console.log(`  ${ansis.yellow('0.')} ${i18n.t('cometix:cometixMenuOptions.back')}`)
     console.log('')
 
@@ -28,7 +29,7 @@ export async function showCometixMenu(): Promise<boolean> {
       name: 'choice',
       message: i18n.t('common:enterChoice'),
       validate: async (value) => {
-        const valid = ['1', '2', '3', '0']
+        const valid = ['1', '2', '3', '4', '0']
         return valid.includes(value) || i18n.t('common:invalidChoice')
       },
     })
@@ -46,6 +47,14 @@ export async function showCometixMenu(): Promise<boolean> {
       case '3':
         await runCometixTuiConfig()
         break
+
+      case '4': {
+        const { isAgentTeamsEnabled, setAgentTeams } = await import('../../commands/agent-teams')
+        const current = isAgentTeamsEnabled()
+        setAgentTeams(!current)
+        console.log(ansis.green(!current ? '✅ Agent Teams enabled' : '⬜ Agent Teams disabled'))
+        break
+      }
 
       case '0':
         // Back to main menu
