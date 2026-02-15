@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "9.12.0",
+  "version": "9.12.1",
   "packageManager": "pnpm@10.17.1",
   "description": "CCJK v9.0.0 - Revolutionary AI Development Platform with Enterprise Security, Streaming Cloud Sync, CRDT Conflict Resolution, and Unified V3 Architecture",
   "author": {
