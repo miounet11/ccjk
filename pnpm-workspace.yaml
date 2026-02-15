@@ -121,7 +121,7 @@ catalogs:
   conflicts_typescript_h5_3_3:
     typescript: ^5.3.3
   conflicts_uuid_h11_1_0:
-    uuid: ^11.1.0
+    uuid: ^13.0.0
   conflicts_vitest_h1_0_0:
     vitest: ^1.0.0
   conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5:
