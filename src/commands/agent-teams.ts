@@ -12,6 +12,10 @@ import { writeJsonConfig } from '../utils/json-config'
 
 const ENV_KEY = 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS'
 
+function t(key: string, opts?: Record<string, string>): string {
+  return i18n.t(`agent-teams:${key}`, opts)
+}
+
 function readSettings(): Record<string, any> {
   if (!existsSync(SETTINGS_FILE)) return {}
   try {
@@ -62,11 +66,10 @@ export async function agentTeamsCommand(options: {
   mode?: string
 }): Promise<void> {
   ensureI18nInitialized()
-  const isZh = i18n.language === 'zh-CN'
 
   // --status
   if (options.status) {
-    printStatus(isZh)
+    printStatus()
     return
   }
 
@@ -74,10 +77,7 @@ export async function agentTeamsCommand(options: {
   if (options.on !== undefined || options.off !== undefined) {
     const enable = options.on === true
     setAgentTeams(enable)
-    const label = enable
-      ? (isZh ? '✅ Agent Teams 已启用' : '✅ Agent Teams enabled')
-      : (isZh ? '⬜ Agent Teams 已禁用' : '⬜ Agent Teams disabled')
-    console.log(ansis.green(label))
+    console.log(ansis.green(t(enable ? 'enabled' : 'disabled')))
     return
   }
 
@@ -85,11 +85,11 @@ export async function agentTeamsCommand(options: {
   if (options.mode) {
     const valid = ['auto', 'in-process', 'tmux']
     if (!valid.includes(options.mode)) {
-      console.log(ansis.red(`Invalid mode. Use: ${valid.join(', ')}`))
+      console.log(ansis.red(t('invalidMode')))
       return
     }
     setTeammateMode(options.mode as any)
-    console.log(ansis.green(`Teammate mode set to: ${options.mode}`))
+    console.log(ansis.green(t('modeSet', { mode: options.mode })))
     return
   }
 
@@ -99,24 +99,22 @@ export async function agentTeamsCommand(options: {
   const { action } = await inquirer.prompt([{
     type: 'list',
     name: 'action',
-    message: isZh ? 'Agent Teams 设置' : 'Agent Teams Settings',
+    message: t('settings'),
     choices: [
       {
-        name: current
-          ? (isZh ? '🔴 关闭 Agent Teams' : '🔴 Disable Agent Teams')
-          : (isZh ? '🟢 启用 Agent Teams' : '🟢 Enable Agent Teams'),
+        name: current ? t('toggleDisable') : t('toggleEnable'),
         value: 'toggle',
       },
       {
-        name: isZh ? '🖥️  设置 Teammate 显示模式' : '🖥️  Set teammate display mode',
+        name: t('setMode'),
         value: 'mode',
       },
       {
-        name: isZh ? '📊 查看状态' : '📊 View status',
+        name: t('viewStatus'),
         value: 'status',
       },
       {
-        name: isZh ? '↩️  返回' : '↩️  Back',
+        name: t('back'),
         value: 'back',
       },
     ],
@@ -124,17 +122,14 @@ export async function agentTeamsCommand(options: {
 
   if (action === 'toggle') {
     setAgentTeams(!current)
-    const label = !current
-      ? (isZh ? '✅ Agent Teams 已启用' : '✅ Agent Teams enabled')
-      : (isZh ? '⬜ Agent Teams 已禁用' : '⬜ Agent Teams disabled')
-    console.log(ansis.green(label))
+    console.log(ansis.green(t(!current ? 'enabled' : 'disabled')))
   }
   else if (action === 'mode') {
     const currentMode = getTeammateMode()
     const { mode } = await inquirer.prompt([{
       type: 'list',
       name: 'mode',
-      message: isZh ? '选择 Teammate 显示模式' : 'Select teammate display mode',
+      message: t('selectMode'),
       choices: [
         { name: `auto ${currentMode === 'auto' ? '(current)' : ''}`, value: 'auto' },
         { name: `in-process ${currentMode === 'in-process' ? '(current)' : ''}`, value: 'in-process' },
@@ -142,33 +137,29 @@ export async function agentTeamsCommand(options: {
       ],
     }])
     setTeammateMode(mode)
-    console.log(ansis.green(`Teammate mode: ${mode}`))
+    console.log(ansis.green(t('modeSet', { mode })))
   }
   else if (action === 'status') {
-    printStatus(isZh)
+    printStatus()
   }
 }
 
-function printStatus(isZh: boolean): void {
+function printStatus(): void {
   const enabled = isAgentTeamsEnabled()
   const mode = getTeammateMode()
 
   console.log()
-  console.log(ansis.bold(isZh ? '🤖 Agent Teams 状态' : '🤖 Agent Teams Status'))
+  console.log(ansis.bold(t('statusTitle')))
   console.log(ansis.gray('─'.repeat(40)))
-  console.log(`  ${isZh ? '状态' : 'Status'}:  ${enabled ? ansis.green('✅ Enabled') : ansis.dim('⬜ Disabled')}`)
-  console.log(`  ${isZh ? '模式' : 'Mode'}:    ${ansis.cyan(mode)}`)
+  console.log(`  ${t('statusLabel')}:  ${enabled ? ansis.green('✅ Enabled') : ansis.dim('⬜ Disabled')}`)
+  console.log(`  ${t('modeLabel')}:    ${ansis.cyan(mode)}`)
   console.log()
 
   if (!enabled) {
-    console.log(ansis.dim(isZh
-      ? '  启用: ccjk agent-teams --on'
-      : '  Enable: ccjk agent-teams --on'))
+    console.log(ansis.dim(`  ${t('enableHint')}`))
   }
   else {
-    console.log(ansis.dim(isZh
-      ? '  使用: 在 Claude Code 中说 "Create an agent team to..."'
-      : '  Usage: Tell Claude "Create an agent team to..."'))
+    console.log(ansis.dim(`  ${t('usageHint')}`))
   }
   console.log()
 }

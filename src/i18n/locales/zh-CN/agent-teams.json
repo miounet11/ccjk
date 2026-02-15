@@ -1,0 +1,18 @@
+{
+  "settings": "Agent Teams 设置",
+  "enabled": "✅ Agent Teams 已启用",
+  "disabled": "⬜ Agent Teams 已禁用",
+  "invalidMode": "无效模式，可选：auto, in-process, tmux",
+  "modeSet": "Teammate 显示模式已设为：{{mode}}",
+  "toggleEnable": "🟢 启用 Agent Teams",
+  "toggleDisable": "🔴 关闭 Agent Teams",
+  "setMode": "🖥️  设置 Teammate 显示模式",
+  "viewStatus": "📊 查看状态",
+  "back": "↩️  返回",
+  "selectMode": "选择 Teammate 显示模式",
+  "statusTitle": "🤖 Agent Teams 状态",
+  "statusLabel": "状态",
+  "modeLabel": "模式",
+  "enableHint": "启用：ccjk agent-teams --on",
+  "usageHint": "使用：在 Claude Code 中说 \"Create an agent team to...\""
+}

@@ -12,6 +12,7 @@ export const i18n: I18nInstance = i18next.createInstance()
 
 // All available namespaces based on current project structure
 const NAMESPACES = [
+  'agent-teams', // Agent Teams quick-enable
   'agentBrowser', // Agent Browser - AI browser automation
   'common',
   'api',

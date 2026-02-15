@@ -19,7 +19,7 @@ export async function showCometixMenu(): Promise<boolean> {
     console.log(`  ${ansis.green('1.')} ${i18n.t('cometix:cometixMenuOptions.installOrUpdate')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.installOrUpdate')}`)}`)
     console.log(`  ${ansis.green('2.')} ${i18n.t('cometix:cometixMenuOptions.printConfig')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.printConfig')}`)}`)
     console.log(`  ${ansis.green('3.')} ${i18n.t('cometix:cometixMenuOptions.customConfig')} ${ansis.gray(`- ${i18n.t('cometix:cometixMenuDescriptions.customConfig')}`)}`)
-    console.log(`  ${ansis.green('4.')} 🤖 Agent Teams ${ansis.gray('- Toggle on/off')}`)
+    console.log(`  ${ansis.green('4.')} 🤖 Agent Teams ${ansis.gray('- Toggle')}`)
     console.log(`  ${ansis.yellow('0.')} ${i18n.t('cometix:cometixMenuOptions.back')}`)
     console.log('')
 

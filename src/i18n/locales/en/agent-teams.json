@@ -1,0 +1,18 @@
+{
+  "settings": "Agent Teams Settings",
+  "enabled": "✅ Agent Teams enabled",
+  "disabled": "⬜ Agent Teams disabled",
+  "invalidMode": "Invalid mode. Use: auto, in-process, tmux",
+  "modeSet": "Teammate mode set to: {{mode}}",
+  "toggleEnable": "🟢 Enable Agent Teams",
+  "toggleDisable": "🔴 Disable Agent Teams",
+  "setMode": "🖥️  Set teammate display mode",
+  "viewStatus": "📊 View status",
+  "back": "↩️  Back",
+  "selectMode": "Select teammate display mode",
+  "statusTitle": "🤖 Agent Teams Status",
+  "statusLabel": "Status",
+  "modeLabel": "Mode",
+  "enableHint": "Enable: ccjk agent-teams --on",
+  "usageHint": "Usage: Tell Claude \"Create an agent team to...\""
+}
