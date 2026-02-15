@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "description": "Default Claude Code settings.json template for CCJK v8.1.2 - Supports Claude Code CLI 2.0-2.1",
+  "description": "CCJK settings template — auto-migrated on upgrade",
 
   "model": "default",
 
@@ -18,7 +18,7 @@
   "respectGitignore": true,
 
   "auto": {
-    "mcp": 5
+    "mcp": 0
   },
 
   "agent": "",
@@ -81,7 +81,11 @@
       "Bash(touch *)",
       "Bash(cp *)",
       "Bash(mv *)",
-      "Bash(chmod *)"
+      "Bash(chmod *)",
+      "Read(*)",
+      "Edit(*)",
+      "Write(*)",
+      "NotebookEdit(*)"
     ]
   },
 

@@ -53,7 +53,7 @@ const DANGEROUS_BASH_PATTERNS = new Set([
 
 /**
  * Check if a permission string is valid for Claude Code.
- * Valid patterns: Bash(...), Read(...), Edit(...), WebFetch(...), MCP(...), Task, mcp__*
+ * Valid patterns: Bash(...), Read(...), Write(...), Edit(...), NotebookEdit(...), WebFetch(...), MCP(...), Task, mcp__*
  */
 function isValidPermission(perm: string): boolean {
   // Invalid "Allow*" names from old templates

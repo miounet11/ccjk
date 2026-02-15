@@ -1917,6 +1917,15 @@ export async function runLazyCli(): Promise<void> {
   const spinner = await showStartupSpinner()
 
   try {
+    // 🔧 Auto-migrate settings.json (idempotent, silent)
+    try {
+      const { runMigration } = await import('./config/migrator')
+      runMigration()
+    }
+    catch {
+      // Never block CLI on migration failure
+    }
+
     // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
     // 在后台执行：设备注册、握手、自动同步、静默升级
     bootstrapCloudServices()
