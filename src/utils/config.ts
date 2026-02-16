@@ -310,9 +310,6 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
     }
 
     // If target doesn't exist, just copy template
-    if (!exists(targetPath)) {
-      writeJsonConfig(targetPath, templateSettings)
-      return
     }
 
     // Read existing settings
