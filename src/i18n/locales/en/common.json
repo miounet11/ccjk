@@ -31,5 +31,11 @@
     "compacting": "🗜️  Auto-compacting conversation ({{current}}/{{max}} messages)...",
     "success": "✅ Conversation compacted: {{before}} → {{after}} messages",
     "failed": "❌ Auto-compact failed: {{error}}"
+  },
+  "contextWarning": {
+    "title": "⚠️  Context Warning",
+    "body": "Conversation is getting long ({{toolCalls}} tool calls, {{messageCount}} messages)",
+    "suggestion": "Recommend running /compact to clean up context and avoid \"prompt is too long\" errors",
+    "command": "Run: /compact"
   }
 }

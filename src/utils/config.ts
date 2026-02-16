@@ -301,15 +301,15 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
     // Read template settings
     const templateSettings = readJsonConfig<ClaudeSettings>(templatePath)
 
-  // Context Management
-  sections.push('## Context Management\n\nWhen the conversation gets long (many tool calls, large file reads, or repeated back-and-forth), proactively suggest running /compact to the user before hitting context limits.')
-
     if (!templateSettings) {
       console.error('Failed to read template settings')
       return
     }
 
     // If target doesn't exist, just copy template
+    if (!exists(targetPath)) {
+      copyFile(templatePath, targetPath)
+      return
     }
 
     // Read existing settings

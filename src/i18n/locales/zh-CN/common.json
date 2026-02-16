@@ -31,5 +31,11 @@
     "compacting": "🗜️  自动压缩对话中（{{current}}/{{max}} 条消息）...",
     "success": "✅ 对话已压缩：{{before}} → {{after}} 条消息",
     "failed": "❌ 自动压缩失败：{{error}}"
+  },
+  "contextWarning": {
+    "title": "⚠️  上下文警告",
+    "body": "对话已经很长了（{{toolCalls}} 次工具调用，{{messageCount}} 条消息）",
+    "suggestion": "建议运行 /compact 清理上下文，避免触发 \"prompt is too long\" 错误",
+    "command": "运行: /compact"
   }
 }

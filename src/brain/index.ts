@@ -21,6 +21,7 @@ import { getHealthMonitor, HealthMonitor, resetHealthMonitor } from './health-mo
 import { getMetricsCollector, MetricsCollector, resetMetricsCollector } from './metrics'
 import { createSelfHealingSystem, SelfHealingSystem } from './self-healing'
 import { TaskQueue } from './task-queue'
+import { trackMessage, trackToolCall } from './hooks/context-monitor'
 
 /**
  * Brain execution result
@@ -260,6 +261,9 @@ export class Brain {
 
     this.log(`Executing command: ${command}`)
 
+    // Track message for context monitoring
+    trackMessage()
+
     try {
       // Determine which agent to use
       const agentRole = options.agent ?? this.detectAgentForCommand(command)
@@ -273,6 +277,9 @@ export class Brain {
       if (this.healthMonitor) {
         this.healthMonitor.recordHeartbeat(agent.getName())
       }
+
+      // Track tool call for context monitoring
+      trackToolCall()
 
       // Execute task through task queue
       const result = await this.taskQueue.add(
@@ -634,6 +641,13 @@ export {
   getGlobalDispatcher,
   resetGlobalDispatcher,
 } from './agent-dispatcher.js'
+
+export {
+  getStats as getContextMonitorStats,
+  resetStats as resetContextMonitor,
+  trackMessage,
+  trackToolCall,
+} from './hooks/context-monitor'
 
 export type {
   AgentDispatchConfig,
