@@ -91,6 +91,8 @@ export async function initI18n(language: SupportedLang = 'zh-CN'): Promise<void>
       ns: NAMESPACES,
       defaultNS: 'common',
       preload: [language], // Preload the selected language
+      // Suppress i18next locize promotional banner in CLI output
+      partialBundledLanguages: true,
 
       // Backend configuration for loading JSON files
       backend: {

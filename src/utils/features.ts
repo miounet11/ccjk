@@ -1,7 +1,11 @@
 import type { SupportedLang } from '../constants'
 import type { McpServerConfig } from '../types'
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { join } from 'pathe'
 import { getMcpServices } from '../config/mcp-services'
 import { LANG_LABELS, SUPPORTED_LANGS } from '../constants'
 import { changeLanguage, ensureI18nInitialized, i18n } from '../i18n'
@@ -469,12 +473,7 @@ export async function configureAiMemoryFeature(): Promise<void> {
     return
   }
 
-  const { readFileSync, existsSync, writeFileSync } = await import('node:fs')
-  const { homedir } = await import('node:os')
-  const { join } = await import('pathe')
-  const { execSync } = await import('node:child_process')
-  const nodeProcess = await import('node:process')
-  const cwd = nodeProcess.default.cwd()
+  const cwd = process.cwd()
 
   const globalClaudeMdPath = join(homedir(), '.claude', 'CLAUDE.md')
   const projectClaudeMdPath = join(cwd, 'CLAUDE.md')
@@ -571,12 +570,11 @@ export async function configureAiMemoryFeature(): Promise<void> {
 
     case 'editGlobalClaudeMd': {
       // Determine editor
-      const editor = nodeProcess.default.env.EDITOR || nodeProcess.default.env.VISUAL || 'vi'
+      const editor = process.env.EDITOR || process.env.VISUAL || 'vi'
 
       if (!existsSync(globalClaudeMdPath)) {
         // Create directory if needed
         const claudeDir = join(homedir(), '.claude')
-        const { mkdirSync } = await import('node:fs')
         if (!existsSync(claudeDir)) {
           mkdirSync(claudeDir, { recursive: true })
         }
@@ -590,6 +588,7 @@ export async function configureAiMemoryFeature(): Promise<void> {
       console.log(ansis.gray(`${isZh ? '文件' : 'File'}: ${globalClaudeMdPath}`))
 
       try {
+        const { execSync } = await import('node:child_process')
         execSync(`${editor} "${globalClaudeMdPath}"`, { stdio: 'inherit' })
         console.log(ansis.green(`\n✅ ${isZh ? '编辑完成' : 'Edit complete'}`))
       }
@@ -875,8 +874,6 @@ const codexLanguageLabels: Record<string, string> = {
 async function setCodexLanguageDirective(aiOutputLang: string, mode: 'ensure' | 'update'): Promise<void> {
   const { readFile, writeFileAtomic, exists } = await import('./fs-operations')
   const { backupCodexAgents, getBackupMessage } = await import('./code-tools/codex')
-  const { homedir } = await import('node:os')
-  const { join } = await import('pathe')
 
   const CODEX_AGENTS_FILE = join(homedir(), '.codex', 'AGENTS.md')
 
