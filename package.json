@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "9.13.0",
+  "version": "9.14.0",
   "packageManager": "pnpm@10.17.1",
   "description": "The missing toolkit for Claude Code. One command setup, 73% token savings, persistent memory, cloud sync, and Agent Teams. Zero config, 10x productivity.",
   "author": {
