@@ -1657,10 +1657,9 @@ async function registerSpecialCommands(cli: CAC): Promise<void> {
 
   // ==================== 向后兼容别名（标记废弃） ====================
   cli.command('skills-sync [action]', '[DEPRECATED] Use "ccjk cloud skills"')
-    .action(async (_action, options) => {
+    .action(async () => {
       console.warn('\n⚠️  skills-sync 已废弃，请使用 "ccjk cloud skills" 替代\n')
-      const { skillsSyncMenu } = await import('./commands/skills-sync')
-      await skillsSyncMenu(options)
+      console.log('💡 新命令：ccjk cloud skills\n')
     })
 
   cli.command('agents-sync [action]', '[DEPRECATED] Use "ccjk agents"')
@@ -1674,10 +1673,9 @@ async function registerSpecialCommands(cli: CAC): Promise<void> {
     })
 
   cli.command('marketplace [action]', '[DEPRECATED] Use "ccjk cloud plugins"')
-    .action(async (action, options) => {
+    .action(async () => {
       console.warn('\n⚠️  marketplace 已废弃，请使用 "ccjk cloud plugins" 替代\n')
-      const { marketplaceMenu } = await import('./commands/marketplace')
-      await marketplaceMenu(action, options)
+      console.log('💡 新命令：ccjk cloud plugins\n')
     })
 
   // ==================== Plugin 命令（接管 /plugin） ====================
@@ -1697,17 +1695,15 @@ async function registerSpecialCommands(cli: CAC): Promise<void> {
   // quick 和 deep 作为 interview 的选项，不再单独注册
   // 保留向后兼容
   cli.command('quick [specFile]', '[DEPRECATED] Use "ccjk interview -d quick"')
-    .action(async (specFile) => {
+    .action(async () => {
       console.warn('\n⚠️  quick 已废弃，请使用 "ccjk interview -d quick" 替代\n')
-      const { quickInterview } = await import('./commands/interview')
-      await quickInterview(specFile, {})
+      console.log('💡 新命令：ccjk interview -d quick\n')
     })
 
   cli.command('deep [specFile]', '[DEPRECATED] Use "ccjk interview -d deep"')
-    .action(async (specFile) => {
+    .action(async () => {
       console.warn('\n⚠️  deep 已废弃，请使用 "ccjk interview -d deep" 替代\n')
-      const { deepInterview } = await import('./commands/interview')
-      await deepInterview(specFile, {})
+      console.log('💡 新命令：ccjk interview -d deep\n')
     })
 
   // ==================== 系统管理统一命令 ====================
@@ -1764,51 +1760,43 @@ async function registerSpecialCommands(cli: CAC): Promise<void> {
   cli.command('setup', '[DEPRECATED] Use "ccjk system setup"')
     .action(async () => {
       console.warn('\n⚠️  setup 已废弃，请使用 "ccjk system setup" 替代\n')
-      const { runOnboarding } = await import('./utils/onboarding')
-      await runOnboarding()
+      console.log('💡 新命令：ccjk system setup\n')
     })
 
   cli.command('sync', '[DEPRECATED] Use "ccjk system sync"')
     .action(async () => {
       console.warn('\n⚠️  sync 已废弃，请使用 "ccjk system sync" 替代\n')
-      const { quickSync } = await import('./utils/onboarding')
-      await quickSync()
+      console.log('💡 新命令：ccjk system sync\n')
     })
 
   cli.command('versions', '[DEPRECATED] Use "ccjk system versions"')
     .action(async () => {
       console.warn('\n⚠️  versions 已废弃，请使用 "ccjk system versions" 替代\n')
-      const { checkAllVersions } = await import('./utils/upgrade-manager')
-      await checkAllVersions()
+      console.log('💡 新命令：ccjk system versions\n')
     })
 
   cli.command('upgrade', '[DEPRECATED] Use "ccjk system upgrade"')
     .action(async () => {
       console.warn('\n⚠️  upgrade 已废弃，请使用 "ccjk system upgrade" 替代\n')
-      const { upgradeAll } = await import('./utils/upgrade-manager')
-      await upgradeAll()
+      console.log('💡 新命令：ccjk system upgrade\n')
     })
 
   cli.command('permissions', '[DEPRECATED] Use "ccjk system permissions"')
     .action(async () => {
       console.warn('\n⚠️  permissions 已废弃，请使用 "ccjk system permissions" 替代\n')
-      const { displayPermissions } = await import('./utils/permission-manager')
-      displayPermissions()
+      console.log('💡 新命令：ccjk system permissions\n')
     })
 
   cli.command('config-scan', '[DEPRECATED] Use "ccjk system config"')
     .action(async () => {
       console.warn('\n⚠️  config-scan 已废弃，请使用 "ccjk system config" 替代\n')
-      const { detectAllConfigs, displayConfigScan } = await import('./utils/config-consolidator')
-      const configs = detectAllConfigs()
-      displayConfigScan(configs)
+      console.log('💡 新命令：ccjk system config\n')
     })
 
   cli.command('workspace [dir]', '[DEPRECATED] Use "ccjk system workspace"')
-    .action(async (dir) => {
+    .action(async () => {
       console.warn('\n⚠️  workspace 已废弃，请使用 "ccjk system workspace" 替代\n')
-      const { workspaceDiagnostics } = await import('./commands/doctor')
-      await workspaceDiagnostics(dir)
+      console.log('💡 新命令：ccjk system workspace\n')
     })
 
   // ==================== Shell Completion ====================

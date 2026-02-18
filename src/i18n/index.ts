@@ -149,12 +149,8 @@ export async function initI18n(language: SupportedLang = 'zh-CN'): Promise<void>
       debug: false,
     })
 
-  // Ensure all namespaces are loaded before proceeding
-  for (const ns of NAMESPACES) {
-    if (ns !== 'common') { // common is already loaded
-      await i18n.loadNamespaces(ns)
-    }
-  }
+  // Namespaces will be loaded on-demand by i18next-fs-backend
+  // No need to preload all 33 namespaces at startup
 }
 
 // Simple format function for legacy compatibility
