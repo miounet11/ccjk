@@ -13,6 +13,8 @@ import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FI
 import { i18n } from '../i18n'
 import { displayBannerWithInfo, padToDisplayWidth } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
+import { displayError } from '../utils/error-formatter'
+import { ProgressTracker } from '../utils/progress-tracker'
 import { backupCcrConfig, configureCcrProxy, createDefaultCcrConfig, readCcrConfig, setupCcrConfiguration, writeCcrConfig } from '../utils/ccr/config'
 import { installCcr, isCcrInstalled } from '../utils/ccr/installer'
 import {
@@ -423,7 +425,7 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
     console.log('')
   }
   catch (error) {
-    console.error(ansis.red('❌ Installation failed:'), error instanceof Error ? error.message : error)
+    displayError(error as Error, 'Claude Code installation')
     throw error
   }
 }
@@ -518,10 +520,27 @@ export async function init(options: InitOptions = {}): Promise<void> {
   }
 
   try {
+    // Initialize progress tracker
+    const tracker = new ProgressTracker([
+      'Reading configuration',
+      'Selecting code tool',
+      'Configuring API',
+      'Installing MCP services',
+      'Setting up workflows',
+      'Finalizing setup',
+    ])
+
+    // Only show progress in interactive mode
+    if (!options.skipPrompt && !options.skipBanner) {
+      tracker.start()
+    }
+
     // Step 2: Read CCJK config once for multiple uses
+    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep()
     const zcfConfig = readZcfConfig()
 
     // Step 3: Select code tool
+    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep()
     let codeToolType: CodeToolType
     try {
       codeToolType = await resolveCodeType(options.codeType)
@@ -847,6 +866,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 6: Configure API (skip if only updating docs)
+    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep('Configuring API')
     let apiConfig = null
     const isNewInstall = !existsSync(SETTINGS_FILE)
     if (action !== 'docs-only' && (isNewInstall || ['backup', 'merge', 'new'].includes(action))) {
@@ -1090,6 +1110,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 10: Configure MCP services (skip if only updating docs)
+    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep('Installing MCP services')
     if (action !== 'docs-only') {
       let shouldConfigureMcp = false
 
@@ -1210,7 +1231,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
             }
           }
           catch (error) {
-            console.error(ansis.red(`${i18n.t('errors:failedToWriteMcpConfig')} ${error}`))
+            displayError(error as Error, 'MCP configuration')
           }
         }
       }
@@ -1264,6 +1285,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 12: Save ccjk config
+    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep('Finalizing setup')
     updateZcfConfig({
       version,
       preferredLang: i18n.language as SupportedLang, // CCJK界面语言
@@ -1304,6 +1326,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 13: Success message with enhanced guidance
+    if (!options.skipPrompt && !options.skipBanner) tracker.complete()
     console.log('')
     console.log(ansis.bold.green('╔══════════════════════════════════════════════════════════════╗'))
     console.log(ansis.bold.green('║') + ansis.bold.white(padToDisplayWidth(`  ${i18n.t('configuration:setupCompleteTitle')}`, 62)) + ansis.bold.green('║'))
@@ -1326,6 +1349,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
   }
   catch (error) {
     if (!handleExitPromptError(error)) {
+      displayError(error as Error, 'Initialization')
       handleGeneralError(error)
     }
   }
@@ -1379,7 +1403,7 @@ export async function handleMultiConfigurations(options: InitOptions, codeToolTy
     console.log(ansis.green(`✔ ${i18n.t('multi-config:configsAddedSuccessfully')}`))
   }
   catch (error) {
-    console.error(ansis.red(`${i18n.t('multi-config:configsFailed')}: ${error instanceof Error ? error.message : String(error)}`))
+    displayError(error as Error, 'Multi-config setup')
     throw error
   }
 }

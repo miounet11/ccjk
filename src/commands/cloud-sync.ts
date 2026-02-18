@@ -16,6 +16,7 @@ import type {
 import type { SupportedLang } from '../constants.js'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { displayError } from '../utils/error-formatter.js'
 import {
   configureSyncEngine,
   getConflicts,
@@ -353,7 +354,7 @@ export async function syncNow(options: CloudSyncOptions = {}): Promise<SyncResul
     return result
   }
   catch (error) {
-    console.log(ansis.red(`\n  ❌ Sync error: ${error}\n`))
+    displayError(error as Error, 'Cloud sync')
     return null
   }
 }
