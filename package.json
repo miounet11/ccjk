@@ -136,7 +136,7 @@
     "i18n:report": "tsx scripts/check-i18n.ts --report"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.52.0",
+    "@anthropic-ai/sdk": "^0.78.0",
     "ansis": "^4.1.0",
     "better-sqlite3": "^12.6.2",
     "cac": "^6.7.14",
