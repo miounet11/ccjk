@@ -53,7 +53,12 @@ const DANGEROUS_BASH_PATTERNS = new Set([
 
 /**
  * Check if a permission string is valid for Claude Code.
- * Valid patterns: Bash(...), Read(...), Write(...), Edit(...), NotebookEdit(...), WebFetch(...), MCP(...), Task, mcp__*
+ * Valid patterns:
+ *   Bash(...), Read(...), Write(...), Edit(...), NotebookEdit(...), WebFetch(...), MCP(...), Task, mcp__*
+ * Wildcard patterns (Claude Code 2.1+):
+ *   Bash(npm *), Bash(* install), Bash(git *)
+ * Output redirection (Claude Code 2.1+):
+ *   Bash(python:*) > output.txt
  */
 function isValidPermission(perm: string): boolean {
   // Invalid "Allow*" names from old templates
@@ -61,17 +66,42 @@ function isValidPermission(perm: string): boolean {
     return false
   }
 
-  // Invalid wildcard MCP patterns
+  // Invalid wildcard MCP patterns (bare wildcards, not tool-scoped)
   if (['mcp__.*', 'mcp__*', 'mcp__(*)'].includes(perm)) {
     return false
   }
 
   // Lowercase bare words are not valid (e.g., "bash", "npm")
+  // Exception: mcp__ prefixed names are valid
   if (/^[a-z]/.test(perm) && !perm.startsWith('mcp__')) {
     return false
   }
 
   return true
+}
+
+/**
+ * Check if a permission is covered by a wildcard pattern.
+ * e.g., "Bash(npm install)" is covered by "Bash(npm *)"
+ * e.g., "Bash(git status)" is covered by "Bash(git *)"
+ */
+function isCoveredByWildcard(perm: string, wildcardPerm: string): boolean {
+  // Only handle Bash(*) wildcard patterns
+  const wildcardMatch = wildcardPerm.match(/^(\w+)\((.+)\)$/)
+  if (!wildcardMatch) return false
+
+  const [, tool, wildcardArg] = wildcardMatch
+  if (!wildcardArg.includes('*')) return false
+
+  const permMatch = perm.match(/^(\w+)\((.+)\)$/)
+  if (!permMatch) return false
+
+  const [, permTool, permArg] = permMatch
+  if (tool !== permTool) return false
+
+  // Convert wildcard pattern to regex: "npm *" → /^npm .+$/
+  const regexStr = wildcardArg.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.+')
+  return new RegExp(`^${regexStr}$`).test(permArg)
 }
 
 /**
@@ -150,9 +180,14 @@ export function mergeAndCleanPermissions(
     }
 
     // Check for redundant permissions (e.g., "Bash(git status)" when "Bash(git *)" exists)
+    // Also handles wildcard patterns like "Bash(npm *)" covering "Bash(npm install)"
     let isRedundant = false
     for (const templatePerm of template) {
       if (perm.startsWith(`${templatePerm}(`)) {
+        isRedundant = true
+        break
+      }
+      if (isCoveredByWildcard(perm, templatePerm)) {
         isRedundant = true
         break
       }

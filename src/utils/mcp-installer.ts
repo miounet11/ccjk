@@ -9,7 +9,7 @@ import type { McpServerConfig } from '../types'
 import type { CodexConfigData, CodexMcpService } from './code-tools/codex'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { getMcpService, getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
+import { dynamicMcpRegistry, getMcpService, getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { updateClaudeConfig } from '../config/unified/claude-config'
 import { ClAUDE_CONFIG_FILE, CODEX_CONFIG_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
@@ -120,6 +120,9 @@ export async function installMcpService(
     else {
       await installMcpServiceForClaudeCode(serviceId, service.config, apiKey, service.apiKeyEnvVar)
     }
+
+    // Notify dynamic registry (list_changed) — Claude Code 2.1+ picks this up
+    dynamicMcpRegistry.addService(serviceId, service.config)
 
     return {
       success: true,
@@ -276,6 +279,9 @@ export async function uninstallMcpService(
     else {
       await uninstallMcpServiceFromClaudeCode(serviceId)
     }
+
+    // Notify dynamic registry (list_changed) — Claude Code 2.1+ picks this up
+    dynamicMcpRegistry.removeService(serviceId)
 
     return {
       success: true,

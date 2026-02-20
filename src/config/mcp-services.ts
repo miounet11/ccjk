@@ -81,6 +81,8 @@ export interface McpServiceConfig {
   id: string
   requiresApiKey: boolean
   apiKeyEnvVar?: string
+  /** Pre-select this service during init (default: false) */
+  defaultSelected?: boolean
   config: McpServerConfig
   /** Platform compatibility requirements. If undefined, service works on all platforms */
   platformRequirements?: McpPlatformRequirements
@@ -253,6 +255,19 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       requiresGui: true,
     },
   },
+  // Cross-session Memory Services
+  {
+    id: 'intent-engine',
+    requiresApiKey: false,
+    defaultSelected: true,
+    config: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', '@origintask/intent-engine@latest', 'mcp'],
+      env: {},
+    },
+    // Works on all platforms - no special requirements
+  },
   // Anthropic Official MCP Services - Universal
   // Note: Removed low-value services: filesystem (buggy), puppeteer (duplicate of Playwright),
   //       memory (Claude has built-in memory), fetch (Claude has WebFetch), sequential-thinking (limited value)
@@ -309,6 +324,12 @@ export async function getMcpServices(): Promise<McpService[]> {
       id: 'Playwright',
       name: i18n.t('mcp:services.playwright.name'),
       description: i18n.t('mcp:services.playwright.description'),
+    },
+    // Cross-session Memory Services
+    {
+      id: 'intent-engine',
+      name: i18n.t('mcp:services.intent-engine.name'),
+      description: i18n.t('mcp:services.intent-engine.description'),
     },
     // Anthropic Official MCP Services
     // Note: Removed low-value services: filesystem (buggy), puppeteer (duplicate),

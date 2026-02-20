@@ -23,6 +23,8 @@
   "services.sequential-thinking.description": "Dynamic problem-solving through sequential thought process with revision capabilities",
   "services.fetch.name": "HTTP Fetch",
   "services.fetch.description": "Fetch and process content from URLs, converting HTML to markdown for analysis",
+  "services.intent-engine.name": "Intent Engine",
+  "services.intent-engine.description": "Persistent cross-session memory for AI coding assistants — task tracking, decision logging, and context restoration",
   "services.sqlite.name": "SQLite Database",
   "services.sqlite.description": "Query and manage SQLite databases with full SQL support",
   "apiKeyApprovalFailed": "Failed to manage API key approval status",

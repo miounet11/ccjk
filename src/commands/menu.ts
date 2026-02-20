@@ -4,10 +4,12 @@ import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
+import { MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
+import { readMcpConfig } from '../utils/claude-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import {
@@ -132,6 +134,26 @@ function showHelpDocumentation(isZh: boolean): void {
 }
 
 /**
+ * Silently check for new recommended MCP services not yet installed.
+ * Read-only — never writes anything. Shows a one-line hint if services are missing.
+ */
+function checkNewMcpServicesHint(isZh: boolean): void {
+  try {
+    const mcpConfig = readMcpConfig()
+    const installedIds = new Set(Object.keys(mcpConfig?.mcpServers || {}))
+    const missing = MCP_SERVICE_CONFIGS.filter(c => c.defaultSelected && !installedIds.has(c.id))
+    if (missing.length > 0) {
+      const names = missing.map(c => c.id).join(', ')
+      console.log(ansis.cyan(`  ✨ ${isZh ? '新推荐服务未安装' : 'New recommended services available'}: ${ansis.bold(names)} ${ansis.dim(isZh ? '(选项 4 安装)' : '(install via option 4)')}`)
+      )
+    }
+  }
+  catch {
+    // Never block menu on read failure
+  }
+}
+
+/**
  * Show the ZCF-style CCJK main menu
  */
 async function showSimplifiedMenu(): Promise<MenuResult> {
@@ -141,6 +163,9 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   // Display ZCF-style menu
   console.log('')
   console.log(ansis.bold.yellow(isZh ? '请选择功能' : 'Select Feature'))
+
+  // Silent hint for new recommended services
+  checkNewMcpServicesHint(isZh)
 
   // -------- Claude Code --------
   console.log(ansis.dim(`  -------- Claude Code --------`))

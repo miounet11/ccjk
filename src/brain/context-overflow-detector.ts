@@ -64,8 +64,10 @@ interface TurnData {
  */
 const DEFAULT_CONFIG: Required<Omit<ContextOverflowConfig, 'onWarning' | 'onCritical' | 'onAutoCompact'>> = {
   maxTokens: 200000, // Claude's context window
-  warningThreshold: 80,
-  criticalThreshold: 90,
+  // Claude Code 2.1+ reserves output tokens from the effective window.
+  // Lowered from 80/90 to 70/85 to account for the reduced effective window.
+  warningThreshold: 70,
+  criticalThreshold: 85,
   charsPerToken: 4, // tiktoken-like approximation
 }
 

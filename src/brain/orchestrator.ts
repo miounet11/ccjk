@@ -39,6 +39,9 @@ import { AgentDispatcher } from './agent-dispatcher.js'
 import { AgentForkManager } from './agent-fork.js'
 import { ResultAggregator } from './result-aggregator.js'
 import { TaskDecomposer } from './task-decomposer.js'
+import { executionTracer } from './execution-tracer.js'
+import { taskPersistence } from './task-persistence.js'
+import { contextLoader } from './context-loader.js'
 
 /**
  * Convert AgentCapability array to string array of capability IDs
@@ -216,9 +219,37 @@ export class BrainOrchestrator extends EventEmitter {
     task: Task,
     strategy?: DecompositionStrategy,
   ): Promise<OrchestrationResult> {
+    // Start execution trace
+    const sessionId = `orchestration-${nanoid()}`
+    executionTracer.startSession(sessionId)
+    executionTracer.logEvent('agent-start', {
+      task: task.name,
+      strategy: strategy || 'auto',
+    })
+
+    // Save session and task to persistence
+    taskPersistence.saveSession(sessionId, {
+      rootTask: task.name,
+      strategy: strategy || 'auto',
+    })
+    taskPersistence.saveTask(task, sessionId)
+
+    // Load hierarchical context with token budget (L1 depth for orchestration)
+    const context = await contextLoader.load({
+      projectRoot: process.cwd(),
+      task,
+      layers: ['project', 'domain', 'task'],
+      tokenBudget: 4_000, // ~L1 depth, keeps orchestration context lean
+    })
+
+    // Attach context to task
+    task.metadata = task.metadata || {}
+    task.metadata.context = contextLoader.formatForLLM(context)
+
     try {
       this.state.status = 'planning'
       this.log(`Starting orchestration for task: ${task.name}`)
+      executionTracer.logDecision('orchestrator', `Planning task: ${task.name}`)
 
       // Create orchestration plan
       const plan = await this.createPlan(task, strategy)
@@ -235,12 +266,26 @@ export class BrainOrchestrator extends EventEmitter {
       this.state.status = 'idle'
       this.emit('plan:completed', result)
 
+      // End execution trace
+      executionTracer.logAgentEnd('orchestrator', { success: true })
+      executionTracer.endSession(sessionId)
+
+      // Update task status in persistence
+      taskPersistence.updateTaskStatus(task.id, 'completed', result)
+
       return result
     }
     catch (error) {
       this.state.status = 'error'
       const err = error instanceof Error ? error : new Error(String(error))
       this.emit('error', err)
+
+      // Log error in trace
+      executionTracer.logError(err, 'orchestrator')
+      executionTracer.endSession(sessionId)
+
+      // Update task status in persistence
+      taskPersistence.updateTaskStatus(task.id, 'failed', undefined, err)
 
       return this.createFailedResult(task, err)
     }

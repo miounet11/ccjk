@@ -32,6 +32,13 @@ export interface HookResult {
   executionResult?: ExecutionResult
   shouldContinue: boolean // Should continue to Claude Code?
   message?: string
+  /**
+   * Additional context injected into the model via PreToolUse hook.
+   * Claude Code 2.1+ passes this string to the model alongside the tool call.
+   * Use this to inject task state, session context, or brain insights
+   * without blocking the tool execution.
+   */
+  additionalContext?: string
 }
 
 /**
@@ -124,11 +131,15 @@ export class BrainCliHook extends EventEmitter {
       if (result.passthrough) {
         this.emit('hook:passthrough', { input: userInput, reason: result.message })
 
+        // Inject brain context via PreToolUse additionalContext (Claude Code 2.1+)
+        const additionalContext = this.config.silent ? undefined : await this.buildAdditionalContext()
+
         return {
           intercepted: true,
           handled: false,
           shouldContinue: true, // Pass to Claude Code
           message: result.message,
+          additionalContext,
         }
       }
 
@@ -217,6 +228,26 @@ export class BrainCliHook extends EventEmitter {
 
     console.log('='.repeat(60))
     console.log()
+  }
+
+  /**
+   * Build additional context string for PreToolUse hook injection.
+   * Provides brain insights (task state, session context) to the model
+   * without blocking tool execution. Claude Code 2.1+ feature.
+   */
+  private async buildAdditionalContext(): Promise<string | undefined> {
+    try {
+      // Load L0 context summary (ultra-lightweight, ~100 tokens)
+      const { loadContextAtDepth } = await import('../context-loader')
+      const ctx = await loadContextAtDepth('L0')
+      if (ctx.totalTokens > 0) {
+        return `[Brain Context: ${ctx.layers.size} layers, ~${ctx.totalTokens} tokens, depth=${ctx.depth}]`
+      }
+      return undefined
+    }
+    catch {
+      return undefined // Never block on context build failure
+    }
   }
 
   /**

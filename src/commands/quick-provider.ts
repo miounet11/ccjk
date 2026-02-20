@@ -78,6 +78,11 @@ const KNOWN_COMMANDS = new Set([
   'pm',
   'claude',
   'monitor',
+  'paradigm',
+  'trace',
+  'status',
+  'st',
+  'boost',
   // CCJK v8 commands
   'ccjk:mcp',
   'ccjk-mcp',

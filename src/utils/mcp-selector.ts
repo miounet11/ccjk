@@ -1,6 +1,6 @@
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { getMcpServices } from '../config/mcp-services'
+import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { ensureI18nInitialized, i18n } from '../i18n'
 
 /**
@@ -11,11 +11,16 @@ export async function selectMcpServices(): Promise<string[] | undefined> {
   ensureI18nInitialized()
   const mcpServices = await getMcpServices()
 
-  // Build choices without ALL option
+  // Build a lookup for defaultSelected from config
+  const defaultSelectedIds = new Set(
+    MCP_SERVICE_CONFIGS.filter(c => c.defaultSelected).map(c => c.id),
+  )
+
+  // Build choices, pre-selecting services marked as defaultSelected
   const choices = mcpServices.map(service => ({
     name: `${service.name} - ${ansis.gray(service.description)}`,
     value: service.id,
-    selected: false,
+    checked: defaultSelectedIds.has(service.id),
   }))
 
   const { services } = await inquirer.prompt<{ services: string[] }>({

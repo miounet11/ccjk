@@ -23,6 +23,8 @@
   "services.sequential-thinking.description": "通过顺序思考过程进行动态问题解决，支持思路修正和回溯",
   "services.fetch.name": "HTTP 请求",
   "services.fetch.description": "从 URL 获取和处理内容，将 HTML 转换为 Markdown 进行分析",
+  "services.intent-engine.name": "Intent Engine 跨会话记忆",
+  "services.intent-engine.description": "AI 编码助手的持久化跨会话记忆 — 任务追踪、决策记录、上下文恢复",
   "services.sqlite.name": "SQLite 数据库",
   "services.sqlite.description": "查询和管理 SQLite 数据库，支持完整的 SQL 操作",
   "apiKeyApprovalFailed": "API密钥批准状态管理失败",

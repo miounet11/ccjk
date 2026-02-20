@@ -1404,6 +1404,90 @@ const COMMANDS: CommandDefinition[] = [
 
   // ==================== Brain Dashboard ====================
   {
+    name: 'sessions',
+    description: 'Manage and restore Brain System sessions',
+    tier: 'extended',
+    options: [
+      { flags: '--list', description: 'List all sessions' },
+      { flags: '--show <id>', description: 'Show session details' },
+      { flags: '--restore <id>', description: 'Restore incomplete session' },
+      { flags: '--cleanup', description: 'Clean up old sessions' },
+    ],
+    loader: async () => {
+      const { sessionsCommand } = await import('./commands/sessions')
+      return async (options: CliOptions) => {
+        await sessionsCommand({
+          list: options.list as boolean,
+          show: options.show as string,
+          restore: options.restore as string,
+          cleanup: options.cleanup as boolean,
+        })
+      }
+    },
+  },
+  {
+    name: 'context',
+    description: 'View and manage hierarchical context loading',
+    tier: 'extended',
+    options: [
+      { flags: '--show', description: 'Show loaded context' },
+      { flags: '--layers <layers>', description: 'Specify layers (comma-separated)' },
+      { flags: '--task <name>', description: 'Preview context for task' },
+      { flags: '--clear', description: 'Clear context cache' },
+    ],
+    loader: async () => {
+      const { contextCommand } = await import('./commands/context')
+      return async (options: CliOptions) => {
+        await contextCommand({
+          show: options.show as boolean,
+          layers: options.layers as string,
+          task: options.task as string,
+          clear: options.clear as boolean,
+        })
+      }
+    },
+  },
+  {
+    name: 'paradigm',
+    description: 'Detect and display project file system paradigm',
+    tier: 'extended',
+    options: [
+      { flags: '--verbose', description: 'Show detailed information' },
+      { flags: '--role <role>', description: 'Show files for specific role' },
+    ],
+    loader: async () => {
+      const { paradigmCommand } = await import('./commands/paradigm')
+      return async (options: CliOptions) => {
+        await paradigmCommand({
+          verbose: options.verbose as boolean,
+          role: options.role as string,
+        })
+      }
+    },
+  },
+  {
+    name: 'trace',
+    description: 'View execution traces for Brain System operations',
+    tier: 'extended',
+    options: [
+      { flags: '--list', description: 'List all traces' },
+      { flags: '--last', description: 'Show last trace' },
+      { flags: '--session-id <id>', description: 'Show specific trace' },
+      { flags: '--cleanup', description: 'Clean up old traces' },
+    ],
+    loader: async () => {
+      const { traceCommand } = await import('./commands/trace')
+      return async (options: CliOptions) => {
+        await traceCommand({
+          list: options.list as boolean,
+          last: options.last as boolean,
+          sessionId: options.sessionId as string,
+          cleanup: options.cleanup as boolean,
+        })
+      }
+    },
+  },
+  {
     name: 'status',
     description: 'Brain Dashboard - setup health score and recommendations',
     aliases: ['st', 'brain'],

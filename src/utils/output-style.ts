@@ -98,7 +98,20 @@ export async function copyOutputStyles(selectedStyles: string[], lang: Supported
   }
 }
 
+/**
+ * Built-in output styles that use the deprecated `outputStyle` settings.json field.
+ * Claude Code 2.1+ deprecated this field in favor of system prompt alternatives.
+ * Custom styles (linus-mode, etc.) stored as .md files are NOT affected.
+ */
+const BUILTIN_STYLE_IDS = new Set(['default', 'explanatory', 'learning'])
+
 export function setGlobalDefaultOutputStyle(styleId: string): void {
+  // Warn if using deprecated built-in outputStyle field (Claude Code 2.1+)
+  if (BUILTIN_STYLE_IDS.has(styleId)) {
+    console.log(ansis.yellow(`⚠️  Note: Built-in output styles (${styleId}) are deprecated in Claude Code 2.1+.`))
+    console.log(ansis.gray('   Custom styles (linus-mode, etc.) stored as .md files are still fully supported.'))
+  }
+
   // Get template permissions for validation
   const templatePermissions = getTemplatePermissions()
 
@@ -150,17 +163,15 @@ function getTemplatePermissions(): string[] {
     // Silently fall back to default
   }
   // Default permissions if template not found
+  // Note: Claude Code only recognizes tool-based patterns, not Allow* names
   return [
-    'AllowEdit',
-    'AllowWrite',
-    'AllowRead',
-    'AllowExec',
-    'AllowCreateProcess',
-    'AllowKillProcess',
-    'AllowNetworkAccess',
-    'AllowFileSystemAccess',
-    'AllowShellAccess',
-    'AllowHttpAccess',
+    'Bash(git *)',
+    'Bash(npm *)',
+    'Bash(pnpm *)',
+    'Bash(node *)',
+    'Read(*)',
+    'Edit(*)',
+    'Write(*)',
   ]
 }
 
