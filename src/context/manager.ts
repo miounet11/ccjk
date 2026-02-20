@@ -21,6 +21,7 @@ import {
   CompressionStrategy,
 } from './types'
 import { ContextPersistence, getContextPersistence } from './persistence'
+import { HierarchicalContextLoader } from './hierarchical-loader'
 
 /**
  * Context Manager - Main entry point for context optimization
@@ -34,6 +35,7 @@ export class ContextManager {
   private conservativeStrategy: ConservativeStrategy
   private persistence: ContextPersistence | null
   private projectHash?: string
+  private hierarchicalLoader?: HierarchicalContextLoader
 
   constructor(config?: Partial<ContextManagerConfig> & { enablePersistence?: boolean, projectHash?: string }) {
     // Default configuration
@@ -61,8 +63,9 @@ export class ContextManager {
     this.persistence = config?.enablePersistence !== false ? getContextPersistence() : null
     this.projectHash = config?.projectHash
 
-    // Load persisted contexts into cache if available
+    // Initialize hierarchical loader if persistence is enabled
     if (this.persistence && this.projectHash) {
+      this.hierarchicalLoader = new HierarchicalContextLoader(this.persistence, this.projectHash)
       this.loadPersistedContexts()
     }
   }
@@ -482,7 +485,66 @@ export class ContextManager {
   setProjectHash(projectHash: string): void {
     this.projectHash = projectHash
     if (this.persistence) {
+      // Reinitialize hierarchical loader with new project hash
+      this.hierarchicalLoader = new HierarchicalContextLoader(this.persistence, projectHash)
       this.loadPersistedContexts()
     }
+  }
+
+  /**
+   * Get hierarchical loader instance
+   */
+  getHierarchicalLoader(): HierarchicalContextLoader | null {
+    return this.hierarchicalLoader || null
+  }
+
+  /**
+   * Get hot contexts (L0 tier)
+   */
+  getHotContexts() {
+    return this.hierarchicalLoader?.getHotContexts() || []
+  }
+
+  /**
+   * Get warm contexts (L1 tier)
+   */
+  getWarmContexts(limit?: number) {
+    return this.hierarchicalLoader?.getWarmContexts(limit) || []
+  }
+
+  /**
+   * Get cold contexts (L2 tier)
+   */
+  getColdContexts(limit?: number) {
+    return this.hierarchicalLoader?.getColdContexts(limit) || []
+  }
+
+  /**
+   * Lazy load cold contexts in batches
+   */
+  async lazyColdContexts(offset: number = 0, limit: number = 50) {
+    if (!this.hierarchicalLoader) return []
+    return this.hierarchicalLoader.lazyColdContexts(offset, limit)
+  }
+
+  /**
+   * Migrate contexts between tiers
+   */
+  migrateContextTiers() {
+    return this.hierarchicalLoader?.migrateContexts() || { promoted: 0, demoted: 0 }
+  }
+
+  /**
+   * Get tier statistics
+   */
+  getTierStats() {
+    return this.hierarchicalLoader?.getStats() || null
+  }
+
+  /**
+   * Refresh L0 cache
+   */
+  refreshHotCache(): void {
+    this.hierarchicalLoader?.refreshL0Cache()
   }
 }

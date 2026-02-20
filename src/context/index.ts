@@ -16,6 +16,14 @@ export {
   syncCacheAndPersistence,
   verifyMigration,
 } from './migration'
+export * from './health-check'
+export {
+  DatabaseHealthMonitor,
+  createHealthMonitor,
+  HealthStatus,
+} from './health-check'
+export * from './hierarchical-loader'
+export { HierarchicalContextLoader, createHierarchicalLoader } from './hierarchical-loader'
 // Compact Advisor
 export {
   CompactAdvisor,

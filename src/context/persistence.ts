@@ -39,8 +39,16 @@ export interface ContextQueryOptions {
   startTime?: number
   endTime?: number
   limit?: number
-  sortBy?: 'timestamp' | 'lastAccessed' | 'accessCount'
+  sortBy?: 'timestamp' | 'lastAccessed' | 'accessCount' | 'relevance'
   sortOrder?: 'asc' | 'desc'
+}
+
+/**
+ * Search result with ranking
+ */
+export interface SearchResult extends PersistedContext {
+  rank: number
+  snippet?: string
 }
 
 /**
@@ -115,6 +123,33 @@ export class ContextPersistence {
       CREATE INDEX IF NOT EXISTS idx_contexts_last_accessed ON contexts(last_accessed);
       CREATE INDEX IF NOT EXISTS idx_contexts_access_count ON contexts(access_count);
 
+      -- FTS5 virtual table for full-text search
+      CREATE VIRTUAL TABLE IF NOT EXISTS contexts_fts USING fts5(
+        id UNINDEXED,
+        content,
+        compressed,
+        metadata,
+        tokenize = 'porter unicode61'
+      );
+
+      -- Triggers to keep FTS5 in sync with main table
+      CREATE TRIGGER IF NOT EXISTS contexts_ai AFTER INSERT ON contexts BEGIN
+        INSERT INTO contexts_fts(id, content, compressed, metadata)
+        VALUES (new.id, new.content, new.compressed, new.metadata);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS contexts_ad AFTER DELETE ON contexts BEGIN
+        DELETE FROM contexts_fts WHERE id = old.id;
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS contexts_au AFTER UPDATE ON contexts BEGIN
+        UPDATE contexts_fts
+        SET content = new.content,
+            compressed = new.compressed,
+            metadata = new.metadata
+        WHERE id = old.id;
+      END;
+
       CREATE TABLE IF NOT EXISTS projects (
         hash TEXT PRIMARY KEY,
         path TEXT NOT NULL,
@@ -128,6 +163,11 @@ export class ContextPersistence {
 
       CREATE INDEX IF NOT EXISTS idx_projects_created ON projects(created_at);
       CREATE INDEX IF NOT EXISTS idx_projects_updated ON projects(updated_at);
+
+      -- Composite indexes for hot/warm/cold queries
+      CREATE INDEX IF NOT EXISTS idx_contexts_hot ON contexts(project_hash, last_accessed DESC, access_count DESC);
+      CREATE INDEX IF NOT EXISTS idx_contexts_warm ON contexts(project_hash, timestamp DESC) WHERE access_count > 1;
+      CREATE INDEX IF NOT EXISTS idx_contexts_cold ON contexts(project_hash, timestamp ASC) WHERE access_count = 1;
     `)
   }
 
@@ -256,6 +296,119 @@ export class ContextPersistence {
     const stmt = this.db.prepare(query)
     const rows = stmt.all(...params) as any[]
 
+    return rows.map(row => this.rowToContext(row))
+  }
+
+  /**
+   * Search contexts using FTS5 full-text search
+   * @param searchQuery - Search query (supports FTS5 syntax: AND, OR, NOT, NEAR, "phrases")
+   * @param options - Query options
+   * @returns Search results with ranking
+   */
+  searchContexts(searchQuery: string, options?: ContextQueryOptions): SearchResult[] {
+    if (!searchQuery || searchQuery.trim().length === 0) {
+      return []
+    }
+
+    let query = `
+      SELECT
+        c.*,
+        bm25(contexts_fts) as rank,
+        snippet(contexts_fts, 1, '<mark>', '</mark>', '...', 32) as snippet
+      FROM contexts c
+      INNER JOIN contexts_fts ON contexts_fts.id = c.id
+      WHERE contexts_fts MATCH ?
+    `
+    const params: any[] = [searchQuery]
+
+    // Apply filters
+    if (options?.projectHash) {
+      query += ' AND c.project_hash = ?'
+      params.push(options.projectHash)
+    }
+
+    if (options?.startTime) {
+      query += ' AND c.timestamp >= ?'
+      params.push(options.startTime)
+    }
+
+    if (options?.endTime) {
+      query += ' AND c.timestamp <= ?'
+      params.push(options.endTime)
+    }
+
+    // Apply sorting (default to relevance for search)
+    const sortBy = options?.sortBy || 'relevance'
+    const sortOrder = options?.sortOrder || 'desc'
+
+    if (sortBy === 'relevance') {
+      query += ` ORDER BY rank ${sortOrder === 'asc' ? 'DESC' : 'ASC'}` // BM25 returns negative scores
+    }
+    else {
+      query += ` ORDER BY c.${sortBy} ${sortOrder.toUpperCase()}`
+    }
+
+    // Apply limit
+    if (options?.limit) {
+      query += ' LIMIT ?'
+      params.push(options.limit)
+    }
+
+    const stmt = this.db.prepare(query)
+    const rows = stmt.all(...params) as any[]
+
+    return rows.map(row => ({
+      ...this.rowToContext(row),
+      rank: row.rank,
+      snippet: row.snippet,
+    }))
+  }
+
+  /**
+   * Get hot contexts (frequently accessed, recently used)
+   * @param projectHash - Project hash
+   * @param limit - Maximum number of results
+   */
+  getHotContexts(projectHash: string, limit = 10): PersistedContext[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM contexts
+      WHERE project_hash = ?
+      ORDER BY last_accessed DESC, access_count DESC
+      LIMIT ?
+    `)
+    const rows = stmt.all(projectHash, limit) as any[]
+    return rows.map(row => this.rowToContext(row))
+  }
+
+  /**
+   * Get warm contexts (accessed multiple times but not recently)
+   * @param projectHash - Project hash
+   * @param limit - Maximum number of results
+   */
+  getWarmContexts(projectHash: string, limit = 10): PersistedContext[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM contexts
+      WHERE project_hash = ? AND access_count > 1
+      ORDER BY timestamp DESC
+      LIMIT ?
+    `)
+    const rows = stmt.all(projectHash, limit) as any[]
+    return rows.map(row => this.rowToContext(row))
+  }
+
+  /**
+   * Get cold contexts (rarely accessed, older)
+   * @param projectHash - Project hash
+   * @param limit - Maximum number of results
+   */
+  getColdContexts(projectHash: string, limit = 10): PersistedContext[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM contexts
+      WHERE project_hash = ? AND access_count = 1
+      ORDER BY timestamp ASC
+      LIMIT ?
+    `)
+    const rows = stmt.all(projectHash, limit) as any[]
     return rows.map(row => this.rowToContext(row))
   }
 
