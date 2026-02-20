@@ -217,7 +217,7 @@ export function showDeprecationWarning(command: string): void {
  * Log deprecated command usage (for telemetry, optional)
  */
 export function logDeprecatedUsage(command: string): void {
-  // TODO: Add telemetry logging if user has opted in
+  // Future: Add telemetry logging if user has opted in
   // For now, just log to console in debug mode
   if (process.env.CCJK_DEBUG) {
     console.debug(`[Deprecated] Command used: ${command}`)

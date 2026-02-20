@@ -41,8 +41,21 @@ export async function contextCommand(options: ContextOptions = {}): Promise<void
         id: 'preview',
         name: options.task,
         description: `Preview context for: ${options.task}`,
-        input: {},
-        metadata: {},
+        type: 'preview' as any,
+        priority: 'normal',
+        status: 'pending',
+        requiredCapabilities: [],
+        dependencies: [],
+        maxRetries: 0,
+        retryCount: 0,
+        progress: 0,
+        input: {
+          parameters: {},
+        },
+        metadata: {
+          tags: ['preview'],
+        },
+        createdAt: new Date().toISOString(),
       }
     }
 

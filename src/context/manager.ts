@@ -20,6 +20,7 @@ import {
   CompressionAlgorithm,
   CompressionStrategy,
 } from './types'
+import { ContextPersistence, getContextPersistence } from './persistence'
 
 /**
  * Context Manager - Main entry point for context optimization
@@ -31,8 +32,10 @@ export class ContextManager {
   private aggressiveStrategy: AggressiveStrategy
   private balancedStrategy: BalancedStrategy
   private conservativeStrategy: ConservativeStrategy
+  private persistence: ContextPersistence | null
+  private projectHash?: string
 
-  constructor(config?: Partial<ContextManagerConfig>) {
+  constructor(config?: Partial<ContextManagerConfig> & { enablePersistence?: boolean, projectHash?: string }) {
     // Default configuration
     this.config = {
       defaultStrategy: CompressionStrategy.BALANCED,
@@ -53,6 +56,15 @@ export class ContextManager {
     this.aggressiveStrategy = new AggressiveStrategy()
     this.balancedStrategy = new BalancedStrategy()
     this.conservativeStrategy = new ConservativeStrategy()
+
+    // Initialize persistence if enabled
+    this.persistence = config?.enablePersistence !== false ? getContextPersistence() : null
+    this.projectHash = config?.projectHash
+
+    // Load persisted contexts into cache if available
+    if (this.persistence && this.projectHash) {
+      this.loadPersistedContexts()
+    }
   }
 
   /**
@@ -116,6 +128,11 @@ export class ContextManager {
     // Cache if enabled
     if (this.config.enableCache && options?.cache !== false) {
       this.cache.set(context.id, compressed)
+    }
+
+    // Persist if enabled
+    if (this.persistence && this.projectHash && options?.cache !== false) {
+      this.persistence.saveContext(compressed, this.projectHash, context.content)
     }
 
     // Record analytics
@@ -374,6 +391,98 @@ export class ContextManager {
       strategy: bestStrategy,
       ratio: bestRatio,
       tokens: bestTokens,
+    }
+  }
+
+  /**
+   * Load persisted contexts into cache
+   */
+  private loadPersistedContexts(): void {
+    if (!this.persistence || !this.projectHash) return
+
+    try {
+      // Load recent contexts from persistence
+      const contexts = this.persistence.getProjectContexts(this.projectHash, {
+        limit: 100,
+        sortBy: 'lastAccessed',
+        sortOrder: 'desc',
+      })
+
+      // Populate cache with persisted contexts
+      for (const persisted of contexts) {
+        const compressed: CompressedContext = {
+          id: persisted.id,
+          compressed: persisted.compressed,
+          algorithm: persisted.algorithm as CompressionAlgorithm,
+          strategy: persisted.strategy as CompressionStrategy,
+          originalTokens: persisted.originalTokens,
+          compressedTokens: persisted.compressedTokens,
+          compressionRatio: persisted.compressionRatio,
+          metadata: JSON.parse(persisted.metadata),
+          compressedAt: persisted.timestamp,
+        }
+
+        this.cache.set(persisted.id, compressed)
+      }
+    }
+    catch {
+      // Silently fail if persistence loading fails
+    }
+  }
+
+  /**
+   * Get persisted context by ID
+   */
+  getPersistedContext(contextId: string): CompressedContext | null {
+    if (!this.persistence) return null
+
+    const persisted = this.persistence.getContext(contextId)
+    if (!persisted) return null
+
+    return {
+      id: persisted.id,
+      compressed: persisted.compressed,
+      algorithm: persisted.algorithm as CompressionAlgorithm,
+      strategy: persisted.strategy as CompressionStrategy,
+      originalTokens: persisted.originalTokens,
+      compressedTokens: persisted.compressedTokens,
+      compressionRatio: persisted.compressionRatio,
+      metadata: JSON.parse(persisted.metadata),
+      compressedAt: persisted.timestamp,
+    }
+  }
+
+  /**
+   * Get persistence statistics
+   */
+  getPersistenceStats() {
+    if (!this.persistence) return null
+    return this.persistence.getStats(this.projectHash)
+  }
+
+  /**
+   * Clean up old persisted contexts
+   */
+  cleanupPersistence(maxAge: number): number {
+    if (!this.persistence) return 0
+    return this.persistence.cleanup(maxAge)
+  }
+
+  /**
+   * Export persisted contexts
+   */
+  exportPersistence() {
+    if (!this.persistence) return []
+    return this.persistence.exportContexts(this.projectHash)
+  }
+
+  /**
+   * Set project hash for persistence
+   */
+  setProjectHash(projectHash: string): void {
+    this.projectHash = projectHash
+    if (this.persistence) {
+      this.loadPersistedContexts()
     }
   }
 }

@@ -15,7 +15,7 @@ CCJK (Claude Code JinKu) stands out as the **Ultimate AI Development Tool** with
 | **🍴 Agent Fork System** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | **🔍 LSP Support** | 2.0+ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | **🌍 i18n Support** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **💰 Token Savings** | Native | Native | Native | Native | Native | **73%↓** |
+| **💰 Token Savings** | Native | Native | Native | Native | Native | **30-50%↓** |
 | **🤖 Multi-Agent Orchestration** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | **📱 Mobile Control** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | **🔄 Auto-Sync Workflows** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
@@ -27,7 +27,7 @@ CCJK (Claude Code JinKu) stands out as the **Ultimate AI Development Tool** with
 - **CCJK**: Unified interface for Claude Code, Cursor, Continue, Aider, and more
 - **Others**: Single tool limitation, vendor lock-in
 
-### 2. **83% Token Savings**
+### 2. **40-60% token reduction**
 - **CCJK**: Advanced context compression and intelligent caching
 - **Others**: No token optimization, expensive API costs
 
@@ -63,7 +63,7 @@ Challenge: Working with 100K+ line codebase
 - Cursor: Limited context, expensive tokens
 - Continue: Slow processing, memory issues
 - Aider: Git-only workflow limitation
-- CCJK: ✅ Intelligent context compression, 73% token savings
+- CCJK: ✅ Intelligent context compression, 30-50% token reduction
 ```
 
 ### Scenario 2: Multi-Language Project
@@ -99,7 +99,7 @@ Challenge: Develop on-the-go from mobile device
 ## 💡 Why Choose CCJK?
 
 ### For Individual Developers
-- **Save 73% on API costs** with intelligent token compression
+- **Save 30-50% on API costs** with intelligent token compression
 - **10x faster setup** with one-click configuration
 - **Access 500+ skills** from community library
 - **Work from anywhere** with mobile support
@@ -122,7 +122,7 @@ Challenge: Develop on-the-go from mobile device
 ```bash
 # Keep your existing setup, add CCJK enhancement
 npx ccjk init --enhance-claude-code
-# Instant 73% token savings, no workflow changes
+# Instant 30-50% token reduction, no workflow changes
 ```
 
 ### From Cursor
@@ -177,7 +177,7 @@ npx ccjk migrate --from aider
 npm install -g ccjk
 ccjk init
 
-# Start saving 73% on tokens immediately
+# Start optimizing token usage immediately
 # Access 500+ community skills
 # Enable mobile development control
 ```

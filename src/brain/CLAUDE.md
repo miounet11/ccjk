@@ -8,12 +8,12 @@
 
 ## 🧠 Module Overview
 
-The Brain module is the intelligence core of CCJK v6.0.0, implementing a sophisticated multi-agent orchestration system with token optimization (83% savings), hot-reload skills, and intelligent context management.
+The Brain module is the intelligence core of CCJK v6.0.0, implementing a sophisticated multi-agent orchestration system with token optimization (40-60% reduction), hot-reload skills, and intelligent context management.
 
 ## 🎯 Core Responsibilities
 
 - **Multi-Agent Orchestration**: Coordinate multiple AI agents for complex tasks
-- **Token Optimization**: Achieve 83% token savings through intelligent compression
+- **Token Optimization**: Achieve 40-60% token reduction through intelligent compression
 - **Skill Hot-Reload**: Dynamic skill loading without CLI restart
 - **Task Decomposition**: Break complex tasks into manageable subtasks
 - **Self-Healing**: Automatic error recovery and retry mechanisms

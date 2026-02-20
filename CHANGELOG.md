@@ -473,7 +473,7 @@ Upgrading is seamless:
 ### Major Features
 
 #### Token Optimization System (Agent 1)
-- **Added** 83% token savings with 3 compression strategies (Conservative, Balanced, Aggressive)
+- **Added** 40-60% token reduction with 3 compression strategies (Conservative, Balanced, Aggressive)
 - **Added** Smart LRU cache with 300x speedup on cache hits
 - **Added** 3 compression algorithms: LZ, Semantic, Token Deduplication
 - **Added** Real-time analytics and monitoring

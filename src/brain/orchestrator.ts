@@ -243,8 +243,11 @@ export class BrainOrchestrator extends EventEmitter {
     })
 
     // Attach context to task
-    task.metadata = task.metadata || {}
-    task.metadata.context = contextLoader.formatForLLM(context)
+    task.metadata = task.metadata || { tags: [] }
+    if (!task.metadata.custom) {
+      task.metadata.custom = {}
+    }
+    task.metadata.custom.context = contextLoader.formatForLLM(context)
 
     try {
       this.state.status = 'planning'

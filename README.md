@@ -4,7 +4,7 @@
 
 ### Claude Code just got superpowers
 
-**One command. Zero config. 10x productivity.**
+**One command. Minimal config. 10x productivity.**
 
 <br/>
 
@@ -37,15 +37,19 @@ The **missing toolkit** for [Claude Code](https://github.com/anthropics/claude-c
 
 + One command setup in 30 seconds
 + AI remembers your entire codebase
-+ 73% token cost reduction
++ 30-50% token cost reduction
 + Cloud sync across all devices
 ```
 
 ## ⚡ Quick Start
 
 ```bash
-# In your project directory
+# Interactive setup (recommended for first-time users)
 npx ccjk
+
+# Silent mode (for CI/CD or automated setups)
+export ANTHROPIC_API_KEY="sk-ant-..."
+npx ccjk init --silent
 
 # Done. Claude Code is now 10x smarter.
 ```
@@ -54,7 +58,7 @@ npx ccjk
 - ✅ Auto-detected your project type (React/Vue/Node/Python/Go/Rust/etc)
 - ✅ Configured optimal MCP services for your stack
 - ✅ Set up persistent memory (AI remembers your codebase)
-- ✅ Enabled smart context compression (73% token savings)
+- ✅ Enabled smart context compression (30-50% token reduction)
 - ✅ Ready for cloud sync (optional)
 
 **Before CCJK:**
@@ -70,7 +74,7 @@ npx ccjk
 ```
 ✅ 30 seconds one-command setup
 ✅ AI remembers everything
-✅ 73% lower costs
+✅ 30-50% lower costs
 ✅ Cloud sync across devices
 ✅ Parallel AI agents (Agent Teams)
 ```
@@ -80,8 +84,8 @@ npx ccjk
 | Problem | CCJK Solution | Impact |
 |:--------|:--------------|:-------|
 | 😫 "Claude forgot my project structure" | 🧠 **Persistent Memory** | AI remembers everything across sessions |
-| 💸 "My API bills are insane" | ⚡ **73% Token Savings** | Smart compression cuts costs |
-| ⏰ "Setup takes forever" | 🔧 **Zero Config** | 30 seconds, one command |
+| 💸 "My API bills are insane" | ⚡ **Smart Compression** | 30-50% token reduction |
+| ⏰ "Setup takes forever" | 🔧 **Minimal Config** | 30 seconds, one command |
 | 🔄 "Lost my configs again" | ☁️ **Cloud Sync** | GitHub Gist / WebDAV / S3 |
 | 🤖 "Need multiple AI agents" | 🎭 **Agent Teams** | One-click parallel execution |
 
@@ -103,7 +107,7 @@ ccjk agent-teams --on
 
 ### ⚡ Smart Context Compression
 Automatic conversation cleanup before hitting token limits.
-- 73% average token reduction
+- 30-50% token reduction (rule-based) or 40-60% (LLM-based)
 - Zero manual intervention
 - Preserves critical context
 
@@ -135,6 +139,7 @@ ccjk mcp install filesystem puppeteer postgres
 # Setup & Config
 ccjk               # Interactive menu
 ccjk init          # Full initialization
+ccjk init --silent # Silent mode (non-interactive, uses env vars)
 ccjk status        # Health check + recommendations
 ccjk boost         # One-click optimization
 

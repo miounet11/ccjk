@@ -26,7 +26,7 @@
 [![Downloads](https://img.shields.io/npm/dw/ccjk?style=flat-square)](https://npmjs.com/ccjk)
 [![Stars](https://img.shields.io/github/stars/miounet11/ccjk?style=flat-square)](https://github.com/miounet11/ccjk/stargazers)
 
-**一行命令，自动配置，73% Token 节省**
+**一行命令，自动配置，30-50% Token 节省**
 
 ```bash
 npx ccjk
@@ -45,7 +45,7 @@ npx ccjk
 | 支持 Continue | ❌ | ❌ | ✅ | ✅ |
 | 配置同步 | ❌ | ❌ | ❌ | ✅ |
 | 多语言界面 | ❌ | ❌ | ❌ | ✅ |
-| Token 优化 | 原生 | 原生 | 原生 | **73%↓** |
+| Token 优化 | 原生 | 原生 | 原生 | **30-50%↓** |
 
 ---
 

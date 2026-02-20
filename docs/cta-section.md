@@ -9,7 +9,7 @@
 [![Downloads](https://img.shields.io/npm/dm/ccjk?style=for-the-badge&logo=download&color=blue)](https://www.npmjs.com/package/ccjk)
 [![License](https://img.shields.io/github/license/miounet11/ccjk?style=for-the-badge&color=orange)](https://github.com/miounet11/ccjk/blob/main/LICENSE)
 
-**🎯 Save 73% on AI API Costs | ⚡ 10x Faster Setup | 🌍 500+ Community Skills**
+**🎯 Save 30-50% on AI API Costs | ⚡ 10x Faster Setup | 🌍 500+ Community Skills**
 
 </div>
 
@@ -23,7 +23,7 @@
 
 | Before CCJK | After CCJK | Savings |
 |-------------|------------|---------|
-| $500/month API costs | $135/month | **73% ↓** |
+| $500/month API costs | $250/month | **50% ↓** |
 | 15 minutes setup | 30 seconds | **30x faster** |
 | Manual configuration | One-click automation | **Zero effort** |
 | Single tool limitation | Multi-tool orchestration | **Unlimited power** |
@@ -54,7 +54,7 @@ npx ccjk init
 **That's it!** CCJK automatically:
 - ✅ Detects your environment
 - ✅ Configures optimal settings
-- ✅ Enables 73% token savings
+- ✅ Enables 30-50% token reduction
 - ✅ Connects to cloud skills library
 
 ---
@@ -134,7 +134,7 @@ Try CCJK risk-free in your browser:
 
 <div align="center">
 
-> *"CCJK reduced our AI development costs by 73% while doubling our productivity. It's not just a tool, it's a game-changer."*
+> *"CCJK reduced our AI development costs by 50% while doubling our productivity. It's not just a tool, it's a game-changer."*
 >
 > **— Sarah Chen, CTO at TechCorp**
 

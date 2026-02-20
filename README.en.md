@@ -4,7 +4,7 @@
 
 ### The missing power-up for Claude Code
 
-Save 73% tokens. Zero config. One command.
+Save 30-50% tokens. Minimal config. One command.
 
 <br/>
 
@@ -34,8 +34,8 @@ npx ccjk
 CCJK supercharges [Claude Code](https://github.com/anthropics/claude-code) with:
 
 - **🧠 Persistent Memory** — AI remembers your codebase across sessions
-- **⚡ 73% Token Savings** — Smart context compression
-- **🔧 Zero Config** — Auto-detects project type, one command setup
+- **⚡ 30-50% token reduction** — Smart context compression
+- **🔧 Minimal Config** — Auto-detects project type, one command setup
 - **☁️ Cloud Sync** — Share configs across devices and teams
 
 ## Quick Start
@@ -53,7 +53,7 @@ npx ccjk
 |:-------------|:----------|
 | Repeat project context every chat | AI remembers everything |
 | 60+ min manual configuration | 30 seconds, one command |
-| High token costs | 73% reduction |
+| High token costs | 30-50% reduction |
 | Single device configs | Cloud sync across all devices |
 
 ## Features

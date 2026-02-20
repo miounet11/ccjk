@@ -7,6 +7,15 @@ export * from './analytics'
 export { TokenAnalyticsTracker } from './analytics'
 export * from './cache'
 export { ContextCache } from './cache'
+export * from './persistence'
+export { ContextPersistence, getContextPersistence, createContextPersistence } from './persistence'
+export * from './migration'
+export {
+  migrateCacheToPersistence,
+  restoreCacheFromPersistence,
+  syncCacheAndPersistence,
+  verifyMigration,
+} from './migration'
 // Compact Advisor
 export {
   CompactAdvisor,

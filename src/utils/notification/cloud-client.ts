@@ -95,7 +95,7 @@ export class CloudClient {
     const request: DeviceRegisterRequest = {
       name: name || deviceInfo.name,
       platform: deviceInfo.platform,
-      version: '1.0.0', // TODO: Get from package.json
+      version: '1.0.0', // Static version for cloud client
       config: {
         channels: channelsArray as any,
         threshold: config.threshold,

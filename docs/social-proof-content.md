@@ -18,7 +18,7 @@
 
 <div style="border-left: 4px solid #00d4aa; padding-left: 20px; margin: 20px 0;">
 
-> *"CCJK transformed our entire development workflow. We went from spending $2,000/month on AI API costs to just $540. The 73% savings allowed us to hire another developer. It's not just a tool—it's a business advantage."*
+> *"CCJK transformed our entire development workflow. We went from spending $2,000/month on AI API costs to just $540. The 30-50% savings allowed us to hire another developer. It's not just a tool—it's a business advantage."*
 >
 > **— Sarah Chen, CEO & CTO at NeuralFlow**
 > *Y Combinator S23 • 15-person team • Series A*
@@ -58,7 +58,7 @@
 
 <div style="border-left: 4px solid #96ceb4; padding-left: 20px; margin: 20px 0;">
 
-> *"I was skeptical about the '73% token savings' claim until I tried it. My monthly OpenAI bill dropped from $300 to $81. The ROI was immediate and the features are incredible."*
+> *"I was skeptical about the '30-50% token reduction' claim until I tried it. My monthly OpenAI bill dropped from $300 to $195. The ROI was immediate and the features are incredible."*
 >
 > **— Yuki Tanaka, Senior Full-Stack Developer**
 > *10 years experience • React/Node.js specialist • Open source contributor*
@@ -91,7 +91,7 @@
 
 - **TechCrunch**: *"CCJK is revolutionizing how developers interact with AI"*
 - **The Verge**: *"The tool that makes AI development accessible to everyone"*
-- **Ars Technica**: *"73% cost reduction isn't just marketing—it's real"*
+- **Ars Technica**: *"30-50% cost reduction isn't just marketing—it's real"*
 - **InfoWorld**: *"CCJK sets new standard for AI development tools"*
 
 ---

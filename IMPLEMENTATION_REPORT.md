@@ -284,7 +284,7 @@ console.log(`Restored ${restored.messages.length} messages`)
 
 Traditional verbose summaries consume 100-500 tokens. Our ultra-compact format uses only 10-30 tokens while preserving critical information.
 
-**Trade-off**: Reduced readability for massive token savings (95%+)
+**Trade-off**: Reduced readability for substantial token reduction
 
 ### 2. Why Three Compression Strategies?
 

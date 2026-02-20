@@ -46,7 +46,7 @@
 > The token savings alone ($15K/month) justified the adoption. But the real value is in consistency and quality.
 >
 > **Impact**:
-> - ✅ $15K/month API cost savings (73% reduction)
+> - ✅ $15K/month API cost savings (30-50% reduction)
 > - ✅ 95% faster onboarding (2 days → 2 hours)
 > - ✅ Standardized workflows across 200+ devs
 > - ✅ 40% reduction in code review time

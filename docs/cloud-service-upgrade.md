@@ -19,7 +19,7 @@ CCJK v3.8 introduces a revolutionary cloud-native architecture that transforms t
 | **Agent Orchestration** | Single-machine | Multi-agent distributed cloud |
 | **Configuration** | Per-device | Cross-device sync |
 | **Plugin Discovery** | GitHub search | Intelligent recommendations |
-| **Token Optimization** | Native | 83% savings via cloud caching |
+| **Token Optimization** | Native | 40-60% reduction via cloud caching |
 
 ---
 
@@ -86,7 +86,7 @@ Claude Code requires per-device configuration. CCJK enables:
 | **Agent Orchestration** | Single agent | Multi-agent local | Distributed cloud agents |
 | **Configuration Sync** | None | Manual export/import | Automatic bidirectional sync |
 | **Plugin Discovery** | Manual search | Local search | AI-powered recommendations |
-| **Token Optimization** | Native | 73% savings | 83% savings via cloud cache |
+| **Token Optimization** | Native | 30-50% savings | 40-60% reduction via cloud cache |
 | **Offline Support** | Full | Full | Full (cached content) |
 | **Multi-Device Support** | No | No | Yes (cloud sync) |
 | **Team Collaboration** | Limited | Limited | Full (shared configs) |

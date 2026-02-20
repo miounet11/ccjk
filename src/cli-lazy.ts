@@ -97,6 +97,7 @@ const COMMANDS: CommandDefinition[] = [
       { flags: '--config-lang, -c <lang>', description: 'Configuration language' },
       { flags: '--force, -f', description: 'Force overwrite' },
       { flags: '--skip-prompt, -s', description: 'Skip prompts' },
+      { flags: '--silent', description: 'Silent mode - fully non-interactive with smart defaults' },
       { flags: '--api-type, -t <type>', description: 'API type' },
       { flags: '--api-key, -k <key>', description: 'API key' },
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
@@ -243,6 +244,32 @@ const COMMANDS: CommandDefinition[] = [
           const { mcpHelp } = await import('./commands/mcp')
           mcpHelp(options)
         }
+      }
+    },
+  },
+  {
+    name: 'agents <action> [...args]',
+    description: 'Agent Teams - Multi-agent orchestration',
+    aliases: ['team', 'teams'],
+    tier: 'extended',
+    options: [
+      { flags: '--task <task>', description: 'Task description' },
+      { flags: '--workflow <id>', description: 'Workflow preset (analyze, fix, test, optimize)' },
+      { flags: '--verbose, -v', description: 'Verbose output' },
+      { flags: '--json', description: 'JSON output' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+
+        const { handleAgentsCommand } = await import('./commands/agents')
+        await handleAgentsCommand([actionStr, ...argsArr], {
+          task: options.task as string | undefined,
+          workflow: options.workflow as string | undefined,
+          verbose: options.verbose as boolean | undefined,
+          json: options.json as boolean | undefined,
+        })
       }
     },
   },
@@ -441,7 +468,7 @@ const COMMANDS: CommandDefinition[] = [
   //     { flags: '--lang, -l <lang>', description: 'Display language' },
   //   ],
   //   loader: async () => {
-  //     // TODO: Implement CAC-compatible task command handler
+  //     // Task command handler - future enhancement
   //     return async () => {
   //       console.log('Task command not yet implemented for CAC')
   //     }
@@ -799,14 +826,9 @@ const COMMANDS: CommandDefinition[] = [
       { flags: '--verbose, -v', description: 'Verbose output' },
     ],
     loader: async () => {
-      const { handleContextCommand } = await import('./commands/context')
-      return async (_options, action: unknown, id: unknown) => {
-        const args: string[] = []
-        if (action)
-          args.push(action as string)
-        if (id)
-          args.push(id as string)
-        await handleContextCommand(args)
+      const { contextCommand } = await import('./commands/context')
+      return async (options) => {
+        await contextCommand(options as any)
       }
     },
   },
@@ -2134,15 +2156,7 @@ async function tryQuickProviderLaunch(): Promise<boolean> {
   }
 }
 
-/**
- * Flag to prevent background cloud services from running during interactive config.
- * Exported so that config operations can check/set it.
- */
-export let isInteractiveConfigActive = false
-
-export function setInteractiveConfigActive(active: boolean): void {
-  isInteractiveConfigActive = active
-}
+// Removed: isInteractiveConfigActive - was exported but never used
 
 /**
  * 云服务自动引导（后台静默执行）

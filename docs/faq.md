@@ -9,7 +9,7 @@
 
 CCJK (Claude Code JinKu) is a CLI tool that automatically configures and enhances Claude Code environments. It's designed to make Claude Code 10x more efficient through:
 
-- **Smart Context Memory**: Reduces token usage by 73%
+- **Smart Context Memory: Reduces token usage by 30-50%
 - **Multi-Agent Review**: 13+ AI agents catch bugs before deployment
 - **Zero-Config Setup**: One command to configure everything
 - **Ecosystem Integration**: Unified access to CCR, CCUsage, Cometix, and more
@@ -81,16 +81,16 @@ However, if you already have Claude Code installed, CCJK will enhance your exist
 
 <br/>
 
-CCJK **reduces** your Claude API costs by 73% on average through:
+CCJK **reduces** your Claude API costs by 30-50% on average through:
 
-1. **Smart Context Management**: Eliminates redundant context in every conversation
+1. **Smart Context Compression**: Rule-based (30-50%) or LLM-based (40-60%) token reduction
 2. **Token Optimization**: Auto-generated CLAUDE.md is more efficient than manual explanations
 3. **Caching**: Reuses context across conversations
 
 **Real Example**:
-- **Before CCJK**: $800/month (10,000 tokens/conversation × 80 conversations)
-- **After CCJK**: $220/month (2,700 tokens/conversation × 80 conversations)
-- **Savings**: $580/month (73% reduction)
+- **Before CCJK**: $500/month (typical usage)
+- **After CCJK**: $250-350/month (with compression enabled)
+- **Savings**: $150-250/month (30-50% reduction)
 
 You still need a Claude API key, but CCJK helps you use it more efficiently.
 
@@ -538,10 +538,11 @@ pnpm dev  # Start development
 
 **All metrics are based on real-world measurements:**
 
-**Token Savings (73%)**:
-- Measured across 100+ projects
-- Compared: Manual context vs CLAUDE.md
-- Average: 10,000 tokens → 2,700 tokens per conversation
+**Token Savings (30-50%)**:
+- Rule-based compression: 30-50% reduction, <10ms processing
+- LLM-based compression: 40-60% reduction, ~500ms processing
+- Measured on real codebases and conversation contexts
+- Preserves code structure, function names, and key decisions
 
 **Build Speed (38% faster)**:
 - Tested on standard React/Vue/Node projects

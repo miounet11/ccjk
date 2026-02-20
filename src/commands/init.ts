@@ -67,6 +67,7 @@ export interface InitOptions {
   force?: boolean
   skipBanner?: boolean
   skipPrompt?: boolean
+  silent?: boolean // Silent mode - fully non-interactive with smart defaults
   codeType?: CodeToolType | string // Accept abbreviations like 'cc', 'cx'
   smart?: boolean // New: Enable smart generation mode
   yes?: boolean // Skip confirmation prompts
@@ -431,6 +432,70 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
 }
 
 /**
+ * Silent initialization mode
+ * Fully non-interactive with smart defaults from environment
+ * @param options - Init options
+ */
+export async function silentInit(options: InitOptions = {}): Promise<void> {
+  try {
+    // Clean up legacy zcf namespace directories
+    try {
+      const { cleanupZcfNamespace } = await import('../utils/cleanup-migration.js')
+      cleanupZcfNamespace()
+    }
+    catch {
+      // Silent fail
+    }
+
+    // Step 1: Detect smart defaults using the standalone function
+    const { detectSmartDefaults } = await import('../config/smart-defaults')
+    const defaults = await detectSmartDefaults()
+
+    // Step 2: Auto-configure from environment
+    if (!defaults.apiKey) {
+      throw new Error('Silent mode requires ANTHROPIC_API_KEY environment variable')
+    }
+
+    // Step 3: Set up options with smart defaults
+    options.skipPrompt = true
+    options.skipBanner = true
+    options.yes = true
+    options.silent = false // Prevent infinite loop - we're already in silent mode
+    options.apiType = 'api_key'
+    options.apiKey = defaults.apiKey
+    if (defaults.apiProvider && defaults.apiProvider !== 'anthropic') {
+      options.provider = defaults.apiProvider
+    }
+
+    // Auto-select top 3 MCP services based on platform
+    const topMcpServices = defaults.mcpServices.slice(0, 3)
+    options.mcpServices = topMcpServices
+
+    // Use detected code tool type
+    options.codeType = defaults.codeToolType || 'claude-code'
+    options.configAction = 'backup'
+    options.installCometixLine = false
+    options.installSuperpowers = false
+    options.workflows = false // Skip workflows in silent mode
+
+    // Minimal output
+    console.log(`Initializing CCJK (silent mode)...`)
+    console.log(`  Code Tool: ${defaults.codeToolType}`)
+    console.log(`  API Provider: ${defaults.apiProvider || 'anthropic'}`)
+    console.log(`  MCP Services: ${topMcpServices.join(', ')}`)
+
+    // Run init with smart defaults
+    await init(options)
+
+    console.log('✓ CCJK initialized successfully')
+  }
+  catch (error) {
+    displayError(error as Error, 'Silent initialization')
+    throw error
+  }
+}
+
+/**
  * Handle Superpowers installation
  * @param options - Init options
  */
@@ -507,6 +572,11 @@ export async function init(options: InitOptions = {}): Promise<void> {
   }
   catch {
     // Silent fail - cleanup is best-effort
+  }
+
+  // Handle silent mode
+  if (options.silent) {
+    return await silentInit(options)
   }
 
   // Handle smart generation mode

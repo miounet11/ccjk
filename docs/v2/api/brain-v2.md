@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Brain API provides intelligent context management and optimization for CCJK. It implements advanced token optimization strategies that achieve up to 83% token savings while maintaining full functionality. The Brain system includes context compression, interview mode, and post-mortem analysis capabilities.
+The Brain API provides intelligent context management and optimization for CCJK. It implements advanced token optimization strategies that achieve up to 40-60% token reduction while maintaining full functionality. The Brain system includes context compression, interview mode, and post-mortem analysis capabilities.
 
 ## Features
 
