@@ -183,6 +183,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('K.')} ${isZh ? 'Skills 管理' : 'Skills Manager'} ${ansis.dim(isZh ? '- 安装/更新/删除工作流技能' : '- Install/update/remove workflow skills')}`)
   console.log(`  ${ansis.green('M.')} ${isZh ? 'MCP 管理' : 'MCP Manager'} ${ansis.dim(isZh ? '- 配置 Model Context Protocol 服务' : '- Configure MCP services')}`)
   console.log(`  ${ansis.green('A.')} ${isZh ? 'Agents 管理' : 'Agents Manager'} ${ansis.dim(isZh ? '- 创建/管理 AI 智能体' : '- Create/manage AI agents')}`)
+  console.log(`  ${ansis.green('P.')} ${isZh ? '持久化管理' : 'Persistence Manager'} ${ansis.dim(isZh ? '- 管理上下文存储和层级' : '- Manage context storage and tiers')}`)
   console.log(`  ${ansis.green('R.')} ${isZh ? 'CCR' : 'CCR'} ${ansis.dim(isZh ? '- 配置 Claude Code Router 以使用多个 AI 模型' : '- Configure Claude Code Router for multiple AI models')}`)
   console.log('')
 
@@ -204,7 +205,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     message: isZh ? '请输入选项:' : 'Enter option:',
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'k', 'm', 'a', 'r', 'b', 's', '-', '+', 'd', 'h', 'q']
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'k', 'm', 'a', 'p', 'r', 'b', 's', '-', '+', 'd', 'h', 'q']
       return valid.includes(normalized) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
@@ -279,6 +280,14 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       break
     }
 
+    case 'p': {
+      // Persistence Manager
+      const { persistenceManager } = await import('./persistence-manager')
+      await persistenceManager()
+      printSeparator()
+      return undefined
+    }
+
     case 'r': {
       // CCR
       await runCcrMenuFeature()
@@ -288,8 +297,8 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 
     case 'b': {
       // Brain Dashboard
-      const { statusCommand } = await import('./status')
-      await statusCommand()
+      const { dashboardCommand } = await import('./dashboard')
+      await dashboardCommand()
       await inquirer.prompt({ type: 'input', name: '_', message: isZh ? '按回车返回菜单...' : 'Press Enter to return...' })
       return undefined
     }

@@ -16,6 +16,8 @@ import { scanProject } from '../config/project-scanner'
 import { analyzeProject } from '../discovery/project-analyzer'
 import { getRecommendations } from '../discovery/skill-matcher'
 import { runHealthCheck } from '../health/index'
+import { getContextPersistence } from '../context/persistence'
+import { MetricsDisplay } from '../context/metrics-display'
 
 // ============================================================================
 // Types
@@ -265,6 +267,37 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null): string[] {
   return lines
 }
 
+function renderCompressionMetricsSection(projectHash?: string): string[] {
+  const lines: string[] = []
+  lines.push(heading('Compression Metrics'))
+
+  try {
+    const persistence = getContextPersistence()
+    const stats = persistence.getCompressionMetricsStats(projectHash)
+
+    if (stats.totalCompressions === 0) {
+      lines.push(`  ${ansis.gray('No compression data available')}`)
+      return lines
+    }
+
+    // Overall stats
+    lines.push(`  ${label('Total Saved:'.padEnd(14))} ${ansis.green(MetricsDisplay.formatTokenCount(stats.totalTokensSaved))} tokens`)
+    lines.push(`  ${label('Avg Reduction:'.padEnd(14))} ${ansis.yellow(MetricsDisplay.formatRatio(stats.averageCompressionRatio))}`)
+    lines.push(`  ${label('Cost Savings:'.padEnd(14))} ${ansis.green.bold(MetricsDisplay.formatCost(stats.estimatedCostSavings))}`)
+
+    // Session stats if available
+    if (stats.sessionStats && stats.sessionStats.compressions > 0) {
+      lines.push(`  ${label('Session (24h):'.padEnd(14))} ${ansis.white(stats.sessionStats.compressions)} compressions, ${ansis.green(MetricsDisplay.formatCost(stats.sessionStats.costSavings))} saved`)
+    }
+
+    return lines
+  }
+  catch {
+    lines.push(`  ${ansis.gray('Metrics unavailable')}`)
+    return lines
+  }
+}
+
 function renderHealthSection(report: HealthReport, compact: boolean): string[] {
   const lines: string[] = []
   lines.push(heading('Brain Dashboard'))
@@ -340,6 +373,14 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
     }
 
     sections.push(renderHealthSection(health, options.compact || false))
+
+    // Add compression metrics section
+    try {
+      sections.push(renderCompressionMetricsSection())
+    }
+    catch {
+      // Silently skip if metrics unavailable
+    }
 
     // Print all sections
     console.log()

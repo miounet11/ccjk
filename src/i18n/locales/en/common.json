@@ -37,5 +37,32 @@
     "body": "Conversation is getting long ({{toolCalls}} tool calls, {{messageCount}} messages)",
     "suggestion": "Recommend running /compact to clean up context and avoid \"prompt is too long\" errors",
     "command": "Run: /compact"
+  },
+  "slashCommands": {
+    "title": "💡 Quick Commands",
+    "ccjkCommands": "🧠 CCJK Commands",
+    "claudeCodeCommands": "🤖 Claude Code Commands",
+    "helpTip": "Type /help for full command list",
+    "unknownCommand": "Unknown command: /{command}",
+    "typeHelp": "Type /help to see all available commands",
+    "categories": {
+      "brain": "🧠 Brain System",
+      "context": "📦 Context Management",
+      "system": "⚙️  System Tools"
+    },
+    "commands": {
+      "status": "Show Brain Dashboard with health score",
+      "health": "Run comprehensive health check",
+      "search": "Search contexts using FTS5 full-text search",
+      "compress": "Show compression statistics and metrics",
+      "tasks": "Open task manager (Brain system)",
+      "backup": "Create configuration backup",
+      "optimize": "Run VACUUM + checkpoint on context database",
+      "help": "Show all CCJK slash commands"
+    },
+    "usage": {
+      "search": "Usage: /search <query>",
+      "searchExample": "Example: /search \"authentication logic\""
+    }
   }
 }

@@ -1,0 +1,78 @@
+{
+  "title": "Brain Dashboard",
+  "subtitle": "上下文压缩与持久化监控",
+  "compression": {
+    "title": "压缩指标",
+    "sessionSavings": "会话节省",
+    "weeklySavings": "本周节省",
+    "monthlySavings": "本月节省",
+    "compressionRatio": "压缩率",
+    "noData": "暂无压缩数据"
+  },
+  "persistence": {
+    "title": "持久化统计",
+    "totalContexts": "存储上下文",
+    "databaseSize": "数据库大小",
+    "lastBackup": "最后备份",
+    "neverBackedUp": "从未备份"
+  },
+  "health": {
+    "title": "健康状态",
+    "databaseIntegrity": "数据库完整性",
+    "walStatus": "WAL 状态",
+    "diskUtilization": "磁盘使用",
+    "healthy": "健康",
+    "warning": "警告",
+    "critical": "严重",
+    "notInitialized": "数据库未初始化",
+    "willBeCreated": "首次使用时会自动创建",
+    "tooLarge": "数据库过大",
+    "sizeWarning": "数据库较大",
+    "currentSize": "当前大小",
+    "recommendVacuum": "建议运行 VACUUM 清理",
+    "considerCleaning": "考虑清理旧数据",
+    "walNormal": "WAL 正常",
+    "walTooLarge": "WAL 过大，需要检查点",
+    "walWarning": "WAL 较大，建议检查点",
+    "size": "大小"
+  },
+  "tiers": {
+    "title": "层级分布",
+    "hot": "L0 (热)",
+    "warm": "L1 (温)",
+    "cold": "L2 (冷)",
+    "cacheHitRate": "缓存命中率",
+    "noData": "暂无层级数据"
+  },
+  "recommendations": {
+    "title": "建议",
+    "cleanDatabase": "清理数据库",
+    "cleanDatabaseDesc": "数据库过大，运行 VACUUM 回收空间",
+    "runCheckpoint": "执行检查点",
+    "runCheckpointDesc": "WAL 文件过大，执行检查点合并到主数据库",
+    "backupDatabase": "备份数据库",
+    "backupDatabaseDesc": "建议定期备份上下文数据库",
+    "optimizeCompression": "优化压缩策略",
+    "optimizeCompressionDesc": "压缩率较低，考虑调整压缩策略"
+  },
+  "commands": {
+    "vacuum": "ccjk brain vacuum",
+    "checkpoint": "ccjk brain checkpoint",
+    "backup": "ccjk brain backup",
+    "config": "ccjk brain config"
+  },
+  "units": {
+    "tokens": "tokens",
+    "bytes": "字节",
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "分钟前",
+    "hoursAgo": "小时前",
+    "daysAgo": "天前",
+    "never": "从未"
+  }
+}

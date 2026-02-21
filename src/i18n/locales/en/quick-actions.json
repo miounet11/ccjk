@@ -1,0 +1,78 @@
+{
+  "morning": {
+    "title": "Good morning! Here's your CCJK status:",
+    "healthScore": "Health Score:",
+    "totalSaved": "Total Saved:",
+    "costSavings": "Cost Savings:",
+    "last24h": "Last 24h:",
+    "streak": "Streak:",
+    "recommendations": "Top Recommendations:",
+    "compressions": "compressions",
+    "saved": "saved",
+    "day": "day",
+    "days": "days"
+  },
+  "review": {
+    "title": "Daily Review",
+    "overallStats": "Overall Statistics",
+    "totalCompressions": "Total Compressions:",
+    "totalSaved": "Total Saved:",
+    "avgReduction": "Avg Reduction:",
+    "costSavings": "Cost Savings:",
+    "last24Hours": "Last 24 Hours",
+    "last7Days": "Last 7 Days",
+    "last30Days": "Last 30 Days",
+    "compressions": "Compressions:",
+    "tokensSaved": "Tokens Saved:",
+    "yourHabits": "Your Habits",
+    "totalCommands": "Total Commands:",
+    "currentStreak": "Current Streak:",
+    "longestStreak": "Longest Streak:",
+    "daysActive": "Days Active:",
+    "day": "day",
+    "days": "days"
+  },
+  "cleanup": {
+    "title": "Database Cleanup",
+    "sizeBefore": "Database size before:",
+    "totalContexts": "Total contexts:",
+    "deleted": "Deleted",
+    "oldContext": "old context",
+    "oldContexts": "old contexts",
+    "oldMetric": "old metric",
+    "oldMetrics": "old metrics",
+    "runningVacuum": "Running VACUUM...",
+    "vacuumComplete": "VACUUM complete",
+    "sizeAfter": "Database size after:",
+    "spaceReclaimed": "Space reclaimed:",
+    "cleanupComplete": "Cleanup complete!",
+    "tip": "Tip: Run cleanup weekly to keep your database healthy"
+  },
+  "motivational": {
+    "streakFire": "{{streak}}-day streak! You're on fire!",
+    "streakKeep": "{{streak}}-day streak! Keep it going!",
+    "streakNew": "New streak started! Come back tomorrow!",
+    "costSavingsHigh": "You've saved ${{amount}} this week!",
+    "costSavingsMedium": "${{amount}} saved this week!",
+    "tokensSavedHigh": "{{tokens}} tokens saved!",
+    "tokensSavedMedium": "{{tokens}} tokens saved!",
+    "milestone10": "10 commands milestone! You're getting the hang of it!",
+    "milestone50": "50 commands milestone! You're a power user!",
+    "milestone100": "100 commands milestone! You're a CCJK master!",
+    "longestStreakLegendary": "Longest streak: {{streak}} days! Legendary!",
+    "longestStreakGood": "Longest streak: {{streak}} days!"
+  },
+  "suggestions": {
+    "cleanup": "Tip: Run {{command}} weekly to keep DB healthy",
+    "review": "Tip: Run {{command}} to see your daily stats",
+    "commit": "Tip: Try {{command}} for smart commits with compression stats",
+    "morning": "Tip: {{command}} gives you a quick health check",
+    "reviewStats": "Tip: {{command}} shows your token savings",
+    "cleanupOptimize": "Tip: {{command}} keeps your database optimized"
+  },
+  "errors": {
+    "morningFailed": "Error running morning command:",
+    "reviewFailed": "Error running review command:",
+    "cleanupFailed": "Error running cleanup command:"
+  }
+}

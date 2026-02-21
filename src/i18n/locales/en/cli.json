@@ -135,5 +135,18 @@
   "commands.ccjkSetup.args.verbose": "Enable verbose output",
   "commands.ccjkSetup.args.backup": "Create backup before setup",
   "commands.ccjkSetup.args.rollbackOnError": "Auto-rollback on failure",
-  "commands.ccjkSetup.args.lang": "Display language"
+  "commands.ccjkSetup.args.lang": "Display language",
+  "commandDiscovery.title": "🧠 CCJK Commands (ccjk 命令)",
+  "commandDiscovery.claudeCodeTitle": "🤖 Claude Code Commands",
+  "commandDiscovery.status": "Brain Dashboard",
+  "commandDiscovery.health": "Health Check",
+  "commandDiscovery.search": "Search Contexts",
+  "commandDiscovery.compress": "Compression Stats",
+  "commandDiscovery.tasks": "Task Manager",
+  "commandDiscovery.backup": "Create Backup",
+  "commandDiscovery.optimize": "Optimize DB",
+  "commandDiscovery.help": "Show all commands",
+  "commandDiscovery.clear": "Clear conversation",
+  "commandDiscovery.reset": "Reset session",
+  "commandDiscovery.footer": "Type 'ccjk --help' for full command list"
 }

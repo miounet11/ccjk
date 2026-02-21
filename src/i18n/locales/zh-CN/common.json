@@ -37,5 +37,32 @@
     "body": "对话已经很长了（{{toolCalls}} 次工具调用，{{messageCount}} 条消息）",
     "suggestion": "建议运行 /compact 清理上下文，避免触发 \"prompt is too long\" 错误",
     "command": "运行: /compact"
+  },
+  "slashCommands": {
+    "title": "💡 快捷命令",
+    "ccjkCommands": "🧠 CCJK 命令",
+    "claudeCodeCommands": "🤖 Claude Code 命令",
+    "helpTip": "输入 /help 查看完整命令列表",
+    "unknownCommand": "未知命令: /{command}",
+    "typeHelp": "输入 /help 查看所有可用命令",
+    "categories": {
+      "brain": "🧠 Brain 系统",
+      "context": "📦 上下文管理",
+      "system": "⚙️  系统工具"
+    },
+    "commands": {
+      "status": "显示 Brain 仪表板和健康评分",
+      "health": "运行全面健康检查",
+      "search": "使用 FTS5 全文搜索上下文",
+      "compress": "显示压缩统计和指标",
+      "tasks": "打开任务管理器（Brain 系统）",
+      "backup": "创建配置备份",
+      "optimize": "对上下文数据库运行 VACUUM + checkpoint",
+      "help": "显示所有 CCJK 斜杠命令"
+    },
+    "usage": {
+      "search": "用法: /search <查询>",
+      "searchExample": "示例: /search \"认证逻辑\""
+    }
   }
 }

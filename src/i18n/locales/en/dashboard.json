@@ -1,0 +1,78 @@
+{
+  "title": "Brain Dashboard",
+  "subtitle": "Context compression and persistence monitoring",
+  "compression": {
+    "title": "Compression Metrics",
+    "sessionSavings": "Session savings",
+    "weeklySavings": "Weekly savings",
+    "monthlySavings": "Monthly savings",
+    "compressionRatio": "Compression ratio",
+    "noData": "No compression data yet"
+  },
+  "persistence": {
+    "title": "Persistence Stats",
+    "totalContexts": "Stored contexts",
+    "databaseSize": "Database size",
+    "lastBackup": "Last backup",
+    "neverBackedUp": "Never"
+  },
+  "health": {
+    "title": "Health Status",
+    "databaseIntegrity": "Database integrity",
+    "walStatus": "WAL status",
+    "diskUtilization": "Disk utilization",
+    "healthy": "Healthy",
+    "warning": "Warning",
+    "critical": "Critical",
+    "notInitialized": "Database not initialized",
+    "willBeCreated": "Will be created on first use",
+    "tooLarge": "Database too large",
+    "sizeWarning": "Database size warning",
+    "currentSize": "Current size",
+    "recommendVacuum": "Recommend running VACUUM",
+    "considerCleaning": "Consider cleaning old data",
+    "walNormal": "WAL normal",
+    "walTooLarge": "WAL too large, checkpoint needed",
+    "walWarning": "WAL size warning, checkpoint recommended",
+    "size": "Size"
+  },
+  "tiers": {
+    "title": "Tier Distribution",
+    "hot": "L0 (Hot)",
+    "warm": "L1 (Warm)",
+    "cold": "L2 (Cold)",
+    "cacheHitRate": "Cache hit rate",
+    "noData": "No tier data yet"
+  },
+  "recommendations": {
+    "title": "Recommendations",
+    "cleanDatabase": "Clean database",
+    "cleanDatabaseDesc": "Database too large, run VACUUM to reclaim space",
+    "runCheckpoint": "Run checkpoint",
+    "runCheckpointDesc": "WAL file too large, run checkpoint to merge into main database",
+    "backupDatabase": "Backup database",
+    "backupDatabaseDesc": "Recommend regular database backups",
+    "optimizeCompression": "Optimize compression",
+    "optimizeCompressionDesc": "Low compression ratio, consider adjusting strategy"
+  },
+  "commands": {
+    "vacuum": "ccjk brain vacuum",
+    "checkpoint": "ccjk brain checkpoint",
+    "backup": "ccjk brain backup",
+    "config": "ccjk brain config"
+  },
+  "units": {
+    "tokens": "tokens",
+    "bytes": "bytes",
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "m ago",
+    "hoursAgo": "h ago",
+    "daysAgo": "d ago",
+    "never": "Never"
+  }
+}

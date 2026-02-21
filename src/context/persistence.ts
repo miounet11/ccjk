@@ -66,6 +66,50 @@ export interface ContextStats {
 }
 
 /**
+ * Compression metric entry
+ */
+export interface CompressionMetric {
+  id: number
+  projectHash: string
+  contextId: string
+  originalTokens: number
+  compressedTokens: number
+  compressionRatio: number
+  timeTakenMs: number
+  algorithm: string
+  strategy: string
+  timestamp: number
+}
+
+/**
+ * Compression metrics statistics
+ */
+export interface CompressionMetricsStats {
+  totalCompressions: number
+  totalOriginalTokens: number
+  totalCompressedTokens: number
+  totalTokensSaved: number
+  averageCompressionRatio: number
+  averageTimeTakenMs: number
+  estimatedCostSavings: number // in USD
+  sessionStats?: {
+    compressions: number
+    tokensSaved: number
+    costSavings: number
+  }
+  weeklyStats?: {
+    compressions: number
+    tokensSaved: number
+    costSavings: number
+  }
+  monthlyStats?: {
+    compressions: number
+    tokensSaved: number
+    costSavings: number
+  }
+}
+
+/**
  * Context Persistence Manager
  */
 export class ContextPersistence {
@@ -164,6 +208,25 @@ export class ContextPersistence {
       CREATE INDEX IF NOT EXISTS idx_projects_created ON projects(created_at);
       CREATE INDEX IF NOT EXISTS idx_projects_updated ON projects(updated_at);
 
+      -- Compression metrics table
+      CREATE TABLE IF NOT EXISTS compression_metrics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_hash TEXT NOT NULL,
+        context_id TEXT NOT NULL,
+        original_tokens INTEGER NOT NULL,
+        compressed_tokens INTEGER NOT NULL,
+        compression_ratio REAL NOT NULL,
+        time_taken_ms INTEGER NOT NULL,
+        algorithm TEXT NOT NULL,
+        strategy TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        FOREIGN KEY (project_hash) REFERENCES projects(hash) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_metrics_project ON compression_metrics(project_hash);
+      CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON compression_metrics(timestamp);
+      CREATE INDEX IF NOT EXISTS idx_metrics_context ON compression_metrics(context_id);
+
       -- Composite indexes for hot/warm/cold queries
       CREATE INDEX IF NOT EXISTS idx_contexts_hot ON contexts(project_hash, last_accessed DESC, access_count DESC);
       CREATE INDEX IF NOT EXISTS idx_contexts_warm ON contexts(project_hash, timestamp DESC) WHERE access_count > 1;
@@ -174,7 +237,7 @@ export class ContextPersistence {
   /**
    * Save a compressed context
    */
-  saveContext(context: CompressedContext, projectHash: string, originalContent?: string): void {
+  saveContext(context: CompressedContext, projectHash: string, originalContent?: string, timeTakenMs?: number): void {
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO contexts (
         id, project_hash, content, compressed, algorithm, strategy,
@@ -202,6 +265,21 @@ export class ContextPersistence {
       now,
       accessCount,
     )
+
+    // Save compression metric if time is provided
+    if (timeTakenMs !== undefined) {
+      this.saveCompressionMetric({
+        projectHash,
+        contextId: context.id,
+        originalTokens: context.originalTokens,
+        compressedTokens: context.compressedTokens,
+        compressionRatio: context.compressionRatio,
+        timeTakenMs,
+        algorithm: context.algorithm,
+        strategy: context.strategy,
+        timestamp: now,
+      })
+    }
 
     // Update project metadata
     this.updateProjectStats(projectHash)
@@ -659,6 +737,170 @@ export class ContextPersistence {
       lastAccessed: row.last_accessed,
       accessCount: row.access_count,
     }
+  }
+
+  /**
+   * Save compression metric
+   */
+  saveCompressionMetric(metric: Omit<CompressionMetric, 'id'>): void {
+    const stmt = this.db.prepare(`
+      INSERT INTO compression_metrics (
+        project_hash, context_id, original_tokens, compressed_tokens,
+        compression_ratio, time_taken_ms, algorithm, strategy, timestamp
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+
+    stmt.run(
+      metric.projectHash,
+      metric.contextId,
+      metric.originalTokens,
+      metric.compressedTokens,
+      metric.compressionRatio,
+      metric.timeTakenMs,
+      metric.algorithm,
+      metric.strategy,
+      metric.timestamp,
+    )
+  }
+
+  /**
+   * Get compression metrics statistics
+   */
+  getCompressionMetricsStats(projectHash?: string, options?: {
+    startTime?: number
+    endTime?: number
+  }): CompressionMetricsStats {
+    const now = Date.now()
+    const sessionStart = now - (24 * 60 * 60 * 1000) // Last 24 hours
+    const weekStart = now - (7 * 24 * 60 * 60 * 1000) // Last 7 days
+    const monthStart = now - (30 * 24 * 60 * 60 * 1000) // Last 30 days
+
+    // Build base query
+    let baseQuery = 'SELECT * FROM compression_metrics WHERE 1=1'
+    const params: any[] = []
+
+    if (projectHash) {
+      baseQuery += ' AND project_hash = ?'
+      params.push(projectHash)
+    }
+
+    if (options?.startTime) {
+      baseQuery += ' AND timestamp >= ?'
+      params.push(options.startTime)
+    }
+
+    if (options?.endTime) {
+      baseQuery += ' AND timestamp <= ?'
+      params.push(options.endTime)
+    }
+
+    // Get all metrics
+    const stmt = this.db.prepare(baseQuery)
+    const metrics = stmt.all(...params) as any[]
+
+    // Calculate overall stats
+    const totalCompressions = metrics.length
+    const totalOriginalTokens = metrics.reduce((sum, m) => sum + m.original_tokens, 0)
+    const totalCompressedTokens = metrics.reduce((sum, m) => sum + m.compressed_tokens, 0)
+    const totalTokensSaved = totalOriginalTokens - totalCompressedTokens
+    const averageCompressionRatio = totalCompressions > 0
+      ? metrics.reduce((sum, m) => sum + m.compression_ratio, 0) / totalCompressions
+      : 0
+    const averageTimeTakenMs = totalCompressions > 0
+      ? metrics.reduce((sum, m) => sum + m.time_taken_ms, 0) / totalCompressions
+      : 0
+
+    // Cost calculation: $0.015 per 1K tokens (Claude Opus pricing)
+    const COST_PER_1K_TOKENS = 0.015
+    const estimatedCostSavings = (totalTokensSaved / 1000) * COST_PER_1K_TOKENS
+
+    // Session stats (last 24 hours)
+    const sessionMetrics = metrics.filter(m => m.timestamp >= sessionStart)
+    const sessionTokensSaved = sessionMetrics.reduce(
+      (sum, m) => sum + (m.original_tokens - m.compressed_tokens),
+      0,
+    )
+
+    // Weekly stats
+    const weeklyMetrics = metrics.filter(m => m.timestamp >= weekStart)
+    const weeklyTokensSaved = weeklyMetrics.reduce(
+      (sum, m) => sum + (m.original_tokens - m.compressed_tokens),
+      0,
+    )
+
+    // Monthly stats
+    const monthlyMetrics = metrics.filter(m => m.timestamp >= monthStart)
+    const monthlyTokensSaved = monthlyMetrics.reduce(
+      (sum, m) => sum + (m.original_tokens - m.compressed_tokens),
+      0,
+    )
+
+    return {
+      totalCompressions,
+      totalOriginalTokens,
+      totalCompressedTokens,
+      totalTokensSaved,
+      averageCompressionRatio,
+      averageTimeTakenMs,
+      estimatedCostSavings,
+      sessionStats: {
+        compressions: sessionMetrics.length,
+        tokensSaved: sessionTokensSaved,
+        costSavings: (sessionTokensSaved / 1000) * COST_PER_1K_TOKENS,
+      },
+      weeklyStats: {
+        compressions: weeklyMetrics.length,
+        tokensSaved: weeklyTokensSaved,
+        costSavings: (weeklyTokensSaved / 1000) * COST_PER_1K_TOKENS,
+      },
+      monthlyStats: {
+        compressions: monthlyMetrics.length,
+        tokensSaved: monthlyTokensSaved,
+        costSavings: (monthlyTokensSaved / 1000) * COST_PER_1K_TOKENS,
+      },
+    }
+  }
+
+  /**
+   * Get recent compression metrics
+   */
+  getRecentCompressionMetrics(projectHash?: string, limit: number = 10): CompressionMetric[] {
+    let query = 'SELECT * FROM compression_metrics'
+    const params: any[] = []
+
+    if (projectHash) {
+      query += ' WHERE project_hash = ?'
+      params.push(projectHash)
+    }
+
+    query += ' ORDER BY timestamp DESC LIMIT ?'
+    params.push(limit)
+
+    const stmt = this.db.prepare(query)
+    const rows = stmt.all(...params) as any[]
+
+    return rows.map(row => ({
+      id: row.id,
+      projectHash: row.project_hash,
+      contextId: row.context_id,
+      originalTokens: row.original_tokens,
+      compressedTokens: row.compressed_tokens,
+      compressionRatio: row.compression_ratio,
+      timeTakenMs: row.time_taken_ms,
+      algorithm: row.algorithm,
+      strategy: row.strategy,
+      timestamp: row.timestamp,
+    }))
+  }
+
+  /**
+   * Clean up old compression metrics
+   */
+  cleanupCompressionMetrics(maxAge: number): number {
+    const cutoff = Date.now() - maxAge
+    const stmt = this.db.prepare('DELETE FROM compression_metrics WHERE timestamp < ?')
+    const result = stmt.run(cutoff)
+    return result.changes
   }
 }
 

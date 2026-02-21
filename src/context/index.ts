@@ -22,6 +22,13 @@ export {
   createHealthMonitor,
   HealthStatus,
 } from './health-check'
+export * from './health-alerts'
+export {
+  HealthAlertsManager,
+  createHealthAlertsManager,
+  runStartupHealthCheck,
+  AlertSeverity,
+} from './health-alerts'
 export * from './hierarchical-loader'
 export { HierarchicalContextLoader, createHierarchicalLoader } from './hierarchical-loader'
 // Compact Advisor
@@ -41,9 +48,11 @@ export type {
 } from './compact-advisor'
 export * from './compression'
 export * from './manager'
+export * from './metrics-display'
 
 // Re-export main classes for convenience
 export { ContextManager } from './manager'
+export { MetricsDisplay } from './metrics-display'
 
 // Startup initialization
 export {

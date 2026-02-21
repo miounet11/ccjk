@@ -1,0 +1,127 @@
+{
+  "title": "Persistence Manager",
+  "menu": {
+    "listContexts": "List stored contexts",
+    "listContextsDesc": "Paginated view of all contexts",
+    "searchContexts": "Search contexts",
+    "searchContextsDesc": "Full-text search (FTS5)",
+    "viewDetails": "View context details",
+    "viewDetailsDesc": "Show metadata and stats",
+    "exportContexts": "Export contexts",
+    "exportContextsDesc": "Export to JSON format",
+    "importContexts": "Import contexts",
+    "importContextsDesc": "Import from JSON",
+    "clearOld": "Clear old contexts",
+    "clearOldDesc": "Clear by age",
+    "viewTiers": "View tier distribution",
+    "viewTiersDesc": "L0/L1/L2 stats",
+    "migrateTiers": "Migrate tiers manually",
+    "migrateTiersDesc": "Optimize tier distribution",
+    "dbStats": "Database statistics",
+    "dbStatsDesc": "View global stats",
+    "vacuum": "Vacuum database",
+    "vacuumDesc": "Reclaim space",
+    "back": "Back"
+  },
+  "list": {
+    "title": "Stored Contexts",
+    "noContexts": "No contexts found",
+    "accesses": "accesses",
+    "ago": "ago",
+    "showMore": "Show more?",
+    "nextPage": "Next page",
+    "back": "Back"
+  },
+  "search": {
+    "title": "Search Results",
+    "prompt": "Enter search query (supports AND, OR, NOT, \"phrases\"):",
+    "emptyQuery": "Please enter a search query",
+    "noResults": "No matching contexts found",
+    "rank": "rank"
+  },
+  "details": {
+    "title": "Context Details",
+    "promptId": "Enter context ID (full or prefix):",
+    "emptyId": "Please enter a context ID",
+    "notFound": "Context not found",
+    "id": "ID:",
+    "project": "Project:",
+    "algorithm": "Algorithm:",
+    "strategy": "Strategy:",
+    "originalTokens": "Original Tokens:",
+    "compressedTokens": "Compressed Tokens:",
+    "compressionRatio": "Compression Ratio:",
+    "accessCount": "Access Count:",
+    "created": "Created:",
+    "lastAccessed": "Last Accessed:",
+    "metadata": "Metadata:"
+  },
+  "export": {
+    "promptProject": "Enter project hash (leave empty for all):",
+    "promptPath": "Output file path:",
+    "success": "Exported {{count}} contexts to {{path}}"
+  },
+  "import": {
+    "promptPath": "Input file path:",
+    "emptyPath": "Please enter a file path",
+    "success": "Imported {{count}} contexts",
+    "failed": "Import failed: {{error}}"
+  },
+  "clear": {
+    "promptAge": "Clear contexts older than:",
+    "days7": "7 days",
+    "days30": "30 days",
+    "days90": "90 days",
+    "days180": "180 days",
+    "custom": "Custom",
+    "promptCustom": "Enter days:",
+    "invalidDays": "Please enter a valid number of days",
+    "confirm": "Confirm clearing contexts older than {{days}} days?",
+    "cancelled": "Cancelled",
+    "success": "Cleared {{count}} contexts"
+  },
+  "tiers": {
+    "title": "Tier Distribution",
+    "hot": "L0 (Hot)",
+    "hotDesc": "<1 day, in-memory cache",
+    "warm": "L1 (Warm)",
+    "warmDesc": "1-7 days, indexed in DB",
+    "cold": "L2 (Cold)",
+    "coldDesc": ">7 days, lazy-loaded",
+    "count": "Count:",
+    "size": "Size:",
+    "hitRate": "Hit Rate:",
+    "avgAccessTime": "Avg Access Time:",
+    "migrations": "Tier Migrations:",
+    "hotToWarm": "Hot → Warm:",
+    "warmToCold": "Warm → Cold:",
+    "coldToWarm": "Cold → Warm:",
+    "warmToHot": "Warm → Hot:"
+  },
+  "migrate": {
+    "promptProject": "Enter project hash (leave empty for all):",
+    "migrating": "Migrating tiers...",
+    "complete": "Migration complete",
+    "promoted": "Promoted:",
+    "demoted": "Demoted:"
+  },
+  "stats": {
+    "title": "Database Statistics",
+    "totalContexts": "Total Contexts:",
+    "totalProjects": "Total Projects:",
+    "originalTokens": "Original Tokens:",
+    "compressedTokens": "Compressed Tokens:",
+    "avgCompression": "Avg Compression:",
+    "dbSize": "Database Size:",
+    "oldestContext": "Oldest Context:",
+    "newestContext": "Newest Context:",
+    "tokensSaved": "Tokens Saved:"
+  },
+  "vacuum": {
+    "confirm": "Confirm vacuum database? (This may take some time)",
+    "cancelled": "Cancelled",
+    "vacuuming": "Vacuuming database...",
+    "complete": "Database vacuum complete"
+  },
+  "error": "Error: {{message}}"
+}

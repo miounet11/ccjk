@@ -133,16 +133,16 @@ export class ContextManager {
       this.cache.set(context.id, compressed)
     }
 
-    // Persist if enabled
-    if (this.persistence && this.projectHash && options?.cache !== false) {
-      this.persistence.saveContext(compressed, this.projectHash, context.content)
-    }
-
     // Record analytics
+    const compressionTime = Date.now() - startTime
     if (this.config.enableAnalytics) {
-      const compressionTime = Date.now() - startTime
       this.analytics.recordCompression(compressed, compressionTime)
       this.analytics.updateCacheStats(this.cache.getStats())
+    }
+
+    // Persist if enabled (pass compression time for metrics)
+    if (this.persistence && this.projectHash && options?.cache !== false) {
+      this.persistence.saveContext(compressed, this.projectHash, context.content, compressionTime)
     }
 
     return compressed
@@ -546,5 +546,36 @@ export class ContextManager {
    */
   refreshHotCache(): void {
     this.hierarchicalLoader?.refreshL0Cache()
+  }
+
+  /**
+   * Get compression metrics statistics
+   */
+  getCompressionMetricsStats(options?: {
+    startTime?: number
+    endTime?: number
+  }) {
+    if (!this.persistence) return null
+    return this.persistence.getCompressionMetricsStats(this.projectHash, options)
+  }
+
+  /**
+   * Get recent compression metrics
+   */
+  getRecentCompressionMetrics(limit: number = 10) {
+    if (!this.persistence) return []
+    return this.persistence.getRecentCompressionMetrics(this.projectHash, limit)
+  }
+
+  /**
+   * Format compression result for display
+   */
+  formatCompressionResult(compressed: CompressedContext, timeTakenMs: number): string {
+    const tokensSaved = compressed.originalTokens - compressed.compressedTokens
+    const reductionPercent = Math.round(compressed.compressionRatio * 100)
+    const originalK = (compressed.originalTokens / 1000).toFixed(1)
+    const compressedK = (compressed.compressedTokens / 1000).toFixed(1)
+
+    return `✅ Compressed ${originalK}K tokens → ${compressedK}K (${reductionPercent}% reduction, ${timeTakenMs}ms)`
   }
 }

@@ -1,0 +1,78 @@
+{
+  "morning": {
+    "title": "早上好！这是您的 CCJK 状态：",
+    "healthScore": "健康评分：",
+    "totalSaved": "总节省：",
+    "costSavings": "成本节省：",
+    "last24h": "最近 24 小时：",
+    "streak": "连续天数：",
+    "recommendations": "主要建议：",
+    "compressions": "次压缩",
+    "saved": "已节省",
+    "day": "天",
+    "days": "天"
+  },
+  "review": {
+    "title": "每日回顾",
+    "overallStats": "总体统计",
+    "totalCompressions": "总压缩次数：",
+    "totalSaved": "总节省：",
+    "avgReduction": "平均压缩率：",
+    "costSavings": "成本节省：",
+    "last24Hours": "最近 24 小时",
+    "last7Days": "最近 7 天",
+    "last30Days": "最近 30 天",
+    "compressions": "压缩次数：",
+    "tokensSaved": "节省 Token：",
+    "yourHabits": "您的习惯",
+    "totalCommands": "总命令数：",
+    "currentStreak": "当前连续：",
+    "longestStreak": "最长连续：",
+    "daysActive": "活跃天数：",
+    "day": "天",
+    "days": "天"
+  },
+  "cleanup": {
+    "title": "数据库清理",
+    "sizeBefore": "清理前数据库大小：",
+    "totalContexts": "总上下文数：",
+    "deleted": "已删除",
+    "oldContext": "个旧上下文",
+    "oldContexts": "个旧上下文",
+    "oldMetric": "个旧指标",
+    "oldMetrics": "个旧指标",
+    "runningVacuum": "正在运行 VACUUM...",
+    "vacuumComplete": "VACUUM 完成",
+    "sizeAfter": "清理后数据库大小：",
+    "spaceReclaimed": "回收空间：",
+    "cleanupComplete": "清理完成！",
+    "tip": "提示：每周运行清理以保持数据库健康"
+  },
+  "motivational": {
+    "streakFire": "{{streak}} 天连续！你太棒了！",
+    "streakKeep": "{{streak}} 天连续！继续保持！",
+    "streakNew": "新的连续开始了！明天再来！",
+    "costSavingsHigh": "本周您已节省 ${{amount}}！",
+    "costSavingsMedium": "本周节省 ${{amount}}！",
+    "tokensSavedHigh": "已节省 {{tokens}} 个 token！",
+    "tokensSavedMedium": "已节省 {{tokens}} 个 token！",
+    "milestone10": "10 次命令里程碑！您正在掌握它！",
+    "milestone50": "50 次命令里程碑！您是高级用户！",
+    "milestone100": "100 次命令里程碑！您是 CCJK 大师！",
+    "longestStreakLegendary": "最长连续：{{streak}} 天！传奇！",
+    "longestStreakGood": "最长连续：{{streak}} 天！"
+  },
+  "suggestions": {
+    "cleanup": "提示：每周运行 {{command}} 以保持数据库健康",
+    "review": "提示：运行 {{command}} 查看每日统计",
+    "commit": "提示：尝试 {{command}} 进行智能提交并查看压缩统计",
+    "morning": "提示：{{command}} 为您提供快速健康检查",
+    "reviewStats": "提示：{{command}} 显示您的 token 节省情况",
+    "cleanupOptimize": "提示：{{command}} 保持数据库优化"
+  },
+  "errors": {
+    "morningFailed": "运行 morning 命令时出错：",
+    "reviewFailed": "运行 review 命令时出错：",
+    "cleanupFailed": "运行 cleanup 命令时出错："
+  }
+}

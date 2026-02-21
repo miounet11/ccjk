@@ -135,5 +135,18 @@
   "commands.ccjkSetup.args.verbose": "启用详细输出",
   "commands.ccjkSetup.args.backup": "配置前创建备份",
   "commands.ccjkSetup.args.rollbackOnError": "失败时自动回滚",
-  "commands.ccjkSetup.args.lang": "显示语言"
+  "commands.ccjkSetup.args.lang": "显示语言",
+  "commandDiscovery.title": "🧠 CCJK 命令 (ccjk 命令)",
+  "commandDiscovery.claudeCodeTitle": "🤖 Claude Code 命令",
+  "commandDiscovery.status": "大脑仪表盘",
+  "commandDiscovery.health": "健康检查",
+  "commandDiscovery.search": "搜索上下文",
+  "commandDiscovery.compress": "压缩统计",
+  "commandDiscovery.tasks": "任务管理",
+  "commandDiscovery.backup": "创建备份",
+  "commandDiscovery.optimize": "优化数据库",
+  "commandDiscovery.help": "显示所有命令",
+  "commandDiscovery.clear": "清除对话",
+  "commandDiscovery.reset": "重置会话",
+  "commandDiscovery.footer": "输入 'ccjk --help' 查看完整命令列表"
 }

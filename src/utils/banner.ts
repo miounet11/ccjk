@@ -109,6 +109,60 @@ export function sectionDivider(title?: string, width: number = 50): string {
   return theme.primary(`${'═'.repeat(padding)} ${ansis.white.bold(title)} ${'═'.repeat(width - padding - getDisplayWidth(title) - 2)}`)
 }
 
+/**
+ * Display command discovery banner with bilingual command list
+ * Shows CCJK commands and Claude Code commands
+ */
+export function displayCommandDiscovery(): void {
+  ensureI18nInitialized()
+  const isZhCN = i18n.language === 'zh-CN'
+
+  // CCJK Commands section
+  console.log(ansis.green.bold(`\n${i18n.t('cli:commandDiscovery.title')}`))
+  console.log(ansis.gray('─'.repeat(60)))
+
+  const ccjkCommands = [
+    { cmd: '/status', desc: i18n.t('cli:commandDiscovery.status'), descEn: 'Brain Dashboard' },
+    { cmd: '/health', desc: i18n.t('cli:commandDiscovery.health'), descEn: 'Health Check' },
+    { cmd: '/search', desc: i18n.t('cli:commandDiscovery.search'), descEn: 'Search Contexts' },
+    { cmd: '/compress', desc: i18n.t('cli:commandDiscovery.compress'), descEn: 'Compression Stats' },
+    { cmd: '/tasks', desc: i18n.t('cli:commandDiscovery.tasks'), descEn: 'Task Manager' },
+    { cmd: '/backup', desc: i18n.t('cli:commandDiscovery.backup'), descEn: 'Create Backup' },
+    { cmd: '/optimize', desc: i18n.t('cli:commandDiscovery.optimize'), descEn: 'Optimize DB' },
+  ]
+
+  for (const { cmd, desc, descEn } of ccjkCommands) {
+    const cmdPadded = cmd.padEnd(12)
+    if (isZhCN) {
+      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)} ${ansis.gray(`(${descEn})`)}`)}
+    else {
+      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)}`)
+    }
+  }
+
+  // Claude Code Commands section
+  console.log(ansis.green.bold(`\n${i18n.t('cli:commandDiscovery.claudeCodeTitle')}`))
+  console.log(ansis.gray('─'.repeat(60)))
+
+  const claudeCommands = [
+    { cmd: '/help', desc: i18n.t('cli:commandDiscovery.help'), descEn: 'Show all commands' },
+    { cmd: '/clear', desc: i18n.t('cli:commandDiscovery.clear'), descEn: 'Clear conversation' },
+    { cmd: '/reset', desc: i18n.t('cli:commandDiscovery.reset'), descEn: 'Reset session' },
+  ]
+
+  for (const { cmd, desc, descEn } of claudeCommands) {
+    const cmdPadded = cmd.padEnd(12)
+    if (isZhCN) {
+      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)} ${ansis.gray(`(${descEn})`)}`)}
+    else {
+      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)}`)
+    }
+  }
+
+  console.log(ansis.gray('\n' + '─'.repeat(60)))
+  console.log(ansis.gray(`  ${i18n.t('cli:commandDiscovery.footer')}\n`))
+}
+
 /** Status indicators (legacy, use theme.status instead) */
 export const STATUS = {
   success: status.ok,

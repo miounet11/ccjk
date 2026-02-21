@@ -25,6 +25,7 @@ export interface CliOptions {
   skipPrompt?: boolean
   codeType?: string
   allLang?: string
+  noBanner?: boolean
   // Session management options
   resume?: string
   sessionName?: string
@@ -824,6 +825,17 @@ const COMMANDS: CommandDefinition[] = [
     tier: 'extended',
     options: [
       { flags: '--verbose, -v', description: 'Verbose output' },
+      { flags: '--show', description: 'Show context layers' },
+      { flags: '--layers <layers>', description: 'Specific layers to show' },
+      { flags: '--task <task>', description: 'Preview context for task' },
+      { flags: '--clear', description: 'Clear context cache' },
+      { flags: '--health', description: 'Run database health check' },
+      { flags: '--alerts', description: 'Show current health alerts' },
+      { flags: '--alert-history', description: 'Show alert history' },
+      { flags: '--checkpoint', description: 'Checkpoint WAL file' },
+      { flags: '--vacuum', description: 'Vacuum database' },
+      { flags: '--backup', description: 'Create database backup' },
+      { flags: '--recover', description: 'Attempt database recovery' },
     ],
     loader: async () => {
       const { contextCommand } = await import('./commands/context')
@@ -1287,6 +1299,21 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'ccjk:persistence',
+    description: 'Manage context persistence and storage tiers',
+    aliases: ['ccjk-persistence', 'persistence'],
+    tier: 'extended',
+    options: [
+      { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
+    ],
+    loader: async () => {
+      return async (options: CliOptions) => {
+        const { persistenceManager } = await import('./commands/persistence-manager')
+        await persistenceManager()
+      }
+    },
+  },
+  {
     name: 'ccjk:hooks',
     description: 'Auto-recommend and configure CCJK hooks based on project analysis',
     aliases: ['ccjk-hooks'],
@@ -1529,6 +1556,79 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'dashboard',
+    description: 'Brain Dashboard - context compression and persistence monitoring',
+    aliases: ['dash', 'db'],
+    tier: 'core',
+    options: [
+      { flags: '--json', description: 'Output as JSON' },
+      { flags: '--compact', description: 'Compact output' },
+    ],
+    loader: async () => {
+      const { dashboardCommand } = await import('./commands/dashboard')
+      return async (options: CliOptions) => {
+        await dashboardCommand({
+          json: options.json as boolean,
+          compact: options.compact as boolean,
+        })
+      }
+    },
+  },
+  {
+    name: 'morning',
+    description: 'Morning health check + stats summary',
+    tier: 'core',
+    options: [
+      { flags: '--json', description: 'Output as JSON' },
+      { flags: '--silent', description: 'Silent mode' },
+    ],
+    loader: async () => {
+      const { morningCommand } = await import('./commands/quick-actions')
+      return async (options: CliOptions) => {
+        await morningCommand({
+          json: options.json as boolean,
+          silent: options.silent as boolean,
+        })
+      }
+    },
+  },
+  {
+    name: 'review',
+    description: 'Daily review - contexts used, tokens saved',
+    tier: 'core',
+    options: [
+      { flags: '--json', description: 'Output as JSON' },
+      { flags: '--silent', description: 'Silent mode' },
+    ],
+    loader: async () => {
+      const { reviewCommand } = await import('./commands/quick-actions')
+      return async (options: CliOptions) => {
+        await reviewCommand({
+          json: options.json as boolean,
+          silent: options.silent as boolean,
+        })
+      }
+    },
+  },
+  {
+    name: 'cleanup',
+    description: 'Weekly cleanup - old contexts, VACUUM',
+    tier: 'core',
+    options: [
+      { flags: '--json', description: 'Output as JSON' },
+      { flags: '--silent', description: 'Silent mode' },
+    ],
+    loader: async () => {
+      const { cleanupCommand } = await import('./commands/quick-actions')
+      return async (options: CliOptions) => {
+        await cleanupCommand({
+          json: options.json as boolean,
+          silent: options.silent as boolean,
+        })
+      }
+    },
+  },
+  {
     name: 'boost',
     description: 'One-click optimization - auto-apply all recommendations',
     tier: 'core',
@@ -1674,6 +1774,7 @@ export async function setupCommandsLazy(cli: CAC): Promise<void> {
     if (cmd.name !== 'claude') {
       command.option('--lang, -l <lang>', 'Display language (zh-CN, en)')
       command.option('--all-lang, -g <lang>', 'Set all language parameters')
+      command.option('--no-banner', 'Skip command discovery banner')
     }
     else {
       // claude 命令允许未知选项（透传给实际的 claude CLI）
@@ -2021,6 +2122,99 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
 // ============================================================================
 
 /**
+ * Run health alerts check on startup
+ */
+async function runHealthAlertsCheck(): Promise<void> {
+  try {
+    // Check for --silent flag
+    const args = process.argv.slice(2)
+    if (args.includes('--silent')) {
+      return
+    }
+
+    // Only run on interactive menu or specific commands
+    const shouldCheck = args.length === 0 || args[0] === 'status' || args[0] === 'doctor'
+    if (!shouldCheck) {
+      return
+    }
+
+    // Get database path
+    const { join } = await import('pathe')
+    const dbPath = join(
+      process.env.HOME || process.env.USERPROFILE || '.',
+      '.ccjk',
+      'context',
+      'contexts.db',
+    )
+
+    // Run health check
+    const { runStartupHealthCheck } = await import('./context/health-alerts')
+    await runStartupHealthCheck(dbPath, { silent: false })
+  }
+  catch {
+    // Silently ignore health check errors
+  }
+}
+
+/**
+ * Show command discovery banner on first run or with --help
+ */
+async function showCommandDiscoveryBanner(): Promise<void> {
+  try {
+    const args = process.argv.slice(2)
+
+    // Skip if --no-banner flag is present
+    if (args.includes('--no-banner')) {
+      return
+    }
+
+    // Skip if running a specific command (not interactive menu)
+    if (args.length > 0 && !args[0].startsWith('-')) {
+      return
+    }
+
+    // Check if this is first run
+    const { join } = await import('pathe')
+    const { existsSync, writeFileSync } = await import('node:fs')
+    const markerPath = join(
+      process.env.HOME || process.env.USERPROFILE || '.',
+      '.ccjk',
+      '.banner-shown',
+    )
+
+    // Show banner on first run or with --help
+    const isFirstRun = !existsSync(markerPath)
+    const showHelp = args.includes('--help') || args.includes('-h')
+
+    if (isFirstRun || showHelp) {
+      // Initialize i18n if needed
+      const envLang = process.env.CCJK_LANG as SupportedLang | undefined
+      if (envLang) {
+        await initI18nLazy(envLang)
+      }
+
+      const { displayCommandDiscovery } = await import('./utils/banner')
+      displayCommandDiscovery()
+
+      // Mark banner as shown (only on first run)
+      if (isFirstRun) {
+        try {
+          const { ensureDir } = await import('./utils/fs-operations')
+          await ensureDir(join(process.env.HOME || process.env.USERPROFILE || '.', '.ccjk'))
+          writeFileSync(markerPath, new Date().toISOString())
+        }
+        catch {
+          // Ignore marker file creation errors
+        }
+      }
+    }
+  }
+  catch {
+    // Silently ignore banner display errors
+  }
+}
+
+/**
  * 运行轻量级 CLI
  * 这是 CCJK 的主入口点，使用懒加载架构
  */
@@ -2049,12 +2243,29 @@ export async function runLazyCli(): Promise<void> {
       return // 快速启动已处理，不进入常规 CLI
     }
 
+    // 🔍 Check for slash commands before parsing CLI
+    const args = process.argv.slice(2)
+    if (args.length > 0 && args[0].startsWith('/')) {
+      spinner?.stop()
+      const { executeSlashCommand } = await import('./commands/slash-commands')
+      const slashHandled = await executeSlashCommand(args.join(' '))
+      if (slashHandled) {
+        return
+      }
+    }
+
     const cac = (await import('cac')).default
     const cli = cac('ccjk')
     await setupCommandsLazy(cli)
 
     // 停止 spinner，准备显示菜单或执行命令
     spinner?.stop()
+
+    // 🏥 Run health alerts check (unless --silent flag is present)
+    await runHealthAlertsCheck()
+
+    // 📋 Show command discovery banner on first run or with --help
+    await showCommandDiscoveryBanner()
 
     cli.parse()
   }

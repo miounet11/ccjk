@@ -1,0 +1,127 @@
+{
+  "title": "持久化管理器",
+  "menu": {
+    "listContexts": "列出存储的上下文",
+    "listContextsDesc": "分页显示所有上下文",
+    "searchContexts": "搜索上下文",
+    "searchContextsDesc": "全文搜索 (FTS5)",
+    "viewDetails": "查看上下文详情",
+    "viewDetailsDesc": "显示元数据和统计",
+    "exportContexts": "导出上下文",
+    "exportContextsDesc": "导出为 JSON 格式",
+    "importContexts": "导入上下文",
+    "importContextsDesc": "从 JSON 导入",
+    "clearOld": "清理旧上下文",
+    "clearOldDesc": "按时间清理",
+    "viewTiers": "查看层级分布",
+    "viewTiersDesc": "L0/L1/L2 统计",
+    "migrateTiers": "手动迁移层级",
+    "migrateTiersDesc": "优化层级分布",
+    "dbStats": "数据库统计",
+    "dbStatsDesc": "查看全局统计",
+    "vacuum": "压缩数据库",
+    "vacuumDesc": "回收空间",
+    "back": "返回"
+  },
+  "list": {
+    "title": "存储的上下文列表",
+    "noContexts": "没有找到上下文",
+    "accesses": "次访问",
+    "ago": "前",
+    "showMore": "显示更多?",
+    "nextPage": "下一页",
+    "back": "返回"
+  },
+  "search": {
+    "title": "搜索结果",
+    "prompt": "输入搜索关键词 (支持 AND, OR, NOT, \"短语\"):",
+    "emptyQuery": "请输入搜索关键词",
+    "noResults": "没有找到匹配的上下文",
+    "rank": "相关度"
+  },
+  "details": {
+    "title": "上下文详情",
+    "promptId": "输入上下文 ID (完整或前缀):",
+    "emptyId": "请输入上下文 ID",
+    "notFound": "未找到上下文",
+    "id": "ID:",
+    "project": "项目:",
+    "algorithm": "算法:",
+    "strategy": "策略:",
+    "originalTokens": "原始 Tokens:",
+    "compressedTokens": "压缩后 Tokens:",
+    "compressionRatio": "压缩率:",
+    "accessCount": "访问次数:",
+    "created": "创建时间:",
+    "lastAccessed": "最后访问:",
+    "metadata": "元数据:"
+  },
+  "export": {
+    "promptProject": "输入项目哈希 (留空导出全部):",
+    "promptPath": "输出文件路径:",
+    "success": "已导出 {{count}} 个上下文到 {{path}}"
+  },
+  "import": {
+    "promptPath": "输入文件路径:",
+    "emptyPath": "请输入文件路径",
+    "success": "已导入 {{count}} 个上下文",
+    "failed": "导入失败: {{error}}"
+  },
+  "clear": {
+    "promptAge": "清理多久之前的上下文?",
+    "days7": "7 天",
+    "days30": "30 天",
+    "days90": "90 天",
+    "days180": "180 天",
+    "custom": "自定义",
+    "promptCustom": "输入天数:",
+    "invalidDays": "请输入有效的天数",
+    "confirm": "确认清理 {{days}} 天前的上下文?",
+    "cancelled": "已取消",
+    "success": "已清理 {{count}} 个上下文"
+  },
+  "tiers": {
+    "title": "层级分布统计",
+    "hot": "L0 (热)",
+    "hotDesc": "<1 天, 内存缓存",
+    "warm": "L1 (温)",
+    "warmDesc": "1-7 天, 数据库索引",
+    "cold": "L2 (冷)",
+    "coldDesc": ">7 天, 延迟加载",
+    "count": "数量:",
+    "size": "大小:",
+    "hitRate": "命中率:",
+    "avgAccessTime": "平均访问时间:",
+    "migrations": "层级迁移:",
+    "hotToWarm": "热 → 温:",
+    "warmToCold": "温 → 冷:",
+    "coldToWarm": "冷 → 温:",
+    "warmToHot": "温 → 热:"
+  },
+  "migrate": {
+    "promptProject": "输入项目哈希 (留空迁移全部):",
+    "migrating": "正在迁移层级...",
+    "complete": "迁移完成",
+    "promoted": "提升:",
+    "demoted": "降级:"
+  },
+  "stats": {
+    "title": "数据库统计",
+    "totalContexts": "总上下文数:",
+    "totalProjects": "总项目数:",
+    "originalTokens": "原始 Tokens:",
+    "compressedTokens": "压缩后 Tokens:",
+    "avgCompression": "平均压缩率:",
+    "dbSize": "数据库大小:",
+    "oldestContext": "最早上下文:",
+    "newestContext": "最新上下文:",
+    "tokensSaved": "节省 Tokens:"
+  },
+  "vacuum": {
+    "confirm": "确认压缩数据库? (这可能需要一些时间)",
+    "cancelled": "已取消",
+    "vacuuming": "正在压缩数据库...",
+    "complete": "数据库压缩完成"
+  },
+  "error": "错误: {{message}}"
+}
