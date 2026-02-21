@@ -101,6 +101,39 @@
     "validationErrors": "配置验证错误",
     "configUpToDate": "配置已是最新版本"
   },
+  "zeroConfig": {
+    "title": "零配置权限预设",
+    "selectPreset": "选择权限预设",
+    "confirmApply": "确认应用此预设?",
+    "presetApplied": "权限预设已应用",
+    "backedUpTo": "已备份到",
+    "configFile": "配置文件",
+    "presetNotFound": "错误: 未找到预设",
+    "useListToSee": "使用 --list 查看可用预设",
+    "availablePresets": "可用的权限预设",
+    "presetDetails": "预设详情",
+    "permissionsToAdd": "将添加的权限",
+    "total": "总计",
+    "items": "项",
+    "commands": "个命令",
+    "operations": "个操作",
+    "allPermissionsExist": "所有权限已存在",
+    "usage": "使用: npx ccjk zc --preset=<id>",
+    "presets": {
+      "max": {
+        "name": "最大权限",
+        "description": "所有常用命令、文件操作和 MCP 服务"
+      },
+      "dev": {
+        "name": "开发者预设",
+        "description": "构建工具、git、包管理器和文件操作"
+      },
+      "safe": {
+        "name": "安全预设",
+        "description": "只读命令，不修改文件"
+      }
+    }
+  },
   "fields": {
     "language": {
       "label": "响应语言",

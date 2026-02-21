@@ -103,6 +103,39 @@
     "validationErrors": "Configuration validation errors",
     "configUpToDate": "Configuration is up to date"
   },
+  "zeroConfig": {
+    "title": "Zero-Config Permission Presets",
+    "selectPreset": "Select permission preset",
+    "confirmApply": "Confirm applying this preset?",
+    "presetApplied": "Permission preset applied",
+    "backedUpTo": "Backed up to",
+    "configFile": "Config file",
+    "presetNotFound": "Error: Preset not found",
+    "useListToSee": "Use --list to see available presets",
+    "availablePresets": "Available Permission Presets",
+    "presetDetails": "Preset Details",
+    "permissionsToAdd": "Permissions to be added",
+    "total": "Total",
+    "items": "items",
+    "commands": "commands",
+    "operations": "operations",
+    "allPermissionsExist": "All permissions already exist",
+    "usage": "Usage: npx ccjk zc --preset=<id>",
+    "presets": {
+      "max": {
+        "name": "Maximum Permissions",
+        "description": "All common commands, file operations, and MCP servers"
+      },
+      "dev": {
+        "name": "Developer Preset",
+        "description": "Build tools, git, package managers, and file operations"
+      },
+      "safe": {
+        "name": "Safe Preset",
+        "description": "Read-only commands, no file modifications"
+      }
+    }
+  },
   "fields": {
     "language": {
       "label": "Response Language",

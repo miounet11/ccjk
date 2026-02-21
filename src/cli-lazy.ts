@@ -488,6 +488,27 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'zero-config [preset]',
+    description: 'Apply zero-config permission presets (max, dev, safe)',
+    aliases: ['zc'],
+    tier: 'extended',
+    options: [
+      { flags: '--preset, -p <preset>', description: 'Preset to apply (max, dev, safe)' },
+      { flags: '--list, -l', description: 'List available presets' },
+      { flags: '--skip-backup', description: 'Skip backup before applying' },
+    ],
+    loader: async () => {
+      const { zeroConfig } = await import('./commands/zero-config')
+      return async (options, preset: unknown) => {
+        await zeroConfig({
+          preset: (preset as string) || (options.preset as string),
+          list: options.list as boolean | undefined,
+          skipBackup: options.skipBackup as boolean | undefined,
+        })
+      }
+    },
+  },
+  {
     name: 'vim',
     description: 'Vim mode configuration and keybindings',
     tier: 'extended',

@@ -133,6 +133,26 @@ ccjk mcp install filesystem puppeteer postgres
 # Done. No manual config.
 ```
 
+### 🔓 Zero-Config Permission Presets (NEW)
+One-click permission configuration for different use cases:
+```bash
+ccjk zc --list              # View available presets
+ccjk zc --preset max        # Maximum permissions (all commands)
+ccjk zc --preset dev        # Developer preset (build tools, git, npm)
+ccjk zc --preset safe       # Safe preset (read-only operations)
+```
+
+**Available Presets:**
+- **max** — All common commands, file operations, and MCP servers (100+ permissions)
+- **dev** — Build tools, git, package managers, and file operations (50+ permissions)
+- **safe** — Read-only commands, no file modifications (20+ permissions)
+
+Each preset automatically:
+- ✅ Backs up your current settings
+- ✅ Merges with existing permissions (no data loss)
+- ✅ Removes invalid/dangerous patterns
+- ✅ Shows exactly what will be added
+
 ## 📖 Essential Commands
 
 ```bash
@@ -158,6 +178,14 @@ ccjk mcp list
 # Memory & Context
 ccjk memory --enable
 ccjk compact         # Clean up conversation
+
+# Zero-Config Permission Presets (NEW)
+ccjk zc --list       # List available presets
+ccjk zc --preset max # Apply maximum permissions
+ccjk zc --preset dev # Apply developer preset
+ccjk zc --preset safe # Apply safe (read-only) preset
+
+# Other Commands
 npx ccjk u         # Update workflows
 npx ccjk sync      # Cloud sync
 npx ccjk doctor    # Health check

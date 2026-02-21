@@ -176,6 +176,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('5.')} ${isZh ? '配置默认模型' : 'Configure Default Model'} ${ansis.dim(isZh ? '- 设置默认模型（opus/sonnet/sonnet 1m/自定义）' : '- Set default model (opus/sonnet/sonnet 1m/custom)')}`)
   console.log(`  ${ansis.green('6.')} ${isZh ? '配置 Claude 全局记忆' : 'Configure Claude Memory'} ${ansis.dim(isZh ? '- 配置 AI 输出语言和输出风格' : '- Configure AI output language and style')}`)
   console.log(`  ${ansis.green('7.')} ${isZh ? '导入推荐环境变量和权限配置' : 'Import Recommended Env & Permissions'} ${ansis.dim(isZh ? '- 导入隐私保护环境变量和系统权限配置' : '- Import privacy env vars and system permissions')}`)
+  console.log(`  ${ansis.green('8.')} ${isZh ? '零配置权限预设' : 'Zero-Config Permission Presets'} ${ansis.dim(isZh ? '- 一键应用权限预设（最大/开发者/安全）' : '- One-click permission presets (max/dev/safe)')}`)
   console.log('')
 
   // --------- 其他工具 ----------
@@ -205,7 +206,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     message: isZh ? '请输入选项:' : 'Enter option:',
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'k', 'm', 'a', 'p', 'r', 'b', 's', '-', '+', 'd', 'h', 'q']
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'k', 'm', 'a', 'p', 'r', 'b', 's', '-', '+', 'd', 'h', 'q']
       return valid.includes(normalized) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
@@ -258,6 +259,13 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     case '7': {
       // Import Recommended Env & Permissions - same as zcf
       await configureEnvPermissionFeature()
+      break
+    }
+
+    case '8': {
+      // Zero-Config Permission Presets
+      const { zeroConfig } = await import('./zero-config')
+      await zeroConfig()
       break
     }
 

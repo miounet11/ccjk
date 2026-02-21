@@ -49,6 +49,8 @@ const KNOWN_COMMANDS = new Set([
   'vim',
   'permissions',
   'perm',
+  'zero-config',
+  'zc',
   'skills',
   'sk',
   'skill',
