@@ -1,0 +1,34 @@
+{
+  "name": "@ccjk/server",
+  "version": "1.0.0",
+  "description": "Cloud backend for CCJK remote control",
+  "author": "CCJK Team",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "build": "tsc --noEmit && tsx src/main.ts",
+    "start": "node dist/main.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@ccjk/wire": "workspace:*",
+    "@fastify/cors": "^10.0.1",
+    "fastify": "^5.6.2",
+    "socket.io": "^4.8.1",
+    "@prisma/client": "^6.11.1",
+    "ioredis": "^5.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "expo-server-sdk": "^3.15.0",
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@types/node": ">=20",
+    "@types/jsonwebtoken": "^9.0.10",
+    "prisma": "^6.11.1",
+    "tsx": "^4.20.6",
+    "typescript": "5.9.3"
+  }
+}

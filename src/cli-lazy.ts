@@ -1596,6 +1596,66 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'remote',
+    description: 'Remote control management',
+    tier: 'core',
+    options: [
+      { flags: 'enable', description: 'Enable remote control' },
+      { flags: 'disable', description: 'Disable remote control' },
+      { flags: 'status', description: 'Show remote status' },
+      { flags: 'qr', description: 'Show pairing QR code' },
+    ],
+    loader: async () => {
+      const { enableRemote, disableRemote, remoteStatus, showQRCode } = await import('./commands/remote')
+      return async (options: CliOptions, action?: string) => {
+        switch (action) {
+          case 'enable':
+            await enableRemote()
+            break
+          case 'disable':
+            await disableRemote()
+            break
+          case 'status':
+            await remoteStatus()
+            break
+          case 'qr':
+            await showQRCode()
+            break
+          default:
+            await remoteStatus()
+        }
+      }
+    },
+  },
+  {
+    name: 'daemon',
+    description: 'Daemon management',
+    tier: 'core',
+    options: [
+      { flags: 'start', description: 'Start daemon' },
+      { flags: 'stop', description: 'Stop daemon' },
+      { flags: 'status', description: 'Daemon status' },
+    ],
+    loader: async () => {
+      const { startDaemon, stopDaemon, remoteStatus } = await import('./commands/remote')
+      return async (options: CliOptions, action?: string) => {
+        switch (action) {
+          case 'start':
+            await startDaemon()
+            break
+          case 'stop':
+            await stopDaemon()
+            break
+          case 'status':
+            await remoteStatus()
+            break
+          default:
+            await remoteStatus()
+        }
+      }
+    },
+  },
+  {
     name: 'morning',
     description: 'Morning health check + stats summary',
     tier: 'core',

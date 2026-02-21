@@ -1,0 +1,225 @@
+// Prisma schema for CCJK Server
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+
+  // GitHub OAuth
+  githubId  String   @unique
+  githubUsername String?
+
+  // Encryption keys
+  publicKey String   // Base64 encoded public key
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastSeenAt DateTime @default(now())
+
+  // Relations
+  machines  Machine[]
+  sessions  Session[]
+  devices   Device[]
+
+  @@index([email])
+  @@index([githubId])
+}
+
+// Machine (Desktop/Laptop)
+model Machine {
+  id        String   @id @default(cuid())
+  userId    String
+
+  // Machine info
+  machineId String   @unique // From daemon
+  hostname  String
+  platform  String
+
+  // Metadata (encrypted)
+  metadata  String   // JSON encrypted with user's public key
+  metadataVersion Int @default(1)
+
+  // Daemon state (encrypted)
+  daemonState String? // JSON encrypted
+  daemonStateVersion Int @default(1)
+
+  // Status
+  active    Boolean  @default(false)
+  activeAt  DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions  Session[]
+
+  @@index([userId])
+  @@index([machineId])
+  @@index([active])
+}
+
+// Device (Mobile/Web)
+model Device {
+  id        String   @id @default(cuid())
+  userId    String
+
+  // Device info
+  deviceId  String   @unique
+  deviceType String  // ios, android, web
+  deviceName String?
+
+  // Push notification token
+  pushToken String?
+
+  // Status
+  active    Boolean  @default(true)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastSeenAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceId])
+}
+
+// Session
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  machineId String
+
+  // Session info
+  tag       String   // Unique tag for session
+
+  // Metadata (encrypted)
+  metadata  String   // JSON: { codeToolType, projectPath, etc }
+  metadataVersion Int @default(1)
+
+  // Agent state (encrypted)
+  agentState String? // JSON: { status, currentTask, etc }
+  agentStateVersion Int @default(1)
+
+  // Encryption
+  dataEncryptionKey String? // Encrypted session key
+
+  // Sequence number for ordering
+  seq       Int      @default(0)
+
+  // Status
+  active    Boolean  @default(true)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastActivityAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  machine   Machine  @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@unique([userId, tag])
+  @@index([userId])
+  @@index([machineId])
+  @@index([active])
+  @@index([lastActivityAt])
+}
+
+// Message
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String
+
+  // Message content (encrypted)
+  content   String   // Encrypted SessionEnvelope or EncryptedMessageContent
+
+  // Local ID from client (for deduplication)
+  localId   String?
+
+  // Sequence number
+  seq       Int
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, seq])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+// Approval Request (for permission requests)
+model ApprovalRequest {
+  id        String   @id @default(cuid())
+
+  // Request info
+  requestId String   @unique // From daemon
+  sessionId String
+  userId    String
+
+  // Request details (encrypted)
+  tool      String
+  pattern   String
+  description String?
+
+  // Response
+  approved  Boolean?
+  respondedAt DateTime?
+
+  // Timeout
+  expiresAt DateTime
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([requestId])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// Notification
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+
+  // Notification info
+  type      String   // permission-request, session-error, etc
+  title     String
+  message   String
+
+  // Metadata
+  metadata  String?  // JSON
+
+  // Status
+  read      Boolean  @default(false)
+  sentAt    DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}

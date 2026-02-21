@@ -4,3 +4,8 @@
  */
 
 export * from './context-monitor'
+export * from './types'
+export * from './remote-sync'
+export * from './daemon-client'
+export * from './registry'
+export * from './setup'

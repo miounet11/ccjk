@@ -1,0 +1,39 @@
+{
+  "enable": {
+    "title": "🌐 Enable Remote Control",
+    "server_url": "Enter CCJK server URL:",
+    "already_enabled": "✅ Remote control is already enabled",
+    "success": "✅ Remote control enabled successfully!",
+    "next_steps": "\nNext steps:\n  1. Run 'ccjk remote qr' to get pairing QR code\n  2. Scan QR code with CCJK mobile app\n  3. Start daemon with 'ccjk daemon start'"
+  },
+  "disable": {
+    "title": "🔌 Disable Remote Control",
+    "already_disabled": "Remote control is already disabled",
+    "success": "✅ Remote control disabled"
+  },
+  "status": {
+    "title": "📊 Remote Control Status",
+    "enabled": "Enabled",
+    "server": "Server",
+    "machine_id": "Machine ID",
+    "daemon": "Daemon"
+  },
+  "qr": {
+    "title": "📱 Mobile Pairing",
+    "instructions": "Scan this QR code with CCJK mobile app:",
+    "not_enabled": "❌ Remote control is not enabled. Run 'ccjk remote enable' first.",
+    "manual_entry": "Or enter manually:"
+  },
+  "daemon": {
+    "starting": "Starting daemon...",
+    "started": "✅ Daemon started",
+    "start_failed": "❌ Failed to start daemon",
+    "start_error": "❌ Error starting daemon",
+    "already_running": "Daemon is already running",
+    "stopping": "Stopping daemon...",
+    "stopped": "✅ Daemon stopped",
+    "stop_failed": "❌ Failed to stop daemon",
+    "stop_error": "❌ Error stopping daemon",
+    "not_running": "Daemon is not running"
+  }
+}

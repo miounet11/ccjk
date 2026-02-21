@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: ccjk-postgres
+    environment:
+      POSTGRES_USER: ccjk
+      POSTGRES_PASSWORD: ccjk_password
+      POSTGRES_DB: ccjk
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ccjk']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (optional, for scaling)
+  redis:
+    image: redis:7-alpine
+    container_name: ccjk-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # CCJK Server
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ccjk-server
+    environment:
+      DATABASE_URL: postgresql://ccjk:ccjk_password@postgres:5432/ccjk?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL}
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN}
+      NODE_ENV: production
+      PORT: 3005
+    ports:
+      - '3005:3005'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
