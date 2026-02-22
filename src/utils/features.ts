@@ -971,6 +971,110 @@ export async function configureEnvPermissionFeature(): Promise<void> {
 }
 
 /**
+ * MCP Manager — operational sub-menu (status / doctor / list / profile / release / install)
+ * Distinct from configureMcpFeature (install wizard). This exposes runtime management.
+ */
+export async function mcpManagerFeature(): Promise<void> {
+  ensureI18nInitialized()
+  const isZh = i18n.language === 'zh-CN'
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'list',
+    name: 'choice',
+    message: isZh ? '🔧 MCP 管理 — 选择操作:' : '🔧 MCP Manager — Select action:',
+    choices: addNumbersToChoices([
+      {
+        name: isZh
+          ? `📊 查看 MCP 状态  ${ansis.gray('- 已安装服务总览 + 性能预警')}`
+          : `📊 MCP Status  ${ansis.gray('- Installed services overview + performance warning')}`,
+        value: 'status',
+      },
+      {
+        name: isZh
+          ? `🩺 MCP 诊断  ${ansis.gray('- 健康检查、冲突检测、优化建议')}`
+          : `🩺 MCP Doctor  ${ansis.gray('- Health check, conflict detection, optimization tips')}`,
+        value: 'doctor',
+      },
+      {
+        name: isZh
+          ? `📋 列出已安装服务  ${ansis.gray('- 查看已配置的 MCP 服务详情')}`
+          : `📋 List installed services  ${ansis.gray('- View details of configured MCP services')}`,
+        value: 'list',
+      },
+      {
+        name: isZh
+          ? `🔄 切换配置预设  ${ansis.gray('- minimal（轻量）/ dev（开发）/ full（完整）')}`
+          : `🔄 Switch profile  ${ansis.gray('- minimal / dev / full preset')}`,
+        value: 'profile',
+      },
+      {
+        name: isZh
+          ? `🗑️ 释放闲置服务  ${ansis.gray('- 停用长期未使用的服务以节省资源')}`
+          : `🗑️ Release idle services  ${ansis.gray('- Disable unused services to free resources')}`,
+        value: 'release',
+      },
+      {
+        name: isZh
+          ? `📦 安装/更新 MCP 服务  ${ansis.gray('- 进入服务选择向导（同菜单选项 4）')}`
+          : `📦 Install / Update services  ${ansis.gray('- Open install wizard (same as menu option 4)')}`,
+        value: 'install',
+      },
+    ]),
+  })
+
+  if (!choice) {
+    await handleCancellation()
+    return
+  }
+
+  try {
+    switch (choice) {
+      case 'status': {
+        const { mcpStatus } = await import('../commands/mcp')
+        await mcpStatus()
+        break
+      }
+      case 'doctor': {
+        const { mcpDoctor } = await import('../commands/mcp')
+        await mcpDoctor()
+        break
+      }
+      case 'list': {
+        const { mcpList } = await import('../commands/mcp')
+        await mcpList()
+        break
+      }
+      case 'profile': {
+        const { listProfiles, useProfile } = await import('../commands/mcp')
+        await listProfiles()
+        const { profileId } = await inquirer.prompt<{ profileId: string }>({
+          type: 'list',
+          name: 'profileId',
+          message: isZh ? '选择要切换的预设:' : 'Select profile to switch:',
+          choices: [
+            { name: isZh ? 'minimal — 仅核心服务（最低资源占用）' : 'minimal — Core services only (least resources)', value: 'minimal' },
+            { name: isZh ? 'dev — 开发常用服务套装' : 'dev — Dev-oriented service bundle', value: 'dev' },
+            { name: isZh ? 'full — 完整服务（高性能机器推荐）' : 'full — Full services (high-end machines)', value: 'full' },
+          ],
+        })
+        await useProfile(profileId)
+        break
+      }
+      case 'release': {
+        const { mcpRelease } = await import('../commands/mcp')
+        await mcpRelease()
+        break
+      }
+      case 'install': {
+        await configureMcpFeature()
+        break
+      }
+    }
+  }
+  catch (error: any) {
+    console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`))
+  }
+}/**
  * Merged permissions & env configuration (combines old option 7 + 8)
  * Presents a single submenu: import env / import permissions / zero-config preset / open settings
  */

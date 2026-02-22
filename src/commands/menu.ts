@@ -17,8 +17,9 @@ import {
   configureAiMemoryFeature,
   configureApiFeature,
   configureDefaultModelFeature,
-  configureMergedPermissionsFeature,
   configureMcpFeature,
+  configureMergedPermissionsFeature,
+  mcpManagerFeature,
 } from '../utils/features'
 import { normalizeMenuInput } from '../utils/input-normalizer'
 import { promptBoolean } from '../utils/toggle-prompt'
@@ -172,7 +173,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('1.')} ${isZh ? '完整初始化' : 'Full Init'} ${ansis.dim(isZh ? '- 安装 Claude Code + 导入工作流 + 配置 API 或 CCR 代理 + 配置 MCP 服务' : '- Install Claude Code + Import workflows + Configure API or CCR proxy + Configure MCP')}`)
   console.log(`  ${ansis.green('2.')} ${isZh ? '导入工作流' : 'Import Workflows'} ${ansis.dim(isZh ? '- 仅导入/更新工作流相关文件' : '- Import/update workflow files only')}`)
   console.log(`  ${ansis.green('3.')} ${isZh ? '配置 API 或 CCR 代理' : 'Configure API or CCR Proxy'} ${ansis.dim(isZh ? '- 配置 API URL、认证信息或 CCR 代理' : '- Configure API URL, auth info or CCR proxy')}`)
-  console.log(`  ${ansis.green('4.')} ${isZh ? '配置 MCP' : 'Configure MCP'} ${ansis.dim(isZh ? '- 配置 MCP 服务（含 Windows 修复）' : '- Configure MCP services (with Windows fix)')}`)
+  console.log(`  ${ansis.green('4.')} ${isZh ? '安装/更新 MCP 服务' : 'Install / Update MCP Services'} ${ansis.dim(isZh ? '- 多选安装推荐服务，自动合并/修复 Windows 配置' : '- Multi-select & install recommended services, auto-fix Windows config')}`)
   console.log(`  ${ansis.green('5.')} ${isZh ? '配置默认模型' : 'Configure Default Model'} ${ansis.dim(isZh ? '- 设置默认模型（opus/sonnet/sonnet 1m/自定义）' : '- Set default model (opus/sonnet/sonnet 1m/custom)')}`)
   console.log(`  ${ansis.green('6.')} ${isZh ? '配置 Claude 全局记忆' : 'Configure Claude Memory'} ${ansis.dim(isZh ? '- 配置 AI 输出语言和输出风格' : '- Configure AI output language and style')}`)
   console.log(`  ${ansis.green('7.')} ${isZh ? '权限 & 环境配置' : 'Permissions & Env Setup'} ${ansis.dim(isZh ? '- 导入环境变量 / 导入推荐权限 / 一键权限预设（最大/开发者/安全）' : '- Import env vars / import permissions / one-click presets (max/dev/safe)')}`)
@@ -181,7 +182,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   // --------- 其他工具 ----------
   console.log(ansis.dim(`  --------- ${isZh ? '其他工具' : 'Other Tools'} ----------`))
   console.log(`  ${ansis.green('K.')} ${isZh ? 'Skills 管理' : 'Skills Manager'} ${ansis.dim(isZh ? '- 安装/更新/删除工作流技能' : '- Install/update/remove workflow skills')}`)
-  console.log(`  ${ansis.green('M.')} ${isZh ? 'MCP 管理' : 'MCP Manager'} ${ansis.dim(isZh ? '- 配置 Model Context Protocol 服务' : '- Configure MCP services')}`)
+  console.log(`  ${ansis.green('M.')} ${isZh ? 'MCP 管理' : 'MCP Manager'} ${ansis.dim(isZh ? '- 状态/诊断/已装列表/切换预设/释放闲置服务' : '- Status / doctor / list / switch profile / release idle services')}`)
   console.log(`  ${ansis.green('A.')} ${isZh ? 'Agents 管理' : 'Agents Manager'} ${ansis.dim(isZh ? '- 创建/管理 AI 智能体' : '- Create/manage AI agents')}`)
   console.log(`  ${ansis.green('P.')} ${isZh ? '持久化管理' : 'Persistence Manager'} ${ansis.dim(isZh ? '- 管理上下文存储和层级' : '- Manage context storage and tiers')}`)
   console.log(`  ${ansis.green('R.')} ${isZh ? 'CCR' : 'CCR'} ${ansis.dim(isZh ? '- 配置 Claude Code Router 以使用多个 AI 模型' : '- Configure Claude Code Router for multiple AI models')}`)
@@ -268,8 +269,8 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     case 'm': {
-      // MCP Manager - reuse configureMcpFeature for consistency
-      await configureMcpFeature()
+      // MCP Manager — full operational submenu (status/doctor/list/profile/release)
+      await mcpManagerFeature()
       break
     }
 
