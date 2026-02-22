@@ -1,53 +1,37 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "description": "CCJK settings template — auto-migrated on upgrade",
-
   "model": "default",
-
   "env": {
     "ANTHROPIC_MODEL": "",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": ""
   },
-
   "language": "",
-
   "showTurnDuration": false,
-
   "respectGitignore": true,
-
   "auto": {
     "mcp": 0
   },
-
   "agent": "",
-
   "thinking": {
     "enabled": false,
     "budgetTokens": 10240
   },
-
   "fileSuggestion": {
     "type": "command",
     "command": "git"
   },
-
   "allowUnsandboxedCommands": false,
-
   "disallowedTools": [],
-
   "attribution": {},
-
   "index": {
     "maxFiles": 10000,
     "maxFileSize": 2097152
   },
-
   "allowBrowser": false,
-
   "statusLine": {},
-
   "plansDirectory": ".claude/plans",
   "hooks": {
     "PreToolUse": [],
@@ -85,13 +69,37 @@
       "Read(*)",
       "Edit(*)",
       "Write(*)",
-      "NotebookEdit(*)"
+      "NotebookEdit(*)",
+      "Bash(cd *)",
+      "Bash(for *)",
+      "Bash(while *)",
+      "Bash(if *)",
+      "Bash(source *)",
+      "Bash(export *)",
+      "Bash(unset *)",
+      "Bash(rm *)",
+      "Bash(rmdir *)",
+      "Bash(tee *)",
+      "Bash(env *)",
+      "Bash(time *)",
+      "Bash(printf *)",
+      "Bash(sed *)",
+      "Bash(awk *)",
+      "Bash(tr *)",
+      "Bash(xargs *)",
+      "Bash(cut *)",
+      "Bash(curl *)",
+      "Bash(node *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(pip *)",
+      "Bash(pip3 *)",
+      "WebFetch(*)",
+      "MCP(*)"
     ]
   },
-
   "chat": {
     "alwaysApprove": []
   },
-
   "experimental": {}
 }
