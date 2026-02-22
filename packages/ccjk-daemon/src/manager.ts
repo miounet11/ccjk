@@ -2,6 +2,9 @@ import { io, Socket } from 'socket.io-client';
 import type { SessionEnvelope } from '@ccjk/wire';
 import { encryptJson, decryptJson } from '@ccjk/wire';
 import type { DaemonConfig, SessionHandler, RemoteCommand, DaemonState } from './types';
+import { ClaudeCodeInterceptor } from './claude-interceptor';
+import { DeviceSwitcher } from './device-switcher';
+import { logger } from './logger';
 import chalk from 'chalk';
 
 /**
@@ -12,9 +15,16 @@ export class DaemonManager {
   private config: DaemonConfig;
   private socket: Socket | null = null;
   private sessions: Map<string, SessionHandler> = new Map();
+  private interceptors: Map<string, ClaudeCodeInterceptor> = new Map();
+  private deviceSwitchers: Map<string, DeviceSwitcher> = new Map();
   private state: DaemonState;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
+
+  private static readonly REMOTE_API_CANDIDATES = [
+    'https://remote-api.claudehome.cn',
+    'http://remote-api.claudehome.cn',
+  ]
 
   constructor(config: DaemonConfig) {
     this.config = config;
@@ -79,6 +89,57 @@ export class DaemonManager {
   }
 
   /**
+   * Start intercepting a Claude Code session
+   */
+  async startInterceptor(config: {
+    sessionId: string;
+    projectPath: string;
+    codeToolType: 'claude-code' | 'codex' | 'aider' | 'continue' | 'cline' | 'cursor';
+  }): Promise<void> {
+    // Check if already intercepting
+    if (this.interceptors.has(config.sessionId)) {
+      logger.warn(`Already intercepting session ${config.sessionId}`);
+      return;
+    }
+
+    // Create interceptor
+    const interceptor = new ClaudeCodeInterceptor(config, this);
+    this.interceptors.set(config.sessionId, interceptor);
+
+    // Create device switcher
+    const switcher = new DeviceSwitcher(config.sessionId, this);
+    this.deviceSwitchers.set(config.sessionId, switcher);
+    switcher.start();
+
+    // Start intercepting
+    await interceptor.start();
+
+    logger.info(`Started interceptor for session ${config.sessionId}`);
+    logger.info(`Device switcher enabled - press any key to take back control`);
+  }
+
+  /**
+   * Stop intercepting a session
+   */
+  async stopInterceptor(sessionId: string): Promise<void> {
+    const interceptor = this.interceptors.get(sessionId);
+    if (interceptor) {
+      await interceptor.stop();
+      this.interceptors.delete(sessionId);
+      logger.info(`Stopped interceptor for session ${sessionId}`);
+    }
+
+    // Stop device switcher
+    const switcher = this.deviceSwitchers.get(sessionId);
+    if (switcher) {
+      switcher.stop();
+      this.deviceSwitchers.delete(sessionId);
+      logger.info(`Stopped device switcher for session ${sessionId}`);
+    }
+  }
+  }
+
+  /**
    * Unregister a session handler
    */
   unregisterSession(sessionId: string): void {
@@ -119,9 +180,11 @@ export class DaemonManager {
    * Connect to ccjk-server
    */
   private async connectToServer(): Promise<void> {
+    const resolvedServerUrl = await this.resolveServerUrl()
     console.log(chalk.blue('🔌 Connecting to server...'));
+    console.log(chalk.gray(`   Resolved endpoint: ${resolvedServerUrl}`))
 
-    this.socket = io(this.config.serverUrl, {
+    this.socket = io(resolvedServerUrl, {
       auth: {
         token: this.config.authToken,
         machineId: this.config.machineId,
@@ -197,5 +260,53 @@ export class DaemonManager {
         console.error(chalk.red('Failed to handle session event:'), error);
       }
     });
+
+    // Handle approval responses from mobile
+    this.socket.on('approval:response', (data: {
+      requestId: string;
+      approved: boolean;
+    }) => {
+      const { requestId, approved } = data;
+
+      logger.info(`Received approval response: ${requestId} = ${approved}`);
+
+      // Forward to all interceptors (they will check if it's their request)
+      for (const [sessionId, interceptor] of this.interceptors) {
+        interceptor.handleApprovalResponse(requestId, approved);
+      }
+    });
+  }
+
+  private async resolveServerUrl(): Promise<string> {
+    const configured = this.config.serverUrl.replace(/\/$/, '')
+
+    if (!configured.includes('remote-api.claudehome.cn')) {
+      return configured
+    }
+
+    for (const candidate of DaemonManager.REMOTE_API_CANDIDATES) {
+      const healthy = await this.probeHealth(candidate)
+      if (healthy) {
+        return candidate
+      }
+    }
+
+    return configured
+  }
+
+  private async probeHealth(baseUrl: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${baseUrl}/health`, {
+        signal: AbortSignal.timeout(5000),
+      })
+      if (!response.ok) {
+        return false
+      }
+      const data = await response.json().catch(() => null) as { status?: string } | null
+      return data?.status === 'ok'
+    }
+    catch {
+      return false
+    }
   }
 }

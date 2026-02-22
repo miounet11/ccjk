@@ -1,0 +1,54 @@
+{
+  "description": "Evolution Layer - AI knowledge sharing",
+  "connecting": "Connecting to Evolution Layer...",
+  "fetching": "Fetching top capabilities...",
+  "found": "Found {{count}} capabilities",
+  "noResults": "No capabilities found",
+  "problem": "Problem",
+  "solution": "Solution",
+  "used": "Used",
+  "times": "times",
+  "success": "Success",
+  "failed": "Failed",
+  "searching": "Searching for: {{query}}",
+  "noSolutions": "No solutions found",
+  "foundSolutions": "Found {{count}} solutions",
+  "context": "Context",
+  "geneNotFound": "Gene not found",
+  "geneDetails": "Gene Details",
+  "type": "Type",
+  "signature": "Signature",
+  "strategy": "Strategy",
+  "code": "Code",
+  "steps": "Steps",
+  "quality": "Quality",
+  "successRate": "Success Rate",
+  "usageCount": "Usage Count",
+  "avgTime": "Average Time",
+  "metadata": "Metadata",
+  "author": "Author",
+  "createdAt": "Created At",
+  "tags": "Tags",
+  "fetchingStats": "Fetching statistics...",
+  "totalGenes": "Total Genes",
+  "avgGDI": "Average GDI",
+  "totalUsage": "Total Usage",
+  "avgSuccess": "Average Success Rate",
+  "byType": "By Type",
+  "top": {
+    "description": "Show top capabilities by GDI score",
+    "limit": "Limit results",
+    "minGdi": "Minimum GDI score"
+  },
+  "search": {
+    "description": "Search for solutions",
+    "minGdi": "Minimum GDI score",
+    "limit": "Limit results"
+  },
+  "show": {
+    "description": "Show gene details"
+  },
+  "stats": {
+    "description": "Show Evolution Layer statistics"
+  }
+}

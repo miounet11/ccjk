@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { prisma } from '../db';
 import { getUserFromToken } from '../auth';
+import { prisma } from '../db';
+import { sendMappedError } from '../http-errors';
 
 /**
  * Machine routes
@@ -12,12 +13,12 @@ export async function machineRoutes(fastify: FastifyInstance) {
     const token = request.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      return reply.status(401).send({ error: 'Unauthorized' });
+      return sendMappedError(reply, 401, 'Unauthorized');
     }
 
     const user = await getUserFromToken(token);
     if (!user) {
-      return reply.status(401).send({ error: 'Invalid token' });
+      return sendMappedError(reply, 401, 'Invalid token');
     }
 
     (request as any).user = user;
@@ -55,7 +56,7 @@ export async function machineRoutes(fastify: FastifyInstance) {
     });
 
     if (!machine) {
-      return reply.status(404).send({ error: 'Machine not found' });
+      return sendMappedError(reply, 404, 'Machine not found');
     }
 
     return { machine };
@@ -134,7 +135,7 @@ export async function machineRoutes(fastify: FastifyInstance) {
     });
 
     if (!machine) {
-      return reply.status(404).send({ error: 'Machine not found' });
+      return sendMappedError(reply, 404, 'Machine not found');
     }
 
     const updated = await prisma.machine.update({
@@ -167,7 +168,7 @@ export async function machineRoutes(fastify: FastifyInstance) {
     });
 
     if (!machine) {
-      return reply.status(404).send({ error: 'Machine not found' });
+      return sendMappedError(reply, 404, 'Machine not found');
     }
 
     await prisma.machine.delete({

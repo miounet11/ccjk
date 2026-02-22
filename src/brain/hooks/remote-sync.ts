@@ -1,7 +1,7 @@
-import type { HookContext, HookResult } from './types';
-import { getDaemonClient } from './daemon-client';
-import { createEnvelope } from '@ccjk/wire';
+import { createEnvelope } from '../../../packages/ccjk-wire/dist/index.mjs';
 import { logger } from '../../utils/logger';
+import { getDaemonClient } from './daemon-client';
+import type { HookContext, HookResult } from './types';
 
 /**
  * Remote sync hook for Brain System
@@ -142,9 +142,10 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
 async function isRemoteSyncEnabled(): Promise<boolean> {
   try {
     // Check settings.json for remote.enabled flag
-    const { readSettings } = await import('../../utils/config');
-    const settings = await readSettings();
-    return settings.remote?.enabled === true;
+    const { SETTINGS_FILE } = await import('../../constants');
+    const { readJsonConfig } = await import('../../utils/json-config');
+    const settings = readJsonConfig<{ remote?: { enabled?: boolean } }>(SETTINGS_FILE);
+    return settings?.remote?.enabled === true;
   } catch {
     return false;
   }

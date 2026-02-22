@@ -8,10 +8,10 @@
  */
 
 import type { CAC } from 'cac'
+import process from 'node:process'
 import type { SupportedLang } from './constants'
 import type { HookCategory, HookType } from './hooks/types'
 import type { SkillCategory } from './skills/types'
-import process from 'node:process'
 
 // ============================================================================
 // 核心类型定义
@@ -1607,7 +1607,8 @@ const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       const { enableRemote, disableRemote, remoteStatus, showQRCode } = await import('./commands/remote')
-      return async (options: CliOptions, action?: string) => {
+      return async (options: CliOptions, ...args: unknown[]) => {
+        const action = args[0] as string | undefined
         switch (action) {
           case 'enable':
             await enableRemote()
@@ -1628,6 +1629,25 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'evolution',
+    description: 'Evolution Layer - AI knowledge sharing',
+    tier: 'core',
+    options: [
+      { flags: 'top', description: 'Show top capabilities' },
+      { flags: 'search <query>', description: 'Search for solutions' },
+      { flags: 'show <geneId>', description: 'Show gene details' },
+      { flags: 'stats', description: 'Show statistics' },
+    ],
+    loader: async () => {
+      const { handleEvolutionCommand } = await import('./commands/evolution')
+      return async (options: CliOptions, ...args: unknown[]) => {
+        const action = args[0] as string | undefined
+        const restArgs = args.slice(1)
+        await handleEvolutionCommand(action, restArgs, options)
+      }
+    },
+  },
+  {
     name: 'daemon',
     description: 'Daemon management',
     tier: 'core',
@@ -1638,7 +1658,8 @@ const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       const { startDaemon, stopDaemon, remoteStatus } = await import('./commands/remote')
-      return async (options: CliOptions, action?: string) => {
+      return async (options: CliOptions, ...args: unknown[]) => {
+        const action = args[0] as string | undefined
         switch (action) {
           case 'start':
             await startDaemon()
@@ -2316,6 +2337,15 @@ export async function runLazyCli(): Promise<void> {
     // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
     // 在后台执行：设备注册、握手、自动同步、静默升级
     bootstrapCloudServices()
+
+    // 🧠 Auto-initialize Brain hooks if remote control is enabled
+    try {
+      const { autoInitBrainHooks } = await import('./brain/hooks/auto-init')
+      await autoInitBrainHooks()
+    }
+    catch {
+      // Never block CLI on hook initialization failure
+    }
 
     // 🚀 快速启动检测：检查是否为供应商短码
     const handled = await tryQuickProviderLaunch()

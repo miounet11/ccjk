@@ -1,12 +1,105 @@
 import type { FastifyInstance } from 'fastify';
-import { exchangeGitHubCode, getGitHubUser, findOrCreateUserFromGitHub, generateToken } from '../auth';
+import {
+    createLocalAuthCredential,
+    exchangeGitHubCode,
+    findOrCreateUserFromGitHub,
+    generateToken,
+    getGitHubUser,
+    isLocalAuthCredential,
+    verifyLocalAuthCredential,
+} from '../auth';
 import { CONFIG } from '../config';
+import { prisma } from '../db';
+import { sendMappedError } from '../http-errors';
 
 /**
  * Authentication routes
  */
 
 export async function authRoutes(fastify: FastifyInstance) {
+  // Email register
+  fastify.post<{
+    Body: { email: string; password: string; name?: string };
+  }>('/auth/register', async (request, reply) => {
+    const email = request.body.email?.trim().toLowerCase();
+    const password = request.body.password;
+    const name = request.body.name?.trim() || null;
+
+    if (!email || !password) {
+      return sendMappedError(reply, 400, 'Missing email or password');
+    }
+
+    if (password.length < 6) {
+      return sendMappedError(reply, 400, 'Password must be at least 6 characters');
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return sendMappedError(reply, 409, 'Email already registered');
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        name,
+        githubId: `local-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        publicKey: createLocalAuthCredential(password),
+      },
+    });
+
+    const token = generateToken(user);
+
+    return reply.send({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+      },
+    });
+  });
+
+  // Email login
+  fastify.post<{
+    Body: { email: string; password: string };
+  }>('/auth/login', async (request, reply) => {
+    const email = request.body.email?.trim().toLowerCase();
+    const password = request.body.password;
+
+    if (!email || !password) {
+      return sendMappedError(reply, 400, 'Missing email or password');
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user || !isLocalAuthCredential(user.publicKey) || !verifyLocalAuthCredential(user.publicKey, password)) {
+      return sendMappedError(reply, 401, 'Invalid email or password');
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { lastSeenAt: new Date() },
+    });
+
+    const token = generateToken(updatedUser);
+
+    return reply.send({
+      token,
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        avatar: updatedUser.avatar,
+      },
+    });
+  });
+
   // GitHub OAuth - Start
   fastify.get('/auth/github', async (request, reply) => {
     const redirectUri = `https://github.com/login/oauth/authorize?client_id=${CONFIG.github.clientId}&redirect_uri=${CONFIG.github.callbackUrl}&scope=user:email`;
@@ -20,7 +113,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     const { code, error } = request.query;
 
     if (error || !code) {
-      return reply.status(400).send({ error: 'GitHub OAuth failed' });
+      return sendMappedError(reply, 400, 'GitHub OAuth failed');
     }
 
     try {
@@ -51,7 +144,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       });
     } catch (error) {
       console.error('GitHub OAuth error:', error);
-      return reply.status(500).send({ error: 'Authentication failed' });
+      return sendMappedError(reply, 500, 'Authentication failed');
     }
   });
 
@@ -62,7 +155,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     const { code, publicKey } = request.body;
 
     if (!code || !publicKey) {
-      return reply.status(400).send({ error: 'Missing code or publicKey' });
+      return sendMappedError(reply, 400, 'Missing code or publicKey');
     }
 
     try {
@@ -89,7 +182,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       });
     } catch (error) {
       console.error('Mobile auth error:', error);
-      return reply.status(500).send({ error: 'Authentication failed' });
+      return sendMappedError(reply, 500, 'Authentication failed');
     }
   });
 
@@ -98,7 +191,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     const token = request.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      return reply.status(401).send({ error: 'No token provided' });
+      return sendMappedError(reply, 401, 'No token provided');
     }
 
     try {
@@ -106,7 +199,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       const user = await getUserFromToken(token);
 
       if (!user) {
-        return reply.status(401).send({ error: 'Invalid token' });
+        return sendMappedError(reply, 401, 'Invalid token');
       }
 
       return reply.send({
@@ -118,7 +211,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         },
       });
     } catch (error) {
-      return reply.status(401).send({ error: 'Invalid token' });
+      return sendMappedError(reply, 401, 'Invalid token');
     }
   });
 }

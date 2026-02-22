@@ -1,6 +1,6 @@
-import type { Server as SocketIOServer, Socket } from 'socket.io';
-import { prisma } from './db';
+import type { Socket, Server as SocketIOServer } from 'socket.io';
 import { verifyToken } from './auth';
+import { prisma } from './db';
 import { sendPushNotification } from './push';
 
 /**
@@ -46,7 +46,7 @@ export function setupSocketHandlers(io: SocketIOServer) {
     }
 
     // Handle session join
-    socket.on('session:join', async (data: { sessionId: string }) => {
+    const handleSessionJoin = async (data: { sessionId: string }) => {
       const { sessionId } = data;
 
       // Verify session belongs to user
@@ -61,14 +61,20 @@ export function setupSocketHandlers(io: SocketIOServer) {
         socket.join(`session:${sessionId}`);
         console.log(`Socket ${socket.id} joined session ${sessionId}`);
       }
-    });
+    };
+
+    socket.on('session:join', handleSessionJoin);
+    socket.on('session:subscribe', handleSessionJoin);
 
     // Handle session leave
-    socket.on('session:leave', (data: { sessionId: string }) => {
+    const handleSessionLeave = (data: { sessionId: string }) => {
       const { sessionId } = data;
       socket.leave(`session:${sessionId}`);
       console.log(`Socket ${socket.id} left session ${sessionId}`);
-    });
+    };
+
+    socket.on('session:leave', handleSessionLeave);
+    socket.on('session:unsubscribe', handleSessionLeave);
 
     // Handle session event from daemon
     socket.on('session:event', async (data: { sessionId: string; event: string }) => {
@@ -117,15 +123,21 @@ export function setupSocketHandlers(io: SocketIOServer) {
         const eventData = JSON.parse(event);
         if (eventData.ev?.t === 'permission-request') {
           // Send push notification to mobile devices
-          await sendPushNotificationToUser(socket.userId!, {
+          const notificationPayload = {
+            type: 'permission-request',
+            sessionId,
+            requestId: eventData.ev.requestId,
             title: 'Permission Request',
-            body: `${eventData.ev.tool} needs approval`,
-            data: {
-              type: 'permission-request',
-              sessionId,
-              requestId: eventData.ev.requestId,
-            },
+            message: `${eventData.ev.tool} needs approval`,
+          };
+
+          await sendPushNotificationToUser(socket.userId!, {
+            title: notificationPayload.title,
+            body: notificationPayload.message,
+            data: notificationPayload,
           });
+
+          io.to(`user:${socket.userId}`).emit('notification', notificationPayload);
         }
       } catch (error) {
         console.error('Error handling session event:', error);
@@ -190,20 +202,20 @@ export function setupSocketHandlers(io: SocketIOServer) {
         // Notify daemon
         const request = await prisma.approvalRequest.findUnique({
           where: { requestId },
-          include: {
-            session: {
-              include: {
-                machine: true,
-              },
-            },
-          },
         });
 
         if (request) {
-          io.to(`machine:${request.session.machine.machineId}`).emit('approval:response', {
-            requestId,
-            approved,
+          const session = await prisma.session.findUnique({
+            where: { id: request.sessionId },
+            include: { machine: true },
           });
+
+          if (session) {
+            io.to(`machine:${session.machine.machineId}`).emit('approval:response', {
+              requestId,
+              approved,
+            });
+          }
         }
       } catch (error) {
         console.error('Error handling approval response:', error);

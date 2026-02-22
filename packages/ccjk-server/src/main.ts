@@ -1,11 +1,12 @@
-import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import Fastify from 'fastify';
 import { Server } from 'socket.io';
 import { CONFIG } from './config';
 import { connectDatabase, disconnectDatabase } from './db';
+import { mapStatusToUnifiedCode } from './http-errors';
 import { authRoutes } from './routes/auth';
-import { sessionRoutes } from './routes/sessions';
 import { machineRoutes } from './routes/machines';
+import { sessionRoutes } from './routes/sessions';
 import { setupSocketHandlers } from './socket';
 
 /**
@@ -27,6 +28,18 @@ async function main() {
   await fastify.register(cors, {
     origin: CONFIG.corsOrigin,
     credentials: true,
+  });
+
+  fastify.setErrorHandler((error, _request, reply) => {
+    const typedError = error as { statusCode?: number; message?: string };
+    const statusCode = typedError.statusCode && typedError.statusCode >= 400 ? typedError.statusCode : 500;
+    const code = mapStatusToUnifiedCode(statusCode);
+    const message = statusCode >= 500 ? 'Internal server error' : (typedError.message || 'Request failed');
+
+    reply.status(statusCode).send({
+      code,
+      message,
+    });
   });
 
   // Health check

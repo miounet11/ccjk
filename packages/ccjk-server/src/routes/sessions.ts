@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { prisma } from '../db';
 import { getUserFromToken } from '../auth';
+import { prisma } from '../db';
+import { sendMappedError } from '../http-errors';
 
 /**
  * Session routes
@@ -12,12 +13,12 @@ export async function sessionRoutes(fastify: FastifyInstance) {
     const token = request.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      return reply.status(401).send({ error: 'Unauthorized' });
+      return sendMappedError(reply, 401, 'Unauthorized');
     }
 
     const user = await getUserFromToken(token);
     if (!user) {
-      return reply.status(401).send({ error: 'Invalid token' });
+      return sendMappedError(reply, 401, 'Invalid token');
     }
 
     // Attach user to request
@@ -61,7 +62,7 @@ export async function sessionRoutes(fastify: FastifyInstance) {
     });
 
     if (!session) {
-      return reply.status(404).send({ error: 'Session not found' });
+      return sendMappedError(reply, 404, 'Session not found');
     }
 
     return { session };
@@ -89,7 +90,7 @@ export async function sessionRoutes(fastify: FastifyInstance) {
     });
 
     if (!machine) {
-      return reply.status(404).send({ error: 'Machine not found' });
+      return sendMappedError(reply, 404, 'Machine not found');
     }
 
     // Check if session with tag already exists
@@ -153,7 +154,7 @@ export async function sessionRoutes(fastify: FastifyInstance) {
     });
 
     if (!session) {
-      return reply.status(404).send({ error: 'Session not found' });
+      return sendMappedError(reply, 404, 'Session not found');
     }
 
     const updated = await prisma.session.update({
@@ -185,7 +186,7 @@ export async function sessionRoutes(fastify: FastifyInstance) {
     });
 
     if (!session) {
-      return reply.status(404).send({ error: 'Session not found' });
+      return sendMappedError(reply, 404, 'Session not found');
     }
 
     await prisma.session.delete({
@@ -213,7 +214,7 @@ export async function sessionRoutes(fastify: FastifyInstance) {
     });
 
     if (!session) {
-      return reply.status(404).send({ error: 'Session not found' });
+      return sendMappedError(reply, 404, 'Session not found');
     }
 
     const messages = await prisma.message.findMany({

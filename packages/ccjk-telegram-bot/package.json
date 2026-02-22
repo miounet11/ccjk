@@ -1,0 +1,28 @@
+{
+  "name": "@ccjk/telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram Bot for CCJK Remote Control",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "ccjk-telegram-bot": "./bin/bot.mjs"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "unbuild",
+    "start": "node dist/index.mjs"
+  },
+  "dependencies": {
+    "@ccjk/wire": "workspace:*",
+    "telegraf": "^4.16.3",
+    "socket.io-client": "^4.8.3",
+    "dotenv": "^16.4.7",
+    "chalk": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "unbuild": "^3.3.1"
+  }
+}

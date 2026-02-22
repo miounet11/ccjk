@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,37 +7,72 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSessionsStore } from '../../src/store/sessions';
 import { socketClient } from '../../src/api/socket';
-import { decryptJson } from '@ccjk/wire';
+import { decryptMessage, getSessionKey } from '../../src/utils/encryption';
+import {
+  TextMessage,
+  ToolCallMessage,
+  PermissionCard,
+  StatusMessage,
+} from '../../src/components/messages';
+import { RemoteControl } from '../../src/components/RemoteControl';
 
 export default function SessionDetail() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { currentSession, messages, fetchSession, fetchMessages } = useSessionsStore();
-  const [isLoading, setIsLoading] = useState(true);
-  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const {
+    currentSession,
+    messages,
+    sessionKey,
+    toolCalls,
+    fetchSession,
+    fetchMessages,
+    addMessage,
+    setSessionKey,
+    updateToolCall,
+  } = useSessionsStore();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const [decryptedEvents, setDecryptedEvents] = useState<any[]>([]);
+
+  // Load session and setup listeners
   useEffect(() => {
     if (id) {
       loadSession();
+      setupSocketListeners();
     }
 
     return () => {
-      // Leave session room on unmount
       if (id) {
-        socketClient.leaveSession(id);
+        socketClient.emit('session:unsubscribe', { sessionId: id });
       }
     };
   }, [id]);
+
+  // Decrypt messages when they change or session key is available
+  useEffect(() => {
+    if (sessionKey && messages.length > 0) {
+      decryptMessages();
+    }
+  }, [messages, sessionKey]);
 
   const loadSession = async () => {
     try {
       setIsLoading(true);
       await fetchSession(id!);
       await fetchMessages(id!);
+
+      // Get session key
+      const key = await getSessionKey(id!);
+      if (key) {
+        setSessionKey(key);
+      }
     } catch (error) {
       console.error('Failed to load session:', error);
       Alert.alert('Error', 'Failed to load session');
@@ -46,85 +81,263 @@ export default function SessionDetail() {
     }
   };
 
-  const handleApproval = (requestId: string, approved: boolean) => {
-    socketClient.sendApproval(requestId, approved);
-    setPendingApprovals(prev => prev.filter(a => a.requestId !== requestId));
+  const setupSocketListeners = () => {
+    // Subscribe to session events
+    socketClient.emit('session:subscribe', { sessionId: id });
+
+    // Listen for real-time events
+    const handleSessionEvent = (data: any) => {
+      if (data.sessionId !== id) return;
+
+      // Decrypt event
+      if (sessionKey) {
+        const event = decryptMessage(data.envelope, sessionKey);
+        if (event) {
+          handleDecryptedEvent(event);
+        }
+      }
+
+      // Add to messages (encrypted)
+      addMessage({
+        id: `msg-${Date.now()}`,
+        sessionId: id!,
+        envelope: data.envelope,
+        seq: messages.length + 1,
+        createdAt: new Date().toISOString(),
+      });
+    };
+
+    socketClient.on('session:event', handleSessionEvent);
+
+    return () => {
+      socketClient.off('session:event', handleSessionEvent);
+    };
   };
 
-  const renderMessage = ({ item }: { item: any }) => {
-    // TODO: Decrypt message content
-    return (
-      <View style={styles.messageCard}>
-        <Text style={styles.messageTime}>
-          {new Date(item.createdAt).toLocaleTimeString()}
-        </Text>
-        <Text style={styles.messageContent}>Message #{item.seq}</Text>
-      </View>
+  const decryptMessages = () => {
+    const decrypted: any[] = [];
+
+    for (const message of messages) {
+      const event = decryptMessage(message.envelope, sessionKey!);
+      if (event) {
+        decrypted.push({
+          ...event,
+          id: message.id,
+          timestamp: message.createdAt,
+        });
+      }
+    }
+
+    setDecryptedEvents(decrypted);
+  };
+
+  const handleDecryptedEvent = (event: any) => {
+    // Handle different event types
+    switch (event.t) {
+      case 'permission-request':
+        setPendingApprovals((prev) => [...prev, event]);
+        break;
+
+      case 'tool-call-start':
+        updateToolCall(event.callId, {
+          ...event,
+          status: 'running',
+        });
+        break;
+
+      case 'tool-call-end':
+        updateToolCall(event.callId, {
+          result: event.result,
+          status: 'completed',
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const handleApproval = (requestId: string, approved: boolean) => {
+    socketClient.emit('approval:response', {
+      requestId,
+      approved,
+    });
+
+    setPendingApprovals((prev) => prev.filter((a) => a.requestId !== requestId));
+
+    Alert.alert(
+      'Response Sent',
+      approved ? 'Permission approved' : 'Permission denied'
     );
   };
 
-  const renderApproval = ({ item }: { item: any }) => (
-    <View style={styles.approvalCard}>
-      <Text style={styles.approvalTitle}>Permission Request</Text>
-      <Text style={styles.approvalTool}>{item.tool}</Text>
-      <Text style={styles.approvalPattern}>{item.pattern}</Text>
-      <View style={styles.approvalButtons}>
-        <TouchableOpacity
-          style={[styles.approvalButton, styles.approveButton]}
-          onPress={() => handleApproval(item.requestId, true)}
-        >
-          <Text style={styles.approvalButtonText}>Approve</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.approvalButton, styles.denyButton]}
-          onPress={() => handleApproval(item.requestId, false)}
-        >
-          <Text style={styles.approvalButtonText}>Deny</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadSession();
+    setIsRefreshing(false);
+  }, [id]);
+
+  const renderEvent = ({ item }: { item: any }) => {
+    switch (item.t) {
+      case 'text':
+        return (
+          <TextMessage
+            text={item.text}
+            thinking={item.thinking}
+            timestamp={item.timestamp}
+          />
+        );
+
+      case 'tool-call-start':
+      case 'tool-call-end':
+        const toolCall = toolCalls.get(item.callId) || item;
+        return (
+          <ToolCallMessage
+            callId={item.callId}
+            name={toolCall.name}
+            description={toolCall.description}
+            args={toolCall.args}
+            result={toolCall.result}
+            timestamp={item.timestamp}
+            status={toolCall.status || 'running'}
+          />
+        );
+
+      case 'permission-request':
+        return (
+          <PermissionCard
+            requestId={item.requestId}
+            tool={item.tool}
+            pattern={item.pattern}
+            description={item.description}
+            timestamp={item.timestamp}
+            onApprove={handleApproval}
+          />
+        );
+
+      case 'status':
+        return (
+          <StatusMessage
+            state={item.state}
+            message={item.message}
+            timestamp={item.timestamp}
+          />
+        );
+
+      case 'session-start':
+        return (
+          <View style={styles.sessionEvent}>
+            <Text style={styles.sessionEventText}>🚀 Session started</Text>
+          </View>
+        );
+
+      case 'session-stop':
+        return (
+          <View style={styles.sessionEvent}>
+            <Text style={styles.sessionEventText}>🛑 Session stopped</Text>
+            {item.reason && (
+              <Text style={styles.sessionEventReason}>{item.reason}</Text>
+            )}
+          </View>
+        );
+
+      default:
+        return (
+          <View style={styles.unknownEvent}>
+            <Text style={styles.unknownEventText}>Unknown event: {item.t}</Text>
+          </View>
+        );
+    }
+  };
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading session...</Text>
+      </View>
+    );
+  }
+
+  if (!sessionKey) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorIcon}>🔐</Text>
+        <Text style={styles.errorTitle}>Encryption Key Required</Text>
+        <Text style={styles.errorMessage}>
+          Session key is required to decrypt messages.
+        </Text>
+        <TouchableOpacity style={styles.retryButton} onPress={loadSession}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backButton}>← Back</Text>
         </TouchableOpacity>
         <View style={styles.headerInfo}>
-          <Text style={styles.title}>{currentSession?.tag}</Text>
+          <Text style={styles.title}>{currentSession?.tag || 'Session'}</Text>
           {currentSession?.active && (
             <View style={styles.activeBadge}>
+              <View style={styles.activeDot} />
               <Text style={styles.activeBadgeText}>Active</Text>
             </View>
           )}
         </View>
+        <Text style={styles.subtitle}>
+          {currentSession?.machine.hostname} • {currentSession?.machine.platform}
+        </Text>
       </View>
 
+      {/* Pending Approvals */}
       {pendingApprovals.length > 0 && (
-        <FlatList
-          data={pendingApprovals}
-          renderItem={renderApproval}
-          keyExtractor={(item) => item.requestId}
-          style={styles.approvalsList}
-        />
+        <View style={styles.approvalsContainer}>
+          <Text style={styles.approvalsTitle}>
+            ⚠️ {pendingApprovals.length} Pending Approval{pendingApprovals.length > 1 ? 's' : ''}
+          </Text>
+          {pendingApprovals.map((approval) => (
+            <PermissionCard
+              key={approval.requestId}
+              requestId={approval.requestId}
+              tool={approval.tool}
+              pattern={approval.pattern}
+              description={approval.description}
+              timestamp={approval.timestamp}
+              onApprove={handleApproval}
+            />
+          ))}
+        </View>
       )}
 
+      {/* Messages */}
       <FlatList
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
+        data={decryptedEvents}
+        renderItem={renderEvent}
+        keyExtractor={(item, index) => item.id || `event-${index}`}
         contentContainerStyle={styles.messagesList}
         inverted
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>💬</Text>
+            <Text style={styles.emptyText}>No messages yet</Text>
+            <Text style={styles.emptySubtext}>
+              Start coding and messages will appear here
+            </Text>
+          </View>
+        }
       />
+
+      {/* Remote Control */}
+      <RemoteControl sessionId={id!} isActive={currentSession?.active || false} />
     </View>
   );
 }
@@ -138,6 +351,46 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  errorIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     padding: 20,
@@ -149,90 +402,104 @@ const styles = StyleSheet.create({
   backButton: {
     color: '#007AFF',
     fontSize: 16,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   headerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 4,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#333',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#666',
   },
   activeBadge: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#4CAF50',
+    marginRight: 6,
+  },
   activeBadgeText: {
-    color: '#fff',
+    color: '#2E7D32',
     fontSize: 12,
     fontWeight: '600',
   },
-  approvalsList: {
-    maxHeight: 200,
-  },
-  approvalCard: {
+  approvalsContainer: {
     backgroundColor: '#FFF3CD',
     padding: 16,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FFC107',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFC107',
   },
-  approvalTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  approvalTool: {
+  approvalsTitle: {
     fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  approvalPattern: {
-    fontSize: 12,
-    color: '#666',
+    fontWeight: '700',
+    color: '#856404',
     marginBottom: 12,
-  },
-  approvalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  approvalButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  approveButton: {
-    backgroundColor: '#4CAF50',
-  },
-  denyButton: {
-    backgroundColor: '#F44336',
-  },
-  approvalButtonText: {
-    color: '#fff',
-    fontWeight: '600',
   },
   messagesList: {
     padding: 16,
   },
-  messageCard: {
-    backgroundColor: '#fff',
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  sessionEvent: {
+    backgroundColor: '#E3F2FD',
     padding: 12,
     marginBottom: 8,
     borderRadius: 8,
+    alignItems: 'center',
   },
-  messageTime: {
-    fontSize: 10,
-    color: '#999',
-    marginBottom: 4,
-  },
-  messageContent: {
+  sessionEventText: {
     fontSize: 14,
+    fontWeight: '600',
+    color: '#1976D2',
+  },
+  sessionEventReason: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  unknownEvent: {
+    backgroundColor: '#FFF',
+    padding: 12,
+    marginBottom: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  unknownEventText: {
+    fontSize: 12,
+    color: '#999',
   },
 });

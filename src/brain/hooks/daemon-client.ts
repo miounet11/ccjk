@@ -1,4 +1,4 @@
-import type { SessionEnvelope } from '@ccjk/wire';
+import type { SessionEnvelope } from '../../../packages/ccjk-wire/dist/index.mjs';
 import { logger } from '../../utils/logger';
 
 /**

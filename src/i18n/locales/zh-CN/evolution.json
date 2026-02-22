@@ -1,0 +1,54 @@
+{
+  "description": "Evolution Layer - AI 知识共享",
+  "connecting": "连接到 Evolution Layer...",
+  "fetching": "获取顶级能力...",
+  "found": "找到 {{count}} 个能力",
+  "noResults": "未找到能力",
+  "problem": "问题",
+  "solution": "解决方案",
+  "used": "使用",
+  "times": "次",
+  "success": "成功率",
+  "failed": "失败",
+  "searching": "搜索: {{query}}",
+  "noSolutions": "未找到解决方案",
+  "foundSolutions": "找到 {{count}} 个解决方案",
+  "context": "上下文",
+  "geneNotFound": "Gene 未找到",
+  "geneDetails": "Gene 详情",
+  "type": "类型",
+  "signature": "特征",
+  "strategy": "策略",
+  "code": "代码",
+  "steps": "步骤",
+  "quality": "质量",
+  "successRate": "成功率",
+  "usageCount": "使用次数",
+  "avgTime": "平均时间",
+  "metadata": "元数据",
+  "author": "作者",
+  "createdAt": "创建时间",
+  "tags": "标签",
+  "fetchingStats": "获取统计信息...",
+  "totalGenes": "总 Genes",
+  "avgGDI": "平均 GDI",
+  "totalUsage": "总使用次数",
+  "avgSuccess": "平均成功率",
+  "byType": "按类型",
+  "top": {
+    "description": "显示顶级能力",
+    "limit": "限制结果数量",
+    "minGdi": "最小 GDI 分数"
+  },
+  "search": {
+    "description": "搜索解决方案",
+    "minGdi": "最小 GDI 分数",
+    "limit": "限制结果数量"
+  },
+  "show": {
+    "description": "显示 gene 详情"
+  },
+  "stats": {
+    "description": "显示 Evolution Layer 统计信息"
+  }
+}

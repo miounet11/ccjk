@@ -1,6 +1,5 @@
 import { io, Socket } from 'socket.io-client';
 import { CONFIG } from '../config';
-import type { SessionEnvelope } from '@ccjk/wire';
 
 /**
  * Socket.IO client
@@ -11,7 +10,7 @@ class SocketClient {
   private token: string | null = null;
   private listeners: Map<string, Set<Function>> = new Map();
 
-  connect(token: string) {
+  connect(token: string, machineId?: string) {
     if (this.socket?.connected) {
       return;
     }
@@ -19,7 +18,7 @@ class SocketClient {
     this.token = token;
 
     this.socket = io(CONFIG.apiUrl, {
-      auth: { token },
+      auth: { token, machineId },
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -73,16 +72,28 @@ class SocketClient {
     return this.socket?.connected || false;
   }
 
-  // Join session room
-  joinSession(sessionId: string) {
+  // Subscribe to session
+  subscribeToSession(sessionId: string) {
     if (!this.socket) return;
     this.socket.emit('session:join', { sessionId });
+    console.log(`Subscribed to session ${sessionId}`);
   }
 
-  // Leave session room
-  leaveSession(sessionId: string) {
+  // Unsubscribe from session
+  unsubscribeFromSession(sessionId: string) {
     if (!this.socket) return;
     this.socket.emit('session:leave', { sessionId });
+    console.log(`Unsubscribed from session ${sessionId}`);
+  }
+
+  // Join session room (legacy)
+  joinSession(sessionId: string) {
+    this.subscribeToSession(sessionId);
+  }
+
+  // Leave session room (legacy)
+  leaveSession(sessionId: string) {
+    this.unsubscribeFromSession(sessionId);
   }
 
   // Send remote command
@@ -94,7 +105,42 @@ class SocketClient {
   // Send approval response
   sendApproval(requestId: string, approved: boolean) {
     if (!this.socket) return;
-    this.socket.emit('approval:response', { requestId, approved });
+    this.socket.emit('approval:response', { requestId, approved }, (response: any) => {
+      if (response?.success) {
+        console.log(`Approval sent: ${requestId} = ${approved}`);
+      } else {
+        console.error(`Failed to send approval:`, response?.error);
+      }
+    });
+  }
+
+  // Send input to Claude Code
+  sendInput(sessionId: string, text: string) {
+    if (!this.socket) return;
+    this.socket.emit('remote:command', {
+      sessionId,
+      command: {
+        type: 'input',
+        text,
+      },
+    }, (response: any) => {
+      if (response?.success) {
+        console.log(`Input sent to session ${sessionId}`);
+      } else {
+        console.error(`Failed to send input:`, response?.error);
+      }
+    });
+  }
+
+  // Send interrupt (Ctrl+C)
+  sendInterrupt(sessionId: string) {
+    if (!this.socket) return;
+    this.socket.emit('remote:command', {
+      sessionId,
+      command: {
+        type: 'interrupt',
+      },
+    });
   }
 
   // Event listeners

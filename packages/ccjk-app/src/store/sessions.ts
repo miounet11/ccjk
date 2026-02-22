@@ -23,9 +23,17 @@ interface Session {
 interface Message {
   id: string;
   sessionId: string;
-  content: string;
+  envelope: {
+    nonce: string;
+    ciphertext: string;
+  };
   seq: number;
   createdAt: string;
+}
+
+interface DecryptedEvent {
+  t: string;
+  [key: string]: any;
 }
 
 interface SessionsState {
@@ -33,6 +41,8 @@ interface SessionsState {
   currentSession: Session | null;
   messages: Message[];
   isLoading: boolean;
+  sessionKey: Uint8Array | null;
+  toolCalls: Map<string, any>;
 
   // Actions
   fetchSessions: () => Promise<void>;
@@ -40,6 +50,8 @@ interface SessionsState {
   fetchMessages: (sessionId: string) => Promise<void>;
   addMessage: (message: Message) => void;
   setCurrentSession: (session: Session | null) => void;
+  setSessionKey: (key: Uint8Array | null) => void;
+  updateToolCall: (callId: string, data: any) => void;
 }
 
 export const useSessionsStore = create<SessionsState>((set, get) => ({
@@ -47,6 +59,8 @@ export const useSessionsStore = create<SessionsState>((set, get) => ({
   currentSession: null,
   messages: [],
   isLoading: false,
+  sessionKey: null,
+  toolCalls: new Map(),
 
   fetchSessions: async () => {
     try {
@@ -102,6 +116,18 @@ export const useSessionsStore = create<SessionsState>((set, get) => ({
     }
 
     set({ currentSession: session });
+  },
+
+  setSessionKey: (key: Uint8Array | null) => {
+    set({ sessionKey: key });
+  },
+
+  updateToolCall: (callId: string, data: any) => {
+    set((state) => {
+      const toolCalls = new Map(state.toolCalls);
+      toolCalls.set(callId, { ...toolCalls.get(callId), ...data });
+      return { toolCalls };
+    });
   },
 }));
 

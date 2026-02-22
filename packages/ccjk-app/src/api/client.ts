@@ -49,6 +49,27 @@ class ApiClient {
   }
 
   // Auth
+  async register(email: string, password: string, name?: string) {
+    return this.request<{ token: string; user: any }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        password,
+        name,
+      }),
+    });
+  }
+
+  async login(email: string, password: string) {
+    return this.request<{ token: string; user: any }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        password,
+      }),
+    });
+  }
+
   async authenticateWithGitHub(code: string, publicKey: string) {
     return this.request<{ token: string; user: any }>('/auth/mobile', {
       method: 'POST',

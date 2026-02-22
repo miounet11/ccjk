@@ -1,7 +1,8 @@
+import type { User } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { CONFIG } from './config';
 import { prisma } from './db';
-import type { User } from '@prisma/client';
 
 /**
  * Authentication utilities
@@ -11,6 +12,8 @@ export interface JWTPayload {
   userId: string;
   email: string;
 }
+
+const LOCAL_AUTH_PREFIX = 'pwd:';
 
 /**
  * Generate JWT token
@@ -22,8 +25,52 @@ export function generateToken(user: User): string {
   };
 
   return jwt.sign(payload, CONFIG.jwtSecret, {
-    expiresIn: CONFIG.jwtExpiresIn,
+    expiresIn: CONFIG.jwtExpiresIn as jwt.SignOptions['expiresIn'],
   });
+}
+
+/**
+ * Create local auth credential payload
+ */
+export function createLocalAuthCredential(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const derivedKey = scryptSync(password, salt, 64).toString('hex');
+  return `${LOCAL_AUTH_PREFIX}scrypt$${salt}$${derivedKey}`;
+}
+
+/**
+ * Check if stored credential is local email/password auth
+ */
+export function isLocalAuthCredential(credential: string): boolean {
+  return credential.startsWith(`${LOCAL_AUTH_PREFIX}scrypt$`);
+}
+
+/**
+ * Verify local auth credential payload
+ */
+export function verifyLocalAuthCredential(credential: string, password: string): boolean {
+  if (!isLocalAuthCredential(credential)) {
+    return false;
+  }
+
+  const raw = credential.slice(LOCAL_AUTH_PREFIX.length);
+  const parts = raw.split('$');
+  if (parts.length !== 3 || parts[0] !== 'scrypt') {
+    return false;
+  }
+
+  const salt = parts[1];
+  const expectedHex = parts[2];
+  const derivedHex = scryptSync(password, salt, 64).toString('hex');
+
+  const expected = Buffer.from(expectedHex, 'hex');
+  const derived = Buffer.from(derivedHex, 'hex');
+
+  if (expected.length !== derived.length) {
+    return false;
+  }
+
+  return timingSafeEqual(expected, derived);
 }
 
 /**
@@ -99,7 +146,13 @@ export async function getGitHubUser(accessToken: string): Promise<{
     throw new Error('Failed to get GitHub user');
   }
 
-  return await response.json();
+  return await response.json() as {
+    id: number;
+    login: string;
+    email: string;
+    name: string;
+    avatar_url: string;
+  };
 }
 
 /**
