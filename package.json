@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "10.3.0",
+  "version": "11.1.0",
   "packageManager": "pnpm@10.17.1",
   "description": "CLI toolkit for Claude Code and Codex setup. Simplifies MCP service installation, API configuration, workflow management, and multi-provider support with guided interactive setup.",
   "author": {
@@ -178,7 +178,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.9",
-    "@types/node": "catalog:",
+    "@types/node": "^22.18.6",
     "@types/semver": "^7.7.1",
     "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
