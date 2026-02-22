@@ -68,6 +68,8 @@ npx ccjk init --silent
 ❌ High API costs
 ❌ Configs lost when switching machines
 ❌ Single-threaded AI execution
+❌ Can't control Claude from mobile/web
+❌ Insecure defaults in production
 ```
 
 **After CCJK:**
@@ -77,6 +79,8 @@ npx ccjk init --silent
 ✅ 30-50% lower costs
 ✅ Cloud sync across devices
 ✅ Parallel AI agents (Agent Teams)
+✅ Remote control from any device (v11.1.1)
+✅ Production-hardened security (v11.1.1)
 ```
 
 ## 🎯 Why Developers Love CCJK
@@ -88,6 +92,8 @@ npx ccjk init --silent
 | ⏰ "Setup takes forever" | 🔧 **Minimal Config** | 30 seconds, one command |
 | 🔄 "Lost my configs again" | ☁️ **Cloud Sync** | GitHub Gist / WebDAV / S3 |
 | 🤖 "Need multiple AI agents" | 🎭 **Agent Teams** | One-click parallel execution |
+| 📱 "Can't control Claude from my phone" | 🌐 **Remote Control** | Web/App control with one-command setup |
+| 🔐 "Worried about production security" | 🛡️ **Production-Grade Security** | HTTPS enforcement, CORS hardening, secrets validation |
 
 ## 🔥 Features That Matter
 
@@ -132,6 +138,30 @@ One-click install for 50+ MCP services:
 ccjk mcp install filesystem puppeteer postgres
 # Done. No manual config.
 ```
+
+### 🌐 Remote Control (NEW in v11.1.1)
+Control Claude Code from any device — browser, phone, or tablet.
+```bash
+ccjk remote setup    # One-command: configure server URL, auth token & binding in 30s
+ccjk remote doctor   # Diagnose connectivity, auth, daemon health
+ccjk remote status   # Live runtime status (daemon, server, auth)
+```
+
+**Supports both interactive and non-interactive (CI/CD) modes:**
+```bash
+ccjk remote setup --non-interactive \
+  --server-url https://your-server.com \
+  --auth-token <token> \
+  --binding-code <code>
+```
+
+### 🛡️ Production-Grade Security (NEW in v11.1.1)
+All config defaults are now hardened for real-world deployments:
+- ✅ **HTTPS enforcement** — All service URLs require `https://` in production
+- ✅ **CORS hardening** — Wildcard `*` origins rejected in production
+- ✅ **Secret validation** — Dev-default secrets (`dev-secret`, `dev-session-secret`) blocked at startup
+- ✅ **Fail-fast boot** — Server exits immediately on misconfiguration, no silent fallbacks
+- ✅ **Daemon config loading** — Reads from `~/.ccjk/daemon.json`, validates required fields
 
 ### 🔓 Zero-Config Permission Presets (NEW)
 One-click permission configuration for different use cases:
