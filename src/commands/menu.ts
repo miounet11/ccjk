@@ -17,7 +17,7 @@ import {
   configureAiMemoryFeature,
   configureApiFeature,
   configureDefaultModelFeature,
-  configureEnvPermissionFeature,
+  configureMergedPermissionsFeature,
   configureMcpFeature,
 } from '../utils/features'
 import { normalizeMenuInput } from '../utils/input-normalizer'
@@ -175,8 +175,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('4.')} ${isZh ? '配置 MCP' : 'Configure MCP'} ${ansis.dim(isZh ? '- 配置 MCP 服务（含 Windows 修复）' : '- Configure MCP services (with Windows fix)')}`)
   console.log(`  ${ansis.green('5.')} ${isZh ? '配置默认模型' : 'Configure Default Model'} ${ansis.dim(isZh ? '- 设置默认模型（opus/sonnet/sonnet 1m/自定义）' : '- Set default model (opus/sonnet/sonnet 1m/custom)')}`)
   console.log(`  ${ansis.green('6.')} ${isZh ? '配置 Claude 全局记忆' : 'Configure Claude Memory'} ${ansis.dim(isZh ? '- 配置 AI 输出语言和输出风格' : '- Configure AI output language and style')}`)
-  console.log(`  ${ansis.green('7.')} ${isZh ? '导入推荐环境变量和权限配置' : 'Import Recommended Env & Permissions'} ${ansis.dim(isZh ? '- 导入隐私保护环境变量和系统权限配置' : '- Import privacy env vars and system permissions')}`)
-  console.log(`  ${ansis.green('8.')} ${isZh ? '零配置权限预设' : 'Zero-Config Permission Presets'} ${ansis.dim(isZh ? '- 一键应用权限预设（最大/开发者/安全）' : '- One-click permission presets (max/dev/safe)')}`)
+  console.log(`  ${ansis.green('7.')} ${isZh ? '权限 & 环境配置' : 'Permissions & Env Setup'} ${ansis.dim(isZh ? '- 导入环境变量 / 导入推荐权限 / 一键权限预设（最大/开发者/安全）' : '- Import env vars / import permissions / one-click presets (max/dev/safe)')}`)
   console.log('')
 
   // --------- 其他工具 ----------
@@ -194,8 +193,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('S.')} ${isZh ? '切换代码工具' : 'Switch Code Tool'} ${ansis.dim(isZh ? '- 在支持的代码工具之间切换 (Claude Code, Codex)' : '- Switch between supported code tools (Claude Code, Codex)')}`)
   console.log(`  ${ansis.green('-.')} ${isZh ? '卸载和删除配置' : 'Uninstall & Remove Config'} ${ansis.dim(isZh ? '- 从系统中删除 Claude Code 配置和工具' : '- Remove Claude Code config and tools from system')}`)
   console.log(`  ${ansis.green('+.')} ${isZh ? '检查更新' : 'Check Updates'} ${ansis.dim(isZh ? '- 检查并更新 Claude Code、CCR 的版本' : '- Check and update Claude Code, CCR versions')}`)
-  console.log(`  ${ansis.green('D.')} ${isZh ? '一键体检' : 'Diagnostics'} ${ansis.dim(isZh ? '- 诊断问题并自动修复' : '- Diagnose issues and auto-fix')}`)
-  console.log(`  ${ansis.green('B.')} ${isZh ? '🧠 Brain Dashboard' : '🧠 Brain Dashboard'} ${ansis.dim(isZh ? '- 查看配置健康分数和优化建议' : '- Setup health score & recommendations')}`)
+  console.log(`  ${ansis.green('D.')} ${isZh ? '🧠 体检 & 健康看板' : '🧠 Health Check & Dashboard'} ${ansis.dim(isZh ? '- 健康分数 + 优化建议 + 自动修复' : '- Health score + recommendations + auto-fix')}`)
   console.log(`  ${ansis.green('H.')} ${isZh ? '帮助文档' : 'Help'} ${ansis.dim(isZh ? '- 查看使用指南' : '- View user guide')}`)
   console.log(`  ${ansis.green('Q.')} ${isZh ? '退出' : 'Exit'}`)
   console.log('')
@@ -206,7 +204,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     message: isZh ? '请输入选项:' : 'Enter option:',
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'k', 'm', 'a', 'p', 'r', 'b', 's', '-', '+', 'd', 'h', 'q']
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'k', 'm', 'a', 'p', 'r', 's', '-', '+', 'd', 'h', 'q']
       return valid.includes(normalized) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
@@ -257,15 +255,8 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     case '7': {
-      // Import Recommended Env & Permissions - same as zcf
-      await configureEnvPermissionFeature()
-      break
-    }
-
-    case '8': {
-      // Zero-Config Permission Presets
-      const { zeroConfig } = await import('./zero-config')
-      await zeroConfig()
+      // Permissions & Env Setup — merged from old 7 + 8
+      await configureMergedPermissionsFeature()
       break
     }
 
@@ -303,14 +294,6 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       return undefined
     }
 
-    case 'b': {
-      // Brain Dashboard
-      const { dashboardCommand } = await import('./dashboard')
-      await dashboardCommand()
-      await inquirer.prompt({ type: 'input', name: '_', message: isZh ? '按回车返回菜单...' : 'Press Enter to return...' })
-      return undefined
-    }
-
     // ------------ CCJK ------------
     case '0': {
       // Language Settings - matches zcf pattern
@@ -345,8 +328,19 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     case 'd': {
-      // Diagnostics
-      await doctor()
+      // Health Check & Dashboard (merged D + B)
+      const { dashboardCommand } = await import('./dashboard')
+      await dashboardCommand()
+      const isZhD = i18n.language === 'zh-CN'
+      const { runDoctor } = await inquirer.prompt<{ runDoctor: boolean }>({
+        type: 'confirm',
+        name: 'runDoctor',
+        message: isZhD ? '是否同时运行自动修复诊断？' : 'Also run auto-fix diagnostics?',
+        default: false,
+      })
+      if (runDoctor) {
+        await doctor()
+      }
       printSeparator()
       return undefined
     }

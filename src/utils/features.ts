@@ -969,3 +969,74 @@ export async function configureEnvPermissionFeature(): Promise<void> {
     console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`))
   }
 }
+
+/**
+ * Merged permissions & env configuration (combines old option 7 + 8)
+ * Presents a single submenu: import env / import permissions / zero-config preset / open settings
+ */
+export async function configureMergedPermissionsFeature(): Promise<void> {
+  ensureI18nInitialized()
+  const isZh = i18n.language === 'zh-CN'
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'list',
+    name: 'choice',
+    message: isZh ? '权限 & 环境配置 — 选择操作:' : 'Permissions & Env Setup — Select action:',
+    choices: addNumbersToChoices([
+      {
+        name: isZh
+          ? `导入推荐环境变量  ${ansis.gray('- 写入隐私保护 env 到 settings.json')}`
+          : `Import recommended env vars  ${ansis.gray('- Write privacy env to settings.json')}`,
+        value: 'env',
+      },
+      {
+        name: isZh
+          ? `导入推荐权限配置  ${ansis.gray('- 追加推荐 allow 规则到 settings.json')}`
+          : `Import recommended permissions  ${ansis.gray('- Append recommended allow rules')}`,
+        value: 'permissions',
+      },
+      {
+        name: isZh
+          ? `一键权限预设  ${ansis.gray('- 最大(max) / 开发者(dev) / 安全(safe) 预设')}`
+          : `Zero-config permission preset  ${ansis.gray('- max / dev / safe preset')}`,
+        value: 'preset',
+      },
+      {
+        name: isZh
+          ? `打开 settings.json  ${ansis.gray('- 在编辑器中查看当前配置')}`
+          : `Open settings.json  ${ansis.gray('- View current config in editor')}`,
+        value: 'open',
+      },
+    ]),
+  })
+
+  if (!choice) {
+    await handleCancellation()
+    return
+  }
+
+  try {
+    switch (choice) {
+      case 'env':
+        await importRecommendedEnv()
+        console.log(ansis.green(`✅ ${i18n.t('configuration:envImportSuccess')}`))
+        break
+      case 'permissions':
+        await importRecommendedPermissions()
+        console.log(ansis.green(`✅ ${i18n.t('configuration:permissionsImportSuccess') || 'Permissions imported'}`))
+        break
+      case 'preset': {
+        const { zeroConfig } = await import('../commands/zero-config')
+        await zeroConfig()
+        break
+      }
+      case 'open':
+        console.log(ansis.green(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'))
+        await openSettingsJson()
+        break
+    }
+  }
+  catch (error: any) {
+    console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`))
+  }
+}
