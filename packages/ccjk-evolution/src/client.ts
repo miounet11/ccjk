@@ -1,15 +1,14 @@
 import type {
-  Gene,
-  HelloMessage,
-  PublishMessage,
-  FetchMessage,
-  ReportMessage,
-  DecisionMessage,
-  HelloResponse,
-  PublishResponse,
-  FetchResponse,
-  ReportResponse,
-  DecisionResponse,
+    DecisionResponse,
+    FetchMessage,
+    FetchResponse,
+    Gene,
+    HelloMessage,
+    HelloResponse,
+    PublishMessage,
+    PublishResponse,
+    ReportMessage,
+    ReportResponse
 } from './types';
 
 /**
@@ -24,8 +23,21 @@ export class A2AClient {
   private token: string | null = null;
   private agentId: string | null = null;
 
-  constructor(baseUrl: string = 'http://localhost:3005') {
-    this.baseUrl = baseUrl;
+  constructor(baseUrl?: string) {
+    const resolved = baseUrl || process.env.CCJK_SERVER_URL;
+    if (!resolved) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('CCJK_SERVER_URL is required in production');
+      }
+      this.baseUrl = 'http://localhost:3005';
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'production' && !resolved.startsWith('https://')) {
+      throw new Error('CCJK_SERVER_URL must use https:// in production');
+    }
+
+    this.baseUrl = resolved;
   }
 
   /**

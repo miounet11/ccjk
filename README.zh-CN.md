@@ -98,6 +98,9 @@ npx ccjk cloud enable --provider github-gist
 ```bash
 npx ccjk           # 交互式设置
 npx ccjk i         # 完整初始化
+npx ccjk remote setup   # 一键远程初始化（推荐）
+npx ccjk remote doctor  # 远程体检
+npx ccjk remote status  # 远程状态
 npx ccjk u         # 更新工作流
 npx ccjk sync      # 云端同步
 npx ccjk doctor    # 健康检查

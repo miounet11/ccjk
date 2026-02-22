@@ -382,23 +382,17 @@ sudo certbot --nginx -d your-domain.com
 npm install -g ccjk
 ```
 
-**Step 2: Enable Remote Control**
+**Step 2: Run Remote Setup**
 
 ```bash
-ccjk remote enable
+ccjk remote setup
 ```
 
-Enter server URL when prompted:
+Enter server URL and complete setup when prompted:
 - Production: `https://your-domain.com`
 - Development: `http://localhost:3005`
 
-**Step 3: Authenticate**
-
-```bash
-ccjk remote login
-```
-
-Opens browser for GitHub OAuth.
+Includes auth token configuration and device binding.
 
 **Step 4: Start Daemon**
 
@@ -946,8 +940,8 @@ ccjk daemon restart
 ```
 
 **Common issues:**
-- Server URL incorrect: Run `ccjk remote enable` again
-- Auth token expired: Run `ccjk remote login` again
+- Server URL incorrect: Run `ccjk remote setup` again
+- Auth token invalid/expired: Run `ccjk remote setup` again
 - Firewall blocking: Check firewall rules
 
 ---

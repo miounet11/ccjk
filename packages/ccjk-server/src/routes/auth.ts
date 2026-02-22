@@ -108,12 +108,16 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   // GitHub OAuth - Callback
   fastify.get<{
-    Querystring: { code?: string; error?: string };
+    Querystring: { code?: string; error?: string; publicKey?: string };
   }>('/auth/github/callback', async (request, reply) => {
-    const { code, error } = request.query;
+    const { code, error, publicKey } = request.query;
 
     if (error || !code) {
       return sendMappedError(reply, 400, 'GitHub OAuth failed');
+    }
+
+    if (!publicKey || !publicKey.trim()) {
+      return sendMappedError(reply, 400, 'Missing publicKey');
     }
 
     try {
@@ -123,11 +127,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       // Get GitHub user
       const githubUser = await getGitHubUser(accessToken);
 
-      // TODO: Get public key from request (should be sent by client)
-      const publicKey = 'placeholder-public-key';
-
       // Find or create user
-      const user = await findOrCreateUserFromGitHub(githubUser, publicKey);
+      const user = await findOrCreateUserFromGitHub(githubUser, publicKey.trim());
 
       // Generate JWT
       const token = generateToken(user);

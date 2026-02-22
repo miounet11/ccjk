@@ -44,7 +44,7 @@ CCJK_AUTH_TOKEN=your_auth_token_here
 Get your auth token:
 
 ```bash
-ccjk remote login
+ccjk remote setup
 ```
 
 ### 4. Start Bot

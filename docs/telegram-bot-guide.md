@@ -69,16 +69,16 @@ TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
 # CCJK Server URL
 CCJK_SERVER_URL=https://your-server.com
 
-# CCJK Auth Token (from: ccjk remote login)
+# CCJK Auth Token (from: ccjk remote setup or CCJK Web/App dashboard)
 CCJK_AUTH_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **获取 Auth Token：**
 
 ```bash
-ccjk remote login
-# 浏览器打开 GitHub OAuth
-# 登录后，token 会保存到 ~/.ccjk/daemon.json
+ccjk remote setup
+# 按引导完成 server/auth/binding/daemon 设置
+# token 会保存到 ~/.ccjk/daemon.json
 
 cat ~/.ccjk/daemon.json | grep authToken
 ```

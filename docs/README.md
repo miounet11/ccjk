@@ -6,7 +6,6 @@
 
 *Everything you need to master CCJK*
 
-</div>
 
 ---
 
@@ -19,6 +18,8 @@ Perfect for newcomers to CCJK.
 | [Quick Start](quick-start.md) | Get up and running in 30 seconds | 2 min |
 | [Installation Guide](installation.md) | Detailed installation instructions | 5 min |
 | [Basic Configuration](basic-config.md) | Essential configuration options | 10 min |
+| [Remote JSON Contract](remote-json-contract.md) | Machine-readable output for `remote setup/doctor` | 3 min |
+| [Remote JSON Schema](../schema/remote-json-contract.schema.json) | Canonical schema for automated validation | 1 min |
 | [FAQ](faq.md) | Frequently asked questions | 15 min |
 
 ---

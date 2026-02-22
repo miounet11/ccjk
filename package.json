@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "11.1.0",
+  "version": "11.1.1",
   "packageManager": "pnpm@10.17.1",
   "description": "CLI toolkit for Claude Code and Codex setup. Simplifies MCP service installation, API configuration, workflow management, and multi-provider support with guided interactive setup.",
   "author": {
@@ -86,7 +86,7 @@
     "build": "unbuild",
     "start": "node bin/ccjk.mjs",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "node scripts/validate-prepublish.mjs && pnpm build && pnpm test:run",
+    "prepublishOnly": "node scripts/validate-prepublish.mjs && pnpm contract:check && pnpm build && pnpm test:run",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "vitest",
@@ -137,7 +137,8 @@
     "benchmark:server": "npx http-server docs/v2 -p 8080 -o dashboard.html",
     "benchmark:open": "open docs/v2/dashboard.html || xdg-open docs/v2/dashboard.html || start docs/v2/dashboard.html",
     "i18n:check": "tsx scripts/check-i18n.ts",
-    "i18n:report": "tsx scripts/check-i18n.ts --report"
+    "i18n:report": "tsx scripts/check-i18n.ts --report",
+    "contract:check": "node scripts/check-remote-contract.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",

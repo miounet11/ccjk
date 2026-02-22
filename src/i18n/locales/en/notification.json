@@ -250,6 +250,7 @@
   "cloud.confirmUnbind": "Are you sure you want to unbind this device?",
   "cloud.unbindCancelled": "Unbind cancelled",
   "cloud.bindHint": "Use 'ccjk notification bind' to bind this device",
+  "cloud.migrateToRemoteSetup": "Tip: 'ccjk remote setup' is now the recommended one-command onboarding flow.",
   "cloud.deviceIdLabel": "Device ID:",
   "cloud.deviceNameLabel": "Device Name:",
   "cloud.platformLabel": "Platform:",

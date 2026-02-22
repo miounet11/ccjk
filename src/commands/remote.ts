@@ -1,11 +1,12 @@
-import { logger } from '../utils/logger';
-import { i18n } from '../i18n';
-import inquirer from 'inquirer';
 import { spawn } from 'child_process';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import inquirer from 'inquirer';
+import ora from 'ora';
 import { homedir } from 'os';
 import { join } from 'path';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import ora from 'ora';
+import { i18n } from '../i18n';
+import { bindDevice, getBindingStatus, isDeviceBound } from '../services/cloud-notification';
+import { logger } from '../utils/logger';
 
 /**
  * Remote control commands
@@ -18,6 +19,160 @@ interface DaemonConfig {
   serverUrl: string;
   authToken?: string;
   machineId?: string;
+  encryptionKeyBase64?: string;
+}
+
+interface EnableRemoteOptions {
+  quiet?: boolean;
+  nonInteractive?: boolean;
+  serverUrl?: string;
+}
+
+interface DoctorCheck {
+  label: string;
+  ok: boolean;
+  detail?: string;
+  fixHint?: string;
+}
+
+interface SetupRemoteOptions {
+  nonInteractive?: boolean;
+  json?: boolean;
+  serverUrl?: string;
+  authToken?: string;
+  bindingCode?: string;
+}
+
+export interface SetupRemoteJsonResult {
+  success: boolean;
+  daemonRunning?: boolean;
+  bound?: boolean;
+  serverUrl?: string;
+  machineId?: string;
+  error?: string;
+}
+
+export interface DoctorRemoteJsonCheck {
+  label: string;
+  ok: boolean;
+  detail?: string;
+  fixHint?: string;
+}
+
+export interface DoctorRemoteJsonResult {
+  success: boolean;
+  checks: DoctorRemoteJsonCheck[];
+  bindingStatus: string;
+}
+
+interface DoctorRemoteOptions {
+  json?: boolean;
+}
+
+interface StartDaemonOptions {
+  silent?: boolean;
+}
+
+/**
+ * One-command setup for remote control
+ */
+export async function setupRemote(options: SetupRemoteOptions = {}): Promise<void> {
+  const { nonInteractive = false, json = false, serverUrl, authToken, bindingCode } = options;
+  if (!json) {
+    console.log(i18n.t('remote:setup.title'));
+  }
+
+  let config = await ensureRemoteEnabled({ quiet: true, nonInteractive, serverUrl });
+  if (!config) {
+    if (json) {
+      const result: SetupRemoteJsonResult = {
+        success: false,
+        error: i18n.t('remote:setup.failed_enable'),
+      };
+      console.log(JSON.stringify(result, null, 2));
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  config = await ensureAuthTokenConfigured(config, { nonInteractive, authToken });
+  if (!config) {
+    if (json) {
+      const result: SetupRemoteJsonResult = {
+        success: false,
+        error: i18n.t('remote:setup.failed_auth'),
+      };
+      console.log(JSON.stringify(result, null, 2));
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  if (!isDeviceBound()) {
+    const code = await resolveBindingCode(bindingCode, nonInteractive);
+    if (!code) {
+      if (json) {
+        const result: SetupRemoteJsonResult = {
+          success: false,
+          error: i18n.t('remote:setup.failed_bind_missing_code'),
+        };
+        console.log(JSON.stringify(result, null, 2));
+        process.exitCode = 1;
+      }
+      return;
+    }
+
+    const result = await bindDevice(code);
+    if (!result.success) {
+      if (json) {
+        const setupResult: SetupRemoteJsonResult = {
+          success: false,
+          error: result.error || i18n.t('remote:setup.binding_failed'),
+        };
+        console.log(JSON.stringify(setupResult, null, 2));
+      }
+      else {
+        console.log(i18n.t('remote:setup.binding_failed'));
+        if (result.error) {
+          console.log(`  ${result.error}`);
+        }
+      }
+      process.exitCode = 1;
+      return;
+    }
+    if (!json) {
+      console.log(i18n.t('remote:setup.binding_success'));
+    }
+  }
+
+  await startDaemon({ silent: json });
+
+  const daemonRunning = await isDaemonRunning();
+  const bindStatus = await getBindingStatus();
+  const setupResult: SetupRemoteJsonResult = {
+    success: daemonRunning && bindStatus.bound,
+    daemonRunning,
+    bound: bindStatus.bound,
+    serverUrl: config.serverUrl,
+    machineId: config.machineId,
+  };
+
+  if (json) {
+    console.log(JSON.stringify(setupResult, null, 2));
+    if (!setupResult.success) {
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  if (daemonRunning && bindStatus.bound) {
+    console.log(i18n.t('remote:setup.ready'));
+    await remoteStatus();
+    return;
+  }
+
+  console.log(i18n.t('remote:setup.partial'));
+  await remoteStatus();
 }
 
 /**
@@ -26,22 +181,60 @@ interface DaemonConfig {
 export async function enableRemote(): Promise<void> {
   console.log(i18n.t('remote:enable.title'));
 
-  // Check if already enabled
-  const config = loadDaemonConfig();
-  if (config.enabled) {
-    console.log(i18n.t('remote:enable.already_enabled'));
+  const enabledConfig = await ensureRemoteEnabled();
+  if (!enabledConfig) {
     return;
   }
 
+  console.log(i18n.t('remote:enable.success'));
+  console.log(i18n.t('remote:enable.next_steps'));
+}
+
+async function ensureRemoteEnabled(options: EnableRemoteOptions = {}): Promise<DaemonConfig | null> {
+  const { quiet = false, nonInteractive = false, serverUrl } = options;
+
+  // Check if already enabled
+  const config = loadDaemonConfig();
+  if (config.enabled) {
+    if (!quiet) {
+      console.log(i18n.t('remote:enable.already_enabled'));
+    }
+    return config;
+  }
+
   // Ask for server URL
-  const { serverUrl } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'serverUrl',
-      message: i18n.t('remote:enable.server_url'),
-      default: 'https://ccjk-server.example.com',
-    },
-  ]);
+  let resolvedServerUrl = serverUrl?.trim();
+
+  if (!resolvedServerUrl && nonInteractive) {
+    console.log(i18n.t('remote:setup.non_interactive_missing_server_url'));
+    return null;
+  }
+
+  if (resolvedServerUrl && !isValidRemoteServerUrl(resolvedServerUrl)) {
+    console.log(i18n.t('remote:setup.invalid_server_url'));
+    return null;
+  }
+
+  if (!resolvedServerUrl) {
+    const promptResult = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'serverUrl',
+        message: i18n.t('remote:enable.server_url'),
+        validate: (value: string) => {
+          const trimmed = value?.trim() || '';
+          if (!trimmed) {
+            return i18n.t('remote:setup.server_url_required');
+          }
+          if (!isValidRemoteServerUrl(trimmed)) {
+            return i18n.t('remote:setup.invalid_server_url');
+          }
+          return true;
+        },
+      },
+    ]);
+    resolvedServerUrl = (promptResult.serverUrl as string).trim();
+  }
 
   // Generate machine ID
   const machineId = `machine-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -49,13 +242,60 @@ export async function enableRemote(): Promise<void> {
   // Save config
   const newConfig: DaemonConfig = {
     enabled: true,
-    serverUrl,
+    serverUrl: resolvedServerUrl,
     machineId,
   };
   saveDaemonConfig(newConfig);
+  return newConfig;
+}
 
-  console.log(i18n.t('remote:enable.success'));
-  console.log(i18n.t('remote:enable.next_steps'));
+async function ensureAuthTokenConfigured(
+  config: DaemonConfig,
+  options: { nonInteractive?: boolean; authToken?: string } = {},
+): Promise<DaemonConfig | null> {
+  const { nonInteractive = false, authToken } = options;
+  if (config.authToken && config.authToken.trim().length > 0 && !authToken) {
+    return config;
+  }
+
+  let resolvedAuthToken = authToken?.trim();
+
+  if (!resolvedAuthToken && config.authToken) {
+    resolvedAuthToken = config.authToken.trim();
+  }
+
+  if (!resolvedAuthToken && nonInteractive) {
+    console.log(i18n.t('remote:setup.non_interactive_missing_auth_token'));
+    return null;
+  }
+
+  if (!resolvedAuthToken) {
+    console.log(i18n.t('remote:setup.auth_token_prompt'));
+    const promptResult = await inquirer.prompt([
+      {
+        type: 'password',
+        name: 'authToken',
+        mask: '*',
+        message: i18n.t('remote:setup.auth_token'),
+        validate: (value: string) => {
+          const trimmed = value?.trim() || '';
+          if (!trimmed) {
+            return i18n.t('remote:setup.auth_token_required');
+          }
+          return true;
+        },
+      },
+    ]);
+    resolvedAuthToken = (promptResult.authToken as string).trim();
+  }
+
+  const updated: DaemonConfig = {
+    ...config,
+    authToken: resolvedAuthToken,
+  };
+
+  saveDaemonConfig(updated);
+  return updated;
 }
 
 /**
@@ -100,6 +340,125 @@ export async function remoteStatus(): Promise<void> {
 }
 
 /**
+ * Diagnose remote setup and connectivity
+ */
+export async function doctorRemote(options: DoctorRemoteOptions = {}): Promise<void> {
+  const { json = false } = options;
+
+  if (!json) {
+    console.log(i18n.t('remote:doctor.title'));
+  }
+
+  const config = loadDaemonConfig();
+  const checks: DoctorCheck[] = [];
+
+  checks.push({
+    label: i18n.t('remote:doctor.checks.enabled'),
+    ok: config.enabled,
+    detail: config.enabled ? i18n.t('remote:doctor.enabled_yes') : i18n.t('remote:doctor.enabled_no'),
+    fixHint: config.enabled ? undefined : i18n.t('remote:doctor.fix_enable'),
+  });
+
+  const hasServerUrl = !!config.serverUrl;
+  checks.push({
+    label: i18n.t('remote:doctor.checks.server_url'),
+    ok: hasServerUrl,
+    detail: hasServerUrl ? config.serverUrl : i18n.t('remote:doctor.missing'),
+    fixHint: hasServerUrl ? undefined : i18n.t('remote:doctor.fix_setup'),
+  });
+
+  const hasAuthToken = !!config.authToken?.trim();
+  checks.push({
+    label: i18n.t('remote:doctor.checks.auth_token'),
+    ok: hasAuthToken,
+    detail: hasAuthToken ? i18n.t('remote:doctor.present') : i18n.t('remote:doctor.missing'),
+    fixHint: hasAuthToken ? undefined : i18n.t('remote:doctor.fix_setup'),
+  });
+
+  const hasMachineId = !!config.machineId;
+  checks.push({
+    label: i18n.t('remote:doctor.checks.machine_id'),
+    ok: hasMachineId,
+    detail: hasMachineId ? config.machineId : i18n.t('remote:doctor.missing'),
+    fixHint: hasMachineId ? undefined : i18n.t('remote:doctor.fix_setup'),
+  });
+
+  const bound = isDeviceBound();
+  checks.push({
+    label: i18n.t('remote:doctor.checks.binding'),
+    ok: bound,
+    detail: bound ? i18n.t('remote:doctor.bound_yes') : i18n.t('remote:doctor.bound_no'),
+    fixHint: bound ? undefined : i18n.t('remote:doctor.fix_bind'),
+  });
+
+  let cloudReachable = false;
+  if (hasServerUrl) {
+    cloudReachable = await isServerReachable(config.serverUrl);
+  }
+  checks.push({
+    label: i18n.t('remote:doctor.checks.cloud_health'),
+    ok: hasServerUrl && cloudReachable,
+    detail: hasServerUrl
+      ? (cloudReachable ? i18n.t('remote:doctor.reachable') : i18n.t('remote:doctor.unreachable'))
+      : i18n.t('remote:doctor.skipped'),
+    fixHint: hasServerUrl && !cloudReachable ? i18n.t('remote:doctor.fix_network') : undefined,
+  });
+
+  const daemonRunning = await isDaemonRunning();
+  checks.push({
+    label: i18n.t('remote:doctor.checks.daemon'),
+    ok: daemonRunning,
+    detail: daemonRunning ? i18n.t('remote:doctor.daemon_running') : i18n.t('remote:doctor.daemon_stopped'),
+    fixHint: daemonRunning ? undefined : i18n.t('remote:doctor.fix_daemon'),
+  });
+
+  let remoteStatusDetail = i18n.t('remote:doctor.skipped');
+  if (bound) {
+    const bindStatus = await getBindingStatus();
+    remoteStatusDetail = bindStatus.bound ? i18n.t('remote:doctor.bound_yes') : i18n.t('remote:doctor.bound_no');
+  }
+
+  const hasFailures = checks.some(check => !check.ok);
+  const doctorResult: DoctorRemoteJsonResult = {
+    success: !hasFailures,
+    checks: checks.map(check => ({
+      label: check.label,
+      ok: check.ok,
+      detail: check.detail,
+      fixHint: check.fixHint,
+    })),
+    bindingStatus: remoteStatusDetail,
+  };
+
+  if (json) {
+    console.log(JSON.stringify(doctorResult, null, 2));
+    if (hasFailures) {
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  checks.forEach((check) => {
+    const icon = check.ok ? '✅' : '❌';
+    const detail = check.detail ? ` (${check.detail})` : '';
+    console.log(`  ${icon} ${check.label}${detail}`);
+    if (!check.ok && check.fixHint) {
+      console.log(`     ${i18n.t('remote:doctor.fix_prefix')}${check.fixHint}`);
+    }
+  });
+
+  console.log(`  ℹ️ ${i18n.t('remote:doctor.binding_status')}: ${remoteStatusDetail}`);
+
+  if (hasFailures) {
+    console.log(i18n.t('remote:doctor.summary_failed'));
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(i18n.t('remote:doctor.summary_ok'));
+}
+
+/**
  * Show QR code for mobile pairing
  */
 export async function showQRCode(): Promise<void> {
@@ -132,13 +491,16 @@ export async function showQRCode(): Promise<void> {
 /**
  * Start daemon
  */
-export async function startDaemon(): Promise<void> {
-  const spinner = ora(i18n.t('remote:daemon.starting')).start();
+export async function startDaemon(options: StartDaemonOptions = {}): Promise<void> {
+  const { silent = false } = options;
+  const spinner = silent ? null : ora(i18n.t('remote:daemon.starting')).start();
 
   try {
     // Check if already running
     if (await isDaemonRunning()) {
-      spinner.warn(i18n.t('remote:daemon.already_running'));
+      if (spinner) {
+        spinner.warn(i18n.t('remote:daemon.already_running'));
+      }
       return;
     }
 
@@ -154,14 +516,55 @@ export async function startDaemon(): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     if (await isDaemonRunning()) {
-      spinner.succeed(i18n.t('remote:daemon.started'));
+      if (spinner) {
+        spinner.succeed(i18n.t('remote:daemon.started'));
+      }
     } else {
-      spinner.fail(i18n.t('remote:daemon.start_failed'));
+      if (spinner) {
+        spinner.fail(i18n.t('remote:daemon.start_failed'));
+      }
+      process.exitCode = 1;
     }
   } catch (error) {
-    spinner.fail(i18n.t('remote:daemon.start_error'));
+    if (spinner) {
+      spinner.fail(i18n.t('remote:daemon.start_error'));
+    }
     logger.error('Failed to start daemon:', error);
+    process.exitCode = 1;
   }
+}
+
+async function resolveBindingCode(inputCode: string | undefined, nonInteractive: boolean): Promise<string | null> {
+  const code = inputCode?.trim();
+  if (code) {
+    return code;
+  }
+
+  if (nonInteractive) {
+    console.log(i18n.t('remote:setup.non_interactive_missing_binding_code'));
+    return null;
+  }
+
+  console.log(i18n.t('remote:setup.binding_prompt'));
+  const promptResult = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'bindingCode',
+      message: i18n.t('remote:setup.binding_code'),
+      validate: (value: string) => {
+        const trimmed = value?.trim() || '';
+        if (!trimmed) {
+          return i18n.t('remote:setup.binding_code_required');
+        }
+        if (trimmed.length < 4) {
+          return i18n.t('remote:setup.binding_code_invalid');
+        }
+        return true;
+      },
+    },
+  ]);
+
+  return (promptResult.bindingCode as string).trim();
 }
 
 /**
@@ -206,6 +609,26 @@ async function isDaemonRunning(): Promise<boolean> {
   }
 }
 
+async function isServerReachable(baseUrl: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/health`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+function isValidRemoteServerUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Load daemon config
  */
@@ -231,7 +654,7 @@ function saveDaemonConfig(config: DaemonConfig): void {
   try {
     const dir = join(homedir(), '.ccjk');
     if (!existsSync(dir)) {
-      require('fs').mkdirSync(dir, { recursive: true });
+      mkdirSync(dir, { recursive: true });
     }
     writeFileSync(DAEMON_CONFIG_PATH, JSON.stringify(config, null, 2));
   } catch (error) {

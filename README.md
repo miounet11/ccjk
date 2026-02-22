@@ -171,6 +171,12 @@ ccjk at --status          # Check status
 ccjk cloud enable --provider github-gist
 ccjk cloud sync
 
+# Remote Control (Web/App)
+ccjk remote setup                       # One-command setup (interactive)
+ccjk remote setup --non-interactive --server-url <url> --auth-token <token> --binding-code <code>
+ccjk remote doctor                      # Diagnose remote readiness
+ccjk remote status                      # Quick runtime status
+
 # MCP Services
 ccjk mcp install <service>
 ccjk mcp list

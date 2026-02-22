@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ccjk.dev/schema/remote-json-contract.v1.json",
+  "title": "CCJK Remote JSON Contract",
+  "description": "Machine-readable output schema for `ccjk remote setup --json` and `ccjk remote doctor --json`.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/setupSuccess" },
+    { "$ref": "#/$defs/setupFailure" },
+    { "$ref": "#/$defs/doctorResult" }
+  ],
+  "$defs": {
+    "setupSuccess": {
+      "type": "object",
+      "required": ["success", "daemonRunning", "bound", "serverUrl"],
+      "properties": {
+        "success": { "const": true },
+        "daemonRunning": { "type": "boolean" },
+        "bound": { "type": "boolean" },
+        "serverUrl": { "type": "string", "minLength": 1 },
+        "machineId": { "type": "string", "minLength": 1 },
+        "error": false
+      },
+      "additionalProperties": false
+    },
+    "setupFailure": {
+      "type": "object",
+      "required": ["success", "error"],
+      "properties": {
+        "success": { "const": false },
+        "error": { "type": "string", "minLength": 1 },
+        "daemonRunning": false,
+        "bound": false,
+        "serverUrl": false,
+        "machineId": false
+      },
+      "additionalProperties": false
+    },
+    "doctorCheck": {
+      "type": "object",
+      "required": ["label", "ok"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "ok": { "type": "boolean" },
+        "detail": { "type": "string" },
+        "fixHint": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "doctorResult": {
+      "type": "object",
+      "required": ["success", "checks", "bindingStatus"],
+      "properties": {
+        "success": { "type": "boolean" },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/doctorCheck" }
+        },
+        "bindingStatus": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,12 +1,16 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, Button, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useAuthStore } from '../src/store/auth';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Button, StyleSheet, Text, View } from 'react-native';
 import { apiClient } from '../src/api/client';
 import { CONFIG } from '../src/config';
+import { useAuthStore } from '../src/store/auth';
 
 WebBrowser.maybeCompleteAuthSession();
+
+function generateEphemeralPublicKey(): string {
+  return `mobile-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
 
 export default function Auth() {
   const router = useRouter();
@@ -32,8 +36,7 @@ export default function Auth() {
           throw new Error('No code received');
         }
 
-        // TODO: Generate public key
-        const publicKey = 'placeholder-public-key';
+        const publicKey = generateEphemeralPublicKey();
 
         // Exchange code for token
         const { token, user } = await apiClient.authenticateWithGitHub(code, publicKey);

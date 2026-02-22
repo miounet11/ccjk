@@ -250,6 +250,7 @@
   "cloud.confirmUnbind": "确定要解绑此设备吗？",
   "cloud.unbindCancelled": "已取消解绑",
   "cloud.bindHint": "使用 'ccjk notification bind' 绑定此设备",
+  "cloud.migrateToRemoteSetup": "提示：现在推荐使用 'ccjk remote setup' 一键完成远程初始化。",
   "cloud.deviceIdLabel": "设备 ID：",
   "cloud.deviceNameLabel": "设备名称：",
   "cloud.platformLabel": "平台：",

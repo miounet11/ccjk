@@ -1,6 +1,6 @@
-import { CCJKTelegramBot } from './bot';
-import dotenv from 'dotenv';
 import chalk from 'chalk';
+import dotenv from 'dotenv';
+import { CCJKTelegramBot } from './bot';
 
 // Load environment variables
 dotenv.config();
@@ -12,7 +12,8 @@ dotenv.config();
 async function main() {
   // Validate environment variables
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-  const serverUrl = process.env.CCJK_SERVER_URL || 'http://localhost:3005';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const serverUrl = process.env.CCJK_SERVER_URL || (isProduction ? '' : 'http://localhost:3005');
   const authToken = process.env.CCJK_AUTH_TOKEN;
 
   if (!telegramToken) {
@@ -23,7 +24,17 @@ async function main() {
 
   if (!authToken) {
     console.error(chalk.red('❌ CCJK_AUTH_TOKEN is required'));
-    console.log(chalk.gray('\nGet your token from: ccjk remote login'));
+    console.log(chalk.gray('\nGet your token from: ccjk remote setup (or your CCJK Web/App dashboard)'));
+    process.exit(1);
+  }
+
+  if (!serverUrl) {
+    console.error(chalk.red('❌ CCJK_SERVER_URL is required in production'));
+    process.exit(1);
+  }
+
+  if (isProduction && !serverUrl.startsWith('https://')) {
+    console.error(chalk.red('❌ CCJK_SERVER_URL must use https:// in production'));
     process.exit(1);
   }
 

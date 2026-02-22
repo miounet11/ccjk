@@ -1600,16 +1600,37 @@ const COMMANDS: CommandDefinition[] = [
     description: 'Remote control management',
     tier: 'core',
     options: [
+      { flags: 'setup', description: 'One-command remote setup' },
+      { flags: 'doctor', description: 'Diagnose remote setup' },
       { flags: 'enable', description: 'Enable remote control' },
       { flags: 'disable', description: 'Disable remote control' },
       { flags: 'status', description: 'Show remote status' },
       { flags: 'qr', description: 'Show pairing QR code' },
+      { flags: '--json', description: 'Output as JSON' },
+      { flags: '--non-interactive', description: 'Fail instead of prompting' },
+      { flags: '--server-url <url>', description: 'Remote server URL for setup' },
+      { flags: '--auth-token <token>', description: 'Remote auth token for setup' },
+      { flags: '--binding-code <code>', description: 'Binding code for setup' },
     ],
     loader: async () => {
-      const { enableRemote, disableRemote, remoteStatus, showQRCode } = await import('./commands/remote')
+      const { doctorRemote, enableRemote, disableRemote, remoteStatus, setupRemote, showQRCode } = await import('./commands/remote')
       return async (options: CliOptions, ...args: unknown[]) => {
         const action = args[0] as string | undefined
         switch (action) {
+          case 'setup':
+            await setupRemote({
+              json: options.json as boolean,
+              nonInteractive: options.nonInteractive as boolean,
+              serverUrl: options.serverUrl as string | undefined,
+              authToken: options.authToken as string | undefined,
+              bindingCode: options.bindingCode as string | undefined,
+            })
+            break
+          case 'doctor':
+            await doctorRemote({
+              json: options.json as boolean,
+            })
+            break
           case 'enable':
             await enableRemote()
             break
