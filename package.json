@@ -173,7 +173,7 @@
     "typescript": "^5.9.3",
     "unbuild": "^3.6.1",
     "vitest": "^3.2.4",
-    "@anthropic-ai/sdk": "^0.52.0",
+    "@anthropic-ai/sdk": "^0.78.0",
     "ansis": "^4.2.0",
     "cac": "^6.7.14",
     "chokidar": "^4.0.3",
