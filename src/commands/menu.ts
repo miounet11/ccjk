@@ -22,6 +22,7 @@ import {
     mcpManagerFeature,
 } from '../utils/features'
 import { normalizeMenuInput } from '../utils/input-normalizer'
+import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { runCcrMenuFeature } from '../utils/tools'
 import { ccjkAgents } from './ccjk-agents'
@@ -173,10 +174,11 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('1.')} ${isZh ? '完整初始化' : 'Full Init'} ${ansis.dim(isZh ? '- 安装 Claude Code + 导入工作流 + 配置 API 或 CCR 代理 + 配置 MCP 服务' : '- Install Claude Code + Import workflows + Configure API or CCR proxy + Configure MCP')}`)
   console.log(`  ${ansis.green('2.')} ${isZh ? '导入工作流' : 'Import Workflows'} ${ansis.dim(isZh ? '- 仅导入/更新工作流相关文件' : '- Import/update workflow files only')}`)
   console.log(`  ${ansis.green('3.')} ${isZh ? '配置 API 或 CCR 代理' : 'Configure API or CCR Proxy'} ${ansis.dim(isZh ? '- 配置 API URL、认证信息或 CCR 代理' : '- Configure API URL, auth info or CCR proxy')}`)
-  console.log(`  ${ansis.green('4.')} ${isZh ? '安装/更新 MCP 服务' : 'Install / Update MCP Services'} ${ansis.dim(isZh ? '- 多选安装推荐服务，自动合并/修复 Windows 配置' : '- Multi-select & install recommended services, auto-fix Windows config')}`)
-  console.log(`  ${ansis.green('5.')} ${isZh ? '配置默认模型' : 'Configure Default Model'} ${ansis.dim(isZh ? '- 设置默认模型（opus/sonnet/sonnet 1m/自定义）' : '- Set default model (opus/sonnet/sonnet 1m/custom)')}`)
-  console.log(`  ${ansis.green('6.')} ${isZh ? '配置 Claude 全局记忆' : 'Configure Claude Memory'} ${ansis.dim(isZh ? '- 配置 AI 输出语言和输出风格' : '- Configure AI output language and style')}`)
-  console.log(`  ${ansis.green('7.')} ${isZh ? '权限 & 环境配置' : 'Permissions & Env Setup'} ${ansis.dim(isZh ? '- 导入环境变量 / 导入推荐权限 / 一键权限预设（最大/开发者/安全）' : '- Import env vars / import permissions / one-click presets (max/dev/safe)')}`)
+  console.log(`  ${ansis.green('4.')} ${isZh ? '远程控制（Web/Telegram）' : 'Remote Control (Web/Telegram)'} ${ansis.dim(isZh ? '- 一键初始化 + 快速绑定 + 二维码配对（核心功能）' : '- One-command setup + quick binding + QR pairing (core feature)')}`)
+  console.log(`  ${ansis.green('5.')} ${isZh ? '安装/更新 MCP 服务' : 'Install / Update MCP Services'} ${ansis.dim(isZh ? '- 多选安装推荐服务，自动合并/修复 Windows 配置' : '- Multi-select & install recommended services, auto-fix Windows config')}`)
+  console.log(`  ${ansis.green('6.')} ${isZh ? '配置默认模型' : 'Configure Default Model'} ${ansis.dim(isZh ? '- 设置默认模型（opus/sonnet/sonnet 1m/自定义）' : '- Set default model (opus/sonnet/sonnet 1m/custom)')}`)
+  console.log(`  ${ansis.green('7.')} ${isZh ? '配置 Claude 全局记忆' : 'Configure Claude Memory'} ${ansis.dim(isZh ? '- 配置 AI 输出语言和输出风格' : '- Configure AI output language and style')}`)
+  console.log(`  ${ansis.green('8.')} ${isZh ? '权限 & 环境配置' : 'Permissions & Env Setup'} ${ansis.dim(isZh ? '- 导入环境变量 / 导入推荐权限 / 一键权限预设（最大/开发者/安全）' : '- Import env vars / import permissions / one-click presets (max/dev/safe)')}`)
   console.log('')
 
   // --------- 其他工具 ----------
@@ -205,7 +207,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     message: isZh ? '请输入选项:' : 'Enter option:',
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'k', 'm', 'a', 'p', 'r', 's', '-', '+', 'd', 'h', 'q']
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'k', 'm', 'a', 'p', 'r', 's', '-', '+', 'd', 'h', 'q']
       return valid.includes(normalized) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
@@ -238,24 +240,80 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     case '4': {
+      // Remote Control - quick setup and binding flow
+      const {
+        setupRemote,
+        remoteStatus,
+        showQRCode,
+        doctorRemote,
+      } = await import('./remote')
+
+      const { remoteAction } = await inquirer.prompt<{ remoteAction: 'setup' | 'qr' | 'status' | 'doctor' | 'back' }>({
+        type: 'list',
+        name: 'remoteAction',
+        message: isZh ? '远程控制：请选择操作' : 'Remote Control: Select action',
+        choices: addNumbersToChoices([
+          {
+            name: isZh ? '一键初始化并绑定（推荐）' : 'One-command setup & bind (recommended)',
+            value: 'setup',
+          },
+          {
+            name: isZh ? '显示配对二维码（App/Web）' : 'Show pairing QR code (App/Web)',
+            value: 'qr',
+          },
+          {
+            name: isZh ? '查看远程状态' : 'Show remote status',
+            value: 'status',
+          },
+          {
+            name: isZh ? '远程诊断（Doctor）' : 'Remote doctor',
+            value: 'doctor',
+          },
+          {
+            name: isZh ? '返回' : 'Back',
+            value: 'back',
+          },
+        ]),
+      })
+
+      switch (remoteAction) {
+        case 'setup':
+          await setupRemote()
+          break
+        case 'qr':
+          await showQRCode()
+          break
+        case 'status':
+          await remoteStatus()
+          break
+        case 'doctor':
+          await doctorRemote()
+          break
+        default:
+          break
+      }
+      break
+    }
+
+    case '5': {
       // Configure MCP - use configureMcpFeature() like zcf
       await configureMcpFeature()
       break
     }
 
-    case '5': {
+    case '6': {
       // Configure Default Model - same as zcf
       await configureDefaultModelFeature()
       break
     }
 
-    case '6': {
+    case '7': {
       // Configure Claude Memory - same as zcf
       await configureAiMemoryFeature()
       break
     }
 
-    case '7': {
+    case '8': {
       // Permissions & Env Setup — merged from old 7 + 8
       await configureMergedPermissionsFeature()
       break
