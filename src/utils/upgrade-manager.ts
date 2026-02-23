@@ -1,5 +1,5 @@
-import process from 'node:process'
 import ansis from 'ansis'
+import process from 'node:process'
 import ora from 'ora'
 import * as semver from 'semver'
 import { exec } from 'tinyexec'

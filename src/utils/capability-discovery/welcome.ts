@@ -3,9 +3,9 @@
  * Creates beautiful welcome messages showing available capabilities
  */
 
-import type { CapabilityScanResult, WelcomeOptions } from './types'
 import ansis from 'ansis'
 import { getRuntimeVersion } from '../runtime-package'
+import type { CapabilityScanResult, WelcomeOptions } from './types'
 
 const BOX_CHARS = {
   topLeft: '╭',

@@ -1,6 +1,6 @@
+import ansis from 'ansis'
 import { homedir } from 'node:os'
 import process from 'node:process'
-import ansis from 'ansis'
 import ora from 'ora'
 import { exec } from 'tinyexec'
 import { renderProgressBar, STATUS } from './banner'

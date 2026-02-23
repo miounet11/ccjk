@@ -1,9 +1,9 @@
-import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
-import { existsSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias, SETTINGS_FILE } from '../constants'
+import { existsSync } from 'node:fs'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
+import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
+import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
 import { displayBanner } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
@@ -11,10 +11,10 @@ import { readMcpConfig } from '../utils/claude-config'
 import { runCodexUpdate } from '../utils/code-tools/codex'
 import { copyConfigFiles } from '../utils/config'
 import {
-  displayMigrationResult,
-  migrateSettingsForTokenRetrieval,
-  needsMigration,
-  promptMigration,
+    displayMigrationResult,
+    migrateSettingsForTokenRetrieval,
+    needsMigration,
+    promptMigration,
 } from '../utils/config-migration'
 import { updatePromptOnly } from '../utils/config-operations'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'

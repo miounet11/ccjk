@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
 
 interface RuntimePackageMetadata {

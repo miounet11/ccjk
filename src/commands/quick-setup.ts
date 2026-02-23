@@ -12,15 +12,15 @@
  *   ccjk qs                       - Short alias
  */
 
-import type { SmartDefaults } from '../config/smart-defaults'
-import type { CodeToolType, SupportedLang } from '../constants'
-import type { InitOptions } from './init'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import type { SmartDefaults } from '../config/smart-defaults'
 import { detectSmartDefaults } from '../config/smart-defaults'
+import type { CodeToolType, SupportedLang } from '../constants'
 import { i18n } from '../i18n'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { getRuntimeVersion } from '../utils/runtime-package'
+import type { InitOptions } from './init'
 import { init } from './init'
 
 const ccjkVersion = getRuntimeVersion()

@@ -9,16 +9,16 @@
  */
 
 import type { FSWatcher } from 'chokidar'
-import type { SkillParseResult } from './skill-parser'
-import type { SkillRegistryEntry } from './skill-registry'
-import type { MessageType } from './types'
+import chokidar from 'chokidar'
 import { EventEmitter } from 'node:events'
 import { homedir } from 'node:os'
-import chokidar from 'chokidar'
 import { basename, join } from 'pathe'
 import { getMessageBus } from './message-bus'
+import type { SkillParseResult } from './skill-parser'
 import { getSkillParser, isSkillFile as isSkillFileCanonical } from './skill-parser'
+import type { SkillRegistryEntry } from './skill-registry'
 import { getSkillRegistry } from './skill-registry'
+import type { MessageType } from './types'
 
 // ============================================================================
 // Types

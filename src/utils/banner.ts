@@ -4,34 +4,32 @@
  * MUD-style terminal aesthetics: green text, white highlights
  */
 
-import type { BoxStyle } from './theme'
 import ansis from 'ansis'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { getRuntimeHomepage, getRuntimeVersion } from './runtime-package'
+import type { BoxStyle } from './theme'
 import {
-  box,
-  boxify,
-  COLORS,
-  divider,
-  header,
-  menuItem,
-  progress,
-  status,
-  theme,
+    box,
+    boxify,
+    COLORS,
+    divider,
+    header,
+    menuItem,
+    progress,
+    status,
+    theme,
 } from './theme'
 
 // Re-export theme utilities for backward compatibility
 export {
-  box,
-  boxify,
-  type BoxStyle,
-  COLORS,
-  divider,
-  header,
-  menuItem,
-  progress,
-  status,
-  theme,
+    box,
+    boxify, COLORS,
+    divider,
+    header,
+    menuItem,
+    progress,
+    status,
+    theme, type BoxStyle
 }
 
 /** Calculate display width considering CJK characters */

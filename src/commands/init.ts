@@ -1,65 +1,65 @@
-import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
-import type { McpServerConfig } from '../types'
-import type { ApiConfigDefinition, ClaudeCodeProfile } from '../types/claude-code-config'
-import type { CodexProvider } from '../utils/code-tools/codex'
-import { existsSync } from 'node:fs'
-import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { existsSync } from 'node:fs'
+import process from 'node:process'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
+import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
 import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
+import type { McpServerConfig } from '../types'
+import type { ApiConfigDefinition, ClaudeCodeProfile } from '../types/claude-code-config'
 import { displayBannerWithInfo, padToDisplayWidth } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
-import { displayError } from '../utils/error-formatter'
-import { ProgressTracker } from '../utils/progress-tracker'
 import { backupCcrConfig, configureCcrProxy, createDefaultCcrConfig, readCcrConfig, setupCcrConfiguration, writeCcrConfig } from '../utils/ccr/config'
 import { installCcr, isCcrInstalled } from '../utils/ccr/installer'
 import {
-  addCompletedOnboarding,
-  backupMcpConfig,
-  buildMcpServerConfig,
-  fixWindowsMcpConfig,
-  readMcpConfig,
-  replaceMcpServers,
-  setPrimaryApiKey,
-  syncMcpPermissions,
-  writeMcpConfig,
+    addCompletedOnboarding,
+    backupMcpConfig,
+    buildMcpServerConfig,
+    fixWindowsMcpConfig,
+    readMcpConfig,
+    replaceMcpServers,
+    setPrimaryApiKey,
+    syncMcpPermissions,
+    writeMcpConfig,
 } from '../utils/claude-config'
+import type { CodexProvider } from '../utils/code-tools/codex'
 import { runCodexFullInit } from '../utils/code-tools/codex'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { installCometixLine, isCometixLineInstalled } from '../utils/cometix/installer'
 import {
-  applyAiLanguageDirective,
-  backupExistingConfig,
-  configureApi,
-  copyConfigFiles,
-  ensureClaudeDir,
-  getExistingApiConfig,
-  promptApiConfigurationAction,
-  switchToOfficialLogin,
+    applyAiLanguageDirective,
+    backupExistingConfig,
+    configureApi,
+    copyConfigFiles,
+    ensureClaudeDir,
+    getExistingApiConfig,
+    promptApiConfigurationAction,
+    switchToOfficialLogin,
 } from '../utils/config'
 import {
-  displayMigrationResult,
-  migrateSettingsForTokenRetrieval,
-  needsMigration,
-  promptMigration,
+    displayMigrationResult,
+    migrateSettingsForTokenRetrieval,
+    needsMigration,
+    promptMigration,
 } from '../utils/config-migration'
 import { configureApiCompletely, modifyApiConfigPartially } from '../utils/config-operations'
+import { displayError } from '../utils/error-formatter'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { getInstallationStatus, installClaudeCode } from '../utils/installer'
 import { selectMcpServices } from '../utils/mcp-selector'
 import { configureOutputStyle } from '../utils/output-style'
 import { isTermux, isWindows } from '../utils/platform'
+import { ProgressTracker } from '../utils/progress-tracker'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { resolveAiOutputLanguage } from '../utils/prompts'
+import { getRuntimeVersion } from '../utils/runtime-package'
 import { checkSuperpowersInstalled, installSuperpowers } from '../utils/superpowers/installer'
 import { promptBoolean } from '../utils/toggle-prompt'
 import { formatApiKeyDisplay } from '../utils/validator'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
 import { selectAndInstallWorkflows } from '../utils/workflow-installer'
-import { getRuntimeVersion } from '../utils/runtime-package'
 
 const ccjkVersion = getRuntimeVersion()
 

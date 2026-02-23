@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "12.0.4",
+  "version": "12.0.5",
   "packageManager": "pnpm@10.17.1",
   "description": "CLI toolkit for Claude Code and Codex setup. Simplifies MCP service installation, API configuration, workflow management, and multi-provider support with guided interactive setup.",
   "author": {
@@ -86,6 +86,8 @@
     "build": "unbuild",
     "start": "node bin/ccjk.mjs",
     "typecheck": "tsc --noEmit",
+    "release:verify": "node scripts/release-verify.mjs",
+    "release:verify:full": "node scripts/release-verify.mjs --with-tests",
     "prepublishOnly": "node scripts/validate-prepublish.mjs && pnpm contract:check && pnpm build && pnpm test:run",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
