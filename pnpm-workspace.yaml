@@ -10,7 +10,7 @@ catalog:
   '@changesets/cli': ^2.29.7
   '@commitlint/cli': ^19.8.1
   '@commitlint/config-conventional': ^19.8.1
-  '@commitlint/types': ^19.8.1
+  '@commitlint/types': ^20.4.0
   '@fastify/cors': ^10.0.1
   '@iconify-json/carbon': ^1.2.14
   '@paralleldrive/cuid2': ^2.2.2
