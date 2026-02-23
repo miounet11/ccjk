@@ -21,6 +21,12 @@ export default defineBuildConfig({
   externals: [
     'fdir',
     'tinyglobby',
+    'web-tree-sitter',
+    'tar',
+    'ioredis',
+    'better-sqlite3',
+    'globby',
+    'unicorn-magic'
   ],
   hooks: {
     'rollup:options': (_ctx, options) => {
@@ -67,7 +73,7 @@ export default defineBuildConfig({
             return true // externalize Node.js builtins
           }
           // Explicitly allowed externals (native/optional packages)
-          const allowedExternals = new Set(['fdir', 'tinyglobby'])
+          const allowedExternals = new Set(['fdir', 'tinyglobby', 'web-tree-sitter', 'tar', 'ioredis', 'better-sqlite3', 'globby', 'unicorn-magic'])
           if (allowedExternals.has(pkgName)) {
             return true
           }
