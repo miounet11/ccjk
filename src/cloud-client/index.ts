@@ -7,6 +7,16 @@
 
 // Import classes
 import type { CloudClient } from './client'
+import type {
+  BatchTemplateRequest,
+  BatchTemplateResponse,
+  HealthCheckResponse,
+  ProjectAnalysisRequest,
+  ProjectAnalysisResponse,
+  TemplateResponse,
+  UsageReport,
+  UsageReportResponse,
+} from './types'
 
 // Import dependencies
 import consola from 'consola'
@@ -27,6 +37,21 @@ export { CachedCloudClient, CloudCache } from './cache'
 
 // Export core client
 export { CloudClient, createCloudClient } from './client'
+
+// Export standardized error handling
+export {
+  CloudError,
+  CloudErrorCode,
+  CloudErrorFactory,
+  formatErrorForLogging,
+  getRetryDelay,
+  handleCloudError,
+  isAuthError,
+  isRateLimitError,
+  isRetryableError,
+  isRetryableErrorCode,
+} from './errors'
+export type { CloudErrorMetadata } from './errors'
 
 // Ratings API
 export {
@@ -69,6 +94,9 @@ export {
 }
 // Skills Marketplace API
 export { skillsMarketplaceApi } from './skills-marketplace-api.js'
+
+// Unified Skills API
+export * from './skills/index.js'
 
 /**
  * Export default client factory
@@ -118,7 +146,7 @@ export class FallbackCloudClient {
   /**
    * Analyze project with fallback
    */
-  async analyzeProject(request: any): Promise<any> {
+  async analyzeProject(request: ProjectAnalysisRequest): Promise<ProjectAnalysisResponse> {
     try {
       return await this.client.analyzeProject(request)
     }
@@ -134,7 +162,7 @@ export class FallbackCloudClient {
   /**
    * Get template with fallback
    */
-  async getTemplate(id: string, language?: string): Promise<any> {
+  async getTemplate(id: string, language?: string): Promise<TemplateResponse> {
     try {
       return await this.client.getTemplate(id, language)
     }
@@ -150,7 +178,7 @@ export class FallbackCloudClient {
   /**
    * Get batch templates with fallback
    */
-  async getBatchTemplates(request: any): Promise<any> {
+  async getBatchTemplates(request: BatchTemplateRequest): Promise<BatchTemplateResponse> {
     try {
       return await this.client.getBatchTemplates(request)
     }
@@ -166,21 +194,21 @@ export class FallbackCloudClient {
   /**
    * Report usage (no fallback)
    */
-  async reportUsage(report: any): Promise<any> {
+  async reportUsage(report: UsageReport): Promise<UsageReportResponse> {
     return this.client.reportUsage(report)
   }
 
   /**
    * Health check (no fallback)
    */
-  async healthCheck(): Promise<any> {
+  async healthCheck(): Promise<HealthCheckResponse> {
     return this.client.healthCheck()
   }
 
   /**
    * Get local fallback recommendations
    */
-  private getLocalRecommendations(request: any): any {
+  private getLocalRecommendations(request: ProjectAnalysisRequest): ProjectAnalysisResponse {
     // Basic local recommendations based on project type
     const recommendations = []
 
@@ -190,7 +218,7 @@ export class FallbackCloudClient {
         id: 'typescript-workflow',
         name: { 'en': 'TypeScript Workflow', 'zh-CN': 'TypeScript 工作流' },
         description: { 'en': 'Enhanced TypeScript support', 'zh-CN': '增强的 TypeScript 支持' },
-        category: 'skill',
+        category: 'skill' as const,
         relevanceScore: 0.9,
         installCommand: 'ccjk config switch typescript',
         tags: ['typescript', 'type-checking'],
@@ -203,7 +231,7 @@ export class FallbackCloudClient {
         id: 'react-workflow',
         name: { 'en': 'React Workflow', 'zh-CN': 'React 工作流' },
         description: { 'en': 'React development tools', 'zh-CN': 'React 开发工具' },
-        category: 'skill',
+        category: 'skill' as const,
         relevanceScore: 0.95,
         installCommand: 'ccjk config switch react',
         tags: ['react', 'jsx', 'frontend'],
@@ -216,7 +244,7 @@ export class FallbackCloudClient {
         id: 'nodejs-workflow',
         name: { 'en': 'Node.js Workflow', 'zh-CN': 'Node.js 工作流' },
         description: { 'en': 'Node.js development tools', 'zh-CN': 'Node.js 开发工具' },
-        category: 'skill',
+        category: 'skill' as const,
         relevanceScore: 0.9,
         installCommand: 'ccjk config switch nodejs',
         tags: ['nodejs', 'backend', 'server'],
@@ -229,7 +257,7 @@ export class FallbackCloudClient {
         id: 'git-workflow',
         name: { 'en': 'Git Workflow', 'zh-CN': 'Git 工作流' },
         description: { 'en': 'Git best practices', 'zh-CN': 'Git 最佳实践' },
-        category: 'skill',
+        category: 'skill' as const,
         relevanceScore: 0.8,
         installCommand: 'ccjk config switch git',
         tags: ['git', 'vcs'],
@@ -247,9 +275,9 @@ export class FallbackCloudClient {
   /**
    * Get local fallback template
    */
-  private getLocalTemplate(id: string, _language?: string): any {
+  private getLocalTemplate(id: string, _language?: string): TemplateResponse {
     // Basic local templates
-    const templates: Record<string, any> = {
+    const templates: Record<string, TemplateResponse> = {
       'basic-workflow': {
         id: 'basic-workflow',
         type: 'workflow',
@@ -280,8 +308,8 @@ export class FallbackCloudClient {
   /**
    * Get local fallback batch templates
    */
-  private getLocalBatchTemplates(request: any): any {
-    const templates: Record<string, any> = {}
+  private getLocalBatchTemplates(request: BatchTemplateRequest): BatchTemplateResponse {
+    const templates: Record<string, TemplateResponse> = {}
     const notFound: string[] = []
 
     for (const id of request.ids) {
@@ -303,7 +331,7 @@ export class FallbackCloudClient {
   /**
    * Detect project type
    */
-  private detectProjectType(request: any): string {
+  private detectProjectType(request: ProjectAnalysisRequest): string {
     if (request.dependencies?.react)
       return 'react'
     if (request.dependencies?.vue)
@@ -318,7 +346,7 @@ export class FallbackCloudClient {
   /**
    * Detect frameworks
    */
-  private detectFrameworks(request: any): string[] {
+  private detectFrameworks(request: ProjectAnalysisRequest): string[] {
     const frameworks: string[] = []
     const deps = { ...request.dependencies, ...request.devDependencies }
 
@@ -407,6 +435,45 @@ export type {
   UsageReport,
   UsageReportResponse,
 } from './types'
+
+// Export DTO types and converters
+export type {
+  AgentConfig,
+  AnalysisCompletedData,
+  BatchTelemetryData,
+  ErrorOccurredData,
+  HookConfig,
+  McpServerConfig,
+  RawBatchTemplateResponse,
+  RawProjectAnalysisResponse,
+  RawRecommendation,
+  RawTemplate,
+  RecommendationAcceptedData,
+  RecommendationConfig,
+  RecommendationShownData,
+  SkillConfig,
+  TelemetryEventData,
+  TemplateDownloadData,
+  TemplateParameterValue,
+  WorkflowConfig,
+} from './dto'
+
+export {
+  convertBatchTemplateResponse,
+  convertConfig,
+  convertParameterDefault,
+  convertProjectAnalysisResponse,
+  convertRecommendation,
+  convertTemplate,
+  convertTemplateParameter,
+  extractString,
+  isRecommendationConfig,
+  isTelemetryEventData,
+  isTemplateParameterValue,
+  validateBatchTemplateRequest,
+  validateProjectAnalysisRequest,
+  validateUsageReport,
+} from './dto'
 
 // User Skills API
 export type { AuthRequestOptions } from './user-skills-api.js'

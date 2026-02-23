@@ -1,0 +1,40 @@
+{
+  "title": "Cloud Client",
+  "description": "Cloud API client for CCJK services",
+
+  "errors": {
+    "AUTH_ERROR": "Authentication failed. Please check your credentials.",
+    "RATE_LIMIT": "Rate limit exceeded. Please try again later.",
+    "SCHEMA_MISMATCH": "Response format validation failed. The server response does not match the expected schema.",
+    "NETWORK_ERROR": "Network connection failed. Please check your internet connection.",
+    "TIMEOUT": "Request timeout. The server did not respond in time.",
+    "SERVER_ERROR": "Server error occurred. Please try again later.",
+    "NOT_FOUND": "Resource not found. The requested resource does not exist.",
+    "API_ERROR": "API request failed. Please check your request parameters.",
+    "VALIDATION_ERROR": "Validation error. Please check your input data.",
+    "UNKNOWN_ERROR": "An unknown error occurred. Please try again.",
+
+    "context": {
+      "projectAnalysis": "Failed to analyze project",
+      "templateFetch": "Failed to fetch template",
+      "batchTemplateFetch": "Failed to fetch batch templates",
+      "usageReport": "Failed to report usage",
+      "healthCheck": "Failed to check API health"
+    },
+
+    "retry": {
+      "attempting": "Retrying request (attempt {{attempt}}/{{maxAttempts}})...",
+      "failed": "Request failed after {{attempts}} attempts",
+      "backoff": "Waiting {{delay}}ms before retry"
+    }
+  },
+
+  "status": {
+    "connecting": "Connecting to cloud service...",
+    "connected": "Connected to cloud service",
+    "disconnected": "Disconnected from cloud service",
+    "healthy": "Cloud service is healthy",
+    "degraded": "Cloud service is degraded",
+    "unhealthy": "Cloud service is unhealthy"
+  }
+}

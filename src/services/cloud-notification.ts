@@ -9,11 +9,26 @@
  */
 
 import type { DeviceInfo } from '../utils/notification/token'
+import type {
+  BindRequest,
+  BindResponse,
+  NotifyRequest,
+  NotifyResponse,
+  PollResponse,
+} from '../cloud-client/notifications/types'
 import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { writeFileAtomic } from '../utils/fs-operations'
 import { getDeviceInfo } from '../utils/notification/token'
+import { createDefaultGateway } from '../cloud-client/gateway'
+import {
+  validateBindRequest,
+  validateBindResponse,
+  validateNotifyRequest,
+  validateNotifyResponse,
+  validatePollResponse,
+} from '../cloud-client/notifications/types'
 
 // ============================================================================
 // Constants
@@ -46,31 +61,7 @@ export interface CloudTokenStorage {
   deviceInfo?: DeviceInfo
 }
 
-/**
- * Bind request payload
- */
-export interface BindRequest {
-  /** Binding code from mobile app */
-  code: string
-  /** Device information */
-  deviceInfo: DeviceInfo
-}
-
-/**
- * Bind response from cloud service
- */
-export interface BindResponse {
-  /** Whether binding was successful */
-  success: boolean
-  /** Device token for future requests */
-  deviceToken?: string
-  /** Device ID */
-  deviceId?: string
-  /** Error message if failed */
-  error?: string
-  /** Error code */
-  code?: string
-}
+// Note: BindRequest and BindResponse are now imported from cloud-client/notifications/types
 
 /**
  * Notification options
@@ -94,19 +85,8 @@ export interface NotifyOptions {
   }>
 }
 
-/**
- * Notification response
- */
-export interface NotifyResponse {
-  /** Whether notification was sent successfully */
-  success: boolean
-  /** Notification ID */
-  notificationId?: string
-  /** Error message if failed */
-  error?: string
-  /** Error code */
-  code?: string
-}
+// Re-export types from cloud-client for backward compatibility
+export type { BindRequest, BindResponse, NotifyRequest, NotifyResponse, PollResponse } from '../cloud-client/notifications/types'
 
 /**
  * Reply from user
@@ -168,6 +148,7 @@ export class CCJKCloudClient {
   private baseUrl: string
   private deviceToken: string | null = null
   private deviceId: string | null = null
+  private gateway = createDefaultGateway()
 
   /**
    * Create a new CCJKCloudClient instance
@@ -283,20 +264,46 @@ export class CCJKCloudClient {
       ? { ...getDeviceInfo(), ...deviceInfo }
       : getDeviceInfo()
 
-    const response = await this.request<{
+    // Validate request
+    const requestPayload: BindRequest = {
+      code,
+      deviceInfo: info,
+    }
+    const requestValidation = validateBindRequest(requestPayload)
+    if (!requestValidation.valid) {
+      return {
+        success: false,
+        error: `Invalid bind request: ${requestValidation.errors.join(', ')}`,
+        code: 'VALIDATION_ERROR',
+      }
+    }
+
+    // Make request through gateway
+    const response = await this.gateway.request<{
       deviceToken: string
       deviceId: string
-    }>('/bind/use', {
+    }>('notifications.bind', {
       method: 'POST',
-      body: JSON.stringify({
-        code,
-        deviceInfo: info,
-      }),
+      body: requestPayload,
+      authToken: this.deviceToken || undefined,
     })
+
+    // Validate response
+    const responseValidation = validateBindResponse(response as BindResponse)
+    if (!responseValidation.valid) {
+      return {
+        success: false,
+        error: `Invalid bind response: ${responseValidation.errors.join(', ')}`,
+        code: 'RESPONSE_VALIDATION_ERROR',
+      }
+    }
 
     if (response.success && response.data) {
       this.deviceToken = response.data.deviceToken
       this.deviceId = response.data.deviceId
+
+      // Update gateway auth token
+      this.gateway.setAuthToken(response.data.deviceToken)
 
       // Save token to storage
       this.saveToken({
@@ -309,8 +316,10 @@ export class CCJKCloudClient {
 
       return {
         success: true,
-        deviceToken: response.data.deviceToken,
-        deviceId: response.data.deviceId,
+        data: {
+          deviceToken: response.data.deviceToken,
+          deviceId: response.data.deviceId,
+        },
       }
     }
 
@@ -350,24 +359,49 @@ export class CCJKCloudClient {
       }
     }
 
-    const response = await this.request<{
+    // Validate request
+    const requestPayload: NotifyRequest = {
+      title: options.title,
+      body: options.body,
+      type: options.type || 'info',
+      taskId: options.taskId,
+      metadata: options.metadata,
+      actions: options.actions,
+    }
+    const requestValidation = validateNotifyRequest(requestPayload)
+    if (!requestValidation.valid) {
+      return {
+        success: false,
+        error: `Invalid notify request: ${requestValidation.errors.join(', ')}`,
+        code: 'VALIDATION_ERROR',
+      }
+    }
+
+    // Make request through gateway
+    const response = await this.gateway.request<{
       notificationId: string
-    }>('/notify', {
+    }>('notifications.send', {
       method: 'POST',
-      body: JSON.stringify({
-        title: options.title,
-        body: options.body,
-        type: options.type || 'info',
-        taskId: options.taskId,
-        metadata: options.metadata,
-        actions: options.actions,
-      }),
+      body: requestPayload,
+      authToken: this.deviceToken,
     })
+
+    // Validate response
+    const responseValidation = validateNotifyResponse(response as NotifyResponse)
+    if (!responseValidation.valid) {
+      return {
+        success: false,
+        error: `Invalid notify response: ${responseValidation.errors.join(', ')}`,
+        code: 'RESPONSE_VALIDATION_ERROR',
+      }
+    }
 
     if (response.success && response.data) {
       return {
         success: true,
-        notificationId: response.data.notificationId,
+        data: {
+          notificationId: response.data.notificationId,
+        },
       }
     }
 
@@ -405,19 +439,33 @@ export class CCJKCloudClient {
       throw new Error('Device not bound. Please run "ccjk notification bind <code>" first.')
     }
 
-    const response = await this.request<{
+    // Make request through gateway
+    const response = await this.gateway.request<{
       reply: {
         content: string
         timestamp: string
         notificationId?: string
         actionId?: string
       } | null
-    }>(`/reply/poll?timeout=${timeout}`, {
+    }>('notifications.poll', {
       method: 'GET',
+      query: { timeout },
+      authToken: this.deviceToken,
       timeout,
     })
 
-    if (response.success && response.data?.reply) {
+    // Validate response
+    const responseValidation = validatePollResponse(response as PollResponse)
+    if (!responseValidation.valid) {
+      throw new Error(`Invalid poll response: ${responseValidation.errors.join(', ')}`)
+    }
+
+    // If request failed, throw error
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to poll for reply')
+    }
+
+    if (response.data?.reply) {
       return {
         content: response.data.reply.content,
         timestamp: new Date(response.data.reply.timestamp),
@@ -527,96 +575,7 @@ export class CCJKCloudClient {
     }
   }
 
-  // ==========================================================================
-  // HTTP Request Helper
-  // ==========================================================================
-
-  /**
-   * Make an HTTP request to the cloud service
-   */
-  private async request<T>(
-    path: string,
-    options: {
-      method: string
-      body?: string
-      timeout?: number
-    },
-  ): Promise<CloudApiResponse<T>> {
-    const url = `${this.baseUrl}${path}`
-    const timeout = options.timeout || DEFAULT_TIMEOUT
-
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
-
-    try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-
-      // Add device token header if available
-      if (this.deviceToken) {
-        headers['X-Device-Token'] = this.deviceToken
-      }
-
-      const response = await fetch(url, {
-        method: options.method,
-        headers,
-        body: options.body,
-        signal: controller.signal,
-      })
-
-      clearTimeout(timeoutId)
-
-      const data = await response.json() as CloudApiResponse<T>
-
-      if (!response.ok) {
-        return {
-          success: false,
-          error: data.error || `HTTP ${response.status}: ${response.statusText}`,
-          code: data.code || `HTTP_${response.status}`,
-        }
-      }
-
-      // Update last used timestamp
-      if (this.deviceToken && existsSync(TOKEN_FILE_PATH)) {
-        try {
-          const storageData = readFileSync(TOKEN_FILE_PATH, 'utf-8')
-          const storage: CloudTokenStorage = JSON.parse(storageData)
-          storage.lastUsedAt = new Date().toISOString()
-          writeFileAtomic(TOKEN_FILE_PATH, JSON.stringify(storage, null, 2))
-        }
-        catch {
-          // Ignore errors updating last used
-        }
-      }
-
-      return data
-    }
-    catch (error) {
-      clearTimeout(timeoutId)
-
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          return {
-            success: false,
-            error: 'Request timeout',
-            code: 'TIMEOUT',
-          }
-        }
-        return {
-          success: false,
-          error: error.message,
-          code: 'NETWORK_ERROR',
-        }
-      }
-
-      return {
-        success: false,
-        error: String(error),
-        code: 'UNKNOWN_ERROR',
-      }
-    }
-  }
+  // Note: HTTP requests now handled by CloudApiGateway
 }
 
 // ============================================================================

@@ -9,6 +9,7 @@ The cloud client module provides a complete HTTP client for the CCJK Cloud API v
 - **Exponential Backoff Retry**: 100ms → 200ms → 400ms → 800ms, max 3 retries
 - **Anonymous Telemetry**: Batch reporting with opt-out support
 - **Fallback Support**: Local recommendations when API is unavailable
+- **Standardized Error Handling**: Unified error codes with localized messages
 - **TypeScript**: Full type safety with comprehensive error handling
 
 ## Directory Structure
@@ -18,6 +19,7 @@ src/cloud-client/
 ├── index.ts          # Main exports and factory functions
 ├── types.ts          # All TypeScript interfaces and types
 ├── client.ts         # Core CloudClient class with HTTP methods
+├── errors.ts         # Standardized error handling system
 ├── cache.ts          # Caching layer with filesystem persistence
 ├── retry.ts          # Exponential backoff retry logic
 └── telemetry.ts      # Anonymous telemetry reporting
@@ -119,14 +121,100 @@ interface CloudClientConfig {
 
 ## Error Handling
 
-The module exports a `CloudClientError` class with detailed error types:
-- `NETWORK_ERROR`: Network connection issues
-- `TIMEOUT_ERROR`: Request timeout
-- `API_ERROR`: API errors (4xx)
-- `VALIDATION_ERROR`: Request validation errors
-- `AUTH_ERROR`: Authentication errors
-- `RATE_LIMIT_ERROR`: Rate limiting errors
-- `SERVER_ERROR`: Server errors (5xx)
+The module provides a standardized error handling system with localized messages.
+
+### Error Codes
+
+- `AUTH_ERROR`: Authentication failed (401/403)
+- `RATE_LIMIT`: Rate limit exceeded (429)
+- `SCHEMA_MISMATCH`: Response format validation failed
+- `NETWORK_ERROR`: Network connection failed
+- `TIMEOUT`: Request timeout
+- `SERVER_ERROR`: Server error (5xx)
+- `NOT_FOUND`: Resource not found (404)
+- `API_ERROR`: Generic API error (4xx)
+- `VALIDATION_ERROR`: Client-side validation error
+- `UNKNOWN_ERROR`: Unknown error
+
+### Usage Example
+
+```typescript
+import {
+  CloudErrorFactory,
+  handleCloudError,
+  isRetryableError,
+  isAuthError,
+  getRetryDelay,
+} from './src/cloud-client'
+
+try {
+  const result = await client.analyzeProject(request)
+} catch (error) {
+  // Convert to CloudError with context
+  const cloudError = handleCloudError(error, 'project analysis')
+
+  // Get localized message
+  console.error(cloudError.getUserMessage('en'))
+
+  // Check if retryable
+  if (isRetryableError(cloudError)) {
+    const delay = getRetryDelay(cloudError, attemptNumber)
+    await sleep(delay)
+    // retry...
+  }
+
+  // Check specific error types
+  if (isAuthError(cloudError)) {
+    // Handle authentication error
+  }
+}
+```
+
+### Error Factory
+
+```typescript
+// Create specific errors
+const authError = CloudErrorFactory.auth('Invalid token')
+const rateLimitError = CloudErrorFactory.rateLimit()
+const networkError = CloudErrorFactory.network(originalError)
+const timeoutError = CloudErrorFactory.timeout(10000)
+
+// Create from HTTP status
+const httpError = CloudErrorFactory.fromHttpStatus(404, 'Not found')
+```
+
+### Error Properties
+
+```typescript
+interface CloudError {
+  code: CloudErrorCode           // Standard error code
+  message: string                // Error message
+  statusCode?: number            // HTTP status code
+  isRetryable: boolean           // Whether error is retryable
+  originalError?: unknown        // Original error object
+  context?: Record<string, any>  // Additional context
+  requestId?: string             // Request tracking ID
+
+  // Methods
+  getLocalizedMessage(lang?: string): string
+  getUserMessage(lang?: string): string
+  toJSON(): Record<string, any>
+}
+```
+
+### Localized Messages
+
+Error messages are automatically localized based on the i18n configuration:
+
+```typescript
+// English
+cloudError.getLocalizedMessage('en')
+// "Authentication failed. Please check your credentials."
+
+// Chinese
+cloudError.getLocalizedMessage('zh-CN')
+// "认证失败，请检查您的凭据。"
+```
 
 ## Telemetry
 

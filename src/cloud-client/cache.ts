@@ -98,7 +98,7 @@ export class CloudCache {
   /**
    * Generate cache key from parameters
    */
-  generateKey(prefix: string, params: Record<string, any>): string {
+  generateKey(prefix: string, params: Record<string, unknown> | object): string {
     const hashValue = hash(params)
     return `${prefix}:${hashValue}`
   }
@@ -278,18 +278,18 @@ export class CachedCloudClient {
   /**
    * Report usage (no caching)
    */
-  async reportUsage(report: any): Promise<any> {
+  async reportUsage(report: import('./types').UsageReport): Promise<import('./types').UsageReportResponse> {
     return this.client.reportUsage(report)
   }
 
   /**
    * Health check with caching (5-minute TTL)
    */
-  async healthCheck(): Promise<any> {
+  async healthCheck(): Promise<import('./types').HealthCheckResponse> {
     const cacheKey = 'health:check'
 
     // Check cache first
-    const cached = this.cache.get<any>(cacheKey)
+    const cached = this.cache.get<import('./types').HealthCheckResponse>(cacheKey)
     if (cached) {
       return cached
     }

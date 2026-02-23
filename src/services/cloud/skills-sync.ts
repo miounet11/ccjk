@@ -10,6 +10,7 @@
 import type {
   CloudApiResponse,
   CloudSkill,
+  CloudSkillMetadata,
   ListSkillsOptions,
   ListSkillsResponse,
   SkillSyncResult,
@@ -218,6 +219,10 @@ export function deleteLocalSkill(skillId: string): void {
 // Cloud API Client
 // ============================================================================
 
+import { createGateway } from '../../cloud-client/gateway.js'
+import { createSkillsClient } from '../../cloud-client/skills/index.js'
+import type { SkillsApiClient } from '../../cloud-client/skills/index.js'
+
 /**
  * Get authentication token from storage
  */
@@ -238,50 +243,93 @@ function getAuthToken(): string | null {
 }
 
 /**
- * Make authenticated API request
+ * Get or create skills API client
  */
-async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<CloudApiResponse<T>> {
-  const token = getAuthToken()
-  if (!token) {
-    throw new Error('Not authenticated. Please bind device first using: npx ccjk notification bind')
-  }
+let skillsClient: SkillsApiClient | null = null
 
-  const url = `${CLOUD_API_BASE_URL}${endpoint}`
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-    ...options.headers,
-  }
+function getSkillsClient(): SkillsApiClient {
+  if (!skillsClient) {
+    const token = getAuthToken()
+    if (!token) {
+      throw new Error('Not authenticated. Please bind device first using: npx ccjk notification bind')
+    }
 
+    const gateway = createGateway({
+      authToken: token,
+      timeout: DEFAULT_TIMEOUT,
+    })
+    skillsClient = createSkillsClient(gateway)
+  }
+  return skillsClient
+}
+
+/**
+ * Reset skills client (for testing or token refresh)
+ */
+export function resetSkillsClient(): void {
+  skillsClient = null
+}
+
+// ============================================================================
+// Cloud Skills API
+// ============================================================================
+
+import type {
+  SkillListResponse,
+  SkillGetResponse,
+  SkillUploadResponse,
+} from '../../cloud-client/skills/index.js'
+
+/**
+ * List skills from cloud
+ */
+export async function listCloudSkills(
+  options: ListSkillsOptions = {},
+): Promise<CloudApiResponse<ListSkillsResponse>> {
   try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT)
-
-    const response = await fetch(url, {
-      ...options,
-      headers,
-      signal: controller.signal,
+    const client = getSkillsClient()
+    const response = await client.list({
+      privacy: options.privacy as any,
+      author: options.author,
+      tags: options.tags,
+      query: options.query,
+      page: options.page,
+      pageSize: options.pageSize,
+      sortBy: options.sortBy as any,
+      sortDir: options.sortDir,
     })
 
-    clearTimeout(timeoutId)
-
-    const data = await response.json() as CloudApiResponse<T> & { error?: string, code?: string }
-
-    if (!response.ok) {
+    if (!response.success || !response.data) {
       return {
         success: false,
-        error: data.error || `HTTP ${response.status}: ${response.statusText}`,
-        code: data.code || String(response.status),
+        error: response.error || 'Failed to list skills',
+        code: response.code,
         timestamp: new Date().toISOString(),
       }
     }
 
+    // Convert SkillListResponse to ListSkillsResponse
+    const skills: CloudSkill[] = response.data.skills.map(skill => ({
+      id: skill.id,
+      name: skill.name,
+      version: skill.version,
+      content: skill.content,
+      metadata: skill.metadata as CloudSkillMetadata,
+      privacy: skill.privacy as 'private' | 'team' | 'public',
+      checksum: skill.checksum,
+      createdAt: skill.createdAt,
+      updatedAt: skill.updatedAt,
+    }))
+
     return {
       success: true,
-      data: data as T,
+      data: {
+        skills,
+        total: response.data.total,
+        page: response.data.page,
+        pageSize: response.data.pageSize,
+        totalPages: response.data.totalPages,
+      },
       timestamp: new Date().toISOString(),
     }
   }
@@ -294,41 +342,6 @@ async function apiRequest<T>(
   }
 }
 
-// ============================================================================
-// Cloud Skills API
-// ============================================================================
-
-/**
- * List skills from cloud
- */
-export async function listCloudSkills(
-  options: ListSkillsOptions = {},
-): Promise<CloudApiResponse<ListSkillsResponse>> {
-  const params = new URLSearchParams()
-
-  if (options.privacy)
-    params.append('privacy', options.privacy)
-  if (options.author)
-    params.append('author', options.author)
-  if (options.tags)
-    params.append('tags', options.tags.join(','))
-  if (options.query)
-    params.append('query', options.query)
-  if (options.page)
-    params.append('page', String(options.page))
-  if (options.pageSize)
-    params.append('pageSize', String(options.pageSize))
-  if (options.sortBy)
-    params.append('sortBy', options.sortBy)
-  if (options.sortDir)
-    params.append('sortDir', options.sortDir)
-
-  const queryString = params.toString()
-  const endpoint = `/skills${queryString ? `?${queryString}` : ''}`
-
-  return apiRequest<ListSkillsResponse>(endpoint, { method: 'GET' })
-}
-
 /**
  * Get skill from cloud by ID
  */
@@ -336,11 +349,47 @@ export async function getCloudSkill(
   skillId: string,
   version?: string,
 ): Promise<CloudApiResponse<CloudSkill>> {
-  const endpoint = version
-    ? `/skills/${skillId}?version=${version}`
-    : `/skills/${skillId}`
+  try {
+    const client = getSkillsClient()
+    const response = await client.get({
+      skillId,
+      version,
+    })
 
-  return apiRequest<CloudSkill>(endpoint, { method: 'GET' })
+    if (!response.success || !response.data) {
+      return {
+        success: false,
+        error: response.error || 'Failed to get skill',
+        code: response.code,
+        timestamp: new Date().toISOString(),
+      }
+    }
+
+    // Convert SkillGetResponse to CloudSkill format
+    const skill = response.data.skill
+    return {
+      success: true,
+      data: {
+        id: skill.id,
+        name: skill.name,
+        version: skill.version,
+        content: skill.content,
+        checksum: skill.checksum,
+        privacy: skill.privacy as 'private' | 'team' | 'public',
+        metadata: skill.metadata as CloudSkillMetadata,
+        createdAt: skill.createdAt,
+        updatedAt: skill.updatedAt,
+      } as CloudSkill,
+      timestamp: new Date().toISOString(),
+    }
+  }
+  catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString(),
+    }
+  }
 }
 
 /**
@@ -349,10 +398,51 @@ export async function getCloudSkill(
 export async function uploadSkill(
   request: UploadSkillRequest,
 ): Promise<CloudApiResponse<CloudSkill>> {
-  return apiRequest<CloudSkill>('/skills', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  })
+  try {
+    const client = getSkillsClient()
+    const response = await client.upload({
+      name: request.name,
+      version: request.version,
+      content: request.content,
+      metadata: request.metadata,
+      privacy: request.privacy,
+      checksum: request.checksum,
+    })
+
+    if (!response.success || !response.data) {
+      return {
+        success: false,
+        error: response.error || 'Failed to upload skill',
+        code: response.code,
+        timestamp: new Date().toISOString(),
+      }
+    }
+
+    // Convert SkillUploadResponse to CloudSkill format
+    const skill = response.data.skill
+    return {
+      success: true,
+      data: {
+        id: skill.id,
+        name: skill.name,
+        version: skill.version,
+        content: skill.content,
+        checksum: skill.checksum,
+        privacy: skill.privacy as 'private' | 'team' | 'public',
+        metadata: skill.metadata as CloudSkillMetadata,
+        createdAt: skill.createdAt,
+        updatedAt: skill.updatedAt,
+      } as CloudSkill,
+      timestamp: new Date().toISOString(),
+    }
+  }
+  catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString(),
+    }
+  }
 }
 
 /**
@@ -362,10 +452,51 @@ export async function updateCloudSkill(
   skillId: string,
   request: Partial<UploadSkillRequest>,
 ): Promise<CloudApiResponse<CloudSkill>> {
-  return apiRequest<CloudSkill>(`/skills/${skillId}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-  })
+  try {
+    const client = getSkillsClient()
+    const response = await client.update({
+      skillId,
+      version: request.version,
+      content: request.content,
+      metadata: request.metadata,
+      privacy: request.privacy,
+      checksum: request.checksum,
+    })
+
+    if (!response.success || !response.data) {
+      return {
+        success: false,
+        error: response.error || 'Failed to update skill',
+        code: response.code,
+        timestamp: new Date().toISOString(),
+      }
+    }
+
+    // Convert SkillUpdateResponse to CloudSkill format
+    const skill = response.data.skill
+    return {
+      success: true,
+      data: {
+        id: skill.id,
+        name: skill.name,
+        version: skill.version,
+        content: skill.content,
+        checksum: skill.checksum,
+        privacy: skill.privacy as 'private' | 'team' | 'public',
+        metadata: skill.metadata as CloudSkillMetadata,
+        createdAt: skill.createdAt,
+        updatedAt: skill.updatedAt,
+      } as CloudSkill,
+      timestamp: new Date().toISOString(),
+    }
+  }
+  catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString(),
+    }
+  }
 }
 
 /**
@@ -374,7 +505,31 @@ export async function updateCloudSkill(
 export async function deleteCloudSkill(
   skillId: string,
 ): Promise<CloudApiResponse<void>> {
-  return apiRequest<void>(`/skills/${skillId}`, { method: 'DELETE' })
+  try {
+    const client = getSkillsClient()
+    const response = await client.delete({ skillId })
+
+    if (!response.success) {
+      return {
+        success: false,
+        error: response.error || 'Failed to delete skill',
+        code: response.code,
+        timestamp: new Date().toISOString(),
+      }
+    }
+
+    return {
+      success: true,
+      timestamp: new Date().toISOString(),
+    }
+  }
+  catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString(),
+    }
+  }
 }
 
 // ============================================================================

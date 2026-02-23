@@ -39,8 +39,8 @@ export interface Recommendation {
   relevanceScore: number
   /** Install command */
   installCommand?: string
-  /** Configuration JSON */
-  config?: Record<string, any>
+  /** Configuration JSON - use RecommendationConfig from dto.ts for strict typing */
+  config?: import('./dto').RecommendationConfig
   /** Tags for filtering */
   tags?: string[]
   /** Dependencies required */
@@ -104,8 +104,8 @@ export interface TemplateParameter {
   type: 'string' | 'number' | 'boolean' | 'object' | 'array'
   /** Required flag */
   required: boolean
-  /** Default value */
-  default?: any
+  /** Default value - use TemplateParameterValue from dto.ts for strict typing */
+  default?: import('./dto').TemplateParameterValue
   /** Description (multilingual) */
   description?: Record<string, string>
 }
@@ -160,8 +160,8 @@ export interface UsageReport {
   platform: string
   /** Project language if applicable */
   language?: string
-  /** Additional context data */
-  data?: Record<string, any>
+  /** Additional context data - use TelemetryEventData from dto.ts for strict typing */
+  data?: import('./dto').TelemetryEventData
 }
 
 /**
@@ -192,6 +192,7 @@ export interface HealthCheckResponse {
 
 /**
  * Cloud client error types
+ * @deprecated Use CloudErrorCode from './errors' instead
  */
 export type CloudClientErrorType
   = | 'NETWORK_ERROR'
@@ -205,6 +206,7 @@ export type CloudClientErrorType
 
 /**
  * Cloud client error class
+ * @deprecated Use CloudError from './errors' instead
  */
 export class CloudClientError extends Error {
   /** Error type */
@@ -336,8 +338,8 @@ export interface RetryConfig {
 export interface TelemetryEvent {
   /** Event type */
   type: MetricType
-  /** Event data */
-  data?: Record<string, any>
+  /** Event data - use TelemetryEventData from dto.ts for strict typing */
+  data?: import('./dto').TelemetryEventData
   /** Event timestamp */
   timestamp: string
 }

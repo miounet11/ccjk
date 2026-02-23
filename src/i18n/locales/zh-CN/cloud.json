@@ -1,0 +1,40 @@
+{
+  "title": "云客户端",
+  "description": "CCJK 云服务 API 客户端",
+
+  "errors": {
+    "AUTH_ERROR": "认证失败，请检查您的凭据。",
+    "RATE_LIMIT": "请求频率超限，请稍后再试。",
+    "SCHEMA_MISMATCH": "响应格式验证失败，服务器响应与预期格式不匹配。",
+    "NETWORK_ERROR": "网络连接失败，请检查您的网络连接。",
+    "TIMEOUT": "请求超时，服务器未能及时响应。",
+    "SERVER_ERROR": "服务器错误，请稍后再试。",
+    "NOT_FOUND": "资源不存在，请求的资源未找到。",
+    "API_ERROR": "API 请求失败，请检查您的请求参数。",
+    "VALIDATION_ERROR": "验证错误，请检查您的输入数据。",
+    "UNKNOWN_ERROR": "发生未知错误，请重试。",
+
+    "context": {
+      "projectAnalysis": "项目分析失败",
+      "templateFetch": "模板获取失败",
+      "batchTemplateFetch": "批量模板获取失败",
+      "usageReport": "使用情况上报失败",
+      "healthCheck": "健康检查失败"
+    },
+
+    "retry": {
+      "attempting": "正在重试请求（第 {{attempt}}/{{maxAttempts}} 次）...",
+      "failed": "请求在 {{attempts}} 次尝试后失败",
+      "backoff": "等待 {{delay}}ms 后重试"
+    }
+  },
+
+  "status": {
+    "connecting": "正在连接云服务...",
+    "connected": "已连接到云服务",
+    "disconnected": "已断开云服务连接",
+    "healthy": "云服务运行正常",
+    "degraded": "云服务性能下降",
+    "unhealthy": "云服务不可用"
+  }
+}

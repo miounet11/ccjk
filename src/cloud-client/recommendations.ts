@@ -29,16 +29,19 @@ export async function getCloudRecommendations(
 
     // Convert cloud response to our format
     // Handle both string and multilingual object formats for name/description
-    return (response.recommendations || []).map((rec: any) => ({
-      name: extractString(rec.name, rec.id || 'Unknown Agent'),
-      description: extractString(rec.description, 'No description available'),
-      skills: rec.skills || [],
-      mcpServers: rec.mcpServers || [],
-      persona: rec.persona,
-      capabilities: rec.capabilities || [],
-      confidence: rec.confidence || rec.relevanceScore || 0.8,
-      reason: rec.reason || 'Recommended by CCJK Cloud',
-    }))
+    return (response.recommendations || []).map((rec) => {
+      const config = rec.config as any // AgentConfig from cloud
+      return {
+        name: extractString(rec.name, rec.id || 'Unknown Agent'),
+        description: extractString(rec.description, 'No description available'),
+        skills: config?.skills || [],
+        mcpServers: config?.mcpServers || [],
+        persona: config?.persona,
+        capabilities: config?.capabilities || [],
+        confidence: rec.relevanceScore || 0.8,
+        reason: 'Recommended by CCJK Cloud',
+      }
+    })
   }
   catch (error) {
     console.warn('Failed to get cloud recommendations:', error)

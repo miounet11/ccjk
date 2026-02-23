@@ -229,7 +229,7 @@ export class CloudClient {
   }
 
   /**
-   * Report usage metrics
+   * Report usage metrics (non-blocking with short timeout)
    *
    * POST /api/v1/telemetry/installation
    *
@@ -240,9 +240,11 @@ export class CloudClient {
     try {
       consola.debug('Reporting usage:', report.metricType)
 
+      // Use short timeout for telemetry (5s)
       const response = await this.fetch<UsageReportResponse>(`${API_PREFIX}/telemetry/installation`, {
         method: 'POST',
         body: report,
+        timeout: 5000, // 5s timeout - telemetry should be fast
       })
 
       consola.debug('Usage report accepted')
@@ -250,8 +252,8 @@ export class CloudClient {
       return response
     }
     catch (error) {
-      // Don't throw on telemetry errors, just log
-      consola.warn('Failed to report usage:', error)
+      // Silent failure - don't throw on telemetry errors
+      consola.debug('Failed to report usage (non-blocking):', error)
       return {
         success: false,
         requestId: '',

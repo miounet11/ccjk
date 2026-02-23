@@ -49,8 +49,76 @@ export const CCJK_CLOUD_PLUGINS_CACHE_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'cache'
 export const CCJK_CLOUD_PLUGINS_CACHE_FILE = join(CCJK_CLOUD_PLUGINS_CACHE_DIR, 'plugins.json')
 export const CCJK_CLOUD_PLUGINS_INSTALLED_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'installed')
 
-// Cloud API configuration
-export const CCJK_CLOUD_API_URL = 'https://api.api.claudehome.cn/v1'
+// ============================================================================
+// Cloud API Endpoints Configuration
+// ============================================================================
+
+/**
+ * Unified cloud endpoint configuration
+ *
+ * Eliminates hard-coded domain fragmentation across the codebase.
+ * All cloud API calls should use these constants.
+ *
+ * @see docs/client-cloud-contract-handoff.md for API contracts
+ */
+export const CLOUD_ENDPOINTS = {
+  /**
+   * Main API - Core cloud services
+   * Used for: project analysis, templates, telemetry
+   */
+  MAIN: {
+    BASE_URL: 'https://api.claudehome.cn',
+    API_VERSION: '/api/v1',
+  },
+  /**
+   * Plugins API - Marketplace and cloud plugins
+   * Used for: plugin discovery, installation, ratings
+   */
+  PLUGINS: {
+    BASE_URL: 'https://api.api.claudehome.cn',
+    API_VERSION: '/v1',
+  },
+  /**
+   * Remote API - Real-time features
+   * Used for: notifications, WebSocket connections
+   */
+  REMOTE: {
+    BASE_URL: 'https://remote-api.claudehome.cn',
+    API_VERSION: '', // No version prefix for remote API
+  },
+} as const
+
+/**
+ * Get full API URL for a specific endpoint
+ *
+ * @param endpoint - Cloud endpoint type
+ * @returns Full API URL with version prefix
+ *
+ * @example
+ * ```typescript
+ * const mainApiUrl = getCloudApiUrl('MAIN')
+ * // => 'https://api.claudehome.cn/api/v1'
+ * ```
+ */
+export function getCloudApiUrl(endpoint: keyof typeof CLOUD_ENDPOINTS): string {
+  const config = CLOUD_ENDPOINTS[endpoint]
+  return `${config.BASE_URL}${config.API_VERSION}`
+}
+
+/**
+ * Get base URL without version prefix
+ *
+ * @param endpoint - Cloud endpoint type
+ * @returns Base URL only
+ */
+export function getCloudBaseUrl(endpoint: keyof typeof CLOUD_ENDPOINTS): string {
+  return CLOUD_ENDPOINTS[endpoint].BASE_URL
+}
+
+// Legacy constants for backward compatibility (deprecated)
+/** @deprecated Use CLOUD_ENDPOINTS.PLUGINS instead */
+export const CCJK_CLOUD_API_URL = getCloudApiUrl('PLUGINS')
+/** @deprecated Use getCloudApiUrl('PLUGINS') + '/plugins' instead */
 export const CCJK_CLOUD_PLUGINS_API = `${CCJK_CLOUD_API_URL}/plugins`
 
 // Cloud plugins cache configuration

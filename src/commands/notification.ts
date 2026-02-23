@@ -774,7 +774,7 @@ async function handleBind(code?: string): Promise<void> {
       console.log('')
       console.log(ansis.green(`✅ ${i18n.t('notification:cloud.bindSuccess')}`))
       console.log('')
-      console.log(ansis.dim(i18n.t('notification:cloud.deviceId', { id: result.deviceId || 'N/A' })))
+      console.log(ansis.dim(i18n.t('notification:cloud.deviceId', { id: result.data?.deviceId || 'N/A' })))
       console.log('')
 
       // Ask if user wants to send a test notification

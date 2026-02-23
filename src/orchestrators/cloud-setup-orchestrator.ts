@@ -5,13 +5,13 @@
  */
 
 import type { FrameworkDetectionResult, LanguageDetection, ProjectAnalysis } from '../analyzers/types'
-import type { FallbackCloudClient } from '../cloud-client'
 import type {
   BatchTemplateResponse,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
   Recommendation,
 } from '../cloud-client/types'
+import type { CloudApiGateway } from '../cloud-client/gateway'
 import type { CcjkAgentsOptions } from '../commands/ccjk-agents'
 import type { CcjkHooksOptions } from '../commands/ccjk-hooks'
 import type { CcjkMcpOptions } from '../commands/ccjk-mcp'
@@ -23,7 +23,7 @@ import { join } from 'node:path'
 import ansis from 'ansis'
 import consola from 'consola'
 import { analyzeProject } from '../analyzers'
-import { createCompleteCloudClient } from '../cloud-client'
+import { createDefaultGateway } from '../cloud-client/gateway'
 import { ccjkAgents } from '../commands/ccjk-agents'
 import { ccjkHooks } from '../commands/ccjk-hooks'
 import { ccjkMcp } from '../commands/ccjk-mcp'
@@ -180,16 +180,14 @@ export interface MergedRecommendations {
 // ============================================================================
 
 export class CloudSetupOrchestrator {
-  private cloudClient: FallbackCloudClient
+  private gateway: CloudApiGateway
   private logger = consola.withTag('cloud-setup')
   private startTime = Date.now()
 
   constructor(options: CloudSetupOptions = {}) {
-    this.cloudClient = createCompleteCloudClient({
-      baseURL: options.cloudEndpoint || 'https://api.ccjk.dev',
-      enableCache: options.cacheStrategy !== 'disabled',
-      version: CCJK_VERSION,
-    })
+    // Use unified gateway with automatic version negotiation
+    this.gateway = createDefaultGateway()
+    // Note: cloudEndpoint option is now handled by CLOUD_ENDPOINTS in constants.ts
   }
 
   /**
@@ -230,9 +228,12 @@ export class CloudSetupOrchestrator {
       // Step 6: Execute installation (parallel)
       const result = await this.executeInstallation(recommendations, templates, options)
 
-      // Step 7: Upload telemetry
+      // Step 7: Upload telemetry (non-blocking - fire and forget)
       if (options.submitTelemetry !== false) {
-        await this.uploadTelemetry(result)
+        // Don't await - telemetry should never block setup completion
+        this.uploadTelemetry(result).catch(() => {
+          // Silent failure - already logged in uploadTelemetry
+        })
       }
 
       // Step 8: Generate report
@@ -357,18 +358,33 @@ export class CloudSetupOrchestrator {
     // analysis.gitRemote is not part of ProjectAnalysis type
 
     try {
-      const response = await this.cloudClient.analyzeProject(request)
+      // Use gateway with semantic routing and automatic version negotiation
+      const response = await this.gateway.request<ProjectAnalysisResponse>(
+        'analysis.projects',
+        {
+          method: 'POST',
+          body: request,
+          timeout: 10000, // 10s timeout for cloud analysis
+        },
+      )
+
+      if (!response.success || !response.data) {
+        this.logger.warn('Cloud API returned error:', response.error)
+        return this.getLocalRecommendations(analysis)
+      }
+
+      const data = response.data
 
       // Categorize recommendations
       const fingerprint = this.generateProjectFingerprint(analysis)
       const recommendations: CloudRecommendations = {
-        skills: response.recommendations.filter((r: Recommendation) => r.category === 'skill'),
-        mcpServices: response.recommendations.filter((r: Recommendation) => r.category === 'mcp'),
-        agents: response.recommendations.filter((r: Recommendation) => r.category === 'agent'),
-        hooks: response.recommendations.filter((r: Recommendation) => r.category === 'hook'),
-        confidence: this.calculateConfidence(response.recommendations),
+        skills: data.recommendations.filter((r: Recommendation) => r.category === 'skill'),
+        mcpServices: data.recommendations.filter((r: Recommendation) => r.category === 'mcp'),
+        agents: data.recommendations.filter((r: Recommendation) => r.category === 'agent'),
+        hooks: data.recommendations.filter((r: Recommendation) => r.category === 'hook'),
+        confidence: this.calculateConfidence(data.recommendations),
         fingerprint,
-        insights: this.extractInsights(response),
+        insights: this.extractInsights(data),
       }
 
       return recommendations
@@ -717,16 +733,30 @@ export class CloudSetupOrchestrator {
     const templateIds = allRecommendations.map(r => r.id)
 
     try {
-      const response = await this.cloudClient.getBatchTemplates({
-        ids: templateIds,
-        language: options.lang,
-      })
+      // Use gateway for batch template download
+      const response = await this.gateway.request<BatchTemplateResponse>(
+        'templates.batch',
+        {
+          method: 'POST',
+          body: {
+            ids: templateIds,
+            language: options.lang,
+          },
+          timeout: 15000, // 15s timeout for template download
+        },
+      )
 
-      if (options.interactive !== false) {
-        console.log(`    ${ansis.green('✓')} ${i18n.t('cloud-setup:templatesDownloaded', { count: Object.keys(response.templates).length })}`)
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Template download failed')
       }
 
-      return response
+      const templates = response.data
+
+      if (options.interactive !== false) {
+        console.log(`    ${ansis.green('✓')} ${i18n.t('cloud-setup:templatesDownloaded', { count: Object.keys(templates.templates).length })}`)
+      }
+
+      return templates
     }
     catch (error) {
       this.logger.error('Failed to download templates:', error)
@@ -963,52 +993,103 @@ export class CloudSetupOrchestrator {
   }
 
   /**
-   * Upload telemetry
+   * Upload telemetry (non-blocking with retry budget)
+   * Fire-and-forget: does not block setup completion
    */
   private async uploadTelemetry(result: CloudSetupResult): Promise<void> {
-    try {
-      const telemetry = {
-        requestId: result.requestId,
-        installation: {
-          timestamp: Date.now(),
-          duration: result.duration,
-          selectedResources: [
-            ...result.installed.skills.map(id => ({ id, type: 'skill', version: '1.0.0' })),
-            ...result.installed.mcpServices.map(id => ({ id, type: 'mcp', version: '1.0.0' })),
-            ...result.installed.agents.map(id => ({ id, type: 'agent', version: '1.0.0' })),
-            ...result.installed.hooks.map(id => ({ id, type: 'hook', version: '1.0.0' })),
-          ],
-          skippedResources: [
-            ...result.skipped.skills,
-            ...result.skipped.mcpServices,
-            ...result.skipped.agents,
-            ...result.skipped.hooks,
-          ],
-          failedResources: [
-            ...result.failed.skills,
-            ...result.failed.mcpServices,
-            ...result.failed.agents,
-            ...result.failed.hooks,
-          ],
-        },
-        clientInfo: {
-          ccjkVersion: CCJK_VERSION,
-          os: process.platform,
-          nodeVersion: process.version,
-        },
-        performance: {
-          networkLatency: 0,
-          cacheHit: false,
-          retryCount: 0,
-        },
-      }
-
-      await this.cloudClient.reportUsage(telemetry)
-      this.logger.info('Telemetry uploaded successfully')
+    const telemetry = {
+      requestId: result.requestId,
+      installation: {
+        timestamp: Date.now(),
+        duration: result.duration,
+        selectedResources: [
+          ...result.installed.skills.map(id => ({ id, type: 'skill', version: '1.0.0' })),
+          ...result.installed.mcpServices.map(id => ({ id, type: 'mcp', version: '1.0.0' })),
+          ...result.installed.agents.map(id => ({ id, type: 'agent', version: '1.0.0' })),
+          ...result.installed.hooks.map(id => ({ id, type: 'hook', version: '1.0.0' })),
+        ],
+        skippedResources: [
+          ...result.skipped.skills,
+          ...result.skipped.mcpServices,
+          ...result.skipped.agents,
+          ...result.skipped.hooks,
+        ],
+        failedResources: [
+          ...result.failed.skills,
+          ...result.failed.mcpServices,
+          ...result.failed.agents,
+          ...result.failed.hooks,
+        ],
+      },
+      clientInfo: {
+        ccjkVersion: CCJK_VERSION,
+        os: process.platform,
+        nodeVersion: process.version,
+      },
+      performance: {
+        networkLatency: 0,
+        cacheHit: false,
+        retryCount: 0,
+      },
     }
-    catch (error) {
-      this.logger.warn('Failed to upload telemetry:', error)
-      // Non-critical, continue
+
+    // Non-blocking telemetry with retry budget (max 3 attempts, 5s timeout each)
+    this.sendTelemetryWithRetry(telemetry, 3, 5000).catch((error) => {
+      // Silent failure - only debug log, never shown to user
+      this.logger.debug('Telemetry upload failed after retries (non-blocking):', error)
+    })
+  }
+
+  /**
+   * Send telemetry with retry budget
+   * Private helper for non-blocking telemetry submission
+   */
+  private async sendTelemetryWithRetry(
+    telemetry: any,
+    maxAttempts: number,
+    timeout: number,
+  ): Promise<void> {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Create timeout promise
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Telemetry timeout')), timeout)
+        })
+
+        // Race between request and timeout
+        const response = await Promise.race([
+          this.gateway.request('telemetry.installation', {
+            method: 'POST',
+            body: telemetry,
+            timeout,
+          }),
+          timeoutPromise,
+        ])
+
+        if (response.success) {
+          this.logger.debug(`Telemetry uploaded successfully (attempt ${attempt}/${maxAttempts})`)
+          return
+        }
+
+        // API returned error
+        throw new Error(response.error || 'Unknown telemetry error')
+      }
+      catch (error) {
+        this.logger.debug(
+          `Telemetry attempt ${attempt}/${maxAttempts} failed:`,
+          error instanceof Error ? error.message : error,
+        )
+
+        // Don't retry on last attempt
+        if (attempt === maxAttempts) {
+          this.logger.debug('Telemetry failed after all retry attempts - giving up silently')
+          return
+        }
+
+        // Exponential backoff: 100ms, 200ms, 400ms
+        const delay = 100 * (2 ** (attempt - 1))
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
     }
   }
 

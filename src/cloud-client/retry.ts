@@ -143,7 +143,7 @@ export class RetryableCloudClient {
   /**
    * Analyze project with retry
    */
-  analyzeProject = async (request: any): Promise<any> => {
+  analyzeProject = async (request: import('./types').ProjectAnalysisRequest): Promise<import('./types').ProjectAnalysisResponse> => {
     return withRetry(
       () => this.client.analyzeProject(request),
       this.retryConfig,
@@ -153,7 +153,7 @@ export class RetryableCloudClient {
   /**
    * Get template with retry
    */
-  getTemplate = async (id: string, language?: string): Promise<any> => {
+  getTemplate = async (id: string, language?: string): Promise<import('./types').TemplateResponse> => {
     return withRetry(
       () => this.client.getTemplate(id, language),
       this.retryConfig,
@@ -163,7 +163,7 @@ export class RetryableCloudClient {
   /**
    * Get batch templates with retry
    */
-  getBatchTemplates = async (request: any): Promise<any> => {
+  getBatchTemplates = async (request: import('./types').BatchTemplateRequest): Promise<import('./types').BatchTemplateResponse> => {
     return withRetry(
       () => this.client.getBatchTemplates(request),
       this.retryConfig,
@@ -173,14 +173,14 @@ export class RetryableCloudClient {
   /**
    * Report usage (no retry)
    */
-  reportUsage = async (report: any): Promise<any> => {
+  reportUsage = async (report: import('./types').UsageReport): Promise<import('./types').UsageReportResponse> => {
     return this.client.reportUsage(report)
   }
 
   /**
    * Health check (no retry)
    */
-  healthCheck = async (): Promise<any> => {
+  healthCheck = async (): Promise<import('./types').HealthCheckResponse> => {
     return withRetry(
       () => this.client.healthCheck(),
       this.retryConfig,
