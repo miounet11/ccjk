@@ -25,6 +25,13 @@ interface CheckResult {
   details?: string[]
 }
 
+export interface DoctorOptions {
+  checkProviders?: boolean
+  codeType?: CodeToolType
+  fixSettings?: boolean
+  json?: boolean
+}
+
 /**
  * Check if Claude Code CLI is installed
  */
@@ -432,7 +439,7 @@ async function fixSettingsFile(): Promise<void> {
 /**
  * Main doctor command - runs health checks and displays results
  */
-export async function doctor(options: { checkProviders?: boolean, codeType?: CodeToolType, fixSettings?: boolean } = {}): Promise<void> {
+export async function doctor(options: DoctorOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   // Handle --fix-settings flag
@@ -440,11 +447,6 @@ export async function doctor(options: { checkProviders?: boolean, codeType?: Cod
     await fixSettingsFile()
     return
   }
-
-  console.log('')
-  console.log(ansis.bold.cyan('🔍 CCJK Health Check'))
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log('')
 
   const checks = [
     checkClaudeCode,
@@ -462,11 +464,45 @@ export async function doctor(options: { checkProviders?: boolean, codeType?: Cod
     checks.push(() => checkProviders(options.codeType))
   }
 
+  // Run all checks
+  const results: CheckResult[] = []
+  for (const check of checks) {
+    const result = await check()
+    results.push(result)
+  }
+
+  // JSON output mode
+  if (options.json) {
+    const output = {
+      timestamp: new Date().toISOString(),
+      summary: {
+        total: results.length,
+        ok: results.filter(r => r.status === 'ok').length,
+        warning: results.filter(r => r.status === 'warning').length,
+        error: results.filter(r => r.status === 'error').length,
+      },
+      checks: results.map(r => ({
+        name: r.name,
+        status: r.status,
+        message: r.message,
+        fix: r.fix,
+        details: r.details,
+      })),
+    }
+    console.log(JSON.stringify(output, null, 2))
+    return
+  }
+
+  // Text output mode
+  console.log('')
+  console.log(ansis.bold.cyan('🔍 CCJK Health Check'))
+  console.log(ansis.dim('─'.repeat(50)))
+  console.log('')
+
   let hasErrors = false
   let hasWarnings = false
 
-  for (const check of checks) {
-    const result = await check()
+  for (const result of results) {
 
     const statusIcon = result.status === 'ok'
       ? ansis.green('✅')

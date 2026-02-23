@@ -5,83 +5,100 @@
  */
 
 import ansis from 'ansis'
+import type { ILogger, LogEntry, LoggerOptions, LogLevel, OutputMode } from './logger/types'
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+export type { ILogger, LogEntry, LoggerOptions, LogLevel, OutputMode }
 
-interface LoggerOptions {
-  level?: LogLevel
-  silent?: boolean
-}
-
-class Logger {
+class Logger implements ILogger {
   private level: LogLevel
-  private silent: boolean
+  private mode: OutputMode
   private levels: Record<LogLevel, number> = {
     debug: 0,
     info: 1,
+    success: 1,
     warn: 2,
     error: 3,
   }
 
   constructor(options: LoggerOptions = {}) {
     this.level = options.level || 'info'
-    this.silent = options.silent || false
+    this.mode = options.mode || 'text'
+    if (options.silent) this.mode = 'silent'
   }
 
   private shouldLog(level: LogLevel): boolean {
-    return !this.silent && this.levels[level] >= this.levels[this.level]
+    return this.mode !== 'silent' && this.levels[level] >= this.levels[this.level]
   }
 
-  private format(level: LogLevel, message: string, data?: unknown): string {
+  private createEntry(level: LogLevel, message: string, data?: unknown): LogEntry {
+    return {
+      level,
+      message,
+      timestamp: new Date().toISOString(),
+      data,
+    }
+  }
+
+  private output(entry: LogEntry): void {
+    if (!this.shouldLog(entry.level)) return
+
+    if (this.mode === 'json') {
+      console.log(JSON.stringify(entry))
+      return
+    }
+
+    // Text mode with ansis colors
+    const prefix = this.colorizePrefix(entry.level)
+    const dataStr = entry.data ? ` ${JSON.stringify(entry.data)}` : ''
+    console.log(`${prefix} ${entry.message}${dataStr}`)
+  }
+
+  private colorizePrefix(level: LogLevel): string {
     const timestamp = new Date().toISOString()
     const prefix = `[${timestamp}] [${level.toUpperCase()}]`
-    const coloredPrefix = this.colorize(level, prefix)
-    const dataStr = data ? ` ${JSON.stringify(data)}` : ''
-    return `${coloredPrefix} ${message}${dataStr}`
-  }
 
-  /** MUD-style color scheme for log levels */
-  private colorize(level: LogLevel, text: string): string {
     switch (level) {
-      case 'debug': return ansis.gray(text)
-      case 'info': return ansis.green(text) // MUD green for info
-      case 'warn': return ansis.yellow(text)
-      case 'error': return ansis.red(text)
+      case 'debug': return ansis.gray(prefix)
+      case 'info': return ansis.green(prefix)
+      case 'success': return ansis.cyan(prefix)
+      case 'warn': return ansis.yellow(prefix)
+      case 'error': return ansis.red(prefix)
     }
   }
+
 
   debug(message: string, data?: unknown): void {
-    if (this.shouldLog('debug')) {
-      console.log(this.format('debug', message, data))
-    }
+    this.output(this.createEntry('debug', message, data))
   }
 
   info(message: string, data?: unknown): void {
-    if (this.shouldLog('info')) {
-      console.log(this.format('info', message, data))
-    }
+    this.output(this.createEntry('info', message, data))
+  }
+
+  success(message: string, data?: unknown): void {
+    this.output(this.createEntry('success', message, data))
   }
 
   warn(message: string, data?: unknown): void {
-    if (this.shouldLog('warn')) {
-      console.warn(this.format('warn', message, data))
-    }
+    this.output(this.createEntry('warn', message, data))
   }
 
   error(message: string, data?: unknown): void {
-    if (this.shouldLog('error')) {
-      console.error(this.format('error', message, data))
-    }
+    this.output(this.createEntry('error', message, data))
   }
 
   setLevel(level: LogLevel): void {
     this.level = level
   }
 
+  setMode(mode: OutputMode): void {
+    this.mode = mode
+  }
+
   setSilent(silent: boolean): void {
-    this.silent = silent
+    this.mode = silent ? 'silent' : 'text'
   }
 }
 
 export const logger = new Logger()
-export { Logger, type LoggerOptions, type LogLevel }
+export { Logger }
