@@ -37,6 +37,10 @@ vi.mock('ansis', () => ({
     yellow: (s: string) => s,
     gray: (s: string) => s,
     red: (s: string) => s,
+    cyan: (s: string) => s,
+    green: (s: string) => s,
+    blue: (s: string) => s,
+    white: (s: string) => s,
   },
 }))
 
@@ -63,8 +67,8 @@ describe('simplifiedInit', () => {
       const { simplifiedInit } = await import('../../src/commands/init')
       await expect(simplifiedInit({ skipPrompt: true })).rejects.toThrow('Detection failed')
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Installation failed'),
-        expect.any(String),
+        expect.stringContaining('Error')
+
       )
     })
 

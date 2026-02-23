@@ -1,10 +1,10 @@
-import type { CodeToolType, SupportedLang } from '../constants'
-import { existsSync } from 'node:fs'
-import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { existsSync } from 'node:fs'
+import process from 'node:process'
 import { join } from 'pathe'
 import { MCP_SERVICE_CONFIGS } from '../config/mcp-services'
+import type { CodeToolType, SupportedLang } from '../constants'
 import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
@@ -13,13 +13,13 @@ import { readMcpConfig } from '../utils/claude-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import {
-  changeScriptLanguageFeature,
-  configureAiMemoryFeature,
-  configureApiFeature,
-  configureDefaultModelFeature,
-  configureMcpFeature,
-  configureMergedPermissionsFeature,
-  mcpManagerFeature,
+    changeScriptLanguageFeature,
+    configureAiMemoryFeature,
+    configureApiFeature,
+    configureDefaultModelFeature,
+    configureMcpFeature,
+    configureMergedPermissionsFeature,
+    mcpManagerFeature,
 } from '../utils/features'
 import { normalizeMenuInput } from '../utils/input-normalizer'
 import { promptBoolean } from '../utils/toggle-prompt'

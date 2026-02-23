@@ -91,12 +91,12 @@ export function displayError(error: Error | string, context?: string): void {
   const formatted = formatError(error, context)
 
   console.error()
-  console.error(ansis.red.bold(formatted.title))
-  console.error(ansis.white(formatted.message))
+  console.error(ansis.red(formatted.title))
+  console.error(formatted.message)
 
   if (formatted.suggestion) {
     console.error()
-    console.error(ansis.yellow('💡 Suggestion:'), ansis.white(formatted.suggestion))
+    console.error(ansis.yellow('💡 Suggestion:'), formatted.suggestion)
   }
 
   if (formatted.command) {

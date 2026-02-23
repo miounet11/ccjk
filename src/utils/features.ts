@@ -1,34 +1,34 @@
-import type { SupportedLang } from '../constants'
-import type { McpServerConfig } from '../types'
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import process from 'node:process'
 import { join } from 'pathe'
 import { getMcpServices } from '../config/mcp-services'
+import type { SupportedLang } from '../constants'
 import { LANG_LABELS, SUPPORTED_LANGS } from '../constants'
 import { changeLanguage, ensureI18nInitialized, i18n } from '../i18n'
+import type { McpServerConfig } from '../types'
 import { readZcfConfig, updateZcfConfig } from './ccjk-config'
 import { setupCcrConfiguration } from './ccr/config'
 import { installCcr, isCcrInstalled } from './ccr/installer'
 import {
-  backupMcpConfig,
-  buildMcpServerConfig,
-  fixWindowsMcpConfig,
-  mergeMcpServers,
-  readMcpConfig,
-  writeMcpConfig,
+    backupMcpConfig,
+    buildMcpServerConfig,
+    fixWindowsMcpConfig,
+    mergeMcpServers,
+    readMcpConfig,
+    writeMcpConfig,
 } from './claude-config'
 import {
-  applyAiLanguageDirective,
-  configureApi,
-  getExistingApiConfig,
-  getExistingModelConfig,
-  promptApiConfigurationAction,
-  switchToOfficialLogin,
-  updateCustomModel,
-  updateDefaultModel,
+    applyAiLanguageDirective,
+    configureApi,
+    getExistingApiConfig,
+    getExistingModelConfig,
+    promptApiConfigurationAction,
+    switchToOfficialLogin,
+    updateCustomModel,
+    updateDefaultModel,
 } from './config'
 import { modifyApiConfigPartially } from './config-operations'
 import { selectMcpServices } from './mcp-selector'

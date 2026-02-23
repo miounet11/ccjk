@@ -20,7 +20,7 @@ export class ProgressTracker {
 
   start(): void {
     console.log()
-    console.log(ansis.cyan.bold('🚀 Starting setup...'))
+    console.log(ansis.cyan('🚀 Starting setup...'))
     console.log(ansis.gray(`   ${this.totalSteps} steps to complete`))
     console.log()
   }
@@ -32,21 +32,21 @@ export class ProgressTracker {
     const bar = this.renderProgressBar(progress)
 
     console.log()
-    console.log(ansis.cyan(`[${this.currentStep}/${this.totalSteps}]`), ansis.white(stepName))
+    console.log(ansis.cyan(`[${this.currentStep}/${this.totalSteps}]`), stepName)
     console.log(ansis.gray(`   ${bar} ${progress}%`))
   }
 
   complete(): void {
     const duration = ((Date.now() - this.startTime) / 1000).toFixed(1)
     console.log()
-    console.log(ansis.green.bold('✅ Setup complete!'))
+    console.log(ansis.green('✅ Setup complete!'))
     console.log(ansis.gray(`   Completed in ${duration}s`))
     console.log()
   }
 
   error(message: string): void {
     console.log()
-    console.log(ansis.red.bold('❌ Setup failed'))
+    console.log(ansis.red('❌ Setup failed'))
     console.log(ansis.white(`   ${message}`))
     console.log()
   }
