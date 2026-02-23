@@ -194,6 +194,9 @@ const COMMANDS: CommandDefinition[] = [
     options: [
       { flags: '--verbose, -v', description: 'Verbose output' },
       { flags: '--dry-run, -d', description: 'Preview changes' },
+      { flags: '--yes, -y', description: 'Skip confirmation prompts' },
+      { flags: '--installed', description: 'Show only installed services' },
+      { flags: '--json', description: 'Output in JSON format' },
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
@@ -227,20 +230,55 @@ const COMMANDS: CommandDefinition[] = [
           mcpHelp(options)
         }
         else if (actionStr === 'list') {
-          const { mcpList } = await import('./commands/mcp')
-          await mcpList(options)
+          // Use CLI version if --json or --installed flags present
+          if (options.json || options.installed) {
+            const { mcpListCli } = await import('./commands/mcp-cli')
+            await mcpListCli({
+              json: options.json as boolean,
+              installed: options.installed as boolean,
+              lang: options.lang as any,
+            })
+          }
+          else {
+            const { mcpList } = await import('./commands/mcp')
+            await mcpList(options)
+          }
         }
         else if (actionStr === 'search') {
           const { mcpSearch } = await import('./commands/mcp')
           await mcpSearch(argsArr[0] || '', options)
         }
         else if (actionStr === 'install') {
-          const { mcpInstall } = await import('./commands/mcp')
-          await mcpInstall(argsArr[0] || '', options)
+          // Support batch install: ccjk mcp install service1 service2 service3
+          if (argsArr.length > 1 || options.yes) {
+            const { mcpInstallCli } = await import('./commands/mcp-cli')
+            await mcpInstallCli({
+              services: argsArr,
+              yes: options.yes as boolean,
+              tool: options.tool as any,
+              lang: options.lang as any,
+            })
+          }
+          else {
+            const { mcpInstall } = await import('./commands/mcp')
+            await mcpInstall(argsArr[0] || '', options)
+          }
         }
         else if (actionStr === 'uninstall') {
-          const { mcpUninstall } = await import('./commands/mcp')
-          await mcpUninstall(argsArr[0] || '', options)
+          // Support batch uninstall
+          if (argsArr.length > 1 || options.yes) {
+            const { mcpUninstallCli } = await import('./commands/mcp-cli')
+            await mcpUninstallCli({
+              services: argsArr,
+              yes: options.yes as boolean,
+              tool: options.tool as any,
+              lang: options.lang as any,
+            })
+          }
+          else {
+            const { mcpUninstall } = await import('./commands/mcp')
+            await mcpUninstall(argsArr[0] || '', options)
+          }
         }
         else {
           // 默认显示帮助
@@ -874,12 +912,43 @@ const COMMANDS: CommandDefinition[] = [
     options: [
       { flags: '--provider, -p <provider>', description: 'Provider ID' },
       { flags: '--key, -k <key>', description: 'API key' },
+      { flags: '--url <url>', description: 'API URL' },
+      { flags: '--model <model>', description: 'Default model' },
+      { flags: '--fast-model <model>', description: 'Fast model' },
+      { flags: '--yes, -y', description: 'Skip confirmation prompts' },
+      { flags: '--json', description: 'Output in JSON format' },
       { flags: '--test, -t', description: 'Test connection' },
     ],
     loader: async () => {
-      const { apiCommand } = await import('./commands/api')
       return async (options, action: unknown, args: unknown) => {
-        await apiCommand((action as string) || 'wizard', (args as string[]) || [], options)
+        const actionStr = (action as string) || 'wizard'
+        const argsArr = (args as string[]) || []
+
+        // Use CLI version for configure with flags
+        if (actionStr === 'configure' || (actionStr === 'setup' && (options.provider || options.yes))) {
+          const { apiConfigure } = await import('./commands/api-cli')
+          await apiConfigure({
+            provider: options.provider as string,
+            key: options.key as string,
+            url: options.url as string,
+            model: options.model as string,
+            fastModel: options.fastModel as string,
+            yes: options.yes as boolean,
+            lang: options.lang as any,
+          })
+        }
+        else if (actionStr === 'list' && options.json) {
+          const { apiList } = await import('./commands/api-cli')
+          await apiList({
+            json: options.json as boolean,
+            lang: options.lang as any,
+          })
+        }
+        else {
+          // Fallback to existing interactive command
+          const { apiCommand } = await import('./commands/api')
+          await apiCommand(actionStr, argsArr, options)
+        }
       }
     },
   },
