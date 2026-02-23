@@ -1,5 +1,4 @@
 import { copyFile, mkdir, readdir } from 'node:fs/promises'
-import { glob } from 'glob'
 import { dirname, join } from 'pathe'
 import { defineBuildConfig } from 'unbuild'
 
@@ -22,7 +21,6 @@ export default defineBuildConfig({
   externals: [
     'fdir',
     'tinyglobby',
-    'glob',
   ],
   hooks: {
     'rollup:options': (_ctx, options) => {
@@ -69,7 +67,7 @@ export default defineBuildConfig({
             return true // externalize Node.js builtins
           }
           // Explicitly allowed externals (native/optional packages)
-          const allowedExternals = new Set(['fdir', 'tinyglobby', 'glob'])
+          const allowedExternals = new Set(['fdir', 'tinyglobby'])
           if (allowedExternals.has(pkgName)) {
             return true
           }
@@ -111,27 +109,8 @@ export default defineBuildConfig({
           return files
         }
 
-        // Try both glob and manual search for maximum Windows compatibility
-        let jsonFiles: string[] = []
-        try {
-          // Use forward slashes in glob pattern and normalize results
-          jsonFiles = await glob('src/i18n/locales/**/*.json', {
-            windowsPathsNoEscape: true,
-            posix: false, // Allow platform-specific paths
-          })
-          // Normalize paths for cross-platform compatibility
-          jsonFiles = jsonFiles.map(file => file.replace(/\\/g, '/'))
-        }
-        catch (globError) {
-          console.warn('Glob failed, using manual file search:', globError)
-          jsonFiles = await findJsonFiles('src/i18n/locales')
-        }
-
-        if (jsonFiles.length === 0) {
-          console.warn('No i18n JSON files found to copy')
-          // Also try manual search as fallback
-          jsonFiles = await findJsonFiles('src/i18n/locales')
-        }
+        // Use manual file search for cross-platform compatibility
+        const jsonFiles = await findJsonFiles('src/i18n/locales')
 
         if (jsonFiles.length === 0) {
           console.error('\u274C No i18n JSON files found in src/i18n/locales')

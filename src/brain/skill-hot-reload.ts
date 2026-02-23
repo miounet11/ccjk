@@ -595,7 +595,7 @@ export class SkillHotReload extends EventEmitter {
   private async scanExistingFiles(watchPaths: string[]): Promise<void> {
     this.log('Scanning existing files...')
 
-    const { glob } = await import('glob')
+    const { glob } = await import('tinyglobby')
 
     for (const basePath of watchPaths) {
       try {

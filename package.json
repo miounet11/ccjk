@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "12.0.0",
+  "version": "12.0.1",
   "packageManager": "pnpm@10.17.1",
   "description": "CLI toolkit for Claude Code and Codex setup. Simplifies MCP service installation, API configuration, workflow management, and multi-provider support with guided interactive setup.",
   "author": {
@@ -150,7 +150,6 @@
     "fdir": "^6.5.0",
     "find-up-simple": "^1.0.1",
     "fs-extra": "^11.3.3",
-    "glob": "^11.0.3",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.8",
     "i18next": "^25.8.13",
