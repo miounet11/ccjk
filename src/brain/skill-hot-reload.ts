@@ -602,7 +602,6 @@ export class SkillHotReload extends EventEmitter {
         const files = await glob(SKILL_FILE_PATTERNS, {
           cwd: basePath,
           absolute: true,
-          nodir: true,
         })
 
         this.log(`Found ${files.length} skill files in ${basePath}`)
