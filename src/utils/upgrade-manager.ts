@@ -3,8 +3,10 @@ import ansis from 'ansis'
 import ora from 'ora'
 import * as semver from 'semver'
 import { exec } from 'tinyexec'
-import { version as currentVersion } from '../../package.json'
 import { STATUS } from './banner'
+import { getRuntimeVersion } from './runtime-package'
+
+const currentVersion = getRuntimeVersion()
 
 /**
  * Version information

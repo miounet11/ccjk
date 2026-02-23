@@ -6,7 +6,6 @@ import { existsSync } from 'node:fs'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { version } from '../../package.json'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
 import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
@@ -60,6 +59,9 @@ import { promptBoolean } from '../utils/toggle-prompt'
 import { formatApiKeyDisplay } from '../utils/validator'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
 import { selectAndInstallWorkflows } from '../utils/workflow-installer'
+import { getRuntimeVersion } from '../utils/runtime-package'
+
+const ccjkVersion = getRuntimeVersion()
 
 export interface InitOptions {
   configLang?: SupportedLang
@@ -808,7 +810,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
         workflows: selectedWorkflows,
       })
       updateZcfConfig({
-        version,
+        version: ccjkVersion,
         preferredLang: i18n.language as SupportedLang, // CCJK界面语言
         templateLang: configLang, // 模板语言
         aiOutputLang: resolvedAiOutputLang
@@ -1357,7 +1359,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     // Step 12: Save ccjk config
     if (!options.skipPrompt && !options.skipBanner) tracker.nextStep('Finalizing setup')
     updateZcfConfig({
-      version,
+      version: ccjkVersion,
       preferredLang: i18n.language as SupportedLang, // CCJK界面语言
       templateLang: configLang, // 模板语言
       aiOutputLang: aiOutputLang as AiOutputLanguage | string,

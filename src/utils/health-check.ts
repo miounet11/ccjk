@@ -3,11 +3,13 @@ import process from 'node:process'
 import ansis from 'ansis'
 import ora from 'ora'
 import { exec } from 'tinyexec'
-import { version } from '../../package.json'
 import { renderProgressBar, STATUS } from './banner'
 import { detectAllConfigs } from './config-consolidator'
 import { getCurrentTemplateId } from './permission-manager'
+import { getRuntimeVersion } from './runtime-package'
 import { checkCcjkVersion, checkClaudeCodeVersion } from './upgrade-manager'
+
+const ccjkVersion = getRuntimeVersion()
 
 /**
  * Check result
@@ -101,7 +103,7 @@ async function checkCcjkInstallation(): Promise<CheckResult> {
     return {
       name: 'CCJK',
       status: 'pass',
-      message: `v${version}`,
+      message: `v${ccjkVersion}`,
     }
   }
 }

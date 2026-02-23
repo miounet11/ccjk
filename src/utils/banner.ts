@@ -6,8 +6,8 @@
 
 import type { BoxStyle } from './theme'
 import ansis from 'ansis'
-import { homepage, version } from '../../package.json'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { getRuntimeHomepage, getRuntimeVersion } from './runtime-package'
 import {
   box,
   boxify,
@@ -63,6 +63,7 @@ export function padToDisplayWidth(str: string, targetWidth: number): string {
  */
 export function displayBanner(subtitle?: string): void {
   ensureI18nInitialized()
+  const version = getRuntimeVersion()
   const defaultSubtitle = i18n.t('cli:banner.subtitle')
   const subtitleText = subtitle || defaultSubtitle
   const paddedSubtitle = padToDisplayWidth(subtitleText, 28)
@@ -86,6 +87,7 @@ export function displayBanner(subtitle?: string): void {
 
 /** Display banner with additional info */
 export function displayBannerWithInfo(subtitle?: string): void {
+  const homepage = getRuntimeHomepage()
   displayBanner(subtitle)
   console.log(ansis.gray(`  ${ansis.green('ccjk')} - Advanced AI Development Assistant`))
   console.log(ansis.gray(`  ${ansis.green(homepage)}\n`))

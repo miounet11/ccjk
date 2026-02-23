@@ -42,6 +42,7 @@ import { changeScriptLanguageFeature } from '../../utils/features'
 import { checkForUpdates, getInstalledPackages } from '../../utils/marketplace/index'
 import { searchPackages } from '../../utils/marketplace/registry'
 import { addNumbersToChoices } from '../../utils/prompt-helpers'
+import { getRuntimeVersion } from '../../utils/runtime-package'
 import { generateQuickActionsPanel, generateSkillReferenceCard, injectSmartGuide, isSmartGuideInstalled, QUICK_ACTIONS, removeSmartGuide } from '../../utils/smart-guide'
 import { checkSuperpowersInstalled, getSuperpowersSkills, installSuperpowers, installSuperpowersViaGit, uninstallSuperpowers, updateSuperpowers } from '../../utils/superpowers'
 import { promptBoolean } from '../../utils/toggle-prompt'
@@ -1122,7 +1123,7 @@ async function isFirstTimeUser(): Promise<boolean> {
  * Show welcome screen for new users
  */
 async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
-  const { version } = await import('../../../package.json')
+  const version = getRuntimeVersion()
 
   console.log('')
   console.log(ansis.green.bold('╔════════════════════════════════════════════════════════════════════════╗'))

@@ -2,7 +2,6 @@ import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants
 import { existsSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { version } from '../../package.json'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias, SETTINGS_FILE } from '../constants'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { i18n } from '../i18n'
@@ -21,8 +20,11 @@ import { updatePromptOnly } from '../utils/config-operations'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { installMcpServices } from '../utils/mcp-installer'
 import { resolveAiOutputLanguage } from '../utils/prompts'
+import { getRuntimeVersion } from '../utils/runtime-package'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
 import { selectAndInstallWorkflows } from '../utils/workflow-installer'
+
+const ccjkVersion = getRuntimeVersion()
 
 export interface UpdateOptions {
   configLang?: SupportedLang
@@ -117,14 +119,14 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
       const newPreferredLang = options.configLang || zcfConfig?.preferredLang
       if (newPreferredLang) {
         updateZcfConfig({
-          version,
+          version: ccjkVersion,
           preferredLang: newPreferredLang,
           codeToolType,
         })
       }
       else {
         updateZcfConfig({
-          version,
+          version: ccjkVersion,
           codeToolType,
         })
       }
@@ -181,7 +183,7 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
 
     // Update ccjk config with new version, template language, and AI language preference
     updateZcfConfig({
-      version,
+      version: ccjkVersion,
       templateLang: configLang, // 保存模板语言选择
       aiOutputLang,
       codeToolType,

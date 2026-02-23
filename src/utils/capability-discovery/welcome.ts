@@ -5,7 +5,7 @@
 
 import type { CapabilityScanResult, WelcomeOptions } from './types'
 import ansis from 'ansis'
-import { version as pkgVersion } from '../../../package.json'
+import { getRuntimeVersion } from '../runtime-package'
 
 const BOX_CHARS = {
   topLeft: '╭',
@@ -54,7 +54,7 @@ function leftText(text: string, width: number): string {
  * Get version from package.json
  */
 function getVersion(): string {
-  return pkgVersion || '0.0.0'
+  return getRuntimeVersion()
 }
 
 /**

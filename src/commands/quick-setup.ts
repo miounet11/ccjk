@@ -17,11 +17,13 @@ import type { CodeToolType, SupportedLang } from '../constants'
 import type { InitOptions } from './init'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { version } from '../../package.json'
 import { detectSmartDefaults } from '../config/smart-defaults'
 import { i18n } from '../i18n'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
+import { getRuntimeVersion } from '../utils/runtime-package'
 import { init } from './init'
+
+const ccjkVersion = getRuntimeVersion()
 
 /**
  * Quick setup options interface
@@ -58,7 +60,7 @@ export interface QuickSetupResult {
 function displayHeader(): void {
   console.log('')
   console.log(ansis.bold.green('⚡ CCJK Quick Setup'))
-  console.log(ansis.gray(`   v${version} • One-click configuration`))
+  console.log(ansis.gray(`   v${ccjkVersion} • One-click configuration`))
   console.log(ansis.gray(`   ${'─'.repeat(50)}`))
   console.log('')
 }
@@ -484,7 +486,7 @@ export async function quickSetup(options: QuickSetupOptions = {}): Promise<Quick
 
     // Save CCJK config
     updateZcfConfig({
-      version,
+      version: ccjkVersion,
       preferredLang: lang,
       templateLang: lang,
       aiOutputLang: lang,

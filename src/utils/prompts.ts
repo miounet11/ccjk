@@ -4,12 +4,14 @@ import type { ZcfConfig } from './ccjk-config'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { version } from '../../package.json'
 import { AI_OUTPUT_LANGUAGES, getAiOutputLanguageLabel, LANG_LABELS, SUPPORTED_LANGS } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { readZcfConfig, updateZcfConfig } from './ccjk-config'
 import { addNumbersToChoices } from './prompt-helpers'
+import { getRuntimeVersion } from './runtime-package'
 import { promptBoolean } from './toggle-prompt'
+
+const ccjkVersion = getRuntimeVersion()
 
 /**
  * Prompt user to select AI output language
@@ -109,7 +111,7 @@ export async function selectScriptLanguage(currentLang?: SupportedLang): Promise
 
   // Save the selected language preference
   updateZcfConfig({
-    version,
+    version: ccjkVersion,
     preferredLang: scriptLang,
   })
 
