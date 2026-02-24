@@ -3,10 +3,10 @@
  * 安装和管理 Agent Browser 工具
  */
 
+import ansis from 'ansis'
 import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import ansis from 'ansis'
 
 const { cyan, yellow, gray, green, red, blue: _blue, bold, dim: _dim } = ansis
 
@@ -69,7 +69,7 @@ export async function checkAgentBrowserInstalled(): Promise<boolean> {
   // 方法3: 检查 npx 可用性
   try {
     const { execSync } = await import('node:child_process')
-    execSync('npx --yes @anthropic-ai/agent-browser --version 2>/dev/null', {
+    execSync('npx --yes agent-browser --version 2>/dev/null', {
       encoding: 'utf-8',
       stdio: 'pipe',
       timeout: 10000,
@@ -114,7 +114,7 @@ export async function installAgentBrowser(options: InstallerOptions = {}): Promi
 
     // 尝试全局安装
     try {
-      execSync('npm install -g @anthropic-ai/agent-browser 2>&1', {
+      execSync('npm install -g agent-browser 2>&1', {
         encoding: 'utf-8',
         stdio: options.verbose ? 'inherit' : 'pipe',
       })
@@ -123,7 +123,7 @@ export async function installAgentBrowser(options: InstallerOptions = {}): Promi
     catch {
       // 如果全局安装失败，尝试本地安装
       console.log(`  ${yellow('!')} Global install failed, trying local install...`)
-      execSync(`npm install @anthropic-ai/agent-browser --prefix "${INSTALL_DIR}" 2>&1`, {
+      execSync(`npm install agent-browser --prefix "${INSTALL_DIR}" 2>&1`, {
         encoding: 'utf-8',
         stdio: options.verbose ? 'inherit' : 'pipe',
       })
@@ -161,7 +161,7 @@ export async function installAgentBrowser(options: InstallerOptions = {}): Promi
     else {
       console.log(`  ${red('✗')} Verification failed`)
       console.log(`\n${yellow('Try manual installation:')}`)
-      console.log(`  npm install -g @anthropic-ai/agent-browser`)
+      console.log(`  npm install -g agent-browser`)
       console.log(`  npx playwright install chromium\n`)
       return false
     }
@@ -173,7 +173,7 @@ export async function installAgentBrowser(options: InstallerOptions = {}): Promi
     }
 
     console.log(`\n${yellow('Manual installation:')}`)
-    console.log(`  ${cyan('1.')} npm install -g @anthropic-ai/agent-browser`)
+    console.log(`  ${cyan('1.')} npm install -g agent-browser`)
     console.log(`  ${cyan('2.')} npx playwright install chromium`)
     console.log(`  ${cyan('3.')} agent-browser --version\n`)
 
@@ -198,7 +198,7 @@ export async function uninstallAgentBrowser(options: InstallerOptions = {}): Pro
     // 尝试全局卸载
     console.log(`${cyan('Step 1/2:')} Removing npm package...`)
     try {
-      execSync('npm uninstall -g @anthropic-ai/agent-browser 2>&1', {
+      execSync('npm uninstall -g agent-browser 2>&1', {
         encoding: 'utf-8',
         stdio: options.verbose ? 'inherit' : 'pipe',
       })

@@ -1,9 +1,10 @@
-import type { ProjectContext } from './project-scanner'
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { resolveOrchestrationLevelFromRuntime } from '../utils/orchestration'
 import { getPlatform } from '../utils/platform'
+import type { ProjectContext } from './project-scanner'
 import { scanProject } from './project-scanner'
 
 export interface SmartDefaults {
@@ -26,6 +27,7 @@ export interface SmartDefaults {
     outputStyle: string
     gitWorkflow: string
     sixStepWorkflow: boolean
+    orchestrationLevel?: 'off' | 'minimal' | 'standard' | 'max'
   }
 
   // Tool integrations
@@ -112,6 +114,7 @@ export class SmartDefaultsDetector {
         outputStyle: 'engineer-professional',
         gitWorkflow: projectContext.usesConventionalCommits ? 'conventional-commits' : 'conventional-commits',
         sixStepWorkflow: true,
+        orchestrationLevel: resolveOrchestrationLevelFromRuntime(projectContext.runtime),
       },
 
       // Tool integrations

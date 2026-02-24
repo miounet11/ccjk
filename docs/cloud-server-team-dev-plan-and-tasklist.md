@@ -1,6 +1,6 @@
 # Cloud Server Team Development Plan + Task List
 
-> Version: v1.0
+> Version: v1.1 (handoff-ready)
 > Date: 2026-02-24
 > Owner: Server Team Lead
 > Scope: Cloud API + Remote API + Notification + Templates/Recommendations backend
@@ -19,7 +19,22 @@ Primary outcomes:
 
 ---
 
-## 2) Current Gaps (from project audit)
+## 2) Current Status Snapshot (2026-02-24)
+
+### Already available (baseline)
+
+- Remote backend skeleton is online in repo:
+  - `packages/ccjk-server/src/routes/auth.ts`
+  - `packages/ccjk-server/src/routes/sessions.ts`
+  - `packages/ccjk-server/src/routes/machines.ts`
+  - `packages/ccjk-server/src/main.ts`
+- Existing route families already partially usable:
+  - `/auth/*`
+  - `/v1/sessions*`
+  - `/v1/machines*`
+  - `/health`
+
+### Still missing / high-risk gaps
 
 1. Existing remote backend routes (`/auth`, `/v1/sessions`, `/v1/machines`) exist, but cloud setup APIs are not fully covered.
 2. Missing or unstable endpoints in templates/recommendations/telemetry path break client cloud setup.
@@ -27,14 +42,29 @@ Primary outcomes:
 4. API namespace/version/domain are fragmented.
 5. Contract docs exist but are not enforced by OpenAPI + schema validation in runtime.
 
+### Client-side readiness note
+
+- Client planning milestones are prepared and can start immediately.
+- Server should treat contract stabilization as Day-1 priority to avoid rework on client adapters.
+
 ---
 
-## 3) Architecture Decision (must freeze first)
+## 3) Architecture Decision (must freeze before coding)
 
 - Public Cloud API base: choose one canonical domain (recommended: `https://api.claudehome.cn`).
 - Remote API base: keep dedicated remote domain (`https://remote-api.claudehome.cn`) OR merge behind gateway.
 - Versioning strategy: keep one primary (`/api/v1` or `/api/v8`) and maintain aliases for legacy clients.
 - Use OpenAPI as source of truth + generated validators.
+
+### Mandatory freeze output (Go/No-Go)
+
+Before feature implementation, server team must publish:
+- Final domain map (cloud + remote)
+- Final primary API version + alias strategy
+- Auth matrix (Bearer / device token per endpoint)
+- Unified error JSON shape
+
+If this is not frozen, feature coding should be blocked.
 
 ---
 
@@ -66,9 +96,14 @@ Primary outcomes:
 - `/v1/machines*`
 - `/health`
 
+### E. Compatibility aliases (required)
+- If primary is `/api/v1`, provide aliases for existing `/api/v8` client calls in transition period.
+- If primary is `/api/v8`, provide aliases for existing `/api/v1` client calls in transition period.
+- Alias layer must preserve response schema semantics (not only HTTP 200 compatibility).
+
 ---
 
-## 5) Task List (Executable)
+## 5) Task List (Executable, updated for immediate start)
 
 | ID | Priority | Area | Task | Deliverable | Acceptance Criteria | Dependency | Estimate |
 |---|---|---|---|---|---|---|---|
@@ -85,6 +120,23 @@ Primary outcomes:
 | S-011 | P2 | Observability | Add requestId, structured logs, endpoint SLA metrics, error dashboards | Logging/metrics dashboards | 95th latency + error rate visible per endpoint | S-003~S-010 | 1d |
 | S-012 | P2 | QA | Add contract tests against client fixture payloads | Contract test suite | Client fixtures pass in CI before release | S-001~S-010 | 1d |
 | S-013 | P2 | Release | Publish migration/compatibility guide and deprecation schedule | `docs/server-cloud-migration-guide.md` | Client and ops teams sign off rollout plan | S-002,S-012 | 0.5d |
+
+### Sprint-0 (first 24 hours)
+
+- Owner A (Contract): S-001 draft + schema examples for top 5 endpoints.
+- Owner B (Routing): S-002 branch with alias middleware.
+- Owner C (Core API): S-003 endpoint scaffolding + response validators.
+- Exit criterion: client team can generate SDK from spec and run mock integration.
+
+### Parallel lanes (Week-1)
+
+- Lane 1 (Core Setup APIs): S-003, S-004, S-005
+- Lane 2 (Notification + Auth): S-006, S-009
+- Lane 3 (Skills + Marketplace + Validation): S-007, S-008, S-010
+
+Recommended daily sync:
+- 15-minute schema sync between lane leads
+- API diff check against OpenAPI every day before merge
 
 ---
 
@@ -131,6 +183,16 @@ Suggested code set:
 - Phase 2 (P1): notification + skills + marketplace complete
 - Phase 3 (P2): observability hardening + contract CI gate + deprecation announcement
 
+### Release gate (must pass before handoff)
+
+- `pnpm typecheck` (server workspace) passes
+- Core contract tests pass (S-012 scope)
+- Legacy alias tests pass (`v1`/`v8` compatibility)
+- 1 end-to-end smoke flow passes:
+  - analyze → recommendations → templates(batch) → telemetry
+- 1 notification flow passes:
+  - bind/use → notify → reply/poll
+
 ---
 
 ## 9) Handoff Checklist to Client Team
@@ -141,3 +203,11 @@ Server team must provide:
 - Example payloads for each endpoint (EN + zh-CN fields where applicable)
 - Auth matrix (which endpoint needs which token)
 - Error and retry guidance
+
+---
+
+## 10) Send-to-Server Kickoff Message (copy-ready)
+
+Use this text when assigning to cloud server team:
+
+"Please start from `docs/cloud-server-team-dev-plan-and-tasklist.md` (v1.1). Freeze architecture decisions first (domain/version/auth/error contract), then execute Sprint-0 tasks S-001/S-002/S-003 in parallel. No feature merge without OpenAPI update and schema validation. Target: provide client-consumable contract + mock-compatible endpoints within 24 hours."

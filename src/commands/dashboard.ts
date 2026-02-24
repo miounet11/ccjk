@@ -4,14 +4,14 @@
  * Usage: ccjk dashboard [--json] [--compact]
  */
 
-import type { ContextStats } from '../context/persistence'
-import type { TokenAnalytics } from '../context/types'
+import ansis from 'ansis'
 import { existsSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
-import ansis from 'ansis'
 import { join } from 'pathe'
+import type { ContextStats } from '../context/persistence'
 import { i18n } from '../i18n'
+import { getProjectIdentity } from '../utils/context/project-hash'
 
 // ============================================================================
 // Types
@@ -222,7 +222,8 @@ async function collectDashboardData(): Promise<DashboardData> {
 
     // Get tier distribution (using current project hash if available)
     try {
-      const projectHash = 'default' // TODO: Get actual project hash
+      const projectIdentity = await getProjectIdentity(process.cwd())
+      const projectHash = projectIdentity.hash
       const hotContexts = persistence.getHotContexts(projectHash, 100)
       const warmContexts = persistence.getWarmContexts(projectHash, 100)
       const coldContexts = persistence.getColdContexts(projectHash, 100)

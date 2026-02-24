@@ -3,9 +3,9 @@
  * Provides one-click permission presets for different use cases
  */
 
-import { existsSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { existsSync, readFileSync } from 'node:fs'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
 import { ensureDir, writeFileAtomic } from '../utils/fs-operations'
@@ -32,6 +32,8 @@ const MAX_PRESET: PermissionPreset = {
   name: 'Maximum Permissions',
   description: 'All common commands, file operations, and MCP servers',
   permissions: [
+    'Bash(*)',
+    'Bash(sips *)',
     // Package managers
     'Bash(pnpm *)',
     'Bash(npm *)',
@@ -157,6 +159,8 @@ const DEV_PRESET: PermissionPreset = {
   name: 'Developer Preset',
   description: 'Build tools, git, package managers, and file operations',
   permissions: [
+    'Bash(*)',
+    'Bash(sips *)',
     // Package managers
     'Bash(pnpm *)',
     'Bash(npm *)',

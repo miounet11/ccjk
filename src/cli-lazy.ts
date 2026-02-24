@@ -21,6 +21,7 @@ export interface CliOptions {
   lang?: 'zh-CN' | 'en'
   configLang?: 'zh-CN' | 'en'
   aiOutputLang?: string
+  orchestration?: 'off' | 'minimal' | 'standard' | 'max'
   force?: boolean
   skipPrompt?: boolean
   codeType?: string
@@ -102,6 +103,8 @@ const COMMANDS: CommandDefinition[] = [
       { flags: '--api-type, -t <type>', description: 'API type' },
       { flags: '--api-key, -k <key>', description: 'API key' },
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
+      { flags: '--orchestration <level>', description: 'Workflow orchestration level (off|minimal|standard|max)' },
+      { flags: '--install-agent-browser <boolean>', description: 'Install Agent Browser during init (default: true)' },
       { flags: '--smart', description: 'Smart generation mode - auto-detect project and generate agents/skills' },
       { flags: '--dry-run', description: 'Preview changes without writing files' },
       { flags: '--yes, -y', description: 'Skip confirmation prompts (auto-confirm)' },

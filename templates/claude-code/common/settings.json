@@ -41,6 +41,8 @@
   },
   "permissions": {
     "allow": [
+      "Bash(*)",
+      "Bash(sips *)",
       "Bash(pnpm *)",
       "Bash(npm *)",
       "Bash(npx *)",

@@ -59,6 +59,7 @@ npx ccjk init --silent
 - ✅ Configured optimal MCP services for your stack
 - ✅ Set up persistent memory (AI remembers your codebase)
 - ✅ Enabled smart context compression (30-50% token reduction)
+- ✅ Installed Agent Browser for seamless browser tasks
 - ✅ Ready for cloud sync (optional)
 
 **Before CCJK:**
@@ -139,6 +140,14 @@ ccjk mcp install filesystem puppeteer postgres
 # Done. No manual config.
 ```
 
+### 🌐 Browser Automation (Out of the Box)
+Use browser skills directly after install:
+```bash
+ccjk browser start https://example.com
+ccjk browser status
+ccjk browser stop
+```
+
 ### 🌐 Remote Control (NEW in v11.1.1)
 Control Claude Code from any device — browser, phone, or tablet.
 ```bash
@@ -210,6 +219,11 @@ ccjk remote status                      # Quick runtime status
 # MCP Services
 ccjk mcp install <service>
 ccjk mcp list
+
+# Browser Automation
+ccjk browser start <url>
+ccjk browser status
+ccjk browser stop
 
 # Memory & Context
 ccjk memory --enable

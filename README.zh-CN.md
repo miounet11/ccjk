@@ -49,6 +49,14 @@ npx ccjk
 # 完成。Claude Code 已超级充能。
 ```
 
+安装后可直接使用浏览器自动化（默认已启用）：
+
+```bash
+ccjk browser start https://example.com
+ccjk browser status
+ccjk browser stop
+```
+
 ## 为什么选 CCJK？
 
 | 没有 CCJK | 有 CCJK |
@@ -150,6 +158,11 @@ ccjk remote status                      # 实时运行状态
 npx ccjk u         # 更新工作流
 npx ccjk sync      # 云端同步
 npx ccjk doctor    # 健康检查
+
+# 浏览器自动化（默认可用）
+ccjk browser start <url>
+ccjk browser status
+ccjk browser stop
 ```
 
 ## 文档

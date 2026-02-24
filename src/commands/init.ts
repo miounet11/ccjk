@@ -49,6 +49,7 @@ import { displayError } from '../utils/error-formatter'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { getInstallationStatus, installClaudeCode } from '../utils/installer'
 import { selectMcpServices } from '../utils/mcp-selector'
+import { parseOrchestrationLevel, writeOrchestrationPolicy } from '../utils/orchestration'
 import { configureOutputStyle } from '../utils/output-style'
 import { isTermux, isWindows } from '../utils/platform'
 import { ProgressTracker } from '../utils/progress-tracker'
@@ -91,6 +92,9 @@ export interface InitOptions {
   allLang?: string // New: unified language parameter
   installCometixLine?: string | boolean // New: CCometixLine installation control
   installSuperpowers?: string | boolean // New: Superpowers installation control
+  installAgentBrowser?: string | boolean // New: Agent Browser installation control
+  orchestration?: 'off' | 'minimal' | 'standard' | 'max' | string
+  initSource?: 'init' | 'simplified-init' | 'silent-init'
   // Multi-configuration parameters
   apiConfigs?: string // JSON string for multiple API configurations
   apiConfigsFile?: string // Path to JSON file with API configurations
@@ -170,6 +174,14 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
   }
   if (options.installSuperpowers === undefined) {
     options.installSuperpowers = false // Default to false (opt-in)
+  }
+
+  // Parse installAgentBrowser parameter
+  if (typeof options.installAgentBrowser === 'string') {
+    options.installAgentBrowser = options.installAgentBrowser.toLowerCase() === 'true'
+  }
+  if (options.installAgentBrowser === undefined) {
+    options.installAgentBrowser = true // Default to true (install by default)
   }
 
   // Validate configAction
@@ -254,6 +266,10 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
     }
   }
 
+  if (options.orchestration !== undefined) {
+    parseOrchestrationLevel(options.orchestration)
+  }
+
   // Parse and validate workflows
   if (typeof options.workflows === 'string') {
     if (options.workflows === 'skip') {
@@ -287,6 +303,10 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
     options.workflows = 'all'
     // Convert "all" to actual workflow array
     options.workflows = WORKFLOW_CONFIG_BASE.map(w => w.id)
+  }
+
+  if (options.orchestration === undefined) {
+    options.orchestration = 'max'
   }
 }
 
@@ -349,6 +369,7 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
     // Step 4: Set up options with smart defaults
     options.skipPrompt = true
     options.skipBanner = true
+    options.initSource = 'simplified-init'
     if (defaults.apiKey) {
       options.apiType = 'api_key'
       options.apiKey = defaults.apiKey
@@ -362,8 +383,10 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
     options.configAction = 'backup'
     options.installCometixLine = defaults.tools.cometix
     options.installSuperpowers = false
+    options.installAgentBrowser = options.installAgentBrowser ?? true
     options.outputStyles = ['senior-architect'] // Use valid output style
     options.defaultOutputStyle = 'senior-architect'
+    options.orchestration = options.orchestration || defaults.workflows.orchestrationLevel || 'max'
 
     // Step 5: Display installation summary
     console.log(ansis.gray('📋 Installation Summary:'))
@@ -461,6 +484,7 @@ export async function silentInit(options: InitOptions = {}): Promise<void> {
     // Step 3: Set up options with smart defaults
     options.skipPrompt = true
     options.skipBanner = true
+    options.initSource = 'silent-init'
     options.yes = true
     options.silent = false // Prevent infinite loop - we're already in silent mode
     options.apiType = 'api_key'
@@ -478,7 +502,9 @@ export async function silentInit(options: InitOptions = {}): Promise<void> {
     options.configAction = 'backup'
     options.installCometixLine = false
     options.installSuperpowers = false
+    options.installAgentBrowser = options.installAgentBrowser ?? true
     options.workflows = false // Skip workflows in silent mode
+    options.orchestration = options.orchestration || defaults.workflows.orchestrationLevel || 'minimal'
 
     // Minimal output
     console.log(`Initializing CCJK (silent mode)...`)
@@ -564,6 +590,9 @@ async function handleSuperpowersInstallation(options: InitOptions): Promise<void
 }
 
 export async function init(options: InitOptions = {}): Promise<void> {
+  options.initSource = options.initSource || 'init'
+  options.orchestration = parseOrchestrationLevel(options.orchestration)
+
   // Clean up legacy zcf namespace directories to prevent duplicate skills/agents
   try {
     const { cleanupZcfNamespace } = await import('../utils/cleanup-migration.js')
@@ -937,10 +966,48 @@ export async function init(options: InitOptions = {}): Promise<void> {
       action = options.configAction
     }
 
+    const isNewInstall = !existsSync(SETTINGS_FILE)
+
+    if (!options.skipPrompt && (isNewInstall || ['backup', 'merge', 'new'].includes(action))) {
+      const isZh = i18n.language === 'zh-CN'
+      console.log('')
+      console.log(ansis.bold.cyan(isZh ? '💎 顶级大神编排理念（默认首选）' : '💎 Expert Workflow Orchestration (Default First Choice)'))
+      console.log(ansis.dim(isZh
+        ? '可同步优化规划、验证、子代理与规则执行质量，建议首次安装立即启用。'
+        : 'Improves planning, verification, subagent strategy, and rule execution quality. Recommended on first install.'))
+
+      const { orchestrationChoice } = await inquirer.prompt<{ orchestrationChoice: 'off' | 'minimal' | 'standard' | 'max' }>({
+        type: 'list',
+        name: 'orchestrationChoice',
+        message: isZh ? '请选择默认编排级别：' : 'Select default orchestration level:',
+        default: 'max',
+        choices: addNumbersToChoices([
+          {
+            name: isZh ? '顶级模式（推荐）- 最大化质量与流程约束' : 'Expert Mode (Recommended) - Maximum quality and workflow enforcement',
+            value: 'max',
+          },
+          {
+            name: isZh ? '标准模式 - 平衡质量与速度' : 'Standard Mode - Balanced quality and speed',
+            value: 'standard',
+          },
+          {
+            name: isZh ? '轻量模式 - 更少流程，更快执行' : 'Minimal Mode - Lighter process, faster execution',
+            value: 'minimal',
+          },
+          {
+            name: isZh ? '关闭 - 不启用编排策略' : 'Off - Disable orchestration policy',
+            value: 'off',
+          },
+        ]),
+      })
+
+      options.orchestration = orchestrationChoice
+      console.log(ansis.green(`✔ ${isZh ? '已设为默认首选' : 'Set as default first choice'}: ${orchestrationChoice}`))
+    }
+
     // Step 6: Configure API (skip if only updating docs)
     if (!options.skipPrompt && !options.skipBanner) tracker.nextStep('Configuring API')
     let apiConfig = null
-    const isNewInstall = !existsSync(SETTINGS_FILE)
     if (action !== 'docs-only' && (isNewInstall || ['backup', 'merge', 'new'].includes(action))) {
       // In skip-prompt mode, handle API configuration directly
       if (options.skipPrompt) {
@@ -1343,6 +1410,48 @@ export async function init(options: InitOptions = {}): Promise<void> {
       await handleSuperpowersInstallation(options)
     }
 
+    let agentBrowserReady = false
+
+    // Step 11.55: Agent Browser installation (default enabled)
+    try {
+      const isZh = i18n.language === 'zh-CN'
+      let shouldInstallAgentBrowser = false
+
+      if (options.skipPrompt) {
+        shouldInstallAgentBrowser = options.installAgentBrowser !== false
+      }
+      else {
+        shouldInstallAgentBrowser = await promptBoolean({
+          message: isZh
+            ? '安装 Agent Browser 浏览器自动化模块？（推荐，浏览器任务可无缝使用）'
+            : 'Install Agent Browser module? (recommended for seamless browser automation)',
+          defaultValue: true,
+        })
+      }
+
+      if (shouldInstallAgentBrowser) {
+        const { checkAgentBrowserInstalled, installAgentBrowser } = await import('../tools/agent-browser/installer')
+        const installed = await checkAgentBrowserInstalled()
+        const success = installed ? true : await installAgentBrowser()
+
+        if (success) {
+          const { addSkill } = await import('../skills/manager')
+          const { browserSkill } = await import('../utils/agent-browser/skill')
+          addSkill(browserSkill)
+          agentBrowserReady = true
+          console.log(ansis.green(`✔ ${isZh ? 'Agent Browser 已就绪，浏览器 Skill 已启用' : 'Agent Browser ready, browser skill enabled'}`))
+          console.log(ansis.gray(`  ${isZh ? '可直接使用:' : 'Use directly:'} ccjk browser start https://example.com`))
+        }
+      }
+      else {
+        console.log(ansis.yellow(isZh ? '⚠ 已跳过 Agent Browser 安装' : '⚠ Agent Browser installation skipped'))
+      }
+    }
+    catch (error) {
+      const msg = error instanceof Error ? error.message : String(error)
+      console.log(ansis.gray(`ℹ Agent Browser setup skipped: ${msg}`))
+    }
+
     // Step 11.6: Smart Guide injection (auto-enable for better UX)
     try {
       const { injectSmartGuide } = await import('../utils/smart-guide')
@@ -1354,6 +1463,20 @@ export async function init(options: InitOptions = {}): Promise<void> {
     catch {
       // Silent fail - smart guide is optional
       console.log(ansis.gray(`ℹ ${i18n.t('smartGuide:skipped')}`))
+    }
+
+    try {
+      const finalOrchestrationLevel = parseOrchestrationLevel(options.orchestration)
+      const policyPath = writeOrchestrationPolicy({
+        level: finalOrchestrationLevel,
+        language: configLang as SupportedLang,
+        source: options.initSource,
+      })
+      console.log(ansis.green(`✔ Workflow orchestration: ${finalOrchestrationLevel} (${policyPath})`))
+    }
+    catch (error) {
+      const msg = error instanceof Error ? error.message : String(error)
+      console.log(ansis.gray(`ℹ Workflow orchestration skipped: ${msg}`))
     }
 
     // Step 12: Save ccjk config
@@ -1417,6 +1540,28 @@ export async function init(options: InitOptions = {}): Promise<void> {
     console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep4')} `, 44) + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep4Command'), 18)) + ansis.bold.green('║'))
     console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
     console.log(ansis.bold.green('╚══════════════════════════════════════════════════════════════╝'))
+
+    if (isNewInstall || ['backup', 'merge', 'new'].includes(action)) {
+      const isZh = i18n.language === 'zh-CN'
+      console.log(ansis.cyan(isZh ? '🧠 上下文优化已启用（默认）' : '🧠 Context optimization is enabled (default)'))
+      console.log(ansis.dim(isZh
+        ? '   建议立即运行: ccjk morning  查看健康分与收益摘要'
+        : '   Recommended now: ccjk morning  to view health score and value summary'))
+      console.log(ansis.dim(isZh
+        ? '   深度复盘: ccjk review  | 上下文详情: ccjk context --show'
+        : '   Deep review: ccjk review  | Context details: ccjk context --show'))
+
+      if (agentBrowserReady) {
+        console.log(ansis.cyan(isZh ? '🌐 浏览器自动化已就绪（无缝）' : '🌐 Browser automation is ready (seamless)'))
+        console.log(ansis.dim(isZh
+          ? '   直接开始: ccjk browser start https://example.com'
+          : '   Start directly: ccjk browser start https://example.com'))
+        console.log(ansis.dim(isZh
+          ? '   常用操作: ccjk browser status  |  ccjk browser stop'
+          : '   Common actions: ccjk browser status  |  ccjk browser stop'))
+      }
+    }
+
     console.log('')
   }
   catch (error) {

@@ -22,36 +22,6 @@ const INVALID_PERMISSION_NAMES = new Set([
 ])
 
 /**
- * Dangerous Bash patterns that should not be auto-allowed.
- * Users can add these manually if they truly need them.
- */
-const DANGEROUS_BASH_PATTERNS = new Set([
-  'Bash(passwd *)',
-  'Bash(reboot *)',
-  'Bash(shutdown *)',
-  'Bash(halt *)',
-  'Bash(poweroff *)',
-  'Bash(init *)',
-  'Bash(telinit *)',
-  'Bash(rm *)',
-  'Bash(kill *)',
-  'Bash(pkill *)',
-  'Bash(killall *)',
-  'Bash(su *)',
-  'Bash(sudo *)',
-  'Bash(visudo *)',
-  'Bash(useradd *)',
-  'Bash(userdel *)',
-  'Bash(usermod *)',
-  'Bash(groupadd *)',
-  'Bash(groupdel *)',
-  'Bash(groupmod *)',
-  'Bash(modprobe *)',
-  'Bash(insmod *)',
-  'Bash(rmmod *)',
-])
-
-/**
  * Check if a permission string is valid for Claude Code.
  * Valid patterns:
  *   Bash(...), Read(...), Write(...), Edit(...), NotebookEdit(...), WebFetch(...), MCP(...), Task, mcp__*
@@ -174,11 +144,6 @@ export function mergeAndCleanPermissions(
       continue
     }
 
-    // Skip dangerous Bash patterns (user can add manually)
-    if (DANGEROUS_BASH_PATTERNS.has(perm)) {
-      continue
-    }
-
     // Check for redundant permissions (e.g., "Bash(git status)" when "Bash(git *)" exists)
     // Also handles wildcard patterns like "Bash(npm *)" covering "Bash(npm install)"
     let isRedundant = false
@@ -203,15 +168,12 @@ export function mergeAndCleanPermissions(
 
 /**
  * Repair an existing permissions array in-place.
- * Removes invalid Allow* names, dangerous patterns, and deduplicates.
+ * Removes invalid Allow* names and keeps valid custom permissions.
  * Preserves user's valid custom permissions (mcp__, Bash patterns, etc.)
  */
 export function repairPermissions(permissions: string[]): string[] {
   return permissions.filter((perm) => {
     if (!isValidPermission(perm)) {
-      return false
-    }
-    if (DANGEROUS_BASH_PATTERNS.has(perm)) {
       return false
     }
     return true

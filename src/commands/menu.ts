@@ -155,6 +155,34 @@ function checkNewMcpServicesHint(isZh: boolean): void {
   }
 }
 
+async function showContextValueSummary(isZh: boolean): Promise<void> {
+  try {
+    const { getContextPersistence } = await import('../context/persistence')
+    const persistence = getContextPersistence()
+    const metrics = persistence.getCompressionMetricsStats()
+
+    if (metrics.totalCompressions === 0) {
+      return
+    }
+
+    const saved = metrics.totalTokensSaved.toLocaleString()
+    const sessionCompressions = metrics.sessionStats?.compressions || 0
+    const sessionSavings = metrics.sessionStats?.tokensSaved || 0
+
+    console.log(ansis.cyan(`  🧠 ${isZh ? '上下文收益摘要' : 'Context Value Summary'}:`))
+    console.log(ansis.dim(`     ${isZh ? '累计节省' : 'Total saved'}: ${saved} ${isZh ? 'tokens' : 'tokens'}`))
+
+    if (sessionCompressions > 0) {
+      console.log(ansis.dim(`     ${isZh ? '最近24小时' : 'Last 24h'}: ${sessionCompressions} ${isZh ? '次压缩，节省' : 'compressions, saved'} ${sessionSavings.toLocaleString()} tokens`))
+    }
+
+    console.log(ansis.dim(`     ${isZh ? '查看详情' : 'Details'}: ${isZh ? 'ccjk morning / ccjk review' : 'ccjk morning / ccjk review'}`))
+  }
+  catch {
+    // Never block menu on metrics read failure
+  }
+}
+
 /**
  * Show the ZCF-style CCJK main menu
  */
@@ -165,6 +193,8 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   // Display ZCF-style menu
   console.log('')
   console.log(ansis.bold.yellow(isZh ? '请选择功能' : 'Select Feature'))
+
+  await showContextValueSummary(isZh)
 
   // Silent hint for new recommended services
   checkNewMcpServicesHint(isZh)
