@@ -38,6 +38,23 @@ export { CachedCloudClient, CloudCache } from './cache'
 // Export core client
 export { CloudClient, createCloudClient } from './client'
 
+// Miaoda backend client
+export {
+  createMiaodaClient,
+  MiaodaClient,
+  parseResponse as parseMiaodaResponse,
+} from './miaoda-client'
+export type {
+  LlmMessage,
+  LlmOptions,
+  MiaodaClientConfig,
+  MiaodaUser,
+  ParsedResponse,
+  QuotaInfo,
+  StreamCallbacks,
+  TokenPair,
+} from './miaoda-client'
+
 // Export standardized error handling
 export {
   CloudError,

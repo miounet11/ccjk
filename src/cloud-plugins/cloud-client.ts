@@ -23,7 +23,7 @@ export type { CloudPlugin, PluginCategory } from './types.js'
 // Constants
 // ============================================================================
 
-const DEFAULT_CLOUD_API_URL = 'https://api.claudehome.cn/api/v1/plugins'
+const DEFAULT_CLOUD_API_URL = 'https://api.claudehome.cn/api/v1/skills'
 const REQUEST_TIMEOUT = 30000 // 30 seconds
 const MAX_RETRY_ATTEMPTS = 3
 const RETRY_DELAY = 1000 // 1 second

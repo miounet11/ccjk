@@ -30,7 +30,7 @@ import { writeFileAtomic } from '../utils/fs-operations'
 // Constants
 // ============================================================================
 
-const DEFAULT_API_URL = 'https://api.claudehome.cn/api/v1/mcp-marketplace'
+const DEFAULT_API_URL = 'https://api.claudehome.cn/api/v1/skills'
 const REQUEST_TIMEOUT = 30000 // 30 seconds
 const MAX_RETRY_ATTEMPTS = 3
 const RETRY_DELAY = 1000 // 1 second
@@ -122,7 +122,7 @@ export class MarketplaceClient {
     this.log('Searching packages with options:', options)
 
     const params = this.buildSearchParams(options)
-    const response = await this.request<SearchResult>('/search', {
+    const response = await this.request<SearchResult>('', {
       method: 'GET',
       params,
     })
@@ -528,7 +528,7 @@ export class MarketplaceClient {
    */
   private buildSearchParams(options: SearchOptions): Record<string, unknown> {
     return {
-      q: options.query,
+      keyword: options.query,
       category: options.category,
       tags: options.tags,
       sortBy: options.sortBy,

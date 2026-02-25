@@ -40,6 +40,7 @@ catch {
  * All API paths should use this prefix for consistency
  */
 const API_PREFIX = '/api/v1'
+const HEALTH_PATH = '/health' // health is NOT under /api/v1 prefix
 
 /**
  * Cloud Client Class
@@ -77,6 +78,27 @@ export class CloudClient {
   private calculateRetryDelay(attempt: number): number {
     const delays = [100, 200, 400, 800]
     return delays[Math.min(attempt, delays.length - 1)]
+  }
+
+  /**
+   * Parse server response — handles all 5 response formats from Miaoda API:
+   * 1. { success: true, data: {} }  — auth/user/config/admin modules
+   * 2. { success: false, error: { message } }  — error from above modules
+   * 3. { data: {} }  — usage/license/skill modules
+   * 4. bare object  — subscription/llm/storage modules
+   * 5. { error: "..." }  — bare error
+   */
+  parseResponse<T>(raw: unknown): T {
+    if (raw === null || raw === undefined) return raw as T
+    const r = raw as Record<string, unknown>
+    if (r.success === false) {
+      const msg = (r.error as any)?.message || (r as any).message || (r as any).error || 'Unknown error'
+      throw new CloudClientError('API_ERROR', String(msg))
+    }
+    if (r.success === true && 'data' in r) return r.data as T
+    if (!('success' in r) && 'data' in r) return r.data as T
+    if (typeof r.error === 'string' && !('data' in r)) throw new CloudClientError('API_ERROR', r.error)
+    return raw as T
   }
 
   /**
@@ -161,7 +183,8 @@ export class CloudClient {
     try {
       consola.debug('Analyzing project:', request.projectRoot)
 
-      const response = await this.fetch<ProjectAnalysisResponse>(`${API_PREFIX}/analysis/projects`, {
+      // Server endpoint: POST /api/v1/specs (Miaoda spec system)
+      const response = await this.fetch<ProjectAnalysisResponse>(`${API_PREFIX}/specs`, {
         method: 'POST',
         body: request,
       })
@@ -241,7 +264,8 @@ export class CloudClient {
       consola.debug('Reporting usage:', report.metricType)
 
       // Use short timeout for telemetry (5s)
-      const response = await this.fetch<UsageReportResponse>(`${API_PREFIX}/telemetry/installation`, {
+      // Server endpoint: GET /usage/current (no /api/v1 prefix for usage module)
+      const response = await this.fetch<UsageReportResponse>(`${API_PREFIX}/usage/current`, {
         method: 'POST',
         body: report,
         timeout: 5000, // 5s timeout - telemetry should be fast
@@ -273,7 +297,7 @@ export class CloudClient {
     try {
       consola.debug('Checking API health')
 
-      const response = await this.fetch<HealthCheckResponse>(`${API_PREFIX}/health`, {
+      const response = await this.fetch<HealthCheckResponse>(HEALTH_PATH, {
         method: 'GET',
       })
 
