@@ -34,11 +34,13 @@ export interface TokenPair {
 }
 
 export interface MiaodaUser {
-  id: number
+  id: string
   email: string
-  plan: 'free' | 'pro' | 'business'
-  emailVerified: boolean
-  createdAt: string
+  name?: string
+  avatar?: string | null
+  plan?: 'free' | 'pro' | 'business'
+  emailVerified?: boolean
+  createdAt?: string
 }
 
 export interface ParsedResponse<T> {
@@ -164,7 +166,7 @@ export class MiaodaClient {
 
     this.refreshing = (async () => {
       try {
-        const raw = await ofetch(`${this.baseURL}/api/v1/auth/refresh`, {
+        const raw = await ofetch(`${this.baseURL}/auth/refresh`, {
           method: 'POST',
           body: { refreshToken: this.refreshToken },
           timeout: this.timeout,
@@ -247,38 +249,52 @@ export class MiaodaClient {
   // Auth
   // -------------------------------------------------------------------------
 
-  async register(email: string, password: string): Promise<ParsedResponse<{ tokens: TokenPair; user: MiaodaUser }>> {
-    const res = await this.request<{ tokens: TokenPair; user: MiaodaUser }>(
-      'POST', '/api/v1/auth/register', { email, password },
+  /** Normalize auth response — server may return { token } or { tokens: { accessToken } } */
+  private extractAndSetToken(data: Record<string, unknown>): void {
+    if (data.tokens && typeof data.tokens === 'object') {
+      const t = data.tokens as Partial<TokenPair>
+      if (t.accessToken) {
+        this.accessToken = t.accessToken
+        this.refreshToken = t.refreshToken ?? null
+      }
+    } else if (typeof data.token === 'string') {
+      this.accessToken = data.token
+      this.refreshToken = null
+    }
+  }
+
+  async register(email: string, password: string): Promise<ParsedResponse<{ token?: string; tokens?: TokenPair; user: MiaodaUser }>> {
+    const res = await this.request<{ token?: string; tokens?: TokenPair; user: MiaodaUser }>(
+      'POST', '/auth/register', { email, password },
     )
-    if (res.ok && res.data?.tokens) this.setTokens(res.data.tokens)
+    if (res.ok && res.data) this.extractAndSetToken(res.data as Record<string, unknown>)
     return res
   }
 
-  async login(email: string, password: string): Promise<ParsedResponse<{ tokens: TokenPair; user: MiaodaUser }>> {
-    const res = await this.request<{ tokens: TokenPair; user: MiaodaUser }>(
-      'POST', '/api/v1/auth/login', { email, password },
+  async login(email: string, password: string): Promise<ParsedResponse<{ token?: string; tokens?: TokenPair; user: MiaodaUser }>> {
+    const res = await this.request<{ token?: string; tokens?: TokenPair; user: MiaodaUser }>(
+      'POST', '/auth/login', { email, password },
     )
-    if (res.ok && res.data?.tokens) this.setTokens(res.data.tokens)
+    if (res.ok && res.data) this.extractAndSetToken(res.data as Record<string, unknown>)
     return res
   }
 
   async refreshTokens(token: string): Promise<ParsedResponse<TokenPair>> {
-    const res = await this.request<TokenPair>('POST', '/api/v1/auth/refresh', { refreshToken: token })
+    const res = await this.request<TokenPair>('POST', '/auth/refresh', { refreshToken: token })
     if (res.ok && res.data) this.setTokens(res.data)
     return res
   }
 
   requestPasswordReset(email: string) {
-    return this.request('POST', '/api/v1/auth/request-password-reset', { email })
+    return this.request('POST', '/auth/request-password-reset', { email })
   }
 
   resetPassword(token: string, newPassword: string) {
-    return this.request('POST', '/api/v1/auth/reset-password', { token, newPassword })
+    return this.request('POST', '/auth/reset-password', { token, newPassword })
   }
 
   verifyEmail(token: string) {
-    return this.request('GET', `/api/v1/auth/verify-email`, undefined, { query: { token } })
+    return this.request('GET', `/auth/verify-email`, undefined, { query: { token } })
   }
 
   // -------------------------------------------------------------------------
@@ -286,19 +302,19 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getProfile() {
-    return this.request<MiaodaUser>('GET', '/api/v1/user/profile')
+    return this.request<MiaodaUser>('GET', '/user/profile')
   }
 
   saveUserConfig(config: Record<string, unknown>) {
-    return this.request('POST', '/api/v1/user/config', config)
+    return this.request('POST', '/user/config', config)
   }
 
   getUserConfig() {
-    return this.request<Record<string, unknown>>('GET', '/api/v1/user/config')
+    return this.request<Record<string, unknown>>('GET', '/user/config')
   }
 
   deleteUserConfig() {
-    return this.request('DELETE', '/api/v1/user/config')
+    return this.request('DELETE', '/user/config')
   }
 
   // -------------------------------------------------------------------------
@@ -306,15 +322,15 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getApiKeys() {
-    return this.request<unknown[]>('GET', '/api/v1/user/api-keys')
+    return this.request<unknown[]>('GET', '/user/api-keys')
   }
 
   createApiKey(name: string, scopes: string[], expiresAt?: string) {
-    return this.request('POST', '/api/v1/user/api-keys', { name, scopes, expiresAt })
+    return this.request('POST', '/user/api-keys', { name, scopes, expiresAt })
   }
 
   deleteApiKey(id: number) {
-    return this.request('DELETE', `/api/v1/user/api-keys/${id}`)
+    return this.request('DELETE', `/user/api-keys/${id}`)
   }
 
   // -------------------------------------------------------------------------
@@ -322,7 +338,7 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getModels() {
-    return this.request<{ plan: string; models: string[] }>('GET', '/api/v1/llm/models')
+    return this.request<{ plan: string; models: string[] }>('GET', '/llm/models')
   }
 
   complete(
@@ -331,7 +347,7 @@ export class MiaodaClient {
     options?: LlmOptions,
   ): Promise<ParsedResponse<LlmCompleteResponse>> {
     return this.request<LlmCompleteResponse>(
-      'POST', '/api/v1/llm/complete',
+      'POST', '/llm/complete',
       { model, messages, ...options },
       { timeout: this.llmTimeout },
     )
@@ -350,7 +366,7 @@ export class MiaodaClient {
 
     ;(async () => {
       try {
-        const res = await fetch(`${this.baseURL}/api/v1/llm/stream`, {
+        const res = await fetch(`${this.baseURL}/llm/stream`, {
           method: 'POST',
           headers: this.headers({ Accept: 'text/event-stream' }),
           body: JSON.stringify({ model, messages, ...options }),
@@ -416,7 +432,7 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getConfigModels(membership?: 'free' | 'pro' | 'business') {
-    return this.request('GET', '/api/v1/config/models', undefined, {
+    return this.request('GET', '/config/models', undefined, {
       query: membership ? { membership } : undefined,
     })
   }
@@ -426,11 +442,11 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getUsageSummary() {
-    return this.request('GET', '/api/v1/usage/summary')
+    return this.request('GET', '/usage/summary')
   }
 
   getCurrentUsage() {
-    return this.request('GET', '/api/v1/usage/current')
+    return this.request('GET', '/usage/current')
   }
 
   // -------------------------------------------------------------------------
@@ -438,19 +454,19 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getSubscription() {
-    return this.request('GET', '/api/v1/subscriptions')
+    return this.request('GET', '/subscriptions')
   }
 
   createSubscription(plan: 'pro' | 'business', billingCycle: 'monthly' | 'yearly', paymentMethodId: string) {
-    return this.request('POST', '/api/v1/subscriptions/create', { plan, billingCycle, paymentMethodId })
+    return this.request('POST', '/subscriptions/create', { plan, billingCycle, paymentMethodId })
   }
 
   cancelSubscription(immediate = false) {
-    return this.request('POST', '/api/v1/subscriptions/cancel', { immediate })
+    return this.request('POST', '/subscriptions/cancel', { immediate })
   }
 
   changePlan(newPlan: 'free' | 'pro' | 'business', newBillingCycle?: 'monthly' | 'yearly') {
-    return this.request('POST', '/api/v1/subscriptions/change-plan', { newPlan, newBillingCycle })
+    return this.request('POST', '/subscriptions/change-plan', { newPlan, newBillingCycle })
   }
 
   // -------------------------------------------------------------------------
@@ -458,19 +474,19 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   verifyLicense(licenseKey: string, deviceFingerprint: string) {
-    return this.request('POST', '/api/v1/licenses/verify', { licenseKey, deviceFingerprint })
+    return this.request('POST', '/licenses/verify', { licenseKey, deviceFingerprint })
   }
 
   getLicense() {
-    return this.request('GET', '/api/v1/licenses')
+    return this.request('GET', '/licenses')
   }
 
   getLicenseDevices() {
-    return this.request('GET', '/api/v1/licenses/devices')
+    return this.request('GET', '/licenses/devices')
   }
 
   unbindDevice(fingerprint: string) {
-    return this.request('DELETE', `/api/v1/licenses/devices/${encodeURIComponent(fingerprint)}`)
+    return this.request('DELETE', `/licenses/devices/${encodeURIComponent(fingerprint)}`)
   }
 
   // -------------------------------------------------------------------------
@@ -478,22 +494,22 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   searchSkills(params: { keyword?: string; category?: string; page?: number; limit?: number } = {}) {
-    return this.request('GET', '/api/v1/skills/search', undefined, { query: params as any })
+    return this.request('GET', '/skills/search', undefined, { query: params as any })
   }
 
   getSkillDownloadUrl(id: number) {
-    return this.request<{ downloadUrl: string }>('GET', `/api/v1/skills/${id}/download`)
+    return this.request<{ downloadUrl: string }>('GET', `/skills/${id}/download`)
   }
 
   reviewSkill(id: number, rating: number, comment?: string) {
-    return this.request('POST', `/api/v1/skills/${id}/review`, { rating, comment })
+    return this.request('POST', `/skills/${id}/review`, { rating, comment })
   }
 
   publishSkill(formData: FormData) {
     // multipart/form-data — use fetch directly (no Content-Type override)
     const headers: Record<string, string> = {}
     if (this.accessToken) headers.Authorization = `Bearer ${this.accessToken}`
-    return fetch(`${this.baseURL}/api/v1/skills/publish`, {
+    return fetch(`${this.baseURL}/skills/publish`, {
       method: 'POST',
       headers,
       body: formData,
@@ -505,31 +521,31 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getWorkspaces() {
-    return this.request('GET', '/api/v1/workspaces')
+    return this.request('GET', '/workspaces')
   }
 
   createWorkspace(name: string) {
-    return this.request('POST', '/api/v1/workspaces', { name })
+    return this.request('POST', '/workspaces', { name })
   }
 
   getWorkspace(id: string) {
-    return this.request('GET', `/api/v1/workspaces/${id}`)
+    return this.request('GET', `/workspaces/${id}`)
   }
 
   deleteWorkspace(id: string) {
-    return this.request('DELETE', `/api/v1/workspaces/${id}`)
+    return this.request('DELETE', `/workspaces/${id}`)
   }
 
   getWorkspaceMembers(id: string) {
-    return this.request('GET', `/api/v1/workspaces/${id}/members`)
+    return this.request('GET', `/workspaces/${id}/members`)
   }
 
   addWorkspaceMember(id: string, email: string, role: 'member' | 'admin' = 'member') {
-    return this.request('POST', `/api/v1/workspaces/${id}/members`, { email, role })
+    return this.request('POST', `/workspaces/${id}/members`, { email, role })
   }
 
   removeWorkspaceMember(workspaceId: string, userId: number) {
-    return this.request('DELETE', `/api/v1/workspaces/${workspaceId}/members/${userId}`)
+    return this.request('DELETE', `/workspaces/${workspaceId}/members/${userId}`)
   }
 
   // -------------------------------------------------------------------------
@@ -537,27 +553,27 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getSpecs() {
-    return this.request('GET', '/api/v1/specs')
+    return this.request('GET', '/specs')
   }
 
   createSpec(title: string, requirements: string, workspaceId?: string) {
-    return this.request('POST', '/api/v1/specs', { title, requirements, workspaceId })
+    return this.request('POST', '/specs', { title, requirements, workspaceId })
   }
 
   getSpec(id: string) {
-    return this.request('GET', `/api/v1/specs/${id}`)
+    return this.request('GET', `/specs/${id}`)
   }
 
   generateSpecDesign(id: string) {
-    return this.request('POST', `/api/v1/specs/${id}/generate-design`)
+    return this.request('POST', `/specs/${id}/generate-design`)
   }
 
   generateSpecTasks(id: string) {
-    return this.request('POST', `/api/v1/specs/${id}/generate-tasks`)
+    return this.request('POST', `/specs/${id}/generate-tasks`)
   }
 
   updateSpecTask(specId: string, taskId: string, status: 'pending' | 'in_progress' | 'completed' | 'blocked') {
-    return this.request('PATCH', `/api/v1/specs/${specId}/tasks/${taskId}`, { status })
+    return this.request('PATCH', `/specs/${specId}/tasks/${taskId}`, { status })
   }
 
   // -------------------------------------------------------------------------
@@ -565,15 +581,15 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getWebhooks() {
-    return this.request('GET', '/api/v1/webhooks')
+    return this.request('GET', '/webhooks')
   }
 
   createWebhook(url: string, events: string[]) {
-    return this.request('POST', '/api/v1/webhooks', { url, events })
+    return this.request('POST', '/webhooks', { url, events })
   }
 
   deleteWebhook(id: string) {
-    return this.request('DELETE', `/api/v1/webhooks/${id}`)
+    return this.request('DELETE', `/webhooks/${id}`)
   }
 
   // -------------------------------------------------------------------------
@@ -584,42 +600,42 @@ export class MiaodaClient {
     const query: Record<string, string> = {}
     if (start) query.start = start
     if (end) query.end = end
-    return this.request('GET', '/api/v1/analytics/cost-breakdown', undefined, { query })
+    return this.request('GET', '/analytics/cost-breakdown', undefined, { query })
   }
 
   getForecast() {
-    return this.request('GET', '/api/v1/analytics/forecast')
+    return this.request('GET', '/analytics/forecast')
   }
 
   getDailyUsage(days = 30) {
-    return this.request('GET', '/api/v1/analytics/daily', undefined, { query: { days } })
+    return this.request('GET', '/analytics/daily', undefined, { query: { days } })
   }
 
   getRoutingHistory(limit = 50, offset = 0) {
-    return this.request('GET', '/api/v1/analytics/routing-history', undefined, { query: { limit, offset } })
+    return this.request('GET', '/analytics/routing-history', undefined, { query: { limit, offset } })
   }
 
   // -------------------------------------------------------------------------
   // Storage
   // -------------------------------------------------------------------------
 
-  getStorageStats() { return this.request('GET', '/api/v1/storage/stats') }
-  getStorageMonitor() { return this.request('GET', '/api/v1/storage/monitor') }
-  compressStorage(dryRun = false) { return this.request('POST', '/api/v1/storage/compress', { dryRun }) }
-  cleanupStorage() { return this.request('POST', '/api/v1/storage/cleanup') }
-  getStorageSnapshots() { return this.request('GET', '/api/v1/storage/snapshots') }
-  deleteStorageSnapshot(snapshotId: string) { return this.request('DELETE', `/api/v1/storage/snapshots/${snapshotId}`) }
-  verifyStorageSnapshot(snapshotId: string) { return this.request('POST', `/api/v1/storage/snapshots/${snapshotId}/verify`) }
-  getStorageHistory() { return this.request('GET', '/api/v1/storage/history') }
-  getStorageConfig() { return this.request('GET', '/api/v1/storage/config') }
-  updateStorageConfig(config: Record<string, unknown>) { return this.request('PUT', '/api/v1/storage/config', config) }
+  getStorageStats() { return this.request('GET', '/storage/stats') }
+  getStorageMonitor() { return this.request('GET', '/storage/monitor') }
+  compressStorage(dryRun = false) { return this.request('POST', '/storage/compress', { dryRun }) }
+  cleanupStorage() { return this.request('POST', '/storage/cleanup') }
+  getStorageSnapshots() { return this.request('GET', '/storage/snapshots') }
+  deleteStorageSnapshot(snapshotId: string) { return this.request('DELETE', `/storage/snapshots/${snapshotId}`) }
+  verifyStorageSnapshot(snapshotId: string) { return this.request('POST', `/storage/snapshots/${snapshotId}/verify`) }
+  getStorageHistory() { return this.request('GET', '/storage/history') }
+  getStorageConfig() { return this.request('GET', '/storage/config') }
+  updateStorageConfig(config: Record<string, unknown>) { return this.request('PUT', '/storage/config', config) }
 
   // -------------------------------------------------------------------------
   // Health
   // -------------------------------------------------------------------------
 
   health() {
-    return this.request('GET', '/api/v1/health')
+    return this.request('GET', '/health')
   }
 }
 

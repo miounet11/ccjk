@@ -3,8 +3,15 @@
   "version": "1.0.0",
   "description": "CCJK Evolution Layer - AI Agent Knowledge Sharing",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "unbuild",

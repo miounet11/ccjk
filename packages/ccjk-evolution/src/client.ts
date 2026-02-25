@@ -115,9 +115,9 @@ export class A2AClient {
   async revoke(geneId: string, reason: string): Promise<void> {
     this.ensureAuthenticated();
 
-    await this.request<void>(`/a2a/genes/${geneId}`, {
-      method: 'DELETE',
-      body: { reason },
+    await this.request<void>('/a2a/revoke', {
+      method: 'POST',
+      body: { type: 'revoke', geneId, reason },
       auth: true,
     });
   }

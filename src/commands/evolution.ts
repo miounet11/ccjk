@@ -10,8 +10,8 @@
 
 import ansis from 'ansis'
 import { A2AClient } from '../../packages/ccjk-evolution/dist/index.mjs'
+import { getCloudBaseUrl } from '../constants'
 import { i18n } from '../i18n'
-import { resolveRemoteApiBaseUrl } from '../utils/remote-api-endpoint'
 
 interface Gene {
   id: string
@@ -48,8 +48,14 @@ export async function handleEvolutionCommand(
   options: any,
 ): Promise<void> {
   try {
-    const resolvedBaseUrl = await resolveRemoteApiBaseUrl()
-    const client = new A2AClient(resolvedBaseUrl)
+    const client = new A2AClient(getCloudBaseUrl('MAIN'))
+    // Register once per command invocation
+    await client.hello({
+      id: 'ccjk-cli',
+      name: 'ccjk',
+      version: '1.0.0',
+      capabilities: ['fetch', 'report', 'publish'],
+    })
 
     switch (action) {
       case 'top':
@@ -79,16 +85,6 @@ export async function handleEvolutionCommand(
  * Show top capabilities
  */
 async function showTopCapabilities(client: A2AClient, options: any): Promise<void> {
-  const connectingMsg = i18n.t('evolution:connecting', 'Connecting to Evolution Layer...')
-  console.log(ansis.blue('🔗 ' + connectingMsg))
-
-  await client.hello({
-    id: 'claude-code-cli',
-    name: 'claude-code',
-    version: '1.0.0',
-    capabilities: ['fetch', 'report'],
-  })
-
   const fetchingMsg = i18n.t('evolution:fetching', 'Fetching top capabilities...')
   console.log(ansis.blue('📊 ' + fetchingMsg))
 
@@ -140,13 +136,6 @@ async function searchSolutions(client: A2AClient, query: string, options: any): 
   const searchingMsg = i18n.t('evolution:searching', 'Searching for: {{query}}', { query })
   console.log(ansis.blue('🔍 ' + searchingMsg))
 
-  await client.hello({
-    id: 'claude-code-cli',
-    name: 'claude-code',
-    version: '1.0.0',
-    capabilities: ['fetch', 'report'],
-  })
-
   const genes = await client.fetch(
     {
       signature: query,
@@ -184,14 +173,8 @@ async function searchSolutions(client: A2AClient, query: string, options: any): 
  * Show gene details
  */
 async function showGeneDetails(client: A2AClient, geneId: string): Promise<void> {
-  await client.hello({
-    id: 'claude-code-cli',
-    name: 'claude-code',
-    version: '1.0.0',
-    capabilities: ['fetch', 'report'],
-  })
-
-  const genes = await client.fetch({ signature: '*', context: [] })
+  // Search by ID prefix — avoids fetching entire gene pool
+  const genes = await client.fetch({ signature: geneId, context: [] }, 5)
   const gene = genes.find(g => g.id.startsWith(geneId))
 
   if (!gene) {
@@ -209,13 +192,6 @@ async function showGeneDetails(client: A2AClient, geneId: string): Promise<void>
 async function showStats(client: A2AClient): Promise<void> {
   const fetchingMsg = i18n.t('evolution:fetchingStats', 'Fetching statistics...')
   console.log(ansis.blue('📊 ' + fetchingMsg))
-
-  await client.hello({
-    id: 'claude-code-cli',
-    name: 'claude-code',
-    version: '1.0.0',
-    capabilities: ['fetch', 'report'],
-  })
 
   const allGenes = await client.fetch({ signature: '*', context: [] }, 1000)
 
