@@ -1,13 +1,9 @@
 import type {
     DecisionResponse,
-    FetchMessage,
     FetchResponse,
     Gene,
-    HelloMessage,
     HelloResponse,
-    PublishMessage,
     PublishResponse,
-    ReportMessage,
     ReportResponse
 } from './types';
 
@@ -15,7 +11,7 @@ import type {
  * A2A Protocol Client
  * Agent-to-Agent communication for CCJK Evolution Layer
  *
- * Uses native fetch for Node.js 18+ compatibility
+ * Aligned with api.claudehome.cn /a2a/* endpoints
  */
 
 export class A2AClient {
@@ -41,12 +37,13 @@ export class A2AClient {
   }
 
   /**
-   * Register agent (hello)
+   * Register agent — POST /a2a/hello
+   * Server expects: { agent: { name, version }, capabilities }
    */
-  async hello(agent: HelloMessage['agent']): Promise<HelloResponse> {
+  async hello(name: string, version: string, capabilities: string[] = []): Promise<HelloResponse> {
     const response = await this.request<HelloResponse>('/a2a/hello', {
       method: 'POST',
-      body: { type: 'hello', agent },
+      body: { agent: { name, version }, capabilities },
     });
 
     this.token = response.token;
@@ -56,27 +53,49 @@ export class A2AClient {
   }
 
   /**
-   * Publish a gene
+   * Publish a gene — POST /a2a/publish
+   * Server expects flat fields: problemSignature, solutionStrategy, solutionCode, solutionSteps, tags, version
    */
-  async publish(gene: PublishMessage['gene'], proof?: PublishMessage['proof']): Promise<PublishResponse> {
+  async publish(gene: {
+    problemSignature: string;
+    solutionStrategy: string;
+    solutionCode?: string;
+    solutionSteps: string[];
+    tags?: string[];
+    version?: string;
+  }): Promise<PublishResponse> {
     this.ensureAuthenticated();
 
     return this.request<PublishResponse>('/a2a/publish', {
       method: 'POST',
-      body: { type: 'publish', gene, proof },
+      body: {
+        problemSignature: gene.problemSignature,
+        solutionStrategy: gene.solutionStrategy,
+        solutionCode: gene.solutionCode || '',
+        solutionSteps: gene.solutionSteps,
+        tags: gene.tags || [],
+        version: gene.version || '1.0.0',
+      },
       auth: true,
     });
   }
 
   /**
-   * Fetch genes
+   * Fetch genes — GET /a2a/fetch?minGDI=&limit=&signature=
+   * Server returns: { success, genes: [...] }
    */
-  async fetch(query: FetchMessage['query'], limit?: number): Promise<Gene[]> {
+  async fetch(options: { minGDI?: number; limit?: number; signature?: string; geneId?: string } = {}): Promise<Gene[]> {
     this.ensureAuthenticated();
 
-    const response = await this.request<FetchResponse>('/a2a/fetch', {
-      method: 'POST',
-      body: { type: 'fetch', query, limit },
+    const params = new URLSearchParams();
+    if (options.minGDI !== undefined) params.set('minGDI', String(options.minGDI));
+    if (options.limit !== undefined) params.set('limit', String(options.limit));
+    if (options.signature) params.set('signature', options.signature);
+    if (options.geneId) params.set('geneId', options.geneId);
+
+    const qs = params.toString();
+    const response = await this.request<FetchResponse>(`/a2a/fetch${qs ? '?' + qs : ''}`, {
+      method: 'GET',
       auth: true,
     });
 
@@ -84,61 +103,69 @@ export class A2AClient {
   }
 
   /**
-   * Report usage result
+   * Report usage result — POST /a2a/report
+   * Server expects: { geneId, outcome, context? }
    */
-  async report(geneId: string, result: ReportMessage['result']): Promise<ReportResponse> {
+  async report(geneId: string, outcome: 'success' | 'failure', context?: string): Promise<ReportResponse> {
     this.ensureAuthenticated();
 
     return this.request<ReportResponse>('/a2a/report', {
       method: 'POST',
-      body: { type: 'report', geneId, result },
+      body: { geneId, outcome, ...(context ? { context } : {}) },
       auth: true,
     });
   }
 
   /**
-   * Request decision
+   * Record decision — POST /a2a/decision
+   * Server expects: { geneId, action: 'approve' | 'reject' }
    */
-  async decision(problem: string, options: Gene[], context: any): Promise<DecisionResponse> {
+  async decision(geneId: string, action: 'approve' | 'reject'): Promise<DecisionResponse> {
     this.ensureAuthenticated();
 
     return this.request<DecisionResponse>('/a2a/decision', {
       method: 'POST',
-      body: { type: 'decision', problem, options, context },
+      body: { geneId, action },
       auth: true,
     });
   }
 
   /**
-   * Revoke a gene
+   * Revoke a gene — POST /a2a/revoke
+   * Server expects: { geneId, reason? }
    */
-  async revoke(geneId: string, reason: string): Promise<void> {
+  async revoke(geneId: string, reason?: string): Promise<void> {
     this.ensureAuthenticated();
 
-    await this.request<void>('/a2a/revoke', {
+    await this.request<{ success: boolean }>('/a2a/revoke', {
       method: 'POST',
-      body: { type: 'revoke', geneId, reason },
+      body: { geneId, ...(reason ? { reason } : {}) },
       auth: true,
     });
   }
 
   /**
-   * Get agent ID
+   * Get stats — GET /a2a/stats
    */
+  async stats(): Promise<{ totalGenesInPool: number; myContributions: number; reportsSubmitted: number; successRate: number }> {
+    this.ensureAuthenticated();
+
+    const resp = await this.request<{ success: boolean; stats: any }>('/a2a/stats', {
+      method: 'GET',
+      auth: true,
+    });
+
+    return resp.stats;
+  }
+
   getAgentId(): string | null {
     return this.agentId;
   }
 
-  /**
-   * Check if authenticated
-   */
   isAuthenticated(): boolean {
     return this.token !== null;
   }
 
-  /**
-   * Internal request wrapper
-   */
   private async request<T = any>(
     path: string,
     options: {
@@ -164,7 +191,7 @@ export class A2AClient {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: response.statusText }));
-      throw new Error(error.error || `Request failed: ${response.statusText}`);
+      throw new Error(error.error || error.message || `Request failed: ${response.statusText}`);
     }
 
     return response.json();

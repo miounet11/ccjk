@@ -1,41 +1,27 @@
 /**
  * CCJK Evolution Layer Types
- * Inspired by EvoMap's GEP (Genomic Evolution Protocol)
+ * Aligned with api.claudehome.cn /a2a/* endpoints
  */
 
 export type GeneType = 'pattern' | 'fix' | 'optimization' | 'workaround';
 
+/**
+ * Gene — flat schema matching server response from GET /a2a/fetch
+ */
 export interface Gene {
-  id: string;
-  sha256: string;
-  type: GeneType;
-  problem: {
-    signature: string;
-    context: string[];
-    description?: string;
-  };
-  solution: {
-    strategy: string;
-    code?: string;
-    steps: string[];
-  };
-  metadata: {
-    author: string;
-    createdAt: string;
-    updatedAt?: string;
-    tags: string[];
-    version?: string;
-  };
-  quality: {
-    gdi: number;
-    successRate: number;
-    usageCount: number;
-    avgTime: number;
-  };
-  verification?: {
-    testCases: TestCase[];
-    passRate: number;
-  };
+  geneId: string;
+  problemSignature: string;
+  solutionStrategy: string;
+  solutionCode: string;
+  solutionSteps: string[];
+  tags: string[];
+  version: string;
+  gdi: number;
+  successRate: number;
+  usageCount: number;
+  passRate: number;
+  revoked: boolean;
+  createdAt: string;
 }
 
 export interface TestCase {
@@ -45,35 +31,12 @@ export interface TestCase {
   passed?: boolean;
 }
 
-export interface Capsule {
-  id: string;
-  genes: string[];
-  auditTrail: AuditEntry[];
-  verification: {
-    testCases: TestCase[];
-    passRate: number;
-  };
-  metadata: {
-    createdAt: string;
-    description?: string;
-  };
-}
-
-export interface AuditEntry {
-  timestamp: string;
-  action: string;
-  result: 'success' | 'failure';
-  context: any;
-}
-
 export interface Agent {
-  id: string;
   name: string;
   version: string;
-  capabilities: string[];
 }
 
-// A2A Protocol Messages
+// A2A Protocol Messages (for reference, client uses typed methods)
 
 export type A2AMessage =
   | HelloMessage
@@ -84,52 +47,40 @@ export type A2AMessage =
   | RevokeMessage;
 
 export interface HelloMessage {
-  type: 'hello';
   agent: Agent;
+  capabilities?: string[];
 }
 
 export interface PublishMessage {
-  type: 'publish';
-  gene: Omit<Gene, 'id' | 'sha256' | 'quality'>;
-  proof?: {
-    testResults: any[];
-    auditTrail: any[];
-  };
+  problemSignature: string;
+  solutionStrategy: string;
+  solutionCode?: string;
+  solutionSteps: string[];
+  tags?: string[];
+  version?: string;
 }
 
 export interface FetchMessage {
-  type: 'fetch';
-  query: {
-    signature?: string;
-    context?: string[];
-    tags?: string[];
-    minGDI?: number;
-    type?: GeneType;
-  };
+  minGDI?: number;
   limit?: number;
+  signature?: string;
+  geneId?: string;
 }
 
 export interface ReportMessage {
-  type: 'report';
   geneId: string;
-  result: {
-    success: boolean;
-    time: number;
-    context: any;
-  };
+  outcome: 'success' | 'failure';
+  context?: string;
 }
 
 export interface DecisionMessage {
-  type: 'decision';
-  problem: string;
-  options: Gene[];
-  context: any;
+  geneId: string;
+  action: 'approve' | 'reject';
 }
 
 export interface RevokeMessage {
-  type: 'revoke';
   geneId: string;
-  reason: string;
+  reason?: string;
 }
 
 // API Responses
@@ -140,23 +91,24 @@ export interface HelloResponse {
 }
 
 export interface PublishResponse {
+  success: boolean;
   geneId: string;
-  sha256: string;
-  gdi: number;
 }
 
 export interface FetchResponse {
+  success: boolean;
   genes: Gene[];
-  total: number;
 }
 
 export interface ReportResponse {
   success: boolean;
-  updatedGDI?: number;
+  newGDI?: number;
 }
 
 export interface DecisionResponse {
-  recommendedGeneId: string;
-  confidence: number;
-  reasoning: string;
+  success: boolean;
+  action: string;
+  geneId: string;
+  updatedPassRate: number;
+  updatedGDI: number;
 }

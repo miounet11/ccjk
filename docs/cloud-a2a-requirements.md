@@ -1,149 +1,134 @@
-# A2A Evolution Layer — Server Requirements
+# A2A Evolution Layer — Server Bug Report
 
-> Client version: ccjk@12.0.11
+> Client version: ccjk@12.0.12
 > Date: 2026-02-26
-> Status: Pending server implementation
+> Tested against: https://api.claudehome.cn
 
-## Missing Endpoints
+## Test Results Summary
 
-### 1. `POST /a2a/revoke` — Revoke a published gene
-
-Client calls this when a user wants to retract a published solution.
-
-**Request:**
-```json
-{
-  "type": "revoke",
-  "geneId": "<gene-id>",
-  "reason": "<string>"
-}
-```
-
-**Auth:** Bearer token required (same as publish)
-
-**Response (200):**
-```json
-{ "success": true }
-```
-
-**Response (404):**
-```json
-{ "message": "Gene not found" }
-```
-
-**Response (403):**
-```json
-{ "message": "Not authorized to revoke this gene" }
-```
+| Endpoint | Status | Notes |
+|----------|--------|-------|
+| `POST /a2a/hello` | ✅ | Requires `agent.name` + `agent.version` (nested) |
+| `GET /a2a/fetch` | ✅ | Returns flat gene objects, GDI ranking works |
+| `POST /a2a/publish` | ❌ BUG | Always returns `Invalid gene payload` |
+| `POST /a2a/report` | ❌ BUG | Always returns `Invalid report payload` |
+| `POST /a2a/decision` | ✅ | Requires `geneId` + `action` (approve\|reject) |
+| `POST /a2a/revoke` | ✅ | Works correctly |
+| `GET /a2a/stats` | ✅ | Returns contribution stats |
 
 ---
 
-### 2. `POST /a2a/decision` — Record agent decision for GDI tracking
+## BUG-1: `POST /a2a/publish` — Rejects all payloads
 
-Client calls this after an agent makes a significant decision (tool selection, approach choice).
+**Symptom:** Returns `{"error":"Invalid gene payload"}` for every request regardless of payload shape.
 
-**Request:**
+**Tested payloads (all rejected):**
 ```json
+// Attempt 1 — flat fields matching fetch response shape
 {
-  "type": "decision",
-  "agentId": "<string>",
-  "context": "<problem description>",
-  "decision": "<what was decided>",
-  "outcome": "success | failure | pending",
-  "geneIds": ["<gene-id-1>", "<gene-id-2>"]  // genes that influenced this decision
+  "problemSignature": "test",
+  "solutionStrategy": "test",
+  "solutionCode": "console.log(1)",
+  "solutionSteps": ["step 1"],
+  "tags": ["test"],
+  "version": "1.0.0"
+}
+
+// Attempt 2 — with agentId
+{
+  "problemSignature": "test",
+  "solutionStrategy": "test",
+  "solutionCode": "console.log(1)",
+  "solutionSteps": ["step 1"],
+  "tags": ["test"],
+  "version": "1.0.0",
+  "agentId": "<agentId from hello>"
+}
+
+// Attempt 3 — wrapped in gene object
+{
+  "gene": {
+    "problemSignature": "test",
+    "solutionStrategy": "test",
+    "solutionCode": "console.log(1)",
+    "solutionSteps": ["step 1"],
+    "tags": ["test"],
+    "version": "1.0.0"
+  }
 }
 ```
 
-**Auth:** Bearer token required
+**Auth:** Bearer token from `/a2a/hello` — confirmed valid (same token works for `/a2a/decision` and `/a2a/revoke`)
 
-**Response (200):**
+**Expected response (200):**
+```json
+{ "success": true, "geneId": "<new-id>" }
+```
+
+**Fix needed:** Please provide the exact required fields for publish, or fix the validation logic. The flat schema matching the fetch response shape should work.
+
+---
+
+## BUG-2: `POST /a2a/report` — Rejects all payloads
+
+**Symptom:** Returns `{"error":"Invalid report payload"}` for every request.
+
+**Tested payloads (all rejected):**
+```json
+// Attempt 1
+{ "geneId": "<valid-id>", "outcome": "success" }
+
+// Attempt 2
+{ "geneId": "<valid-id>", "success": true }
+
+// Attempt 3
+{ "geneId": "<valid-id>", "result": "success", "context": "test" }
+
+// Attempt 4
+{ "geneId": "<valid-id>", "outcome": "success", "agentId": "<agentId>", "context": "test" }
+
+// Attempt 5
+{ "geneId": "<valid-id>", "outcome": "success", "feedback": "good" }
+```
+
+**Expected response (200):**
+```json
+{ "success": true, "newGDI": 72.5 }
+```
+
+**Fix needed:** Please provide the exact required fields, or fix the validation. This endpoint is critical — it's how GDI scores get updated after real-world usage.
+
+---
+
+## Schema Notes
+
+### `/a2a/hello` — confirmed working schema
 ```json
 {
-  "decisionId": "<uuid>",
-  "gdiImpact": 0.05  // how much this updated referenced genes' GDI
+  "agent": {
+    "name": "ccjk",
+    "version": "12.0.12"
+  },
+  "capabilities": ["code", "debug"]
 }
 ```
+Returns: `{ "agentId": "...", "token": "..." }`
 
----
-
-## Existing Endpoint Issues
-
-### 3. `GET /a2a/fetch` — Add `geneId` single-fetch support
-
-Currently only supports query-based fetch. Client needs to fetch a single gene by ID for the detail view.
-
-**Add support for:**
+### `/a2a/decision` — confirmed working schema
+```json
+{ "geneId": "<id>", "action": "approve" }
 ```
-GET /a2a/fetch?geneId=<id>
+Returns: `{ "success": true, "action": "approve", "geneId": "...", "updatedPassRate": 0.94, "updatedGDI": 58.5 }`
+
+### `/a2a/fetch` — confirmed working, gene shape returned
 ```
-
-**Response:** Same gene object format, wrapped in `{ items: [gene] }`
-
----
-
-### 4. `GET /a2a/stats` — Agent statistics endpoint
-
-Client wants to show the user their contribution stats.
-
-**Request:**
-```
-GET /a2a/stats
+GET /a2a/fetch?minGDI=0&limit=10
 Authorization: Bearer <token>
 ```
-
-**Response (200):**
-```json
-{
-  "totalPublished": 12,
-  "totalReports": 47,
-  "avgGDI": 0.73,
-  "topGenes": [
-    { "geneId": "...", "title": "...", "gdi": 0.95, "reports": 23 }
-  ]
-}
-```
+Gene fields: `geneId, problemSignature, solutionStrategy, solutionCode, solutionSteps, tags, version, gdi, successRate, usageCount, passRate, revoked, createdAt`
 
 ---
 
-## GDI Scoring Notes
+## Client-side fix needed after server fix
 
-The client's `calculateGDI()` function uses this formula:
-
-```
-GDI = (successRate * 0.4) + (usageCount / maxUsage * 0.3) + (recencyScore * 0.2) + (diversityScore * 0.1)
-```
-
-The server should use the same formula for consistency. If the server uses a different formula, please document it so the client can align.
-
----
-
-## Gene Object Schema (client expects)
-
-```typescript
-interface Gene {
-  id: string
-  problem: {
-    signature: string      // hash of problem type
-    description: string
-    context: string[]
-  }
-  solution: {
-    strategy: string
-    steps: string[]
-    toolsUsed: string[]
-  }
-  quality: {
-    gdi: number            // 0-1, higher = better
-    successRate: number    // 0-1
-    usageCount: number
-    lastUsed: string       // ISO date
-  }
-  metadata: {
-    agentId: string
-    version: string
-    tags: string[]
-  }
-}
-```
-
-Please ensure `/a2a/fetch` returns genes in this exact shape.
+Once publish/report are fixed, the client `A2AClient` in `packages/ccjk-evolution/src/client.ts` needs to be updated to match the confirmed schema. Currently it sends nested objects (`problem.signature`, `solution.strategy`) — if server uses flat fields, client needs updating too.

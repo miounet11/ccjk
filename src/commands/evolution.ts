@@ -50,12 +50,7 @@ export async function handleEvolutionCommand(
   try {
     const client = new A2AClient(getCloudBaseUrl('MAIN'))
     // Register once per command invocation
-    await client.hello({
-      id: 'ccjk-cli',
-      name: 'ccjk',
-      version: '1.0.0',
-      capabilities: ['fetch', 'report', 'publish'],
-    })
+    await client.hello('ccjk', '1.0.0', ['fetch', 'report', 'publish'])
 
     switch (action) {
       case 'top':
@@ -88,14 +83,10 @@ async function showTopCapabilities(client: A2AClient, options: any): Promise<voi
   const fetchingMsg = i18n.t('evolution:fetching', 'Fetching top capabilities...')
   console.log(ansis.blue('📊 ' + fetchingMsg))
 
-  const genes = await client.fetch(
-    {
-      signature: '*',
-      context: [],
-      minGDI: Number.parseInt(options.minGdi || '70'),
-    },
-    Number.parseInt(options.limit || '30'),
-  )
+  const genes = await client.fetch({
+    minGDI: Number.parseInt(options.minGdi || '70'),
+    limit: Number.parseInt(options.limit || '30'),
+  })
 
   const foundMsg = i18n.t('evolution:found', 'Found {{count}} capabilities', { count: genes.length })
   console.log(ansis.green('\n✅ ' + foundMsg + '\n'))
@@ -107,22 +98,22 @@ async function showTopCapabilities(client: A2AClient, options: any): Promise<voi
   }
 
   genes.forEach((gene, index) => {
-    console.log(ansis.bold(`${index + 1}. ${gene.id.substring(0, 8)}`))
+    console.log(ansis.bold(`${index + 1}. ${gene.geneId.substring(0, 8)}`))
 
     const problemLabel = ansis.cyan(i18n.t('evolution:problem', 'Problem'))
-    console.log('   ' + problemLabel + ': ' + gene.problem.signature)
+    console.log('   ' + problemLabel + ': ' + gene.problemSignature)
 
     const solutionLabel = ansis.yellow(i18n.t('evolution:solution', 'Solution'))
-    console.log('   ' + solutionLabel + ': ' + gene.solution.strategy)
+    console.log('   ' + solutionLabel + ': ' + gene.solutionStrategy)
 
-    console.log('   ' + ansis.green('GDI') + ': ' + gene.quality.gdi.toFixed(1))
+    console.log('   ' + ansis.green('GDI') + ': ' + gene.gdi.toFixed(1))
 
     const usedLabel = ansis.gray(i18n.t('evolution:used', 'Used'))
     const timesLabel = i18n.t('evolution:times', 'times')
-    console.log('   ' + usedLabel + ': ' + gene.quality.usageCount + ' ' + timesLabel)
+    console.log('   ' + usedLabel + ': ' + gene.usageCount + ' ' + timesLabel)
 
     const successLabel = ansis.gray(i18n.t('evolution:success', 'Success'))
-    const successRate = (gene.quality.successRate * 100).toFixed(1)
+    const successRate = (gene.successRate * 100).toFixed(1)
     console.log('   ' + successLabel + ': ' + successRate + '%')
 
     console.log()
@@ -136,14 +127,11 @@ async function searchSolutions(client: A2AClient, query: string, options: any): 
   const searchingMsg = i18n.t('evolution:searching', 'Searching for: {{query}}', { query })
   console.log(ansis.blue('🔍 ' + searchingMsg))
 
-  const genes = await client.fetch(
-    {
-      signature: query,
-      context: [],
-      minGDI: Number.parseInt(options.minGdi || '60'),
-    },
-    Number.parseInt(options.limit || '10'),
-  )
+  const genes = await client.fetch({
+    signature: query,
+    minGDI: Number.parseInt(options.minGdi || '60'),
+    limit: Number.parseInt(options.limit || '10'),
+  })
 
   if (genes.length === 0) {
     const noSolutionsMsg = i18n.t('evolution:noSolutions', 'No solutions found')
@@ -155,15 +143,15 @@ async function searchSolutions(client: A2AClient, query: string, options: any): 
   console.log(ansis.green('\n✅ ' + foundMsg + '\n'))
 
   genes.forEach((gene, index) => {
-    console.log(ansis.bold(`${index + 1}. ${gene.problem.signature}`))
-    console.log('   ' + gene.solution.strategy)
+    console.log(ansis.bold(`${index + 1}. ${gene.problemSignature}`))
+    console.log('   ' + gene.solutionStrategy)
 
     const usedLabel = i18n.t('evolution:used', 'Used')
-    console.log('   GDI: ' + gene.quality.gdi.toFixed(1) + ' | ' + usedLabel + ': ' + gene.quality.usageCount + 'x')
+    console.log('   GDI: ' + gene.gdi.toFixed(1) + ' | ' + usedLabel + ': ' + gene.usageCount + 'x')
 
-    if (gene.problem.context.length > 0) {
-      const contextLabel = ansis.gray(i18n.t('evolution:context', 'Context'))
-      console.log('   ' + contextLabel + ': ' + gene.problem.context.join(', '))
+    if (gene.tags.length > 0) {
+      const tagsLabel = ansis.gray(i18n.t('evolution:tags', 'Tags'))
+      console.log('   ' + tagsLabel + ': ' + gene.tags.join(', '))
     }
     console.log()
   })
@@ -173,9 +161,9 @@ async function searchSolutions(client: A2AClient, query: string, options: any): 
  * Show gene details
  */
 async function showGeneDetails(client: A2AClient, geneId: string): Promise<void> {
-  // Search by ID prefix — avoids fetching entire gene pool
-  const genes = await client.fetch({ signature: geneId, context: [] }, 5)
-  const gene = genes.find(g => g.id.startsWith(geneId))
+  // Search by ID prefix
+  const genes = await client.fetch({ geneId, limit: 5 })
+  const gene = genes.find(g => g.geneId.startsWith(geneId))
 
   if (!gene) {
     const notFoundMsg = i18n.t('evolution:geneNotFound', 'Gene not found')
@@ -193,39 +181,21 @@ async function showStats(client: A2AClient): Promise<void> {
   const fetchingMsg = i18n.t('evolution:fetchingStats', 'Fetching statistics...')
   console.log(ansis.blue('📊 ' + fetchingMsg))
 
-  const allGenes = await client.fetch({ signature: '*', context: [] }, 1000)
-
-  const totalGenes = allGenes.length
-  const avgGDI = allGenes.reduce((sum, g) => sum + g.quality.gdi, 0) / totalGenes
-  const totalUsage = allGenes.reduce((sum, g) => sum + g.quality.usageCount, 0)
-  const avgSuccessRate = allGenes.reduce((sum, g) => sum + g.quality.successRate, 0) / totalGenes
-
-  const typeCount = allGenes.reduce((acc, g) => {
-    acc[g.type] = (acc[g.type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  const stats = await client.stats()
 
   console.log(ansis.bold('\n📈 Evolution Layer Statistics\n'))
 
-  const totalLabel = ansis.cyan(i18n.t('evolution:totalGenes', 'Total Genes'))
-  console.log(totalLabel + ': ' + totalGenes)
+  const totalLabel = ansis.cyan(i18n.t('evolution:totalGenes', 'Total Genes in Pool'))
+  console.log(totalLabel + ': ' + stats.totalGenesInPool)
 
-  const avgGdiLabel = ansis.cyan(i18n.t('evolution:avgGDI', 'Average GDI'))
-  console.log(avgGdiLabel + ': ' + avgGDI.toFixed(1))
+  const myLabel = ansis.cyan(i18n.t('evolution:myContributions', 'My Contributions'))
+  console.log(myLabel + ': ' + stats.myContributions)
 
-  const totalUsageLabel = ansis.cyan(i18n.t('evolution:totalUsage', 'Total Usage'))
-  console.log(totalUsageLabel + ': ' + totalUsage)
+  const reportsLabel = ansis.cyan(i18n.t('evolution:reportsSubmitted', 'Reports Submitted'))
+  console.log(reportsLabel + ': ' + stats.reportsSubmitted)
 
-  const avgSuccessLabel = ansis.cyan(i18n.t('evolution:avgSuccess', 'Average Success Rate'))
-  console.log(avgSuccessLabel + ': ' + (avgSuccessRate * 100).toFixed(1) + '%')
-
-  console.log()
-  const byTypeLabel = i18n.t('evolution:byType', 'By Type')
-  console.log(ansis.bold(byTypeLabel + ':'))
-
-  Object.entries(typeCount).forEach(([type, count]) => {
-    console.log('  ' + type + ': ' + count)
-  })
+  const successLabel = ansis.cyan(i18n.t('evolution:successRate', 'Success Rate'))
+  console.log(successLabel + ': ' + (stats.successRate * 100).toFixed(1) + '%')
 }
 
 /**
@@ -235,43 +205,32 @@ function displayGene(gene: Gene): void {
   const detailsLabel = i18n.t('evolution:geneDetails', 'Gene Details')
   console.log(ansis.bold('\n📦 ' + detailsLabel + '\n'))
 
-  console.log(ansis.cyan('ID') + ': ' + gene.id)
-
-  const typeLabel = i18n.t('evolution:type', 'Type')
-  console.log(ansis.cyan(typeLabel) + ': ' + gene.type)
-
-  console.log(ansis.cyan('SHA256') + ': ' + gene.sha256)
+  console.log(ansis.cyan('ID') + ': ' + gene.geneId)
+  console.log(ansis.cyan('Version') + ': ' + gene.version)
   console.log()
 
   const problemLabel = i18n.t('evolution:problem', 'Problem')
   console.log(ansis.bold(problemLabel + ':'))
-
-  const sigLabel = i18n.t('evolution:signature', 'Signature')
-  console.log('  ' + sigLabel + ': ' + gene.problem.signature)
-
-  if (gene.problem.context.length > 0) {
-    const contextLabel = i18n.t('evolution:context', 'Context')
-    console.log('  ' + contextLabel + ': ' + gene.problem.context.join(', '))
-  }
+  console.log('  ' + gene.problemSignature)
   console.log()
 
   const solutionLabel = i18n.t('evolution:solution', 'Solution')
   console.log(ansis.bold(solutionLabel + ':'))
 
   const strategyLabel = i18n.t('evolution:strategy', 'Strategy')
-  console.log('  ' + strategyLabel + ': ' + gene.solution.strategy)
+  console.log('  ' + strategyLabel + ': ' + gene.solutionStrategy)
 
-  if (gene.solution.code) {
+  if (gene.solutionCode) {
     const codeLabel = i18n.t('evolution:code', 'Code')
     console.log('  ' + codeLabel + ':')
-    const codeLines = gene.solution.code.split('\n').map(line => '    ' + line).join('\n')
+    const codeLines = gene.solutionCode.split('\n').map((line: string) => '    ' + line).join('\n')
     console.log(ansis.gray(codeLines))
   }
 
-  if (gene.solution.steps.length > 0) {
+  if (gene.solutionSteps.length > 0) {
     const stepsLabel = i18n.t('evolution:steps', 'Steps')
     console.log('  ' + stepsLabel + ':')
-    gene.solution.steps.forEach((step, i) => {
+    gene.solutionSteps.forEach((step: string, i: number) => {
       console.log('    ' + (i + 1) + '. ' + step)
     })
   }
@@ -279,31 +238,23 @@ function displayGene(gene: Gene): void {
 
   const qualityLabel = i18n.t('evolution:quality', 'Quality')
   console.log(ansis.bold(qualityLabel + ':'))
-  console.log('  GDI: ' + gene.quality.gdi.toFixed(1))
+  console.log('  GDI: ' + gene.gdi.toFixed(1))
 
   const successRateLabel = i18n.t('evolution:successRate', 'Success Rate')
-  console.log('  ' + successRateLabel + ': ' + (gene.quality.successRate * 100).toFixed(1) + '%')
+  console.log('  ' + successRateLabel + ': ' + (gene.successRate * 100).toFixed(1) + '%')
 
   const usageCountLabel = i18n.t('evolution:usageCount', 'Usage Count')
-  console.log('  ' + usageCountLabel + ': ' + gene.quality.usageCount)
+  console.log('  ' + usageCountLabel + ': ' + gene.usageCount)
 
-  const avgTimeLabel = i18n.t('evolution:avgTime', 'Average Time')
-  console.log('  ' + avgTimeLabel + ': ' + gene.quality.avgTime + 's')
+  const passRateLabel = i18n.t('evolution:passRate', 'Pass Rate')
+  console.log('  ' + passRateLabel + ': ' + (gene.passRate * 100).toFixed(1) + '%')
 
-  if (gene.metadata) {
+  if (gene.tags.length > 0) {
     console.log()
-    const metadataLabel = i18n.t('evolution:metadata', 'Metadata')
-    console.log(ansis.bold(metadataLabel + ':'))
-
-    const authorLabel = i18n.t('evolution:author', 'Author')
-    console.log('  ' + authorLabel + ': ' + (gene.metadata.author || '-'))
-
-    const createdLabel = i18n.t('evolution:createdAt', 'Created At')
-    console.log('  ' + createdLabel + ': ' + (gene.metadata.createdAt || '-'))
-
-    if (gene.metadata.tags && gene.metadata.tags.length > 0) {
-      const tagsLabel = i18n.t('evolution:tags', 'Tags')
-      console.log('  ' + tagsLabel + ': ' + gene.metadata.tags.join(', '))
-    }
+    const tagsLabel = i18n.t('evolution:tags', 'Tags')
+    console.log('  ' + tagsLabel + ': ' + gene.tags.join(', '))
   }
+
+  const createdLabel = i18n.t('evolution:createdAt', 'Created At')
+  console.log('  ' + createdLabel + ': ' + gene.createdAt)
 }
