@@ -5,7 +5,7 @@ packages:
 
 catalog:
   '@antfu/eslint-config': ^5.4.1
-  '@anthropic-ai/sdk': ^0.52.0
+  '@anthropic-ai/sdk': ^0.78.0
   '@babel/runtime': ^7.28.6
   '@changesets/cli': ^2.29.7
   '@commitlint/cli': ^19.8.1
@@ -79,11 +79,11 @@ catalog:
   ps-list: ^8.1.1
   react: ^18.2.0
   react-dom: ^18.2.0
-  react-native: 0.76.5
-  react-native-web: ~0.19.13
+  react-native: 0.84.0
+  react-native-web: ~0.21.2
   react-scripts: 5.0.1
   semver: ^7.7.2
-  shx: ^0.3.3
+  shx: ^0.4.0
   smol-toml: ^1.4.2
   socket.io: ^4.8.1
   socket.io-client: ^4.8.3
@@ -92,10 +92,10 @@ catalog:
   telegraf: ^4.16.3
   tinyexec: ^1.0.1
   tinyglobby: ^0.2.15
-  trash: ^10.0.0
+  trash: ^10.1.0
   tsx: ^4.20.5
   tweetnacl: ^1.0.3
-  typescript: ^5.9.2
+  typescript: ^5
   unbuild: ^3.6.1
   unocss: ^66.5.9
   uuid: ^11.0.5
@@ -132,7 +132,7 @@ catalogs:
   conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5:
     tsx: ^4.20.5
   conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2:
-    typescript: ^5.9.2
+    typescript: ^5
   conflicts_conflicts_conflicts_eslint_h8_0_0_h8_h9_36_0:
     eslint: ^9.36.0
   conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0:
@@ -148,7 +148,7 @@ catalogs:
   conflicts_conflicts_tsx_h4_7_2_h4_20_5:
     tsx: ^4.20.5
   conflicts_conflicts_typescript_h5_3_3_h5_9_2:
-    typescript: ^5.9.2
+    typescript: ^5
   conflicts_conflicts_vitest_h1_0_0_h3_2_4:
     vitest: ^3.2.4
   conflicts_eslint_h8_0_0:
@@ -204,7 +204,7 @@ catalogs:
   conflicts_trash_h10_1_0:
     trash: ^10.1.0
   conflicts_conflicts_web-tree-sitter_h0_24_7_h0_26_5:
-    web-tree-sitter: ^0.26.5
+    web-tree-sitter: ^0.26.3
   conflicts_conflicts_@types/semver_h7_7_0_h7_7_1:
     '@types/semver': ^7.7.1
   conflicts_conflicts_@types/uuid_h10_0_0_h11_0_0:
