@@ -431,6 +431,22 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'generate [projectPath]',
+    description: 'Smart agent/skill generation — auto-detect project and generate configs',
+    aliases: ['gen'],
+    tier: 'extended',
+    options: [
+      { flags: '--dry-run, -d', description: 'Preview without writing files' },
+      { flags: '--verbose, -v', description: 'Verbose output' },
+    ],
+    loader: async () => {
+      return async (_options: CliOptions, projectPath: unknown) => {
+        const { smartGenerateAndInstall } = await import('./generation/index')
+        await smartGenerateAndInstall(projectPath as string | undefined)
+      }
+    },
+  },
+  {
     name: 'config [action] [...args]',
     description: 'Manage CCJK configuration',
     tier: 'extended',

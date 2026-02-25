@@ -113,6 +113,8 @@ function showHelpDocumentation(isZh: boolean): void {
   console.log(`  ${ansis.green('npx ccjk skills')}   ${ansis.dim(isZh ? '- 管理技能' : '- Manage skills')}`)
   console.log(`  ${ansis.green('npx ccjk mcp')}      ${ansis.dim(isZh ? '- 管理 MCP' : '- Manage MCP')}`)
   console.log(`  ${ansis.green('npx ccjk agents')}   ${ansis.dim(isZh ? '- 管理智能体' : '- Manage agents')}`)
+  console.log(`  ${ansis.green('npx ccjk gen')}      ${ansis.dim(isZh ? '- 智能生成 agents/skills' : '- Smart generate agents/skills')}`)
+
   console.log('')
 
   // Quick shortcuts
@@ -218,6 +220,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('A.')} ${isZh ? 'Agents 管理' : 'Agents Manager'} ${ansis.dim(isZh ? '- 创建/管理 AI 智能体' : '- Create/manage AI agents')}`)
   console.log(`  ${ansis.green('P.')} ${isZh ? '持久化管理' : 'Persistence Manager'} ${ansis.dim(isZh ? '- 管理上下文存储和层级' : '- Manage context storage and tiers')}`)
   console.log(`  ${ansis.green('R.')} ${isZh ? 'CCR' : 'CCR'} ${ansis.dim(isZh ? '- 配置 Claude Code Router 以使用多个 AI 模型' : '- Configure Claude Code Router for multiple AI models')}`)
+  console.log(`  ${ansis.green('G.')} ${isZh ? '智能生成 Agents/Skills' : 'Smart Generate Agents/Skills'} ${ansis.dim(isZh ? '- 分析项目，自动生成 agent/skill 配置' : '- Analyze project, auto-generate agent/skill configs')}`)
   console.log('')
 
   // ------------ CCJK ------------
@@ -237,7 +240,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     message: isZh ? '请输入选项:' : 'Enter option:',
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'k', 'm', 'a', 'p', 'r', 's', '-', '+', 'd', 'h', 'q']
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'k', 'm', 'a', 'p', 'r', 'g', 's', '-', '+', 'd', 'h', 'q']
       return valid.includes(normalized) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
@@ -254,6 +257,14 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     case '1': {
       // Full Init - call init() directly like zcf
       await init({ skipBanner: true, codeType: 'claude-code' })
+      const offerGen = await promptBoolean({
+        message: isZh ? '是否运行智能 Agent/Skill 生成？（推荐）' : 'Run smart agent/skill generation for this project? (recommended)',
+        defaultValue: true,
+      })
+      if (offerGen) {
+        const { smartGenerateAndInstall } = await import('../generation/index')
+        await smartGenerateAndInstall()
+      }
       break
     }
 
@@ -379,6 +390,14 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     case 'r': {
       // CCR
       await runCcrMenuFeature()
+      printSeparator()
+      return undefined
+    }
+
+    case 'g': {
+      // Smart Generate Agents/Skills
+      const { smartGenerateAndInstall } = await import('../generation/index')
+      await smartGenerateAndInstall()
       printSeparator()
       return undefined
     }
