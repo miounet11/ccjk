@@ -14,7 +14,7 @@ export const skillsCheck: HealthCheck = {
         return {
           name: this.name, status: 'warn', score: 20, weight: this.weight,
           message: 'No skills directory found',
-          fix: 'Install skills to enhance Claude Code', command: 'ccjk ccjk:skills',
+          fix: 'Install skills to enhance Claude Code', command: 'ccjk skills',
         }
       }
 
@@ -25,7 +25,7 @@ export const skillsCheck: HealthCheck = {
         return {
           name: this.name, status: 'warn', score: 20, weight: this.weight,
           message: 'No skills installed',
-          fix: 'Install skills based on your project', command: 'ccjk ccjk:skills',
+          fix: 'Install skills based on your project', command: 'ccjk skills',
         }
       }
 
@@ -36,7 +36,7 @@ export const skillsCheck: HealthCheck = {
         score, weight: this.weight,
         message: `${skillCount} skill${skillCount > 1 ? 's' : ''} installed`,
         details: files.slice(0, 8).map(f => `  ${f.replace('.md', '')}`),
-        ...(skillCount < 5 && { fix: 'Install more project-specific skills', command: 'ccjk ccjk:skills' }),
+        ...(skillCount < 5 && { fix: 'Install more project-specific skills', command: 'ccjk skills' }),
       }
     }
     catch {

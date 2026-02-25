@@ -26,7 +26,7 @@ export const mcpCheck: HealthCheck = {
         return {
           name: this.name, status: 'fail', score: 0, weight: this.weight,
           message: 'No MCP services configured',
-          fix: 'Install MCP services for enhanced capabilities', command: 'ccjk ccjk:mcp',
+          fix: 'Install MCP services for enhanced capabilities', command: 'ccjk mcp',
         }
       }
 
@@ -43,7 +43,7 @@ export const mcpCheck: HealthCheck = {
         name: this.name, status, score, weight: this.weight,
         message: `${serverCount} service${serverCount > 1 ? 's' : ''} active`,
         details,
-        ...(score < 80 && { fix: 'Add more MCP services', command: 'ccjk ccjk:mcp' }),
+        ...(score < 80 && { fix: 'Add more MCP services', command: 'ccjk mcp' }),
       }
     }
     catch {

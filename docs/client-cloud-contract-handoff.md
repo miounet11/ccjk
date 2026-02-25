@@ -24,8 +24,8 @@ const CLOUD_ENDPOINTS = {
     API_VERSION: '/api/v1',
   },
   PLUGINS: {
-    BASE_URL: 'https://api.api.claudehome.cn',
-    API_VERSION: '/v1',
+    BASE_URL: 'https://api.claudehome.cn',
+    API_VERSION: '/api/v1',
   },
   REMOTE: {
     BASE_URL: 'https://remote-api.claudehome.cn',

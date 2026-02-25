@@ -14,7 +14,7 @@ export const agentsCheck: HealthCheck = {
         return {
           name: this.name, status: 'warn', score: 30, weight: this.weight,
           message: 'No agents directory',
-          fix: 'Create agents for specialized tasks', command: 'ccjk ccjk:agents --list',
+          fix: 'Create agents for specialized tasks', command: 'ccjk agents',
         }
       }
 
@@ -25,7 +25,7 @@ export const agentsCheck: HealthCheck = {
         return {
           name: this.name, status: 'warn', score: 30, weight: this.weight,
           message: 'No agents configured',
-          fix: 'Create agents for your project', command: 'ccjk ccjk:agents',
+          fix: 'Create agents for your project', command: 'ccjk agents',
         }
       }
 

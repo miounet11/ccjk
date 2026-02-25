@@ -30,7 +30,7 @@ import { writeFileAtomic } from '../utils/fs-operations'
 // Constants
 // ============================================================================
 
-const DEFAULT_API_URL = 'https://api.api.claudehome.cn/v1/mcp-marketplace'
+const DEFAULT_API_URL = 'https://api.claudehome.cn/api/v1/mcp-marketplace'
 const REQUEST_TIMEOUT = 30000 // 30 seconds
 const MAX_RETRY_ATTEMPTS = 3
 const RETRY_DELAY = 1000 // 1 second

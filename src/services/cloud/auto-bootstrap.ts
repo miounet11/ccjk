@@ -35,7 +35,7 @@ export const DEVICE_CONFIG_FILE = join(CLOUD_CONFIG_DIR, 'device.json')
 export const CLOUD_STATE_FILE = join(CLOUD_CONFIG_DIR, 'state.json')
 
 /** 云服务 API 端点 */
-export const CLOUD_API_ENDPOINT = 'https://api.api.claudehome.cn/v1'
+export const CLOUD_API_ENDPOINT = 'https://api.claudehome.cn/api/v1'
 
 /** 云配置查看页面（预留，初期隐藏） */
 export const CLOUD_DASHBOARD_URL = 'https://cloud.api.claudehome.cn/dashboard'

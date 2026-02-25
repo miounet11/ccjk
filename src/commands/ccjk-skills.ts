@@ -81,7 +81,7 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
     const opts: Required<CcjkSkillsOptions> = {
       lang: options.lang || 'en',
       interactive: options.interactive ?? true,
-      category: options.category || 'custom',
+      category: options.category || ('' as SkillCategory),
       tags: options.tags || [],
       exclude: options.exclude || [],
       dryRun: options.dryRun ?? false,
@@ -412,7 +412,7 @@ async function getLocalRecommendations(
   }
 
   // Next.js
-  if (fwMap.next > 0.5) {
+  if ((fwMap['next.js'] || fwMap.next) > 0.5) {
     skills.push({
       id: 'nextjs-optimization',
       name: { 'en': 'Next.js Optimization', 'zh-CN': 'Next.js 性能优化' },

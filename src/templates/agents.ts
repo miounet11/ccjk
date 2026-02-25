@@ -10,10 +10,10 @@ import { dirname, join } from 'pathe'
 
 // Get the directory of this module to locate templates in npm package
 const _dirname = dirname(fileURLToPath(import.meta.url))
+// dist/chunks/ -> dist/templates/agents  (production)
 const AGENT_TEMPLATES_DIR = join(_dirname, '..', 'templates', 'agents')
-
-// Fallback to process.cwd() for development/monorepo setups
-const AGENT_TEMPLATES_DIR_FALLBACK = join(process.cwd(), 'templates', 'agents')
+// src/templates/ -> templates/agents  (development)
+const AGENT_TEMPLATES_DIR_DEV = join(_dirname, '..', '..', 'templates', 'agents')
 
 /**
  * Get the effective agent templates directory
@@ -22,7 +22,11 @@ function getAgentTemplatesDir(): string {
   if (existsSync(AGENT_TEMPLATES_DIR)) {
     return AGENT_TEMPLATES_DIR
   }
-  return AGENT_TEMPLATES_DIR_FALLBACK
+  if (existsSync(AGENT_TEMPLATES_DIR_DEV)) {
+    return AGENT_TEMPLATES_DIR_DEV
+  }
+  // Last resort: project cwd (silently)
+  return join(process.cwd(), 'templates', 'agents')
 }
 
 /**
@@ -35,6 +39,7 @@ export interface AgentRecommendation {
   mcpServers: string[]
   persona?: string
   capabilities: string[]
+  tags?: string[]
   confidence: number
   reason: string
 }
@@ -46,7 +51,6 @@ export async function loadAgentTemplates(): Promise<AgentRecommendation[]> {
   const templatesDir = getAgentTemplatesDir()
 
   if (!existsSync(templatesDir)) {
-    console.warn('Agent templates directory not found:', templatesDir)
     return []
   }
 
@@ -70,7 +74,8 @@ export async function loadAgentTemplates(): Promise<AgentRecommendation[]> {
         mcpServers: template.mcpServers || [],
         persona: template.persona,
         capabilities: template.capabilities || [],
-        confidence: 0.8, // Default confidence
+        tags: template.metadata?.tags || [],
+        confidence: 0.8,
         reason: `Matches project type and includes relevant skills: ${(template.skills || []).join(', ')}`,
       }
 

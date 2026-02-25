@@ -121,11 +121,15 @@ export async function ccjkAgents(options: CcjkAgentsOptions = {}): Promise<void>
         frameworks.includes(cap)
         || languages.includes(cap)
         || projectType.includes(cap),
+      )
+      || (t.tags || []).some(tag =>
+        frameworks.some(fw => fw.toLowerCase().includes(tag) || tag.includes(fw.toLowerCase()))
+        || languages.some(lang => lang.toLowerCase().includes(tag) || tag.includes(lang.toLowerCase()))
+        || projectType.toLowerCase().includes(tag),
       ),
     )
 
     if (recommendations.length === 0) {
-      consola.warn(isZh ? '未找到合适的代理，使用所有模板' : 'No suitable agents found, using all templates')
       recommendations = allTemplates
     }
 

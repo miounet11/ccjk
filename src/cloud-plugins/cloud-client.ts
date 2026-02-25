@@ -195,7 +195,7 @@ interface CacheEntry<T> {
  * @example
  * ```typescript
  * const client = new CloudRecommendationClient({
- *   baseUrl: 'https://api.api.claudehome.cn/v1/plugins',
+ *   baseUrl: 'https://api.claudehome.cn/api/v1/plugins',
  *   apiKey: 'your-api-key',
  *   enableLogging: true
  * })

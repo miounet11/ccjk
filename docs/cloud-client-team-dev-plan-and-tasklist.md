@@ -22,7 +22,7 @@ Primary outcomes:
 ## 2) Current Gaps (from project audit)
 
 1. API version fragmentation (`/api/v1`, `/api/v8`, `/v1`) in different modules.
-2. Domain fragmentation (`api.claudehome.cn`, `api.api.claudehome.cn`, `remote-api.claudehome.cn`).
+2. ~~Domain fragmentation (`api.claudehome.cn`, `api.api.claudehome.cn`, `remote-api.claudehome.cn`).~~ **Fixed**: unified to `api.claudehome.cn` + `remote-api.claudehome.cn`.
 3. Cloud setup path depends on template/recommendation APIs with inconsistent contracts.
 4. Notification client depends on `/bind/use`, `/notify`, `/reply/poll`, but this chain is not contract-stabilized end-to-end.
 5. Some modules are fallback-first, some are hard-fail, causing inconsistent UX.

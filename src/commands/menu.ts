@@ -491,6 +491,9 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
  * Check if this is a first-time user
  */
 async function isFirstTimeUser(): Promise<boolean> {
+  // Check explicit onboarding completion flag first
+  const { isOnboardingCompleted } = await import('./onboarding-wizard')
+  if (isOnboardingCompleted()) return false
   const config = readZcfConfig()
   if (!config || !config.version) {
     return true
@@ -526,7 +529,9 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
     // New user detection - show welcome message
     const isNewUser = await isFirstTimeUser()
     if (isNewUser) {
-      showNewUserWelcome()
+      const { runOnboardingWizard } = await import('./onboarding-wizard')
+      await runOnboardingWizard()
+      // wizard marks onboarding complete; fall through to normal menu
     }
 
     // Handle code type parameter if provided

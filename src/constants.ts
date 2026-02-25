@@ -75,7 +75,7 @@ export const CLOUD_ENDPOINTS = {
    * Used for: plugin discovery, installation, ratings
    */
   PLUGINS: {
-    BASE_URL: 'https://api.api.claudehome.cn',
+    BASE_URL: 'https://api.claudehome.cn',
     API_VERSION: '/v1',
   },
   /**
