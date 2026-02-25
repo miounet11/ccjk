@@ -129,18 +129,25 @@ export async function boost(options: BoostOptions = {}): Promise<void> {
     return
   }
 
+  // Selective apply: let user pick which optimizations to run
+  let selectedActions = actions
   if (!options.yes) {
     const { default: inquirer } = await import('inquirer')
-    const { confirm } = await inquirer.prompt([{
-      type: 'confirm',
-      name: 'confirm',
-      message: `Apply ${actions.length} optimization${actions.length > 1 ? 's' : ''}?`,
-      default: true,
+    const { selected } = await inquirer.prompt([{
+      type: 'checkbox',
+      name: 'selected',
+      message: 'Select optimizations to apply:',
+      choices: actions.map((a, i) => ({
+        name: `${a.rec.priority === 'high' ? '[HIGH] ' : '[MED]  '}${a.label}`,
+        value: i,
+        checked: a.rec.priority === 'high', // pre-check high priority
+      })),
     }])
-    if (!confirm) {
-      console.log(ansis.gray('\nCancelled.\n'))
+    if (!selected.length) {
+      console.log(ansis.gray('\nNothing selected. Cancelled.\n'))
       return
     }
+    selectedActions = selected.map((i: number) => actions[i])
   }
 
   // Apply
@@ -148,7 +155,7 @@ export async function boost(options: BoostOptions = {}): Promise<void> {
   let applied = 0
   let failed = 0
 
-  for (const action of actions) {
+  for (const action of selectedActions) {
     spinner = ora(action.label).start()
     try {
       const result = await executeRecommendation(action.rec)

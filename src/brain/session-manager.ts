@@ -45,6 +45,32 @@ export interface SessionMetadata {
   archived?: boolean
 }
 
+/**
+ * Task phase for intelligent routing and compression decisions.
+ * Based on sikao's SessionContext insight: knowing the phase avoids
+ * misrouting and enables semantic-aware compression.
+ */
+export type TaskPhase = 'exploring' | 'executing' | 'generating' | 'reviewing' | 'idle'
+
+/**
+ * Session intelligence state — the "never forget" layer.
+ * Survives context compaction. Injected back into system prompt when needed.
+ */
+export interface SessionIntelligenceState {
+  /** The user's original intent — NEVER discarded, even after compaction */
+  userOriginalIntent?: string
+  /** Current task phase for routing decisions */
+  taskPhase: TaskPhase
+  /** Files touched in this session */
+  filesTouched: string[]
+  /** Key decisions made (file paths, approach choices, etc.) */
+  keyDecisions: string[]
+  /** Total tool call count across the session */
+  toolCallCount: number
+  /** Message index up to which history has been compressed */
+  compressionWatermark: number
+}
+
 export interface Session {
   id: string
   name?: string
@@ -60,6 +86,8 @@ export interface Session {
   metadata?: SessionMetadata
   forkedFrom?: string // Parent session ID if forked
   forks?: string[] // IDs of sessions forked from this one
+  /** Intelligence state — survives compaction */
+  intelligence?: SessionIntelligenceState
 }
 
 export interface SessionListOptions {
@@ -960,6 +988,159 @@ export class CrossSessionRecovery {
       latestCheckpoint: checkpoints[0] || null,
       recoverableSessions: recoverableSessions.length,
     }
+  }
+}
+
+// ============================================================================
+// Session Intelligence — sikao's "never forget" layer
+// ============================================================================
+
+/**
+ * Detects task phase from recent history entries.
+ * Simple state machine based on tool call patterns.
+ */
+function detectTaskPhase(history: SessionHistoryEntry[]): TaskPhase {
+  if (history.length === 0) return 'idle'
+  const recent = history.slice(-10)
+  const recentText = recent.map(h => h.content).join(' ').toLowerCase()
+
+  // Generating: long assistant outputs, writing files
+  if (recentText.includes('write') || recentText.includes('create') || recentText.includes('generating'))
+    return 'generating'
+  // Reviewing: checking, testing, verifying
+  if (recentText.includes('test') || recentText.includes('review') || recentText.includes('check'))
+    return 'reviewing'
+  // Executing: running commands, editing files
+  if (recentText.includes('edit') || recentText.includes('bash') || recentText.includes('run'))
+    return 'executing'
+  // Exploring: reading, searching, analyzing
+  if (recentText.includes('read') || recentText.includes('search') || recentText.includes('grep'))
+    return 'exploring'
+
+  return 'idle'
+}
+
+/**
+ * Extracts file paths mentioned in a history entry.
+ */
+function extractFilePaths(content: string): string[] {
+  const matches = content.match(/(?:\/[\w./\-]+\.\w+|[\w./\-]+\.(?:ts|js|json|md|py|go|rs))/g)
+  return matches ? [...new Set(matches)] : []
+}
+
+/**
+ * SessionIntelligence — wraps a Session and maintains the "never forget" state.
+ *
+ * Core insight from sikao: user_original_intent must survive compaction.
+ * This class tracks intent, phase, files, and decisions across the full session.
+ *
+ * Usage:
+ *   const intel = new SessionIntelligence(session)
+ *   intel.observe(newHistoryEntry)  // call after each new message
+ *   intel.getSystemPromptInjection() // inject into system prompt before compaction
+ */
+export class SessionIntelligence {
+  private session: Session
+
+  constructor(session: Session) {
+    this.session = session
+    if (!session.intelligence) {
+      session.intelligence = {
+        taskPhase: 'idle',
+        filesTouched: [],
+        keyDecisions: [],
+        toolCallCount: 0,
+        compressionWatermark: 0,
+      }
+    }
+  }
+
+  get state(): SessionIntelligenceState {
+    return this.session.intelligence!
+  }
+
+  /**
+   * Observe a new history entry and update intelligence state.
+   * Call this after every message added to the session.
+   */
+  observe(entry: SessionHistoryEntry): void {
+    const intel = this.state
+
+    // Capture original intent from the very first user message
+    if (!intel.userOriginalIntent && entry.role === 'user' && entry.content.trim().length > 10) {
+      intel.userOriginalIntent = entry.content.slice(0, 500)
+    }
+
+    // Track files touched
+    const files = extractFilePaths(entry.content)
+    for (const f of files) {
+      if (!intel.filesTouched.includes(f)) {
+        intel.filesTouched.push(f)
+      }
+    }
+
+    // Count tool calls (rough heuristic: assistant messages with tool-like content)
+    if (entry.role === 'assistant' && /\b(bash|read|write|edit|grep|glob)\b/i.test(entry.content)) {
+      intel.toolCallCount++
+    }
+
+    // Update task phase
+    intel.taskPhase = detectTaskPhase(this.session.history)
+  }
+
+  /**
+   * Record a key decision explicitly.
+   */
+  recordDecision(decision: string): void {
+    const intel = this.state
+    if (!intel.keyDecisions.includes(decision)) {
+      intel.keyDecisions.push(decision.slice(0, 200))
+      // Keep last 20 decisions
+      if (intel.keyDecisions.length > 20) {
+        intel.keyDecisions.shift()
+      }
+    }
+  }
+
+  /**
+   * Mark that history up to index N has been compressed.
+   */
+  markCompressed(upToIndex: number): void {
+    this.state.compressionWatermark = upToIndex
+  }
+
+  /**
+   * Generate a system prompt injection that preserves intent across compaction.
+   * Inject this whenever context is about to be compressed.
+   */
+  getSystemPromptInjection(): string {
+    const intel = this.state
+    const parts: string[] = ['<!-- session-intelligence -->']
+
+    if (intel.userOriginalIntent) {
+      parts.push(`Original user intent: ${intel.userOriginalIntent}`)
+    }
+
+    if (intel.keyDecisions.length > 0) {
+      parts.push(`Key decisions: ${intel.keyDecisions.join('; ')}`)
+    }
+
+    if (intel.filesTouched.length > 0) {
+      parts.push(`Files touched: ${intel.filesTouched.slice(-20).join(', ')}`)
+    }
+
+    parts.push(`Task phase: ${intel.taskPhase} | Tool calls: ${intel.toolCallCount}`)
+    parts.push('<!-- /session-intelligence -->')
+
+    return parts.join('\n')
+  }
+
+  /**
+   * Returns true if the session has enough context to be worth preserving.
+   */
+  hasSignificantContext(): boolean {
+    const intel = this.state
+    return !!intel.userOriginalIntent || intel.toolCallCount > 3 || intel.filesTouched.length > 0
   }
 }
 

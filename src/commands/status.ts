@@ -322,9 +322,58 @@ function renderHealthSection(report: HealthReport, compact: boolean): string[] {
       const priority = rec.priority === 'high' ? ansis.red('!') : rec.priority === 'medium' ? ansis.yellow('•') : ansis.gray('·')
       lines.push(`  ${priority} ${rec.title}`)
       if (rec.command) {
-        lines.push(`    ${ansis.gray('→')} ${ansis.cyan(rec.command)}`)
+        lines.push(`    ${ansis.gray('→')} ${ansis.cyan(rec.command)}  ${ansis.yellow('[fix]')}`)
       }
     }
+  }
+
+  return lines
+}
+
+// ============================================================================
+// Next Action Suggestion Engine
+// ============================================================================
+
+function suggestNextAction(health: HealthReport, ctx: ProjectContext): string[] {
+  const lines: string[] = []
+  lines.push(heading('Next Step'))
+
+  const score = health.totalScore
+  const hasFailures = health.results.some(r => r.status === 'fail')
+  const hasWarnings = health.results.some(r => r.status === 'warn')
+
+  // Priority 1: Critical failures
+  if (hasFailures) {
+    const firstFail = health.results.find(r => r.status === 'fail')!
+    lines.push(`  ${ansis.red('→')} Fix ${ansis.bold(firstFail.name)}: ${firstFail.message}`)
+    if (firstFail.command) {
+      lines.push(`    ${ansis.cyan(firstFail.command)}`)
+    }
+    else {
+      lines.push(`    ${ansis.cyan('ccjk boost')} to auto-fix`)
+    }
+    return lines
+  }
+
+  // Priority 2: Low score — boost it
+  if (score < 60) {
+    lines.push(`  ${ansis.yellow('→')} Score is ${score}/100. Run ${ansis.cyan('ccjk boost')} to optimize.`)
+    return lines
+  }
+
+  // Priority 3: Warnings exist
+  if (hasWarnings) {
+    const warnCount = health.results.filter(r => r.status === 'warn').length
+    lines.push(`  ${ansis.yellow('→')} ${warnCount} warning${warnCount > 1 ? 's' : ''} remaining. Run ${ansis.cyan('ccjk boost --dry-run')} to preview fixes.`)
+    return lines
+  }
+
+  // Priority 4: All good — suggest productive actions
+  if (score >= 80) {
+    lines.push(`  ${ansis.green('→')} Setup looks great. Start coding or run ${ansis.cyan('ccjk brain status')} to check session.`)
+  }
+  else {
+    lines.push(`  ${ansis.green('→')} Almost there. Run ${ansis.cyan('ccjk boost')} to push past ${score}.`)
   }
 
   return lines
@@ -382,6 +431,9 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
       // Silently skip if metrics unavailable
     }
 
+    // Next action suggestion — always last
+    sections.push(suggestNextAction(health, ctx))
+
     // Print all sections
     console.log()
     for (let i = 0; i < sections.length; i++) {
@@ -393,6 +445,13 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
       }
     }
     console.log()
+
+    // Offer one-click fix for fixable items
+    const fixable = health.results.filter(r => r.status !== 'pass' && r.command)
+    if (fixable.length > 0 && !options.json) {
+      const { autoFix } = await import('../health/auto-fixer')
+      await autoFix(fixable)
+    }
   }
   catch (error) {
     console.error(ansis.red('Error running status command:'), error)

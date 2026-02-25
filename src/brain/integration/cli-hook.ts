@@ -13,6 +13,7 @@
 import type { ExecutionResult } from '../router'
 import { EventEmitter } from 'node:events'
 import { processUserInput } from '../router'
+import { SessionIntelligence } from '../session-manager.js'
 
 /**
  * Hook configuration
@@ -106,6 +107,9 @@ export class BrainCliHook extends EventEmitter {
     }
 
     try {
+      // Record message in session intelligence (captures original intent on first message)
+      SessionIntelligence.getInstance().recordMessage('user', userInput)
+
       // Process through brain router
       const result = await processUserInput(userInput)
 

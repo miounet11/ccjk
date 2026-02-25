@@ -11,6 +11,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { glob } from 'tinyglobby'
 import type { Task } from './orchestrator-types'
+import type { TaskPhase } from './session-manager'
 import { executionTracer } from './execution-tracer'
 import { fsParadigm } from './fs-paradigm'
 
@@ -61,6 +62,8 @@ export interface ContextLoadOptions {
   depth?: ContextDepth // Target loading depth (default: auto based on budget)
   layers?: ContextLayer[] // Which layers to load
   task?: Task
+  /** Current task phase — adjusts token budget automatically */
+  taskPhase?: TaskPhase
 }
 
 // Token budget thresholds for each depth level (OpenViking-style)
@@ -68,6 +71,19 @@ const DEPTH_TOKEN_BUDGETS: Record<ContextDepth, number> = {
   L0: 100, // Abstract summary only
   L1: 2_000, // Overview
   L2: Number.POSITIVE_INFINITY, // Full content
+}
+
+// Phase-aware token budget multipliers.
+// exploring: need breadth → more context
+// executing: need speed → less context, already know the target
+// generating: maximize output budget → minimal input context
+// reviewing: balanced
+const PHASE_BUDGET_MULTIPLIERS: Record<string, number> = {
+  exploring: 2.0,
+  executing: 0.6,
+  generating: 0.4,
+  reviewing: 1.2,
+  idle: 1.0,
 }
 
 // Chars-per-token estimate (conservative)
@@ -123,7 +139,8 @@ export class ContextLoader {
       task,
     } = options
 
-    const effectiveBudget = tokenBudget ?? this.defaultTokenBudget
+    const phaseMultiplier = options.taskPhase ? (PHASE_BUDGET_MULTIPLIERS[options.taskPhase] ?? 1.0) : 1.0
+    const effectiveBudget = Math.round((tokenBudget ?? this.defaultTokenBudget) * phaseMultiplier)
     const depth = this.resolveDepth(effectiveBudget, explicitDepth)
 
     // Check cache (include depth in key)

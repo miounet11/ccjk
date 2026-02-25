@@ -26,7 +26,7 @@ export default defineBuildConfig({
     'ioredis',
     'better-sqlite3',
     'globby',
-    'unicorn-magic'
+    'unicorn-magic',
   ],
   hooks: {
     'rollup:options': (_ctx, options) => {
@@ -136,6 +136,23 @@ export default defineBuildConfig({
         }
 
         console.log(`\uD83C\uDF89 Successfully copied ${jsonFiles.length} i18n files`)
+
+        // Copy agent templates to dist
+        try {
+          const agentTemplatesDir = 'templates'
+          const agentFiles = await findJsonFiles(agentTemplatesDir)
+          for (const file of agentFiles) {
+            const relativePath = file.replace(/^templates[/\\]/, '')
+            const destFile = join('dist', 'templates', relativePath)
+            const destDir2 = dirname(destFile)
+            await mkdir(destDir2, { recursive: true })
+            await copyFile(file, destFile)
+          }
+          console.log(`\uD83C\uDF89 Successfully copied ${agentFiles.length} agent templates`)
+        }
+        catch (error) {
+          console.warn('\u26A0\uFE0F Could not copy agent templates:', error)
+        }
       }
       catch (error) {
         console.error('\u274C Failed to copy i18n files:', error)

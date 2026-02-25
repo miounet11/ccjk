@@ -42,6 +42,7 @@ import { TaskDecomposer } from './task-decomposer.js'
 import { executionTracer } from './execution-tracer.js'
 import { taskPersistence } from './task-persistence.js'
 import { contextLoader } from './context-loader.js'
+import { SessionIntelligence } from './session-manager.js'
 
 /**
  * Convert AgentCapability array to string array of capability IDs
@@ -249,8 +250,13 @@ export class BrainOrchestrator extends EventEmitter {
     }
     task.metadata.custom.context = contextLoader.formatForLLM(context)
 
+    // Update session intelligence phase
+    const intel = SessionIntelligence.getInstance()
+    intel.recordMessage('user', task.name)
+
     try {
       this.state.status = 'planning'
+      intel.updatePhase('exploring')
       this.log(`Starting orchestration for task: ${task.name}`)
       executionTracer.logDecision('orchestrator', `Planning task: ${task.name}`)
 
@@ -260,6 +266,7 @@ export class BrainOrchestrator extends EventEmitter {
 
       // Execute plan
       this.state.status = 'executing'
+      intel.updatePhase('executing')
       this.state.currentPlan = plan
       this.state.startTime = new Date().toISOString()
       this.emit('plan:started', plan.id)
@@ -267,6 +274,7 @@ export class BrainOrchestrator extends EventEmitter {
       const result = await this.executePlan(plan)
 
       this.state.status = 'idle'
+      intel.updatePhase('reviewing')
       this.emit('plan:completed', result)
 
       // End execution trace
