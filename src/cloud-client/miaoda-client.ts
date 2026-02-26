@@ -122,6 +122,8 @@ export function parseResponse<T = unknown>(raw: unknown): ParsedResponse<T> {
 // MiaodaClient
 // ---------------------------------------------------------------------------
 
+const API = '/api/v1'
+
 export class MiaodaClient {
   private baseURL: string
   private accessToken: string | null
@@ -166,7 +168,7 @@ export class MiaodaClient {
 
     this.refreshing = (async () => {
       try {
-        const raw = await ofetch(`${this.baseURL}/auth/refresh`, {
+        const raw = await ofetch(`${this.baseURL}${API}/auth/refresh`, {
           method: 'POST',
           body: { refreshToken: this.refreshToken },
           timeout: this.timeout,
@@ -204,9 +206,10 @@ export class MiaodaClient {
     method: string,
     path: string,
     body?: unknown,
-    opts: { timeout?: number; query?: Record<string, string | number> } = {},
+    opts: { timeout?: number; query?: Record<string, string | number>; noPrefix?: boolean } = {},
   ): Promise<ParsedResponse<T>> {
-    const url = `${this.baseURL}${path}`
+    const prefix = opts.noPrefix ? '' : API
+    const url = `${this.baseURL}${prefix}${path}`
     const timeout = opts.timeout ?? this.timeout
 
     const doFetch = async (): Promise<ParsedResponse<T>> => {
@@ -297,6 +300,11 @@ export class MiaodaClient {
     return this.request('GET', `/auth/verify-email`, undefined, { query: { token } })
   }
 
+  /** OAuth login — redirect to this URL in browser */
+  oauthUrl(provider: 'github' | 'google' | 'microsoft'): string {
+    return `${this.baseURL}${API}/auth/oauth/${provider}`
+  }
+
   // -------------------------------------------------------------------------
   // User
   // -------------------------------------------------------------------------
@@ -366,7 +374,7 @@ export class MiaodaClient {
 
     ;(async () => {
       try {
-        const res = await fetch(`${this.baseURL}/llm/stream`, {
+        const res = await fetch(`${this.baseURL}${API}/llm/stream`, {
           method: 'POST',
           headers: this.headers({ Accept: 'text/event-stream' }),
           body: JSON.stringify({ model, messages, ...options }),
@@ -635,7 +643,55 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   health() {
-    return this.request('GET', '/health')
+    return this.request('GET', '/health', undefined, { noPrefix: true })
+  }
+
+  // -------------------------------------------------------------------------
+  // Admin
+  // -------------------------------------------------------------------------
+
+  adminGetUsers(page = 1, limit = 20) {
+    return this.request('GET', '/admin/users', undefined, { query: { page, limit } })
+  }
+
+  adminGetUser(id: number) {
+    return this.request('GET', `/admin/users/${id}`)
+  }
+
+  adminUpdateUser(id: number, data: Record<string, unknown>) {
+    return this.request('PUT', `/admin/users/${id}`, data)
+  }
+
+  adminDeleteUser(id: number) {
+    return this.request('DELETE', `/admin/users/${id}`)
+  }
+
+  adminGetStats() {
+    return this.request('GET', '/admin/stats')
+  }
+
+  adminGetSystemUsage() {
+    return this.request('GET', '/admin/usage')
+  }
+
+  adminApproveSkill(id: number) {
+    return this.request('POST', `/admin/skills/${id}/approve`)
+  }
+
+  adminRejectSkill(id: number, reason: string) {
+    return this.request('POST', `/admin/skills/${id}/reject`, { reason })
+  }
+
+  // -------------------------------------------------------------------------
+  // Storage (additional)
+  // -------------------------------------------------------------------------
+
+  extractStorageSnapshot(snapshotId: string, targetPath: string) {
+    return this.request('POST', `/storage/snapshots/${snapshotId}/extract`, { targetPath })
+  }
+
+  getStorageCleanupStats() {
+    return this.request('GET', '/storage/cleanup/stats')
   }
 }
 
