@@ -67,13 +67,25 @@
   },
   "menu": {
     "title": "CCJK 主菜单",
+    "breadcrumb": {
+      "main": "主菜单",
+      "separator": " > "
+    },
+    "navigation": {
+      "back": "← 返回主菜单",
+      "backShort": "返回",
+      "quit": "退出"
+    },
+    "prompt": {
+      "main": "请输入选项",
+      "invalid": "无效选项，请重新输入",
+      "outOfRange": "选项超出范围"
+    },
     "menuSections": {
-      "quickStart": "🚀 核心功能",
+      "quickStart": "🚀 快速开始",
       "configCenter": "⚙️ 配置中心",
       "extensions": "🔌 扩展工具",
-      "smartFeatures": "✨ 智能功能",
-      "cloudServices": "☁️ 云服务",
-      "systemSettings": "🛠️ 系统设置"
+      "system": "🛠️ 系统管理"
     },
     "configCenter": {
       "api": "API 配置",
@@ -95,47 +107,88 @@
       "title": "🚀 快速开始",
       "items": {
         "quickSetup": {
-          "name": "1. ⚡ 一键配置",
-          "description": "自动完成所有配置（仅需 API Key）"
+          "name": "⚡ 一键配置",
+          "description": "自动完成所有配置"
         },
         "doctor": {
-          "name": "2. 🔧 一键体检",
-          "description": "诊断问题并自动修复"
+          "name": "🔧 健康体检",
+          "description": "诊断并修复问题"
         },
         "update": {
-          "name": "3. 🔄 一键更新",
-          "description": "更新所有组件到最新版本"
+          "name": "🔄 检查更新",
+          "description": "更新所有组件"
+        },
+        "importWorkflow": {
+          "name": "📦 导入工作流",
+          "description": "导入工作流模板"
         }
       }
     },
-    "advanced": {
-      "title": "📦 高级功能",
+    "extensions": {
+      "title": "🔌 扩展工具",
       "items": {
         "skills": {
-          "name": "4. 📚 Skills 管理",
-          "description": "安装/更新/删除工作流技能"
+          "name": "📚 Skills 管理",
+          "description": "管理工作流技能"
         },
-        "mcp": {
-          "name": "5. 🔌 MCP 管理",
-          "description": "配置 Model Context Protocol 服务"
+        "mcpManager": {
+          "name": "🔌 MCP 管理",
+          "description": "管理 MCP 服务"
         },
         "agents": {
-          "name": "6. 🤖 Agents 管理",
-          "description": "创建/管理 AI 智能体"
+          "name": "🤖 Agents 管理",
+          "description": "管理 AI 智能体"
+        },
+        "persistence": {
+          "name": "💾 持久化管理",
+          "description": "管理上下文存储"
+        },
+        "ccr": {
+          "name": "🌐 CCR 代理",
+          "description": "配置 CCR 路由"
+        },
+        "smartGen": {
+          "name": "🎯 智能生成",
+          "description": "生成 agents/skills"
+        },
+        "remoteControl": {
+          "name": "📱 远程控制",
+          "description": "Web/Telegram 控制"
         }
       }
     },
     "system": {
-      "title": "⚙️ 系统设置",
+      "title": "🛠️ 系统管理",
       "items": {
-        "language": {
-          "name": "7. 🌍 语言设置",
-          "description": "切换界面语言"
+        "switchTool": {
+          "name": "🔄 切换代码工具",
+          "description": "切换 Claude Code/Codex"
         },
-        "help": {
-          "name": "8. ❓ 帮助文档",
-          "description": "查看使用指南"
+        "uninstall": {
+          "name": "🗑️ 卸载 CCJK",
+          "description": "卸载及清理配置"
+        },
+        "clearCache": {
+          "name": "🧹 清理缓存",
+          "description": "清理临时文件"
         }
+      }
+    },
+    "globalActions": {
+      "language": {
+        "key": "L",
+        "name": "🌍 切换语言",
+        "description": "切换界面语言"
+      },
+      "help": {
+        "key": "H",
+        "name": "❓ 帮助文档",
+        "description": "查看使用指南"
+      },
+      "quit": {
+        "key": "Q",
+        "name": "🚪 退出",
+        "description": "退出程序"
       }
     },
     "exit": "0. 🚪 退出"

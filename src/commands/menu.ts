@@ -186,6 +186,102 @@ async function showContextValueSummary(isZh: boolean): Promise<void> {
 }
 
 /**
+ * Check if hierarchical menu is enabled
+ */
+function isHierarchicalMenuEnabled(): boolean {
+  return process.env.CCJK_HIERARCHICAL_MENU === '1' || process.env.CCJK_HIERARCHICAL_MENU === 'true'
+}
+
+/**
+ * Handle hierarchical menu navigation
+ */
+async function handleHierarchicalMenu(): Promise<MenuResult> {
+  const { showHierarchicalMainMenu } = await import('./menu-hierarchical')
+  const choice = await showHierarchicalMainMenu()
+
+  const isZh = i18n.language === 'zh-CN'
+
+  // Handle global actions
+  switch (choice) {
+    case 'l':
+      await changeScriptLanguageFeature()
+      return 'switch'
+    case 'h':
+      showHelpDocumentation(isZh)
+      return undefined
+    case 'q':
+      console.log(ansis.green(isZh ? '👋 感谢使用 CCJK！再见！' : '👋 Thanks for using CCJK! Goodbye!'))
+      return 'exit'
+  }
+
+  // Handle main menu options (1-8)
+  switch (choice) {
+    case '1': {
+      // Quick Setup
+      await init({ skipBanner: true, codeType: 'claude-code' })
+      const offerGen = await promptBoolean({
+        message: isZh ? '是否运行智能 Agent/Skill 生成？（推荐）' : 'Run smart agent/skill generation? (recommended)',
+        defaultValue: true,
+      })
+      if (offerGen) {
+        const { smartGenerateAndInstall } = await import('../generation/index')
+        await smartGenerateAndInstall()
+      }
+      break
+    }
+    case '2': {
+      // Health Check
+      await doctor({})
+      break
+    }
+    case '3': {
+      // Check Updates
+      await checkUpdates({})
+      break
+    }
+    case '4': {
+      // Import Workflows
+      await update({ skipBanner: true })
+      break
+    }
+    case '5': {
+      // API Config
+      await configureApiFeature()
+      break
+    }
+    case '6': {
+      // MCP Config
+      await configureMcpFeature()
+      break
+    }
+    case '7': {
+      // Skills Manager
+      await ccjkSkills({} as any)
+      break
+    }
+    case '8': {
+      // Agents Manager
+      await ccjkAgents({} as any)
+      break
+    }
+  }
+
+  printSeparator()
+
+  const shouldContinue = await promptBoolean({
+    message: i18n.t('common:returnToMenu'),
+    defaultValue: true,
+  })
+
+  if (!shouldContinue) {
+    console.log(ansis.green(isZh ? '👋 再见！' : '👋 Goodbye!'))
+    return 'exit'
+  }
+
+  return undefined
+}
+
+/**
  * Show the ZCF-style CCJK main menu
  */
 async function showSimplifiedMenu(): Promise<MenuResult> {
@@ -558,7 +654,10 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       const codeTool = getCurrentCodeTool()
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
-      const result = await showSimplifiedMenu()
+      // Use hierarchical menu if enabled, otherwise use simplified menu
+      const result = isHierarchicalMenuEnabled()
+        ? await handleHierarchicalMenu()
+        : await showSimplifiedMenu()
 
       if (result === 'exit') {
         exitMenu = true

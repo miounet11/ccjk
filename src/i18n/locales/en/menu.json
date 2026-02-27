@@ -67,13 +67,25 @@
   },
   "menu": {
     "title": "CCJK Main Menu",
+    "breadcrumb": {
+      "main": "Main Menu",
+      "separator": " > "
+    },
+    "navigation": {
+      "back": "← Back to Main Menu",
+      "backShort": "Back",
+      "quit": "Quit"
+    },
+    "prompt": {
+      "main": "Enter your choice",
+      "invalid": "Invalid option, please try again",
+      "outOfRange": "Option out of range"
+    },
     "menuSections": {
-      "quickStart": "🚀 Core Features",
-      "configCenter": "⚙️ Configuration Center",
+      "quickStart": "🚀 Quick Start",
+      "configCenter": "⚙️ Config Center",
       "extensions": "🔌 Extensions",
-      "smartFeatures": "✨ Smart Features",
-      "cloudServices": "☁️ Cloud Services",
-      "systemSettings": "🛠️ System Settings"
+      "system": "🛠️ System"
     },
     "configCenter": {
       "api": "API Configuration",
@@ -95,47 +107,88 @@
       "title": "🚀 Quick Start",
       "items": {
         "quickSetup": {
-          "name": "1. ⚡ Quick Setup",
-          "description": "Auto-configure everything (API Key required)"
+          "name": "⚡ Quick Setup",
+          "description": "Auto-configure everything"
         },
         "doctor": {
-          "name": "2. 🔧 Diagnostics",
-          "description": "Diagnose issues and auto-fix"
+          "name": "🔧 Health Check",
+          "description": "Diagnose and fix issues"
         },
         "update": {
-          "name": "3. 🔄 Update All",
-          "description": "Update all components to latest version"
+          "name": "🔄 Check Updates",
+          "description": "Update all components"
+        },
+        "importWorkflow": {
+          "name": "📦 Import Workflows",
+          "description": "Import workflow templates"
         }
       }
     },
-    "advanced": {
-      "title": "📦 Advanced",
+    "extensions": {
+      "title": "🔌 Extensions",
       "items": {
         "skills": {
-          "name": "4. 📚 Skills Manager",
-          "description": "Install/update/remove workflow skills"
+          "name": "📚 Skills Manager",
+          "description": "Manage workflow skills"
         },
-        "mcp": {
-          "name": "5. 🔌 MCP Manager",
-          "description": "Configure Model Context Protocol services"
+        "mcpManager": {
+          "name": "🔌 MCP Manager",
+          "description": "Manage MCP services"
         },
         "agents": {
-          "name": "6. 🤖 Agents Manager",
-          "description": "Create/manage AI agents"
+          "name": "🤖 Agents Manager",
+          "description": "Manage AI agents"
+        },
+        "persistence": {
+          "name": "💾 Persistence Manager",
+          "description": "Manage context storage"
+        },
+        "ccr": {
+          "name": "🌐 CCR Proxy",
+          "description": "Configure CCR router"
+        },
+        "smartGen": {
+          "name": "🎯 Smart Generate",
+          "description": "Generate agents/skills"
+        },
+        "remoteControl": {
+          "name": "📱 Remote Control",
+          "description": "Web/Telegram control"
         }
       }
     },
     "system": {
-      "title": "⚙️ System",
+      "title": "🛠️ System",
       "items": {
-        "language": {
-          "name": "7. 🌍 Language",
-          "description": "Switch interface language"
+        "switchTool": {
+          "name": "🔄 Switch Code Tool",
+          "description": "Switch Claude Code/Codex"
         },
-        "help": {
-          "name": "8. ❓ Help",
-          "description": "View user guide"
+        "uninstall": {
+          "name": "🗑️ Uninstall CCJK",
+          "description": "Uninstall and cleanup"
+        },
+        "clearCache": {
+          "name": "🧹 Clear Cache",
+          "description": "Clear temporary files"
         }
+      }
+    },
+    "globalActions": {
+      "language": {
+        "key": "L",
+        "name": "🌍 Language",
+        "description": "Switch interface language"
+      },
+      "help": {
+        "key": "H",
+        "name": "❓ Help",
+        "description": "View user guide"
+      },
+      "quit": {
+        "key": "Q",
+        "name": "🚪 Quit",
+        "description": "Exit program"
       }
     },
     "exit": "0. 🚪 Exit"

@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-02-27 | 12.0.15 | Menu system refactored: hierarchical menu with 3-level structure, unified shortcuts (1-8, L, H, Q), optimized i18n (8-12 chars CN, 20-40 chars EN), enabled via CCJK_HIERARCHICAL_MENU=1 |
+| 2026-02-27 | 12.0.15 | CLAUDE.md review: added Quick Start section and debugging gotchas |
 | 2026-02-25 | 12.0.8 | Wire up smartGenerateAndInstall: add `generate`/`gen` CLI command, menu G. option, post-init prompt, help doc entry |
 | 2026-02-25 | 12.0.7 | Architecture diagram added; module index expanded to cover all src/ modules; module-level CLAUDE.md files generated |
 
@@ -90,6 +92,28 @@ graph TD
 | utils | `src/utils/` | Config management, platform support, installer, workflow installer |
 | i18n | `src/i18n/` | i18next with zh-CN and en locales (15 translation modules) |
 | cli/completion | `src/cli/` | Shell completion for Bash, Zsh, Fish, PowerShell |
+
+## Quick Start
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Build the project
+pnpm build
+
+# 3. Run in dev mode
+pnpm dev
+
+# 4. Test the CLI
+node dist/cli.mjs --help
+echo '1' | node dist/cli.mjs 2>&1  # Test menu option 1
+```
+
+**First-time contributors:**
+1. Read the Anti-Aggression Principle section
+2. Understand the Menu → Feature Function Mapping
+3. Run `pnpm typecheck && pnpm build` before committing
 
 ## Build and Development Commands
 
@@ -227,6 +251,21 @@ git push origin main
 **Adding API Provider:** Define in `src/api-providers/providers/`, add validation and i18n.
 
 **Adding Workflow:** Define in `src/config/workflows.ts`, add templates in `templates/`.
+
+## Debugging Gotchas
+
+**Tool-specific issues:**
+- macOS `cat` has no `-A` flag (use `od -c` or `hexdump` instead)
+- zsh doesn't expand `*.md` globs in Bash tool; use `python3 glob.glob()` or quote patterns
+- Parallel tool calls with sibling errors cause ALL calls in batch to fail
+- File edits can appear to succeed but actually fail; always verify with grep/read after
+- IDE/file watchers may revert file changes between tool calls; chain sed+git add in one command
+
+**Config-related:**
+- ccjk config lives at `~/.ccjk/config.toml` (via ZCF_CONFIG_DIR), NOT inside `~/.claude/`
+- Full uninstall removes `~/.claude/` but leaves `~/.ccjk/config.toml` with stale codeTool preference
+- `resolveCodeType()` in `code-type-resolver.ts` is the central resolver: stored config → fresh detection → default
+- Menu option 1 must pass `codeType: 'claude-code'` to init() to override stale config
 
 ## AI Usage Guidelines
 
