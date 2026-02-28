@@ -132,7 +132,7 @@ function attachHandlers(items: MenuItem[]): MenuItem[] {
         return { ...item, handler: async () => await (await import('../config')).configCommand('set', ['model'], {}) }
 
       case 'memory-config':
-        return { ...item, handler: async () => await (await import('../config')).configCommand('set', ['memory'], {}) }
+        return { ...item, handler: async () => await (await import('../../utils/features')).configureMemoryFeature() }
 
       case 'permission-config':
         return { ...item, handler: async () => await (await import('../permissions')).listPermissions({}) }

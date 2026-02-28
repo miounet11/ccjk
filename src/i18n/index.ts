@@ -37,6 +37,7 @@ const NAMESPACES = [
   'lsp', // Language Server Protocol (v3.8+)
   'marketplace', // Marketplace system for plugins, skills, and workflows
   'mcp',
+  'memory', // Memory management - Claude auto-memory + CCJK Brain
   'menu',
   'multi-config',
   'notification', // Task completion notifications

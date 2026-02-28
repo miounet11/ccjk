@@ -192,5 +192,6 @@
       }
     },
     "exit": "0. 🚪 退出"
-  }
+  },
+  "memoryManagement": "M. Memory 管理"
 }

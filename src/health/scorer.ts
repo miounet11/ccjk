@@ -7,6 +7,7 @@ import type { HealthCheck, HealthReport, HealthResult, Recommendation } from './
 import { agentsCheck } from './checks/agents-check'
 import { claudeMdCheck } from './checks/claudemd-check'
 import { mcpCheck } from './checks/mcp-check'
+import { memoryCheck } from './checks/memory-check'
 import { modelCheck } from './checks/model-check'
 import { permissionsCheck } from './checks/permissions-check'
 import { skillsCheck } from './checks/skills-check'
@@ -18,6 +19,7 @@ const DEFAULT_CHECKS: HealthCheck[] = [
   modelCheck,
   agentsCheck,
   permissionsCheck,
+  memoryCheck,
 ]
 
 function calculateGrade(score: number): HealthReport['grade'] {
@@ -64,6 +66,7 @@ function mapCategory(name: string): Recommendation['category'] {
   if (lower.includes('skill')) return 'skills'
   if (lower.includes('agent')) return 'agents'
   if (lower.includes('model') || lower.includes('api')) return 'model'
+  if (lower.includes('memory')) return 'sync'
   if (lower.includes('sync')) return 'sync'
   if (lower.includes('perm')) return 'permissions'
   return 'general'

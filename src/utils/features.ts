@@ -1144,3 +1144,100 @@ export async function configureMergedPermissionsFeature(): Promise<void> {
     console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`))
   }
 }
+
+export async function configureMemoryFeature(): Promise<void> {
+  const { AutoMemoryBridge } = await import('../brain/auto-memory-bridge.js');
+  const inquirer = (await import('inquirer')).default;
+  const ansis = (await import('ansis')).default;
+  const { execSync } = await import('child_process');
+  const fs = await import('fs/promises');
+  const path = await import('path');
+  const os = await import('os');
+
+  console.log(ansis.cyan('\n' + i18n.t('memory:title')));
+
+  const bridge = new AutoMemoryBridge();
+
+  // Check if memory files exist
+  const claudeMemoryPath = path.join(os.homedir(), '.claude', 'projects', '-Users-lu-ccjk-public', 'memory', 'MEMORY.md');
+  const ccjkMemoryPath = path.join(os.homedir(), '.ccjk', 'memory', 'MEMORY.md');
+
+  let claudeMemoryExists = false;
+  let ccjkMemoryExists = false;
+
+  try {
+    await fs.access(claudeMemoryPath);
+    claudeMemoryExists = true;
+  } catch {}
+
+  try {
+    await fs.access(ccjkMemoryPath);
+    ccjkMemoryExists = true;
+  } catch {}
+
+  // Display current status
+  console.log('\n' + ansis.bold(i18n.t('memory:currentStatus')));
+  console.log(ansis.gray('─'.repeat(50)));
+  console.log(`${ansis.yellow(i18n.t('memory:claudeMemory'))}: ${claudeMemoryExists ? ansis.green('✓') : ansis.red('✗')}`);
+  console.log(`${ansis.yellow(i18n.t('memory:ccjkMemory'))}: ${ccjkMemoryExists ? ansis.green('✓') : ansis.red('✗')}`);
+  console.log(ansis.gray('─'.repeat(50)));
+
+  const { action } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'action',
+      message: i18n.t('memory:selectAction'),
+      choices: [
+        { name: i18n.t('memory:viewMemory'), value: 'view' },
+        { name: i18n.t('memory:editMemory'), value: 'edit' },
+        { name: i18n.t('memory:syncNow'), value: 'sync' },
+        { name: i18n.t('memory:configureRules'), value: 'rules' },
+        { name: i18n.t('memory:back'), value: 'back' },
+      ],
+    },
+  ]);
+
+  switch (action) {
+    case 'view': {
+      const memoryPath = path.join(os.homedir(), '.claude', 'projects', '-Users-lu-ccjk-public', 'memory', 'MEMORY.md');
+      try {
+        const content = await fs.readFile(memoryPath, 'utf-8');
+        console.log('\n' + ansis.bold(i18n.t('memory:memoryContent')));
+        console.log(ansis.gray('─'.repeat(50)));
+        console.log(content);
+        console.log(ansis.gray('─'.repeat(50)));
+      } catch (error) {
+        console.log(ansis.red(i18n.t('memory:readError')));
+      }
+      break;
+    }
+    case 'edit': {
+      const memoryPath = path.join(os.homedir(), '.claude', 'projects', '-Users-lu-ccjk-public', 'memory', 'MEMORY.md');
+      const editor = process.env.EDITOR || 'nano';
+      try {
+        execSync(`${editor} "${memoryPath}"`, { stdio: 'inherit' });
+        console.log(ansis.green(i18n.t('memory:editComplete')));
+      } catch (error) {
+        console.log(ansis.red(i18n.t('memory:editError')));
+      }
+      break;
+    }
+    case 'sync': {
+      console.log(ansis.cyan(i18n.t('memory:syncing')));
+      try {
+        await bridge.syncToClaude();
+        console.log(ansis.green(i18n.t('memory:syncComplete')));
+      } catch (error) {
+        console.log(ansis.red(i18n.t('memory:syncError')));
+      }
+      break;
+    }
+    case 'rules': {
+      console.log(ansis.yellow(i18n.t('memory:rulesInfo')));
+      console.log(i18n.t('memory:rulesDescription'));
+      break;
+    }
+    case 'back':
+      break;
+  }
+}

@@ -99,10 +99,10 @@ export const configItems: MenuItem[] = [
     label: 'menu:configCenter.memory',
     description: 'menu:configCenter.memoryDesc',
     category: 'config',
-    level: 'intermediate',
-    action: 'submenu',
+    level: 'basic',
+    action: 'command',
     icon: '🧠',
-    shortcut: 'm',
+    shortcut: 'y',
   },
   {
     id: 'permission-config',
@@ -386,6 +386,7 @@ export const legacyKeyToItemId: Record<string, string> = {
   // Config
   '6': 'mcp-config',
   '7': 'model-config',
+  'y': 'memory-config',
   // Smart Features
   'a': 'quick-actions',
   'g': 'smart-guide',

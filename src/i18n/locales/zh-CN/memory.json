@@ -1,92 +1,23 @@
 {
-  "memory": {
-    "title": "记忆管理",
-    "subtitle": "跨会话 AI 记忆系统",
-    "menu": {
-      "list": "📋 列出所有记忆",
-      "search": "🔍 搜索记忆",
-      "add": "➕ 添加记忆",
-      "delete": "🗑️  删除记忆",
-      "stats": "📊 查看统计",
-      "export": "📤 导出记忆",
-      "import": "📥 导入记忆",
-      "clear": "🗑️  清空记忆",
-      "back": "🔙 返回"
-    },
-    "prompts": {
-      "selectAction": "选择操作:",
-      "searchQuery": "输入搜索关键词:",
-      "memoryContent": "记忆内容:",
-      "memoryType": "类型:",
-      "importance": "重要性:",
-      "scope": "作用域:",
-      "tags": "标签 (逗号分隔):",
-      "project": "项目名称 (可选):",
-      "deleteId": "输入要删除的记忆ID:",
-      "confirmDelete": "确认删除?",
-      "exportFile": "导出文件名:",
-      "importFile": "导入文件名:",
-      "mergeMemories": "合并到现有记忆?",
-      "confirmClear": "确认清空所有记忆? 此操作不可撤销!"
-    },
-    "types": {
-      "decision": "决策",
-      "pattern": "模式",
-      "preference": "偏好",
-      "context": "上下文",
-      "learning": "学习",
-      "error": "错误",
-      "workflow": "工作流"
-    },
-    "importance": {
-      "critical": "关键",
-      "high": "高",
-      "medium": "中",
-      "low": "低"
-    },
-    "scope": {
-      "global": "全局",
-      "project": "项目",
-      "session": "会话"
-    },
-    "messages": {
-      "noMemories": "没有找到记忆",
-      "noMatches": "没有找到匹配的记忆",
-      "memoryAdded": "记忆已添加",
-      "memoryDeleted": "记忆已删除",
-      "memoryNotFound": "记忆未找到",
-      "aboutToDelete": "将要删除:",
-      "exported": "记忆已导出到",
-      "imported": "记忆已导入",
-      "importFailed": "导入失败",
-      "cleared": "所有记忆已清空",
-      "cancelled": "操作已取消",
-      "searchCancelled": "搜索已取消",
-      "deleteCancelled": "删除已取消",
-      "exportCancelled": "导出已取消",
-      "importCancelled": "导入已取消",
-      "contentRequired": "内容不能为空",
-      "unknownAction": "未知操作"
-    },
-    "stats": {
-      "title": "记忆统计",
-      "total": "总计",
-      "archived": "已归档",
-      "storageSize": "存储大小",
-      "byType": "按类型",
-      "byScope": "按作用域",
-      "byImportance": "按重要性"
-    },
-    "display": {
-      "memoryList": "记忆列表",
-      "searchResults": "搜索结果",
-      "relevant": "相关",
-      "moreMemories": "还有",
-      "memories": "条记忆",
-      "exported": "导出了",
-      "imported": "导入了",
-      "accessCount": "访问次数",
-      "lastAccessed": "最后访问"
-    }
-  }
+  "title": "Memory 管理",
+  "currentStatus": "当前状态",
+  "claudeMemory": "Claude Memory",
+  "ccjkMemory": "CCJK Memory",
+  "lastSync": "最后同步",
+  "never": "从未同步",
+  "selectAction": "选择操作",
+  "viewMemory": "查看 Memory",
+  "editMemory": "编辑 Memory",
+  "syncNow": "立即同步",
+  "configureRules": "配置规则",
+  "back": "返回",
+  "memoryContent": "Memory 内容",
+  "readError": "读取 Memory 失败",
+  "editComplete": "编辑完成",
+  "editError": "编辑失败",
+  "syncing": "正在同步...",
+  "syncComplete": "同步完成",
+  "syncError": "同步失败",
+  "rulesInfo": "Memory 规则配置",
+  "rulesDescription": "Memory 会自动记录项目关键信息，包括架构、关键文件、常见模式等。您可以手动编辑 MEMORY.md 文件来自定义记录内容。"
 }

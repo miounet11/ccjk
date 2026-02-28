@@ -36,6 +36,8 @@ const KNOWN_COMMANDS = new Set([
   'browser',
   'interview',
   'commit',
+  'memory',
+  'mem',
   'config',
   'daemon',
   'providers',

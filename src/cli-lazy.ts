@@ -292,6 +292,24 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'memory',
+    description: 'Manage Claude Code memory (view/edit/sync)',
+    aliases: ['mem'],
+    tier: 'core',
+    options: [
+      { flags: '-v, --view', description: 'View memory content' },
+      { flags: '-e, --edit', description: 'Edit memory interactively' },
+      { flags: '-s, --sync', description: 'Sync memory using AutoMemoryBridge' },
+      { flags: '-p, --project <path>', description: 'Project-specific memory path' },
+    ],
+    loader: async () => {
+      const { memoryCommand } = await import('./commands/memory')
+      return async (options) => {
+        await memoryCommand(options)
+      }
+    },
+  },
+  {
     name: 'agents <action> [...args]',
     description: 'Agent Teams - Multi-agent orchestration',
     aliases: ['team', 'teams'],
@@ -427,6 +445,24 @@ const COMMANDS: CommandDefinition[] = [
           dryRun: options.dryRun as boolean | undefined,
           message: options.message as string | undefined,
         })
+      }
+    },
+  },
+  {
+    name: 'memory',
+    description: 'Manage Claude auto-memory and CCJK Brain memory',
+    aliases: ['mem'],
+    tier: 'extended',
+    options: [
+      { flags: '-v, --view', description: 'View memory content' },
+      { flags: '-e, --edit', description: 'Edit memory interactively' },
+      { flags: '-s, --sync', description: 'Sync memory using AutoMemoryBridge' },
+      { flags: '-p, --project <path>', description: 'Project-specific memory path' },
+    ],
+    loader: async () => {
+      const { memoryCommand } = await import('./commands/memory')
+      return async (options: CliOptions) => {
+        await memoryCommand(options as any)
       }
     },
   },
@@ -2273,6 +2309,7 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
       `  ${cyan('ccjk mcp')} <action>        MCP server management`,
       `  ${cyan('ccjk browser')}      ${gray('ab')}    Agent Browser automation ${green('NEW')}`,
       `  ${cyan('ccjk skills')}       ${gray('sk')}    Manage CCJK skills ${green('NEW')}`,
+      `  ${cyan('ccjk memory')}       ${gray('mem')}   Manage Claude Code memory ${green('NEW')}`,
       `  ${cyan('ccjk monitor')}      ${gray('mon')}   Performance monitoring ${green('NEW')}`,
       `  ${cyan('ccjk interview')}    ${gray('iv')}    Interview-driven development`,
       `  ${cyan('ccjk commit')}             Smart git commit`,

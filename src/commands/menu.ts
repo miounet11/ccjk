@@ -317,6 +317,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   console.log(`  ${ansis.green('P.')} ${isZh ? '持久化管理' : 'Persistence Manager'} ${ansis.dim(isZh ? '- 管理上下文存储和层级' : '- Manage context storage and tiers')}`)
   console.log(`  ${ansis.green('R.')} ${isZh ? 'CCR' : 'CCR'} ${ansis.dim(isZh ? '- 配置 Claude Code Router 以使用多个 AI 模型' : '- Configure Claude Code Router for multiple AI models')}`)
   console.log(`  ${ansis.green('G.')} ${isZh ? '智能生成 Agents/Skills' : 'Smart Generate Agents/Skills'} ${ansis.dim(isZh ? '- 分析项目，自动生成 agent/skill 配置' : '- Analyze project, auto-generate agent/skill configs')}`)
+  console.log(`  ${ansis.green('Y.')} ${isZh ? 'Memory 管理' : 'Memory Manager'} ${ansis.dim(isZh ? '- 管理对话记忆和上下文' : '- Manage conversation memory and context')}`)
   console.log('')
 
   // ------------ CCJK ------------
@@ -336,7 +337,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     message: isZh ? '请输入选项:' : 'Enter option:',
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
-      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'k', 'm', 'a', 'p', 'r', 'g', 's', '-', '+', 'd', 'h', 'q']
+      const valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'k', 'm', 'a', 'p', 'r', 'g', 'y', 's', '-', '+', 'd', 'h', 'q']
       return valid.includes(normalized) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
     },
   })
@@ -494,6 +495,14 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
       // Smart Generate Agents/Skills
       const { smartGenerateAndInstall } = await import('../generation/index')
       await smartGenerateAndInstall()
+      printSeparator()
+      return undefined
+    }
+
+    case 'y': {
+      // Memory Manager
+      const { configureMemoryFeature } = await import('../utils/features')
+      await configureMemoryFeature()
       printSeparator()
       return undefined
     }
