@@ -10,27 +10,139 @@
  * Users don't need to do anything - the system handles everything.
  */
 
-import type { AnalyzedIntent } from './intent-router'
+import type { AskUserAnswer, AskUserQuestion, AskUserQuestionHandler } from './ask-user-question'
+import type { ExecutionTelemetry, ExecutionTelemetrySummary, TelemetryEvent } from './execution-telemetry'
+import type { AnalyzedIntent, IntentType } from './intent-router'
 import { EventEmitter } from 'node:events'
 import { getGlobalConvoyManager } from '../convoy/convoy-manager'
 import { getGlobalMayorAgent } from '../mayor/mayor-agent'
 import { getGlobalMailboxManager } from '../messaging/persistent-mailbox'
+import { getMetricsCollector } from '../metrics'
 import { getGlobalStateManager } from '../persistence/git-backed-state'
+import { promptUserQuestion } from './ask-user-question'
+import { getGlobalExecutionTelemetry } from './execution-telemetry'
 import { getGlobalIntentRouter } from './intent-router'
+
+type ExecutionRoute = 'mayor' | 'plan' | 'feature' | 'direct'
+
+interface RouteResult {
+  route: ExecutionRoute
+  intent: AnalyzedIntent
+  shouldExecute: boolean
+  message: string
+}
+
+interface RouteResolutionResult {
+  route: ExecutionRoute
+  intent: AnalyzedIntent
+  elicitationAsked: boolean
+  userSelectedRoute: boolean
+}
+
+interface IntentRouterLike {
+  route(input: string): Promise<RouteResult>
+}
+
+interface McpToolProfile {
+  tool: string
+  keywords: string[]
+  basePriority: number
+  intentBoost?: Partial<Record<IntentType, number>>
+}
+
+const MCP_TOOL_PROFILES: McpToolProfile[] = [
+  {
+    tool: 'filesystem',
+    keywords: ['file', 'directory', 'folder', 'workspace', 'path', 'read', 'write'],
+    basePriority: 5,
+    intentBoost: {
+      feature: 2,
+      refactor: 2,
+      bug_fix: 2,
+    },
+  },
+  {
+    tool: 'github',
+    keywords: ['github', 'repository', 'repo', 'pr', 'pull request', 'issue', 'commit'],
+    basePriority: 4,
+    intentBoost: {
+      feature: 1,
+      bug_fix: 1,
+    },
+  },
+  {
+    tool: 'web-search',
+    keywords: ['search', 'research', 'web', 'documentation', 'docs', 'latest', 'reference'],
+    basePriority: 3,
+    intentBoost: {
+      question: 2,
+      plan: 1,
+    },
+  },
+  {
+    tool: 'context7',
+    keywords: ['library', 'framework', 'package', 'sdk', 'api docs', 'best practice'],
+    basePriority: 4,
+    intentBoost: {
+      feature: 2,
+      plan: 2,
+      question: 1,
+    },
+  },
+  {
+    tool: 'ide',
+    keywords: ['diagnostic', 'error', 'lint', 'typecheck', 'compile', 'warning'],
+    basePriority: 3,
+    intentBoost: {
+      bug_fix: 2,
+      refactor: 1,
+    },
+  },
+  {
+    tool: 'playwright',
+    keywords: ['browser', 'webpage', 'e2e', 'ui test', 'automation', 'screenshot'],
+    basePriority: 2,
+    intentBoost: {
+      feature: 1,
+      bug_fix: 1,
+    },
+  },
+]
 
 /**
  * Execution result
  */
 export interface ExecutionResult {
   success: boolean
-  route: 'mayor' | 'plan' | 'feature' | 'direct'
+  route: ExecutionRoute
   intent: AnalyzedIntent
   convoyId?: string
   agentsCreated: string[]
   skillsCreated: string[]
   mcpToolsUsed: string[]
   message: string
+  insights?: ExecutionInsights
   details?: any
+}
+
+export interface ExecutionInsights {
+  decisionProfile: 'automatic' | 'user_guided'
+  routeDecision: {
+    initial: ExecutionRoute
+    final: ExecutionRoute
+    elicitationAsked: boolean
+    userSelectedRoute: boolean
+  }
+  mcpSelection: {
+    selected: string[]
+    candidates: string[]
+    truncated: boolean
+    reason: string
+  }
+  telemetry: {
+    totalDurationMs: number
+    eventCount: number
+  }
 }
 
 /**
@@ -40,6 +152,11 @@ export interface AutoExecutorConfig {
   autoCreateSkills: boolean // Default: true
   autoCreateAgents: boolean // Default: true
   autoSelectMcp: boolean // Default: true
+  enableElicitation: boolean // Default: true
+  maxMcpTools: number // Default: 3
+  askUserQuestion: AskUserQuestionHandler // Default: promptUserQuestion
+  intentRouter: IntentRouterLike // Default: global intent router
+  telemetry: ExecutionTelemetry // Default: global execution telemetry
   verbose: boolean // Default: false
 }
 
@@ -70,6 +187,7 @@ interface McpRequirement {
   needed: boolean
   tools: string[]
   reason: string
+  candidates: string[]
 }
 
 /**
@@ -77,7 +195,7 @@ interface McpRequirement {
  */
 export class AutoExecutor extends EventEmitter {
   private config: Required<AutoExecutorConfig>
-  private intentRouter = getGlobalIntentRouter()
+  private metricsCollector = getMetricsCollector()
 
   constructor(config: Partial<AutoExecutorConfig> = {}) {
     super()
@@ -86,6 +204,11 @@ export class AutoExecutor extends EventEmitter {
       autoCreateSkills: config.autoCreateSkills !== undefined ? config.autoCreateSkills : true,
       autoCreateAgents: config.autoCreateAgents !== undefined ? config.autoCreateAgents : true,
       autoSelectMcp: config.autoSelectMcp !== undefined ? config.autoSelectMcp : true,
+      enableElicitation: config.enableElicitation !== undefined ? config.enableElicitation : true,
+      maxMcpTools: config.maxMcpTools !== undefined ? Math.max(1, config.maxMcpTools) : 3,
+      askUserQuestion: config.askUserQuestion || promptUserQuestion,
+      intentRouter: config.intentRouter || getGlobalIntentRouter(),
+      telemetry: config.telemetry || getGlobalExecutionTelemetry(),
       verbose: config.verbose !== undefined ? config.verbose : false,
     }
   }
@@ -94,20 +217,93 @@ export class AutoExecutor extends EventEmitter {
    * Execute user request automatically
    */
   async execute(userInput: string): Promise<ExecutionResult> {
+    const executionId = `exec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const startedAt = Date.now()
+
     this.emit('execution:started', { input: userInput })
+    this.config.telemetry.record({
+      executionId,
+      phase: 'execution',
+      action: 'start',
+      success: true,
+      metadata: {
+        inputLength: userInput.length,
+      },
+    })
 
     try {
       // Step 1: Analyze intent
-      const routeResult = await this.intentRouter.route(userInput)
-      const { route, intent } = routeResult
+      const routeStart = Date.now()
+      const routeResult = await this.config.intentRouter.route(userInput)
+      this.config.telemetry.record({
+        executionId,
+        phase: 'intent',
+        action: 'route',
+        success: true,
+        durationMs: Date.now() - routeStart,
+        metadata: {
+          initialRoute: routeResult.route,
+          confidence: routeResult.intent.confidence,
+          intentType: routeResult.intent.type,
+          complexity: routeResult.intent.complexity,
+        },
+      })
+
+      const elicitationResult = await this.resolveRouteWithElicitation(
+        routeResult.route,
+        routeResult.intent,
+        executionId,
+      )
+      const route = elicitationResult.route
+      const intent = elicitationResult.intent
 
       this.log(`Intent analyzed: ${intent.type} (${intent.complexity})`)
       this.log(`Suggested route: ${route}`)
 
       // Step 2: Detect requirements
+      const skillDetectStart = Date.now()
       const skillReq = await this.detectSkillRequirement(userInput, intent)
+      this.config.telemetry.record({
+        executionId,
+        phase: 'skill',
+        action: 'detect',
+        success: true,
+        durationMs: Date.now() - skillDetectStart,
+        metadata: {
+          needed: skillReq.needed,
+          reason: skillReq.reason,
+        },
+      })
+
+      const agentDetectStart = Date.now()
       const agentReq = await this.detectAgentRequirement(userInput, intent)
+      this.config.telemetry.record({
+        executionId,
+        phase: 'agent',
+        action: 'detect',
+        success: true,
+        durationMs: Date.now() - agentDetectStart,
+        metadata: {
+          needed: agentReq.needed,
+          reason: agentReq.reason,
+        },
+      })
+
+      const mcpDetectStart = Date.now()
       const mcpReq = await this.detectMcpRequirement(userInput, intent)
+      this.config.telemetry.record({
+        executionId,
+        phase: 'mcp',
+        action: 'detect',
+        success: true,
+        durationMs: Date.now() - mcpDetectStart,
+        metadata: {
+          needed: mcpReq.needed,
+          selectedTools: mcpReq.tools,
+          candidates: mcpReq.candidates,
+          reason: mcpReq.reason,
+        },
+      })
 
       const agentsCreated: string[] = []
       const skillsCreated: string[] = []
@@ -116,16 +312,41 @@ export class AutoExecutor extends EventEmitter {
       // Step 3: Auto-create skills if needed
       if (this.config.autoCreateSkills && skillReq.needed) {
         this.log(`Auto-creating skill: ${skillReq.skillName}`)
+        const skillCreateStart = Date.now()
         const skillId = await this.autoCreateSkill(skillReq)
         skillsCreated.push(skillId)
+        this.config.telemetry.record({
+          executionId,
+          phase: 'skill',
+          action: 'create',
+          success: true,
+          durationMs: Date.now() - skillCreateStart,
+          metadata: {
+            skillId,
+            skillName: skillReq.skillName,
+          },
+        })
         this.emit('skill:created', { skillId, skillReq })
       }
 
       // Step 4: Auto-create agents if needed
       if (this.config.autoCreateAgents && agentReq.needed) {
         this.log(`Auto-creating agent: ${agentReq.domain}`)
+        const agentCreateStart = Date.now()
         const agentId = await this.autoCreateAgent(agentReq)
         agentsCreated.push(agentId)
+        this.config.telemetry.record({
+          executionId,
+          phase: 'agent',
+          action: 'create',
+          success: true,
+          durationMs: Date.now() - agentCreateStart,
+          metadata: {
+            agentId,
+            agentType: agentReq.agentType,
+            domain: agentReq.domain,
+          },
+        })
         this.emit('agent:created', { agentId, agentReq })
       }
 
@@ -133,11 +354,22 @@ export class AutoExecutor extends EventEmitter {
       if (this.config.autoSelectMcp && mcpReq.needed) {
         this.log(`Auto-selecting MCP tools: ${mcpReq.tools.join(', ')}`)
         mcpToolsUsed.push(...mcpReq.tools)
+        this.config.telemetry.record({
+          executionId,
+          phase: 'mcp',
+          action: 'select',
+          success: true,
+          metadata: {
+            tools: mcpReq.tools,
+            candidates: mcpReq.candidates,
+          },
+        })
         this.emit('mcp:selected', { tools: mcpReq.tools, mcpReq })
       }
 
       // Step 6: Execute based on route
       let result: ExecutionResult
+      const routeExecutionStart = Date.now()
 
       switch (route) {
         case 'mayor':
@@ -156,12 +388,206 @@ export class AutoExecutor extends EventEmitter {
           throw new Error(`Unknown route: ${route}`)
       }
 
+      const routeDuration = Date.now() - routeExecutionStart
+      this.config.telemetry.record({
+        executionId,
+        phase: 'route',
+        action: route,
+        success: true,
+        durationMs: routeDuration,
+        metadata: {
+          intentType: intent.type,
+          complexity: intent.complexity,
+        },
+      })
+
+      const totalDuration = Date.now() - startedAt
+      this.metricsCollector.recordResponseTime('auto-executor', totalDuration)
+      this.metricsCollector.recordTaskCompletion('auto-executor', true, totalDuration)
+
+      this.config.telemetry.record({
+        executionId,
+        phase: 'execution',
+        action: 'complete',
+        success: true,
+        durationMs: totalDuration,
+        metadata: {
+          route,
+          agentsCreated: agentsCreated.length,
+          skillsCreated: skillsCreated.length,
+          mcpToolsUsed: mcpToolsUsed.length,
+        },
+      })
+
+      result.insights = this.buildExecutionInsights({
+        initialRoute: routeResult.route,
+        resolvedRoute: route,
+        elicitationAsked: elicitationResult.elicitationAsked,
+        userSelectedRoute: elicitationResult.userSelectedRoute,
+        mcpReq,
+        totalDurationMs: totalDuration,
+        executionId,
+      })
+
       this.emit('execution:completed', result)
       return result
     }
     catch (error) {
+      const totalDuration = Date.now() - startedAt
+      const errorMessage = this.getErrorMessage(error)
+
+      this.metricsCollector.recordResponseTime('auto-executor', totalDuration)
+      this.metricsCollector.recordTaskCompletion('auto-executor', false, totalDuration)
+      this.metricsCollector.recordError('auto-executor', 'execution_error', errorMessage)
+
+      this.config.telemetry.record({
+        executionId,
+        phase: 'execution',
+        action: 'complete',
+        success: false,
+        durationMs: totalDuration,
+        metadata: {
+          error: errorMessage,
+        },
+      })
+
       this.emit('execution:failed', { error, input: userInput })
       throw error
+    }
+  }
+
+  /**
+   * Resolve route with optional structured elicitation.
+   * This keeps model autonomy but lets users disambiguate complex intent.
+   */
+  private async resolveRouteWithElicitation(
+    suggestedRoute: ExecutionRoute,
+    intent: AnalyzedIntent,
+    executionId: string,
+  ): Promise<RouteResolutionResult> {
+    if (!this.config.enableElicitation || !this.shouldAskRouteQuestion(intent)) {
+      return {
+        route: suggestedRoute,
+        intent,
+        elicitationAsked: false,
+        userSelectedRoute: false,
+      }
+    }
+
+    const question = this.buildRouteQuestion(suggestedRoute, intent)
+    const askStart = Date.now()
+    const answer = await this.config.askUserQuestion(question)
+
+    this.config.telemetry.record({
+      executionId,
+      phase: 'elicitation',
+      action: 'route-choice',
+      success: true,
+      durationMs: Date.now() - askStart,
+      metadata: {
+        asked: true,
+        suggestedRoute,
+        answered: Boolean(answer),
+        selected: answer?.value,
+      },
+    })
+
+    if (!answer) {
+      return {
+        route: suggestedRoute,
+        intent,
+        elicitationAsked: true,
+        userSelectedRoute: false,
+      }
+    }
+
+    return this.applyRouteAnswer(suggestedRoute, intent, answer)
+  }
+
+  private shouldAskRouteQuestion(intent: AnalyzedIntent): boolean {
+    if (intent.complexity === 'trivial' || intent.complexity === 'simple') {
+      return false
+    }
+
+    const lowConfidence = intent.confidence < 0.65
+    const multiRouteIndicators = intent.requiresPlanning && intent.requiresMultipleAgents
+    return lowConfidence || multiRouteIndicators
+  }
+
+  private buildRouteQuestion(
+    suggestedRoute: ExecutionRoute,
+    intent: AnalyzedIntent,
+  ): AskUserQuestion {
+    const routeLabels: Record<ExecutionRoute, string> = {
+      direct: 'Direct execution',
+      feature: 'Feature implementation',
+      plan: 'Plan first',
+      mayor: 'Multi-agent orchestration',
+    }
+
+    const options = [
+      {
+        value: suggestedRoute,
+        label: `Use recommended: ${routeLabels[suggestedRoute]}`,
+        description: `Best guess from intent analysis (confidence ${Math.round(intent.confidence * 100)}%)`,
+      },
+      {
+        value: 'plan',
+        label: routeLabels.plan,
+        description: 'Start with architecture and implementation plan',
+      },
+      {
+        value: 'feature',
+        label: routeLabels.feature,
+        description: 'Implement directly with focused feature workflow',
+      },
+      {
+        value: 'direct',
+        label: routeLabels.direct,
+        description: 'Run quickly without extra orchestration',
+      },
+      {
+        value: 'mayor',
+        label: routeLabels.mayor,
+        description: 'Use specialized agents for decomposition and coordination',
+      },
+    ].filter((option, index, arr) => arr.findIndex(x => x.value === option.value) === index)
+
+    return {
+      id: 'execution-route-choice',
+      prompt: 'How should I execute this request?',
+      options,
+      defaultValue: suggestedRoute,
+    }
+  }
+
+  private applyRouteAnswer(
+    suggestedRoute: ExecutionRoute,
+    intent: AnalyzedIntent,
+    answer: AskUserAnswer,
+  ): RouteResolutionResult {
+    const selectedRoute = ['direct', 'feature', 'plan', 'mayor'].includes(answer.value)
+      ? answer.value as ExecutionRoute
+      : suggestedRoute
+
+    if (selectedRoute === suggestedRoute) {
+      return {
+        route: suggestedRoute,
+        intent,
+        elicitationAsked: true,
+        userSelectedRoute: false,
+      }
+    }
+
+    return {
+      route: selectedRoute,
+      intent: {
+        ...intent,
+        suggestedRoute: selectedRoute,
+        reasoning: `${intent.reasoning} • User selected route: ${selectedRoute}`,
+      },
+      elicitationAsked: true,
+      userSelectedRoute: true,
     }
   }
 
@@ -309,44 +735,41 @@ export class AutoExecutor extends EventEmitter {
   /**
    * Detect which MCP tools are needed
    */
-  private async detectMcpRequirement(input: string, _intent: AnalyzedIntent): Promise<McpRequirement> {
+  private async detectMcpRequirement(input: string, intent: AnalyzedIntent): Promise<McpRequirement> {
     const normalized = input.toLowerCase()
-    const tools: string[] = []
+    const scoredTools = MCP_TOOL_PROFILES
+      .map((profile) => {
+        const matchedKeywords = profile.keywords.filter(keyword => normalized.includes(keyword))
+        if (matchedKeywords.length === 0) {
+          return null
+        }
 
-    // File system operations
-    if (normalized.includes('file') || normalized.includes('directory') || normalized.includes('folder')) {
-      tools.push('filesystem')
-    }
+        const intentBoost = profile.intentBoost?.[intent.type] ?? 0
+        const complexityBoost = intent.complexity === 'complex' || intent.complexity === 'very_complex' ? 1 : 0
+        const score = profile.basePriority + (matchedKeywords.length * 2) + intentBoost + complexityBoost
 
-    // GitHub operations
-    if (normalized.includes('github') || normalized.includes('repository') || normalized.includes('pr')) {
-      tools.push('github')
-    }
+        return {
+          tool: profile.tool,
+          score,
+        }
+      })
+      .filter((item): item is { tool: string, score: number } => item !== null)
+      .sort((a, b) => b.score - a.score)
 
-    // Web search/fetch
-    if (normalized.includes('search') || normalized.includes('documentation') || normalized.includes('docs')) {
-      tools.push('web-search')
-    }
-
-    // Browser automation
-    if (normalized.includes('browser') || normalized.includes('webpage') || normalized.includes('ui test')) {
-      tools.push('playwright')
-    }
-
-    // Context7 for library docs
-    if (normalized.includes('library') || normalized.includes('framework') || normalized.includes('package')) {
-      tools.push('context7')
-    }
-
-    // IDE integration
-    if (normalized.includes('diagnostic') || normalized.includes('error') || normalized.includes('lint')) {
-      tools.push('ide')
-    }
+    const candidates = scoredTools.map(item => item.tool)
+    const tools = scoredTools
+      .slice(0, this.config.maxMcpTools)
+      .map(item => item.tool)
 
     return {
       needed: tools.length > 0,
       tools,
-      reason: tools.length > 0 ? `Requires MCP tools: ${tools.join(', ')}` : 'No MCP tools needed',
+      candidates,
+      reason: tools.length > 0
+        ? (candidates.length > tools.length
+            ? `Selected top ${tools.length}/${candidates.length} MCP tools by capability score: ${tools.join(', ')}`
+            : `Requires MCP tools: ${tools.join(', ')}`)
+        : 'No MCP tools needed',
     }
   }
 
@@ -600,6 +1023,64 @@ export class AutoExecutor extends EventEmitter {
       message: `Direct execution: ${input}`,
       details: { input },
     }
+  }
+
+  private buildExecutionInsights(options: {
+    initialRoute: ExecutionRoute
+    resolvedRoute: ExecutionRoute
+    elicitationAsked: boolean
+    userSelectedRoute: boolean
+    mcpReq: McpRequirement
+    totalDurationMs: number
+    executionId: string
+  }): ExecutionInsights {
+    return {
+      decisionProfile: options.userSelectedRoute ? 'user_guided' : 'automatic',
+      routeDecision: {
+        initial: options.initialRoute,
+        final: options.resolvedRoute,
+        elicitationAsked: options.elicitationAsked,
+        userSelectedRoute: options.userSelectedRoute,
+      },
+      mcpSelection: {
+        selected: options.mcpReq.tools,
+        candidates: options.mcpReq.candidates,
+        truncated: options.mcpReq.candidates.length > options.mcpReq.tools.length,
+        reason: options.mcpReq.reason,
+      },
+      telemetry: {
+        totalDurationMs: options.totalDurationMs,
+        eventCount: this.getExecutionTelemetryEventCount(options.executionId),
+      },
+    }
+  }
+
+  private getExecutionTelemetryEventCount(executionId: string): number {
+    return this.config.telemetry
+      .getRecent(500)
+      .filter(event => event.executionId === executionId)
+      .length
+  }
+
+  /**
+   * Get aggregated execution telemetry.
+   */
+  getTelemetrySummary(): ExecutionTelemetrySummary {
+    return this.config.telemetry.summarize()
+  }
+
+  /**
+   * Get recent execution telemetry events.
+   */
+  getTelemetryEvents(limit = 50): TelemetryEvent[] {
+    return this.config.telemetry.getRecent(limit)
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message
+    }
+    return String(error)
   }
 
   /**

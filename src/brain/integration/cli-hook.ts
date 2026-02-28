@@ -219,6 +219,33 @@ export class BrainCliHook extends EventEmitter {
       console.log()
     }
 
+    if (result.insights) {
+      console.log('✨ Smart Upgrade Signals:')
+      console.log(`   Route decision: ${result.insights.routeDecision.initial} → ${result.insights.routeDecision.final}`)
+      if (result.insights.routeDecision.userSelectedRoute) {
+        console.log('   Mode: User-guided route disambiguation')
+      }
+      else if (result.insights.routeDecision.elicitationAsked) {
+        console.log('   Mode: Asked for route preference (kept recommended)')
+      }
+      else {
+        console.log('   Mode: Fully automatic route decision')
+      }
+
+      if (result.insights.mcpSelection.selected.length > 0) {
+        if (result.insights.mcpSelection.truncated) {
+          console.log(`   MCP ranking: selected ${result.insights.mcpSelection.selected.length} of ${result.insights.mcpSelection.candidates.length} candidates`)
+        }
+        console.log(`   MCP reason: ${result.insights.mcpSelection.reason}`)
+      }
+      else {
+        console.log('   MCP reason: no external tools needed')
+      }
+
+      console.log(`   Telemetry: ${result.insights.telemetry.eventCount} events, ${result.insights.telemetry.totalDurationMs}ms`)
+      console.log()
+    }
+
     // Convoy info
     if (result.convoyId) {
       console.log(`📦 Convoy: ${result.convoyId}`)

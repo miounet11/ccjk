@@ -262,6 +262,7 @@ export class CliInterceptor extends EventEmitter {
     // This will be displayed to the user
     console.log('\n🧠 Analyzing your request...')
     console.log('   System will automatically handle: skills, agents, MCP tools\n')
+    console.log('   Smart mode: ambiguity checks + capability-ranked tool selection + telemetry\n')
   }
 
   /**

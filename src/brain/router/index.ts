@@ -163,7 +163,13 @@ export async function processUserInput(userInput: string) {
   return await router.process(userInput)
 }
 
-export type { ExecutionResult } from './auto-executor'
 // Re-export types
+export type { AskUserAnswer, AskUserOption, AskUserQuestion, AskUserQuestionHandler } from './ask-user-question'
+export { promptUserQuestion } from './ask-user-question'
+export type { AutoExecutorConfig } from './auto-executor'
+export type { ExecutionInsights } from './auto-executor'
+export type { ExecutionResult } from './auto-executor'
 export type { InterceptionResult } from './cli-interceptor'
+export type { ExecutionTelemetrySummary, PhaseTelemetrySummary, TelemetryEvent, TelemetryPhase } from './execution-telemetry'
+export { ExecutionTelemetry, getGlobalExecutionTelemetry, resetGlobalExecutionTelemetry } from './execution-telemetry'
 export type { AnalyzedIntent, ComplexityLevel, IntentType } from './intent-router'
