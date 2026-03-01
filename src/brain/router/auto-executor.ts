@@ -15,6 +15,7 @@ import type { ExecutionTelemetry, ExecutionTelemetrySummary, TelemetryEvent } fr
 import type { AnalyzedIntent, IntentType } from './intent-router'
 import { EventEmitter } from 'node:events'
 import { getGlobalConvoyManager } from '../convoy/convoy-manager'
+import { emitCommandHookEvent } from '../hooks/command-hook-bridge'
 import { getGlobalMayorAgent } from '../mayor/mayor-agent'
 import { getGlobalMailboxManager } from '../messaging/persistent-mailbox'
 import { getMetricsCollector } from '../metrics'
@@ -221,6 +222,11 @@ export class AutoExecutor extends EventEmitter {
     const startedAt = Date.now()
 
     this.emit('execution:started', { input: userInput })
+    this.emitCommandHook('command-start', {
+      executionId,
+      inputLength: userInput.length,
+      source: 'auto-executor',
+    })
     this.config.telemetry.record({
       executionId,
       phase: 'execution',
@@ -247,6 +253,13 @@ export class AutoExecutor extends EventEmitter {
           intentType: routeResult.intent.type,
           complexity: routeResult.intent.complexity,
         },
+      })
+      this.emitCommandHook('command-telemetry', {
+        executionId,
+        phase: 'intent',
+        action: 'route',
+        route: routeResult.route,
+        confidence: routeResult.intent.confidence,
       })
 
       const elicitationResult = await this.resolveRouteWithElicitation(
@@ -400,6 +413,12 @@ export class AutoExecutor extends EventEmitter {
           complexity: intent.complexity,
         },
       })
+      this.emitCommandHook('command-telemetry', {
+        executionId,
+        phase: 'route',
+        action: route,
+        durationMs: routeDuration,
+      })
 
       const totalDuration = Date.now() - startedAt
       this.metricsCollector.recordResponseTime('auto-executor', totalDuration)
@@ -417,6 +436,13 @@ export class AutoExecutor extends EventEmitter {
           skillsCreated: skillsCreated.length,
           mcpToolsUsed: mcpToolsUsed.length,
         },
+      })
+      this.emitCommandHook('command-complete', {
+        executionId,
+        success: true,
+        route,
+        durationMs: totalDuration,
+        mcpToolsUsed: mcpToolsUsed.length,
       })
 
       result.insights = this.buildExecutionInsights({
@@ -449,6 +475,12 @@ export class AutoExecutor extends EventEmitter {
         metadata: {
           error: errorMessage,
         },
+      })
+      this.emitCommandHook('command-complete', {
+        executionId,
+        success: false,
+        durationMs: totalDuration,
+        error: errorMessage,
       })
 
       this.emit('execution:failed', { error, input: userInput })
@@ -1076,6 +1108,10 @@ export class AutoExecutor extends EventEmitter {
     return this.config.telemetry.getRecent(limit)
   }
 
+  clearTelemetry(): void {
+    this.config.telemetry.clear()
+  }
+
   private getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
       return error.message
@@ -1090,6 +1126,10 @@ export class AutoExecutor extends EventEmitter {
     if (this.config.verbose) {
       console.log(`[AutoExecutor] ${message}`)
     }
+  }
+
+  private emitCommandHook(event: string, data: Record<string, unknown>): void {
+    void emitCommandHookEvent(event, data)
   }
 }
 

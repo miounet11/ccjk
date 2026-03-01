@@ -14,6 +14,9 @@
 
 import type { ExecutionResult } from './auto-executor'
 import { EventEmitter } from 'node:events'
+import { contextLoader } from '../context-loader'
+import { emitCommandHookEvent } from '../hooks/command-hook-bridge'
+import { getSkillRegistry } from '../skill-registry'
 import { getGlobalAutoExecutor } from './auto-executor'
 
 /**
@@ -24,6 +27,7 @@ export interface CliInterceptorConfig {
   autoExecute: boolean // Default: true
   showIntent: boolean // Default: true (show what system is doing)
   bypassKeywords: string[] // Keywords that bypass interception
+  ccjkOwnedSlashPrefixes: string[] // Slash commands owned by CCJK and not auto-bypassed
   verbose: boolean // Default: false
 }
 
@@ -170,6 +174,7 @@ export class CliInterceptor extends EventEmitter {
       autoExecute: config.autoExecute !== undefined ? config.autoExecute : true,
       showIntent: config.showIntent !== undefined ? config.showIntent : true,
       bypassKeywords: config.bypassKeywords || [],
+      ccjkOwnedSlashPrefixes: config.ccjkOwnedSlashPrefixes || ['/ccjk', '/ccjk:', '/plugin', '/plugins', '/skill'],
       verbose: config.verbose !== undefined ? config.verbose : false,
     }
   }
@@ -190,6 +195,7 @@ export class CliInterceptor extends EventEmitter {
     // Check if should bypass
     const bypassCheck = this.shouldBypass(userInput)
     if (bypassCheck.bypass) {
+      await this.handleBypassedCommand(userInput, bypassCheck.reason)
       this.emit('intercept:bypassed', { input: userInput, reason: bypassCheck.reason })
       return {
         intercepted: false,
@@ -231,6 +237,15 @@ export class CliInterceptor extends EventEmitter {
   private shouldBypass(input: string): { bypass: boolean, reason: string } {
     const normalized = input.trim().toLowerCase()
 
+    // Pass through native slash commands by default (Claude compatibility),
+    // except CCJK-owned slash prefixes.
+    if (normalized.startsWith('/')) {
+      const isCcjkOwned = this.config.ccjkOwnedSlashPrefixes.some(prefix => normalized.startsWith(prefix))
+      if (!isCcjkOwned) {
+        return { bypass: true, reason: 'Native slash command passthrough' }
+      }
+    }
+
     // System commands bypass
     if (this.systemCommands.some(cmd => normalized.startsWith(cmd))) {
       return { bypass: true, reason: 'System command' }
@@ -263,6 +278,36 @@ export class CliInterceptor extends EventEmitter {
     console.log('\n🧠 Analyzing your request...')
     console.log('   System will automatically handle: skills, agents, MCP tools\n')
     console.log('   Smart mode: ambiguity checks + capability-ranked tool selection + telemetry\n')
+  }
+
+  private async handleBypassedCommand(input: string, reason: string): Promise<void> {
+    const normalized = input.trim().toLowerCase()
+    const command = this.extractCommandName(normalized)
+
+    if (normalized.startsWith('/clear')) {
+      this.autoExecutor.clearTelemetry()
+      contextLoader.clearCache()
+      getSkillRegistry().clear()
+
+      await emitCommandHookEvent('command-clear', {
+        command,
+        cleared: ['telemetry', 'context-cache', 'skill-registry'],
+      })
+    }
+
+    if (normalized.startsWith('/')) {
+      await emitCommandHookEvent('command-bypass', {
+        command,
+        reason,
+      })
+    }
+  }
+
+  private extractCommandName(input: string): string {
+    if (!input.startsWith('/')) {
+      return ''
+    }
+    return input.split(/\s+/)[0]
   }
 
   /**
