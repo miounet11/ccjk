@@ -604,6 +604,44 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'context-opt [action] [...args]',
+    description: 'Context optimization tools (stats/search/decay/config)',
+    tier: 'extended',
+    options: [
+      { flags: '--top-k, -k <number>', description: 'Number of search results' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+
+        if (actionStr === 'stats') {
+          const { contextOptStats } = await import('./commands/context-opt')
+          await contextOptStats()
+        }
+        else if (actionStr === 'search') {
+          const { contextOptSearch } = await import('./commands/context-opt')
+          await contextOptSearch(argsArr[0] || '', options)
+        }
+        else if (actionStr === 'decay') {
+          const { contextOptDecay } = await import('./commands/context-opt')
+          await contextOptDecay()
+        }
+        else if (actionStr === 'config') {
+          const { contextOptConfig } = await import('./commands/context-opt')
+          await contextOptConfig()
+        }
+        else {
+          console.log('\n🧠 Context Optimization Commands:')
+          console.log('  ccjk context-opt stats   - Show memory tree statistics')
+          console.log('  ccjk context-opt search  - Search memory tree')
+          console.log('  ccjk context-opt decay   - Run confidence decay')
+          console.log('  ccjk context-opt config  - Show configuration\n')
+        }
+      }
+    },
+  },
+  {
     name: 'vim',
     description: 'Vim mode configuration and keybindings',
     tier: 'extended',

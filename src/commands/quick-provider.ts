@@ -77,6 +77,7 @@ const KNOWN_COMMANDS = new Set([
   'thinking',
   'think',
   'agent-teams',
+  'context-opt',
   'teams',
   'postmortem',
   'pm',
