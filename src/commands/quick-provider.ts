@@ -511,9 +511,12 @@ async function saveProviderConfig(config: QuickLaunchConfig): Promise<void> {
     settings.apiProvider = 'custom'
     settings.apiUrl = config.provider.apiUrl
     settings.apiKey = config.apiKey
-    settings.model = config.model
 
-    // Also set environment variables for compatibility
+    // CRITICAL: Do NOT set settings.model - use environment variables instead
+    // to avoid conflicts with Claude Code's /model command
+    delete (settings as any).model
+
+    // Set environment variables for model configuration
     const envConfig = {
       ANTHROPIC_BASE_URL: config.provider.apiUrl,
       ANTHROPIC_API_KEY: config.apiKey,
