@@ -24,6 +24,7 @@ import {
     applyAiLanguageDirective,
     configureApi,
     getExistingApiConfig,
+    getExistingCustomModelConfig,
     getExistingModelConfig,
     promptApiConfigurationAction,
     switchToOfficialLogin,
@@ -373,7 +374,14 @@ export async function configureDefaultModelFeature(): Promise<void> {
 
   if (model === 'custom') {
     // Handle custom model input
-    const { primaryModel, haikuModel, sonnetModel, opusModel } = await promptCustomModels()
+    // Get existing custom model configuration to pre-fill the prompts
+    const existingCustomConfig = getExistingCustomModelConfig()
+    const { primaryModel, haikuModel, sonnetModel, opusModel } = await promptCustomModels(
+      existingCustomConfig?.primaryModel,
+      existingCustomConfig?.haikuModel,
+      existingCustomConfig?.sonnetModel,
+      existingCustomConfig?.opusModel,
+    )
 
     // Check if all inputs are skipped
     if (!primaryModel.trim() && !haikuModel.trim() && !sonnetModel.trim() && !opusModel.trim()) {

@@ -1358,11 +1358,13 @@ const COMMANDS: CommandDefinition[] = [
       const { configCommand } = await import('./commands/config')
       return async (options, action: unknown, key: unknown, value: unknown) => {
         const args: string[] = []
+        if (action !== undefined)
+          args.push(action as string)
         if (key !== undefined)
           args.push(key as string)
         if (value !== undefined)
           args.push(value as string)
-        await configCommand((action as string) || 'list', args, {
+        await configCommand(args, {
           lang: options.lang,
           codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           global: options.global as boolean | undefined,
