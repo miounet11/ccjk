@@ -4,6 +4,7 @@
 
 export * from './code-tools'
 export * from './utils'
+export * from './analyzers'
 
 // Export cloud-client with explicit re-exports to avoid conflicts
 export {

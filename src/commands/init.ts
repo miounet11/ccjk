@@ -1430,7 +1430,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       }
 
       if (shouldInstallAgentBrowser) {
-        const { checkAgentBrowserInstalled, installAgentBrowser } = await import('../tools/agent-browser/installer')
+        const { checkAgentBrowserInstalled, installAgentBrowser } = await import('../utils/agent-browser/installer')
         const installed = await checkAgentBrowserInstalled()
         const success = installed ? true : await installAgentBrowser()
 

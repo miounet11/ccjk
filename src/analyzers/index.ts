@@ -40,7 +40,7 @@ const logger = consola.withTag('analyzer')
 
 // Default configuration
 const DEFAULT_CONFIG: DetectorConfig = {
-  minConfidence: 0.5,
+  minConfidence: 0.05, // Lower threshold for large projects with many file types
   includeNodeModules: false,
   analyzeTransitiveDeps: true,
   maxFilesToScan: 10000,

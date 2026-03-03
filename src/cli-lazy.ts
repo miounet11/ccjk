@@ -155,6 +155,18 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'upgrade',
+    description: 'Upgrade CCJK to the latest version',
+    tier: 'core',
+    options: [],
+    loader: async () => {
+      const { upgrade } = await import('./commands/upgrade')
+      return async () => {
+        await upgrade()
+      }
+    },
+  },
+  {
     name: 'doctor',
     description: 'Run environment health check',
     tier: 'core',
@@ -349,12 +361,12 @@ const COMMANDS: CommandDefinition[] = [
         const argsArr = args as string[]
 
         if (actionStr === 'install') {
-          const { installAgentBrowser } = await import('./tools/agent-browser/installer')
-          await installAgentBrowser(options)
+          const { installAgentBrowser } = await import('./utils/agent-browser/installer')
+          await installAgentBrowser()
         }
         else if (actionStr === 'uninstall') {
-          const { uninstallAgentBrowser } = await import('./tools/agent-browser/installer')
-          await uninstallAgentBrowser(options)
+          const { uninstallAgentBrowser } = await import('./utils/agent-browser/installer')
+          await uninstallAgentBrowser()
         }
         else if (actionStr === 'status') {
           const { agentBrowserStatus } = await import('./tools/agent-browser/commands')
@@ -2231,11 +2243,7 @@ async function registerSpecialCommands(cli: CAC): Promise<void> {
       console.log('💡 新命令：ccjk system versions\n')
     })
 
-  cli.command('upgrade', '[DEPRECATED] Use "ccjk system upgrade"')
-    .action(async () => {
-      console.warn('\n⚠️  upgrade 已废弃，请使用 "ccjk system upgrade" 替代\n')
-      console.log('💡 新命令：ccjk system upgrade\n')
-    })
+  // upgrade 命令已在 COMMANDS 数组中定义，这里不需要重复
 
   cli.command('permissions', '[DEPRECATED] Use "ccjk system permissions"')
     .action(async () => {
@@ -2495,6 +2503,24 @@ export async function runLazyCli(): Promise<void> {
       // Never block CLI on hook initialization failure
     }
 
+    // 🔧 自动修复配置问题
+    try {
+      const { runAutoFixOnStartup } = await import('./core/auto-fix')
+      await runAutoFixOnStartup()
+    }
+    catch {
+      // Never block CLI on auto-fix failure
+    }
+
+    // 🚀 自动检查更新
+    try {
+      const { autoCheckUpdates } = await import('./core/auto-upgrade')
+      autoCheckUpdates(true) // 异步执行，不阻塞启动
+    }
+    catch {
+      // Never block CLI on update check failure
+    }
+
     // 🚀 快速启动检测：检查是否为供应商短码
     const handled = await tryQuickProviderLaunch()
     if (handled) {
@@ -2502,14 +2528,26 @@ export async function runLazyCli(): Promise<void> {
       return // 快速启动已处理，不进入常规 CLI
     }
 
-    // 🔍 Check for slash commands before parsing CLI
+    // 🧠 智能意图识别 - 自动路由到对应的 skill
     const args = process.argv.slice(2)
-    if (args.length > 0 && args[0].startsWith('/')) {
-      spinner?.stop()
-      const { executeSlashCommand } = await import('./commands/slash-commands')
-      const slashHandled = await executeSlashCommand(args.join(' '))
-      if (slashHandled) {
-        return
+    if (args.length > 0) {
+      // 1. 检查 slash commands
+      if (args[0].startsWith('/')) {
+        spinner?.stop()
+        const { executeSlashCommand } = await import('./commands/slash-commands')
+        const slashHandled = await executeSlashCommand(args.join(' '))
+        if (slashHandled) {
+          return
+        }
+      }
+      // 2. 智能意图识别
+      else {
+        const { handleIntentRecognition } = await import('./core/intent-engine')
+        const intentHandled = await handleIntentRecognition()
+        if (intentHandled) {
+          spinner?.stop()
+          return
+        }
       }
     }
 

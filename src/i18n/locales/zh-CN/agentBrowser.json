@@ -23,6 +23,7 @@
   "installingBrowser": "正在安装 Chromium 浏览器...",
   "browserInstallSuccess": "Chromium 浏览器安装成功！",
   "browserInstallFailed": "安装 Chromium 浏览器失败",
+  "browserAutoInstall": "浏览器将在首次使用时自动安装",
   "alreadyInstalled": "agent-browser 已安装 (v{{version}})",
   "notInstalled": "agent-browser 未安装",
   "browserNotInstalled": "Chromium 浏览器未安装",

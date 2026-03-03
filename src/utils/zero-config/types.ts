@@ -37,13 +37,30 @@ export interface SkillLoadResult {
 
 /**
  * Core skills to auto-install
+ * Maps to actual superpowers skill directory names
  */
 export const CORE_SKILLS = [
-  'agent-browser',
-  'tdd',
-  'debugging',
-  'code-review',
-  'git-worktrees',
+  'brainstorming',
+  'writing-plans',
+  'executing-plans',
+  'systematic-debugging',
+  'test-driven-development',
+  'using-git-worktrees',
+] as const
+
+/**
+ * Chinese trigger keywords for core skills
+ * Used for intent detection and smart guide activation
+ */
+export const CORE_SKILL_TRIGGERS_ZH = [
+  '计划',
+  '规划',
+  '梳理',
+  '思考',
+  '最强大脑',
+  '头脑风暴',
+  '设计',
+  '构思',
 ] as const
 
 export type CoreSkill = typeof CORE_SKILLS[number]

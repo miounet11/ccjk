@@ -5,7 +5,7 @@
 
 import process from 'node:process'
 import ansis from 'ansis'
-import { checkAgentBrowserInstalled, getInstallPath } from './installer'
+import { checkAgentBrowserInstalled } from '../../utils/agent-browser/installer'
 import { AgentBrowserSession } from './session'
 
 const { cyan, yellow, gray, green, red, blue: _blue, bold, dim: _dim } = ansis
@@ -71,11 +71,9 @@ export async function agentBrowserStatus(options: CommandOptions): Promise<void>
   console.log(`\n${bold(cyan('Agent Browser Status'))}\n`)
 
   const installed = await checkAgentBrowserInstalled()
-  const installPath = getInstallPath()
 
   if (installed) {
     console.log(`  ${green('✓')} Agent Browser is ${green('installed')}`)
-    console.log(`  ${gray('Path:')} ${installPath}`)
 
     // 检查版本
     try {

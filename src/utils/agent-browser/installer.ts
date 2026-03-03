@@ -26,6 +26,19 @@ export interface AgentBrowserInstallStatus {
 }
 
 /**
+ * Check if agent-browser is installed (simple boolean check)
+ */
+export async function checkAgentBrowserInstalled(): Promise<boolean> {
+  try {
+    await execAsync('agent-browser --version')
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+/**
  * Check if agent-browser is installed and get its status
  */
 export async function getAgentBrowserStatus(): Promise<AgentBrowserInstallStatus> {
@@ -52,19 +65,9 @@ export async function getAgentBrowserStatus(): Promise<AgentBrowserInstallStatus
     }
   }
 
-  // Check if Chromium is installed (only if agent-browser is installed)
-  if (isInstalled) {
-    try {
-      // Try to get browser status - if it fails, browser might not be installed
-      const { stdout } = await execAsync('agent-browser session list 2>&1', { timeout: 5000 })
-      // If we get output without "browser not installed" error, browser is available
-      hasBrowser = !stdout.toLowerCase().includes('not installed') && !stdout.toLowerCase().includes('error')
-    }
-    catch {
-      // Assume browser needs installation
-      hasBrowser = false
-    }
-  }
+  // Browser is managed by agent-browser itself
+  // If agent-browser is installed, assume browser will be installed on first use
+  hasBrowser = isInstalled
 
   return {
     isInstalled,
@@ -109,22 +112,10 @@ export async function checkForUpdate(): Promise<{ hasUpdate: boolean, currentVer
 export async function installAgentBrowser(): Promise<boolean> {
   ensureI18nInitialized()
 
-  const status = await getAgentBrowserStatus()
+  const isInstalled = await checkAgentBrowserInstalled()
 
-  if (status.isInstalled) {
-    console.log(ansis.green(`✔ ${i18n.t('agentBrowser:alreadyInstalled', { version: status.version || 'unknown' })}`))
-
-    // Check for updates
-    const { hasUpdate, latestVersion } = await checkForUpdate()
-    if (hasUpdate && latestVersion) {
-      console.log(ansis.yellow(`ℹ ${i18n.t('agentBrowser:updateAvailable', { version: latestVersion })}`))
-    }
-
-    // Install browser if needed
-    if (!status.hasBrowser) {
-      await installBrowser()
-    }
-
+  if (isInstalled) {
+    console.log(ansis.green(`✔ ${i18n.t('agentBrowser:alreadyInstalled', { version: 'installed' })}`))
     return true
   }
 
@@ -141,8 +132,8 @@ export async function installAgentBrowser(): Promise<boolean> {
     await execAsync([command, ...args].join(' '), { timeout: 120000 })
     console.log(ansis.green(`✔ ${i18n.t('agentBrowser:installSuccess')}`))
 
-    // Install browser after agent-browser is installed
-    await installBrowser()
+    // Browser will be installed automatically by agent-browser on first use
+    console.log(ansis.gray(`ℹ ${i18n.t('agentBrowser:browserAutoInstall')}`))
 
     return true
   }

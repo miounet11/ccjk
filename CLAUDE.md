@@ -6,6 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-03-04 | 12.2.2 | Slash command compatibility: CLI interceptor for `/clear`, `/reset` commands; auto-executor for brain router |
+| 2026-03-03 | 12.2.1 | Smart routing and telemetry improvements |
+| 2026-03-02 | 12.1.0 | Fast installation & hierarchical menu system |
 | 2026-02-27 | 12.0.15 | Menu system refactored: hierarchical menu with 3-level structure, unified shortcuts (1-8, L, H, Q), optimized i18n (8-12 chars CN, 20-40 chars EN), enabled via CCJK_HIERARCHICAL_MENU=1 |
 | 2026-02-27 | 12.0.15 | CLAUDE.md review: added Quick Start section and debugging gotchas |
 | 2026-02-25 | 12.0.8 | Wire up smartGenerateAndInstall: add `generate`/`gen` CLI command, menu G. option, post-init prompt, help doc entry |
@@ -195,8 +198,11 @@ This is the most critical flow. Menu options in `src/commands/menu.ts` must call
 - **Unit tests**: `tests/` mirrors `src/` structure; run with `pnpm test:run`
 - **Integration tests**: `tests/integration/` and `tests/v2/integration/`; run with `pnpm test:integration:run`
 - **E2E tests**: `tests/e2e/`; run with `pnpm test:e2e:run`
+- **V2 tests**: New test suite with `pnpm test:v2:run`
 - **Benchmarks**: `scripts/benchmark-compression.ts`, `scripts/benchmark-fts5-search.ts`
-- Test a specific file: `pnpm vitest tests/commands/init.integration.test.ts`
+- **Test a specific file**: `pnpm vitest tests/commands/init.integration.test.ts`
+- **Watch mode**: `pnpm test:watch` (unit), `pnpm test:integration` (integration), `pnpm test:v2:watch` (v2)
+- **Coverage**: Add `:coverage` suffix to any test command (e.g., `pnpm test:coverage`)
 
 ## Key Patterns
 
@@ -211,6 +217,8 @@ This is the most critical flow. Menu options in `src/commands/menu.ts` must call
 **Cloud Client:** `src/cloud-client/` wraps the remote API with retry, caching, and local fallback layers. Use `createCompleteCloudClient()` for production use.
 
 **Smart Generation:** `src/generation/` provides `smartGenerateAndInstall()` — analyzes project, selects templates, writes agent/skill configs.
+
+**Brain Router:** `src/brain/router/` handles CLI command interception and auto-execution. The CLI interceptor (`cli-interceptor.ts`) enables slash command compatibility (`/clear`, `/reset`) and the auto-executor (`auto-executor.ts`) manages brain router command execution.
 
 ## Coding Standards
 
@@ -267,6 +275,13 @@ git push origin main
 - `resolveCodeType()` in `code-type-resolver.ts` is the central resolver: stored config → fresh detection → default
 - Menu option 1 must pass `codeType: 'claude-code'` to init() to override stale config
 
+**Model Priority (v12.3.1+):**
+- Claude Code config priority: `settings.model` > `settings.env.ANTHROPIC_*` env vars
+- When custom models are configured via ccjk, they're set as env vars (ANTHROPIC_MODEL, ANTHROPIC_DEFAULT_HAIKU_MODEL, etc.)
+- If `settings.model` exists, it overrides all env vars, breaking custom model selection
+- `claude-code-config-manager.ts` now deletes `settings.model` when custom model env vars are detected
+- This allows Claude Code to use different models based on context (Haiku for quick tasks, Sonnet for standard, Opus for complex)
+
 ## AI Usage Guidelines
 
 - When modifying menu flow, always verify the Menu → Feature Function Mapping above.
@@ -275,3 +290,5 @@ git push origin main
 - Never call `bootstrapCloudServices()` synchronously in the menu path.
 - Use `writeJsonConfig()` for all JSON writes to ensure atomic operations.
 - Run `pnpm typecheck && pnpm build` before committing to catch type errors early.
+- When configuring custom models, ensure `settings.model` is removed to allow env var-based model selection.
+- Brain router commands should use the CLI interceptor for slash command compatibility.

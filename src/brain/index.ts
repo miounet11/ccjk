@@ -1048,3 +1048,109 @@ export * from './thinking-mode.js'
 
 // Re-export all types from types module
 export * from './types'
+
+// ============================================================================
+// SUPERPOWERS INTEGRATION - 智能工作流系统
+// ============================================================================
+
+/**
+ * Superpowers Integration - 专业工作流深度融合
+ *
+ * 提供:
+ * - 自然语言技能触发 (访问 github.com → 自动打开浏览器)
+ * - 最佳实践检测和警告 (TDD 违规、Debug 违规等)
+ * - 智能建议系统 (根据上下文推荐合适的工作流)
+ * - Hooks 集成 (onUserPromptSubmit, onFileChange, onPreCommit 等)
+ * - 工作流自动化 (Code Review, TDD, 系统性调试等)
+ */
+
+export { SuperpowersRouter, superpowersRouter } from './superpowers-router'
+export type { SuperpowerSkill, SuperpowerMapping } from './superpowers-router'
+
+export { PracticeEnforcer } from './practice-enforcer'
+export type { Violation, ViolationSeverity, ConversationContext, GitStatus } from './practice-enforcer'
+
+export { WorkflowAutomator, workflowAutomator } from './workflow-automator'
+export type { Task as WorkflowTask, Plan, ReviewResult, ReviewIssue } from './workflow-automator'
+
+export { SmartSuggestions, smartSuggestions } from './smart-suggestions'
+export type { Suggestion, ContextAnalysis } from './smart-suggestions'
+
+export { SkillTriggerEngine, skillTrigger, SKILL_TRIGGERS } from './skill-trigger'
+export type { SkillTrigger, TriggerMatch } from './skill-trigger'
+
+export { HooksIntegration, hooksIntegration } from './hooks-integration'
+export type { HookContext, HookResponse } from './hooks-integration'
+
+/**
+ * 统一的智能处理入口
+ */
+export class CCJKBrain {
+  /**
+   * 处理用户输入
+   * 1. 检测技能触发
+   * 2. 检测违规
+   * 3. 生成智能建议
+   */
+  async processUserInput(input: string, context: any) {
+    // 1. 技能触发检测
+    const skillMatch = skillTrigger.getBestMatch(input)
+
+    // 2. 最佳实践检测
+    const enforcer = new PracticeEnforcer()
+    const violations = await enforcer.checkAll(context)
+
+    // 3. 智能建议
+    const suggestions = await smartSuggestions.analyze(context)
+
+    return {
+      skillMatch,
+      violations,
+      suggestions,
+    }
+  }
+
+  /**
+   * 增强快捷操作
+   * 将数字快捷键映射到 Superpowers 工作流
+   */
+  async enhanceQuickAction(actionId: number, userContext: string) {
+    const skill = await superpowersRouter.routeByActionId(actionId)
+    if (!skill) {
+      return null
+    }
+
+    const enhancedPrompt = await superpowersRouter.generateEnhancedPrompt(
+      actionId,
+      userContext,
+    )
+
+    return {
+      skill,
+      enhancedPrompt,
+    }
+  }
+
+  /**
+   * 自动化工作流
+   */
+  async automateWorkflow(workflowType: string, params: any) {
+    switch (workflowType) {
+      case 'code-review':
+        return workflowAutomator.autoCodeReview(params)
+      case 'tdd':
+        return workflowAutomator.autoTDD(params.feature)
+      case 'debug':
+        return workflowAutomator.autoSystematicDebugging(params.issue)
+      case 'finish-branch':
+        return workflowAutomator.autoFinishBranch()
+      default:
+        return null
+    }
+  }
+}
+
+/**
+ * 全局单例
+ */
+export const ccjkBrain = new CCJKBrain()

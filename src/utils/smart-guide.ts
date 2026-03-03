@@ -34,7 +34,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     descriptionZh: '自动生成 commit 消息',
     command: '/commit',
     autoActivate: true,
-    triggers: ['commit', 'git', 'push', 'save', '提交', '保存'],
+    triggers: ['commit', 'git', 'push', 'save', 'stage', 'add', '提交', '保存', '上传', '推送', '发布'],
   },
   {
     id: 2,
@@ -45,7 +45,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     descriptionZh: '深度两阶段代码审查',
     command: '/review',
     autoActivate: true,
-    triggers: ['review', 'check', 'pr', 'merge', '审查', '检查', '合并'],
+    triggers: ['review', 'check', 'pr', 'merge', 'inspect', 'audit', 'look', '审查', '检查', '合并', '看看', '检视', '评审'],
   },
   {
     id: 3,
@@ -56,7 +56,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     descriptionZh: 'TDD 工作流',
     command: '/tdd',
     autoActivate: true,
-    triggers: ['test', 'tdd', 'unit', 'spec', '测试', '单元测试'],
+    triggers: ['test', 'tdd', 'unit', 'spec', 'testing', 'jest', 'vitest', '测试', '单元测试', '写测试', '加测试'],
   },
   {
     id: 4,
@@ -67,7 +67,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     descriptionZh: '6步开发流程',
     command: '/workflow',
     autoActivate: true,
-    triggers: ['plan', 'feature', 'implement', 'build', 'create', '规划', '功能', '实现', '创建'],
+    triggers: ['plan', 'feature', 'implement', 'build', 'create', 'develop', 'make', 'add', '规划', '功能', '实现', '创建', '计划', '梳理', '思考', '最强大脑', '开发', '做', '加', '新增', '添加'],
   },
   {
     id: 5,
@@ -78,7 +78,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     descriptionZh: '系统性调试',
     command: '/debug',
     autoActivate: true,
-    triggers: ['debug', 'bug', 'error', 'fix', 'issue', 'problem', '调试', '错误', '修复', '问题'],
+    triggers: ['debug', 'bug', 'error', 'fix', 'issue', 'problem', 'broken', 'crash', 'fail', '调试', '错误', '修复', '问题', '报错', '崩溃', '出错', '不行', '坏了'],
   },
   {
     id: 6,
@@ -89,7 +89,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     descriptionZh: '探索想法和方案',
     command: '/brainstorm',
     autoActivate: true,
-    triggers: ['brainstorm', 'idea', 'design', 'think', 'explore', '头脑风暴', '想法', '设计', '探索'],
+    triggers: ['brainstorm', 'idea', 'design', 'think', 'explore', 'concept', 'solution', 'approach', '头脑风暴', '想法', '设计', '探索', '思考', '方案', '构思', '讨论', '如何'],
   },
   {
     id: 7,
@@ -100,7 +100,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     descriptionZh: '质量验证',
     command: '/verify',
     autoActivate: true,
-    triggers: ['verify', 'validate', 'quality', 'deploy', '验证', '质量', '部署'],
+    triggers: ['verify', 'validate', 'quality', 'deploy', 'release', 'production', '验证', '质量', '部署', '发布', '上线', '生产'],
   },
   {
     id: 8,
@@ -111,7 +111,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     descriptionZh: '生成文档',
     command: '/docs',
     autoActivate: false,
-    triggers: ['doc', 'docs', 'readme', 'documentation', '文档', '说明'],
+    triggers: ['doc', 'docs', 'readme', 'documentation', 'comment', 'explain', '文档', '说明', '注释', '解释', '写文档'],
   },
 ]
 

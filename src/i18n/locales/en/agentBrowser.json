@@ -23,6 +23,7 @@
   "installingBrowser": "Installing Chromium browser...",
   "browserInstallSuccess": "Chromium browser installed successfully!",
   "browserInstallFailed": "Failed to install Chromium browser",
+  "browserAutoInstall": "Browser will be installed automatically on first use",
   "alreadyInstalled": "agent-browser is already installed (v{{version}})",
   "notInstalled": "agent-browser is not installed",
   "browserNotInstalled": "Chromium browser is not installed",
