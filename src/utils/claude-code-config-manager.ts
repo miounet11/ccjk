@@ -269,8 +269,9 @@ export class ClaudeCodeConfigManager {
         // Otherwise Claude Code's /model command will override our custom model config
         delete settings.model
 
-        // Only set default models, not primaryModel
-        // This allows Claude Code to automatically select the appropriate model based on request complexity
+        // Set primary model and default models
+        if (profile.primaryModel)
+          settings.env.ANTHROPIC_MODEL = profile.primaryModel
         if (profile.defaultHaikuModel)
           settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.defaultHaikuModel
         if (profile.defaultSonnetModel)

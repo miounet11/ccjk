@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-03-03 | 12.3.4 | Fix model priority: primaryModel now correctly sets ANTHROPIC_MODEL env var, and ANTHROPIC_MODEL is properly cleared when switching profiles |
 | 2026-02-27 | 12.0.15 | Menu system refactored: hierarchical menu with 3-level structure, unified shortcuts (1-8, L, H, Q), optimized i18n (8-12 chars CN, 20-40 chars EN), enabled via CCJK_HIERARCHICAL_MENU=1 |
 | 2026-02-27 | 12.0.15 | CLAUDE.md review: added Quick Start section and debugging gotchas |
 | 2026-02-25 | 12.0.8 | Wire up smartGenerateAndInstall: add `generate`/`gen` CLI command, menu G. option, post-init prompt, help doc entry |

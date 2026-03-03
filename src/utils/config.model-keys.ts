@@ -1,6 +1,6 @@
-// Default model environment variables that should be cleared when switching profiles
-// Note: ANTHROPIC_MODEL is intentionally excluded to allow Claude Code's auto-selection
+// Model environment variables that should be cleared when switching profiles
 export const MODEL_ENV_KEYS = [
+  'ANTHROPIC_MODEL',
   'ANTHROPIC_DEFAULT_HAIKU_MODEL',
   'ANTHROPIC_DEFAULT_SONNET_MODEL',
   'ANTHROPIC_DEFAULT_OPUS_MODEL',
