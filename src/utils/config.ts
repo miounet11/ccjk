@@ -243,9 +243,8 @@ export function updateCustomModel(
   clearModelEnv(settings.env)
 
   // Set environment variables only if values are provided
-  if (primaryModel?.trim()) {
-    settings.env.ANTHROPIC_MODEL = primaryModel.trim()
-  }
+  // Note: We do NOT set ANTHROPIC_MODEL (primaryModel) to allow Claude Code
+  // to automatically select the appropriate model based on request complexity
   if (haikuModel?.trim())
     settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim()
   if (sonnetModel?.trim())

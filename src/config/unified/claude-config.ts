@@ -267,9 +267,8 @@ export function setModelConfig(
   updates.env = {}
 
   if (model === 'custom' && customModels) {
-    if (customModels.primaryModel) {
-      updates.env.ANTHROPIC_MODEL = customModels.primaryModel
-    }
+    // Note: We do NOT set ANTHROPIC_MODEL (primaryModel) to allow Claude Code
+    // to automatically select the appropriate model based on request complexity
     if (customModels.defaultHaikuModel) {
       updates.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = customModels.defaultHaikuModel
     }
