@@ -159,7 +159,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^5.4.1",
     "@anthropic-ai/sdk": "^0.52.0",
-    "@types/better-sqlite3": "catalog:",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.9",
     "@types/node": "^22.18.6",
