@@ -22,8 +22,10 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
     models: [
       'claude-sonnet-4-20250514',
       'claude-opus-4-20250514',
+      'claude-opus-4-6',
+      'claude-sonnet-4-6',
       'claude-3-5-sonnet-20241022',
-      'claude-3-5-haiku-20241022',
+      'claude-haiku-4-5-20251001',
     ],
     defaultModel: 'claude-sonnet-4-20250514',
     features: ['chat', 'vision', 'tools', 'streaming', 'thinking', 'code'],

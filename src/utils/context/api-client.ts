@@ -44,7 +44,7 @@ export class AnthropicApiClient {
     // Set default configuration
     this.config = {
       apiKey: config.apiKey || process.env.ANTHROPIC_API_KEY || '',
-      model: config.model || 'claude-3-5-haiku-20241022',
+      model: config.model || 'claude-3-5-sonnet-20241022',
       maxTokens: config.maxTokens || 1024,
       temperature: config.temperature || 0.3,
       retry: { ...DEFAULT_RETRY_CONFIG, ...config.retry },

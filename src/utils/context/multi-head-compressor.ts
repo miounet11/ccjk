@@ -615,7 +615,7 @@ export class MultiHeadCompressor {
     if (this.config.apiKey && this.config.enableSemanticHead) {
       this.apiClient = createApiClient({
         apiKey: this.config.apiKey,
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5-20251001',
         maxTokens: 500,
         temperature: 0.3,
       })
@@ -788,7 +788,7 @@ export class MultiHeadCompressor {
     if (this.config.apiKey && this.config.enableSemanticHead) {
       this.apiClient = createApiClient({
         apiKey: this.config.apiKey,
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5-20251001',
         maxTokens: 500,
         temperature: 0.3,
       })

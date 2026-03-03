@@ -58,7 +58,7 @@ export class Summarizer {
 
     // Initialize API client
     const modelName = this.config.model === 'haiku'
-      ? 'claude-3-5-haiku-20241022'
+      ? 'claude-haiku-4-5-20251001'
       : undefined
 
     this.apiClient = createApiClient({

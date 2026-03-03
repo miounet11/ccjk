@@ -21,7 +21,7 @@ export interface ContextAnalysis {
   filesChanged: number
   failedAttempts: number
   isDebugging: boolean
-  isPreparing ToCommit: boolean
+  isPreparingToCommit: boolean
   isLargeFeature: boolean
 }
 

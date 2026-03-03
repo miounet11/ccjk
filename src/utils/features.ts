@@ -46,6 +46,29 @@ async function handleCancellation(): Promise<void> {
   console.log(ansis.yellow(i18n.t('common:cancelled')))
 }
 
+// Ensure model config priority (fix settings.model override issue)
+async function ensureModelConfigPriority(): Promise<void> {
+  const { readJsonConfig, writeJsonConfig } = await import('./json-config')
+  const { SETTINGS_FILE } = await import('../constants')
+
+  const settings = readJsonConfig<any>(SETTINGS_FILE)
+  if (!settings) return
+
+  // Check if custom model environment variables exist
+  const hasCustomModels = Boolean(
+    settings.env?.ANTHROPIC_MODEL ||
+    settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL ||
+    settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL ||
+    settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL
+  )
+
+  // Delete settings.model to let environment variables take precedence
+  if (hasCustomModels && settings.model) {
+    delete settings.model
+    writeJsonConfig(SETTINGS_FILE, settings)
+  }
+}
+
 // Handle official login mode
 async function handleOfficialLoginMode(): Promise<void> {
   ensureI18nInitialized()
@@ -222,6 +245,8 @@ export async function configureApiFeature(): Promise<void> {
   })
 
   if (!mode || mode === 'skip') {
+    // Even when skipping, ensure model config priority is correct
+    await ensureModelConfigPriority()
     await handleCancellation()
     return
   }
@@ -243,6 +268,9 @@ export async function configureApiFeature(): Promise<void> {
       await handleCancellation()
       break
   }
+
+  // Ensure model config priority after any configuration change
+  await ensureModelConfigPriority()
 }
 
 // Configure MCP

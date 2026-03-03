@@ -20,8 +20,9 @@ export class Provider302AI implements IProvider {
     defaultModel: 'claude-3-5-sonnet-20241022',
     availableModels: [
       'claude-3-5-sonnet-20241022',
-      'claude-3-5-haiku-20241022',
-      'claude-opus-4-5-20251101',
+      'claude-haiku-4-5-20251001',
+      'claude-opus-4-6',
+      'claude-sonnet-4-6',
       'gpt-4o',
       'gpt-4o-mini',
     ],
