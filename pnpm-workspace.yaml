@@ -109,22 +109,44 @@ catalog:
 catalogs:
   conflicts_@types/node_h20_11_5:
     '@types/node': ^20.11.5
+  conflicts_@types/react_t18_3_12:
+    '@types/react': ~18.3.12
   conflicts_@types/semver_h7_7_0:
     '@types/semver': ^7.7.0
   conflicts_@types/uuid_h10_0_0:
     '@types/uuid': ^10.0.0
+  conflicts_ansis_h4_2_0:
+    ansis: ^4.2.0
   conflicts_chokidar_h3_5_3:
     chokidar: ^3.5.3
   conflicts_concurrently_h9_2_1:
     concurrently: ^9.2.1
+  conflicts_conflicts_@types/node_h20_11_5_ge20:
+    '@types/node': '>=20'
   conflicts_conflicts_@types/node_h20_11_5_h20:
     '@types/node': ^20
   conflicts_conflicts_@types/node_h20_11_5_h20_0_0:
     '@types/node': ^20.0.0
   conflicts_conflicts_@types/node_h20_11_5_h22_18_6:
     '@types/node': ^22.18.6
+  conflicts_conflicts_@types/semver_h7_7_0_h7_7_1:
+    '@types/semver': ^7.7.1
+  conflicts_conflicts_@types/uuid_h10_0_0_h11_0_0:
+    '@types/uuid': ^11.0.0
   conflicts_conflicts_chokidar_h3_5_3_h4_0_3:
     chokidar: ^4.0.3
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3:
+    typescript: 5.9.3
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_h5_9_3:
+    typescript: ^5.9.3
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_t5_6_2:
+    typescript: ~5.6.2
+  conflicts_conflicts_conflicts_conflicts_conflicts_eslint_h8_0_0_h8_h9_36_0_h8_h9_36_0:
+    eslint: ^9.36.0
+  conflicts_conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5_h4_20_6:
+    tsx: ^4.20.6
+  conflicts_conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5_h4_21_0:
+    tsx: ^4.21.0
   conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5:
     typescript: ^5
   conflicts_conflicts_conflicts_conflicts_eslint_h8_0_0_h8_h9_36_0_h8:
@@ -145,52 +167,52 @@ catalogs:
     eslint: ^8
   conflicts_conflicts_eslint_h8_0_0_h9_36_0:
     eslint: ^9.36.0
+  conflicts_conflicts_fdir_h6_4_6_h6_5_0:
+    fdir: ^6.5.0
+  conflicts_conflicts_ioredis_h5_9_2_h5_6_1:
+    ioredis: ^5.6.1
+  conflicts_conflicts_ioredis_h5_9_2_h5_9_3:
+    ioredis: ^5.9.3
+  conflicts_conflicts_ofetch_h1_4_1_h1_5_1:
+    ofetch: ^1.5.1
+  conflicts_conflicts_tinyglobby_h0_2_14_h0_2_15:
+    tinyglobby: ^0.2.15
   conflicts_conflicts_tsx_h4_7_2_h4_20_5:
     tsx: ^4.20.5
   conflicts_conflicts_typescript_h5_3_3_h5_9_2:
     typescript: ^5.9.2
   conflicts_conflicts_vitest_h1_0_0_h3_2_4:
     vitest: ^3.2.4
+  conflicts_conflicts_web-tree-sitter_h0_24_7_h0_26_5:
+    web-tree-sitter: ^0.26.5
+  conflicts_dayjs_h1_11_19:
+    dayjs: ^1.11.19
+  conflicts_eslint-plugin-format_h1_4_0:
+    eslint-plugin-format: ^1.4.0
   conflicts_eslint_h8_0_0:
     eslint: ^8.0.0
   conflicts_fdir_h6_4_6:
     fdir: ^6.4.6
-  conflicts_ioredis_h5_9_2:
-    ioredis: ^5.9.2
-  conflicts_ofetch_h1_4_1:
-    ofetch: ^1.4.1
-  conflicts_tinyglobby_h0_2_14:
-    tinyglobby: ^0.2.14
-  conflicts_tsx_h4_7_2:
-    tsx: ^4.7.2
-  conflicts_typescript_h5_3_3:
-    typescript: ^5.3.3
-  conflicts_uuid_h11_1_0:
-    uuid: ^11.1.0
-  conflicts_vitest_h1_0_0:
-    vitest: ^1.0.0
-  conflicts_web-tree-sitter_h0_24_7:
-    web-tree-sitter: ^0.24.7
-  conflicts_ansis_h4_2_0:
-    ansis: ^4.2.0
-  conflicts_dayjs_h1_11_19:
-    dayjs: ^1.11.19
-  conflicts_conflicts_fdir_h6_4_6_h6_5_0:
-    fdir: ^6.5.0
   conflicts_fs-extra_h11_3_3:
     fs-extra: ^11.3.3
-  conflicts_i18next_h25_8_13:
-    i18next: ^25.8.13
   conflicts_i18next-fs-backend_h2_6_1:
     i18next-fs-backend: ^2.6.1
-  conflicts_conflicts_ioredis_h5_9_2_h5_9_3:
-    ioredis: ^5.9.3
-  conflicts_conflicts_ofetch_h1_4_1_h1_5_1:
-    ofetch: ^1.5.1
+  conflicts_i18next_h25_8_13:
+    i18next: ^25.8.13
+  conflicts_ioredis_h5_9_2:
+    ioredis: ^5.9.2
+  conflicts_lint-staged_h16_2_7:
+    lint-staged: ^16.2.7
+  conflicts_ofetch_h1_4_1:
+    ofetch: ^1.4.1
   conflicts_ohash_h1_1_4:
     ohash: ^1.1.4
   conflicts_ora_h9_3_0:
     ora: ^9.3.0
+  conflicts_prettier_h3_8_1:
+    prettier: ^3.8.1
+  conflicts_react_18_3_1:
+    react: 18.3.1
   conflicts_semver_h7_7_4:
     semver: ^7.7.4
   conflicts_smol-toml_h1_6_0:
@@ -199,44 +221,22 @@ catalogs:
     tar: ^7.5.9
   conflicts_tinyexec_h1_0_2:
     tinyexec: ^1.0.2
-  conflicts_conflicts_tinyglobby_h0_2_14_h0_2_15:
-    tinyglobby: ^0.2.15
+  conflicts_tinyglobby_h0_2_14:
+    tinyglobby: ^0.2.14
   conflicts_trash_h10_1_0:
     trash: ^10.1.0
-  conflicts_conflicts_web-tree-sitter_h0_24_7_h0_26_5:
-    web-tree-sitter: ^0.26.5
-  conflicts_conflicts_@types/semver_h7_7_0_h7_7_1:
-    '@types/semver': ^7.7.1
-  conflicts_conflicts_@types/uuid_h10_0_0_h11_0_0:
-    '@types/uuid': ^11.0.0
-  conflicts_conflicts_conflicts_conflicts_conflicts_eslint_h8_0_0_h8_h9_36_0_h8_h9_36_0:
-    eslint: ^9.36.0
-  conflicts_eslint-plugin-format_h1_4_0:
-    eslint-plugin-format: ^1.4.0
-  conflicts_lint-staged_h16_2_7:
-    lint-staged: ^16.2.7
-  conflicts_prettier_h3_8_1:
-    prettier: ^3.8.1
-  conflicts_conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5_h4_21_0:
-    tsx: ^4.21.0
-  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_h5_9_3:
-    typescript: ^5.9.3
-  conflicts_react_18_3_1:
-    react: 18.3.1
-  conflicts_@types/react_t18_3_12:
-    '@types/react': ~18.3.12
-  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_t5_6_2:
-    typescript: ~5.6.2
-  conflicts_conflicts_@types/node_h20_11_5_ge20:
-    '@types/node': '>=20'
-  conflicts_conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5_h4_20_6:
-    tsx: ^4.20.6
-  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3:
-    typescript: 5.9.3
-  conflicts_conflicts_ioredis_h5_9_2_h5_6_1:
-    ioredis: ^5.6.1
+  conflicts_tsx_h4_7_2:
+    tsx: ^4.7.2
+  conflicts_typescript_h5_3_3:
+    typescript: ^5.3.3
   conflicts_unbuild_h3_3_1:
     unbuild: ^3.3.1
+  conflicts_uuid_h11_1_0:
+    uuid: ^11.1.0
+  conflicts_vitest_h1_0_0:
+    vitest: ^1.0.0
+  conflicts_web-tree-sitter_h0_24_7:
+    web-tree-sitter: ^0.24.7
 
 onlyBuiltDependencies:
   - esbuild

@@ -221,7 +221,7 @@ export function updateCustomModel(
   sonnetModel?: string,
   opusModel?: string,
 ): void {
-  // Skip if both models are empty
+  // Skip if all models are empty
   if (!primaryModel?.trim() && !haikuModel?.trim() && !sonnetModel?.trim() && !opusModel?.trim()) {
     return
   }
@@ -243,6 +243,8 @@ export function updateCustomModel(
   clearModelEnv(settings.env)
 
   // Set environment variables only if values are provided
+  // Set all 4 environment variables including ANTHROPIC_MODEL (primaryModel)
+  // This matches ZCF's implementation for complete user control
   if (primaryModel?.trim()) {
     settings.env.ANTHROPIC_MODEL = primaryModel.trim()
   }
@@ -412,6 +414,41 @@ export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
 
   // Fallback to default if value is invalid
   return 'default'
+}
+
+/**
+ * Get existing custom model configuration from settings.json
+ */
+export function getExistingCustomModelConfig(): {
+  primaryModel?: string
+  haikuModel?: string
+  sonnetModel?: string
+  opusModel?: string
+} | null {
+  const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+
+  if (!settings || !settings.env) {
+    return null
+  }
+
+  const {
+    ANTHROPIC_MODEL,
+    ANTHROPIC_DEFAULT_HAIKU_MODEL,
+    ANTHROPIC_DEFAULT_SONNET_MODEL,
+    ANTHROPIC_DEFAULT_OPUS_MODEL,
+  } = settings.env
+
+  // Check if any custom model configuration exists
+  if (!ANTHROPIC_MODEL && !ANTHROPIC_DEFAULT_HAIKU_MODEL && !ANTHROPIC_DEFAULT_SONNET_MODEL && !ANTHROPIC_DEFAULT_OPUS_MODEL) {
+    return null
+  }
+
+  return {
+    primaryModel: ANTHROPIC_MODEL,
+    haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL,
+    sonnetModel: ANTHROPIC_DEFAULT_SONNET_MODEL,
+    opusModel: ANTHROPIC_DEFAULT_OPUS_MODEL,
+  }
 }
 
 /**

@@ -6,7 +6,9 @@
     "ANTHROPIC_MODEL": "",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": ""
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "",
+    "CCJK_CONTEXT_OPTIMIZATION": "true",
+    "CCJK_TOOL_COMPRESSION": "true"
   },
   "language": "",
   "showTurnDuration": false,
