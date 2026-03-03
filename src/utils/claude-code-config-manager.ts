@@ -265,10 +265,6 @@ export class ClaudeCodeConfigManager {
       )
 
       if (hasModelConfig) {
-        // CRITICAL: Delete settings.model to let environment variables take precedence
-        // Otherwise Claude Code's /model command will override our custom model config
-        delete settings.model
-
         if (profile.primaryModel)
           settings.env.ANTHROPIC_MODEL = profile.primaryModel
         if (profile.defaultHaikuModel)

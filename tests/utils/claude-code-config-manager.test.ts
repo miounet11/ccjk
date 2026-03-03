@@ -10,7 +10,7 @@ import { initI18n } from '../../src/i18n'
 
 const SETTINGS_FILE = join(homedir(), '.claude', 'settings.json')
 
-describe('ClaudeCodeConfigManager - Model Priority Fix', () => {
+describe('ClaudeCodeConfigManager - Model Configuration', () => {
   let originalSettings: ClaudeSettings | null = null
 
   beforeAll(async () => {
@@ -30,15 +30,31 @@ describe('ClaudeCodeConfigManager - Model Priority Fix', () => {
     }
   })
 
-  it('should delete settings.model when custom models are configured via env vars', async () => {
-    // Step 1: Simulate Claude Code setting settings.model
+  it('should set ANTHROPIC_MODEL when primaryModel is configured', async () => {
     const initialSettings: ClaudeSettings = {
-      model: 'claude-opus-4.6', // This should be deleted
       env: {}
     }
     writeJsonConfig(SETTINGS_FILE, initialSettings)
 
-    // Step 2: Apply profile with custom models
+    const profile: ClaudeCodeProfile = {
+      name: 'test-profile',
+      authType: 'api_key',
+      primaryModel: 'claude-sonnet-4.6'
+    }
+
+    await ClaudeCodeConfigManager.applyProfileSettings(profile)
+
+    const finalSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    expect(finalSettings).toBeDefined()
+    expect(finalSettings!.env?.ANTHROPIC_MODEL).toBe('claude-sonnet-4.6')
+  })
+
+  it('should set all model environment variables when configured', async () => {
+    const initialSettings: ClaudeSettings = {
+      env: {}
+    }
+    writeJsonConfig(SETTINGS_FILE, initialSettings)
+
     const profile: ClaudeCodeProfile = {
       name: 'test-profile',
       authType: 'api_key',
@@ -50,57 +66,33 @@ describe('ClaudeCodeConfigManager - Model Priority Fix', () => {
 
     await ClaudeCodeConfigManager.applyProfileSettings(profile)
 
-    // Step 3: Verify settings.model is deleted
     const finalSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
     expect(finalSettings).toBeDefined()
-    expect(finalSettings!.model).toBeUndefined()
     expect(finalSettings!.env?.ANTHROPIC_MODEL).toBe('claude-sonnet-4.6')
     expect(finalSettings!.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4.5')
     expect(finalSettings!.env?.ANTHROPIC_DEFAULT_SONNET_MODEL).toBe('claude-sonnet-4.6')
     expect(finalSettings!.env?.ANTHROPIC_DEFAULT_OPUS_MODEL).toBe('claude-opus-4.6')
   })
 
-  it('should preserve settings.model when no custom models are configured', async () => {
-    // Step 1: Set settings.model without custom env vars
-    const initialSettings: ClaudeSettings = {
-      model: 'claude-opus-4.6',
-      env: {}
-    }
-    writeJsonConfig(SETTINGS_FILE, initialSettings)
-
-    // Step 2: Apply profile without custom models
-    const profile: ClaudeCodeProfile = {
-      name: 'test-profile',
-      authType: 'api_key'
-    }
-    await ClaudeCodeConfigManager.applyProfileSettings(profile)
-
-    // Step 3: Verify settings.model is preserved
-    const finalSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
-    expect(finalSettings).toBeDefined()
-    expect(finalSettings!.model).toBe('claude-opus-4.6')
-  })
-
-  it('should handle the case where settings.model is already not present', async () => {
-    // Step 1: Create settings without model field
+  it('should clear model env vars when no custom models are configured', async () => {
     const initialSettings: ClaudeSettings = {
       env: {
-        ANTHROPIC_MODEL: 'claude-sonnet-4.6'
+        ANTHROPIC_MODEL: 'claude-sonnet-4.6',
+        ANTHROPIC_DEFAULT_HAIKU_MODEL: 'claude-haiku-4.5'
       }
     }
     writeJsonConfig(SETTINGS_FILE, initialSettings)
 
-    // Step 2: Apply profile with custom models
     const profile: ClaudeCodeProfile = {
-      primaryModel: 'claude-sonnet-4.6'
+      name: 'test-profile',
+      authType: 'api_key'
+      // No custom models
     }
-
     await ClaudeCodeConfigManager.applyProfileSettings(profile)
 
-    // Step 3: Verify no errors and env vars are preserved
     const finalSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
     expect(finalSettings).toBeDefined()
-    expect(finalSettings!.model).toBeUndefined()
-    expect(finalSettings!.env?.ANTHROPIC_MODEL).toBe('claude-sonnet-4.6')
+    expect(finalSettings!.env?.ANTHROPIC_MODEL).toBeUndefined()
+    expect(finalSettings!.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBeUndefined()
   })
 })
