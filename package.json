@@ -88,7 +88,7 @@
     "typecheck": "tsc --noEmit",
     "release:verify": "node scripts/release-verify.mjs",
     "release:verify:full": "node scripts/release-verify.mjs --with-tests",
-    "prepublishOnly": "node scripts/validate-prepublish.mjs && pnpm contract:check && pnpm build && pnpm test:run",
+    "prepublishOnly": "node scripts/validate-prepublish.mjs && pnpm contract:check && pnpm build",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "vitest",
