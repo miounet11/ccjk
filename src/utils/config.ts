@@ -243,11 +243,10 @@ export function updateCustomModel(
   clearModelEnv(settings.env)
 
   // Set environment variables only if values are provided
-  // Set all 4 environment variables including ANTHROPIC_MODEL (primaryModel)
-  // This matches ZCF's implementation for complete user control
-  if (primaryModel?.trim()) {
-    settings.env.ANTHROPIC_MODEL = primaryModel.trim()
-  }
+  // Note: We intentionally do NOT set ANTHROPIC_MODEL (primaryModel) to allow
+  // Claude Code to automatically select the appropriate model (Haiku/Sonnet/Opus)
+  // based on task complexity. Only set the three default model variants.
+  // This matches the recommended adaptive behavior.
   if (haikuModel?.trim())
     settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim()
   if (sonnetModel?.trim())

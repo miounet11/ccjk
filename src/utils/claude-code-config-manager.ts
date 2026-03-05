@@ -269,9 +269,10 @@ export class ClaudeCodeConfigManager {
         // Otherwise Claude Code's /model command will override our custom model config
         delete settings.model
 
-        // Set primary model and default models
-        if (profile.primaryModel)
-          settings.env.ANTHROPIC_MODEL = profile.primaryModel
+        // Set default model variants only
+        // Note: We intentionally do NOT set ANTHROPIC_MODEL (primaryModel) to allow
+        // Claude Code to automatically select the appropriate model (Haiku/Sonnet/Opus)
+        // based on task complexity. This matches the recommended adaptive behavior.
         if (profile.defaultHaikuModel)
           settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.defaultHaikuModel
         if (profile.defaultSonnetModel)
