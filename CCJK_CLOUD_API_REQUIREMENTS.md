@@ -58,10 +58,38 @@ CCJK CLI 需要云端服务支持以下核心功能：
 | `/api/v8/templates` | GET | ❌ | 列出模板 | P0 |
 | `/api/v8/templates/{id}` | GET | ❌ | 获取单个模板 | P0 |
 | `/api/v8/templates/batch` | POST | ❌ | 批量获取模板 | P1 |
+| `/api/v8/templates/categories` | GET | ❌ | 获取分类列表 | P1 |
+| `/api/v8/templates/trending` | GET | ❌ | 热门模板 | P1 |
+| `/api/v8/templates/featured` | GET | ❌ | 精选模板 | P1 |
+| `/api/v8/templates/{id}/versions` | GET | ❌ | 版本历史 | P1 |
+| `/api/v8/templates/check-updates` | POST | ❌ | 批量检查更新 | P1 |
 | `/api/v8/skills/marketplace` | GET | ❌ | 技能市场列表 | P1 |
 | `/api/v8/skills/user` | GET | ✅ | 用户已安装技能 | P1 |
 | `/api/v8/skills/user/install` | POST | ✅ | 安装技能 | P1 |
 | `/api/v8/skills/user/uninstall` | DELETE | ✅ | 卸载技能 | P1 |
+| `/api/v8/skills/suggestions` | GET | ✅ | 技能推荐 | P1 |
+| `/api/v8/mcp/marketplace` | GET | ❌ | MCP 包市场列表 | P1 |
+| `/api/v8/mcp/{id}` | GET | ❌ | 获取单个 MCP 包 | P1 |
+| `/api/v8/mcp/user` | GET | ✅ | 用户已安装 MCP | P1 |
+| `/api/v8/mcp/user/install` | POST | ✅ | 安装 MCP 包 | P1 |
+| `/api/v8/mcp/user/uninstall` | DELETE | ✅ | 卸载 MCP 包 | P1 |
+| `/api/v8/agents/user` | GET | ✅ | 用户已安装 Agent | P1 |
+| `/api/v8/agents/user/install` | POST | ✅ | 安装 Agent | P1 |
+| `/api/v8/agents/user/uninstall` | DELETE | ✅ | 卸载 Agent | P1 |
+| `/api/v8/hooks/user` | GET | ✅ | 用户已安装 Hook | P1 |
+| `/api/v8/hooks/user/install` | POST | ✅ | 安装 Hook | P1 |
+| `/api/v8/hooks/user/uninstall` | DELETE | ✅ | 卸载 Hook | P1 |
+| `/api/v1/hooks/recommendations` | POST | ❌ | Hook 推荐 | P1 |
+| `/api/v1/hooks/community` | GET | ❌ | 社区 Hook 列表 | P1 |
+| `/api/v8/ratings/{type}/{id}` | GET | ❌ | 获取评分 | P1 |
+| `/api/v8/ratings/{type}/{id}` | POST | ✅ | 提交评分 | P1 |
+| `/api/v8/search/suggestions` | GET | ❌ | 搜索建议 | P2 |
+| `/api/v1/auth/login` | POST | ❌ | 用户登录 | P0 |
+| `/api/v1/auth/logout` | POST | ✅ | 用户登出 | P1 |
+| `/api/v1/auth/refresh` | POST | ✅ | 刷新 Token | P0 |
+| `/api/v1/auth/me` | GET | ✅ | 获取用户信息 | P1 |
+| `/api/v1/telemetry/events` | POST | ❌ | 事件追踪 | P2 |
+| `/api/v1/telemetry/errors` | POST | ❌ | 错误上报 | P2 |
 | `/api/v1/usage/current` | POST | ❌ | 上报使用数据 | P2 |
 
 **优先级说明**:
@@ -633,7 +661,668 @@ interface UninstallSkillRequest {
 
 ---
 
-### 10. 上报使用数据
+### 10. 获取模板分类
+
+**端点**: `GET /api/v8/templates/categories`
+**认证**: 不需要
+**用途**: 获取所有模板分类列表
+
+#### 请求示例
+
+```bash
+curl "https://api.claudehome.cn/api/v8/templates/categories"
+```
+
+#### 响应示例
+
+```json
+{
+  "categories": [
+    {
+      "id": "frontend",
+      "name_en": "Frontend Development",
+      "name_zh_cn": "前端开发",
+      "description_en": "Tools for frontend development",
+      "description_zh_cn": "前端开发工具",
+      "count": 45,
+      "icon": "🎨"
+    },
+    {
+      "id": "backend",
+      "name_en": "Backend Development",
+      "name_zh_cn": "后端开发",
+      "count": 38,
+      "icon": "⚙️"
+    }
+  ]
+}
+```
+
+---
+
+### 11. 热门模板
+
+**端点**: `GET /api/v8/templates/trending`
+**认证**: 不需要
+**用途**: 获取热门模板列表
+
+#### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| type | string | ❌ | 模板类型过滤 |
+| period | string | ❌ | 时间范围: `day`, `week`, `month` (默认 `week`) |
+| limit | number | ❌ | 返回数量 (默认 10，最大 50) |
+
+#### 响应格式
+
+与 `/api/v8/templates` 响应格式相同
+
+---
+
+### 12. 精选模板
+
+**端点**: `GET /api/v8/templates/featured`
+**认证**: 不需要
+**用途**: 获取官方精选模板
+
+#### 响应格式
+
+与 `/api/v8/templates` 响应格式相同
+
+---
+
+### 13. 版本历史
+
+**端点**: `GET /api/v8/templates/{id}/versions`
+**认证**: 不需要
+**用途**: 获取模板的版本历史
+
+#### 响应示例
+
+```json
+{
+  "template_id": "react-dev-agent",
+  "versions": [
+    {
+      "version": "1.2.0",
+      "released_at": "2025-01-20T15:30:00Z",
+      "changelog": "Added TypeScript 5.0 support",
+      "breaking_changes": false
+    },
+    {
+      "version": "1.1.0",
+      "released_at": "2024-12-15T10:00:00Z",
+      "changelog": "Performance improvements",
+      "breaking_changes": false
+    }
+  ]
+}
+```
+
+---
+
+### 14. 批量检查更新
+
+**端点**: `POST /api/v8/templates/check-updates`
+**认证**: 不需要
+**用途**: 批量检查已安装模板的更新
+
+#### 请求示例
+
+```bash
+curl -X POST https://api.claudehome.cn/api/v8/templates/check-updates \
+  -H "Content-Type: application/json" \
+  -d '{
+    "installed": [
+      {"id": "react-dev-agent", "version": "1.0.0"},
+      {"id": "typescript-skill", "version": "0.9.0"}
+    ]
+  }'
+```
+
+#### 请求体
+
+```typescript
+interface CheckUpdatesRequest {
+  installed: Array<{
+    id: string
+    version: string
+  }>
+}
+```
+
+#### 响应示例
+
+```json
+{
+  "updates": [
+    {
+      "id": "react-dev-agent",
+      "current_version": "1.0.0",
+      "latest_version": "1.2.0",
+      "update_available": true,
+      "breaking_changes": false,
+      "changelog": "Added TypeScript 5.0 support"
+    },
+    {
+      "id": "typescript-skill",
+      "current_version": "0.9.0",
+      "latest_version": "0.9.0",
+      "update_available": false
+    }
+  ]
+}
+```
+
+---
+
+### 15. 技能推荐
+
+**端点**: `GET /api/v8/skills/suggestions`
+**认证**: **需要** Bearer Token
+**用途**: 基于用户已安装技能推荐相关技能
+
+#### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| limit | number | ❌ | 返回数量 (默认 5) |
+
+#### 响应格式
+
+与 `/api/v8/templates` 响应格式相同，但包含 `relevance_score` 字段
+
+---
+
+### 16. MCP 包市场列表
+
+**端点**: `GET /api/v8/mcp/marketplace`
+**认证**: 不需要
+**用途**: 浏览 MCP 包市场
+
+#### 请求参数
+
+与 `/api/v8/templates` 相同，但 `type` 固定为 `mcp`
+
+#### 响应格式
+
+与 `/api/v8/templates` 响应格式相同
+
+---
+
+### 17. 获取单个 MCP 包
+
+**端点**: `GET /api/v8/mcp/{id}`
+**认证**: 不需要
+**用途**: 获取 MCP 包详细信息
+
+#### 响应格式
+
+与 `/api/v8/templates/{id}` 响应格式相同
+
+---
+
+### 18. 用户已安装 MCP
+
+**端点**: `GET /api/v8/mcp/user`
+**认证**: **需要** Bearer Token
+**用途**: 获取用户已安装的 MCP 包列表
+
+#### 响应格式
+
+```json
+{
+  "mcps": [
+    {
+      "id": "postgres-mcp",
+      "name_en": "PostgreSQL MCP",
+      "version": "1.0.0",
+      "installed_at": "2025-01-15T10:00:00Z",
+      "enabled": true
+    }
+  ],
+  "quota": {
+    "max_mcps": 20,
+    "used_mcps": 5,
+    "remaining_mcps": 15
+  }
+}
+```
+
+---
+
+### 19. 安装 MCP 包
+
+**端点**: `POST /api/v8/mcp/user/install`
+**认证**: **需要** Bearer Token
+**用途**: 安装 MCP 包到用户账户
+
+#### 请求体格式
+
+与 `/api/v8/skills/user/install` 相同
+
+---
+
+### 20. 卸载 MCP 包
+
+**端点**: `DELETE /api/v8/mcp/user/uninstall`
+**认证**: **需要** Bearer Token
+**用途**: 从用户账户卸载 MCP 包
+
+#### 请求体格式
+
+与 `/api/v8/skills/user/uninstall` 相同
+
+---
+
+### 21-23. Agent 用户管理
+
+**端点**:
+- `GET /api/v8/agents/user` - 获取已安装 Agent
+- `POST /api/v8/agents/user/install` - 安装 Agent
+- `DELETE /api/v8/agents/user/uninstall` - 卸载 Agent
+
+**认证**: **需要** Bearer Token
+
+#### 响应格式
+
+与 Skills/MCP 用户管理接口格式相同
+
+---
+
+### 24-26. Hook 用户管理
+
+**端点**:
+- `GET /api/v8/hooks/user` - 获取已安装 Hook
+- `POST /api/v8/hooks/user/install` - 安装 Hook
+- `DELETE /api/v8/hooks/user/uninstall` - 卸载 Hook
+
+**认证**: **需要** Bearer Token
+
+#### 响应格式
+
+与 Skills/MCP 用户管理接口格式相同
+
+---
+
+### 27. Hook 推荐
+
+**端点**: `POST /api/v1/hooks/recommendations`
+**认证**: 不需要
+**用途**: 基于项目特征推荐 Hook
+
+#### 请求示例
+
+```bash
+curl -X POST https://api.claudehome.cn/api/v1/hooks/recommendations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectType": "react",
+    "frameworks": ["vite", "typescript"],
+    "gitProvider": "github"
+  }'
+```
+
+#### 响应示例
+
+```json
+{
+  "recommendations": [
+    {
+      "id": "pre-commit-lint",
+      "name_en": "Pre-commit Linting",
+      "name_zh_cn": "提交前代码检查",
+      "relevance_score": 0.92,
+      "hook_type": "pre-commit",
+      "install_command": "ccjk hooks add pre-commit-lint"
+    }
+  ]
+}
+```
+
+---
+
+### 28. 社区 Hook 列表
+
+**端点**: `GET /api/v1/hooks/community`
+**认证**: 不需要
+**用途**: 获取社区贡献的 Hook 列表
+
+#### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| category | string | ❌ | Hook 类型: `pre-commit`, `post-commit`, `pre-push` |
+| limit | number | ❌ | 返回数量 |
+| offset | number | ❌ | 偏移量 |
+
+#### 响应格式
+
+与 `/api/v8/templates` 响应格式相同
+
+---
+
+### 29. 获取评分
+
+**端点**: `GET /api/v8/ratings/{type}/{id}`
+**认证**: 不需要
+**用途**: 获取模板的评分和评论
+
+#### 路径参数
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| type | string | 模板类型: `agent`, `skill`, `mcp`, `hook` |
+| id | string | 模板 ID |
+
+#### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| sortBy | string | ❌ | 排序: `newest`, `oldest`, `highest`, `lowest`, `helpful` |
+| limit | number | ❌ | 返回数量 (默认 20) |
+| offset | number | ❌ | 偏移量 |
+
+#### 响应示例
+
+```json
+{
+  "template_id": "react-dev-agent",
+  "template_type": "agent",
+  "summary": {
+    "average_rating": 4.8,
+    "total_ratings": 234,
+    "distribution": {
+      "5": 180,
+      "4": 40,
+      "3": 10,
+      "2": 3,
+      "1": 1
+    }
+  },
+  "ratings": [
+    {
+      "id": "rating_123",
+      "user_id": "user_456",
+      "username": "john_doe",
+      "rating": 5,
+      "comment": "Excellent agent for React development!",
+      "helpful_count": 15,
+      "created_at": "2025-01-20T10:00:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 234,
+    "limit": 20,
+    "offset": 0
+  }
+}
+```
+
+---
+
+### 30. 提交评分
+
+**端点**: `POST /api/v8/ratings/{type}/{id}`
+**认证**: **需要** Bearer Token
+**用途**: 为模板提交评分和评论
+
+#### 请求示例
+
+```bash
+curl -X POST https://api.claudehome.cn/api/v8/ratings/agent/react-dev-agent \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rating": 5,
+    "comment": "Excellent agent for React development!"
+  }'
+```
+
+#### 请求体
+
+```typescript
+interface CreateRatingRequest {
+  rating: number        // 1-5 星
+  comment?: string      // 可选评论
+}
+```
+
+#### 响应示例
+
+```json
+{
+  "success": true,
+  "rating": {
+    "id": "rating_123",
+    "rating": 5,
+    "comment": "Excellent agent for React development!",
+    "created_at": "2025-01-23T10:00:00Z"
+  }
+}
+```
+
+---
+
+### 31. 搜索建议
+
+**端点**: `GET /api/v8/search/suggestions`
+**认证**: 不需要
+**用途**: 获取搜索自动补全建议
+
+#### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| q | string | ✅ | 搜索关键词 (至少 2 个字符) |
+| type | string | ❌ | 模板类型过滤 |
+| limit | number | ❌ | 返回数量 (默认 5，最大 10) |
+
+#### 响应示例
+
+```json
+{
+  "suggestions": [
+    {
+      "text": "react development",
+      "type": "query",
+      "count": 45
+    },
+    {
+      "text": "React Development Agent",
+      "type": "template",
+      "template_id": "react-dev-agent",
+      "template_type": "agent"
+    }
+  ]
+}
+```
+
+---
+
+### 32. 用户登录
+
+**端点**: `POST /api/v1/auth/login`
+**认证**: 不需要
+**用途**: 用户登录获取访问令牌
+
+#### 请求示例
+
+```bash
+curl -X POST https://api.claudehome.cn/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "github",
+    "code": "oauth_authorization_code"
+  }'
+```
+
+#### 请求体
+
+```typescript
+interface LoginRequest {
+  provider: 'github' | 'google' | 'microsoft'  // OAuth 提供商
+  code: string                                  // OAuth 授权码
+}
+```
+
+#### 响应示例
+
+```json
+{
+  "success": true,
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 3600,
+  "token_type": "Bearer",
+  "user": {
+    "id": "user_123",
+    "email": "user@example.com",
+    "username": "john_doe",
+    "avatar_url": "https://avatars.githubusercontent.com/u/123"
+  }
+}
+```
+
+---
+
+### 33. 用户登出
+
+**端点**: `POST /api/v1/auth/logout`
+**认证**: **需要** Bearer Token
+**用途**: 用户登出，使令牌失效
+
+#### 响应示例
+
+```json
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
+
+---
+
+### 34. 刷新 Token
+
+**端点**: `POST /api/v1/auth/refresh`
+**认证**: **需要** Refresh Token
+**用途**: 使用 refresh token 获取新的 access token
+
+#### 请求示例
+
+```bash
+curl -X POST https://api.claudehome.cn/api/v1/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+```
+
+#### 响应格式
+
+与 `/api/v1/auth/login` 响应格式相同
+
+---
+
+### 35. 获取用户信息
+
+**端点**: `GET /api/v1/auth/me`
+**认证**: **需要** Bearer Token
+**用途**: 获取当前登录用户信息
+
+#### 响应示例
+
+```json
+{
+  "user": {
+    "id": "user_123",
+    "email": "user@example.com",
+    "username": "john_doe",
+    "avatar_url": "https://avatars.githubusercontent.com/u/123",
+    "created_at": "2024-01-15T10:00:00Z",
+    "quota": {
+      "max_skills": 50,
+      "max_mcps": 20,
+      "max_agents": 10,
+      "max_hooks": 30
+    }
+  }
+}
+```
+
+---
+
+### 36. 事件追踪
+
+**端点**: `POST /api/v1/telemetry/events`
+**认证**: 不需要
+**用途**: 上报用户行为事件（非阻塞）
+
+#### 请求示例
+
+```bash
+curl -X POST https://api.claudehome.cn/api/v1/telemetry/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "events": [
+      {
+        "event_type": "template_view",
+        "template_id": "react-dev-agent",
+        "timestamp": "2025-01-23T10:00:00Z",
+        "metadata": {
+          "source": "cli",
+          "version": "8.2.0"
+        }
+      }
+    ]
+  }'
+```
+
+#### 请求体
+
+```typescript
+interface TelemetryEventsRequest {
+  events: Array<{
+    event_type: string
+    template_id?: string
+    skill_id?: string
+    timestamp: string
+    metadata?: Record<string, unknown>
+  }>
+}
+```
+
+---
+
+### 37. 错误上报
+
+**端点**: `POST /api/v1/telemetry/errors`
+**认证**: 不需要
+**用途**: 上报客户端错误（非阻塞）
+
+#### 请求示例
+
+```bash
+curl -X POST https://api.claudehome.cn/api/v1/telemetry/errors \
+  -H "Content-Type: application/json" \
+  -d '{
+    "error_type": "installation_failed",
+    "message": "Failed to install skill: network timeout",
+    "stack_trace": "Error: ...",
+    "context": {
+      "skill_id": "typescript-skill",
+      "cli_version": "8.2.0",
+      "platform": "darwin"
+    },
+    "timestamp": "2025-01-23T10:00:00Z"
+  }'
+```
+
+---
+
+### 38. 上报使用数据
 
 **端点**: `POST /api/v1/usage/current`
 **认证**: 不需要
@@ -846,27 +1535,81 @@ curl https://api.claudehome.cn/health
 
 ## 总结
 
+本文档定义了 CCJK Cloud API 的完整规范，包括：
+
+- **38 个 API 端点**，覆盖模板管理、用户认证、市场浏览、评分系统、遥测追踪
+- **4 种模板类型**：Agent、Skill、MCP、Hook
+- **统一的 v8 模板系统**，简化客户端集成
+- **完善的认证机制**，支持 OAuth 和 Token 刷新
+- **详细的错误处理**，包含重试策略和错误码
+
 ### 必须实现的端点 (P0)
 
-1. ✅ `GET /health` - 健康检查
-2. ✅ `POST /api/v1/specs` - 项目分析与推荐
-3. ✅ `GET /api/v8/templates` - 列出模板
-4. ✅ `GET /api/v8/templates/{id}` - 获取单个模板
+1. `GET /health` - 健康检查
+2. `POST /api/v1/specs` - 项目分析与推荐
+3. `GET /api/v8/templates` - 列出模板
+4. `GET /api/v8/templates/{id}` - 获取单个模板
+5. `POST /api/v1/auth/login` - 用户登录
+6. `POST /api/v1/auth/refresh` - 刷新 Token
 
 ### 建议实现的端点 (P1)
 
-5. ✅ `POST /api/v8/templates/batch` - 批量获取模板
-6. ✅ `GET /api/v8/skills/marketplace` - 技能市场
-7. ✅ `GET /api/v8/skills/user` - 用户技能列表
-8. ✅ `POST /api/v8/skills/user/install` - 安装技能
-9. ✅ `DELETE /api/v8/skills/user/uninstall` - 卸载技能
+**模板管理**:
+- `POST /api/v8/templates/batch` - 批量获取模板
+- `GET /api/v8/templates/categories` - 获取分类
+- `GET /api/v8/templates/trending` - 热门模板
+- `GET /api/v8/templates/featured` - 精选模板
+- `GET /api/v8/templates/{id}/versions` - 版本历史
+- `POST /api/v8/templates/check-updates` - 检查更新
+
+**Skills 管理**:
+- `GET /api/v8/skills/marketplace` - 技能市场
+- `GET /api/v8/skills/user` - 用户技能列表
+- `POST /api/v8/skills/user/install` - 安装技能
+- `DELETE /api/v8/skills/user/uninstall` - 卸载技能
+- `GET /api/v8/skills/suggestions` - 技能推荐
+
+**MCP 管理**:
+- `GET /api/v8/mcp/marketplace` - MCP 市场
+- `GET /api/v8/mcp/{id}` - 获取 MCP 详情
+- `GET /api/v8/mcp/user` - 用户 MCP 列表
+- `POST /api/v8/mcp/user/install` - 安装 MCP
+- `DELETE /api/v8/mcp/user/uninstall` - 卸载 MCP
+
+**Agent 管理**:
+- `GET /api/v8/agents/user` - 用户 Agent 列表
+- `POST /api/v8/agents/user/install` - 安装 Agent
+- `DELETE /api/v8/agents/user/uninstall` - 卸载 Agent
+
+**Hook 管理**:
+- `GET /api/v8/hooks/user` - 用户 Hook 列表
+- `POST /api/v8/hooks/user/install` - 安装 Hook
+- `DELETE /api/v8/hooks/user/uninstall` - 卸载 Hook
+- `POST /api/v1/hooks/recommendations` - Hook 推荐
+- `GET /api/v1/hooks/community` - 社区 Hook
+
+**评分系统**:
+- `GET /api/v8/ratings/{type}/{id}` - 获取评分
+- `POST /api/v8/ratings/{type}/{id}` - 提交评分
+
+**认证相关**:
+- `POST /api/v1/auth/logout` - 用户登出
+- `GET /api/v1/auth/me` - 获取用户信息
 
 ### 可选实现的端点 (P2)
 
-10. ✅ `POST /api/v1/usage/current` - 使用统计
+**搜索与发现**:
+- `GET /api/v8/search/suggestions` - 搜索建议
+
+**遥测追踪**:
+- `POST /api/v1/telemetry/events` - 事件追踪
+- `POST /api/v1/telemetry/errors` - 错误上报
+- `POST /api/v1/usage/current` - 使用统计
 
 ---
 
-**文档版本**: v1.0
+**文档版本**: v2.0
+**最后更新**: 2025-01-23
+**变更说明**: 补充了 MCP/Agent/Hook 管理接口、认证系统、评分系统、搜索建议等完整功能
 **最后更新**: 2025-01-23
 **维护者**: CCJK Team

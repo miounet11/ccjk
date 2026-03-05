@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-03-04 | 13.3.3 | Architecture documentation update: comprehensive module index with 33 modules, improved navigation structure, coverage tracking |
 | 2026-03-04 | 12.2.2 | Slash command compatibility: CLI interceptor for `/clear`, `/reset` commands; auto-executor for brain router |
 | 2026-03-03 | 12.3.4 | Fix model priority: primaryModel now correctly sets ANTHROPIC_MODEL env var, and ANTHROPIC_MODEL is properly cleared when switching profiles |
 | 2026-03-03 | 12.2.1 | Smart routing and telemetry improvements |
@@ -57,6 +58,9 @@ graph TD
     C --> P["generation/"]
     C --> Q["skills/"]
     C --> R["api-providers/"]
+    C --> S["orchestrators/"]
+    C --> T["services/"]
+    C --> U["workflow/"]
 
     click D "./src/commands/CLAUDE.md" "Commands module"
     click E "./src/brain/CLAUDE.md" "Brain module"
@@ -73,29 +77,96 @@ graph TD
     click P "./src/generation/CLAUDE.md" "Generation module"
     click Q "./src/skills/CLAUDE.md" "Skills module"
     click R "./src/api-providers/CLAUDE.md" "API Providers module"
+    click S "./src/orchestrators/CLAUDE.md" "Orchestrators module"
+    click T "./src/services/CLAUDE.md" "Services module"
+    click U "./src/workflow/CLAUDE.md" "Workflow module"
 ```
 
 ## Module Index
 
-| Module | Path | Responsibility |
-|--------|------|----------------|
-| CLI Entry | `src/cli.ts` + `src/cli-lazy.ts` | Lazy-loading command registration (~2200 lines) |
-| commands | `src/commands/` | All CLI command implementations (init, menu, mcp, agents, etc.) |
-| brain | `src/brain/` | Multi-agent orchestration, skill hot-reload, session management |
-| cloud-sync | `src/cloud-sync/` | Config sync via GitHub Gist, WebDAV, S3 |
-| cloud-client | `src/cloud-client/` | Remote API client: skills marketplace, recommendations, telemetry |
-| code-tools | `src/code-tools/` | Unified abstraction for Claude Code, Codex, Aider, Continue, Cline, Cursor |
-| health | `src/health/` | Score-based health check engine (6 weighted checks) |
-| discovery | `src/discovery/` | Project analyzer + skill/MCP matcher |
-| context | `src/context/` | Context window management, compression, caching, analytics |
-| agents | `src/agents/` | Cowork orchestration patterns for multi-agent tasks |
-| generation | `src/generation/` | Smart project analysis → agent/skill config generation |
-| skills | `src/skills/` | Skill registry, auto-trigger, intent detection |
-| api-providers | `src/api-providers/` | Multi-provider API management (302.AI, GLM, OpenAI, Anthropic, etc.) |
-| config | `src/config/` | Workflow, MCP service, and API provider definitions |
-| utils | `src/utils/` | Config management, platform support, installer, workflow installer |
-| i18n | `src/i18n/` | i18next with zh-CN and en locales (15 translation modules) |
-| cli/completion | `src/cli/` | Shell completion for Bash, Zsh, Fish, PowerShell |
+### Core Modules (High Priority)
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| CLI Entry | `src/cli.ts` + `src/cli-lazy.ts` | Lazy-loading command registration (~2200 lines) | ✓ | High |
+| commands | `src/commands/` | All CLI command implementations (init, menu, mcp, agents, etc.) | ✓ | High |
+| brain | `src/brain/` | Multi-agent orchestration, skill hot-reload, session management | ✓ | Medium |
+| code-tools | `src/code-tools/` | Unified abstraction for Claude Code, Codex, Aider, Continue, Cline, Cursor | ✓ | High |
+| utils | `src/utils/` | Config management, platform support, installer, workflow installer | ✓ | High |
+| config | `src/config/` | Workflow, MCP service, and API provider definitions | ✓ | High |
+
+### Cloud & Sync Modules
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| cloud-sync | `src/cloud-sync/` | Config sync via GitHub Gist, WebDAV, S3 | ✓ | Medium |
+| cloud-client | `src/cloud-client/` | Remote API client: skills marketplace, recommendations, telemetry | ✓ | High |
+| cloud-plugins | `src/cloud-plugins/` | Cloud plugin management and recommendation engine | ✗ | Low |
+
+### Intelligence & Context Modules
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| context | `src/context/` | Context window management, compression, caching, analytics | ✓ | Medium |
+| agents | `src/agents/` | Cowork orchestration patterns for multi-agent tasks | ✓ | Medium |
+| generation | `src/generation/` | Smart project analysis → agent/skill config generation | ✓ | Low |
+| skills | `src/skills/` | Skill registry, auto-trigger, intent detection | ✓ | Medium |
+| intents | `src/intents/` | Intent detection and routing | ✗ | Low |
+| discovery | `src/discovery/` | Project analyzer + skill/MCP matcher | ✓ | Medium |
+| analyzers | `src/analyzers/` | Code and project analysis utilities | ✗ | Low |
+
+### API & Provider Modules
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| api-providers | `src/api-providers/` | Multi-provider API management (302.AI, GLM, OpenAI, Anthropic, etc.) | ✓ | High |
+
+### System & Infrastructure Modules
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| health | `src/health/` | Score-based health check engine (6 weighted checks) | ✓ | Low |
+| monitoring | `src/monitoring/` | System monitoring and metrics collection | ✗ | Low |
+| orchestrators | `src/orchestrators/` | Task orchestration and workflow management | ✓ | Medium |
+| workflow | `src/workflow/` | Workflow definition and execution | ✓ | Medium |
+| task-manager | `src/task-manager/` | Task queue and execution management | ✗ | Low |
+| services | `src/services/` | Shared services and utilities | ✓ | Medium |
+
+### Security & Execution Modules
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| permissions | `src/permissions/` | Permission management and validation | ✓ | Medium |
+| sandbox | `src/sandbox/` | Sandboxed execution environment | ✓ | Low |
+
+### UI & Interaction Modules
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| i18n | `src/i18n/` | i18next with zh-CN and en locales (15 translation modules) | ✓ | High |
+| cli | `src/cli/` | Shell completion for Bash, Zsh, Fish, PowerShell | ✓ | Low |
+| terminal | `src/terminal/` | Terminal UI and interaction utilities | ✗ | Low |
+| interview | `src/interview/` | Interactive interview system for configuration | ✗ | Low |
+
+### Marketplace & Plugins
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| mcp-marketplace | `src/mcp-marketplace/` | MCP service marketplace and discovery | ✗ | Medium |
+| plugins-v2 | `src/plugins-v2/` | Plugin system v2 architecture | ✓ | Low |
+
+### Support Modules
+
+| Module | Path | Responsibility | Doc Status | Test Coverage |
+|--------|------|----------------|------------|---------------|
+| bootstrap | `src/bootstrap/` | Application bootstrap and initialization | ✗ | Low |
+| core | `src/core/` | Core utilities and shared functionality | ✗ | Medium |
+| types | `src/types/` | Shared TypeScript type definitions | ✓ | N/A |
+| postmortem | `src/postmortem/` | Post-execution analysis and reporting | ✗ | Low |
+
+**Documentation Coverage**: 24/33 modules (72.7%)
+
+**Modules needing documentation**: cloud-plugins, bootstrap, core, interview, intents, mcp-marketplace, monitoring, postmortem, task-manager, terminal, analyzers
 
 ## Quick Start
 
