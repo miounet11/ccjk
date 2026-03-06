@@ -1,0 +1,13 @@
+{
+  "id": "hello-world",
+  "name": "Hello World Test",
+  "suite": "basic",
+  "description": "Basic hello world test",
+  "input": "echo 'Hello, World!'",
+  "expectedOutput": "Hello, World!",
+  "grading": {
+    "type": "contains",
+    "value": "Hello, World!"
+  },
+  "timeout": 5000
+}

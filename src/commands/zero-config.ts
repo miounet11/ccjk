@@ -3,9 +3,9 @@
  * Provides one-click permission presets for different use cases
  */
 
+import { existsSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { existsSync, readFileSync } from 'node:fs'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
 import { ensureDir, writeFileAtomic } from '../utils/fs-operations'

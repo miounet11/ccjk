@@ -2,16 +2,16 @@
  * Database Health Check Tests
  */
 
-import { existsSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
+import type Database from 'better-sqlite3'
+import type { CompressedContext } from '../types'
+import { existsSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import Database from 'better-sqlite3'
 import { DatabaseHealthMonitor, HealthStatus } from '../health-check'
 import { ContextPersistence } from '../persistence'
-import type { CompressedContext } from '../types'
 import { CompressionAlgorithm, CompressionStrategy } from '../types'
 
-describe('DatabaseHealthMonitor', () => {
+describe('databaseHealthMonitor', () => {
   let monitor: DatabaseHealthMonitor
   let persistence: ContextPersistence
   let testDbPath: string

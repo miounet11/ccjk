@@ -2,12 +2,11 @@
  * Context Migration Tests
  */
 
+import type { CompressedContext } from '../types'
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { ContextCache } from '../cache'
-import { CompressionAlgorithm, CompressionStrategy } from '../types'
-import type { CompressedContext } from '../types'
 import {
   migrateCacheToPersistence,
   restoreCacheFromPersistence,
@@ -15,8 +14,9 @@ import {
   verifyMigration,
 } from '../migration'
 import { ContextPersistence } from '../persistence'
+import { CompressionAlgorithm, CompressionStrategy } from '../types'
 
-describe('Context Migration', () => {
+describe('context Migration', () => {
   let cache: ContextCache
   let persistence: ContextPersistence
   let testDbPath: string

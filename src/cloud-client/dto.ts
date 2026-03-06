@@ -10,7 +10,6 @@
 import type {
   BatchTemplateRequest,
   BatchTemplateResponse,
-  HealthCheckResponse,
   MetricType,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
@@ -18,7 +17,6 @@ import type {
   TemplateParameter,
   TemplateResponse,
   UsageReport,
-  UsageReportResponse,
 } from './types'
 
 // ============================================================================
@@ -81,12 +79,12 @@ export interface WorkflowConfig {
 /**
  * Union type for all config types
  */
-export type RecommendationConfig =
-  | McpServerConfig
-  | SkillConfig
-  | AgentConfig
-  | HookConfig
-  | WorkflowConfig
+export type RecommendationConfig
+  = | McpServerConfig
+    | SkillConfig
+    | AgentConfig
+    | HookConfig
+    | WorkflowConfig
 
 // ============================================================================
 // Template Parameter Value Types
@@ -95,14 +93,14 @@ export type RecommendationConfig =
 /**
  * Allowed template parameter default values
  */
-export type TemplateParameterValue =
-  | string
-  | number
-  | boolean
-  | string[]
-  | number[]
-  | Record<string, string | number | boolean>
-  | null
+export type TemplateParameterValue
+  = | string
+    | number
+    | boolean
+    | string[]
+    | number[]
+    | Record<string, string | number | boolean>
+    | null
 
 // ============================================================================
 // Telemetry Data Types
@@ -171,13 +169,13 @@ export interface BatchTelemetryData {
 /**
  * Union type for all telemetry data
  */
-export type TelemetryEventData =
-  | TemplateDownloadData
-  | RecommendationShownData
-  | RecommendationAcceptedData
-  | AnalysisCompletedData
-  | ErrorOccurredData
-  | BatchTelemetryData
+export type TelemetryEventData
+  = | TemplateDownloadData
+    | RecommendationShownData
+    | RecommendationAcceptedData
+    | AnalysisCompletedData
+    | ErrorOccurredData
+    | BatchTelemetryData
 
 // ============================================================================
 // API Response DTOs (from cloud)

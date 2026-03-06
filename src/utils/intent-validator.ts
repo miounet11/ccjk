@@ -161,7 +161,8 @@ function hasCycle(graph: Map<string, Set<string>>): boolean {
     const neighbors = graph.get(node) || new Set()
     for (const neighbor of neighbors) {
       if (!visited.has(neighbor)) {
-        if (dfs(neighbor)) return true
+        if (dfs(neighbor))
+          return true
       }
       else if (recStack.has(neighbor)) {
         return true
@@ -174,7 +175,8 @@ function hasCycle(graph: Map<string, Set<string>>): boolean {
 
   for (const node of graph.keys()) {
     if (!visited.has(node)) {
-      if (dfs(node)) return true
+      if (dfs(node))
+        return true
     }
   }
 

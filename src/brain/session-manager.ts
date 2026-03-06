@@ -1000,7 +1000,8 @@ export class CrossSessionRecovery {
  * Simple state machine based on tool call patterns.
  */
 function detectTaskPhase(history: SessionHistoryEntry[]): TaskPhase {
-  if (history.length === 0) return 'idle'
+  if (history.length === 0)
+    return 'idle'
   const recent = history.slice(-10)
   const recentText = recent.map(h => h.content).join(' ').toLowerCase()
 
@@ -1024,7 +1025,7 @@ function detectTaskPhase(history: SessionHistoryEntry[]): TaskPhase {
  * Extracts file paths mentioned in a history entry.
  */
 function extractFilePaths(content: string): string[] {
-  const matches = content.match(/(?:\/[\w./\-]+\.\w+|[\w./\-]+\.(?:ts|js|json|md|py|go|rs))/g)
+  const matches = content.match(/\/[\w./\-]+\.\w+|[\w./\-]+\.(?:ts|js|json|md|py|go|rs)/g)
   return matches ? [...new Set(matches)] : []
 }
 
@@ -1040,6 +1041,7 @@ function extractFilePaths(content: string): string[] {
  *   intel.getSystemPromptInjection() // inject into system prompt before compaction
  */
 export class SessionIntelligence {
+  private static instance: SessionIntelligence | null = null
   private session: Session
 
   constructor(session: Session) {
@@ -1141,6 +1143,33 @@ export class SessionIntelligence {
   hasSignificantContext(): boolean {
     const intel = this.state
     return !!intel.userOriginalIntent || intel.toolCallCount > 3 || intel.filesTouched.length > 0
+  }
+
+  static getInstance(): SessionIntelligence {
+    if (!SessionIntelligence.instance) {
+      SessionIntelligence.instance = new SessionIntelligence({
+        id: 'session-intelligence-singleton',
+        createdAt: new Date(),
+        lastUsedAt: new Date(),
+        history: [],
+      })
+    }
+    return SessionIntelligence.instance
+  }
+
+  recordMessage(role: SessionHistoryEntry['role'], content: string): void {
+    const entry: SessionHistoryEntry = {
+      timestamp: new Date(),
+      role,
+      content,
+    }
+
+    this.session.history.push(entry)
+    this.observe(entry)
+  }
+
+  updatePhase(phase: TaskPhase): void {
+    this.state.taskPhase = phase
   }
 }
 

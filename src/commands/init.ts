@@ -1,48 +1,48 @@
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { existsSync } from 'node:fs'
-import process from 'node:process'
-import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
-import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
 import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
-import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
-import { i18n } from '../i18n'
 import type { McpServerConfig } from '../types'
 import type { ApiConfigDefinition, ClaudeCodeProfile } from '../types/claude-code-config'
+import type { CodexProvider } from '../utils/code-tools/codex'
+import { existsSync } from 'node:fs'
+import process from 'node:process'
+import ansis from 'ansis'
+import inquirer from 'inquirer'
+import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
+import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
+import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
+import { i18n } from '../i18n'
 import { displayBannerWithInfo, padToDisplayWidth } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { backupCcrConfig, configureCcrProxy, createDefaultCcrConfig, readCcrConfig, setupCcrConfiguration, writeCcrConfig } from '../utils/ccr/config'
 import { installCcr, isCcrInstalled } from '../utils/ccr/installer'
 import {
-    addCompletedOnboarding,
-    backupMcpConfig,
-    buildMcpServerConfig,
-    fixWindowsMcpConfig,
-    readMcpConfig,
-    replaceMcpServers,
-    setPrimaryApiKey,
-    syncMcpPermissions,
-    writeMcpConfig,
+  addCompletedOnboarding,
+  backupMcpConfig,
+  buildMcpServerConfig,
+  fixWindowsMcpConfig,
+  readMcpConfig,
+  replaceMcpServers,
+  setPrimaryApiKey,
+  syncMcpPermissions,
+  writeMcpConfig,
 } from '../utils/claude-config'
-import type { CodexProvider } from '../utils/code-tools/codex'
 import { runCodexFullInit } from '../utils/code-tools/codex'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { installCometixLine, isCometixLineInstalled } from '../utils/cometix/installer'
 import {
-    applyAiLanguageDirective,
-    backupExistingConfig,
-    configureApi,
-    copyConfigFiles,
-    ensureClaudeDir,
-    getExistingApiConfig,
-    promptApiConfigurationAction,
-    switchToOfficialLogin,
+  applyAiLanguageDirective,
+  backupExistingConfig,
+  configureApi,
+  copyConfigFiles,
+  ensureClaudeDir,
+  getExistingApiConfig,
+  promptApiConfigurationAction,
+  switchToOfficialLogin,
 } from '../utils/config'
 import {
-    displayMigrationResult,
-    migrateSettingsForTokenRetrieval,
-    needsMigration,
-    promptMigration,
+  displayMigrationResult,
+  migrateSettingsForTokenRetrieval,
+  needsMigration,
+  promptMigration,
 } from '../utils/config-migration'
 import { configureApiCompletely, modifyApiConfigPartially } from '../utils/config-operations'
 import { displayError } from '../utils/error-formatter'
@@ -637,11 +637,13 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 2: Read CCJK config once for multiple uses
-    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep()
+    if (!options.skipPrompt && !options.skipBanner)
+      tracker.nextStep()
     const zcfConfig = readZcfConfig()
 
     // Step 3: Select code tool
-    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep()
+    if (!options.skipPrompt && !options.skipBanner)
+      tracker.nextStep()
     let codeToolType: CodeToolType
     try {
       codeToolType = await resolveCodeType(options.codeType)
@@ -1006,7 +1008,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 6: Configure API (skip if only updating docs)
-    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep('Configuring API')
+    if (!options.skipPrompt && !options.skipBanner)
+      tracker.nextStep('Configuring API')
     let apiConfig = null
     if (action !== 'docs-only' && (isNewInstall || ['backup', 'merge', 'new'].includes(action))) {
       // In skip-prompt mode, handle API configuration directly
@@ -1249,7 +1252,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 10: Configure MCP services (skip if only updating docs)
-    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep('Installing MCP services')
+    if (!options.skipPrompt && !options.skipBanner)
+      tracker.nextStep('Installing MCP services')
     if (action !== 'docs-only') {
       let shouldConfigureMcp = false
 
@@ -1480,7 +1484,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 12: Save ccjk config
-    if (!options.skipPrompt && !options.skipBanner) tracker.nextStep('Finalizing setup')
+    if (!options.skipPrompt && !options.skipBanner)
+      tracker.nextStep('Finalizing setup')
     updateZcfConfig({
       version: ccjkVersion,
       preferredLang: i18n.language as SupportedLang, // CCJK界面语言
@@ -1521,7 +1526,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 13: Success message with enhanced guidance
-    if (!options.skipPrompt && !options.skipBanner) tracker.complete()
+    if (!options.skipPrompt && !options.skipBanner)
+      tracker.complete()
     console.log('')
     console.log(ansis.bold.green('╔══════════════════════════════════════════════════════════════╗'))
     console.log(ansis.bold.green('║') + ansis.bold.white(padToDisplayWidth(`  ${i18n.t('configuration:setupCompleteTitle')}`, 62)) + ansis.bold.green('║'))

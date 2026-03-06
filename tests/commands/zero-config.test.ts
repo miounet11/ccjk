@@ -1,6 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
-import { SETTINGS_FILE } from '../../src/constants'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { zeroConfig } from '../../src/commands/zero-config'
 
 // Mock dependencies

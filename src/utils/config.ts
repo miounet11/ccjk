@@ -155,7 +155,8 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
       console.error(ansis.red('⚠ API config write verification failed — retrying...'))
       // Re-read, re-apply, re-write
       const freshSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || settings
-      if (!freshSettings.env) freshSettings.env = {}
+      if (!freshSettings.env)
+        freshSettings.env = {}
       if (apiConfig.authType === 'api_key') {
         freshSettings.env.ANTHROPIC_API_KEY = apiConfig.key
         delete freshSettings.env.ANTHROPIC_AUTH_TOKEN

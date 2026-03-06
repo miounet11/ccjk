@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { join } from 'pathe'
 import ansis from 'ansis'
+import { join } from 'pathe'
 
 /**
  * Cache entry structure
@@ -202,7 +202,7 @@ export class InstallCache {
    */
   private getCachePath(key: string): string {
     // Sanitize key for filename
-    const safeKey = key.replace(/[^a-z0-9-_]/gi, '_')
+    const safeKey = key.replace(/[^\w-]/g, '_')
     return join(this.cacheDir, `${safeKey}.json`)
   }
 

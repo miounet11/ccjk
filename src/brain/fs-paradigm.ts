@@ -14,26 +14,26 @@ import { glob } from 'tinyglobby'
 /**
  * Project paradigm types
  */
-export type ParadigmType =
-  | 'monorepo'
-  | 'fullstack'
-  | 'frontend'
-  | 'backend'
-  | 'library'
-  | 'cli'
-  | 'unknown'
+export type ParadigmType
+  = | 'monorepo'
+    | 'fullstack'
+    | 'frontend'
+    | 'backend'
+    | 'library'
+    | 'cli'
+    | 'unknown'
 
 /**
  * File role in project
  */
-export type FileRole =
-  | 'config'
-  | 'source'
-  | 'test'
-  | 'docs'
-  | 'build'
-  | 'assets'
-  | 'types'
+export type FileRole
+  = | 'config'
+    | 'source'
+    | 'test'
+    | 'docs'
+    | 'build'
+    | 'assets'
+    | 'types'
 
 /**
  * File pattern definition
@@ -202,7 +202,8 @@ export class FsParadigm {
   async detect(projectRoot: string): Promise<ProjectStructure> {
     // Check cache
     const cached = this.cache.get(projectRoot)
-    if (cached) return cached
+    if (cached)
+      return cached
 
     // Try each paradigm
     const scores = await Promise.all(

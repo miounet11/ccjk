@@ -117,7 +117,7 @@ export interface CompositeIntent {
   intents: Intent[]
   dependencies: Array<{
     from: string // intent id
-    to: string   // intent id
+    to: string // intent id
     dataFlow?: Record<string, string> // output -> input mapping
   }>
 }

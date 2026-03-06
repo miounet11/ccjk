@@ -4,8 +4,8 @@
  * Structured logging with terminal green aesthetics
  */
 
-import ansis from 'ansis'
 import type { ILogger, LogEntry, LoggerOptions, LogLevel, OutputMode } from './logger/types'
+import ansis from 'ansis'
 
 export type { ILogger, LogEntry, LoggerOptions, LogLevel, OutputMode }
 
@@ -23,7 +23,8 @@ class Logger implements ILogger {
   constructor(options: LoggerOptions = {}) {
     this.level = options.level || 'info'
     this.mode = options.mode || 'text'
-    if (options.silent) this.mode = 'silent'
+    if (options.silent)
+      this.mode = 'silent'
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -40,7 +41,8 @@ class Logger implements ILogger {
   }
 
   private output(entry: LogEntry): void {
-    if (!this.shouldLog(entry.level)) return
+    if (!this.shouldLog(entry.level))
+      return
 
     if (this.mode === 'json') {
       console.log(JSON.stringify(entry))
@@ -65,7 +67,6 @@ class Logger implements ILogger {
       case 'error': return ansis.red(prefix)
     }
   }
-
 
   debug(message: string, data?: unknown): void {
     this.output(this.createEntry('debug', message, data))

@@ -2,22 +2,22 @@
  * Quick Actions Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  morningCommand,
-  reviewCommand,
   cleanupCommand,
   getHabitStats,
+  morningCommand,
   resetHabitStats,
+  reviewCommand,
 } from '../../src/commands/quick-actions'
 
 const HABIT_FILE = join(homedir(), '.ccjk', 'habits.json')
 const HABIT_BACKUP = join(homedir(), '.ccjk', 'habits.json.backup')
 
-describe('Quick Actions', () => {
+describe('quick Actions', () => {
   beforeEach(() => {
     // Backup existing habits file if it exists
     if (existsSync(HABIT_FILE)) {
@@ -45,7 +45,7 @@ describe('Quick Actions', () => {
     vi.restoreAllMocks()
   })
 
-  describe('Habit Tracking', () => {
+  describe('habit Tracking', () => {
     it('should initialize with empty stats', () => {
       const stats = getHabitStats()
       expect(stats.totalCommands).toBe(0)
@@ -109,7 +109,7 @@ describe('Quick Actions', () => {
     })
   })
 
-  describe('Morning Command', () => {
+  describe('morning Command', () => {
     it('should run without errors', async () => {
       await expect(morningCommand({ silent: true })).resolves.not.toThrow()
     })
@@ -131,7 +131,7 @@ describe('Quick Actions', () => {
     })
   })
 
-  describe('Review Command', () => {
+  describe('review Command', () => {
     it('should run without errors', async () => {
       await expect(reviewCommand({ silent: true })).resolves.not.toThrow()
     })
@@ -153,7 +153,7 @@ describe('Quick Actions', () => {
     })
   })
 
-  describe('Cleanup Command', () => {
+  describe('cleanup Command', () => {
     it('should run without errors', async () => {
       await expect(cleanupCommand({ silent: true })).resolves.not.toThrow()
     })
@@ -175,7 +175,7 @@ describe('Quick Actions', () => {
     })
   })
 
-  describe('Multiple Commands', () => {
+  describe('multiple Commands', () => {
     it('should track multiple different commands', async () => {
       await morningCommand({ silent: true })
       await reviewCommand({ silent: true })

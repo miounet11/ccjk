@@ -2,14 +2,14 @@
  * Intent IR System Tests
  */
 
+import type { Intent } from '../src/types/intent'
 import { describe, expect, it } from 'vitest'
 import { codeReviewIntent, intentRegistry, refactorIntent } from '../src/intents'
-import type { Intent } from '../src/types/intent'
 import { IntentExecutor } from '../src/utils/intent-executor'
 import { validateComposition, validateIntent } from '../src/utils/intent-validator'
 
-describe('Intent IR System', () => {
-  describe('Intent Validation', () => {
+describe('intent IR System', () => {
+  describe('intent Validation', () => {
     it('should validate code-review intent', () => {
       const result = validateIntent(codeReviewIntent)
       expect(result.valid).toBe(true)
@@ -37,7 +37,7 @@ describe('Intent IR System', () => {
     })
   })
 
-  describe('Intent Registry', () => {
+  describe('intent Registry', () => {
     it('should list all registered intents', () => {
       const intents = intentRegistry.list()
       expect(intents.length).toBeGreaterThanOrEqual(2)
@@ -60,7 +60,7 @@ describe('Intent IR System', () => {
     })
   })
 
-  describe('Intent Executor', () => {
+  describe('intent Executor', () => {
     it('should validate inputs', async () => {
       const executor = new IntentExecutor()
 
@@ -102,7 +102,7 @@ describe('Intent IR System', () => {
     })
   })
 
-  describe('Composite Intent', () => {
+  describe('composite Intent', () => {
     it('should validate composite intent', () => {
       const composite = {
         id: 'review-and-refactor',

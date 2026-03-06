@@ -1,0 +1,37 @@
+{
+  "id": "compression-report-basic",
+  "suite": "compression",
+  "description": "Generates compression report with token and byte metrics",
+  "command": "node dist/cli.mjs context compress --input tmp/evals/compression-test.md --output tmp/evals/compression-report.json",
+  "runs": 1,
+  "timeout": 15000,
+  "setup": "mkdir -p tmp/evals && echo 'This is a test document with some content that can be compressed. It has multiple sentences and paragraphs to test the compression algorithm.' > tmp/evals/compression-test.md",
+  "teardown": "rm -rf tmp/evals/compression-test.md tmp/evals/compression-report.json",
+  "assertions": [
+    {
+      "type": "exit_code",
+      "expected": 0
+    },
+    {
+      "type": "file_exists",
+      "path": "tmp/evals/compression-report.json"
+    },
+    {
+      "type": "json_field",
+      "path": "tmp/evals/compression-report.json",
+      "field": "originalBytes",
+      "operator": "gt",
+      "expected": 0
+    },
+    {
+      "type": "json_field",
+      "path": "tmp/evals/compression-report.json",
+      "field": "compressedBytes",
+      "operator": "gt",
+      "expected": 0
+    }
+  ],
+  "metrics": [
+    "duration_ms"
+  ]
+}

@@ -23,13 +23,13 @@ import type {
   SkillUploadRequest,
   SkillUploadResponse,
 } from './types'
+import { CloudError, CloudErrorFactory } from '../errors'
 import {
   validateSkillDownloadResponse,
   validateSkillGetResponse,
   validateSkillListResponse,
   validateSkillUploadResponse,
 } from './types'
-import { CloudError, CloudErrorFactory } from '../errors'
 
 // ============================================================================
 // Skills API Client

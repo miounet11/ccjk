@@ -256,23 +256,26 @@ export class ClaudeCodeConfigManager {
           delete settings.env.ANTHROPIC_BASE_URL
       }
 
-      // Apply model configuration if provided
-      const hasModelConfig = Boolean(
-        profile.primaryModel
-        || profile.defaultHaikuModel
+      const hasAdaptiveModelConfig = Boolean(
+        profile.defaultHaikuModel
         || profile.defaultSonnetModel
         || profile.defaultOpusModel,
       )
 
-      if (hasModelConfig) {
-        if (profile.primaryModel)
-          settings.env.ANTHROPIC_MODEL = profile.primaryModel
+      if (hasAdaptiveModelConfig) {
+        // Remove the top-level model override so Claude Code can use the
+        // adaptive Haiku/Sonnet/Opus defaults below.
+        delete settings.model
         if (profile.defaultHaikuModel)
           settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.defaultHaikuModel
         if (profile.defaultSonnetModel)
           settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = profile.defaultSonnetModel
         if (profile.defaultOpusModel)
           settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = profile.defaultOpusModel
+      }
+      else if (profile.primaryModel) {
+        delete settings.model
+        settings.env.ANTHROPIC_MODEL = profile.primaryModel
       }
       else {
         // No model config in profile, ensure all model envs are removed

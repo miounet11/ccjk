@@ -255,6 +255,36 @@ export interface RecoveryStrategy {
   }
 }
 
+export interface BrainFact {
+  key: string
+  value: string
+  confidence?: number
+}
+
+export interface BrainPattern {
+  name: string
+  description: string
+  category?: string
+}
+
+export interface BrainDecision {
+  decision: string
+  rationale: string
+  timestamp?: string
+}
+
+export interface BrainContext {
+  facts: BrainFact[]
+  patterns: BrainPattern[]
+  decisions: BrainDecision[]
+  metadata?: Record<string, any>
+}
+
+export interface BrainSession {
+  context: BrainContext
+  metadata?: Record<string, any>
+}
+
 /**
  * Self-healing configuration
  */

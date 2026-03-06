@@ -26,10 +26,11 @@
  * └── index.ts           - This file - main entry point
  */
 
+import type { CodeToolType, SupportedLang } from '../../constants'
+import type { MenuItem, MenuLevel, MenuResult } from './types'
+import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import process from 'node:process'
-import type { CodeToolType, SupportedLang } from '../../constants'
 import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../../constants'
 import { i18n } from '../../i18n/index'
 import { displayBannerWithInfo } from '../../utils/banner'
@@ -58,7 +59,6 @@ import { uninstall } from '../uninstall'
 import { update } from '../update'
 import { getItemsForLevel, levelDefinitions } from './progressive'
 import { createAllSections, filterSectionsByItemLimit, findItemByInput, getVisibleItemCount, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu } from './renderer'
-import type { MenuItem, MenuLevel, MenuResult } from './types'
 
 /**
  * Default menu configuration

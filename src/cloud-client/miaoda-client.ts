@@ -59,7 +59,7 @@ export interface QuotaInfo {
 export interface LlmCompleteResponse {
   content: string
   model: string
-  usage: { promptTokens: number; completionTokens: number; totalTokens: number }
+  usage: { promptTokens: number, completionTokens: number, totalTokens: number }
 }
 
 export interface LlmMessage {
@@ -162,9 +162,11 @@ export class MiaodaClient {
 
   /** Attempt to refresh access token. Returns true on success. */
   private async tryRefresh(): Promise<boolean> {
-    if (!this.refreshToken) return false
+    if (!this.refreshToken)
+      return false
     // Deduplicate concurrent refresh calls
-    if (this.refreshing) return this.refreshing
+    if (this.refreshing)
+      return this.refreshing
 
     this.refreshing = (async () => {
       try {
@@ -176,7 +178,8 @@ export class MiaodaClient {
         const res = parseResponse<TokenPair>(raw)
         if (res.ok && res.data) {
           this.accessToken = res.data.accessToken
-          if (res.data.refreshToken) this.refreshToken = res.data.refreshToken
+          if (res.data.refreshToken)
+            this.refreshToken = res.data.refreshToken
           return true
         }
         return false
@@ -198,7 +201,8 @@ export class MiaodaClient {
 
   private headers(extra: Record<string, string> = {}): Record<string, string> {
     const h: Record<string, string> = { 'Content-Type': 'application/json', ...extra }
-    if (this.accessToken) h.Authorization = `Bearer ${this.accessToken}`
+    if (this.accessToken)
+      h.Authorization = `Bearer ${this.accessToken}`
     return h
   }
 
@@ -206,7 +210,7 @@ export class MiaodaClient {
     method: string,
     path: string,
     body?: unknown,
-    opts: { timeout?: number; query?: Record<string, string | number>; noPrefix?: boolean } = {},
+    opts: { timeout?: number, query?: Record<string, string | number>, noPrefix?: boolean } = {},
   ): Promise<ParsedResponse<T>> {
     const prefix = opts.noPrefix ? '' : API
     const url = `${this.baseURL}${prefix}${path}`
@@ -260,31 +264,39 @@ export class MiaodaClient {
         this.accessToken = t.accessToken
         this.refreshToken = t.refreshToken ?? null
       }
-    } else if (typeof data.token === 'string') {
+    }
+    else if (typeof data.token === 'string') {
       this.accessToken = data.token
       this.refreshToken = null
     }
   }
 
-  async register(email: string, password: string): Promise<ParsedResponse<{ token?: string; tokens?: TokenPair; user: MiaodaUser }>> {
-    const res = await this.request<{ token?: string; tokens?: TokenPair; user: MiaodaUser }>(
-      'POST', '/auth/register', { email, password },
+  async register(email: string, password: string): Promise<ParsedResponse<{ token?: string, tokens?: TokenPair, user: MiaodaUser }>> {
+    const res = await this.request<{ token?: string, tokens?: TokenPair, user: MiaodaUser }>(
+      'POST',
+      '/auth/register',
+      { email, password },
     )
-    if (res.ok && res.data) this.extractAndSetToken(res.data as Record<string, unknown>)
+    if (res.ok && res.data)
+      this.extractAndSetToken(res.data as Record<string, unknown>)
     return res
   }
 
-  async login(email: string, password: string): Promise<ParsedResponse<{ token?: string; tokens?: TokenPair; user: MiaodaUser }>> {
-    const res = await this.request<{ token?: string; tokens?: TokenPair; user: MiaodaUser }>(
-      'POST', '/auth/login', { email, password },
+  async login(email: string, password: string): Promise<ParsedResponse<{ token?: string, tokens?: TokenPair, user: MiaodaUser }>> {
+    const res = await this.request<{ token?: string, tokens?: TokenPair, user: MiaodaUser }>(
+      'POST',
+      '/auth/login',
+      { email, password },
     )
-    if (res.ok && res.data) this.extractAndSetToken(res.data as Record<string, unknown>)
+    if (res.ok && res.data)
+      this.extractAndSetToken(res.data as Record<string, unknown>)
     return res
   }
 
   async refreshTokens(token: string): Promise<ParsedResponse<TokenPair>> {
     const res = await this.request<TokenPair>('POST', '/auth/refresh', { refreshToken: token })
-    if (res.ok && res.data) this.setTokens(res.data)
+    if (res.ok && res.data)
+      this.setTokens(res.data)
     return res
   }
 
@@ -346,7 +358,7 @@ export class MiaodaClient {
   // -------------------------------------------------------------------------
 
   getModels() {
-    return this.request<{ plan: string; models: string[] }>('GET', '/llm/models')
+    return this.request<{ plan: string, models: string[] }>('GET', '/llm/models')
   }
 
   complete(
@@ -355,7 +367,8 @@ export class MiaodaClient {
     options?: LlmOptions,
   ): Promise<ParsedResponse<LlmCompleteResponse>> {
     return this.request<LlmCompleteResponse>(
-      'POST', '/llm/complete',
+      'POST',
+      '/llm/complete',
       { model, messages, ...options },
       { timeout: this.llmTimeout },
     )
@@ -405,17 +418,20 @@ export class MiaodaClient {
 
         while (true) {
           const { done, value } = await reader.read()
-          if (done) break
+          if (done)
+            break
           buffer += decoder.decode(value, { stream: true })
           const lines = buffer.split('\n')
           buffer = lines.pop() ?? ''
           for (const line of lines) {
-            if (!line.startsWith('data: ')) continue
+            if (!line.startsWith('data: '))
+              continue
             try {
               const json = JSON.parse(line.slice(6))
               if (json.done) { callbacks.onDone?.(); return }
               if (json.error) { callbacks.onError?.(new Error(json.error)); return }
-              if (json.chunk) callbacks.onChunk(json.chunk)
+              if (json.chunk)
+                callbacks.onChunk(json.chunk)
             }
             catch { /* ignore malformed SSE lines */ }
           }
@@ -501,7 +517,7 @@ export class MiaodaClient {
   // Skills
   // -------------------------------------------------------------------------
 
-  searchSkills(params: { keyword?: string; category?: string; page?: number; limit?: number } = {}) {
+  searchSkills(params: { keyword?: string, category?: string, page?: number, limit?: number } = {}) {
     return this.request('GET', '/skills/search', undefined, { query: params as any })
   }
 
@@ -516,7 +532,8 @@ export class MiaodaClient {
   publishSkill(formData: FormData) {
     // multipart/form-data — use fetch directly (no Content-Type override)
     const headers: Record<string, string> = {}
-    if (this.accessToken) headers.Authorization = `Bearer ${this.accessToken}`
+    if (this.accessToken)
+      headers.Authorization = `Bearer ${this.accessToken}`
     return fetch(`${this.baseURL}/skills/publish`, {
       method: 'POST',
       headers,
@@ -606,8 +623,10 @@ export class MiaodaClient {
 
   getCostBreakdown(start?: string, end?: string) {
     const query: Record<string, string> = {}
-    if (start) query.start = start
-    if (end) query.end = end
+    if (start)
+      query.start = start
+    if (end)
+      query.end = end
     return this.request('GET', '/analytics/cost-breakdown', undefined, { query })
   }
 

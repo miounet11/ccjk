@@ -11,8 +11,7 @@
  * @module tests/integration/cloud-api
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { CloudApiGateway } from '../../src/cloud-client/gateway'
+import type { CloudApiGateway } from '../../src/cloud-client/gateway'
 import type {
   BatchTemplateResponse,
   HealthCheckResponse,
@@ -20,6 +19,7 @@ import type {
   UsageReportResponse,
 } from '../../src/cloud-client/types'
 import type { CloudApiResponse } from '../../src/services/cloud/api-client'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -31,7 +31,7 @@ import {
   MockCloudServer,
 } from '../helpers/cloud-mock'
 
-describe('Cloud API Integration Tests', () => {
+describe('cloud API Integration Tests', () => {
   let mockServer: MockCloudServer
   let gateway: CloudApiGateway
 
@@ -50,7 +50,7 @@ describe('Cloud API Integration Tests', () => {
   // Test Suite 1: Project Analysis
   // ==========================================================================
 
-  describe('Project Analysis', () => {
+  describe('project Analysis', () => {
     it('should successfully analyze a valid project', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<ProjectAnalysisResponse> = {
@@ -183,7 +183,7 @@ describe('Cloud API Integration Tests', () => {
   // Test Suite 2: Batch Templates
   // ==========================================================================
 
-  describe('Batch Templates', () => {
+  describe('batch Templates', () => {
     it('should successfully download batch templates', async () => {
       // Arrange
       const templateIds = ['template-1', 'template-2', 'template-3']
@@ -311,7 +311,7 @@ describe('Cloud API Integration Tests', () => {
   // Test Suite 3: Telemetry
   // ==========================================================================
 
-  describe('Telemetry', () => {
+  describe('telemetry', () => {
     it('should successfully upload telemetry', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<UsageReportResponse> = {
@@ -422,7 +422,7 @@ describe('Cloud API Integration Tests', () => {
   // Test Suite 4: Health Check
   // ==========================================================================
 
-  describe('Health Check', () => {
+  describe('health Check', () => {
     it('should return healthy status', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<HealthCheckResponse> = {

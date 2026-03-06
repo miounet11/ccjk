@@ -92,9 +92,11 @@ export function matchSkills(profile: ProjectProfile): SkillRecommendation[] {
   const seen = new Set<string>()
 
   for (const rule of SKILL_RULES) {
-    if (seen.has(rule.skill.id)) continue
+    if (seen.has(rule.skill.id))
+      continue
     const matchingTags = rule.tags.filter(t => profile.tags.includes(t))
-    if (matchingTags.length === 0) continue
+    if (matchingTags.length === 0)
+      continue
 
     const matchScore = Math.min(100, Math.round((matchingTags.length / rule.tags.length) * 100) + 20)
     results.push({ ...rule.skill, matchScore })
@@ -110,9 +112,11 @@ export function matchMcpServices(profile: ProjectProfile): McpRecommendation[] {
   const seen = new Set<string>()
 
   for (const rule of MCP_RULES) {
-    if (seen.has(rule.mcp.id)) continue
+    if (seen.has(rule.mcp.id))
+      continue
     const matchingTags = rule.tags.filter(t => profile.tags.includes(t))
-    if (matchingTags.length === 0) continue
+    if (matchingTags.length === 0)
+      continue
 
     const matchScore = Math.min(100, Math.round((matchingTags.length / rule.tags.length) * 100) + 20)
     results.push({ ...rule.mcp, matchScore })
@@ -132,7 +136,8 @@ export function getRecommendations(profile: ProjectProfile): {
   const mcpServices = matchMcpServices(profile)
 
   const parts: string[] = []
-  if (profile.language !== 'unknown') parts.push(profile.language)
+  if (profile.language !== 'unknown')
+    parts.push(profile.language)
   parts.push(...profile.frameworks.slice(0, 3))
   const stackDesc = parts.join(' + ') || 'your project'
 

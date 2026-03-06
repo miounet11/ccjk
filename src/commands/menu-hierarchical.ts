@@ -1,9 +1,7 @@
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import type { SupportedLang } from '../constants'
 import { i18n } from '../i18n'
 import { normalizeMenuInput } from '../utils/input-normalizer'
-import { addNumbersToChoices } from '../utils/prompt-helpers'
 
 type MenuLevel = 'main' | 'quickStart' | 'configCenter' | 'extensions' | 'system'
 
@@ -15,15 +13,15 @@ interface MenuContext {
 /**
  * Render hierarchical menu header with breadcrumb
  */
-function renderMenuHeader(context: MenuContext, isZh: boolean): void {
+function renderMenuHeader(context: MenuContext, _isZh: boolean): void {
   const title = context.breadcrumb.join(i18n.t('menu:menu.breadcrumb.separator'))
   const width = 63
   const padding = Math.max(0, Math.floor((width - title.length) / 2))
 
   console.log('')
-  console.log(ansis.green('╔' + '═'.repeat(width) + '╗'))
+  console.log(ansis.green(`╔${'═'.repeat(width)}╗`))
   console.log(ansis.green('║') + ' '.repeat(padding) + ansis.bold(title) + ' '.repeat(width - padding - title.length) + ansis.green('║'))
-  console.log(ansis.green('╚' + '═'.repeat(width) + '╝'))
+  console.log(ansis.green(`╚${'═'.repeat(width)}╝`))
   console.log('')
 }
 
@@ -33,7 +31,7 @@ function renderMenuHeader(context: MenuContext, isZh: boolean): void {
 function renderSection(title: string, items: Array<{ key: string, name: string, desc: string }>): void {
   console.log(ansis.bold(title))
   for (const item of items) {
-    console.log(`  ${ansis.green(item.key + '.')} ${item.name} ${ansis.dim('- ' + item.desc)}`)
+    console.log(`  ${ansis.green(`${item.key}.`)} ${item.name} ${ansis.dim(`- ${item.desc}`)}`)
   }
   console.log('')
 }
@@ -41,7 +39,7 @@ function renderSection(title: string, items: Array<{ key: string, name: string, 
 /**
  * Render global actions footer
  */
-function renderFooter(showBack: boolean, isZh: boolean): void {
+function renderFooter(showBack: boolean, _isZh: boolean): void {
   console.log(ansis.dim('─'.repeat(63)))
   const actions: string[] = []
 
@@ -103,7 +101,7 @@ export async function showHierarchicalMainMenu(): Promise<string> {
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
-    message: i18n.t('menu:menu.prompt.main') + ' (1-8, L, H, Q):',
+    message: `${i18n.t('menu:menu.prompt.main')} (1-8, L, H, Q):`,
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
       const valid = ['1', '2', '3', '4', '5', '6', '7', '8', 'l', 'h', 'q']
@@ -141,7 +139,7 @@ export async function showQuickStartMenu(): Promise<string> {
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
-    message: i18n.t('menu:menu.prompt.main') + ' (1-4, 0, L, H, Q):',
+    message: `${i18n.t('menu:menu.prompt.main')} (1-4, 0, L, H, Q):`,
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
       const valid = ['0', '1', '2', '3', '4', 'l', 'h', 'q']
@@ -181,7 +179,7 @@ export async function showConfigCenterMenu(): Promise<string> {
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
-    message: i18n.t('menu:menu.prompt.main') + ' (1-6, 0, L, H, Q):',
+    message: `${i18n.t('menu:menu.prompt.main')} (1-6, 0, L, H, Q):`,
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
       const valid = ['0', '1', '2', '3', '4', '5', '6', 'l', 'h', 'q']
@@ -222,7 +220,7 @@ export async function showExtensionsMenu(): Promise<string> {
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
-    message: i18n.t('menu:menu.prompt.main') + ' (1-7, 0, L, H, Q):',
+    message: `${i18n.t('menu:menu.prompt.main')} (1-7, 0, L, H, Q):`,
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
       const valid = ['0', '1', '2', '3', '4', '5', '6', '7', 'l', 'h', 'q']
@@ -259,7 +257,7 @@ export async function showSystemMenu(): Promise<string> {
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
-    message: i18n.t('menu:menu.prompt.main') + ' (1-3, 0, L, H, Q):',
+    message: `${i18n.t('menu:menu.prompt.main')} (1-3, 0, L, H, Q):`,
     validate: (value) => {
       const normalized = normalizeMenuInput(value)
       const valid = ['0', '1', '2', '3', 'l', 'h', 'q']

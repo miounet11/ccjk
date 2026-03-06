@@ -1,0 +1,33 @@
+{
+  "id": "context-merge-existing",
+  "suite": "context",
+  "description": "Merges new context with existing CLAUDE.md without data loss",
+  "command": "node dist/cli.mjs context build --target claude-code --output tmp/evals/context-merge --merge",
+  "runs": 1,
+  "timeout": 30000,
+  "setup": "mkdir -p tmp/evals/context-merge && echo '# Existing Content\n\nThis should be preserved.' > tmp/evals/context-merge/CLAUDE.md",
+  "teardown": "rm -rf tmp/evals/context-merge",
+  "assertions": [
+    {
+      "type": "exit_code",
+      "expected": 0
+    },
+    {
+      "type": "file_exists",
+      "path": "tmp/evals/context-merge/CLAUDE.md"
+    },
+    {
+      "type": "contains_text",
+      "path": "tmp/evals/context-merge/CLAUDE.md",
+      "value": "Existing Content"
+    },
+    {
+      "type": "contains_text",
+      "path": "tmp/evals/context-merge/CLAUDE.md",
+      "value": "This should be preserved"
+    }
+  ],
+  "metrics": [
+    "duration_ms"
+  ]
+}

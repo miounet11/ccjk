@@ -7,11 +7,9 @@
  * @module commands/slash-commands
  */
 
-import type { SupportedLang } from '../constants'
 import ansis from 'ansis'
-import { i18n } from '../i18n'
 import { getContextPersistence } from '../context/persistence'
-import { MetricsDisplay } from '../context/metrics-display'
+import { i18n } from '../i18n'
 
 /**
  * Slash command definition
@@ -74,13 +72,13 @@ export function getSlashCommands(): SlashCommand[] {
         const { runHealthCheck } = await import('../health/index')
         const report = await runHealthCheck()
         console.log(ansis.cyan.bold('\n🏥 Health Check Results\n'))
-        console.log(`${ansis.gray('Overall Score:')} ${ansis.green.bold(report.totalScore + '/100')}`)
+        console.log(`${ansis.gray('Overall Score:')} ${ansis.green.bold(`${report.totalScore}/100`)}`)
         console.log(`${ansis.gray('Grade:')} ${ansis.green.bold(report.grade)}`)
 
         if (report.recommendations.length > 0) {
           console.log(ansis.yellow.bold('\n💡 Recommendations:\n'))
           report.recommendations.forEach((rec, i) => {
-            console.log(`${ansis.yellow((i + 1) + '.')} ${rec.description}`)
+            console.log(`${ansis.yellow(`${i + 1}.`)} ${rec.description}`)
             if (rec.command) {
               console.log(`   ${ansis.gray('→')} ${ansis.cyan(rec.command)}`)
             }
@@ -161,7 +159,8 @@ export function getSlashCommands(): SlashCommand[] {
         const backupPath = backupExistingConfig()
         if (backupPath) {
           console.log(ansis.green(`✅ Backup created: ${backupPath}`))
-        } else {
+        }
+        else {
           console.log(ansis.yellow('⚠️  No configuration to backup'))
         }
       },
@@ -203,7 +202,7 @@ export async function executeSlashCommand(input: string): Promise<boolean> {
 
   const commands = getSlashCommands()
   const command = commands.find(
-    cmd => cmd.name === parsed.command || cmd.aliases?.includes(parsed.command)
+    cmd => cmd.name === parsed.command || cmd.aliases?.includes(parsed.command),
   )
 
   if (!command) {
@@ -215,7 +214,8 @@ export async function executeSlashCommand(input: string): Promise<boolean> {
   try {
     await command.handler(parsed.args)
     return true
-  } catch (error) {
+  }
+  catch (error) {
     console.error(ansis.red(`Error executing /${parsed.command}:`), error)
     return true
   }
@@ -237,15 +237,16 @@ export function displaySlashCommandsHelp(): void {
     system: { title: isZh ? '⚙️  系统工具' : '⚙️  System Tools', commands: [] as SlashCommand[] },
   }
 
-  commands.forEach(cmd => {
+  commands.forEach((cmd) => {
     categories[cmd.category].commands.push(cmd)
   })
 
-  Object.values(categories).forEach(category => {
-    if (category.commands.length === 0) return
+  Object.values(categories).forEach((category) => {
+    if (category.commands.length === 0)
+      return
 
     console.log(ansis.white.bold(category.title))
-    category.commands.forEach(cmd => {
+    category.commands.forEach((cmd) => {
       const aliases = cmd.aliases ? ansis.gray(` (${cmd.aliases.map(a => `/${a}`).join(', ')})`) : ''
       const desc = isZh ? cmd.descriptionZh : cmd.description
       console.log(`  ${ansis.green(`/${cmd.name}`)}${aliases}`)
@@ -263,7 +264,7 @@ export function displaySlashCommandsHelp(): void {
 export function displayStartupBanner(): void {
   const isZh = i18n.language === 'zh-CN'
 
-  console.log(ansis.cyan.bold('\n💡 ' + (isZh ? '快捷命令' : 'Quick Commands')))
+  console.log(ansis.cyan.bold(`\n💡 ${isZh ? '快捷命令' : 'Quick Commands'}`))
   console.log(ansis.gray('─'.repeat(50)))
 
   // CCJK commands

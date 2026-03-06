@@ -2,7 +2,7 @@ import type { CodeToolType } from '../constants'
 import { detectCodeToolType } from '../config/smart-defaults'
 import { DEFAULT_CODE_TOOL_TYPE } from '../constants'
 import { i18n } from '../i18n'
-import { readZcfConfigAsync, saveZcfConfig } from './ccjk-config'
+import { readZcfConfigAsync } from './ccjk-config'
 
 /**
  * Code type abbreviation mapping

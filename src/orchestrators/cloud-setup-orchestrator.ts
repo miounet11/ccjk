@@ -5,13 +5,13 @@
  */
 
 import type { FrameworkDetectionResult, LanguageDetection, ProjectAnalysis } from '../analyzers/types'
+import type { CloudApiGateway } from '../cloud-client/gateway'
 import type {
   BatchTemplateResponse,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
   Recommendation,
 } from '../cloud-client/types'
-import type { CloudApiGateway } from '../cloud-client/gateway'
 import type { CcjkAgentsOptions } from '../commands/ccjk-agents'
 import type { CcjkHooksOptions } from '../commands/ccjk-hooks'
 import type { CcjkMcpOptions } from '../commands/ccjk-mcp'

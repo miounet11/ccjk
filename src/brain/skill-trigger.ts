@@ -28,7 +28,7 @@ export const SKILL_TRIGGERS: SkillTrigger[] = [
   {
     skillName: 'browser',
     patterns: [
-      /(?:访问|打开|浏览|查看|去)\s*(?:网站|网页|页面|链接|网址)?\s*[：:]\s*(.+)/i,
+      /(?:访问|打开|浏览|查看|去)\s*(?:网站|网页|页面|链接|网址)?\s*[：:]\s*(.+)/,
       /(?:访问|打开|浏览|查看|去)\s+(.+?(?:\.com|\.cn|\.org|\.net|\.io|http).*)/i,
       /(?:search|google|搜索)\s+(.+)/i,
       /(?:open|visit|browse|go to)\s+(.+)/i,
@@ -57,7 +57,7 @@ export const SKILL_TRIGGERS: SkillTrigger[] = [
     patterns: [
       /(?:审查|review|检查)\s*(?:代码|code)/i,
       /(?:code\s+review|pr\s+review)/i,
-      /(?:看看|检查)\s*(?:这段|这些)?\s*代码/i,
+      /(?:看看|检查)\s*(?:这段|这些)?\s*代码/,
     ],
     keywords: ['审查', 'review', '检查代码', 'pr', 'code review'],
     priority: 8,
@@ -96,7 +96,7 @@ export const SKILL_TRIGGERS: SkillTrigger[] = [
     patterns: [
       /(?:规划|plan|设计)\s*(?:这个|一个)?\s*(?:功能|feature)/i,
       /(?:实现|implement|开发)\s+(?:一个|新的)?\s*(.+)/i,
-      /(?:怎么|如何)\s*(?:实现|做|开发)\s*(.+)/i,
+      /(?:怎么|如何)\s*(?:实现|做|开发)\s*(.+)/,
     ],
     keywords: ['规划', 'plan', '设计', '实现', '功能', 'feature', '开发', '认证', '登录', '怎么', '如何'],
     priority: 7,
@@ -121,8 +121,8 @@ export const SKILL_TRIGGERS: SkillTrigger[] = [
     skillName: 'brainstorm',
     patterns: [
       /(?:头脑风暴|brainstorm|探索|想法)/i,
-      /(?:有什么|还有|其他)\s*(?:方案|方法|办法|思路)/i,
-      /(?:比较|对比)\s*(?:方案|方法)/i,
+      /(?:有什么|还有|其他)\s*(?:方案|方法|办法|思路)/,
+      /(?:比较|对比)\s*(?:方案|方法)/,
     ],
     keywords: ['头脑风暴', 'brainstorm', '探索', '方案', '思路', '想法'],
     priority: 6,
@@ -273,14 +273,14 @@ export class SkillTriggerEngine {
     const confidence = Math.round(match.confidence * 100)
 
     if (this.lang === 'zh-CN') {
-      return `💡 检测到你可能想要 **${trigger.description}** (置信度: ${confidence}%)\n` +
-             `建议使用: \`/${match.skillName}\`\n` +
-             (match.extractedParams?.param1 ? `参数: ${match.extractedParams.param1}\n` : '')
+      return `💡 检测到你可能想要 **${trigger.description}** (置信度: ${confidence}%)\n`
+        + `建议使用: \`/${match.skillName}\`\n${
+          match.extractedParams?.param1 ? `参数: ${match.extractedParams.param1}\n` : ''}`
     }
     else {
-      return `💡 Detected you might want to **${trigger.description}** (confidence: ${confidence}%)\n` +
-             `Suggest using: \`/${match.skillName}\`\n` +
-             (match.extractedParams?.param1 ? `Params: ${match.extractedParams.param1}\n` : '')
+      return `💡 Detected you might want to **${trigger.description}** (confidence: ${confidence}%)\n`
+        + `Suggest using: \`/${match.skillName}\`\n${
+          match.extractedParams?.param1 ? `Params: ${match.extractedParams.param1}\n` : ''}`
     }
   }
 

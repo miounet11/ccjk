@@ -67,7 +67,7 @@ describe('simplifiedInit', () => {
       const { simplifiedInit } = await import('../../src/commands/init')
       await expect(simplifiedInit({ skipPrompt: true })).rejects.toThrow('Detection failed')
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error')
+        expect.stringContaining('Error'),
 
       )
     })

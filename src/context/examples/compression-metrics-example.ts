@@ -3,9 +3,9 @@
  * Demonstrates how to use compression metrics tracking and display
  */
 
+import type { ContextData } from '../types'
 import { ContextManager } from '../manager'
 import { MetricsDisplay } from '../metrics-display'
-import type { ContextData } from '../types'
 
 /**
  * Example 1: Basic compression with metrics display
@@ -154,7 +154,7 @@ export async function compactMetricsDisplay() {
   if (stats) {
     // Display compact version (suitable for status dashboard)
     const lines = MetricsDisplay.displayCompactCompressionStats(stats)
-    console.log('\n' + lines.join('\n'))
+    console.log(`\n${lines.join('\n')}`)
   }
 }
 

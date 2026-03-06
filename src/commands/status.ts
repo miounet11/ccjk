@@ -6,18 +6,16 @@
 
 import type { ProjectContext } from '../config/project-scanner'
 import type { SmartDefaults } from '../config/smart-defaults'
-import type { HealthReport, HealthResult, Recommendation } from '../health/types'
+import type { HealthReport } from '../health/types'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
 import ansis from 'ansis'
 import { join } from 'pathe'
 import { scanProject } from '../config/project-scanner'
-import { analyzeProject } from '../discovery/project-analyzer'
-import { getRecommendations } from '../discovery/skill-matcher'
-import { runHealthCheck } from '../health/index'
-import { getContextPersistence } from '../context/persistence'
 import { MetricsDisplay } from '../context/metrics-display'
+import { getContextPersistence } from '../context/persistence'
+import { runHealthCheck } from '../health/index'
 
 // ============================================================================
 // Types
@@ -91,7 +89,8 @@ function renderScoreBar(score: number): string {
 function loadInstalledSettings(): InstalledSettings {
   const settingsPath = join(homedir(), '.claude', 'settings.json')
   try {
-    if (!existsSync(settingsPath)) return { mcpServers: {}, hooks: {} }
+    if (!existsSync(settingsPath))
+      return { mcpServers: {}, hooks: {} }
     const data = JSON.parse(readFileSync(settingsPath, 'utf-8'))
     return {
       mcpServers: data.mcpServers || {},
@@ -142,11 +141,16 @@ function renderProjectSection(ctx: ProjectContext): string[] {
 
   // Extra flags
   const flags: string[] = []
-  if (ctx.isMonorepo) flags.push('monorepo')
-  if (ctx.hasDocker) flags.push('docker')
-  if (ctx.hasCI) flags.push('CI')
-  if (ctx.hasGitHooks) flags.push('git-hooks')
-  if (ctx.usesConventionalCommits) flags.push('conventional-commits')
+  if (ctx.isMonorepo)
+    flags.push('monorepo')
+  if (ctx.hasDocker)
+    flags.push('docker')
+  if (ctx.hasCI)
+    flags.push('CI')
+  if (ctx.hasGitHooks)
+    flags.push('git-hooks')
+  if (ctx.usesConventionalCommits)
+    flags.push('conventional-commits')
   if (flags.length > 0) {
     lines.push(`  ${label('Flags:'.padEnd(14))} ${val(flags.join(', '))}`)
   }
@@ -162,11 +166,16 @@ function renderRuntimeSection(ctx: ProjectContext): string[] {
   lines.push(`  ${label('Platform:'.padEnd(14))} ${val(process.platform)} ${ansis.gray(`(${process.arch})`)}`)
 
   const envFlags: string[] = []
-  if (rt.isContainer) envFlags.push('container')
-  if (rt.isHeadless) envFlags.push('headless')
-  if (rt.isSSH) envFlags.push('SSH')
-  if (rt.isCI) envFlags.push('CI')
-  if (rt.isWSL) envFlags.push('WSL')
+  if (rt.isContainer)
+    envFlags.push('container')
+  if (rt.isHeadless)
+    envFlags.push('headless')
+  if (rt.isSSH)
+    envFlags.push('SSH')
+  if (rt.isCI)
+    envFlags.push('CI')
+  if (rt.isWSL)
+    envFlags.push('WSL')
 
   if (envFlags.length > 0) {
     lines.push(`  ${label('Environment:'.padEnd(14))} ${val(envFlags.join(', '))}`)
@@ -255,10 +264,14 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null): string[] {
   if (defaults?.nativeFeatures) {
     const nf = defaults.nativeFeatures
     const features: string[] = []
-    if (nf.hooks) features.push('hooks')
-    if (nf.memory) features.push('memory')
-    if (nf.subagents) features.push('subagents')
-    if (nf.toolSearch) features.push('tool-search')
+    if (nf.hooks)
+      features.push('hooks')
+    if (nf.memory)
+      features.push('memory')
+    if (nf.subagents)
+      features.push('subagents')
+    if (nf.toolSearch)
+      features.push('tool-search')
     if (features.length > 0) {
       lines.push(`  ${label('Features:'.padEnd(14))} ${val(features.join(', '))}`)
     }
@@ -334,7 +347,7 @@ function renderHealthSection(report: HealthReport, compact: boolean): string[] {
 // Next Action Suggestion Engine
 // ============================================================================
 
-function suggestNextAction(health: HealthReport, ctx: ProjectContext): string[] {
+function suggestNextAction(health: HealthReport, _ctx: ProjectContext): string[] {
   const lines: string[] = []
   lines.push(heading('Next Step'))
 

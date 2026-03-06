@@ -1,0 +1,23 @@
+{
+  "id": "basic-context-retrieval",
+  "suite": "context",
+  "description": "Test basic context retrieval from codebase",
+  "command": "echo 'test' > /tmp/ccjk-test.txt",
+  "runs": 3,
+  "assertions": [
+    {
+      "type": "exit_code",
+      "expected": 0
+    },
+    {
+      "type": "file_exists",
+      "path": "/tmp/ccjk-test.txt"
+    },
+    {
+      "type": "contains_text",
+      "path": "/tmp/ccjk-test.txt",
+      "value": "test"
+    }
+  ],
+  "metrics": ["duration_ms", "output_bytes"]
+}

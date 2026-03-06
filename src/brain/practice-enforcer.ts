@@ -6,7 +6,6 @@
 import type { SupportedLang } from '../constants'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import { i18n } from '../i18n'
 
 const execAsync = promisify(exec)
 
@@ -78,9 +77,9 @@ export class PracticeEnforcer {
 
     // 检测：新代码但没有测试
     const hasNewCode = context.recentFiles.some(f =>
-      !f.includes('.test.') &&
-      !f.includes('.spec.') &&
-      (f.endsWith('.ts') || f.endsWith('.js') || f.endsWith('.tsx') || f.endsWith('.jsx')),
+      !f.includes('.test.')
+      && !f.includes('.spec.')
+      && (f.endsWith('.ts') || f.endsWith('.js') || f.endsWith('.tsx') || f.endsWith('.jsx')),
     )
 
     const hasNewTests = context.recentFiles.some(f =>
@@ -183,9 +182,9 @@ export class PracticeEnforcer {
       return violations
     }
 
-    const totalChanges = context.gitStatus.modified.length +
-                        context.gitStatus.added.length +
-                        context.gitStatus.deleted.length
+    const totalChanges = context.gitStatus.modified.length
+      + context.gitStatus.added.length
+      + context.gitStatus.deleted.length
 
     // 检测：大量变更但没有测试
     if (totalChanges > 5) {
@@ -225,17 +224,17 @@ export class PracticeEnforcer {
     const conversation = context.messages.map(m => m.content).join('\n').toLowerCase()
 
     // 检测：准备合并但没有 review
-    const hasMergeIntent = conversation.includes('merge') ||
-                          conversation.includes('合并') ||
-                          conversation.includes('pr') ||
-                          conversation.includes('pull request')
+    const hasMergeIntent = conversation.includes('merge')
+      || conversation.includes('合并')
+      || conversation.includes('pr')
+      || conversation.includes('pull request')
 
-    const hasReview = conversation.includes('review') ||
-                     conversation.includes('审查')
+    const hasReview = conversation.includes('review')
+      || conversation.includes('审查')
 
     if (hasMergeIntent && !hasReview && context.gitStatus) {
-      const totalChanges = context.gitStatus.modified.length +
-                          context.gitStatus.added.length
+      const totalChanges = context.gitStatus.modified.length
+        + context.gitStatus.added.length
 
       if (totalChanges > 5) {
         violations.push({

@@ -1,9 +1,9 @@
+import type { HealthCheck, HealthResult } from '../types'
 /**
  * MCP Services Health Check
  */
 import { existsSync, readFileSync } from 'node:fs'
 import { SETTINGS_FILE } from '../../constants'
-import type { HealthCheck, HealthResult } from '../types'
 
 export const mcpCheck: HealthCheck = {
   name: 'MCP Services',
@@ -12,9 +12,13 @@ export const mcpCheck: HealthCheck = {
     try {
       if (!existsSync(SETTINGS_FILE)) {
         return {
-          name: this.name, status: 'fail', score: 0, weight: this.weight,
+          name: this.name,
+          status: 'fail',
+          score: 0,
+          weight: this.weight,
           message: 'No settings.json found',
-          fix: 'Run ccjk init to create settings', command: 'ccjk init',
+          fix: 'Run ccjk init to create settings',
+          command: 'ccjk init',
         }
       }
 
@@ -24,9 +28,13 @@ export const mcpCheck: HealthCheck = {
 
       if (serverCount === 0) {
         return {
-          name: this.name, status: 'fail', score: 0, weight: this.weight,
+          name: this.name,
+          status: 'fail',
+          score: 0,
+          weight: this.weight,
           message: 'No MCP services configured',
-          fix: 'Install MCP services for enhanced capabilities', command: 'ccjk mcp',
+          fix: 'Install MCP services for enhanced capabilities',
+          command: 'ccjk mcp',
         }
       }
 
@@ -40,7 +48,10 @@ export const mcpCheck: HealthCheck = {
       const details = Object.keys(mcpServers).map(name => `  ${name}`)
 
       return {
-        name: this.name, status, score, weight: this.weight,
+        name: this.name,
+        status,
+        score,
+        weight: this.weight,
         message: `${serverCount} service${serverCount > 1 ? 's' : ''} active`,
         details,
         ...(score < 80 && { fix: 'Add more MCP services', command: 'ccjk mcp' }),
@@ -48,8 +59,12 @@ export const mcpCheck: HealthCheck = {
     }
     catch {
       return {
-        name: this.name, status: 'fail', score: 0, weight: this.weight,
-        message: 'Failed to read MCP configuration', command: 'ccjk doctor',
+        name: this.name,
+        status: 'fail',
+        score: 0,
+        weight: this.weight,
+        message: 'Failed to read MCP configuration',
+        command: 'ccjk doctor',
       }
     }
   },

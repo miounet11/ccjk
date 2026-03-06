@@ -58,16 +58,20 @@ function isValidPermission(perm: string): boolean {
 function isCoveredByWildcard(perm: string, wildcardPerm: string): boolean {
   // Only handle Bash(*) wildcard patterns
   const wildcardMatch = wildcardPerm.match(/^(\w+)\((.+)\)$/)
-  if (!wildcardMatch) return false
+  if (!wildcardMatch)
+    return false
 
   const [, tool, wildcardArg] = wildcardMatch
-  if (!wildcardArg.includes('*')) return false
+  if (!wildcardArg.includes('*'))
+    return false
 
   const permMatch = perm.match(/^(\w+)\((.+)\)$/)
-  if (!permMatch) return false
+  if (!permMatch)
+    return false
 
   const [, permTool, permArg] = permMatch
-  if (tool !== permTool) return false
+  if (tool !== permTool)
+    return false
 
   // Convert wildcard pattern to regex: "npm *" → /^npm .+$/
   const regexStr = wildcardArg.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.+')

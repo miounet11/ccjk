@@ -7,30 +7,6 @@ export * from './analytics'
 export { TokenAnalyticsTracker } from './analytics'
 export * from './cache'
 export { ContextCache } from './cache'
-export * from './persistence'
-export { ContextPersistence, getContextPersistence, createContextPersistence } from './persistence'
-export * from './migration'
-export {
-  migrateCacheToPersistence,
-  restoreCacheFromPersistence,
-  syncCacheAndPersistence,
-  verifyMigration,
-} from './migration'
-export * from './health-check'
-export {
-  DatabaseHealthMonitor,
-  createHealthMonitor,
-  HealthStatus,
-} from './health-check'
-export * from './health-alerts'
-export {
-  HealthAlertsManager,
-  createHealthAlertsManager,
-  runStartupHealthCheck,
-  AlertSeverity,
-} from './health-alerts'
-export * from './hierarchical-loader'
-export { HierarchicalContextLoader, createHierarchicalLoader } from './hierarchical-loader'
 // Compact Advisor
 export {
   CompactAdvisor,
@@ -38,7 +14,6 @@ export {
   getCompactAdvisor,
   resetCompactAdvisor,
 } from './compact-advisor'
-
 export type {
   CompactAdvisorConfig,
   CompactReason,
@@ -47,12 +22,37 @@ export type {
   ContextState,
 } from './compact-advisor'
 export * from './compression'
+export * from './health-alerts'
+export {
+  AlertSeverity,
+  createHealthAlertsManager,
+  HealthAlertsManager,
+  runStartupHealthCheck,
+} from './health-alerts'
+export * from './health-check'
+export {
+  createHealthMonitor,
+  DatabaseHealthMonitor,
+  HealthStatus,
+} from './health-check'
+export * from './hierarchical-loader'
+export { createHierarchicalLoader, HierarchicalContextLoader } from './hierarchical-loader'
 export * from './manager'
-export * from './metrics-display'
-
 // Re-export main classes for convenience
 export { ContextManager } from './manager'
+
+export * from './metrics-display'
 export { MetricsDisplay } from './metrics-display'
+export * from './migration'
+export {
+  migrateCacheToPersistence,
+  restoreCacheFromPersistence,
+  syncCacheAndPersistence,
+  verifyMigration,
+} from './migration'
+
+export * from './persistence'
+export { ContextPersistence, createContextPersistence, getContextPersistence } from './persistence'
 
 // Startup initialization
 export {

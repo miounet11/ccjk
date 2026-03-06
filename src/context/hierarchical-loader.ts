@@ -7,16 +7,16 @@
  * - L2 (Cold): >7 days, lazy-loaded from DB, slower access
  */
 
-import type { CompressedContext } from './types'
 import type { ContextPersistence, PersistedContext } from './persistence'
+import type { CompressedContext } from './types'
 
 /**
  * Context tier levels
  */
 export enum ContextTier {
-  HOT = 'L0',    // <1 day
-  WARM = 'L1',   // 1-7 days
-  COLD = 'L2',   // >7 days
+  HOT = 'L0', // <1 day
+  WARM = 'L1', // 1-7 days
+  COLD = 'L2', // >7 days
 }
 
 /**
@@ -135,7 +135,8 @@ class L0Cache {
 
   delete(id: string): boolean {
     const entry = this.cache.get(id)
-    if (!entry) return false
+    if (!entry)
+      return false
 
     this.currentSize -= this.estimateSize(entry.context)
     return this.cache.delete(id)
@@ -203,7 +204,7 @@ export class HierarchicalContextLoader {
 
     // Default configuration
     this.config = {
-      hotThreshold: 24 * 60 * 60 * 1000,      // 1 day
+      hotThreshold: 24 * 60 * 60 * 1000, // 1 day
       warmThreshold: 7 * 24 * 60 * 60 * 1000, // 7 days
       l0MaxEntries: 100,
       l0MaxSize: 5 * 1024 * 1024, // 5MB
@@ -234,7 +235,8 @@ export class HierarchicalContextLoader {
 
     // Check L1/L2 in persistence
     const persisted = this.persistence.getContext(contextId)
-    if (!persisted) return null
+    if (!persisted)
+      return null
 
     const context = this.persistedToCompressed(persisted)
     const tier = this.determineTier(persisted.lastAccessed)
@@ -504,7 +506,8 @@ export class HierarchicalContextLoader {
    * Calculate average access time for contexts
    */
   private calculateAvgAccessTime(contexts: PersistedContext[]): number {
-    if (contexts.length === 0) return 0
+    if (contexts.length === 0)
+      return 0
 
     const now = Date.now()
     const totalAge = contexts.reduce((sum, c) => sum + (now - c.lastAccessed), 0)

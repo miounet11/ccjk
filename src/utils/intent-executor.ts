@@ -86,7 +86,7 @@ export class IntentExecutor {
 
       if (key in inputs) {
         const value = inputs[key]
-        const actualType = Array.isArray(value) ? 'array' : typeof value
+        const _actualType = Array.isArray(value) ? 'array' : typeof value
 
         // Basic type checking
         if (schema.type === 'string' && typeof value !== 'string') {
@@ -184,7 +184,7 @@ export class IntentExecutor {
       }
 
       const value = results[key]
-      const actualType = Array.isArray(value) ? 'array' : typeof value
+      const _actualType = Array.isArray(value) ? 'array' : typeof value
 
       // Basic type checking
       if (schema.type === 'string' && typeof value !== 'string') {

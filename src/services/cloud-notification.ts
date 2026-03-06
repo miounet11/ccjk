@@ -8,7 +8,6 @@
  * @module services/cloud-notification
  */
 
-import type { DeviceInfo } from '../utils/notification/token'
 import type {
   BindRequest,
   BindResponse,
@@ -16,11 +15,10 @@ import type {
   NotifyResponse,
   PollResponse,
 } from '../cloud-client/notifications/types'
+import type { DeviceInfo } from '../utils/notification/token'
 import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
-import { writeFileAtomic } from '../utils/fs-operations'
-import { getDeviceInfo } from '../utils/notification/token'
 import { createDefaultGateway } from '../cloud-client/gateway'
 import {
   validateBindRequest,
@@ -29,13 +27,15 @@ import {
   validateNotifyResponse,
   validatePollResponse,
 } from '../cloud-client/notifications/types'
+import { writeFileAtomic } from '../utils/fs-operations'
+import { getDeviceInfo } from '../utils/notification/token'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 const CLOUD_API_BASE_URL = 'https://api.claudehome.cn'
-const DEFAULT_TIMEOUT = 30000 // 30 seconds
+const _DEFAULT_TIMEOUT = 30000 // 30 seconds
 const POLL_TIMEOUT = 60000 // 60 seconds for long-polling
 const TOKEN_FILE_PATH = join(homedir(), '.ccjk', 'cloud-token.json')
 

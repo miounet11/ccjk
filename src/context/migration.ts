@@ -6,9 +6,10 @@
  * @module context/migration
  */
 
+import type { ContextCache } from './cache'
+import type { ContextPersistence } from './persistence'
 import type { CompressedContext } from './types'
-import { ContextCache } from './cache'
-import { ContextPersistence, getContextPersistence } from './persistence'
+import { getContextPersistence } from './persistence'
 
 /**
  * Migration result

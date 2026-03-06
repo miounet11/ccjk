@@ -12,15 +12,15 @@
  *   ccjk qs                       - Short alias
  */
 
+import type { SmartDefaults } from '../config/smart-defaults'
+import type { CodeToolType, SupportedLang } from '../constants'
+import type { InitOptions } from './init'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import type { SmartDefaults } from '../config/smart-defaults'
 import { detectSmartDefaults } from '../config/smart-defaults'
-import type { CodeToolType, SupportedLang } from '../constants'
 import { i18n } from '../i18n'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { getRuntimeVersion } from '../utils/runtime-package'
-import type { InitOptions } from './init'
 import { init } from './init'
 
 const ccjkVersion = getRuntimeVersion()
@@ -378,9 +378,12 @@ export async function quickSetup(options: QuickSetupOptions = {}): Promise<Quick
       const ctx = defaults.projectContext
       const parts = [ctx.language, ctx.framework !== 'none' ? ctx.framework : null, ctx.testRunner !== 'none' ? ctx.testRunner : null, ctx.packageManager !== 'none' ? ctx.packageManager : null].filter(Boolean)
       console.log(`  ${ansis.gray('Project:')} ${ansis.green(parts.join(' + '))}`)
-      if (ctx.runtime.isHeadless) console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('headless server')}`)
-      if (ctx.runtime.isContainer) console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('container')}`)
-      if (ctx.runtime.isCI) console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('CI/CD')}`)
+      if (ctx.runtime.isHeadless)
+        console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('headless server')}`)
+      if (ctx.runtime.isContainer)
+        console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('container')}`)
+      if (ctx.runtime.isCI)
+        console.log(`  ${ansis.gray('Runtime:')} ${ansis.yellow('CI/CD')}`)
     }
     console.log('')
 

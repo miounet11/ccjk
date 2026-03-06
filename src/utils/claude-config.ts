@@ -1,5 +1,5 @@
 import type { ClaudeConfiguration, McpServerConfig } from '../types'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'

@@ -7,11 +7,18 @@
  * - Version history management
  */
 
+import type { ProjectContext } from '../config/project-scanner.js'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
+import { getProjectBestPractices } from '../config/project-best-practices.js'
+
+// ============================================================================
+// CLAUDE.md Generation Utilities
+// ============================================================================
+
 import { i18n } from '../i18n'
 import {
   applyTemplate,
@@ -615,13 +622,6 @@ async function showClaudeMdMenu(): Promise<void> {
   // Show menu again
   await showClaudeMdMenu()
 }
-
-// ============================================================================
-// CLAUDE.md Generation Utilities
-// ============================================================================
-
-import type { ProjectContext } from '../config/project-scanner.js'
-import { getProjectBestPractices } from '../config/project-best-practices.js'
 
 /**
  * Generate CLAUDE.md content for the project.

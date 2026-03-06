@@ -2,10 +2,10 @@
  * Logger Unit Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Logger } from '../../src/utils/logger'
 
-describe('Logger', () => {
+describe('logger', () => {
   let logger: Logger
   let consoleLogSpy: any
 

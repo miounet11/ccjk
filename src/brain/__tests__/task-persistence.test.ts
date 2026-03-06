@@ -7,10 +7,10 @@
  * @module brain/__tests__/task-persistence.test
  */
 
+import type { Task } from '../orchestrator-types'
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import type { Task } from '../orchestrator-types'
 import { TaskPersistence } from '../task-persistence'
 
 describe('taskPersistence', () => {

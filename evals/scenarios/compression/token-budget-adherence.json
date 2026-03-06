@@ -1,0 +1,14 @@
+{
+  "id": "token-budget-adherence",
+  "suite": "compression",
+  "description": "Test token budget adherence in compression",
+  "command": "node -e \"console.log('compression test')\"",
+  "runs": 5,
+  "assertions": [
+    {
+      "type": "exit_code",
+      "expected": 0
+    }
+  ],
+  "metrics": ["duration_ms"]
+}

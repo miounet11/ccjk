@@ -1,0 +1,27 @@
+{
+  "id": "context-build-basic",
+  "suite": "context",
+  "description": "Builds a basic context artifact for a sample project",
+  "command": "node dist/cli.mjs context build --target claude-code --output tmp/evals/context-build-basic",
+  "runs": 1,
+  "timeout": 30000,
+  "assertions": [
+    {
+      "type": "exit_code",
+      "expected": 0
+    },
+    {
+      "type": "file_exists",
+      "path": "tmp/evals/context-build-basic/CLAUDE.md"
+    },
+    {
+      "type": "contains_text",
+      "path": "tmp/evals/context-build-basic/CLAUDE.md",
+      "value": "Project Information"
+    }
+  ],
+  "metrics": [
+    "duration_ms",
+    "output_bytes"
+  ]
+}

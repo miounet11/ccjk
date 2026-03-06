@@ -4,15 +4,15 @@
  * Tests for the persistence manager command interface.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { existsSync, mkdirSync, rmSync } from 'node:fs'
-import { join } from 'pathe'
-import { tmpdir } from 'node:os'
-import { ContextPersistence } from '../../src/context/persistence'
-import { createHierarchicalLoader } from '../../src/context/hierarchical-loader'
 import type { CompressedContext } from '../../src/context/types'
+import { existsSync, mkdirSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'pathe'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { createHierarchicalLoader } from '../../src/context/hierarchical-loader'
+import { ContextPersistence } from '../../src/context/persistence'
 
-describe('Persistence Manager', () => {
+describe('persistence Manager', () => {
   let testDbPath: string
   let persistence: ContextPersistence
 
@@ -35,7 +35,7 @@ describe('Persistence Manager', () => {
     }
   })
 
-  describe('Context Storage', () => {
+  describe('context Storage', () => {
     it('should save and retrieve contexts', () => {
       const context: CompressedContext = {
         id: 'test-context-1',
@@ -118,7 +118,7 @@ describe('Persistence Manager', () => {
     })
   })
 
-  describe('Full-Text Search', () => {
+  describe('full-Text Search', () => {
     beforeEach(() => {
       // Add test contexts with searchable content
       const contexts = [
@@ -182,7 +182,7 @@ describe('Persistence Manager', () => {
     })
   })
 
-  describe('Context Cleanup', () => {
+  describe('context Cleanup', () => {
     it('should delete old contexts', () => {
       const oldTimestamp = Date.now() - 10 * 24 * 60 * 60 * 1000 // 10 days ago
       const recentTimestamp = Date.now() - 1 * 24 * 60 * 60 * 1000 // 1 day ago
@@ -226,7 +226,7 @@ describe('Persistence Manager', () => {
     })
   })
 
-  describe('Export and Import', () => {
+  describe('export and Import', () => {
     it('should export contexts to array', () => {
       const contexts: CompressedContext[] = [
         {
@@ -287,7 +287,7 @@ describe('Persistence Manager', () => {
     })
   })
 
-  describe('Statistics', () => {
+  describe('statistics', () => {
     beforeEach(() => {
       const contexts: CompressedContext[] = [
         {
@@ -330,7 +330,7 @@ describe('Persistence Manager', () => {
     })
   })
 
-  describe('Hierarchical Loader', () => {
+  describe('hierarchical Loader', () => {
     let loader: ReturnType<typeof createHierarchicalLoader>
 
     beforeEach(() => {
@@ -414,7 +414,7 @@ describe('Persistence Manager', () => {
     })
   })
 
-  describe('Database Operations', () => {
+  describe('database Operations', () => {
     it('should vacuum database', () => {
       // Add and delete contexts to create fragmentation
       for (let i = 0; i < 10; i++) {

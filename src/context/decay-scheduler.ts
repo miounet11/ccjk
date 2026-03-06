@@ -8,23 +8,24 @@
  * - Graceful shutdown
  */
 
-import cron from 'node-cron';
-import { MemoryTree } from './memory-tree';
+import type { ScheduledTask } from 'node-cron'
+import type { MemoryTree } from './memory-tree'
+import cron from 'node-cron'
 
 export interface DecayResult {
-  decayed: number;
-  archived: number;
-  details: Record<string, number>;
+  decayed: number
+  archived: number
+  details: Record<string, number>
 }
 
 export class DecayScheduler {
-  private memoryTree: MemoryTree;
-  private task: cron.ScheduledTask | null = null;
-  private archiveThreshold: number;
+  private memoryTree: MemoryTree
+  private task: ScheduledTask | null = null
+  private archiveThreshold: number
 
   constructor(memoryTree: MemoryTree, archiveThreshold: number = 0.3) {
-    this.memoryTree = memoryTree;
-    this.archiveThreshold = archiveThreshold;
+    this.memoryTree = memoryTree
+    this.archiveThreshold = archiveThreshold
   }
 
   /**
@@ -32,28 +33,29 @@ export class DecayScheduler {
    */
   start(schedule: string = '0 2 * * *'): void {
     if (this.task) {
-      console.warn('[CCJK Context] Decay scheduler already running');
-      return;
+      console.warn('[CCJK Context] Decay scheduler already running')
+      return
     }
 
     // Validate cron expression
     if (!cron.validate(schedule)) {
-      throw new Error(`Invalid cron expression: ${schedule}`);
+      throw new Error(`Invalid cron expression: ${schedule}`)
     }
 
-    console.log(`[CCJK Context] Starting decay scheduler: ${schedule}`);
-    console.log('[CCJK Context] This will run in the background. Use .stop() to disable.');
+    console.log(`[CCJK Context] Starting decay scheduler: ${schedule}`)
+    console.log('[CCJK Context] This will run in the background. Use .stop() to disable.')
 
     this.task = cron.schedule(schedule, async () => {
-      console.log('[CCJK Context] Running scheduled decay...');
+      console.log('[CCJK Context] Running scheduled decay...')
 
       try {
-        const result = await this.runDecay();
-        console.log(`[CCJK Context] Decayed ${result.decayed} nodes, archived ${result.archived} nodes`);
-      } catch (err) {
-        console.error('[CCJK Context] Decay error:', err);
+        const result = await this.runDecay()
+        console.log(`[CCJK Context] Decayed ${result.decayed} nodes, archived ${result.archived} nodes`)
       }
-    });
+      catch (err) {
+        console.error('[CCJK Context] Decay error:', err)
+      }
+    })
   }
 
   /**
@@ -61,9 +63,9 @@ export class DecayScheduler {
    */
   stop(): void {
     if (this.task) {
-      this.task.stop();
-      this.task = null;
-      console.log('[CCJK Context] Decay scheduler stopped');
+      this.task.stop()
+      this.task = null
+      console.log('[CCJK Context] Decay scheduler stopped')
     }
   }
 
@@ -71,31 +73,31 @@ export class DecayScheduler {
    * Check if scheduler is running
    */
   isRunning(): boolean {
-    return this.task !== null;
+    return this.task !== null
   }
 
   /**
    * Run decay manually
    */
   async runNow(): Promise<DecayResult> {
-    return this.runDecay();
+    return this.runDecay()
   }
 
   /**
    * Preview what would be decayed (dry run)
    */
   async preview(): Promise<{
-    wouldDecay: number;
-    wouldArchive: number;
-    stats: any;
+    wouldDecay: number
+    wouldArchive: number
+    stats: any
   }> {
-    const stats = this.memoryTree.getStats();
+    const stats = await this.memoryTree.getStats()
 
     return {
-      wouldDecay: stats.totalNodes - stats.byPriority['P0'] || 0,
+      wouldDecay: (stats.totalNodes - (stats.byPriority.P0 || 0)) || 0,
       wouldArchive: stats.brownLeaves,
-      stats
-    };
+      stats,
+    }
   }
 
   /**
@@ -103,15 +105,15 @@ export class DecayScheduler {
    */
   private async runDecay(): Promise<DecayResult> {
     // Run confidence decay
-    const decayResult = this.memoryTree.decay();
+    const decayed = await this.memoryTree.applyDecay()
 
     // Archive low-confidence nodes
-    const archived = this.memoryTree.archiveLowConfidence(this.archiveThreshold);
+    const archived = await this.memoryTree.archiveLowConfidence(this.archiveThreshold)
 
     return {
-      decayed: decayResult.decayed,
+      decayed,
       archived,
-      details: decayResult.details
-    };
+      details: { threshold: this.archiveThreshold },
+    }
   }
 }

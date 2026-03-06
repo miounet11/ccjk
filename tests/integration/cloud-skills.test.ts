@@ -11,8 +11,8 @@
  * @module tests/integration/cloud-skills
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CloudApiResponse } from '../../src/services/cloud/api-client'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -51,7 +51,7 @@ interface SkillUploadResponse {
   message: string
 }
 
-describe('Cloud Skills Integration Tests', () => {
+describe('cloud Skills Integration Tests', () => {
   let mockServer: MockCloudServer
   let gateway: any
 
@@ -70,7 +70,7 @@ describe('Cloud Skills Integration Tests', () => {
   // Test Suite 1: Skills List
   // ==========================================================================
 
-  describe('Skills List', () => {
+  describe('skills List', () => {
     it('should successfully retrieve skills list', async () => {
       // Arrange
       const mockSkills: Skill[] = [
@@ -253,7 +253,7 @@ describe('Cloud Skills Integration Tests', () => {
   // Test Suite 2: Skills Download
   // ==========================================================================
 
-  describe('Skills Download', () => {
+  describe('skills Download', () => {
     it('should successfully download a skill', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<SkillDownloadResponse> = {
@@ -358,7 +358,7 @@ describe('Cloud Skills Integration Tests', () => {
   // Test Suite 3: Skills Upload
   // ==========================================================================
 
-  describe('Skills Upload', () => {
+  describe('skills Upload', () => {
     it('should successfully upload a skill', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<SkillUploadResponse> = {
@@ -475,7 +475,7 @@ describe('Cloud Skills Integration Tests', () => {
   // Test Suite 4: Skills Search and Filtering
   // ==========================================================================
 
-  describe('Skills Search and Filtering', () => {
+  describe('skills Search and Filtering', () => {
     it('should search skills by keyword', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<SkillsListResponse> = {

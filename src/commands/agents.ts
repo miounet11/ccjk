@@ -15,10 +15,10 @@
 
 import type { Task } from '../brain/orchestrator-types'
 import ansis from 'ansis'
-import ora from 'ora'
 import { nanoid } from 'nanoid'
-import { BrainOrchestrator } from '../brain/orchestrator'
+import ora from 'ora'
 import { getGlobalConvoyManager } from '../brain/convoy/convoy-manager'
+import { BrainOrchestrator } from '../brain/orchestrator'
 
 // ============================================================================
 // Command Options
@@ -407,7 +407,7 @@ async function showStatus(options: AgentsCommandOptions): Promise<void> {
     console.log(ansis.bold('Active Convoys:'))
     console.log('')
     for (const convoy of activeConvoys) {
-      console.log(`  ${ansis.bold(convoy.name)} ${ansis.dim('(' + convoy.id + ')')}`)
+      console.log(`  ${ansis.bold(convoy.name)} ${ansis.dim(`(${convoy.id})`)}`)
       console.log(ansis.dim(`    Status: ${convoy.status}`))
       console.log(ansis.dim(`    Progress: ${convoy.progress}%`))
       console.log(ansis.dim(`    Tasks: ${convoy.completedTasks}/${convoy.totalTasks}`))
@@ -421,7 +421,7 @@ async function showStatus(options: AgentsCommandOptions): Promise<void> {
     console.log('')
     for (const convoy of recentConvoys) {
       const statusIcon = convoy.status === 'completed' ? '✅' : convoy.status === 'failed' ? '❌' : '⏸️'
-      console.log(`  ${statusIcon} ${ansis.bold(convoy.name)} ${ansis.dim('(' + convoy.id + ')')}`)
+      console.log(`  ${statusIcon} ${ansis.bold(convoy.name)} ${ansis.dim(`(${convoy.id})`)}`)
       console.log(ansis.dim(`    Status: ${convoy.status}`))
       console.log(ansis.dim(`    Progress: ${convoy.progress}%`))
       console.log(ansis.dim(`    Created: ${new Date(convoy.createdAt).toLocaleString()}`))
@@ -444,7 +444,7 @@ async function listWorkflows(options: AgentsCommandOptions): Promise<void> {
   console.log(ansis.cyan('\n📋 Available Workflow Presets\n'))
 
   for (const workflow of WORKFLOW_PRESETS) {
-    console.log(`  ${ansis.bold(workflow.name)} ${ansis.dim('(' + workflow.id + ')')}`)
+    console.log(`  ${ansis.bold(workflow.name)} ${ansis.dim(`(${workflow.id})`)}`)
     console.log(ansis.dim(`    ${workflow.description}`))
     console.log('')
   }
@@ -459,7 +459,7 @@ async function listWorkflows(options: AgentsCommandOptions): Promise<void> {
 /**
  * Cancel a running convoy
  */
-async function cancelConvoy(convoyId: string, options: AgentsCommandOptions): Promise<void> {
+async function cancelConvoy(convoyId: string, _options: AgentsCommandOptions): Promise<void> {
   if (!convoyId) {
     console.log(ansis.red('Error: Please specify a convoy ID'))
     console.log(ansis.dim('Example: agents cancel cv-abc123'))

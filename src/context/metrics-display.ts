@@ -58,17 +58,17 @@ export function displayCompressionResult(
   compressionRatio: number,
   timeTakenMs: number,
 ): void {
-  const tokensSaved = originalTokens - compressedTokens
+  const _tokensSaved = originalTokens - compressedTokens
   const reductionPercent = Math.round(compressionRatio * 100)
   const originalFormatted = formatTokenCount(originalTokens)
   const compressedFormatted = formatTokenCount(compressedTokens)
 
   console.log(
-    ansis.green('✅') + ' Compressed ' +
-    ansis.cyan(originalFormatted) + ' tokens → ' +
-    ansis.cyan(compressedFormatted) + ' ' +
-    ansis.yellow(`(${reductionPercent}% reduction)`) + ' ' +
-    ansis.gray(`[${formatTime(timeTakenMs)}]`),
+    `${ansis.green('✅')} Compressed ${
+      ansis.cyan(originalFormatted)} tokens → ${
+      ansis.cyan(compressedFormatted)} ${
+      ansis.yellow(`(${reductionPercent}% reduction)`)} ${
+      ansis.gray(`[${formatTime(timeTakenMs)}]`)}`,
   )
 }
 
@@ -187,12 +187,12 @@ export function displayCompressionTable(
 
   // Header
   console.log(
-    ansis.white.bold('Original'.padEnd(12)) +
-    ansis.white.bold('Compressed'.padEnd(12)) +
-    ansis.white.bold('Ratio'.padEnd(10)) +
-    ansis.white.bold('Time'.padEnd(10)) +
-    ansis.white.bold('Strategy'.padEnd(15)) +
-    ansis.white.bold('Algorithm'),
+    ansis.white.bold('Original'.padEnd(12))
+    + ansis.white.bold('Compressed'.padEnd(12))
+    + ansis.white.bold('Ratio'.padEnd(10))
+    + ansis.white.bold('Time'.padEnd(10))
+    + ansis.white.bold('Strategy'.padEnd(15))
+    + ansis.white.bold('Algorithm'),
   )
   console.log(ansis.gray('─'.repeat(80)))
 
@@ -207,12 +207,12 @@ export function displayCompressionTable(
     const algorithm = metric.algorithm
 
     console.log(
-      ansis.cyan(original) +
-      ansis.green(compressed) +
-      ansis.yellow(ratio) +
-      ansis.gray(time) +
-      ansis.white(strategy) +
-      ansis.gray(algorithm),
+      ansis.cyan(original)
+      + ansis.green(compressed)
+      + ansis.yellow(ratio)
+      + ansis.gray(time)
+      + ansis.white(strategy)
+      + ansis.gray(algorithm),
     )
   }
 

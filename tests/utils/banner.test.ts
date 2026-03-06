@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { initI18n } from '../../src/i18n'
 import { displayCommandDiscovery } from '../../src/utils/banner'
-import { i18n, initI18n } from '../../src/i18n'
 
 describe('displayCommandDiscovery', () => {
   beforeEach(async () => {

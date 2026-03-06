@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { InitOptions } from '../../src/commands/init'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * Tests for silent init mode

@@ -7,10 +7,10 @@
  * @module context/persistence
  */
 
-import Database from 'better-sqlite3'
+import type { CompressedContext } from './types'
 import { existsSync, mkdirSync } from 'node:fs'
+import Database from 'better-sqlite3'
 import { dirname, join } from 'pathe'
-import type { CompressedContext, ContextData } from './types'
 
 /**
  * Persisted context entry
@@ -294,7 +294,8 @@ export class ContextPersistence {
     `)
 
     const row = stmt.get(contextId) as any
-    if (!row) return null
+    if (!row)
+      return null
 
     // Update last accessed time
     this.updateLastAccessed(contextId)
@@ -495,7 +496,8 @@ export class ContextPersistence {
    */
   deleteContext(contextId: string): boolean {
     const context = this.getContext(contextId)
-    if (!context) return false
+    if (!context)
+      return false
 
     const stmt = this.db.prepare('DELETE FROM contexts WHERE id = ?')
     const result = stmt.run(contextId)

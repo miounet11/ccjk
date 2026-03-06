@@ -4,32 +4,34 @@
  * MUD-style terminal aesthetics: green text, white highlights
  */
 
+import type { BoxStyle } from './theme'
 import ansis from 'ansis'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { getRuntimeHomepage, getRuntimeVersion } from './runtime-package'
-import type { BoxStyle } from './theme'
 import {
-    box,
-    boxify,
-    COLORS,
-    divider,
-    header,
-    menuItem,
-    progress,
-    status,
-    theme,
+  box,
+  boxify,
+  COLORS,
+  divider,
+  header,
+  menuItem,
+  progress,
+  status,
+  theme,
 } from './theme'
 
 // Re-export theme utilities for backward compatibility
 export {
-    box,
-    boxify, COLORS,
-    divider,
-    header,
-    menuItem,
-    progress,
-    status,
-    theme, type BoxStyle
+  box,
+  boxify,
+  type BoxStyle,
+  COLORS,
+  divider,
+  header,
+  menuItem,
+  progress,
+  status,
+  theme,
 }
 
 /** Calculate display width considering CJK characters */
@@ -134,7 +136,8 @@ export function displayCommandDiscovery(): void {
   for (const { cmd, desc, descEn } of ccjkCommands) {
     const cmdPadded = cmd.padEnd(12)
     if (isZhCN) {
-      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)} ${ansis.gray(`(${descEn})`)}`)}
+      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)} ${ansis.gray(`(${descEn})`)}`)
+    }
     else {
       console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)}`)
     }
@@ -153,13 +156,14 @@ export function displayCommandDiscovery(): void {
   for (const { cmd, desc, descEn } of claudeCommands) {
     const cmdPadded = cmd.padEnd(12)
     if (isZhCN) {
-      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)} ${ansis.gray(`(${descEn})`)}`)}
+      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)} ${ansis.gray(`(${descEn})`)}`)
+    }
     else {
       console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)}`)
     }
   }
 
-  console.log(ansis.gray('\n' + '─'.repeat(60)))
+  console.log(ansis.gray(`\n${'─'.repeat(60)}`))
   console.log(ansis.gray(`  ${i18n.t('cli:commandDiscovery.footer')}\n`))
 }
 

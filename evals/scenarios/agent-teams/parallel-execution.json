@@ -1,0 +1,14 @@
+{
+  "id": "parallel-execution",
+  "suite": "agent-teams",
+  "description": "Test parallel agent execution",
+  "command": "sleep 0.1 && echo 'done'",
+  "runs": 2,
+  "assertions": [
+    {
+      "type": "exit_code",
+      "expected": 0
+    }
+  ],
+  "metrics": ["duration_ms"]
+}

@@ -5,8 +5,8 @@
 
 import type { CodeToolType, SupportedLang } from '../constants'
 import ansis from 'ansis'
-import { i18n } from '../i18n'
 import { getMcpServices } from '../config/mcp-services'
+import { i18n } from '../i18n'
 import { readMcpConfig } from '../utils/claude-config'
 import { installMcpService, uninstallMcpService } from '../utils/mcp-installer'
 

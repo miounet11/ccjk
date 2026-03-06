@@ -4,6 +4,12 @@
  * Tests for strict type conversions and validations
  */
 
+import type {
+  RawBatchTemplateResponse,
+  RawProjectAnalysisResponse,
+  RawRecommendation,
+  RawTemplate,
+} from '../../src/cloud-client/dto'
 import { describe, expect, it } from 'vitest'
 import {
   convertBatchTemplateResponse,
@@ -12,7 +18,6 @@ import {
   convertProjectAnalysisResponse,
   convertRecommendation,
   convertTemplate,
-  convertTemplateParameter,
   extractString,
   isRecommendationConfig,
   isTelemetryEventData,
@@ -21,22 +26,16 @@ import {
   validateProjectAnalysisRequest,
   validateUsageReport,
 } from '../../src/cloud-client/dto'
-import type {
-  RawBatchTemplateResponse,
-  RawProjectAnalysisResponse,
-  RawRecommendation,
-  RawTemplate,
-} from '../../src/cloud-client/dto'
 
-describe('DTO Converters', () => {
+describe('dTO Converters', () => {
   describe('extractString', () => {
     it('should extract string from string value', () => {
       expect(extractString('Hello', 'fallback')).toBe('Hello')
     })
 
     it('should extract string from multilingual object', () => {
-      expect(extractString({ en: 'Hello', 'zh-CN': '你好' }, 'fallback', 'en')).toBe('Hello')
-      expect(extractString({ en: 'Hello', 'zh-CN': '你好' }, 'fallback', 'zh-CN')).toBe('你好')
+      expect(extractString({ 'en': 'Hello', 'zh-CN': '你好' }, 'fallback', 'en')).toBe('Hello')
+      expect(extractString({ 'en': 'Hello', 'zh-CN': '你好' }, 'fallback', 'zh-CN')).toBe('你好')
     })
 
     it('should fallback to en when preferred language not available', () => {
@@ -173,8 +172,8 @@ describe('DTO Converters', () => {
     it('should convert raw recommendation with multilingual name/description', () => {
       const raw: RawRecommendation = {
         id: 'test-rec',
-        name: { en: 'Test', 'zh-CN': '测试' },
-        description: { en: 'Description', 'zh-CN': '描述' },
+        name: { 'en': 'Test', 'zh-CN': '测试' },
+        description: { 'en': 'Description', 'zh-CN': '描述' },
         category: 'mcp',
         relevanceScore: 0.95,
         tags: ['test', 'mcp'],
@@ -182,8 +181,8 @@ describe('DTO Converters', () => {
 
       const converted = convertRecommendation(raw)
 
-      expect(converted.name).toEqual({ en: 'Test', 'zh-CN': '测试' })
-      expect(converted.description).toEqual({ en: 'Description', 'zh-CN': '描述' })
+      expect(converted.name).toEqual({ 'en': 'Test', 'zh-CN': '测试' })
+      expect(converted.description).toEqual({ 'en': 'Description', 'zh-CN': '描述' })
     })
   })
 
@@ -221,8 +220,8 @@ describe('DTO Converters', () => {
       const raw: RawTemplate = {
         id: 'test-template',
         type: 'prompt',
-        name: { en: 'Test', 'zh-CN': '测试' },
-        description: { en: 'Desc', 'zh-CN': '描述' },
+        name: { 'en': 'Test', 'zh-CN': '测试' },
+        description: { 'en': 'Desc', 'zh-CN': '描述' },
         content: 'Content',
         version: '1.0.0',
         parameters: [
@@ -303,7 +302,7 @@ describe('DTO Converters', () => {
     })
   })
 
-  describe('Validation Functions', () => {
+  describe('validation Functions', () => {
     describe('validateProjectAnalysisRequest', () => {
       it('should validate valid request', () => {
         const result = validateProjectAnalysisRequest({
@@ -393,7 +392,7 @@ describe('DTO Converters', () => {
     })
   })
 
-  describe('Type Guards', () => {
+  describe('type Guards', () => {
     describe('isRecommendationConfig', () => {
       it('should return true for valid config', () => {
         expect(isRecommendationConfig({ command: 'npx' })).toBe(true)

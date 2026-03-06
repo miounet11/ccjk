@@ -4,12 +4,12 @@
  * Usage: ccjk dashboard [--json] [--compact]
  */
 
-import ansis from 'ansis'
+import type { ContextStats } from '../context/persistence'
 import { existsSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
+import ansis from 'ansis'
 import { join } from 'pathe'
-import type { ContextStats } from '../context/persistence'
 import { i18n } from '../i18n'
 import { getProjectIdentity } from '../utils/context/project-hash'
 
@@ -100,11 +100,12 @@ function divider(): string {
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
+  if (bytes === 0)
+    return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
+  return `${(bytes / k ** i).toFixed(2)} ${sizes[i]}`
 }
 
 function formatNumber(num: number): string {
@@ -120,10 +121,14 @@ function formatDate(timestamp: number): string {
   const now = Date.now()
   const diff = now - timestamp
 
-  if (diff < 60000) return 'just now'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`
+  if (diff < 60000)
+    return 'just now'
+  if (diff < 3600000)
+    return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000)
+    return `${Math.floor(diff / 3600000)}h ago`
+  if (diff < 604800000)
+    return `${Math.floor(diff / 86400000)}d ago`
 
   return date.toLocaleDateString()
 }
@@ -186,7 +191,7 @@ async function collectDashboardData(): Promise<DashboardData> {
 
     // Calculate compression metrics
     if (stats.totalOriginalTokens > 0) {
-      const tokensSaved = stats.totalOriginalTokens - stats.totalCompressedTokens
+      const _tokensSaved = stats.totalOriginalTokens - stats.totalCompressedTokens
       data.compression.compressionRatio = stats.averageCompressionRatio
 
       // Session savings (last hour)

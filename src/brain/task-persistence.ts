@@ -14,10 +14,10 @@
  * @module brain/task-persistence
  */
 
-import Database from 'better-sqlite3'
-import { existsSync, mkdirSync } from 'node:fs'
-import { dirname, join } from 'pathe'
 import type { Task } from './orchestrator-types'
+import { existsSync, mkdirSync } from 'node:fs'
+import Database from 'better-sqlite3'
+import { dirname, join } from 'pathe'
 
 /**
  * Persisted task
@@ -303,7 +303,8 @@ export class TaskPersistence {
     `)
 
     const row = stmt.get(taskId) as any
-    if (!row) return undefined
+    if (!row)
+      return undefined
 
     return this.rowToTask(row)
   }
@@ -498,7 +499,7 @@ export class TaskPersistence {
   /**
    * Calculate topological level for a task
    */
-  private calculateTopologicalLevel(taskId: string, sessionId: string): number {
+  private calculateTopologicalLevel(taskId: string, _sessionId: string): number {
     const visited = new Set<string>()
     const calculating = new Set<string>()
 

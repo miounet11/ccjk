@@ -7,6 +7,7 @@ import type { ClaudeSettings } from '../types/config'
 import ansis from 'ansis'
 import { SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { ClaudeCodeConfigManager } from './claude-code-config-manager'
 import { backupExistingConfig } from './config'
 import { exists } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
@@ -72,6 +73,52 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
           modified = true
         }
       }
+
+      const hasAdaptiveModelDefaults = Boolean(
+        settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+        || settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL
+        || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
+      )
+
+      if (hasAdaptiveModelDefaults && settings.env.ANTHROPIC_MODEL) {
+        delete settings.env.ANTHROPIC_MODEL
+        result.changes.push('Removed stale ANTHROPIC_MODEL override so Claude Code can use adaptive Haiku/Sonnet/Opus routing')
+        modified = true
+      }
+    }
+
+    if (settings.model && (
+      settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
+      || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
+      || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL
+    )) {
+      delete settings.model
+      result.changes.push('Removed stale settings.model override because adaptive default model variants are configured')
+      modified = true
+    }
+
+    const profileConfig = ClaudeCodeConfigManager.readConfig()
+    if (profileConfig) {
+      let profileModified = false
+
+      for (const [profileId, profile] of Object.entries(profileConfig.profiles)) {
+        const hasAdaptiveModelDefaults = Boolean(
+          profile.defaultHaikuModel
+          || profile.defaultSonnetModel
+          || profile.defaultOpusModel,
+        )
+
+        if (hasAdaptiveModelDefaults && profile.primaryModel) {
+          delete profile.primaryModel
+          result.changes.push(`Removed stale primaryModel override from Claude Code profile "${profile.name || profileId}"`)
+          profileModified = true
+        }
+      }
+
+      if (profileModified) {
+        ClaudeCodeConfigManager.writeConfig(profileConfig)
+        modified = true
+      }
     }
 
     // If no changes needed, return success
@@ -120,8 +167,25 @@ export function needsMigration(): boolean {
     const hasProblematicVar = 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' in settings.env
     const hasExcessiveTimeout = settings.env.MCP_TIMEOUT
       && Number.parseInt(settings.env.MCP_TIMEOUT as string, 10) > 20000
+    const hasAdaptiveModelDefaults = Boolean(
+      settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+      || settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL
+      || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
+    )
+    const hasPinnedAdaptiveOverride = Boolean(settings.env.ANTHROPIC_MODEL && hasAdaptiveModelDefaults)
+      || Boolean(settings.model && hasAdaptiveModelDefaults)
 
-    return Boolean(hasProblematicVar || hasExcessiveTimeout)
+    const profileConfig = ClaudeCodeConfigManager.readConfig()
+    const hasProfilePinnedAdaptiveOverride = Boolean(profileConfig && Object.values(profileConfig.profiles).some(profile =>
+      profile.primaryModel
+      && (
+        profile.defaultHaikuModel
+        || profile.defaultSonnetModel
+        || profile.defaultOpusModel
+      ),
+    ))
+
+    return Boolean(hasProblematicVar || hasExcessiveTimeout || hasPinnedAdaptiveOverride || hasProfilePinnedAdaptiveOverride)
   }
   catch {
     return false

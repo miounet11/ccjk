@@ -5,9 +5,7 @@
  * authentication and error handling.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CloudApiGateway } from '../../src/cloud-client/gateway'
-import { createSkillsClient } from '../../src/cloud-client/skills/client'
 import type {
   SkillDeleteResponse,
   SkillDownloadResponse,
@@ -15,13 +13,15 @@ import type {
   SkillListResponse,
   SkillUploadResponse,
 } from '../../src/cloud-client/skills/types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CloudError, CloudErrorCode } from '../../src/cloud-client/errors'
+import { createSkillsClient } from '../../src/cloud-client/skills/client'
 
 // ============================================================================
 // Mock Gateway
 // ============================================================================
 
-const createMockGateway = (): CloudApiGateway => {
+function createMockGateway(): CloudApiGateway {
   return {
     request: vi.fn(),
     setAuthToken: vi.fn(),
@@ -72,7 +72,7 @@ const mockSkillSummary = {
 // List Skills Tests
 // ============================================================================
 
-describe('SkillsApiClient - list', () => {
+describe('skillsApiClient - list', () => {
   let gateway: CloudApiGateway
   let client: ReturnType<typeof createSkillsClient>
 
@@ -174,7 +174,7 @@ describe('SkillsApiClient - list', () => {
 // Get Skill Tests
 // ============================================================================
 
-describe('SkillsApiClient - get', () => {
+describe('skillsApiClient - get', () => {
   let gateway: CloudApiGateway
   let client: ReturnType<typeof createSkillsClient>
 
@@ -261,7 +261,7 @@ describe('SkillsApiClient - get', () => {
 // Upload Skill Tests
 // ============================================================================
 
-describe('SkillsApiClient - upload', () => {
+describe('skillsApiClient - upload', () => {
   let gateway: CloudApiGateway
   let client: ReturnType<typeof createSkillsClient>
 
@@ -364,7 +364,7 @@ describe('SkillsApiClient - upload', () => {
 // Download Skill Tests
 // ============================================================================
 
-describe('SkillsApiClient - download', () => {
+describe('skillsApiClient - download', () => {
   let gateway: CloudApiGateway
   let client: ReturnType<typeof createSkillsClient>
 
@@ -402,7 +402,7 @@ describe('SkillsApiClient - download', () => {
 // Update Skill Tests
 // ============================================================================
 
-describe('SkillsApiClient - update', () => {
+describe('skillsApiClient - update', () => {
   let gateway: CloudApiGateway
   let client: ReturnType<typeof createSkillsClient>
 
@@ -447,7 +447,7 @@ describe('SkillsApiClient - update', () => {
 // Delete Skill Tests
 // ============================================================================
 
-describe('SkillsApiClient - delete', () => {
+describe('skillsApiClient - delete', () => {
   let gateway: CloudApiGateway
   let client: ReturnType<typeof createSkillsClient>
 
@@ -491,7 +491,7 @@ describe('SkillsApiClient - delete', () => {
 // Error Handling Tests
 // ============================================================================
 
-describe('SkillsApiClient - error handling', () => {
+describe('skillsApiClient - error handling', () => {
   let gateway: CloudApiGateway
   let client: ReturnType<typeof createSkillsClient>
 

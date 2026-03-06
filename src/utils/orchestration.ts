@@ -1,5 +1,5 @@
-import { join } from 'pathe'
 import type { SupportedLang } from '../constants'
+import { join } from 'pathe'
 import { CCJK_CONFIG_DIR } from '../constants'
 import { writeJsonConfig } from './json-config'
 

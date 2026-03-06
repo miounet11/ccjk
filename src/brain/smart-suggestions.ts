@@ -186,9 +186,9 @@ export class SmartSuggestions {
       return 0
 
     // 简化估算：每个文件平均 50 行
-    const totalFiles = gitStatus.modified.length +
-                      gitStatus.added.length +
-                      gitStatus.deleted.length
+    const totalFiles = gitStatus.modified.length
+      + gitStatus.added.length
+      + gitStatus.deleted.length
 
     return totalFiles * 50
   }
@@ -273,7 +273,7 @@ export class SmartSuggestions {
       return ''
     }
 
-    let message = this.t('suggestions.header') + '\n\n'
+    let message = `${this.t('suggestions.header')}\n\n`
 
     for (const suggestion of suggestions) {
       const priority = this.formatPriority(suggestion.priority)

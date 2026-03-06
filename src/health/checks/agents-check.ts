@@ -1,9 +1,9 @@
+import type { HealthCheck, HealthResult } from '../types'
 /**
  * Agents Health Check
  */
 import { existsSync, readdirSync } from 'node:fs'
 import { CLAUDE_AGENTS_DIR } from '../../constants'
-import type { HealthCheck, HealthResult } from '../types'
 
 export const agentsCheck: HealthCheck = {
   name: 'Agents',
@@ -12,9 +12,13 @@ export const agentsCheck: HealthCheck = {
     try {
       if (!existsSync(CLAUDE_AGENTS_DIR)) {
         return {
-          name: this.name, status: 'warn', score: 30, weight: this.weight,
+          name: this.name,
+          status: 'warn',
+          score: 30,
+          weight: this.weight,
           message: 'No agents directory',
-          fix: 'Create agents for specialized tasks', command: 'ccjk agents',
+          fix: 'Create agents for specialized tasks',
+          command: 'ccjk agents',
         }
       }
 
@@ -23,9 +27,13 @@ export const agentsCheck: HealthCheck = {
 
       if (agentCount === 0) {
         return {
-          name: this.name, status: 'warn', score: 30, weight: this.weight,
+          name: this.name,
+          status: 'warn',
+          score: 30,
+          weight: this.weight,
           message: 'No agents configured',
-          fix: 'Create agents for your project', command: 'ccjk agents',
+          fix: 'Create agents for your project',
+          command: 'ccjk agents',
         }
       }
 
@@ -33,7 +41,8 @@ export const agentsCheck: HealthCheck = {
       return {
         name: this.name,
         status: score >= 60 ? 'pass' : 'warn',
-        score, weight: this.weight,
+        score,
+        weight: this.weight,
         message: `${agentCount} agent${agentCount > 1 ? 's' : ''} configured`,
         details: files.slice(0, 5).map(f => `  ${f.replace('.md', '')}`),
       }

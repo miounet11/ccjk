@@ -8,6 +8,9 @@
  */
 
 import type {
+  SkillsApiClient,
+} from '../../cloud-client/skills/index.js'
+import type {
   CloudApiResponse,
   CloudSkill,
   CloudSkillMetadata,
@@ -25,15 +28,27 @@ import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
 import process from 'node:process'
 import { join } from 'pathe'
+import { createGateway } from '../../cloud-client/gateway.js'
+
+// ============================================================================
+// Cloud API Client
+// ============================================================================
+
+import { createSkillsClient } from '../../cloud-client/skills/index.js'
 import { CCJK_CONFIG_DIR, CCJK_SKILLS_DIR } from '../../constants.js'
 import { writeFileAtomic } from '../../utils/fs-operations'
+
+// ============================================================================
+// Cloud Skills API
+// ============================================================================
+
 import { parseSkillMdFile } from '../../utils/skill-md/parser.js'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = process.env.CCJK_CLOUD_API_URL || 'https://api.claudehome.cn/api/v1'
+const _CLOUD_API_BASE_URL = process.env.CCJK_CLOUD_API_URL || 'https://api.claudehome.cn/api/v1'
 const SYNC_STATE_FILE = join(CCJK_CONFIG_DIR, 'skills-sync-state.json')
 const DEFAULT_TIMEOUT = 30000 // 30 seconds
 
@@ -215,14 +230,6 @@ export function deleteLocalSkill(skillId: string): void {
   }
 }
 
-// ============================================================================
-// Cloud API Client
-// ============================================================================
-
-import { createGateway } from '../../cloud-client/gateway.js'
-import { createSkillsClient } from '../../cloud-client/skills/index.js'
-import type { SkillsApiClient } from '../../cloud-client/skills/index.js'
-
 /**
  * Get authentication token from storage
  */
@@ -269,16 +276,6 @@ function getSkillsClient(): SkillsApiClient {
 export function resetSkillsClient(): void {
   skillsClient = null
 }
-
-// ============================================================================
-// Cloud Skills API
-// ============================================================================
-
-import type {
-  SkillListResponse,
-  SkillGetResponse,
-  SkillUploadResponse,
-} from '../../cloud-client/skills/index.js'
 
 /**
  * List skills from cloud

@@ -9,8 +9,6 @@
  * @module tests/cloud-client/notifications
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CCJKCloudClient } from '../../src/services/cloud-notification'
 import type {
   BindRequest,
   BindResponse,
@@ -18,6 +16,7 @@ import type {
   NotifyResponse,
   PollResponse,
 } from '../../src/cloud-client/notifications/types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   validateBindRequest,
   validateBindResponse,
@@ -25,6 +24,7 @@ import {
   validateNotifyResponse,
   validatePollResponse,
 } from '../../src/cloud-client/notifications/types'
+import { CCJKCloudClient } from '../../src/services/cloud-notification'
 
 // Mock the gateway
 const mockGatewayRequest = vi.fn()
@@ -58,8 +58,8 @@ vi.mock('../../src/utils/notification/token', () => ({
   })),
 }))
 
-describe('Cloud Client - Notification DTOs', () => {
-  describe('Validation Functions', () => {
+describe('cloud Client - Notification DTOs', () => {
+  describe('validation Functions', () => {
     describe('validateBindRequest', () => {
       it('should validate valid bind request', () => {
         const request: BindRequest = {
@@ -380,7 +380,7 @@ describe('Cloud Client - Notification DTOs', () => {
     })
   })
 
-  describe('CCJKCloudClient Integration', () => {
+  describe('cCJKCloudClient Integration', () => {
     let client: CCJKCloudClient
 
     beforeEach(() => {

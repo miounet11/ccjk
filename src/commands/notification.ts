@@ -6,46 +6,46 @@
  * and cloud device binding.
  */
 
+import type {
+  EmailConfig,
+  FeishuConfig,
+  NotificationChannel,
+  SmsConfig,
+  WechatConfig,
+} from '../utils/notification'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { i18n } from '../i18n'
 import {
-    bindDevice,
-    getBindingStatus,
-    isDeviceBound,
-    sendNotification,
-    unbindDevice,
+  bindDevice,
+  getBindingStatus,
+  isDeviceBound,
+  sendNotification,
+  unbindDevice,
 } from '../services/cloud-notification'
 import {
-    getLocalNotificationService,
-    isShortcutsAvailable,
-    isValidBarkUrl,
-    listShortcuts,
-    loadLocalNotificationConfig,
-    saveLocalNotificationConfig,
+  getLocalNotificationService,
+  isShortcutsAvailable,
+  isValidBarkUrl,
+  listShortcuts,
+  loadLocalNotificationConfig,
+  saveLocalNotificationConfig,
 } from '../services/local-notification'
-import type {
-    EmailConfig,
-    FeishuConfig,
-    NotificationChannel,
-    SmsConfig,
-    WechatConfig,
-} from '../utils/notification'
 import {
-    CloudClient,
-    disableChannel,
-    disableNotifications,
-    enableChannel,
-    enableNotifications,
-    getConfigSummary,
-    getEnabledChannels,
-    initializeNotificationConfig,
-    loadNotificationConfig,
-    maskToken,
-    setThreshold,
-    THRESHOLD_OPTIONS,
-    updateNotificationConfig,
-    validateCurrentConfig,
+  CloudClient,
+  disableChannel,
+  disableNotifications,
+  enableChannel,
+  enableNotifications,
+  getConfigSummary,
+  getEnabledChannels,
+  initializeNotificationConfig,
+  loadNotificationConfig,
+  maskToken,
+  setThreshold,
+  THRESHOLD_OPTIONS,
+  updateNotificationConfig,
+  validateCurrentConfig,
 } from '../utils/notification'
 
 // ============================================================================

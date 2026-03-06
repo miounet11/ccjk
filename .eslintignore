@@ -1,0 +1,19 @@
+# Build outputs
+dist/
+*.d.ts
+
+# Generated files
+evals/**
+examples/**
+**/reports/**
+**/*.report.md
+ccjk-setup-report-*.markdown
+setup-report-*.md
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Temp files
+.temp/
+.cache/

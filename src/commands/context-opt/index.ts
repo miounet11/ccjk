@@ -6,9 +6,9 @@
  * @module commands/context
  */
 
+import type { Task } from '../../brain/orchestrator-types'
 import ansis from 'ansis'
-import { contextLoader } from '../brain/context-loader'
-import type { Task } from '../brain/orchestrator-types'
+import { contextLoader } from '../../brain/context-loader'
 
 export interface ContextOptions {
   show?: boolean
@@ -178,8 +178,10 @@ export async function contextCommand(options: ContextOptions = {}): Promise<void
  * Format bytes to human-readable string
  */
 function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`
+  if (bytes < 1024)
+    return `${bytes}B`
+  if (bytes < 1024 * 1024)
+    return `${(bytes / 1024).toFixed(1)}KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
 }
 
@@ -204,8 +206,7 @@ function getDbPath(): string {
  * Run health check
  */
 async function runHealthCheck(): Promise<void> {
-  const { HealthAlertsManager } = await import('../context/health-alerts')
-  const { DatabaseHealthMonitor } = await import('../context/health-check')
+  const { DatabaseHealthMonitor } = await import('../../context/health-check')
 
   const dbPath = getDbPath()
   const { existsSync } = await import('node:fs')
@@ -285,7 +286,7 @@ async function runHealthCheck(): Promise<void> {
  * Show current alerts
  */
 async function showAlerts(): Promise<void> {
-  const { HealthAlertsManager } = await import('../context/health-alerts')
+  const { HealthAlertsManager } = await import('../../context/health-alerts')
 
   const dbPath = getDbPath()
   const { existsSync } = await import('node:fs')
@@ -316,7 +317,7 @@ async function showAlerts(): Promise<void> {
  * Show alert history
  */
 async function showAlertHistory(): Promise<void> {
-  const { HealthAlertsManager } = await import('../context/health-alerts')
+  const { HealthAlertsManager } = await import('../../context/health-alerts')
 
   const dbPath = getDbPath()
   const manager = new HealthAlertsManager(dbPath)
@@ -372,7 +373,7 @@ async function showAlertHistory(): Promise<void> {
  * Checkpoint WAL file
  */
 async function checkpointWAL(): Promise<void> {
-  const { DatabaseHealthMonitor } = await import('../context/health-check')
+  const { DatabaseHealthMonitor } = await import('../../context/health-check')
 
   const dbPath = getDbPath()
   const { existsSync } = await import('node:fs')
@@ -407,7 +408,7 @@ async function checkpointWAL(): Promise<void> {
  * Vacuum database
  */
 async function vacuumDatabase(): Promise<void> {
-  const { DatabaseHealthMonitor } = await import('../context/health-check')
+  const { DatabaseHealthMonitor } = await import('../../context/health-check')
 
   const dbPath = getDbPath()
   const { existsSync } = await import('node:fs')
@@ -450,7 +451,7 @@ async function vacuumDatabase(): Promise<void> {
  * Backup database
  */
 async function backupDatabase(): Promise<void> {
-  const { DatabaseHealthMonitor } = await import('../context/health-check')
+  const { DatabaseHealthMonitor } = await import('../../context/health-check')
 
   const dbPath = getDbPath()
   const { existsSync } = await import('node:fs')
@@ -488,7 +489,7 @@ async function backupDatabase(): Promise<void> {
  * Recover database
  */
 async function recoverDatabase(): Promise<void> {
-  const { DatabaseHealthMonitor } = await import('../context/health-check')
+  const { DatabaseHealthMonitor } = await import('../../context/health-check')
 
   const dbPath = getDbPath()
   const { existsSync } = await import('node:fs')

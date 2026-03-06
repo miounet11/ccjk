@@ -23,11 +23,16 @@ const DEFAULT_CHECKS: HealthCheck[] = [
 ]
 
 function calculateGrade(score: number): HealthReport['grade'] {
-  if (score >= 95) return 'S'
-  if (score >= 80) return 'A'
-  if (score >= 65) return 'B'
-  if (score >= 50) return 'C'
-  if (score >= 30) return 'D'
+  if (score >= 95)
+    return 'S'
+  if (score >= 80)
+    return 'A'
+  if (score >= 65)
+    return 'B'
+  if (score >= 50)
+    return 'C'
+  if (score >= 30)
+    return 'D'
   return 'F'
 }
 
@@ -62,13 +67,20 @@ function generateRecommendations(results: HealthResult[]): Recommendation[] {
 
 function mapCategory(name: string): Recommendation['category'] {
   const lower = name.toLowerCase()
-  if (lower.includes('mcp')) return 'mcp'
-  if (lower.includes('skill')) return 'skills'
-  if (lower.includes('agent')) return 'agents'
-  if (lower.includes('model') || lower.includes('api')) return 'model'
-  if (lower.includes('memory')) return 'sync'
-  if (lower.includes('sync')) return 'sync'
-  if (lower.includes('perm')) return 'permissions'
+  if (lower.includes('mcp'))
+    return 'mcp'
+  if (lower.includes('skill'))
+    return 'skills'
+  if (lower.includes('agent'))
+    return 'agents'
+  if (lower.includes('model') || lower.includes('api'))
+    return 'model'
+  if (lower.includes('memory'))
+    return 'sync'
+  if (lower.includes('sync'))
+    return 'sync'
+  if (lower.includes('perm'))
+    return 'permissions'
   return 'general'
 }
 

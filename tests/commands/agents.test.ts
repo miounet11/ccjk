@@ -4,8 +4,8 @@
  * Tests for the agents command that exposes BrainOrchestrator to CLI.
  */
 
-import { describe, expect, it, vi } from 'vitest'
 import type { AgentsCommandOptions } from '../../src/commands/agents'
+import { describe, expect, it, vi } from 'vitest'
 
 // Mock dependencies
 vi.mock('../../src/brain/orchestrator', () => ({

@@ -1,0 +1,13 @@
+{
+  "id": "file-operations",
+  "name": "File Operations Test",
+  "suite": "basic",
+  "description": "Test basic file operations",
+  "input": "echo 'test content' > /tmp/ccjk-test.txt && cat /tmp/ccjk-test.txt && rm /tmp/ccjk-test.txt",
+  "expectedOutput": "test content",
+  "grading": {
+    "type": "contains",
+    "value": "test content"
+  },
+  "timeout": 5000
+}

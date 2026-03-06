@@ -2,19 +2,19 @@
  * Tests for Hierarchical Context Loader
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import type { CompressedContext } from '../types'
 import { existsSync, unlinkSync } from 'node:fs'
 import { join } from 'pathe'
-import { ContextPersistence } from '../persistence'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
-  HierarchicalContextLoader,
   ContextTier,
   createHierarchicalLoader,
+  HierarchicalContextLoader,
 } from '../hierarchical-loader'
-import type { CompressedContext } from '../types'
+import { ContextPersistence } from '../persistence'
 import { CompressionAlgorithm, CompressionStrategy } from '../types'
 
-describe('HierarchicalContextLoader', () => {
+describe('hierarchicalContextLoader', () => {
   let persistence: ContextPersistence
   let loader: HierarchicalContextLoader
   const testDbPath = join(process.cwd(), 'test-hierarchical.db')
@@ -34,8 +34,8 @@ describe('HierarchicalContextLoader', () => {
 
     persistence = new ContextPersistence(testDbPath)
     loader = new HierarchicalContextLoader(persistence, projectHash, {
-      hotThreshold: 1000,      // 1 second for testing
-      warmThreshold: 5000,     // 5 seconds for testing
+      hotThreshold: 1000, // 1 second for testing
+      warmThreshold: 5000, // 5 seconds for testing
       l0MaxEntries: 10,
       l0MaxSize: 1024 * 1024,
     })
@@ -54,7 +54,7 @@ describe('HierarchicalContextLoader', () => {
     }
   })
 
-  describe('Tier Classification', () => {
+  describe('tier Classification', () => {
     it('should classify contexts into correct tiers', async () => {
       const now = Date.now()
 
@@ -172,7 +172,7 @@ describe('HierarchicalContextLoader', () => {
     })
   })
 
-  describe('L0 Cache', () => {
+  describe('l0 Cache', () => {
     it('should cache hot contexts in L0', () => {
       const now = Date.now()
       const context: CompressedContext = {
@@ -266,7 +266,7 @@ describe('HierarchicalContextLoader', () => {
     })
   })
 
-  describe('Tier Migration', () => {
+  describe('tier Migration', () => {
     it('should demote hot contexts to warm when they age', async () => {
       const now = Date.now()
       const context: CompressedContext = {
@@ -345,7 +345,7 @@ describe('HierarchicalContextLoader', () => {
     })
   })
 
-  describe('Lazy Loading', () => {
+  describe('lazy Loading', () => {
     it('should lazy load cold contexts in batches', async () => {
       const now = Date.now()
 
@@ -384,7 +384,7 @@ describe('HierarchicalContextLoader', () => {
     })
   })
 
-  describe('Statistics', () => {
+  describe('statistics', () => {
     it('should provide comprehensive tier statistics', () => {
       const now = Date.now()
 
@@ -466,7 +466,7 @@ describe('HierarchicalContextLoader', () => {
     })
   })
 
-  describe('Context Retrieval', () => {
+  describe('context Retrieval', () => {
     it('should retrieve context from any tier', async () => {
       const now = Date.now()
       const context: CompressedContext = {
@@ -519,7 +519,7 @@ describe('HierarchicalContextLoader', () => {
     })
   })
 
-  describe('Factory Function', () => {
+  describe('factory Function', () => {
     it('should create loader with factory function', () => {
       const newLoader = createHierarchicalLoader(persistence, projectHash)
       expect(newLoader).toBeInstanceOf(HierarchicalContextLoader)

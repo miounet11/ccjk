@@ -1,3 +1,4 @@
+import type { HealthResult } from './types'
 /**
  * Health Check Auto-Fixer
  * Executes fix commands for failed/warned health checks
@@ -5,7 +6,6 @@
 import ansis from 'ansis'
 import { x } from 'tinyexec'
 import { i18n } from '../i18n'
-import type { HealthResult } from './types'
 
 export interface FixResult {
   checkName: string
@@ -29,13 +29,14 @@ export interface AutoFixReport {
  */
 export async function autoFix(
   results: HealthResult[],
-  options: { autoApprove?: boolean; dryRun?: boolean } = {},
+  options: { autoApprove?: boolean, dryRun?: boolean } = {},
 ): Promise<AutoFixReport> {
   const isZh = i18n.language === 'zh-CN'
   const fixable = results.filter(r => r.status !== 'pass' && r.command)
   const report: AutoFixReport = { attempted: 0, succeeded: 0, failed: 0, results: [] }
 
-  if (fixable.length === 0) return report
+  if (fixable.length === 0)
+    return report
 
   const { default: inquirer } = await import('inquirer')
 
@@ -65,7 +66,8 @@ export async function autoFix(
       shouldRun = confirm
     }
 
-    if (!shouldRun) continue
+    if (!shouldRun)
+      continue
 
     report.attempted++
     const start = Date.now()

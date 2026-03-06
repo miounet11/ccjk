@@ -3,6 +3,13 @@
  * 零配置浏览器自动化工具
  */
 
+// 导出安装器
+export {
+  checkAgentBrowserInstalled,
+  installAgentBrowser,
+  uninstallAgentBrowser,
+} from '../../utils/agent-browser/installer'
+
 // 导出命令
 export {
   agentBrowserHelp,
@@ -11,15 +18,6 @@ export {
   startBrowserSession,
   stopBrowserSession,
 } from './commands'
-
-// 导出安装器
-export {
-  checkAgentBrowserInstalled,
-  getBinPath,
-  getInstallPath,
-  installAgentBrowser,
-  uninstallAgentBrowser,
-} from './installer'
 
 // 导出会话管理
 export {

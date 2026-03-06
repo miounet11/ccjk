@@ -2,14 +2,14 @@
  * FTS5 Full-Text Search Tests
  */
 
+import type { CompressedContext } from '../types'
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { CompressionAlgorithm, CompressionStrategy } from '../types'
-import type { CompressedContext } from '../types'
 import { ContextPersistence } from '../persistence'
+import { CompressionAlgorithm, CompressionStrategy } from '../types'
 
-describe('FTS5 Full-Text Search', () => {
+describe('fTS5 Full-Text Search', () => {
   let persistence: ContextPersistence
   let testDbPath: string
 
@@ -241,7 +241,7 @@ describe('FTS5 Full-Text Search', () => {
     })
   })
 
-  describe('Hot/Warm/Cold Context Queries', () => {
+  describe('hot/Warm/Cold Context Queries', () => {
     beforeEach(() => {
       // Simulate access patterns
       // Hot: ctx-1 (accessed 5 times recently)
@@ -295,7 +295,7 @@ describe('FTS5 Full-Text Search', () => {
     })
   })
 
-  describe('FTS5 Trigger Synchronization', () => {
+  describe('fTS5 Trigger Synchronization', () => {
     it('should sync on insert', () => {
       const newContext: CompressedContext = {
         id: 'ctx-new',
@@ -349,7 +349,7 @@ describe('FTS5 Full-Text Search', () => {
     })
   })
 
-  describe('Performance', () => {
+  describe('performance', () => {
     it('should handle large result sets efficiently', () => {
       // Add more contexts
       for (let i = 0; i < 100; i++) {

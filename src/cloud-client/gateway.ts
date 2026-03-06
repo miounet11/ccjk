@@ -8,7 +8,7 @@
  */
 
 import type { CloudApiResponse } from '../services/cloud/api-client'
-import { CLOUD_ENDPOINTS, getCloudApiUrl } from '../constants'
+import { CLOUD_ENDPOINTS } from '../constants'
 import { CloudApiClient } from '../services/cloud/api-client'
 
 // ============================================================================
@@ -20,20 +20,20 @@ import { CloudApiClient } from '../services/cloud/api-client'
  *
  * Semantic route names instead of raw paths
  */
-export type ApiRoute =
-  | 'analysis.projects'
-  | 'templates.get'
-  | 'templates.batch'
-  | 'telemetry.installation'
-  | 'health'
-  | 'plugins.list'
-  | 'plugins.recommend'
-  | 'skills.list'
-  | 'skills.upload'
-  | 'skills.download'
-  | 'notifications.bind'
-  | 'notifications.send'
-  | 'notifications.poll'
+export type ApiRoute
+  = | 'analysis.projects'
+    | 'templates.get'
+    | 'templates.batch'
+    | 'telemetry.installation'
+    | 'health'
+    | 'plugins.list'
+    | 'plugins.recommend'
+    | 'skills.list'
+    | 'skills.upload'
+    | 'skills.download'
+    | 'notifications.bind'
+    | 'notifications.send'
+    | 'notifications.poll'
 
 /**
  * Route version mapping

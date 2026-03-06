@@ -86,7 +86,7 @@ export class WorkflowAutomator {
     // 1. RED: 引导用户写失败的测试
     const redPhase = {
       phase: 'RED' as const,
-      status: 'Write a failing test for: ' + feature,
+      status: `Write a failing test for: ${feature}`,
       nextStep: 'After writing the test, run it to verify it fails correctly',
     }
 
@@ -134,7 +134,7 @@ export class WorkflowAutomator {
   /**
    * 自动化系统性调试工作流
    */
-  async autoSystematicDebugging(issue: string): Promise<{
+  async autoSystematicDebugging(_issue: string): Promise<{
     phase: number
     phaseName: string
     checklist: string[]
@@ -252,7 +252,7 @@ export class WorkflowAutomator {
   /**
    * 解析 review 结果
    */
-  private parseReviewResult(context: string): ReviewResult {
+  private parseReviewResult(_context: string): ReviewResult {
     // 简化版本，实际应该解析子代理返回的结果
     return {
       critical: [],

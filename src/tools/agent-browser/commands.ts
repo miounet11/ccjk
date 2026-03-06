@@ -106,7 +106,7 @@ export async function agentBrowserStatus(options: CommandOptions): Promise<void>
 
   if (options.verbose) {
     console.log(`\n${gray('Debug Info:')}`)
-    console.log(`  ${gray('Install path:')} ${installPath}`)
+    console.log(`  ${gray('Install path:')} global npm package`)
     console.log(`  ${gray('Platform:')} ${process.platform}`)
     console.log(`  ${gray('Arch:')} ${process.arch}`)
   }

@@ -37,12 +37,12 @@ import { EventEmitter } from 'node:events'
 import { nanoid } from 'nanoid'
 import { AgentDispatcher } from './agent-dispatcher.js'
 import { AgentForkManager } from './agent-fork.js'
-import { ResultAggregator } from './result-aggregator.js'
-import { TaskDecomposer } from './task-decomposer.js'
-import { executionTracer } from './execution-tracer.js'
-import { taskPersistence } from './task-persistence.js'
 import { contextLoader } from './context-loader.js'
+import { executionTracer } from './execution-tracer.js'
+import { ResultAggregator } from './result-aggregator.js'
 import { SessionIntelligence } from './session-manager.js'
+import { TaskDecomposer } from './task-decomposer.js'
+import { taskPersistence } from './task-persistence.js'
 
 /**
  * Convert AgentCapability array to string array of capability IDs

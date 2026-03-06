@@ -17,7 +17,8 @@ function t(key: string, opts?: Record<string, string>): string {
 }
 
 function readSettings(): Record<string, any> {
-  if (!existsSync(SETTINGS_FILE)) return {}
+  if (!existsSync(SETTINGS_FILE))
+    return {}
   try {
     return JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
   }
@@ -33,7 +34,8 @@ export function isAgentTeamsEnabled(): boolean {
 
 export function setAgentTeams(enabled: boolean): void {
   const settings = readSettings()
-  if (!settings.env) settings.env = {}
+  if (!settings.env)
+    settings.env = {}
 
   if (enabled) {
     settings.env[ENV_KEY] = '1'

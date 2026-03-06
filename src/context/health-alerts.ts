@@ -7,10 +7,11 @@
  * @module context/health-alerts
  */
 
-import { existsSync, statSync } from 'node:fs'
-import { dirname, join } from 'pathe'
-import { DatabaseHealthMonitor, type HealthCheckResult, HealthStatus } from './health-check'
+import type { HealthStatus } from './health-check'
 import type { ContextPersistence } from './persistence'
+import { existsSync } from 'node:fs'
+import { dirname, join } from 'pathe'
+import { DatabaseHealthMonitor } from './health-check'
 
 /**
  * Alert severity levels

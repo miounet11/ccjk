@@ -38,22 +38,43 @@ export { CachedCloudClient, CloudCache } from './cache'
 // Export core client
 export { CloudClient, createCloudClient } from './client'
 
-// Miaoda backend client
-export {
-  createMiaodaClient,
-  MiaodaClient,
-  parseResponse as parseMiaodaResponse,
-} from './miaoda-client'
+// Export DTO types and converters
 export type {
-  LlmMessage,
-  LlmOptions,
-  MiaodaClientConfig,
-  MiaodaUser,
-  ParsedResponse,
-  QuotaInfo,
-  StreamCallbacks,
-  TokenPair,
-} from './miaoda-client'
+  AgentConfig,
+  AnalysisCompletedData,
+  BatchTelemetryData,
+  ErrorOccurredData,
+  HookConfig,
+  McpServerConfig,
+  RawBatchTemplateResponse,
+  RawProjectAnalysisResponse,
+  RawRecommendation,
+  RawTemplate,
+  RecommendationAcceptedData,
+  RecommendationConfig,
+  RecommendationShownData,
+  SkillConfig,
+  TelemetryEventData,
+  TemplateDownloadData,
+  TemplateParameterValue,
+  WorkflowConfig,
+} from './dto'
+export {
+  convertBatchTemplateResponse,
+  convertConfig,
+  convertParameterDefault,
+  convertProjectAnalysisResponse,
+  convertRecommendation,
+  convertTemplate,
+  convertTemplateParameter,
+  extractString,
+  isRecommendationConfig,
+  isTelemetryEventData,
+  isTemplateParameterValue,
+  validateBatchTemplateRequest,
+  validateProjectAnalysisRequest,
+  validateUsageReport,
+} from './dto'
 
 // Export standardized error handling
 export {
@@ -70,6 +91,24 @@ export {
 } from './errors'
 export type { CloudErrorMetadata } from './errors'
 
+// Miaoda backend client
+export {
+  createMiaodaClient,
+  MiaodaClient,
+  parseResponse as parseMiaodaResponse,
+} from './miaoda-client'
+
+export type {
+  LlmMessage,
+  LlmOptions,
+  MiaodaClientConfig,
+  MiaodaUser,
+  ParsedResponse,
+  QuotaInfo,
+  StreamCallbacks,
+  TokenPair,
+} from './miaoda-client'
+
 // Ratings API
 export {
   createRating,
@@ -81,17 +120,6 @@ export {
   RatingsApiError,
   RatingsApiErrorCode,
 } from './ratings-api.js'
-
-export type {
-  CreateRatingData,
-  CreateRatingResponse,
-  GetSkillRatingsParams,
-  GetSkillRatingsResponse,
-  RatingSortOption,
-} from './ratings-api.js'
-
-// Export retry logic
-export { RetryableCloudClient, retryUtils, withRetry } from './retry'
 
 // Export recommendations
 export {
@@ -109,42 +137,19 @@ export {
   getTemplatesClient,
   TemplatesClient,
 }
+export type {
+  CreateRatingData,
+  CreateRatingResponse,
+  GetSkillRatingsParams,
+  GetSkillRatingsResponse,
+  RatingSortOption,
+} from './ratings-api.js'
+
+// Export retry logic
+export { RetryableCloudClient, retryUtils, withRetry } from './retry'
+
 // Skills Marketplace API
 export { skillsMarketplaceApi } from './skills-marketplace-api.js'
-
-// Unified Skills API
-export * from './skills/index.js'
-
-/**
- * Export default client factory
- */
-// Skills Marketplace API Types
-export type {
-  ApiResponse,
-  CreateRatingRequest,
-  InstallSkillRequest,
-  MarketplaceFilters,
-  MarketplaceParams,
-  MarketplaceResponse,
-  Pagination,
-  Quota,
-  Rating,
-  RatingsParams,
-  RatingSummary,
-  RecommendationsParams,
-  SearchParams,
-  SearchResponse,
-  Skill,
-  SkillCategory,
-  SkillMetadata,
-  SkillProvider,
-  SkillStatus,
-  SuggestionsParams,
-  SupportedAgent,
-  TrendingParams,
-  UpdateSkillRequest,
-  UserSkill,
-} from './skills-marketplace-types.js'
 
 /**
  * Fallback Cloud Client with Local Fallback Support
@@ -413,6 +418,40 @@ export function createCompleteCloudClient(config?: Partial<import('./types').Clo
   return fallbackClient
 }
 
+/**
+ * Export default client factory
+ */
+// Skills Marketplace API Types
+export type {
+  ApiResponse,
+  CreateRatingRequest,
+  InstallSkillRequest,
+  MarketplaceFilters,
+  MarketplaceParams,
+  MarketplaceResponse,
+  Pagination,
+  Quota,
+  Rating,
+  RatingsParams,
+  RatingSummary,
+  RecommendationsParams,
+  SearchParams,
+  SearchResponse,
+  Skill,
+  SkillCategory,
+  SkillMetadata,
+  SkillProvider,
+  SkillStatus,
+  SuggestionsParams,
+  SupportedAgent,
+  TrendingParams,
+  UpdateSkillRequest,
+  UserSkill,
+} from './skills-marketplace-types.js'
+
+// Unified Skills API
+export * from './skills/index.js'
+
 // Export telemetry
 export {
   getTelemetry,
@@ -422,7 +461,6 @@ export {
   telemetryUtils,
   trackEvent,
 } from './telemetry'
-
 export type {
   Template,
   TemplateListResponse,
@@ -435,6 +473,7 @@ export type {
 
 // Export types
 export * from './types'
+
 // Re-export all interfaces for convenience
 export type {
   BatchTemplateRequest,
@@ -452,45 +491,6 @@ export type {
   UsageReport,
   UsageReportResponse,
 } from './types'
-
-// Export DTO types and converters
-export type {
-  AgentConfig,
-  AnalysisCompletedData,
-  BatchTelemetryData,
-  ErrorOccurredData,
-  HookConfig,
-  McpServerConfig,
-  RawBatchTemplateResponse,
-  RawProjectAnalysisResponse,
-  RawRecommendation,
-  RawTemplate,
-  RecommendationAcceptedData,
-  RecommendationConfig,
-  RecommendationShownData,
-  SkillConfig,
-  TelemetryEventData,
-  TemplateDownloadData,
-  TemplateParameterValue,
-  WorkflowConfig,
-} from './dto'
-
-export {
-  convertBatchTemplateResponse,
-  convertConfig,
-  convertParameterDefault,
-  convertProjectAnalysisResponse,
-  convertRecommendation,
-  convertTemplate,
-  convertTemplateParameter,
-  extractString,
-  isRecommendationConfig,
-  isTelemetryEventData,
-  isTemplateParameterValue,
-  validateBatchTemplateRequest,
-  validateProjectAnalysisRequest,
-  validateUsageReport,
-} from './dto'
 
 // User Skills API
 export type { AuthRequestOptions } from './user-skills-api.js'

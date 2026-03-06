@@ -89,15 +89,19 @@ export class CloudClient {
    * 5. { error: "..." }  — bare error
    */
   parseResponse<T>(raw: unknown): T {
-    if (raw === null || raw === undefined) return raw as T
+    if (raw === null || raw === undefined)
+      return raw as T
     const r = raw as Record<string, unknown>
     if (r.success === false) {
       const msg = (r.error as any)?.message || (r as any).message || (r as any).error || 'Unknown error'
       throw new CloudClientError('API_ERROR', String(msg))
     }
-    if (r.success === true && 'data' in r) return r.data as T
-    if (!('success' in r) && 'data' in r) return r.data as T
-    if (typeof r.error === 'string' && !('data' in r)) throw new CloudClientError('API_ERROR', r.error)
+    if (r.success === true && 'data' in r)
+      return r.data as T
+    if (!('success' in r) && 'data' in r)
+      return r.data as T
+    if (typeof r.error === 'string' && !('data' in r))
+      throw new CloudClientError('API_ERROR', r.error)
     return raw as T
   }
 

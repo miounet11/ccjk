@@ -503,7 +503,6 @@ export async function doctor(options: DoctorOptions = {}): Promise<void> {
   let hasWarnings = false
 
   for (const result of results) {
-
     const statusIcon = result.status === 'ok'
       ? ansis.green('✅')
       : result.status === 'warning'

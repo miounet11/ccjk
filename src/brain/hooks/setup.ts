@@ -1,13 +1,13 @@
-import { hookRegistry } from './registry';
-import { remoteSyncHook } from './remote-sync';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/logger'
+import { hookRegistry } from './registry'
+import { remoteSyncHook } from './remote-sync'
 
 /**
  * Setup Brain hooks
  * Called during CCJK initialization
  */
 export function setupBrainHooks(): void {
-  logger.debug('Setting up Brain hooks...');
+  logger.debug('Setting up Brain hooks...')
 
   // Register remote sync hook for various events
   const events = [
@@ -19,7 +19,7 @@ export function setupBrainHooks(): void {
     'health-score',
     'brain-agent',
     'mcp-service',
-  ];
+  ]
 
   for (const event of events) {
     hookRegistry.register(event, {
@@ -27,10 +27,10 @@ export function setupBrainHooks(): void {
       fn: remoteSyncHook,
       priority: 100, // High priority
       enabled: true,
-    });
+    })
   }
 
-  logger.debug('Brain hooks setup complete');
+  logger.debug('Brain hooks setup complete')
 }
 
 /**
@@ -38,7 +38,7 @@ export function setupBrainHooks(): void {
  * Called during CCJK shutdown
  */
 export function teardownBrainHooks(): void {
-  logger.debug('Tearing down Brain hooks...');
-  hookRegistry.clear();
-  logger.debug('Brain hooks teardown complete');
+  logger.debug('Tearing down Brain hooks...')
+  hookRegistry.clear()
+  logger.debug('Brain hooks teardown complete')
 }

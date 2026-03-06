@@ -1,5 +1,5 @@
 import ansis from 'ansis'
-import { ProgressTracker } from './progress-tracker'
+import { EnhancedProgressTracker } from './enhanced-progress-tracker'
 
 /**
  * Installation task definition
@@ -29,11 +29,11 @@ interface TaskResult {
 export class ParallelInstaller {
   private tasks: Map<string, InstallTask> = new Map()
   private results: Map<string, TaskResult> = new Map()
-  private progress: ProgressTracker
+  private progress: EnhancedProgressTracker
   private startTime = 0
 
   constructor(private showProgress = true) {
-    this.progress = new ProgressTracker()
+    this.progress = new EnhancedProgressTracker(showProgress)
   }
 
   /**

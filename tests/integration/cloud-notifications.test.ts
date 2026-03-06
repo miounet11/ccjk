@@ -10,12 +10,13 @@
  * @module tests/integration/cloud-notifications
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   BindResponse,
   CloudReply,
   NotifyResponse,
 } from '../../src/services/cloud-notification'
+import type { CloudApiResponse } from '../../src/services/cloud/api-client'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -24,11 +25,9 @@ import {
   createMockNotifyResponse,
   createTestGateway,
   MockCloudServer,
-  waitFor,
 } from '../helpers/cloud-mock'
-import type { CloudApiResponse } from '../../src/services/cloud/api-client'
 
-describe('Cloud Notifications Integration Tests', () => {
+describe('cloud Notifications Integration Tests', () => {
   let mockServer: MockCloudServer
   let gateway: any
 
@@ -47,7 +46,7 @@ describe('Cloud Notifications Integration Tests', () => {
   // Test Suite 1: Device Binding
   // ==========================================================================
 
-  describe('Device Binding', () => {
+  describe('device Binding', () => {
     it('should successfully bind device with valid code', async () => {
       // Arrange
       const bindCode = 'ABC123'
@@ -160,7 +159,7 @@ describe('Cloud Notifications Integration Tests', () => {
   // Test Suite 2: Notification Sending
   // ==========================================================================
 
-  describe('Notification Sending', () => {
+  describe('notification Sending', () => {
     it('should successfully send notification', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<NotifyResponse> = {
@@ -272,7 +271,7 @@ describe('Cloud Notifications Integration Tests', () => {
   // Test Suite 3: Reply Polling
   // ==========================================================================
 
-  describe('Reply Polling', () => {
+  describe('reply Polling', () => {
     it('should successfully poll for reply', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<{ reply: CloudReply }> = {
@@ -374,7 +373,7 @@ describe('Cloud Notifications Integration Tests', () => {
   // Test Suite 4: Complete Notification Flow
   // ==========================================================================
 
-  describe('Complete Notification Flow', () => {
+  describe('complete Notification Flow', () => {
     it('should complete bind → notify → poll flow', async () => {
       // Step 1: Bind device
       const bindResponse: CloudApiResponse<BindResponse> = {

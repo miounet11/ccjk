@@ -1,7 +1,7 @@
-import { createEnvelope } from '../../../packages/ccjk-wire/dist/index.mjs';
-import { logger } from '../../utils/logger';
-import { getDaemonClient } from './daemon-client';
-import type { HookContext, HookResult } from './types';
+import type { HookContext, HookResult } from './types'
+import { createEnvelope } from '@ccjk/wire'
+import { logger } from '../../utils/logger'
+import { getDaemonClient } from './daemon-client'
 
 /**
  * Remote sync hook for Brain System
@@ -11,18 +11,18 @@ import type { HookContext, HookResult } from './types';
 export async function remoteSyncHook(context: HookContext): Promise<HookResult> {
   try {
     // Check if remote sync is enabled
-    const remoteEnabled = await isRemoteSyncEnabled();
+    const remoteEnabled = await isRemoteSyncEnabled()
     if (!remoteEnabled) {
-      return { continue: true };
+      return { continue: true }
     }
 
-    const daemon = await getDaemonClient();
+    const daemon = await getDaemonClient()
     if (!daemon) {
       // Daemon not running, skip
-      return { continue: true };
+      return { continue: true }
     }
 
-    const sessionId = context.sessionId || 'default';
+    const sessionId = context.sessionId || 'default'
 
     // Handle different event types
     switch (context.event) {
@@ -33,9 +33,9 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
           name: context.data.tool || 'unknown',
           description: context.data.description,
           args: context.data.args || {},
-        });
-        await daemon.sendEvent(sessionId, envelope);
-        break;
+        })
+        await daemon.sendEvent(sessionId, envelope)
+        break
       }
 
       case 'tool-call-end': {
@@ -44,28 +44,28 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
           callId: context.data.callId || generateCallId(),
           result: context.data.result,
           error: context.data.error,
-        });
-        await daemon.sendEvent(sessionId, envelope);
-        break;
+        })
+        await daemon.sendEvent(sessionId, envelope)
+        break
       }
 
       case 'permission-request': {
-        const requestId = generateRequestId();
+        const requestId = generateRequestId()
         const envelope = createEnvelope('agent', sessionId, {
           t: 'permission-request',
           requestId,
           tool: context.data.tool || 'unknown',
           pattern: context.data.pattern || '',
           description: context.data.description,
-        });
-        await daemon.sendEvent(sessionId, envelope);
+        })
+        await daemon.sendEvent(sessionId, envelope)
 
         // Wait for remote approval
-        const approved = await daemon.waitForApproval(requestId, 60000); // 60s timeout
+        const approved = await daemon.waitForApproval(requestId, 60000) // 60s timeout
         return {
           continue: approved,
           data: { approved },
-        };
+        }
       }
 
       case 'text-output': {
@@ -73,9 +73,9 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
           t: 'text',
           text: context.data.text || '',
           thinking: context.data.thinking,
-        });
-        await daemon.sendEvent(sessionId, envelope);
-        break;
+        })
+        await daemon.sendEvent(sessionId, envelope)
+        break
       }
 
       case 'status-change': {
@@ -83,9 +83,9 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
           t: 'status',
           state: mapStatusToState(context.data.status),
           message: context.data.message,
-        });
-        await daemon.sendEvent(sessionId, envelope);
-        break;
+        })
+        await daemon.sendEvent(sessionId, envelope)
+        break
       }
 
       case 'health-score': {
@@ -94,9 +94,9 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
           score: context.data.score || 0,
           issues: context.data.issues,
           recommendations: context.data.recommendations,
-        });
-        await daemon.sendEvent(sessionId, envelope);
-        break;
+        })
+        await daemon.sendEvent(sessionId, envelope)
+        break
       }
 
       case 'brain-agent': {
@@ -106,9 +106,9 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
           agentType: context.data.agentType || 'unknown',
           action: context.data.action || 'start',
           message: context.data.message,
-        });
-        await daemon.sendEvent(sessionId, envelope);
-        break;
+        })
+        await daemon.sendEvent(sessionId, envelope)
+        break
       }
 
       case 'mcp-service': {
@@ -118,21 +118,22 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
           serviceName: context.data.serviceName || 'unknown',
           action: context.data.action || 'install',
           message: context.data.message,
-        });
-        await daemon.sendEvent(sessionId, envelope);
-        break;
+        })
+        await daemon.sendEvent(sessionId, envelope)
+        break
       }
 
       default:
         // Unknown event, skip
-        break;
+        break
     }
 
-    return { continue: true };
-  } catch (error) {
-    logger.error('Remote sync hook error:', error);
+    return { continue: true }
+  }
+  catch (error) {
+    logger.error('Remote sync hook error:', error)
     // Don't block execution on remote sync errors
-    return { continue: true };
+    return { continue: true }
   }
 }
 
@@ -142,12 +143,13 @@ export async function remoteSyncHook(context: HookContext): Promise<HookResult> 
 async function isRemoteSyncEnabled(): Promise<boolean> {
   try {
     // Check settings.json for remote.enabled flag
-    const { SETTINGS_FILE } = await import('../../constants');
-    const { readJsonConfig } = await import('../../utils/json-config');
-    const settings = readJsonConfig<{ remote?: { enabled?: boolean } }>(SETTINGS_FILE);
-    return settings?.remote?.enabled === true;
-  } catch {
-    return false;
+    const { SETTINGS_FILE } = await import('../../constants')
+    const { readJsonConfig } = await import('../../utils/json-config')
+    const settings = readJsonConfig<{ remote?: { enabled?: boolean } }>(SETTINGS_FILE)
+    return settings?.remote?.enabled === true
+  }
+  catch {
+    return false
   }
 }
 
@@ -157,21 +159,21 @@ async function isRemoteSyncEnabled(): Promise<boolean> {
 function mapStatusToState(status: string): 'idle' | 'thinking' | 'executing' | 'waiting-permission' | 'error' {
   switch (status) {
     case 'idle':
-      return 'idle';
+      return 'idle'
     case 'thinking':
     case 'processing':
-      return 'thinking';
+      return 'thinking'
     case 'executing':
     case 'running':
-      return 'executing';
+      return 'executing'
     case 'waiting':
     case 'pending':
-      return 'waiting-permission';
+      return 'waiting-permission'
     case 'error':
     case 'failed':
-      return 'error';
+      return 'error'
     default:
-      return 'idle';
+      return 'idle'
   }
 }
 
@@ -179,12 +181,12 @@ function mapStatusToState(status: string): 'idle' | 'thinking' | 'executing' | '
  * Generate unique call ID
  */
 function generateCallId(): string {
-  return `call-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `call-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }
 
 /**
  * Generate unique request ID
  */
 function generateRequestId(): string {
-  return `req-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `req-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }

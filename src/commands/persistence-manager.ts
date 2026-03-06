@@ -7,24 +7,25 @@
  * @module commands/persistence-manager
  */
 
+import type { PersistedContext } from '../context/persistence'
+import { writeFileSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { writeFileSync } from 'node:fs'
 import { join } from 'pathe'
-import { i18n } from '../i18n'
+import { createHierarchicalLoader } from '../context/hierarchical-loader'
 import { getContextPersistence } from '../context/persistence'
-import { createHierarchicalLoader, ContextTier } from '../context/hierarchical-loader'
-import type { PersistedContext, SearchResult } from '../context/persistence'
+import { i18n } from '../i18n'
 
 /**
  * Format bytes to human-readable size
  */
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
+  if (bytes === 0)
+    return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
+  return `${(bytes / k ** i).toFixed(2)} ${sizes[i]}`
 }
 
 /**
@@ -44,9 +45,12 @@ function formatDuration(ms: number): string {
   const hours = Math.floor(minutes / 60)
   const days = Math.floor(hours / 24)
 
-  if (days > 0) return `${days}d ${hours % 24}h`
-  if (hours > 0) return `${hours}h ${minutes % 60}m`
-  if (minutes > 0) return `${minutes}m ${seconds % 60}s`
+  if (days > 0)
+    return `${days}d ${hours % 24}h`
+  if (hours > 0)
+    return `${hours}h ${minutes % 60}m`
+  if (minutes > 0)
+    return `${minutes}m ${seconds % 60}s`
   return `${seconds}s`
 }
 
@@ -101,10 +105,12 @@ async function listContexts(projectHash?: string): Promise<void> {
 
       if (action === 'next') {
         offset += PAGE_SIZE
-      } else {
+      }
+      else {
         showMore = false
       }
-    } else {
+    }
+    else {
       showMore = false
     }
   }
@@ -143,7 +149,8 @@ async function searchContexts(): Promise<void> {
 
   if (results.length === 0) {
     console.log(ansis.yellow(isZh ? '  没有找到匹配的上下文' : '  No matching contexts found'))
-  } else {
+  }
+  else {
     for (const result of results) {
       const ratio = (result.compressionRatio * 100).toFixed(1)
       console.log(`  ${ansis.green(result.id.substring(0, 8))}... ${ansis.dim('|')} ${ansis.cyan(result.algorithm)} ${ansis.dim('|')} ${ratio}% ${ansis.dim('|')} ${ansis.magenta(`rank: ${result.rank.toFixed(2)}`)}`)
@@ -207,7 +214,8 @@ async function viewContextDetails(): Promise<void> {
         console.log(`    ${ansis.cyan(key)}: ${JSON.stringify(value)}`)
       }
     }
-  } catch {
+  }
+  catch {
     // Ignore metadata parse errors
   }
 
@@ -272,7 +280,8 @@ async function importContexts(): Promise<void> {
     console.log('')
     console.log(ansis.green(`✔ ${isZh ? '已导入' : 'Imported'} ${imported} ${isZh ? '个上下文' : 'contexts'}`))
     console.log('')
-  } catch (error) {
+  }
+  catch (error) {
     console.log('')
     console.log(ansis.red(`✖ ${isZh ? '导入失败:' : 'Import failed:'} ${error instanceof Error ? error.message : String(error)}`))
     console.log('')
@@ -314,7 +323,8 @@ async function clearOldContexts(): Promise<void> {
       },
     })
     days = parseInt(customDays, 10)
-  } else {
+  }
+  else {
     days = parseInt(ageChoice, 10)
   }
 
@@ -564,7 +574,8 @@ export async function persistenceManager(): Promise<void> {
     while (continueMenu) {
       continueMenu = await showPersistenceMenu()
     }
-  } catch (error) {
+  }
+  catch (error) {
     const isZh = i18n.language === 'zh-CN'
     console.error(ansis.red(`${isZh ? '错误:' : 'Error:'} ${error instanceof Error ? error.message : String(error)}`))
   }

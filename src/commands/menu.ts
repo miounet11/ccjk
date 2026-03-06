@@ -1,10 +1,10 @@
-import ansis from 'ansis'
-import inquirer from 'inquirer'
+import type { CodeToolType, SupportedLang } from '../constants'
 import { existsSync } from 'node:fs'
 import process from 'node:process'
+import ansis from 'ansis'
+import inquirer from 'inquirer'
 import { join } from 'pathe'
 import { MCP_SERVICE_CONFIGS } from '../config/mcp-services'
-import type { CodeToolType, SupportedLang } from '../constants'
 import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
@@ -13,13 +13,13 @@ import { readMcpConfig } from '../utils/claude-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import {
-    changeScriptLanguageFeature,
-    configureAiMemoryFeature,
-    configureApiFeature,
-    configureDefaultModelFeature,
-    configureMcpFeature,
-    configureMergedPermissionsFeature,
-    mcpManagerFeature,
+  changeScriptLanguageFeature,
+  configureAiMemoryFeature,
+  configureApiFeature,
+  configureDefaultModelFeature,
+  configureMcpFeature,
+  configureMergedPermissionsFeature,
+  mcpManagerFeature,
 } from '../utils/features'
 import { normalizeMenuInput } from '../utils/input-normalizer'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
@@ -148,7 +148,7 @@ function checkNewMcpServicesHint(isZh: boolean): void {
     const missing = MCP_SERVICE_CONFIGS.filter(c => c.defaultSelected && !installedIds.has(c.id))
     if (missing.length > 0) {
       const names = missing.map(c => c.id).join(', ')
-      console.log(ansis.cyan(`  ✨ ${isZh ? '新推荐服务未安装' : 'New recommended services available'}: ${ansis.bold(names)} ${ansis.dim(isZh ? '(选项 4 安装)' : '(install via option 4)')}`)
+      console.log(ansis.cyan(`  ✨ ${isZh ? '新推荐服务未安装' : 'New recommended services available'}: ${ansis.bold(names)} ${ansis.dim(isZh ? '(选项 4 安装)' : '(install via option 4)')}`),
       )
     }
   }
@@ -204,7 +204,7 @@ async function handleHierarchicalMenu(): Promise<MenuResult> {
   // Handle global actions
   switch (choice) {
     case 'l':
-      await changeScriptLanguageFeature()
+      await changeScriptLanguageFeature(i18n.language as SupportedLang)
       return 'switch'
     case 'h':
       showHelpDocumentation(isZh)
@@ -598,7 +598,8 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 async function isFirstTimeUser(): Promise<boolean> {
   // Check explicit onboarding completion flag first
   const { isOnboardingCompleted } = await import('./onboarding-wizard')
-  if (isOnboardingCompleted()) return false
+  if (isOnboardingCompleted())
+    return false
   const config = readZcfConfig()
   if (!config || !config.version) {
     return true
@@ -612,7 +613,7 @@ async function isFirstTimeUser(): Promise<boolean> {
 /**
  * Show welcome screen for new users (simplified - just show welcome message)
  */
-function showNewUserWelcome(): void {
+function _showNewUserWelcome(): void {
   const isZh = i18n.language === 'zh-CN'
 
   console.log('')

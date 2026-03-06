@@ -1,90 +1,251 @@
-# CCJK Cloud API 文档
+# CCJK Cloud API 端点快速参考
 
-> **最后更新**: 2026-02-02
-> **API 版本**: v1.0.0
-> **基础 URL**: `https://api.claudehome.cn`
-
----
-
-## 目录
-
-- [概述](#概述)
-- [认证方式](#认证方式)
-- [通用响应格式](#通用响应格式)
-- [API 端点](#api-端点)
-  - [健康检查](#健康检查)
-  - [设备管理](#设备管理)
-  - [通知系统](#通知系统)
-  - [认证授权](#认证授权)
-  - [云同步](#云同步)
-  - [公开 API](#公开-api)
-  - [API v1 - 统一接口](#api-v1---统一接口)
-  - [API v8 - 客户端接口](#api-v8---客户端接口)
-  - [云控制](#云控制)
-  - [管理后台](#管理后台)
-- [错误码说明](#错误码说明)
+> **Base URL:** `https://api.claudehome.cn`
+> **更新日期:** 2026-03-03
 
 ---
 
-## 概述
+## 🌐 公开 API（无需认证）
 
-CCJK Cloud API 是一个为 Claude Code 客户端提供云端服务的综合性后端平台，提供以下核心功能：
+### Skills 市场
 
-- **设备管理**: 设备注册、Token 管理、通道配置
-- **多渠道通知**: 飞书、企业微信、钉钉消息推送
-- **MCP 服务器市场**: Model Context Protocol 服务器注册与分发
-- **技能市场**: Claude 技能的发现、安装、评分系统
-- **AI 工具排名**: 多维度的 AI 工具比较和排名
-- **提供商生态**: AI 服务提供商的统一管理
-- **配置云同步**: 跨设备的配置同步服务
+```bash
+# 获取 Skills 列表
+GET /api/skills?limit=20&page=1&search=coding&category=productivity&featured=true
 
----
+# 获取 Skill 详情
+GET /api/skills/{slug}
 
-## 认证方式
-
-### 1. 设备 Token 认证
-
-用于设备相关的 API 调用。
-
-```http
-X-Device-Token: <device_token>
+# 获取推荐 Skills
+GET /api/skills/recommended?limit=10
 ```
 
-### 2. Bearer Token 认证
+### MCP 服务器
 
-用于用户相关的 API 调用。
+```bash
+# 获取 MCP 服务器列表
+GET /api/mcp-servers?limit=20&page=1&search=github&category=development
 
-```http
-Authorization: Bearer <jwt_token>
+# 获取 MCP 服务器详情
+GET /api/mcp-servers/{slug}
 ```
 
-### 3. 管理员认证
+### Agents
 
-管理后台 API 需要管理员凭证。
+```bash
+# 获取 Agents 列表
+GET /api/v1/agents?limit=20&page=1&search=coding&category=development
 
-```http
-Authorization: Basic <base64(username:password)>
+# 获取 Agent 详情
+GET /api/v1/agents/{slug}
+```
+
+### 搜索
+
+```bash
+# 全局搜索（Skills + MCP + Agents）
+GET /api/search?q=coding&limit=20
+
+# 分类搜索
+GET /api/search?q=github&type=mcp&limit=10
+```
+
+### 分类
+
+```bash
+# 获取所有分类
+GET /api/categories
+
+# 获取分类下的内容
+GET /api/categories/{category}?type=skills&limit=20
 ```
 
 ---
 
-## 通用响应格式
+## 🔐 认证 API
+
+### 用户认证
+
+```bash
+# 注册
+POST /api/v1/auth/register
+Content-Type: application/json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "username": "johndoe"
+}
+
+# 登录
+POST /api/v1/auth/login
+Content-Type: application/json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+# 刷新 Token
+POST /api/v1/auth/refresh
+Content-Type: application/json
+{
+  "refreshToken": "refresh_token_here"
+}
+
+# 验证 Token
+GET /api/v1/auth/verify
+Authorization: Bearer <accessToken>
+
+# 登出
+POST /api/v1/auth/logout
+Authorization: Bearer <accessToken>
+```
+
+---
+
+## 🖥️ 远程控制 API（需要认证）
+
+### 机器管理
+
+```bash
+# 注册机器
+POST /api/internal/remote/machines/register
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+{
+  "machineId": "mac-pro-m3-001",
+  "hostname": "Johns-MacBook-Pro",
+  "platform": "darwin",
+  "arch": "arm64",
+  "ccjkVersion": "1.2.0",
+  "workspacePath": "/Users/john/projects",
+  "capabilities": ["file_ops", "exec", "session", "mcp"]
+}
+
+# 获取机器列表
+GET /api/internal/remote/machines
+Authorization: Bearer <accessToken>
+
+# 获取机器详情
+GET /api/internal/remote/machines/{machineId}
+Authorization: Bearer <accessToken>
+
+# 解绑机器
+DELETE /api/internal/remote/machines/{machineId}
+Authorization: Bearer <accessToken>
+
+# 心跳（每 30 秒）
+POST /api/internal/remote/machines/{machineId}/heartbeat
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+{
+  "status": "online",
+  "cpuUsage": 12.5,
+  "memUsage": 68.2,
+  "activeSessions": 2
+}
+```
+
+### 会话管理
+
+```bash
+# 创建会话
+POST /api/internal/remote/sessions
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+{
+  "machineId": "mac-pro-m3-001",
+  "workspacePath": "/Users/john/projects/my-app",
+  "model": "claude-opus-4-6",
+  "systemPrompt": "You are a helpful coding assistant."
+}
+
+# 获取会话列表
+GET /api/internal/remote/sessions?machineId=mac-pro-m3-001&status=active
+Authorization: Bearer <accessToken>
+
+# 获取会话详情
+GET /api/internal/remote/sessions/{sessionId}
+Authorization: Bearer <accessToken>
+
+# 发送消息
+POST /api/internal/remote/sessions/{sessionId}/messages
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+{
+  "role": "user",
+  "content": "帮我重构这个函数"
+}
+
+# 获取消息历史
+GET /api/internal/remote/sessions/{sessionId}/messages?limit=50&offset=0
+Authorization: Bearer <accessToken>
+
+# 关闭会话
+DELETE /api/internal/remote/sessions/{sessionId}
+Authorization: Bearer <accessToken>
+```
+
+### 文件操作
+
+```bash
+# 读取文件
+GET /api/internal/remote/files/read?machineId=mac-pro-m3-001&path=/path/to/file.ts
+Authorization: Bearer <accessToken>
+
+# 写入文件
+POST /api/internal/remote/files/write
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+{
+  "machineId": "mac-pro-m3-001",
+  "path": "/path/to/file.ts",
+  "content": "console.log('Hello');"
+}
+
+# 列出目录
+GET /api/internal/remote/files/list?machineId=mac-pro-m3-001&path=/path/to/dir
+Authorization: Bearer <accessToken>
+
+# 删除文件
+DELETE /api/internal/remote/files?machineId=mac-pro-m3-001&path=/path/to/file.ts
+Authorization: Bearer <accessToken>
+```
+
+### 命令执行
+
+```bash
+# 执行命令
+POST /api/internal/remote/exec
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+{
+  "machineId": "mac-pro-m3-001",
+  "command": "npm test",
+  "cwd": "/Users/john/projects/my-app",
+  "timeout": 30000
+}
+
+# 获取命令执行状态
+GET /api/internal/remote/exec/{execId}
+Authorization: Bearer <accessToken>
+
+# 终止命令执行
+DELETE /api/internal/remote/exec/{execId}
+Authorization: Bearer <accessToken>
+```
+
+---
+
+## 📊 响应格式
 
 ### 成功响应
 
 ```json
 {
   "success": true,
-  "data": { ... }
-}
-```
-
-### 错误响应
-
-```json
-{
-  "success": false,
-  "error": "错误信息"
+  "data": {
+    // 实际数据
+  }
 }
 ```
 
@@ -93,516 +254,78 @@ Authorization: Basic <base64(username:password)>
 ```json
 {
   "success": true,
-  "data": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 100,
-    "totalPages": 5
-  }
-}
-```
-
----
-
-## API 端点
-
----
-
-## 健康检查
-
-### 获取服务状态
-
-检查服务是否正常运行。
-
-**请求**
-
-```http
-GET /health
-```
-
-**响应**
-
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-02-02T10:00:00.000Z"
-}
-```
-
----
-
-## 设备管理
-
-### 注册设备
-
-注册新设备并获取设备凭证。
-
-**请求**
-
-```http
-POST /device/register
-Content-Type: application/json
-
-{
-  "name": "我的设备",
-  "type": "desktop",
-  "platform": "macOS",
-  "version": "1.0.0"
-}
-```
-
-**参数说明**
-
-| 参数     | 类型   | 必填 | 说明                                        |
-| -------- | ------ | ---- | ------------------------------------------- |
-| name     | string | 是   | 设备名称 (1-100字符)                        |
-| type     | string | 否   | 设备类型: `desktop`, `mobile`, `web`, `cli` |
-| platform | string | 否   | 操作系统平台                                |
-| version  | string | 否   | 客户端版本                                  |
-
-**响应**
-
-```json
-{
-  "success": true,
   "data": {
-    "deviceId": "dev_abc123",
-    "token": "tok_xyz789",
-    "name": "我的设备",
-    "type": "desktop",
-    "createdAt": "2026-02-02T10:00:00.000Z"
-  }
-}
-```
-
----
-
-### 获取设备信息
-
-获取指定设备的详细信息。
-
-**请求**
-
-```http
-GET /device/:deviceId
-```
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "deviceId": "dev_abc123",
-    "name": "我的设备",
-    "type": "desktop",
-    "platform": "macOS",
-    "version": "1.0.0",
-    "channels": [
-      {
-        "type": "feishu",
-        "webhookUrl": "https://...",
-        "enabled": true
-      }
-    ],
-    "createdAt": "2026-02-02T10:00:00.000Z",
-    "lastActiveAt": "2026-02-02T12:00:00.000Z"
-  }
-}
-```
-
----
-
-### 重新生成 Token
-
-为设备重新生成访问 Token。
-
-**请求**
-
-```http
-POST /device/:deviceId/regenerate-token
-X-Device-Token: <current_token>
-```
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "token": "tok_new123"
-  }
-}
-```
-
----
-
-### 更新设备通道
-
-更新设备的通知通道配置。
-
-**请求**
-
-```http
-PUT /device/:deviceId/channels
-X-Device-Token: <device_token>
-Content-Type: application/json
-
-{
-  "channels": [
-    {
-      "type": "feishu",
-      "webhookUrl": "https://open.feishu.cn/...",
-      "enabled": true
-    },
-    {
-      "type": "wecom",
-      "webhookUrl": "https://qyapi.weixin.qq.com/...",
-      "enabled": true
-    }
-  ]
-}
-```
-
-**通道类型**
-
-| 类型     | 说明           |
-| -------- | -------------- |
-| feishu   | 飞书机器人     |
-| wecom    | 企业微信机器人 |
-| dingtalk | 钉钉机器人     |
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "channels": [...]
-  }
-}
-```
-
----
-
-### 删除设备
-
-删除指定设备。
-
-**请求**
-
-```http
-DELETE /device/:deviceId
-X-Device-Token: <device_token>
-```
-
-**响应**
-
-```json
-{
-  "success": true,
-  "message": "设备已删除"
-}
-```
-
----
-
-## 通知系统
-
-### 发送通知
-
-向指定设备发送通知消息。
-
-**请求**
-
-```http
-POST /notify
-X-Device-Token: <device_token>
-Content-Type: application/json
-
-{
-  "title": "通知标题",
-  "content": "通知内容",
-  "channel": "feishu",
-  "priority": "normal"
-}
-```
-
-**参数说明**
-
-| 参数     | 类型   | 必填 | 说明                                           |
-| -------- | ------ | ---- | ---------------------------------------------- |
-| title    | string | 否   | 通知标题                                       |
-| content  | string | 是   | 通知内容                                       |
-| channel  | string | 否   | 指定通道: `feishu`, `wecom`, `dingtalk`, `all` |
-| priority | string | 否   | 优先级: `low`, `normal`, `high`                |
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "notificationId": "notif_123",
-    "status": "sent",
-    "sentAt": "2026-02-02T10:00:00.000Z"
-  }
-}
-```
-
----
-
-### 批量发送通知
-
-向多个设备批量发送通知。
-
-**请求**
-
-```http
-POST /notify/batch
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "deviceIds": ["dev_1", "dev_2", "dev_3"],
-  "title": "批量通知",
-  "content": "这是一条批量通知",
-  "channel": "all"
-}
-```
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "total": 3,
-    "sent": 3,
-    "failed": 0,
-    "results": [...]
-  }
-}
-```
-
----
-
-## 认证授权
-
-### 用户登录
-
-用户登录获取访问令牌。
-
-**请求**
-
-```http
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIs...",
-    "user": {
-      "id": "user_123",
-      "email": "user@example.com",
-      "name": "用户名"
+    "items": [...],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 156,
+      "totalPages": 8
     }
   }
 }
 ```
 
----
-
-### 用户注册
-
-注册新用户账号。
-
-**请求**
-
-```http
-POST /auth/register
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "password123",
-  "name": "用户名"
-}
-```
-
-**响应**
+### 错误响应
 
 ```json
 {
-  "success": true,
-  "data": {
-    "user": {
-      "id": "user_123",
-      "email": "user@example.com",
-      "name": "用户名"
-    }
-  }
+  "success": false,
+  "error": "Error message",
+  "code": "ERROR_CODE"
 }
 ```
 
 ---
 
-### 获取当前用户
+## 🔑 认证方式
 
-获取当前登录用户的信息。
+### JWT Token
 
-**请求**
-
-```http
-GET /auth/me
-Authorization: Bearer <token>
+```bash
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-**响应**
+### Token 生命周期
 
-```json
-{
-  "success": true,
-  "data": {
-    "id": "user_123",
-    "email": "user@example.com",
-    "name": "用户名",
-    "tier": "pro",
-    "createdAt": "2026-01-01T00:00:00.000Z"
-  }
-}
+- **Access Token**: 1 小时
+- **Refresh Token**: 30 天
+
+---
+
+## 📝 常用查询参数
+
+| 参数 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `limit` | number | 每页数量 | 20 |
+| `page` | number | 页码 | 1 |
+| `search` | string | 搜索关键词 | - |
+| `category` | string | 分类筛选 | - |
+| `featured` | boolean | 仅显示精选 | false |
+| `sort` | string | 排序方式 | `popular` |
+
+---
+
+## 🚀 快速测试
+
+```bash
+# 测试公开 API
+curl https://api.claudehome.cn/api/skills?limit=5
+
+# 测试认证 API
+curl -X POST https://api.claudehome.cn/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+
+# 测试远程控制 API
+curl https://api.claudehome.cn/api/internal/remote/machines \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 ---
 
-## 云同步
+## 📚 相关文档
 
-### 推送配置
-
-将本地配置推送到云端。
-
-**请求**
-
-```http
-POST /cloud-sync/push
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "data": {
-    "skills": [...],
-    "mcpServers": {...},
-    "prompts": [...],
-    "hooks": [...]
-  },
-  "force": false
-}
-```
-
-**参数说明**
-
-| 参数  | 类型    | 必填 | 说明                 |
-| ----- | ------- | ---- | -------------------- |
-| data  | object  | 是   | 要同步的配置数据     |
-| force | boolean | 否   | 是否强制覆盖云端数据 |
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "syncId": "sync_123",
-    "syncedAt": "2026-02-02T10:00:00.000Z",
-    "conflicts": []
-  }
-}
-```
-
----
-
-### 拉取配置
-
-从云端拉取配置到本地。
-
-**请求**
-
-```http
-POST /cloud-sync/pull
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "since": "2026-01-01T00:00:00.000Z",
-  "types": ["skills", "mcpServers"]
-}
-```
-
-**参数说明**
-
-| 参数  | 类型   | 必填 | 说明               |
-| ----- | ------ | ---- | ------------------ |
-| since | string | 否   | 增量同步的起始时间 |
-| types | array  | 否   | 要同步的配置类型   |
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "skills": [...],
-    "mcpServers": {...},
-    "lastSyncAt": "2026-02-02T10:00:00.000Z"
-  }
-}
-```
-
----
-
-### 获取同步状态
-
-获取当前同步状态。
-
-**请求**
-
-```http
-GET /cloud-sync/status
-Authorization: Bearer <token>
-```
-
-**响应**
-
-```json
-{
-  "success": true,
-  "data": {
-    "lastSyncAt": "2026-02-02T10:00:00.000Z",
-    "pendingChanges": 5,
-    "conflicts": 0
-  }
-}
-```
-
----
-
-### 解决冲突
-
-解决同步冲突。
-
-**请求**
-
-```http
-POST /
-```
+- [完整对接文档](./CLIENT_INTEGRATION_GUIDE_V2.md)
+- [远程控制 API 详解](./REMOTE_API_CLIENT_GUIDE.md)
+- [认证系统说明](./AUTH_SYSTEM.md)

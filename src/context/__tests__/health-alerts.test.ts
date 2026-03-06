@@ -2,17 +2,16 @@
  * Health Alerts System Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { existsSync, mkdirSync, rmSync } from 'node:fs'
 import { join } from 'pathe'
-import { HealthAlertsManager, AlertSeverity, runStartupHealthCheck } from '../health-alerts'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AlertSeverity, HealthAlertsManager, runStartupHealthCheck } from '../health-alerts'
 import { ContextPersistence } from '../persistence'
-import { DatabaseHealthMonitor } from '../health-check'
 
 const TEST_DB_DIR = join(process.cwd(), 'test-data', 'health-alerts')
 const TEST_DB_PATH = join(TEST_DB_DIR, 'test-alerts.db')
 
-describe('HealthAlertsManager', () => {
+describe('healthAlertsManager', () => {
   beforeEach(() => {
     // Clean up test directory
     if (existsSync(TEST_DB_DIR)) {
@@ -225,7 +224,7 @@ describe('HealthAlertsManager', () => {
   })
 })
 
-describe('Alert Severity Levels', () => {
+describe('alert Severity Levels', () => {
   it('should have correct severity levels', () => {
     expect(AlertSeverity.CRITICAL).toBe('critical')
     expect(AlertSeverity.WARNING).toBe('warning')

@@ -4,44 +4,44 @@
 
 export interface HookContext {
   /** Event type */
-  event: string;
+  event: string
 
   /** Session ID */
-  sessionId?: string;
+  sessionId?: string
 
   /** Event data */
-  data: Record<string, any>;
+  data: Record<string, any>
 
   /** Timestamp */
-  timestamp: number;
+  timestamp: number
 
   /** Additional metadata */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any>
 }
 
 export interface HookResult {
   /** Whether to continue execution */
-  continue: boolean;
+  continue: boolean
 
   /** Optional data to pass to next hook */
-  data?: Record<string, any>;
+  data?: Record<string, any>
 
   /** Optional error */
-  error?: Error;
+  error?: Error
 }
 
-export type HookFunction = (context: HookContext) => Promise<HookResult>;
+export type HookFunction = (context: HookContext) => Promise<HookResult>
 
 export interface Hook {
   /** Hook name */
-  name: string;
+  name: string
 
   /** Hook function */
-  fn: HookFunction;
+  fn: HookFunction
 
   /** Hook priority (higher = earlier) */
-  priority?: number;
+  priority?: number
 
   /** Whether hook is enabled */
-  enabled?: boolean;
+  enabled?: boolean
 }

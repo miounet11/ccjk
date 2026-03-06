@@ -1,10 +1,10 @@
+import type { HealthCheck, HealthResult } from '../types'
 /**
  * Default Model Health Check
  */
 import { existsSync, readFileSync } from 'node:fs'
 import process from 'node:process'
 import { SETTINGS_FILE } from '../../constants'
-import type { HealthCheck, HealthResult } from '../types'
 
 export const modelCheck: HealthCheck = {
   name: 'Default Model',
@@ -13,8 +13,12 @@ export const modelCheck: HealthCheck = {
     try {
       if (!existsSync(SETTINGS_FILE)) {
         return {
-          name: this.name, status: 'fail', score: 0, weight: this.weight,
-          message: 'No settings file', command: 'ccjk init',
+          name: this.name,
+          status: 'fail',
+          score: 0,
+          weight: this.weight,
+          message: 'No settings file',
+          command: 'ccjk init',
         }
       }
 
@@ -24,15 +28,20 @@ export const modelCheck: HealthCheck = {
 
       if (!hasApiKey) {
         return {
-          name: this.name, status: 'warn', score: 40, weight: this.weight,
+          name: this.name,
+          status: 'warn',
+          score: 40,
+          weight: this.weight,
           message: 'No API key configured (using default)',
-          fix: 'Configure API for direct access', command: 'ccjk menu',
+          fix: 'Configure API for direct access',
+          command: 'ccjk menu',
           details: ['  Using Claude Code default API'],
         }
       }
 
       return {
-        name: this.name, status: 'pass',
+        name: this.name,
+        status: 'pass',
         score: hasModel ? 100 : 70,
         weight: this.weight,
         message: hasModel ? `Model: ${hasModel}` : 'API configured (default model)',

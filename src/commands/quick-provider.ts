@@ -89,6 +89,7 @@ const KNOWN_COMMANDS = new Set([
   'st',
   'boost',
   'evolution',
+  'eval',
   // CCJK v8 commands
   'ccjk:mcp',
   'ccjk-mcp',

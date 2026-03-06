@@ -6,8 +6,8 @@
  * @module context/health-alerts-examples
  */
 
-import { HealthAlertsManager, runStartupHealthCheck, AlertSeverity } from './health-alerts'
 import { join } from 'pathe'
+import { AlertSeverity, HealthAlertsManager, runStartupHealthCheck } from './health-alerts'
 
 /**
  * Example 1: Run health check on CLI startup

@@ -6,8 +6,8 @@
 import type { SupportedLang } from '../constants'
 import ansis from 'ansis'
 import { i18n } from '../i18n'
-import { configureApi, getExistingApiConfig } from '../utils/config'
 import { getAllPresets } from '../utils/api-router'
+import { configureApi, getExistingApiConfig } from '../utils/config'
 
 export interface ApiConfigureOptions {
   provider?: string

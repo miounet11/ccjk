@@ -6,8 +6,8 @@
  * @module context/health-check-examples
  */
 
-import { DatabaseHealthMonitor, HealthStatus, createHealthMonitor } from './health-check'
-import { ContextPersistence, getContextPersistence } from './persistence'
+import { createHealthMonitor, HealthStatus } from './health-check'
+import { getContextPersistence } from './persistence'
 
 /**
  * Example 1: Basic Health Check
@@ -254,7 +254,7 @@ export async function databaseMigration() {
       {
         version: 1,
         description: 'Initial schema',
-        up: (db: any) => {
+        up: (_db: any) => {
           // Already applied in persistence.ts
         },
       },
@@ -279,7 +279,7 @@ export async function databaseMigration() {
 
     if (result.success) {
       console.log('✓ All migrations applied successfully')
-      result.applied.forEach(version => {
+      result.applied.forEach((version) => {
         const migration = migrations.find(m => m.version === version)
         console.log(`  ✓ v${version}: ${migration?.description}`)
       })
@@ -375,7 +375,7 @@ export async function healthDashboard() {
       console.log(`   Size: ${(latest.metadata.dbSize / 1024 / 1024).toFixed(2)} MB`)
     }
 
-    console.log('\n' + '='.repeat(60))
+    console.log(`\n${'='.repeat(60)}`)
 
     return health
   }

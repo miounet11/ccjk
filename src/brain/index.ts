@@ -18,10 +18,15 @@ import process from 'node:process'
 import { AgentRegistry, AgentState, BaseAgent } from './agents/base-agent'
 import { CodeAgent } from './agents/code-agent'
 import { getHealthMonitor, HealthMonitor, resetHealthMonitor } from './health-monitor'
-import { getMetricsCollector, MetricsCollector, resetMetricsCollector } from './metrics'
-import { createSelfHealingSystem, SelfHealingSystem } from './self-healing'
-import { TaskQueue } from './task-queue'
 import { trackMessage, trackToolCall } from './hooks/context-monitor'
+import { getMetricsCollector, MetricsCollector, resetMetricsCollector } from './metrics'
+import { PracticeEnforcer } from './practice-enforcer'
+import { createSelfHealingSystem, SelfHealingSystem } from './self-healing'
+import { skillTrigger } from './skill-trigger'
+import { smartSuggestions } from './smart-suggestions'
+import { superpowersRouter } from './superpowers-router'
+import { TaskQueue } from './task-queue'
+import { workflowAutomator } from './workflow-automator'
 
 /**
  * Brain execution result
@@ -642,13 +647,6 @@ export {
   resetGlobalDispatcher,
 } from './agent-dispatcher.js'
 
-export {
-  getStats as getContextMonitorStats,
-  resetStats as resetContextMonitor,
-  trackMessage,
-  trackToolCall,
-} from './hooks/context-monitor'
-
 export type {
   AgentDispatchConfig,
   AgentDispatcherOptions,
@@ -657,6 +655,15 @@ export type {
   ParallelAgentExecution,
   ParallelExecutionResult,
 } from './agent-dispatcher.js'
+
+export {
+  AgentForkManager,
+  createAgentForkManager,
+  generateSessionId,
+  getGlobalForkManager,
+  parseSkillForkConfig,
+  resetGlobalForkManager,
+} from './agent-fork.js'
 
 // ============================================================================
 // AGENT DISPATCHER SYSTEM (v3.8)
@@ -673,15 +680,6 @@ export type {
  * - Agent caching and load balancing
  */
 
-export {
-  AgentForkManager,
-  createAgentForkManager,
-  generateSessionId,
-  getGlobalForkManager,
-  parseSkillForkConfig,
-  resetGlobalForkManager,
-} from './agent-fork.js'
-
 export type {
   ForkContextConfig,
   ForkContextOptions,
@@ -690,17 +688,6 @@ export type {
   ForkHook,
   ForkTranscriptEntry,
 } from './agent-fork.js'
-
-// ============================================================================
-// ORCHESTRATOR SYSTEM
-// ============================================================================
-
-/**
- * Brain Orchestrator - Advanced multi-agent coordination system
- *
- * The orchestrator provides intelligent task decomposition, parallel execution,
- * and result aggregation for complex multi-agent workflows.
- */
 
 export type {
   CodeAnalysisResult,
@@ -713,13 +700,24 @@ export type {
   RefactoringPlan,
   RefactoringStep,
 } from './agents/code-agent'
+
+// ============================================================================
+// ORCHESTRATOR SYSTEM
+// ============================================================================
+
+/**
+ * Brain Orchestrator - Advanced multi-agent coordination system
+ *
+ * The orchestrator provides intelligent task decomposition, parallel execution,
+ * and result aggregation for complex multi-agent workflows.
+ */
+
 export {
   AutoSessionSaver,
   createAutoSessionSaver,
   getAutoSessionSaver,
   resetAutoSessionSaver,
 } from './auto-session-saver'
-
 export type {
   AutoSaveEvent,
   AutoSessionSaverStats as AutoSaverStats,
@@ -743,12 +741,12 @@ export type {
   OverflowPrediction,
   UsageStats,
 } from './context-overflow-detector'
+
 export {
   ConvoyManager,
   getGlobalConvoyManager,
   resetGlobalConvoyManager,
 } from './convoy/convoy-manager'
-
 export type {
   Convoy,
   ConvoyStatus,
@@ -761,24 +759,22 @@ export {
   createProgressCallback,
   ProgressTracker,
 } from './convoy/progress-tracker'
+
 export type {
   ProgressTrackerConfig,
   ProgressUpdate,
 } from './convoy/progress-tracker'
-
 export type { HealthCheckResult, HeartbeatRecord } from './health-monitor'
-export {
-  getGlobalMayorAgent,
-  MayorAgent,
-  resetGlobalMayorAgent,
-} from './mayor/mayor-agent'
 
-export type {
-  Intent,
-  MayorAgentConfig,
-  MayorResponse,
-  TaskPlan,
-} from './mayor/mayor-agent'
+export { HooksIntegration, hooksIntegration } from './hooks-integration'
+export type { HookContext, HookResponse } from './hooks-integration'
+
+export {
+  getStats as getContextMonitorStats,
+  resetStats as resetContextMonitor,
+  trackMessage,
+  trackToolCall,
+} from './hooks/context-monitor'
 
 // ============================================================================
 // SKILL HOT RELOAD SYSTEM (v3.8)
@@ -794,6 +790,19 @@ export type {
  * - Event-driven architecture via MessageBus
  * - Dependency tracking between skills
  */
+
+export {
+  getGlobalMayorAgent,
+  MayorAgent,
+  resetGlobalMayorAgent,
+} from './mayor/mayor-agent'
+
+export type {
+  Intent,
+  MayorAgentConfig,
+  MayorResponse,
+  TaskPlan,
+} from './mayor/mayor-agent'
 
 export {
   getGlobalMailboxManager,
@@ -851,10 +860,6 @@ export type {
 // Core orchestrator
 export { BrainOrchestrator } from './orchestrator.js'
 
-export type { OrchestratorEvents } from './orchestrator.js'
-
-export type { ExtendedOrchestratorConfig } from './orchestrator.js'
-
 // ============================================================================
 // THINKING MODE - Claude Code CLI 2.0.67+ Integration
 // ============================================================================
@@ -866,11 +871,7 @@ export type { ExtendedOrchestratorConfig } from './orchestrator.js'
  * Enabled by default for Opus 4.5 with configurable budget tokens.
  */
 
-export {
-  getGlobalStateManager,
-  GitBackedStateManager,
-  resetGlobalStateManager,
-} from './persistence/git-backed-state'
+export type { OrchestratorEvents } from './orchestrator.js'
 
 // ============================================================================
 // SESSION MANAGEMENT & ZPA (Zero-Prompt Architecture)
@@ -886,14 +887,13 @@ export {
  * - Import/export functionality
  */
 
-export type {
-  GitBackedStateConfig,
-  StateHistory,
-  StateSnapshot,
-} from './persistence/git-backed-state'
+export type { ExtendedOrchestratorConfig } from './orchestrator.js'
 
-// Result aggregation
-export { ResultAggregator } from './result-aggregator.js'
+export {
+  getGlobalStateManager,
+  GitBackedStateManager,
+  resetGlobalStateManager,
+} from './persistence/git-backed-state'
 
 /**
  * Auto Session Saver
@@ -905,20 +905,12 @@ export { ResultAggregator } from './result-aggregator.js'
  */
 
 export type {
-  AggregationContext,
-  AggregationResult,
-  ResultAggregationOptions,
-  ResultValidator,
-  ValidationResult,
-} from './result-aggregator.js'
+  GitBackedStateConfig,
+  StateHistory,
+  StateSnapshot,
+} from './persistence/git-backed-state'
 
-export {
-  CrossSessionRecovery,
-  getCrossSessionRecovery,
-  getSessionManager,
-  resetSessionManager,
-  SessionManager,
-} from './session-manager'
+export { PracticeEnforcer } from './practice-enforcer'
 
 /**
  * Context Overflow Detection
@@ -930,26 +922,10 @@ export {
  * - Model-specific presets (Claude, GPT-4, custom)
  */
 
-export type {
-  RecoveryCheckpoint,
-  Session,
-  GitInfo as SessionGitInfo,
-  SessionHistoryEntry,
-  SessionListOptions,
-  SessionManagerOptions,
-  SessionMetadata,
-} from './session-manager'
+export type { ConversationContext, GitStatus, Violation, ViolationSeverity } from './practice-enforcer'
 
-// Skill Hot Reload
-export {
-  createSkillHotReload,
-  getSkillHotReload,
-  getSkillHotReloadStats,
-  resetSkillHotReload,
-  SkillHotReload,
-  startSkillHotReload,
-  stopSkillHotReload,
-} from './skill-hot-reload'
+// Result aggregation
+export { ResultAggregator } from './result-aggregator.js'
 
 /**
  * Auto Compact Manager
@@ -975,15 +951,20 @@ export {
  */
 
 export type {
-  HotReloadEvent,
-  HotReloadEventType,
-  HotReloadOptions,
-  HotReloadStats,
-  SkillHotReloadEvents,
-} from './skill-hot-reload'
+  AggregationContext,
+  AggregationResult,
+  ResultAggregationOptions,
+  ResultValidator,
+  ValidationResult,
+} from './result-aggregator.js'
 
-// Skill Parser
-export { getSkillParser, isSkillFile, parseSkillContent, parseSkillFile, resetSkillParser, SkillParser } from './skill-parser'
+export {
+  CrossSessionRecovery,
+  getCrossSessionRecovery,
+  getSessionManager,
+  resetSessionManager,
+  SessionManager,
+} from './session-manager'
 
 /**
  * Persistent Mailbox System
@@ -994,6 +975,48 @@ export { getSkillParser, isSkillFile, parseSkillContent, parseSkillFile, resetSk
  * - Message expiration and archiving
  * - Search and filtering capabilities
  */
+
+export type {
+  RecoveryCheckpoint,
+  Session,
+  GitInfo as SessionGitInfo,
+  SessionHistoryEntry,
+  SessionListOptions,
+  SessionManagerOptions,
+  SessionMetadata,
+} from './session-manager'
+
+// Skill Hot Reload
+export {
+  createSkillHotReload,
+  getSkillHotReload,
+  getSkillHotReloadStats,
+  resetSkillHotReload,
+  SkillHotReload,
+  startSkillHotReload,
+  stopSkillHotReload,
+} from './skill-hot-reload'
+
+/**
+ * Convoy Task Management
+ *
+ * Group related tasks with dependency tracking:
+ * - Task grouping and progress tracking
+ * - Dependency-based execution order
+ * - Human notification on completion
+ * - Real-time progress visualization
+ */
+
+export type {
+  HotReloadEvent,
+  HotReloadEventType,
+  HotReloadOptions,
+  HotReloadStats,
+  SkillHotReloadEvents,
+} from './skill-hot-reload'
+
+// Skill Parser
+export { getSkillParser, isSkillFile, parseSkillContent, parseSkillFile, resetSkillParser, SkillParser } from './skill-parser'
 
 export type { FrontmatterParseOptions, SkillParseResult } from './skill-parser'
 
@@ -1009,31 +1032,6 @@ export {
 } from './skill-registry'
 
 /**
- * Convoy Task Management
- *
- * Group related tasks with dependency tracking:
- * - Task grouping and progress tracking
- * - Dependency-based execution order
- * - Human notification on completion
- * - Real-time progress visualization
- */
-
-export type {
-  SkillLookupOptions,
-  SkillRegistryEntry,
-  SkillRegistryEvents,
-  SkillRegistryStats,
-} from './skill-registry'
-
-// Task decomposition
-export { TaskDecomposer } from './task-decomposer.js'
-
-export type { TaskDecompositionOptions } from './task-decomposer.js'
-
-// Re-export specific types from other modules to avoid conflicts
-export type { Task as QueueTask, TaskPriority as QueueTaskPriority, TaskOptions, TaskQueueOptions, TaskQueueStats } from './task-queue'
-
-/**
  * Mayor Agent - AI Coordinator
  *
  * Intelligent task orchestration:
@@ -1043,11 +1041,14 @@ export type { Task as QueueTask, TaskPriority as QueueTaskPriority, TaskOptions,
  * - Progress monitoring and reporting
  */
 
-// Export all thinking mode types and utilities
-export * from './thinking-mode.js'
+export type {
+  SkillLookupOptions,
+  SkillRegistryEntry,
+  SkillRegistryEvents,
+  SkillRegistryStats,
+} from './skill-registry'
 
-// Re-export all types from types module
-export * from './types'
+export { SKILL_TRIGGERS, skillTrigger, SkillTriggerEngine } from './skill-trigger'
 
 // ============================================================================
 // SUPERPOWERS INTEGRATION - 智能工作流系统
@@ -1064,23 +1065,27 @@ export * from './types'
  * - 工作流自动化 (Code Review, TDD, 系统性调试等)
  */
 
-export { SuperpowersRouter, superpowersRouter } from './superpowers-router'
-export type { SuperpowerSkill, SuperpowerMapping } from './superpowers-router'
+export type { SkillTrigger, TriggerMatch } from './skill-trigger'
+export { SmartSuggestions, smartSuggestions } from './smart-suggestions'
 
-export { PracticeEnforcer } from './practice-enforcer'
-export type { Violation, ViolationSeverity, ConversationContext, GitStatus } from './practice-enforcer'
+export type { ContextAnalysis, Suggestion } from './smart-suggestions'
+export { SuperpowersRouter, superpowersRouter } from './superpowers-router'
+
+export type { SuperpowerMapping, SuperpowerSkill } from './superpowers-router'
+// Task decomposition
+export { TaskDecomposer } from './task-decomposer.js'
+
+export type { TaskDecompositionOptions } from './task-decomposer.js'
+// Re-export specific types from other modules to avoid conflicts
+export type { Task as QueueTask, TaskPriority as QueueTaskPriority, TaskOptions, TaskQueueOptions, TaskQueueStats } from './task-queue'
+
+// Export all thinking mode types and utilities
+export * from './thinking-mode.js'
+// Re-export all types from types module
+export * from './types'
 
 export { WorkflowAutomator, workflowAutomator } from './workflow-automator'
-export type { Task as WorkflowTask, Plan, ReviewResult, ReviewIssue } from './workflow-automator'
-
-export { SmartSuggestions, smartSuggestions } from './smart-suggestions'
-export type { Suggestion, ContextAnalysis } from './smart-suggestions'
-
-export { SkillTriggerEngine, skillTrigger, SKILL_TRIGGERS } from './skill-trigger'
-export type { SkillTrigger, TriggerMatch } from './skill-trigger'
-
-export { HooksIntegration, hooksIntegration } from './hooks-integration'
-export type { HookContext, HookResponse } from './hooks-integration'
+export type { Plan, ReviewIssue, ReviewResult, Task as WorkflowTask } from './workflow-automator'
 
 /**
  * 统一的智能处理入口

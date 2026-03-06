@@ -14,14 +14,13 @@
  * - Pattern-based suggestions
  */
 
-import type { HealthReport } from '../health/types'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import ansis from 'ansis'
 import { join } from 'pathe'
-import { runHealthCheck } from '../health/index'
-import { getContextPersistence } from '../context/persistence'
 import { MetricsDisplay } from '../context/metrics-display'
+import { getContextPersistence } from '../context/persistence'
+import { runHealthCheck } from '../health/index'
 
 // ============================================================================
 // Types
@@ -130,7 +129,8 @@ function updateHabitStats(command: string): HabitStats {
 
 function getDaysUsed(): number {
   const stats = loadHabitStats()
-  if (stats.totalCommands === 0) return 0
+  if (stats.totalCommands === 0)
+    return 0
 
   const firstDate = new Date(stats.firstUsed)
   const now = new Date()
@@ -259,10 +259,14 @@ export async function morningCommand(options: QuickActionsOptions = {}): Promise
     }
 
     // Display health score
-    const gradeColor = health.grade === 'S' ? ansis.magenta.bold
-      : health.grade === 'A' ? ansis.green.bold
-        : health.grade === 'B' ? ansis.cyan.bold
-          : health.grade === 'C' ? ansis.yellow.bold
+    const gradeColor = health.grade === 'S'
+      ? ansis.magenta.bold
+      : health.grade === 'A'
+        ? ansis.green.bold
+        : health.grade === 'B'
+          ? ansis.cyan.bold
+          : health.grade === 'C'
+            ? ansis.yellow.bold
             : ansis.red.bold
 
     console.log(`  ${ansis.gray('Health Score:')} ${gradeColor(health.grade)} ${ansis.gray(`(${health.totalScore}/100)`)}`)

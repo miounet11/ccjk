@@ -3,16 +3,16 @@
  * Tests for compression metrics tracking and display
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import type { CompressionStrategy, ContextData } from '../types'
 import { existsSync, unlinkSync } from 'node:fs'
-import { join } from 'pathe'
 import { tmpdir } from 'node:os'
-import { ContextPersistence } from '../persistence'
+import { join } from 'pathe'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { ContextManager } from '../manager'
-import type { ContextData, CompressionStrategy } from '../types'
+import { ContextPersistence } from '../persistence'
 import { CompressionStrategy as Strategy } from '../types'
 
-describe('Compression Metrics', () => {
+describe('compression Metrics', () => {
   let persistence: ContextPersistence
   let manager: ContextManager
   let dbPath: string
@@ -37,11 +37,13 @@ describe('Compression Metrics', () => {
     }
     const walPath = `${dbPath}-wal`
     const shmPath = `${dbPath}-shm`
-    if (existsSync(walPath)) unlinkSync(walPath)
-    if (existsSync(shmPath)) unlinkSync(shmPath)
+    if (existsSync(walPath))
+      unlinkSync(walPath)
+    if (existsSync(shmPath))
+      unlinkSync(shmPath)
   })
 
-  describe('Metrics Storage', () => {
+  describe('metrics Storage', () => {
     it('should save compression metrics to database', async () => {
       const context: ContextData = {
         id: 'test-1',
@@ -97,7 +99,7 @@ describe('Compression Metrics', () => {
     })
   })
 
-  describe('Metrics Statistics', () => {
+  describe('metrics Statistics', () => {
     it('should calculate overall statistics', async () => {
       // Create and compress multiple contexts
       for (let i = 0; i < 5; i++) {
@@ -178,7 +180,7 @@ describe('Compression Metrics', () => {
     })
   })
 
-  describe('Cost Calculations', () => {
+  describe('cost Calculations', () => {
     it('should calculate cost savings correctly', async () => {
       // Create context with known token count
       const context: ContextData = {
@@ -198,7 +200,7 @@ describe('Compression Metrics', () => {
     })
   })
 
-  describe('Metrics Cleanup', () => {
+  describe('metrics Cleanup', () => {
     it('should clean up old metrics', async () => {
       const now = Date.now()
       const oldTimestamp = now - (40 * 24 * 60 * 60 * 1000) // 40 days ago
@@ -237,7 +239,7 @@ describe('Compression Metrics', () => {
     })
   })
 
-  describe('Manager Integration', () => {
+  describe('manager Integration', () => {
     it('should provide compression metrics through manager', async () => {
       const context: ContextData = {
         id: 'manager-test',
@@ -285,7 +287,7 @@ describe('Compression Metrics', () => {
     })
   })
 
-  describe('Different Strategies', () => {
+  describe('different Strategies', () => {
     it('should track metrics for different compression strategies', async () => {
       const strategies: CompressionStrategy[] = [
         Strategy.CONSERVATIVE,

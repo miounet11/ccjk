@@ -1,10 +1,10 @@
+import type { ProjectContext } from './project-scanner'
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { resolveOrchestrationLevelFromRuntime } from '../utils/orchestration'
 import { getPlatform } from '../utils/platform'
-import type { ProjectContext } from './project-scanner'
 import { scanProject } from './project-scanner'
 
 export interface SmartDefaults {
@@ -364,16 +364,20 @@ export class SmartDefaultsDetector {
     // CI: only linting and test hooks — skip interactive/dev-server hooks
     if (runtime.isCI) {
       const hooks: string[] = []
-      if (project.linter !== 'none') hooks.push('pre-commit-lint-check')
-      if (project.testRunner !== 'none') hooks.push('test-before-commit')
+      if (project.linter !== 'none')
+        hooks.push('pre-commit-lint-check')
+      if (project.testRunner !== 'none')
+        hooks.push('test-before-commit')
       return hooks
     }
 
     // Container: minimal hooks for ephemeral environments
     if (runtime.isContainer) {
       const hooks: string[] = []
-      if (project.linter !== 'none') hooks.push('pre-commit-lint-check')
-      if (project.testRunner !== 'none') hooks.push('test-before-commit')
+      if (project.linter !== 'none')
+        hooks.push('pre-commit-lint-check')
+      if (project.testRunner !== 'none')
+        hooks.push('test-before-commit')
       return hooks
     }
 

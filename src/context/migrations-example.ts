@@ -365,7 +365,7 @@ export function validateMigrations(migrations: Migration[]): {
   }
 
   // Check for missing descriptions
-  migrations.forEach(m => {
+  migrations.forEach((m) => {
     if (!m.description || m.description.trim() === '') {
       errors.push(`Migration v${m.version} missing description`)
     }

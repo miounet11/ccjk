@@ -13,52 +13,52 @@ import { join } from 'pathe'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type ProjectLanguage =
-  | 'typescript'
-  | 'javascript'
-  | 'python'
-  | 'go'
-  | 'rust'
-  | 'java'
-  | 'ruby'
-  | 'php'
-  | 'swift'
-  | 'csharp'
-  | 'unknown'
+export type ProjectLanguage
+  = | 'typescript'
+    | 'javascript'
+    | 'python'
+    | 'go'
+    | 'rust'
+    | 'java'
+    | 'ruby'
+    | 'php'
+    | 'swift'
+    | 'csharp'
+    | 'unknown'
 
-export type ProjectFramework =
-  | 'next'
-  | 'nuxt'
-  | 'react'
-  | 'vue'
-  | 'angular'
-  | 'svelte'
-  | 'express'
-  | 'fastify'
-  | 'nest'
-  | 'fastapi'
-  | 'django'
-  | 'flask'
-  | 'gin'
-  | 'actix'
-  | 'spring'
-  | 'rails'
-  | 'laravel'
-  | 'tauri'
-  | 'electron'
-  | 'none'
+export type ProjectFramework
+  = | 'next'
+    | 'nuxt'
+    | 'react'
+    | 'vue'
+    | 'angular'
+    | 'svelte'
+    | 'express'
+    | 'fastify'
+    | 'nest'
+    | 'fastapi'
+    | 'django'
+    | 'flask'
+    | 'gin'
+    | 'actix'
+    | 'spring'
+    | 'rails'
+    | 'laravel'
+    | 'tauri'
+    | 'electron'
+    | 'none'
 
-export type TestRunner =
-  | 'vitest'
-  | 'jest'
-  | 'mocha'
-  | 'pytest'
-  | 'go-test'
-  | 'cargo-test'
-  | 'junit'
-  | 'rspec'
-  | 'phpunit'
-  | 'none'
+export type TestRunner
+  = | 'vitest'
+    | 'jest'
+    | 'mocha'
+    | 'pytest'
+    | 'go-test'
+    | 'cargo-test'
+    | 'junit'
+    | 'rspec'
+    | 'phpunit'
+    | 'none'
 
 export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun' | 'pip' | 'poetry' | 'cargo' | 'go' | 'maven' | 'gradle' | 'none'
 
@@ -152,7 +152,8 @@ export function scanProject(cwd?: string): ProjectContext {
 
 function readPackageJson(root: string): Record<string, any> | null {
   const p = join(root, 'package.json')
-  if (!existsSync(p)) return null
+  if (!existsSync(p))
+    return null
   try {
     return JSON.parse(readFileSync(p, 'utf-8'))
   }
@@ -162,7 +163,8 @@ function readPackageJson(root: string): Record<string, any> | null {
 }
 
 function hasDep(pkg: Record<string, any> | null, name: string): boolean {
-  if (!pkg) return false
+  if (!pkg)
+    return false
   return !!(
     pkg.dependencies?.[name]
     || pkg.devDependencies?.[name]
@@ -240,7 +242,8 @@ function detectSecondaryLanguages(
     ['rust', () => existsSync(join(root, 'Cargo.toml'))],
   ]
   for (const [lang, check] of checks) {
-    if (lang !== primary && check()) langs.push(lang)
+    if (lang !== primary && check())
+      langs.push(lang)
   }
   return langs
 }
@@ -252,31 +255,48 @@ function detectFramework(root: string, pkg: Record<string, any> | null): Project
     // Non-JS frameworks
     if (existsSync(join(root, 'pyproject.toml'))) {
       const content = safeRead(join(root, 'pyproject.toml'))
-      if (content.includes('fastapi')) return 'fastapi'
-      if (content.includes('django')) return 'django'
-      if (content.includes('flask')) return 'flask'
+      if (content.includes('fastapi'))
+        return 'fastapi'
+      if (content.includes('django'))
+        return 'django'
+      if (content.includes('flask'))
+        return 'flask'
     }
     if (existsSync(join(root, 'requirements.txt'))) {
       const content = safeRead(join(root, 'requirements.txt'))
-      if (content.includes('fastapi')) return 'fastapi'
-      if (content.includes('django')) return 'django'
-      if (content.includes('flask')) return 'flask'
+      if (content.includes('fastapi'))
+        return 'fastapi'
+      if (content.includes('django'))
+        return 'django'
+      if (content.includes('flask'))
+        return 'flask'
     }
     return 'none'
   }
 
   // JS/TS frameworks — order matters (more specific first)
-  if (hasDep(pkg, 'next')) return 'next'
-  if (hasDep(pkg, 'nuxt')) return 'nuxt'
-  if (hasDep(pkg, '@angular/core')) return 'angular'
-  if (hasDep(pkg, 'svelte') || hasDep(pkg, '@sveltejs/kit')) return 'svelte'
-  if (hasDep(pkg, '@nestjs/core')) return 'nest'
-  if (hasDep(pkg, '@tauri-apps/api') || hasDep(pkg, '@tauri-apps/cli')) return 'tauri'
-  if (hasDep(pkg, 'electron')) return 'electron'
-  if (hasDep(pkg, 'vue')) return 'vue'
-  if (hasDep(pkg, 'react')) return 'react'
-  if (hasDep(pkg, 'fastify')) return 'fastify'
-  if (hasDep(pkg, 'express')) return 'express'
+  if (hasDep(pkg, 'next'))
+    return 'next'
+  if (hasDep(pkg, 'nuxt'))
+    return 'nuxt'
+  if (hasDep(pkg, '@angular/core'))
+    return 'angular'
+  if (hasDep(pkg, 'svelte') || hasDep(pkg, '@sveltejs/kit'))
+    return 'svelte'
+  if (hasDep(pkg, '@nestjs/core'))
+    return 'nest'
+  if (hasDep(pkg, '@tauri-apps/api') || hasDep(pkg, '@tauri-apps/cli'))
+    return 'tauri'
+  if (hasDep(pkg, 'electron'))
+    return 'electron'
+  if (hasDep(pkg, 'vue'))
+    return 'vue'
+  if (hasDep(pkg, 'react'))
+    return 'react'
+  if (hasDep(pkg, 'fastify'))
+    return 'fastify'
+  if (hasDep(pkg, 'express'))
+    return 'express'
 
   return 'none'
 }
@@ -284,79 +304,115 @@ function detectFramework(root: string, pkg: Record<string, any> | null): Project
 // ─── Test Runner Detection ───────────────────────────────────────────────────
 
 function detectTestRunner(root: string, pkg: Record<string, any> | null): TestRunner {
-  if (hasDep(pkg, 'vitest')) return 'vitest'
-  if (hasDep(pkg, 'jest') || hasDep(pkg, '@jest/core')) return 'jest'
-  if (hasDep(pkg, 'mocha')) return 'mocha'
-  if (existsSync(join(root, 'pytest.ini')) || existsSync(join(root, 'conftest.py'))) return 'pytest'
+  if (hasDep(pkg, 'vitest'))
+    return 'vitest'
+  if (hasDep(pkg, 'jest') || hasDep(pkg, '@jest/core'))
+    return 'jest'
+  if (hasDep(pkg, 'mocha'))
+    return 'mocha'
+  if (existsSync(join(root, 'pytest.ini')) || existsSync(join(root, 'conftest.py')))
+    return 'pytest'
   if (existsSync(join(root, 'pyproject.toml'))) {
     const content = safeRead(join(root, 'pyproject.toml'))
-    if (content.includes('[tool.pytest') || content.includes('pytest')) return 'pytest'
+    if (content.includes('[tool.pytest') || content.includes('pytest'))
+      return 'pytest'
   }
-  if (existsSync(join(root, 'go.mod'))) return 'go-test'
-  if (existsSync(join(root, 'Cargo.toml'))) return 'cargo-test'
-  if (existsSync(join(root, 'pom.xml')) || existsSync(join(root, 'build.gradle'))) return 'junit'
+  if (existsSync(join(root, 'go.mod')))
+    return 'go-test'
+  if (existsSync(join(root, 'Cargo.toml')))
+    return 'cargo-test'
+  if (existsSync(join(root, 'pom.xml')) || existsSync(join(root, 'build.gradle')))
+    return 'junit'
   if (existsSync(join(root, 'Gemfile'))) {
     const content = safeRead(join(root, 'Gemfile'))
-    if (content.includes('rspec')) return 'rspec'
+    if (content.includes('rspec'))
+      return 'rspec'
   }
-  if (hasDep(pkg, 'phpunit') || existsSync(join(root, 'phpunit.xml'))) return 'phpunit'
+  if (hasDep(pkg, 'phpunit') || existsSync(join(root, 'phpunit.xml')))
+    return 'phpunit'
   return 'none'
 }
 
 // ─── Package Manager Detection ───────────────────────────────────────────────
 
 function detectPackageManager(root: string): PackageManager {
-  if (existsSync(join(root, 'pnpm-lock.yaml')) || existsSync(join(root, 'pnpm-workspace.yaml'))) return 'pnpm'
-  if (existsSync(join(root, 'bun.lockb')) || existsSync(join(root, 'bun.lock'))) return 'bun'
-  if (existsSync(join(root, 'yarn.lock'))) return 'yarn'
-  if (existsSync(join(root, 'package-lock.json'))) return 'npm'
-  if (existsSync(join(root, 'poetry.lock'))) return 'poetry'
-  if (existsSync(join(root, 'Pipfile.lock')) || existsSync(join(root, 'requirements.txt'))) return 'pip'
-  if (existsSync(join(root, 'Cargo.lock'))) return 'cargo'
-  if (existsSync(join(root, 'go.sum'))) return 'go'
-  if (existsSync(join(root, 'pom.xml'))) return 'maven'
-  if (existsSync(join(root, 'build.gradle')) || existsSync(join(root, 'build.gradle.kts'))) return 'gradle'
+  if (existsSync(join(root, 'pnpm-lock.yaml')) || existsSync(join(root, 'pnpm-workspace.yaml')))
+    return 'pnpm'
+  if (existsSync(join(root, 'bun.lockb')) || existsSync(join(root, 'bun.lock')))
+    return 'bun'
+  if (existsSync(join(root, 'yarn.lock')))
+    return 'yarn'
+  if (existsSync(join(root, 'package-lock.json')))
+    return 'npm'
+  if (existsSync(join(root, 'poetry.lock')))
+    return 'poetry'
+  if (existsSync(join(root, 'Pipfile.lock')) || existsSync(join(root, 'requirements.txt')))
+    return 'pip'
+  if (existsSync(join(root, 'Cargo.lock')))
+    return 'cargo'
+  if (existsSync(join(root, 'go.sum')))
+    return 'go'
+  if (existsSync(join(root, 'pom.xml')))
+    return 'maven'
+  if (existsSync(join(root, 'build.gradle')) || existsSync(join(root, 'build.gradle.kts')))
+    return 'gradle'
   return 'none'
 }
 
 // ─── Linter Detection ────────────────────────────────────────────────────────
 
 function detectLinter(root: string, pkg: Record<string, any> | null): Linter {
-  if (hasDep(pkg, '@biomejs/biome') || existsSync(join(root, 'biome.json')) || existsSync(join(root, 'biome.jsonc'))) return 'biome'
-  if (hasDep(pkg, 'oxlint') || hasDep(pkg, 'oxc')) return 'oxlint'
-  if (hasDep(pkg, 'eslint') || existsSync(join(root, '.eslintrc.json')) || existsSync(join(root, '.eslintrc.js')) || existsSync(join(root, 'eslint.config.js')) || existsSync(join(root, 'eslint.config.mjs'))) return 'eslint'
+  if (hasDep(pkg, '@biomejs/biome') || existsSync(join(root, 'biome.json')) || existsSync(join(root, 'biome.jsonc')))
+    return 'biome'
+  if (hasDep(pkg, 'oxlint') || hasDep(pkg, 'oxc'))
+    return 'oxlint'
+  if (hasDep(pkg, 'eslint') || existsSync(join(root, '.eslintrc.json')) || existsSync(join(root, '.eslintrc.js')) || existsSync(join(root, 'eslint.config.js')) || existsSync(join(root, 'eslint.config.mjs')))
+    return 'eslint'
   // Python
-  if (existsSync(join(root, 'ruff.toml')) || existsSync(join(root, '.ruff.toml'))) return 'ruff'
+  if (existsSync(join(root, 'ruff.toml')) || existsSync(join(root, '.ruff.toml')))
+    return 'ruff'
   if (existsSync(join(root, 'pyproject.toml'))) {
     const content = safeRead(join(root, 'pyproject.toml'))
-    if (content.includes('[tool.ruff')) return 'ruff'
-    if (content.includes('[tool.pylint') || content.includes('pylint')) return 'pylint'
-    if (content.includes('flake8')) return 'flake8'
+    if (content.includes('[tool.ruff'))
+      return 'ruff'
+    if (content.includes('[tool.pylint') || content.includes('pylint'))
+      return 'pylint'
+    if (content.includes('flake8'))
+      return 'flake8'
   }
   // Go
-  if (existsSync(join(root, '.golangci.yml')) || existsSync(join(root, '.golangci.yaml'))) return 'golangci-lint'
+  if (existsSync(join(root, '.golangci.yml')) || existsSync(join(root, '.golangci.yaml')))
+    return 'golangci-lint'
   // Rust — clippy is built-in
-  if (existsSync(join(root, 'Cargo.toml'))) return 'clippy'
+  if (existsSync(join(root, 'Cargo.toml')))
+    return 'clippy'
   // Ruby
-  if (existsSync(join(root, '.rubocop.yml'))) return 'rubocop'
+  if (existsSync(join(root, '.rubocop.yml')))
+    return 'rubocop'
   return 'none'
 }
 
 // ─── Formatter Detection ─────────────────────────────────────────────────────
 
 function detectFormatter(root: string, pkg: Record<string, any> | null): Formatter {
-  if (hasDep(pkg, '@biomejs/biome') || existsSync(join(root, 'biome.json'))) return 'biome'
-  if (hasDep(pkg, 'prettier') || existsSync(join(root, '.prettierrc')) || existsSync(join(root, '.prettierrc.json')) || existsSync(join(root, 'prettier.config.js')) || existsSync(join(root, 'prettier.config.mjs'))) return 'prettier'
+  if (hasDep(pkg, '@biomejs/biome') || existsSync(join(root, 'biome.json')))
+    return 'biome'
+  if (hasDep(pkg, 'prettier') || existsSync(join(root, '.prettierrc')) || existsSync(join(root, '.prettierrc.json')) || existsSync(join(root, 'prettier.config.js')) || existsSync(join(root, 'prettier.config.mjs')))
+    return 'prettier'
   // Python
   if (existsSync(join(root, 'pyproject.toml'))) {
     const content = safeRead(join(root, 'pyproject.toml'))
-    if (content.includes('[tool.ruff') && content.includes('format')) return 'ruff'
-    if (content.includes('[tool.black') || content.includes('black')) return 'black'
+    if (content.includes('[tool.ruff') && content.includes('format'))
+      return 'ruff'
+    if (content.includes('[tool.black') || content.includes('black'))
+      return 'black'
   }
   // Go — gofmt is built-in
-  if (existsSync(join(root, 'go.mod'))) return 'gofmt'
+  if (existsSync(join(root, 'go.mod')))
+    return 'gofmt'
   // Rust — rustfmt is built-in
-  if (existsSync(join(root, 'Cargo.toml'))) return 'rustfmt'
+  if (existsSync(join(root, 'Cargo.toml')))
+    return 'rustfmt'
   return 'none'
 }
 
@@ -366,30 +422,44 @@ function detectDatabase(root: string): Database {
   // Check docker-compose
   for (const f of ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml']) {
     const content = safeRead(join(root, f))
-    if (!content) continue
-    if (content.includes('postgres')) return 'postgresql'
-    if (content.includes('mysql') || content.includes('mariadb')) return 'mysql'
-    if (content.includes('mongo')) return 'mongodb'
-    if (content.includes('redis')) return 'redis'
+    if (!content)
+      continue
+    if (content.includes('postgres'))
+      return 'postgresql'
+    if (content.includes('mysql') || content.includes('mariadb'))
+      return 'mysql'
+    if (content.includes('mongo'))
+      return 'mongodb'
+    if (content.includes('redis'))
+      return 'redis'
   }
 
   // Check .env files for DATABASE_URL
   for (const f of ['.env', '.env.local', '.env.development']) {
     const content = safeRead(join(root, f))
-    if (!content) continue
-    if (content.includes('postgres')) return 'postgresql'
-    if (content.includes('mysql')) return 'mysql'
-    if (content.includes('mongodb') || content.includes('mongo+srv')) return 'mongodb'
-    if (content.includes('redis://')) return 'redis'
+    if (!content)
+      continue
+    if (content.includes('postgres'))
+      return 'postgresql'
+    if (content.includes('mysql'))
+      return 'mysql'
+    if (content.includes('mongodb') || content.includes('mongo+srv'))
+      return 'mongodb'
+    if (content.includes('redis://'))
+      return 'redis'
   }
 
   // Check for ORM config files
   if (existsSync(join(root, 'prisma', 'schema.prisma'))) {
     const content = safeRead(join(root, 'prisma', 'schema.prisma'))
-    if (content.includes('postgresql')) return 'postgresql'
-    if (content.includes('mysql')) return 'mysql'
-    if (content.includes('sqlite')) return 'sqlite'
-    if (content.includes('mongodb')) return 'mongodb'
+    if (content.includes('postgresql'))
+      return 'postgresql'
+    if (content.includes('mysql'))
+      return 'mysql'
+    if (content.includes('sqlite'))
+      return 'sqlite'
+    if (content.includes('mongodb'))
+      return 'mongodb'
   }
 
   // Check for SQLite files
@@ -444,11 +514,16 @@ function detectRuntime(): RuntimeEnvironment {
 // ─── Git / Repo Detection ────────────────────────────────────────────────────
 
 function detectMonorepo(root: string, pkg: Record<string, any> | null): boolean {
-  if (pkg?.workspaces) return true
-  if (existsSync(join(root, 'pnpm-workspace.yaml'))) return true
-  if (existsSync(join(root, 'lerna.json'))) return true
-  if (existsSync(join(root, 'nx.json'))) return true
-  if (existsSync(join(root, 'turbo.json'))) return true
+  if (pkg?.workspaces)
+    return true
+  if (existsSync(join(root, 'pnpm-workspace.yaml')))
+    return true
+  if (existsSync(join(root, 'lerna.json')))
+    return true
+  if (existsSync(join(root, 'nx.json')))
+    return true
+  if (existsSync(join(root, 'turbo.json')))
+    return true
   return false
 }
 
@@ -459,13 +534,16 @@ function detectConventionalCommits(root: string, pkg: Record<string, any> | null
     || existsSync(join(root, '.commitlintrc.js'))
     || existsSync(join(root, 'commitlint.config.js'))
     || existsSync(join(root, 'commitlint.config.mjs'))
-  ) return true
-  if (hasDep(pkg, '@commitlint/cli') || hasDep(pkg, '@commitlint/config-conventional')) return true
+  ) {
+    return true
+  }
+  if (hasDep(pkg, '@commitlint/cli') || hasDep(pkg, '@commitlint/config-conventional'))
+    return true
 
   // Check recent git log for conventional commit patterns
   try {
     const log = execSync('git log --oneline -10 2>/dev/null', { cwd: root, encoding: 'utf-8', timeout: 3000 })
-    const conventionalPattern = /^[a-f0-9]+ (feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)(\(.+\))?[!]?:/m
+    const conventionalPattern = /^[a-f0-9]+ (feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)(\(.+\))?!?:/m
     const lines = log.trim().split('\n').filter(Boolean)
     const matches = lines.filter(l => conventionalPattern.test(l))
     // If >50% of recent commits are conventional, assume it's the convention
@@ -477,9 +555,12 @@ function detectConventionalCommits(root: string, pkg: Record<string, any> | null
 }
 
 function detectGitHooks(root: string, pkg: Record<string, any> | null): boolean {
-  if (existsSync(join(root, '.husky'))) return true
-  if (hasDep(pkg, 'husky') || hasDep(pkg, 'simple-git-hooks') || hasDep(pkg, 'lefthook')) return true
-  if (existsSync(join(root, '.lefthook.yml'))) return true
+  if (existsSync(join(root, '.husky')))
+    return true
+  if (hasDep(pkg, 'husky') || hasDep(pkg, 'simple-git-hooks') || hasDep(pkg, 'lefthook'))
+    return true
+  if (existsSync(join(root, '.lefthook.yml')))
+    return true
   return false
 }
 
@@ -498,7 +579,8 @@ function detectCI(root: string): boolean {
 
 function safeRead(path: string): string {
   try {
-    if (!existsSync(path)) return ''
+    if (!existsSync(path))
+      return ''
     return readFileSync(path, 'utf-8')
   }
   catch {

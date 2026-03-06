@@ -4,8 +4,9 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { homedir } from 'node:os'
+import { join } from 'node:path'
+import { migrateSettingsForTokenRetrieval, needsMigration } from '../utils/config-migration'
 
 // ============================================================================
 // 配置问题检测
@@ -50,6 +51,15 @@ export async function detectSettingsIssues(): Promise<ConfigIssue[]> {
     const content = readFileSync(settingsPath, 'utf-8')
     const settings = JSON.parse(content)
 
+    if (needsMigration()) {
+      issues.push({
+        type: 'outdated',
+        severity: 'critical',
+        description: 'Adaptive Claude model routing configuration needs repair',
+        fix: async () => migrateSettingsForTokenRetrieval().success,
+      })
+    }
+
     // 检查必需字段
     if (!settings.apiType) {
       issues.push({
@@ -64,20 +74,17 @@ export async function detectSettingsIssues(): Promise<ConfigIssue[]> {
       })
     }
 
-    // 检查 API key
-    if (!settings.apiKey && !process.env.ANTHROPIC_API_KEY) {
+    // 检查 API key - 只在非 CCR 模式下检查
+    if (settings.apiType === 'anthropic' && !settings.apiKey && !process.env.ANTHROPIC_API_KEY) {
       issues.push({
         type: 'missing',
-        severity: 'warning',
+        severity: 'info', // 降级为 info，不会在启动时自动修复
         description: 'No API key configured',
-        fix: async () => {
-          console.log('⚠️  Please run: ccjk init --api-key YOUR_KEY')
-          return false
-        },
+        fix: async () => false, // 不输出任何内容
       })
     }
   }
-  catch (error) {
+  catch (_error) {
     issues.push({
       type: 'invalid',
       severity: 'critical',
@@ -184,10 +191,10 @@ export async function autoFixAll(silent = true): Promise<{
         }
       }
     }
-    catch (error) {
+    catch (_error) {
       failed++
       if (!silent) {
-        console.log(`   ❌ Error: ${error}`)
+        console.log(`   ❌ Error: ${_error}`)
       }
     }
   }

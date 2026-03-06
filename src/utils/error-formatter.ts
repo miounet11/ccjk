@@ -33,7 +33,7 @@ export function formatError(error: Error | string, context?: string): FormattedE
     },
     {
       pattern: /Failed to (start|connect|fetch)/i,
-      formatter: (match) => ({
+      formatter: match => ({
         title: '❌ Connection Failed',
         message: `Unable to ${match[1]} the service.`,
         suggestion: 'Check your internet connection and try again.',

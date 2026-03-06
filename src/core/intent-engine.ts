@@ -142,8 +142,20 @@ export function shouldTriggerSkill(args: string[]): IntentMatch | null {
 
   // 如果是已知的 CLI 命令，不需要识别
   const knownCommands = [
-    'init', 'update', 'doctor', 'help', 'mcp', 'skill', 'agent', 'hook',
-    'memory', 'quick-setup', 'config', 'template', 'brain', 'session',
+    'init',
+    'update',
+    'doctor',
+    'help',
+    'mcp',
+    'skill',
+    'agent',
+    'hook',
+    'memory',
+    'quick-setup',
+    'config',
+    'template',
+    'brain',
+    'session',
   ]
   if (args.length > 0 && knownCommands.includes(args[0])) {
     return null
@@ -159,7 +171,7 @@ export function shouldTriggerSkill(args: string[]): IntentMatch | null {
  * @param skillName skill 名称
  * @param originalArgs 原始命令行参数
  */
-export async function executeSkill(skillName: string, originalArgs: string[]): Promise<boolean> {
+export async function executeSkill(skillName: string, _originalArgs: string[]): Promise<boolean> {
   try {
     // 动态导入 skill 执行器
     const { executeSlashCommand } = await import('../commands/slash-commands')

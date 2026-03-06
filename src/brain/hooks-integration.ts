@@ -4,10 +4,10 @@
  */
 
 import type { SupportedLang } from '../constants'
+import type { ConversationContext } from './practice-enforcer'
+import { PracticeEnforcer } from './practice-enforcer'
 import { skillTrigger } from './skill-trigger'
 import { smartSuggestions } from './smart-suggestions'
-import { PracticeEnforcer } from './practice-enforcer'
-import type { ConversationContext } from './practice-enforcer'
 
 export interface HookContext {
   userInput: string
@@ -127,9 +127,9 @@ export class HooksIntegration {
 
     // 检测新代码无测试
     const hasNewCode = files.some(f =>
-      !f.includes('.test.') &&
-      !f.includes('.spec.') &&
-      (f.endsWith('.ts') || f.endsWith('.js') || f.endsWith('.tsx') || f.endsWith('.jsx')),
+      !f.includes('.test.')
+      && !f.includes('.spec.')
+      && (f.endsWith('.ts') || f.endsWith('.js') || f.endsWith('.tsx') || f.endsWith('.jsx')),
     )
 
     const hasNewTests = files.some(f =>

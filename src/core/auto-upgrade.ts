@@ -5,8 +5,8 @@
 
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { homedir } from 'node:os'
+import { join } from 'node:path'
 
 // ============================================================================
 // 版本检测
@@ -168,7 +168,7 @@ function shouldShowPrompt(versionInfo: VersionInfo, state: UpgradePromptState): 
 function showUpgradePrompt(versionInfo: VersionInfo): void {
   const { current, latest, updateType } = versionInfo
 
-  console.log('\n' + '='.repeat(60))
+  console.log(`\n${'='.repeat(60)}`)
   console.log('🚀 New version available!')
   console.log(`   Current: v${current}`)
   console.log(`   Latest:  v${latest} (${updateType} update)`)
@@ -176,7 +176,7 @@ function showUpgradePrompt(versionInfo: VersionInfo): void {
   console.log('   npm install -g @cometx/ccjk@latest')
   console.log('   # or')
   console.log('   pnpm add -g @cometx/ccjk@latest')
-  console.log('='.repeat(60) + '\n')
+  console.log(`${'='.repeat(60)}\n`)
 }
 
 /**

@@ -1,13 +1,13 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 /**
  * New User Onboarding Wizard
  * 3-step guided setup for first-time users
  */
 import ansis from 'ansis'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR } from '../constants'
-import { i18n } from '../i18n'
 import { runHealthCheck } from '../health'
+import { i18n } from '../i18n'
 
 const ONBOARDING_STATE_FILE = join(CCJK_CONFIG_DIR, 'onboarding.json')
 
@@ -20,7 +20,8 @@ export interface OnboardingState {
 
 export function readOnboardingState(): OnboardingState | null {
   try {
-    if (!existsSync(ONBOARDING_STATE_FILE)) return null
+    if (!existsSync(ONBOARDING_STATE_FILE))
+      return null
     return JSON.parse(readFileSync(ONBOARDING_STATE_FILE, 'utf-8')) as OnboardingState
   }
   catch {
@@ -52,7 +53,8 @@ export function isOnboardingCompleted(): boolean {
 export async function runOnboardingWizard(options: { reset?: boolean } = {}): Promise<void> {
   if (options.reset) {
     // Clear state so wizard runs fresh
-    try { writeOnboardingState({ completed: false, completedAt: '', completedSteps: [] }) } catch {}
+    try { writeOnboardingState({ completed: false, completedAt: '', completedSteps: [] }) }
+    catch {}
   }
 
   const existingState = readOnboardingState()

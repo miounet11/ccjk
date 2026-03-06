@@ -2,14 +2,14 @@
  * Context Persistence Tests
  */
 
+import type { CompressedContext } from '../types'
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { CompressionAlgorithm, CompressionStrategy } from '../types'
-import type { CompressedContext } from '../types'
 import { ContextPersistence } from '../persistence'
+import { CompressionAlgorithm, CompressionStrategy } from '../types'
 
-describe('ContextPersistence', () => {
+describe('contextPersistence', () => {
   let persistence: ContextPersistence
   let testDbPath: string
 

@@ -3,7 +3,6 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import type { DashboardOptions } from '../../src/commands/dashboard'
 
 // Mock dependencies
 vi.mock('../../src/context/persistence', () => ({

@@ -12,15 +12,15 @@ import ansis from 'ansis'
 /**
  * Trace event types
  */
-export type TraceEventType =
-  | 'agent-start'
-  | 'agent-end'
-  | 'decision'
-  | 'tool-call'
-  | 'tool-result'
-  | 'error'
-  | 'context-load'
-  | 'context-save'
+export type TraceEventType
+  = | 'agent-start'
+    | 'agent-end'
+    | 'decision'
+    | 'tool-call'
+    | 'tool-result'
+    | 'error'
+    | 'context-load'
+    | 'context-save'
 
 /**
  * Trace event
@@ -84,7 +84,8 @@ export class ExecutionTracer {
    */
   endSession(sessionId?: string): void {
     const sid = sessionId || this.currentSessionId
-    if (!sid) return
+    if (!sid)
+      return
 
     const trace = this.traces.get(sid)
     if (trace) {

@@ -1,3 +1,6 @@
+import type { HealthCheck, HealthResult } from '../types'
+import os from 'node:os'
+import path from 'node:path'
 /**
  * Memory Health Check
  *
@@ -8,9 +11,6 @@
  * - Provides optimization recommendations
  */
 import fs from 'fs-extra'
-import os from 'node:os'
-import path from 'node:path'
-import type { HealthCheck, HealthResult } from '../types'
 
 // Thresholds
 const MAX_MEMORY_SIZE_KB = 100 // Warn if memory file > 100KB
@@ -108,7 +108,8 @@ export const memoryCheck: HealthCheck = {
       if (hasMemoryDir) {
         score += 20 // Memory directory exists
         result.details?.push('✓ Memory directory exists')
-      } else {
+      }
+      else {
         result.details?.push('✗ Memory directory not found')
       }
 
@@ -122,14 +123,16 @@ export const memoryCheck: HealthCheck = {
           const largestKB = (largestFileSize / 1024).toFixed(1)
           result.details?.push(`  Largest: ${largestFileName} (${largestKB}KB)`)
         }
-      } else {
+      }
+      else {
         result.details?.push('✗ No memory content found')
       }
 
       if (hasCcjkRules) {
         score += 20 // CCJK rules configured
         result.details?.push('✓ CCJK memory rules configured')
-      } else {
+      }
+      else {
         result.details?.push('⚠ CCJK memory rules not configured')
       }
 
@@ -139,13 +142,16 @@ export const memoryCheck: HealthCheck = {
         if (daysSinceSync < 7) {
           score += 30 // Recent activity (< 7 days)
           result.details?.push(`✓ Recently updated (${Math.floor(daysSinceSync)}d ago)`)
-        } else if (daysSinceSync < STALE_DAYS) {
+        }
+        else if (daysSinceSync < STALE_DAYS) {
           score += 20 // Moderate activity (< 30 days)
           result.details?.push(`✓ Updated ${Math.floor(daysSinceSync)}d ago`)
-        } else if (daysSinceSync < VERY_STALE_DAYS) {
+        }
+        else if (daysSinceSync < VERY_STALE_DAYS) {
           score += 10 // Stale (30-90 days)
           result.details?.push(`⚠ Stale: ${Math.floor(daysSinceSync)}d since update`)
-        } else {
+        }
+        else {
           // Very stale (> 90 days)
           result.details?.push(`✗ Very stale: ${Math.floor(daysSinceSync)}d since update`)
         }
@@ -162,12 +168,14 @@ export const memoryCheck: HealthCheck = {
       if (score >= 80 && warnings.length === 0) {
         result.status = 'pass'
         result.message = 'Memory system healthy'
-      } else if (score >= 50 || (score >= 40 && warnings.length <= 1)) {
+      }
+      else if (score >= 50 || (score >= 40 && warnings.length <= 1)) {
         result.status = 'warn'
         result.message = warnings.length > 0
           ? `Memory active but needs attention (${warnings.length} warning${warnings.length > 1 ? 's' : ''})`
           : 'Memory system partially configured'
-      } else {
+      }
+      else {
         result.status = 'fail'
         result.message = 'Memory system needs configuration'
       }
@@ -195,7 +203,8 @@ export const memoryCheck: HealthCheck = {
         const daysSinceSync = (Date.now() - lastSyncTime.getTime()) / (1000 * 60 * 60 * 24)
         if (daysSinceSync > VERY_STALE_DAYS) {
           fixes.push('Review and archive old memory entries')
-        } else if (daysSinceSync > STALE_DAYS) {
+        }
+        else if (daysSinceSync > STALE_DAYS) {
           fixes.push('Consider refreshing stale memory content')
         }
       }
@@ -205,7 +214,8 @@ export const memoryCheck: HealthCheck = {
       }
 
       return result
-    } catch (error) {
+    }
+    catch (error) {
       result.status = 'fail'
       result.message = `Failed to check memory health: ${error instanceof Error ? error.message : String(error)}`
       return result

@@ -7,10 +7,10 @@
  * @module context/health-check
  */
 
-import Database from 'better-sqlite3'
-import { existsSync, mkdirSync, copyFileSync, statSync, readdirSync, unlinkSync } from 'node:fs'
-import { dirname, join, basename } from 'pathe'
 import type { ContextPersistence } from './persistence'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs'
+import Database from 'better-sqlite3'
+import { basename, dirname, join } from 'pathe'
 
 /**
  * Database health status
@@ -159,7 +159,7 @@ export class DatabaseHealthMonitor {
    * Run comprehensive health check
    */
   async runHealthCheck(): Promise<HealthCheckResult> {
-    const startTime = Date.now()
+    const _startTime = Date.now()
     const errors: string[] = []
     const recommendations: string[] = []
 
@@ -228,7 +228,7 @@ export class DatabaseHealthMonitor {
    * Check database integrity
    */
   async checkIntegrity(): Promise<IntegrityCheckResult> {
-    const startTime = Date.now()
+    const _startTime = Date.now()
     const errors: string[] = []
     const corruptedTables: string[] = []
 
@@ -261,7 +261,7 @@ export class DatabaseHealthMonitor {
         passed: passed && fkResult.length === 0,
         errors,
         corruptedTables: [...new Set(corruptedTables)],
-        duration: Date.now() - startTime,
+        duration: Date.now() - _startTime,
       }
     }
     catch (error) {
@@ -269,7 +269,7 @@ export class DatabaseHealthMonitor {
         passed: false,
         errors: [`Integrity check failed: ${error instanceof Error ? error.message : String(error)}`],
         corruptedTables: [],
-        duration: Date.now() - startTime,
+        duration: Date.now() - _startTime,
       }
     }
   }
@@ -479,7 +479,7 @@ export class DatabaseHealthMonitor {
    * Create database backup
    */
   async backup(label?: string): Promise<BackupResult> {
-    const startTime = Date.now()
+    const _startTime = Date.now()
 
     try {
       // Checkpoint WAL first
@@ -520,7 +520,7 @@ export class DatabaseHealthMonitor {
         success: true,
         backupPath,
         metadata,
-        duration: Date.now() - startTime,
+        duration: Date.now() - _startTime,
       }
     }
     catch (error) {
@@ -534,7 +534,7 @@ export class DatabaseHealthMonitor {
           projectCount: 0,
           version: String(CURRENT_SCHEMA_VERSION),
         },
-        duration: Date.now() - startTime,
+        duration: Date.now() - _startTime,
         error: error instanceof Error ? error.message : String(error),
       }
     }
@@ -544,7 +544,7 @@ export class DatabaseHealthMonitor {
    * Restore database from backup
    */
   async restore(backupPath: string): Promise<RestoreResult> {
-    const startTime = Date.now()
+    const _startTime = Date.now()
 
     try {
       // Verify backup exists
@@ -599,7 +599,7 @@ export class DatabaseHealthMonitor {
         success: true,
         restoredFrom: backupPath,
         metadata,
-        duration: Date.now() - startTime,
+        duration: Date.now() - _startTime,
       }
     }
     catch (error) {
@@ -613,7 +613,7 @@ export class DatabaseHealthMonitor {
           projectCount: 0,
           version: String(CURRENT_SCHEMA_VERSION),
         },
-        duration: Date.now() - startTime,
+        duration: Date.now() - _startTime,
         error: error instanceof Error ? error.message : String(error),
       }
     }

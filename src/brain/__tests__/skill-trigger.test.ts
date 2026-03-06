@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { SkillTriggerEngine } from '../skill-trigger'
 
-describe('SkillTriggerEngine', () => {
+describe('skillTriggerEngine', () => {
   const engine = new SkillTriggerEngine('zh-CN')
 
-  describe('Browser Triggers', () => {
+  describe('browser Triggers', () => {
     it('should detect "访问 github.com"', () => {
       const match = engine.getBestMatch('访问 github.com')
       expect(match).toBeTruthy()
@@ -64,7 +64,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Commit Triggers', () => {
+  describe('commit Triggers', () => {
     it('should detect "提交代码"', () => {
       const match = engine.getBestMatch('提交代码')
       expect(match).toBeTruthy()
@@ -84,7 +84,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Review Triggers', () => {
+  describe('review Triggers', () => {
     it('should detect "审查代码"', () => {
       const match = engine.getBestMatch('审查代码')
       expect(match).toBeTruthy()
@@ -104,7 +104,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Test Triggers', () => {
+  describe('test Triggers', () => {
     it('should detect "写测试"', () => {
       const match = engine.getBestMatch('写测试')
       expect(match).toBeTruthy()
@@ -124,7 +124,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Debug Triggers', () => {
+  describe('debug Triggers', () => {
     it('should detect "调试这个问题"', () => {
       const match = engine.getBestMatch('调试这个问题')
       expect(match).toBeTruthy()
@@ -150,7 +150,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Plan Triggers', () => {
+  describe('plan Triggers', () => {
     it('should detect "规划登录功能"', () => {
       const match = engine.getBestMatch('规划登录功能')
       expect(match).toBeTruthy()
@@ -170,7 +170,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Confidence Levels', () => {
+  describe('confidence Levels', () => {
     it('should have high confidence for exact pattern match', () => {
       const match = engine.getBestMatch('访问 https://github.com')
       expect(match?.confidence).toBeGreaterThan(0.7)
@@ -188,7 +188,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Auto Execute Decision', () => {
+  describe('auto Execute Decision', () => {
     it('should auto-execute for high confidence with params', () => {
       const match = engine.getBestMatch('访问 https://github.com')
       expect(match).toBeTruthy()
@@ -203,7 +203,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Multiple Matches', () => {
+  describe('multiple Matches', () => {
     it('should return multiple matches sorted by confidence', () => {
       const matches = engine.analyze('调试这个测试问题')
       expect(matches.length).toBeGreaterThan(0)
@@ -213,7 +213,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Suggestion Generation', () => {
+  describe('suggestion Generation', () => {
     it('should generate suggestion with confidence', () => {
       const match = engine.getBestMatch('访问 github.com')
       expect(match).toBeTruthy()
@@ -224,7 +224,7 @@ describe('SkillTriggerEngine', () => {
     })
   })
 
-  describe('Command Generation', () => {
+  describe('command Generation', () => {
     it('should generate skill command with params', () => {
       const match = engine.getBestMatch('访问 https://github.com')
       expect(match).toBeTruthy()

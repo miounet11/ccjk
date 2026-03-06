@@ -10,13 +10,13 @@
  * @module tests/integration/cloud-setup-e2e
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { CloudSetupOrchestrator } from '../../src/orchestrators/cloud-setup-orchestrator'
 import type {
   BatchTemplateResponse,
   ProjectAnalysisResponse,
 } from '../../src/cloud-client/types'
 import type { CloudApiResponse } from '../../src/services/cloud/api-client'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { CloudSetupOrchestrator } from '../../src/orchestrators/cloud-setup-orchestrator'
 import {
   createMockAnalysisResponse,
   createMockBatchTemplateResponse,
@@ -69,7 +69,7 @@ vi.mock('../../src/commands/ccjk-hooks', () => ({
   ccjkHooks: vi.fn(() => Promise.resolve()),
 }))
 
-describe('Cloud Setup E2E Integration Tests', () => {
+describe('cloud Setup E2E Integration Tests', () => {
   let mockServer: MockCloudServer
   let orchestrator: CloudSetupOrchestrator
 
@@ -96,7 +96,7 @@ describe('Cloud Setup E2E Integration Tests', () => {
   // Test Suite 1: Complete Setup Flow
   // ==========================================================================
 
-  describe('Complete Setup Flow', () => {
+  describe('complete Setup Flow', () => {
     it('should complete full cloud setup successfully', async () => {
       // Arrange - Mock analysis response
       const analysisResponse: CloudApiResponse<ProjectAnalysisResponse> = {
@@ -151,8 +151,7 @@ describe('Cloud Setup E2E Integration Tests', () => {
               id: `skill-${i}`,
               category: 'skill',
               relevanceScore: 0.9 - i * 0.01,
-            }),
-          ),
+            })),
         }),
       }
       mockServer.setResponse('analysis.projects', largeAnalysisResponse)
@@ -213,7 +212,7 @@ describe('Cloud Setup E2E Integration Tests', () => {
   // Test Suite 2: Fallback Scenarios
   // ==========================================================================
 
-  describe('Fallback to Local Recommendations', () => {
+  describe('fallback to Local Recommendations', () => {
     it('should fallback to local when cloud is unavailable', async () => {
       // Arrange - Simulate cloud unavailability
       mockServer.enableFailures(1.0)
@@ -270,7 +269,7 @@ describe('Cloud Setup E2E Integration Tests', () => {
   // Test Suite 3: Error Recovery
   // ==========================================================================
 
-  describe('Error Recovery', () => {
+  describe('error Recovery', () => {
     it('should recover from partial template download failure', async () => {
       // Arrange - Analysis succeeds
       const analysisResponse: CloudApiResponse<ProjectAnalysisResponse> = {
@@ -341,7 +340,7 @@ describe('Cloud Setup E2E Integration Tests', () => {
   // Test Suite 4: Performance Benchmarks
   // ==========================================================================
 
-  describe('Performance Benchmarks', () => {
+  describe('performance Benchmarks', () => {
     it('should complete setup within performance targets', async () => {
       // Arrange
       const analysisResponse: CloudApiResponse<ProjectAnalysisResponse> = {

@@ -82,6 +82,10 @@ export async function initI18n(language: SupportedLang = 'zh-CN'): Promise<void>
     return
   }
 
+  // Suppress npm funding messages from i18next
+  const originalLog = console.log
+  console.log = () => {}
+
   await i18n
     .use(Backend)
     .init({
@@ -148,7 +152,15 @@ export async function initI18n(language: SupportedLang = 'zh-CN'): Promise<void>
 
       // Debugging (disable for clean output)
       debug: false,
+
+      // Suppress i18next promotional messages
+      saveMissing: false,
+      updateMissing: false,
+      missingKeyHandler: false,
     })
+
+  // Restore console.log
+  console.log = originalLog
 
   // Namespaces will be loaded on-demand by i18next-fs-backend
   // No need to preload all 33 namespaces at startup

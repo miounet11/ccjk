@@ -16,7 +16,6 @@ import type {
 import type { SupportedLang } from '../constants.js'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { displayError } from '../utils/error-formatter.js'
 import {
   configureSyncEngine,
   getConflicts,
@@ -25,6 +24,7 @@ import {
   performSync,
   resolveConflict,
 } from '../cloud-sync/index.js'
+import { displayError } from '../utils/error-formatter.js'
 
 // ============================================================================
 // Types

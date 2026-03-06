@@ -1,0 +1,33 @@
+{
+  "suite": "basic",
+  "totalScenarios": 1,
+  "passedScenarios": 1,
+  "failedScenarios": 0,
+  "successRate": 1,
+  "averageScore": 1,
+  "scenarios": [
+    {
+      "scenarioId": "hello-world",
+      "scenarioName": "Hello World Test",
+      "suite": "basic",
+      "timestamp": "2026-03-06T04:04:41.641Z",
+      "totalRuns": 1,
+      "passedRuns": 1,
+      "failedRuns": 0,
+      "successRate": 1,
+      "averageScore": 1,
+      "averageDurationMs": 5009,
+      "runs": [
+        {
+          "runIndex": 0,
+          "passed": true,
+          "score": 1,
+          "output": "\n\u001b[33m\u001b[39m\n\u001b[33m⚠️  供应商 \"run\" 尚未注册\u001b[39m\n\u001b[90m该短码在云端注册表中不存在\u001b[39m\n\u001b[90m\u001b[39m\n\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m\u001b[27G\u001b[28G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m e\u001b[28G\u001b[29G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m ec\u001b[29G\u001b[30G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m ech\u001b[30G\u001b[31G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo\u001b[31G\u001b[32G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo\u001b[32G\u001b[33G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo '\u001b[33G\u001b[34G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'H\u001b[34G\u001b[35G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'He\u001b[35G\u001b[36G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hel\u001b[36G\u001b[37G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hell\u001b[37G\u001b[38G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello\u001b[38G\u001b[39G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello,\u001b[39G\u001b[40G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello,\u001b[40G\u001b[41G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello, W\u001b[41G\u001b[42G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello, Wo\u001b[42G\u001b[43G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello, Wor\u001b[43G\u001b[44G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello, Worl\u001b[44G\u001b[45G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello, World\u001b[45G\u001b[46G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello, World!\u001b[46G\u001b[47G\u001b[2K\u001b[G\u001b[34m?\u001b[39m \u001b[1m是否创建该供应商?\u001b[22m \u001b[2m(y/N)\u001b[22m echo 'Hello, World!'\u001b[47G",
+          "stderr": "- Starting CCJK...\n- \u001b[90m正在查询供应商 \"run\"...\u001b[39m\n",
+          "durationMs": 5009,
+          "metrics": {}
+        }
+      ]
+    }
+  ]
+}

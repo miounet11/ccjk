@@ -8,10 +8,10 @@
  */
 
 import type { CAC } from 'cac'
-import process from 'node:process'
 import type { SupportedLang } from './constants'
 import type { HookCategory, HookType } from './hooks/types'
 import type { SkillCategory } from './skills/types'
+import process from 'node:process'
 
 // ============================================================================
 // 核心类型定义
@@ -317,7 +317,12 @@ const COMMANDS: CommandDefinition[] = [
     loader: async () => {
       const { memoryCommand } = await import('./commands/memory')
       return async (options) => {
-        await memoryCommand(options)
+        await memoryCommand(options as {
+          view?: boolean
+          edit?: boolean
+          sync?: boolean
+          project?: string
+        })
       }
     },
   },
@@ -633,7 +638,7 @@ const COMMANDS: CommandDefinition[] = [
         }
         else if (actionStr === 'search') {
           const { contextOptSearch } = await import('./commands/context-opt')
-          await contextOptSearch(argsArr[0] || '', options)
+          await contextOptSearch(argsArr[0] || '', { topK: options.topK as string | undefined })
         }
         else if (actionStr === 'decay') {
           const { contextOptDecay } = await import('./commands/context-opt')
@@ -1376,7 +1381,7 @@ const COMMANDS: CommandDefinition[] = [
           args.push(key as string)
         if (value !== undefined)
           args.push(value as string)
-        await configCommand(args, {
+        await configCommand(args[0] || 'list', args.slice(1), {
           lang: options.lang,
           codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           global: options.global as boolean | undefined,
@@ -1506,7 +1511,7 @@ const COMMANDS: CommandDefinition[] = [
       { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
     ],
     loader: async () => {
-      return async (options: CliOptions) => {
+      return async (_options: CliOptions) => {
         const { persistenceManager } = await import('./commands/persistence-manager')
         await persistenceManager()
       }
@@ -1669,6 +1674,40 @@ const COMMANDS: CommandDefinition[] = [
           show: options.show as string,
           restore: options.restore as string,
           cleanup: options.cleanup as boolean,
+        })
+      }
+    },
+  },
+
+  // ==================== Evaluation System ====================
+  {
+    name: 'eval',
+    description: 'Run evaluation scenarios and benchmarks',
+    tier: 'extended',
+    options: [
+      { flags: '--scenario <id>', description: 'Run specific scenario' },
+      { flags: '--suite <name>', description: 'Run specific suite' },
+      { flags: '--runs <n>', description: 'Number of runs per scenario' },
+      { flags: '--verbose, -v', description: 'Verbose output' },
+      { flags: '--html', description: 'Generate HTML dashboard' },
+      { flags: '--json', description: 'Generate JSON reports' },
+      { flags: '--baseline <path>', description: 'Baseline report path' },
+      { flags: '--candidate <path>', description: 'Candidate report path' },
+      { flags: '--compare', description: 'Compare baseline and candidate' },
+    ],
+    loader: async () => {
+      const { evalCommand } = await import('./commands/eval')
+      return async (options: CliOptions) => {
+        await evalCommand({
+          scenario: options.scenario as string,
+          suite: options.suite as string,
+          runs: options.runs ? parseInt(options.runs as string, 10) : 1,
+          verbose: options.verbose as boolean,
+          html: options.html !== false,
+          json: options.json !== false,
+          baseline: options.baseline as string,
+          candidate: options.candidate as string,
+          compare: options.compare as boolean,
         })
       }
     },
@@ -2359,6 +2398,7 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
       `  ${cyan('ccjk skills')}       ${gray('sk')}    Manage CCJK skills ${green('NEW')}`,
       `  ${cyan('ccjk memory')}       ${gray('mem')}   Manage Claude Code memory ${green('NEW')}`,
       `  ${cyan('ccjk monitor')}      ${gray('mon')}   Performance monitoring ${green('NEW')}`,
+      `  ${cyan('ccjk eval')}               Run evaluation scenarios ${green('NEW')}`,
       `  ${cyan('ccjk interview')}    ${gray('iv')}    Interview-driven development`,
       `  ${cyan('ccjk commit')}             Smart git commit`,
       `  ${cyan('ccjk config-switch')} ${gray('cs')}   Switch configuration`,
@@ -2772,7 +2812,7 @@ function bootstrapCloudServices(): void {
  * - 用户直接运行 `npx ccjk` 或 `ccjk` 进入主菜单
  * - 不是执行特定命令（如 init, update 等）
  */
-async function showWelcomeIfNeeded(): Promise<void> {
+async function _showWelcomeIfNeeded(): Promise<void> {
   try {
     const args = process.argv.slice(2)
 

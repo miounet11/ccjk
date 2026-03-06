@@ -6,9 +6,9 @@
  * @module commands/paradigm
  */
 
+import type { FileRole } from '../brain/fs-paradigm'
 import ansis from 'ansis'
 import { fsParadigm } from '../brain/fs-paradigm'
-import type { FileRole } from '../brain/fs-paradigm'
 
 export interface ParadigmOptions {
   verbose?: boolean

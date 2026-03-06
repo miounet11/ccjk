@@ -3,6 +3,7 @@
  * Orchestrates compression, caching, and analytics
  */
 
+import type { ContextPersistence } from './persistence'
 import type {
   CompressedContext,
   CompressionOptions,
@@ -16,12 +17,12 @@ import { ContextCache } from './cache'
 import { AggressiveStrategy } from './compression/strategies/aggressive'
 import { BalancedStrategy } from './compression/strategies/balanced'
 import { ConservativeStrategy } from './compression/strategies/conservative'
+import { HierarchicalContextLoader } from './hierarchical-loader'
+import { getContextPersistence } from './persistence'
 import {
   CompressionAlgorithm,
   CompressionStrategy,
 } from './types'
-import { ContextPersistence, getContextPersistence } from './persistence'
-import { HierarchicalContextLoader } from './hierarchical-loader'
 
 /**
  * Context Manager - Main entry point for context optimization
@@ -401,7 +402,8 @@ export class ContextManager {
    * Load persisted contexts into cache
    */
   private loadPersistedContexts(): void {
-    if (!this.persistence || !this.projectHash) return
+    if (!this.persistence || !this.projectHash)
+      return
 
     try {
       // Load recent contexts from persistence
@@ -437,10 +439,12 @@ export class ContextManager {
    * Get persisted context by ID
    */
   getPersistedContext(contextId: string): CompressedContext | null {
-    if (!this.persistence) return null
+    if (!this.persistence)
+      return null
 
     const persisted = this.persistence.getContext(contextId)
-    if (!persisted) return null
+    if (!persisted)
+      return null
 
     return {
       id: persisted.id,
@@ -459,7 +463,8 @@ export class ContextManager {
    * Get persistence statistics
    */
   getPersistenceStats() {
-    if (!this.persistence) return null
+    if (!this.persistence)
+      return null
     return this.persistence.getStats(this.projectHash)
   }
 
@@ -467,7 +472,8 @@ export class ContextManager {
    * Clean up old persisted contexts
    */
   cleanupPersistence(maxAge: number): number {
-    if (!this.persistence) return 0
+    if (!this.persistence)
+      return 0
     return this.persistence.cleanup(maxAge)
   }
 
@@ -475,7 +481,8 @@ export class ContextManager {
    * Export persisted contexts
    */
   exportPersistence() {
-    if (!this.persistence) return []
+    if (!this.persistence)
+      return []
     return this.persistence.exportContexts(this.projectHash)
   }
 
@@ -523,7 +530,8 @@ export class ContextManager {
    * Lazy load cold contexts in batches
    */
   async lazyColdContexts(offset: number = 0, limit: number = 50) {
-    if (!this.hierarchicalLoader) return []
+    if (!this.hierarchicalLoader)
+      return []
     return this.hierarchicalLoader.lazyColdContexts(offset, limit)
   }
 
@@ -555,7 +563,8 @@ export class ContextManager {
     startTime?: number
     endTime?: number
   }) {
-    if (!this.persistence) return null
+    if (!this.persistence)
+      return null
     return this.persistence.getCompressionMetricsStats(this.projectHash, options)
   }
 
@@ -563,7 +572,8 @@ export class ContextManager {
    * Get recent compression metrics
    */
   getRecentCompressionMetrics(limit: number = 10) {
-    if (!this.persistence) return []
+    if (!this.persistence)
+      return []
     return this.persistence.getRecentCompressionMetrics(this.projectHash, limit)
   }
 
@@ -571,7 +581,7 @@ export class ContextManager {
    * Format compression result for display
    */
   formatCompressionResult(compressed: CompressedContext, timeTakenMs: number): string {
-    const tokensSaved = compressed.originalTokens - compressed.compressedTokens
+    const _tokensSaved = compressed.originalTokens - compressed.compressedTokens
     const reductionPercent = Math.round(compressed.compressionRatio * 100)
     const originalK = (compressed.originalTokens / 1000).toFixed(1)
     const compressedK = (compressed.compressedTokens / 1000).toFixed(1)

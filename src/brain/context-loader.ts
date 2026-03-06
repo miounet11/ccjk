@@ -7,11 +7,11 @@
  * @module brain/context-loader
  */
 
+import type { Task } from './orchestrator-types'
+import type { TaskPhase } from './session-manager'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { glob } from 'tinyglobby'
-import type { Task } from './orchestrator-types'
-import type { TaskPhase } from './session-manager'
 import { executionTracer } from './execution-tracer'
 import { fsParadigm } from './fs-paradigm'
 
@@ -94,9 +94,11 @@ function estimateTokens(text: string): number {
 }
 
 function truncateToDepth(content: string, depth: ContextDepth): string {
-  if (depth === 'L2') return content
+  if (depth === 'L2')
+    return content
   const maxChars = DEPTH_TOKEN_BUDGETS[depth] * CHARS_PER_TOKEN
-  if (content.length <= maxChars) return content
+  if (content.length <= maxChars)
+    return content
   // For L0: first paragraph or first 400 chars
   if (depth === 'L0') {
     const firstPara = content.split(/\n\n/)[0]
@@ -119,9 +121,12 @@ export class ContextLoader {
    * If depth is explicit, use it. Otherwise derive from tokenBudget.
    */
   private resolveDepth(tokenBudget: number, explicitDepth?: ContextDepth): ContextDepth {
-    if (explicitDepth) return explicitDepth
-    if (tokenBudget <= DEPTH_TOKEN_BUDGETS.L0) return 'L0'
-    if (tokenBudget <= DEPTH_TOKEN_BUDGETS.L1) return 'L1'
+    if (explicitDepth)
+      return explicitDepth
+    if (tokenBudget <= DEPTH_TOKEN_BUDGETS.L0)
+      return 'L0'
+    if (tokenBudget <= DEPTH_TOKEN_BUDGETS.L1)
+      return 'L1'
     return 'L2'
   }
 
@@ -257,7 +262,8 @@ export class ContextLoader {
     task?: Task,
     depth: ContextDepth = 'L2',
   ): Promise<ContextEntry[]> {
-    if (!task) return []
+    if (!task)
+      return []
 
     const entries: ContextEntry[] = []
 
@@ -326,7 +332,8 @@ export class ContextLoader {
    * Load task-specific context
    */
   private async loadTaskContext(task?: Task, depth: ContextDepth = 'L2'): Promise<ContextEntry[]> {
-    if (!task) return []
+    if (!task)
+      return []
 
     const entries: ContextEntry[] = []
 
@@ -368,7 +375,8 @@ export class ContextLoader {
    * - Related task outputs
    */
   private async loadExecutionContext(task?: Task, depth: ContextDepth = 'L2'): Promise<ContextEntry[]> {
-    if (!task) return []
+    if (!task)
+      return []
 
     const entries: ContextEntry[] = []
 
@@ -470,7 +478,8 @@ export class ContextLoader {
 
     for (const layer of layerOrder) {
       const entries = context.layers.get(layer)
-      if (!entries || entries.length === 0) continue
+      if (!entries || entries.length === 0)
+        continue
 
       sections.push(`# ${layer.toUpperCase()} CONTEXT\n`)
 

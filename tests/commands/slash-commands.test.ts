@@ -5,7 +5,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { executeSlashCommand, getSlashCommands, isSlashCommand, parseSlashCommand } from '../../src/commands/slash-commands'
 
-describe('Slash Commands', () => {
+describe('slash Commands', () => {
   describe('parseSlashCommand', () => {
     it('should parse valid slash command', () => {
       const result = parseSlashCommand('/status')
@@ -59,7 +59,7 @@ describe('Slash Commands', () => {
 
     it('should include required command properties', () => {
       const commands = getSlashCommands()
-      commands.forEach(cmd => {
+      commands.forEach((cmd) => {
         expect(cmd).toHaveProperty('name')
         expect(cmd).toHaveProperty('description')
         expect(cmd).toHaveProperty('descriptionZh')
@@ -109,12 +109,12 @@ describe('Slash Commands', () => {
     })
   })
 
-  describe('Command Aliases', () => {
+  describe('command Aliases', () => {
     it('should have aliases for common commands', () => {
       const commands = getSlashCommands()
       const aliasMap = new Map<string, string[]>()
 
-      commands.forEach(cmd => {
+      commands.forEach((cmd) => {
         if (cmd.aliases) {
           aliasMap.set(cmd.name, cmd.aliases)
         }
@@ -128,7 +128,7 @@ describe('Slash Commands', () => {
     })
   })
 
-  describe('Command Categories', () => {
+  describe('command Categories', () => {
     it('should group brain commands correctly', () => {
       const commands = getSlashCommands()
       const brainCommands = commands.filter(cmd => cmd.category === 'brain')

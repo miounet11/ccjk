@@ -6,6 +6,9 @@
  * @module cloud-client/skills
  */
 
+// Export client
+export { createSkillsClient, SkillsApiClient } from './client'
+
 // Export types
 export type {
   SkillCategory,
@@ -36,6 +39,3 @@ export {
   validateSkillListResponse,
   validateSkillUploadResponse,
 } from './types'
-
-// Export client
-export { createSkillsClient, SkillsApiClient } from './client'

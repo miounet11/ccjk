@@ -52,8 +52,8 @@ export function createMockRecommendation(
 ): Recommendation {
   return {
     id: 'mock-recommendation',
-    name: { en: 'Mock Recommendation', 'zh-CN': '模拟推荐' },
-    description: { en: 'A mock recommendation for testing', 'zh-CN': '用于测试的模拟推荐' },
+    name: { 'en': 'Mock Recommendation', 'zh-CN': '模拟推荐' },
+    description: { 'en': 'A mock recommendation for testing', 'zh-CN': '用于测试的模拟推荐' },
     category: 'skill',
     relevanceScore: 0.95,
     tags: ['test', 'mock'],
@@ -70,8 +70,8 @@ export function createMockTemplate(
   return {
     id: 'mock-template',
     type: 'workflow',
-    name: { en: 'Mock Template', 'zh-CN': '模拟模板' },
-    description: { en: 'A mock template for testing', 'zh-CN': '用于测试的模拟模板' },
+    name: { 'en': 'Mock Template', 'zh-CN': '模拟模板' },
+    description: { 'en': 'A mock template for testing', 'zh-CN': '用于测试的模拟模板' },
     content: '# Mock Template Content',
     version: '1.0.0',
     author: 'Test Author',

@@ -2,25 +2,16 @@
  * Main entry point for the entire package
  */
 
-export * from './code-tools'
-export * from './utils'
 export * from './analyzers'
-
 // Export cloud-client with explicit re-exports to avoid conflicts
 export {
   CachedCloudClient,
+  canInstallMore,
   CloudCache,
   CloudClient,
   CloudError,
   CloudErrorCode,
   CloudErrorFactory,
-  FallbackCloudClient,
-  RatingsApiError,
-  RatingsApiErrorCode,
-  RetryableCloudClient,
-  TelemetryReporter,
-  TemplatesClient,
-  canInstallMore,
   convertBatchTemplateResponse,
   convertConfig,
   convertParameterDefault,
@@ -32,6 +23,7 @@ export {
   createCompleteCloudClient,
   createRating,
   createTemplatesClient,
+  FallbackCloudClient,
   formatErrorForLogging,
   getCloudMcpRecommendations,
   getCloudRecommendations,
@@ -63,13 +55,18 @@ export {
   isTemplateParameterValue,
   isUnauthorizedError,
   ratingsApi,
+  RatingsApiError,
+  RatingsApiErrorCode,
+  RetryableCloudClient,
   retryUtils,
   skillsMarketplaceApi,
   sortByLastUsed,
   sortByUsage,
   stopTelemetry,
   submitHookAnalytics,
+  TelemetryReporter,
   telemetryUtils,
+  TemplatesClient,
   trackEvent,
   uninstallSkill,
   updateSkill,
@@ -79,7 +76,6 @@ export {
   validateUsageReport,
   withRetry,
 } from './cloud-client'
-
 export type {
   AgentConfig,
   AnalysisCompletedData,
@@ -121,3 +117,7 @@ export type {
   UsageReportResponse,
   WorkflowConfig,
 } from './cloud-client'
+
+export * from './code-tools'
+
+export * from './utils'

@@ -2,7 +2,7 @@
  * Doctor Command JSON Output Tests
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { doctor } from '../../src/commands/doctor'
 
 describe('doctor --json', () => {
@@ -79,10 +79,10 @@ describe('doctor --json', () => {
     const output = consoleLogSpy.mock.calls[0][0]
 
     // Should not contain ANSI color codes
-    expect(output).not.toMatch(/\x1b\[/)
+    expect(output).not.toMatch(/\x1B\[/)
     // Should not contain emoji or box drawing characters in the JSON structure
     const parsed = JSON.parse(output)
-    expect(JSON.stringify(parsed)).not.toMatch(/[✅❌⚠️─]/)
+    expect(JSON.stringify(parsed)).not.toMatch(/[\u2705\u274C\u26A0\uFE0F\u2500]/)
   })
 
   it('should have valid timestamp format', async () => {

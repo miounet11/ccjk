@@ -3,11 +3,10 @@
  * 将 CCJK 快捷操作映射到 Superpowers 技能
  */
 
+import type { SupportedLang } from '../constants'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
-import type { SupportedLang } from '../constants'
-import { i18n } from '../i18n'
 
 export interface SuperpowerSkill {
   id: string
@@ -233,8 +232,8 @@ export class SuperpowersRouter {
       const { readdirSync } = require('node:fs')
       const entries = readdirSync(this.skillsPath, { withFileTypes: true })
       return entries
-        .filter(e => e.isDirectory())
-        .map(e => e.name)
+        .filter((e: { isDirectory: () => boolean }) => e.isDirectory())
+        .map((e: { name: string }) => e.name)
     }
     catch {
       return []

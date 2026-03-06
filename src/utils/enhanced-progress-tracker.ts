@@ -1,5 +1,6 @@
+import type { Ora } from 'ora'
 import ansis from 'ansis'
-import ora, { type Ora } from 'ora'
+import ora from 'ora'
 
 /**
  * Progress step status
@@ -217,11 +218,11 @@ export class EnhancedProgressTracker {
       return null
 
     const avgTime = completed.reduce((sum, s) =>
-      sum + (s.endTime! - s.startTime!), 0,
-    ) / completed.length
+      sum + (s.endTime! - s.startTime!), 0) / completed.length
 
     const remaining = Array.from(this.steps.values())
-      .filter(s => s.status === 'pending' || s.status === 'running').length
+      .filter(s => s.status === 'pending' || s.status === 'running')
+      .length
 
     if (remaining === 0)
       return null

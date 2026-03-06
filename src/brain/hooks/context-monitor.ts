@@ -1,4 +1,3 @@
-import type { SupportedLang } from '../../constants'
 import ansis from 'ansis'
 import { i18n } from '../../i18n'
 
@@ -55,7 +54,7 @@ function checkAndWarn(): void {
   // Check if we've hit thresholds
   const shouldWarn
     = stats.toolCalls >= TOOL_CALL_WARNING_THRESHOLD
-    || stats.messageCount >= MESSAGE_WARNING_THRESHOLD
+      || stats.messageCount >= MESSAGE_WARNING_THRESHOLD
 
   if (shouldWarn) {
     emitWarning()
