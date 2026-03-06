@@ -19,6 +19,7 @@ import {
   writeFileAtomic,
 } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
+import { applyAdaptiveModelEnv } from './model-env-helper'
 import { deepMerge } from './object-utils'
 import { mergeAndCleanPermissions } from './permission-cleaner'
 
@@ -243,17 +244,12 @@ export function updateCustomModel(
   // Clean existing model-related environment variables
   clearModelEnv(settings.env)
 
-  // Set environment variables only if values are provided
-  // Note: We intentionally do NOT set ANTHROPIC_MODEL (primaryModel) to allow
-  // Claude Code to automatically select the appropriate model (Haiku/Sonnet/Opus)
-  // based on task complexity. Only set the three default model variants.
-  // This matches the recommended adaptive behavior.
-  if (haikuModel?.trim())
-    settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim()
-  if (sonnetModel?.trim())
-    settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = sonnetModel.trim()
-  if (opusModel?.trim())
-    settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = opusModel.trim()
+  applyAdaptiveModelEnv(settings.env, {
+    primaryModel,
+    defaultHaikuModel: haikuModel,
+    defaultSonnetModel: sonnetModel,
+    defaultOpusModel: opusModel,
+  })
 
   writeJsonConfig(SETTINGS_FILE, settings)
 }
@@ -433,6 +429,7 @@ export function getExistingCustomModelConfig(): {
 
   const {
     ANTHROPIC_MODEL,
+    ANTHROPIC_SMALL_FAST_MODEL,
     ANTHROPIC_DEFAULT_HAIKU_MODEL,
     ANTHROPIC_DEFAULT_SONNET_MODEL,
     ANTHROPIC_DEFAULT_OPUS_MODEL,
@@ -445,7 +442,7 @@ export function getExistingCustomModelConfig(): {
 
   return {
     primaryModel: ANTHROPIC_MODEL,
-    haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL,
+    haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL || ANTHROPIC_SMALL_FAST_MODEL,
     sonnetModel: ANTHROPIC_DEFAULT_SONNET_MODEL,
     opusModel: ANTHROPIC_DEFAULT_OPUS_MODEL,
   }

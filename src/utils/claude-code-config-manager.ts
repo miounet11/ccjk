@@ -8,6 +8,7 @@ import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from 
 import { clearModelEnv } from './config.model-keys'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
+import { applyAdaptiveModelEnv } from './model-env-helper'
 
 export class ClaudeCodeConfigManager {
   static readonly CONFIG_FILE = ZCF_CONFIG_FILE
@@ -257,25 +258,22 @@ export class ClaudeCodeConfigManager {
       }
 
       const hasAdaptiveModelConfig = Boolean(
-        profile.defaultHaikuModel
+        profile.primaryModel
+        || profile.defaultHaikuModel
         || profile.defaultSonnetModel
         || profile.defaultOpusModel,
       )
 
       if (hasAdaptiveModelConfig) {
-        // Remove the top-level model override so Claude Code can use the
-        // adaptive Haiku/Sonnet/Opus defaults below.
+        // Remove the top-level model override and rely on env vars so Claude
+        // Code can keep its own model routing behavior.
         delete settings.model
-        if (profile.defaultHaikuModel)
-          settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.defaultHaikuModel
-        if (profile.defaultSonnetModel)
-          settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = profile.defaultSonnetModel
-        if (profile.defaultOpusModel)
-          settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = profile.defaultOpusModel
-      }
-      else if (profile.primaryModel) {
-        delete settings.model
-        settings.env.ANTHROPIC_MODEL = profile.primaryModel
+        applyAdaptiveModelEnv(settings.env, {
+          primaryModel: profile.primaryModel,
+          defaultHaikuModel: profile.defaultHaikuModel,
+          defaultSonnetModel: profile.defaultSonnetModel,
+          defaultOpusModel: profile.defaultOpusModel,
+        })
       }
       else {
         // No model config in profile, ensure all model envs are removed

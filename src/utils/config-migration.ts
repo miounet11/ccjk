@@ -74,15 +74,9 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
         }
       }
 
-      const hasAdaptiveModelDefaults = Boolean(
-        settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
-        || settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL
-        || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
-      )
-
-      if (hasAdaptiveModelDefaults && settings.env.ANTHROPIC_MODEL) {
-        delete settings.env.ANTHROPIC_MODEL
-        result.changes.push('Removed stale ANTHROPIC_MODEL override so Claude Code can use adaptive Haiku/Sonnet/Opus routing')
+      if (settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL) {
+        settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+        result.changes.push('Restored ANTHROPIC_SMALL_FAST_MODEL from defaultHaikuModel so Claude Code can auto-route lightweight requests again')
         modified = true
       }
     }
@@ -99,25 +93,12 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
 
     const profileConfig = ClaudeCodeConfigManager.readConfig()
     if (profileConfig) {
-      let profileModified = false
+      const hasAdaptiveProfiles = Object.entries(profileConfig.profiles).some(([_profileId, profile]) =>
+        Boolean(profile.primaryModel || profile.defaultHaikuModel || profile.defaultSonnetModel || profile.defaultOpusModel),
+      )
 
-      for (const [profileId, profile] of Object.entries(profileConfig.profiles)) {
-        const hasAdaptiveModelDefaults = Boolean(
-          profile.defaultHaikuModel
-          || profile.defaultSonnetModel
-          || profile.defaultOpusModel,
-        )
-
-        if (hasAdaptiveModelDefaults && profile.primaryModel) {
-          delete profile.primaryModel
-          result.changes.push(`Removed stale primaryModel override from Claude Code profile "${profile.name || profileId}"`)
-          profileModified = true
-        }
-      }
-
-      if (profileModified) {
-        ClaudeCodeConfigManager.writeConfig(profileConfig)
-        modified = true
+      if (hasAdaptiveProfiles) {
+        result.changes.push('Preserved profile-level primaryModel values; migration now keeps primary routing and restores fast-model compatibility instead of deleting them')
       }
     }
 
@@ -172,20 +153,14 @@ export function needsMigration(): boolean {
       || settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL
       || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
     )
-    const hasPinnedAdaptiveOverride = Boolean(settings.env.ANTHROPIC_MODEL && hasAdaptiveModelDefaults)
-      || Boolean(settings.model && hasAdaptiveModelDefaults)
+    const isMissingFastModelCompat = Boolean(
+      settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL,
+    )
+    const hasPinnedAdaptiveOverride = Boolean(settings.model && hasAdaptiveModelDefaults)
 
-    const profileConfig = ClaudeCodeConfigManager.readConfig()
-    const hasProfilePinnedAdaptiveOverride = Boolean(profileConfig && Object.values(profileConfig.profiles).some(profile =>
-      profile.primaryModel
-      && (
-        profile.defaultHaikuModel
-        || profile.defaultSonnetModel
-        || profile.defaultOpusModel
-      ),
-    ))
+    const hasProfilePinnedAdaptiveOverride = false
 
-    return Boolean(hasProblematicVar || hasExcessiveTimeout || hasPinnedAdaptiveOverride || hasProfilePinnedAdaptiveOverride)
+    return Boolean(hasProblematicVar || hasExcessiveTimeout || hasPinnedAdaptiveOverride || hasProfilePinnedAdaptiveOverride || isMissingFastModelCompat)
   }
   catch {
     return false

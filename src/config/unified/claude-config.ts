@@ -12,6 +12,7 @@ import { join } from 'pathe'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../../constants'
 import { ensureDir, exists } from '../../utils/fs-operations'
 import { readJsonConfig, writeJsonConfig } from '../../utils/json-config'
+import { applyAdaptiveModelEnv } from '../../utils/model-env-helper'
 import { deepMerge } from '../../utils/object-utils'
 
 /**
@@ -267,17 +268,7 @@ export function setModelConfig(
   updates.env = {}
 
   if (model === 'custom' && customModels) {
-    // Note: We do NOT set ANTHROPIC_MODEL (primaryModel) to allow Claude Code
-    // to automatically select the appropriate model based on request complexity
-    if (customModels.defaultHaikuModel) {
-      updates.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = customModels.defaultHaikuModel
-    }
-    if (customModels.defaultSonnetModel) {
-      updates.env.ANTHROPIC_DEFAULT_SONNET_MODEL = customModels.defaultSonnetModel
-    }
-    if (customModels.defaultOpusModel) {
-      updates.env.ANTHROPIC_DEFAULT_OPUS_MODEL = customModels.defaultOpusModel
-    }
+    applyAdaptiveModelEnv(updates.env, customModels)
   }
 
   updateClaudeConfig(updates)

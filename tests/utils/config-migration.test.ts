@@ -42,7 +42,7 @@ describe('config-migration adaptive model repair', () => {
     }
   })
 
-  it('repairs stale pinned model overrides in settings and Claude Code profiles', () => {
+  it('restores fast-model compatibility without deleting primary adaptive routing', () => {
     mkdirSync(dirname(SETTINGS_FILE), { recursive: true })
     mkdirSync(dirname(ZCF_CONFIG_FILE), { recursive: true })
 
@@ -77,17 +77,18 @@ describe('config-migration adaptive model repair', () => {
 
     const result = migrateSettingsForTokenRetrieval()
     expect(result.success).toBe(true)
-    expect(result.changes.some(change => change.includes('ANTHROPIC_MODEL override'))).toBe(true)
+    expect(result.changes.some(change => change.includes('ANTHROPIC_SMALL_FAST_MODEL'))).toBe(true)
     expect(result.changes.some(change => change.includes('settings.model override'))).toBe(true)
-    expect(result.changes.some(change => change.includes('Claude Code profile "adaptive"'))).toBe(true)
+    expect(result.changes.some(change => change.includes('Preserved profile-level primaryModel'))).toBe(true)
 
     const updatedSettings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8')) as ClaudeSettings
     expect(updatedSettings.model).toBeUndefined()
-    expect(updatedSettings.env?.ANTHROPIC_MODEL).toBeUndefined()
+    expect(updatedSettings.env?.ANTHROPIC_MODEL).toBe('claude-opus-4.6')
+    expect(updatedSettings.env?.ANTHROPIC_SMALL_FAST_MODEL).toBe('claude-haiku-4.5')
     expect(updatedSettings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4.5')
 
     const updatedConfig = ClaudeCodeConfigManager.readConfig()
-    expect(updatedConfig?.profiles.adaptive.primaryModel).toBeUndefined()
+    expect(updatedConfig?.profiles.adaptive.primaryModel).toBe('claude-opus-4.6')
     expect(needsMigration()).toBe(false)
   })
 })

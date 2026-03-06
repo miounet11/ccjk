@@ -1,4 +1,5 @@
-import type { ClaudeCodeProfile, ClaudeSettings } from '../../src/types/claude-code-config'
+import type { ClaudeCodeProfile } from '../../src/types/claude-code-config'
+import type { ClaudeSettings } from '../../src/types/config'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
@@ -28,7 +29,7 @@ describe('claudeCodeConfigManager - Model Priority Fix', () => {
     }
   })
 
-  it('should delete settings.model when custom models are configured via env vars', async () => {
+  it('should keep primary and fast routing env vars when adaptive models are configured', async () => {
     // Step 1: Simulate Claude Code setting settings.model
     const initialSettings: ClaudeSettings = {
       model: 'claude-opus-4.6', // This should be deleted
@@ -52,7 +53,8 @@ describe('claudeCodeConfigManager - Model Priority Fix', () => {
     const finalSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
     expect(finalSettings).toBeDefined()
     expect(finalSettings!.model).toBeUndefined()
-    expect(finalSettings!.env?.ANTHROPIC_MODEL).toBeUndefined()
+    expect(finalSettings!.env?.ANTHROPIC_MODEL).toBe('claude-sonnet-4.6')
+    expect(finalSettings!.env?.ANTHROPIC_SMALL_FAST_MODEL).toBe('claude-haiku-4.5')
     expect(finalSettings!.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4.5')
     expect(finalSettings!.env?.ANTHROPIC_DEFAULT_SONNET_MODEL).toBe('claude-sonnet-4.6')
     expect(finalSettings!.env?.ANTHROPIC_DEFAULT_OPUS_MODEL).toBe('claude-opus-4.6')
