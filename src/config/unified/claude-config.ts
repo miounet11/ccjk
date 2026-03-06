@@ -271,6 +271,7 @@ export function setModelConfig(
       updates.env.ANTHROPIC_MODEL = customModels.primaryModel
     }
     if (customModels.defaultHaikuModel) {
+      updates.env.ANTHROPIC_SMALL_FAST_MODEL = customModels.defaultHaikuModel
       updates.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = customModels.defaultHaikuModel
     }
     if (customModels.defaultSonnetModel) {

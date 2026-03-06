@@ -46,7 +46,7 @@ async function handleCancellation(): Promise<void> {
   console.log(ansis.yellow(i18n.t('common:cancelled')))
 }
 
-// Ensure model config priority (fix settings.model override issue)
+// Ensure custom model compatibility keys stay in sync
 async function ensureModelConfigPriority(): Promise<void> {
   const { readJsonConfig, writeJsonConfig } = await import('./json-config')
   const { SETTINGS_FILE } = await import('../constants')
@@ -55,17 +55,11 @@ async function ensureModelConfigPriority(): Promise<void> {
   if (!settings)
     return
 
-  // Check if custom model environment variables exist
-  const hasCustomModels = Boolean(
-    settings.env?.ANTHROPIC_MODEL
-    || settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
-    || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
-    || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL,
-  )
-
-  // Delete settings.model to let environment variables take precedence
-  if (hasCustomModels && settings.model) {
-    delete settings.model
+  if (
+    settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
+    && settings.env.ANTHROPIC_SMALL_FAST_MODEL !== settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+  ) {
+    settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
     writeJsonConfig(SETTINGS_FILE, settings)
   }
 }

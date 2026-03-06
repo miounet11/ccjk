@@ -266,8 +266,10 @@ export class ClaudeCodeConfigManager {
       if (hasModelConfig) {
         if (profile.primaryModel)
           settings.env.ANTHROPIC_MODEL = profile.primaryModel
-        if (profile.defaultHaikuModel)
+        if (profile.defaultHaikuModel) {
+          settings.env.ANTHROPIC_SMALL_FAST_MODEL = profile.defaultHaikuModel
           settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.defaultHaikuModel
+        }
         if (profile.defaultSonnetModel)
           settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = profile.defaultSonnetModel
         if (profile.defaultOpusModel)

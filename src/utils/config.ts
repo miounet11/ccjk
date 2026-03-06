@@ -247,8 +247,10 @@ export function updateCustomModel(
   if (primaryModel?.trim()) {
     settings.env.ANTHROPIC_MODEL = primaryModel.trim()
   }
-  if (haikuModel?.trim())
+  if (haikuModel?.trim()) {
+    settings.env.ANTHROPIC_SMALL_FAST_MODEL = haikuModel.trim()
     settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim()
+  }
   if (sonnetModel?.trim())
     settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = sonnetModel.trim()
   if (opusModel?.trim())
@@ -432,6 +434,7 @@ export function getExistingCustomModelConfig(): {
 
   const {
     ANTHROPIC_MODEL,
+    ANTHROPIC_SMALL_FAST_MODEL,
     ANTHROPIC_DEFAULT_HAIKU_MODEL,
     ANTHROPIC_DEFAULT_SONNET_MODEL,
     ANTHROPIC_DEFAULT_OPUS_MODEL,
@@ -444,7 +447,7 @@ export function getExistingCustomModelConfig(): {
 
   return {
     primaryModel: ANTHROPIC_MODEL,
-    haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL,
+    haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL || ANTHROPIC_SMALL_FAST_MODEL,
     sonnetModel: ANTHROPIC_DEFAULT_SONNET_MODEL,
     opusModel: ANTHROPIC_DEFAULT_OPUS_MODEL,
   }

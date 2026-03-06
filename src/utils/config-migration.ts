@@ -55,6 +55,12 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
 
     // Check for problematic environment variables
     if (settings.env) {
+      if (settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL) {
+        settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+        result.changes.push('Restored ANTHROPIC_SMALL_FAST_MODEL from ANTHROPIC_DEFAULT_HAIKU_MODEL for Haiku fast-path compatibility')
+        modified = true
+      }
+
       // Issue 1: Remove CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
       if ('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' in settings.env) {
         delete settings.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
@@ -120,8 +126,11 @@ export function needsMigration(): boolean {
     const hasProblematicVar = 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' in settings.env
     const hasExcessiveTimeout = settings.env.MCP_TIMEOUT
       && Number.parseInt(settings.env.MCP_TIMEOUT as string, 10) > 20000
+    const hasMissingHaikuFastCompat = Boolean(
+      settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL,
+    )
 
-    return Boolean(hasProblematicVar || hasExcessiveTimeout)
+    return Boolean(hasProblematicVar || hasExcessiveTimeout || hasMissingHaikuFastCompat)
   }
   catch {
     return false
