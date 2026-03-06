@@ -7,11 +7,9 @@ import type { ClaudeSettings } from '../types/config'
 import ansis from 'ansis'
 import { SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
-import { ClaudeCodeConfigManager } from './claude-code-config-manager'
 import { backupExistingConfig } from './config'
 import { exists } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
-import { normalizeAdaptiveModelSettings } from './model-env-helper'
 
 export interface MigrationResult {
   success: boolean
@@ -54,26 +52,6 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
     }
 
     let modified = false
-    const hadDefaultModelSentinel = (settings as any).model === 'default'
-    const hadEmptyModelEnv = Boolean(settings.env && [
-      settings.env.ANTHROPIC_MODEL,
-      settings.env.ANTHROPIC_SMALL_FAST_MODEL,
-      settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL,
-      settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL,
-      settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
-    ].some(value => typeof value === 'string' && value.trim() === ''))
-
-    normalizeAdaptiveModelSettings(settings)
-
-    if (hadDefaultModelSentinel) {
-      result.changes.push('Removed stale settings.model = "default" sentinel so Claude Code falls back to native auto-selection')
-      modified = true
-    }
-
-    if (hadEmptyModelEnv) {
-      result.changes.push('Removed empty model environment variables left by the template/config merge path')
-      modified = true
-    }
 
     // Check for problematic environment variables
     if (settings.env) {
@@ -93,33 +71,6 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
           result.changes.push(`Reduced MCP_TIMEOUT from ${oldValue}ms to 15000ms (was causing slow failures)`)
           modified = true
         }
-      }
-
-      if (settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL) {
-        settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
-        result.changes.push('Restored ANTHROPIC_SMALL_FAST_MODEL from defaultHaikuModel so Claude Code can auto-route lightweight requests again')
-        modified = true
-      }
-    }
-
-    if (settings.model && (
-      settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
-      || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
-      || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL
-    )) {
-      delete settings.model
-      result.changes.push('Removed stale settings.model override because adaptive default model variants are configured')
-      modified = true
-    }
-
-    const profileConfig = ClaudeCodeConfigManager.readConfig()
-    if (profileConfig) {
-      const hasAdaptiveProfiles = Object.entries(profileConfig.profiles).some(([_profileId, profile]) =>
-        Boolean(profile.primaryModel || profile.defaultHaikuModel || profile.defaultSonnetModel || profile.defaultOpusModel),
-      )
-
-      if (hasAdaptiveProfiles) {
-        result.changes.push('Preserved profile-level primaryModel values; migration now keeps primary routing and restores fast-model compatibility instead of deleting them')
       }
     }
 
@@ -169,19 +120,8 @@ export function needsMigration(): boolean {
     const hasProblematicVar = 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' in settings.env
     const hasExcessiveTimeout = settings.env.MCP_TIMEOUT
       && Number.parseInt(settings.env.MCP_TIMEOUT as string, 10) > 20000
-    const hasAdaptiveModelDefaults = Boolean(
-      settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
-      || settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL
-      || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
-    )
-    const isMissingFastModelCompat = Boolean(
-      settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL,
-    )
-    const hasPinnedAdaptiveOverride = Boolean(settings.model && hasAdaptiveModelDefaults)
 
-    const hasProfilePinnedAdaptiveOverride = false
-
-    return Boolean(hasProblematicVar || hasExcessiveTimeout || hasPinnedAdaptiveOverride || hasProfilePinnedAdaptiveOverride || isMissingFastModelCompat)
+    return Boolean(hasProblematicVar || hasExcessiveTimeout)
   }
   catch {
     return false

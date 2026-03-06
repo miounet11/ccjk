@@ -1,9 +1,12 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "description": "CCJK settings template — auto-migrated on upgrade",
+  "model": "default",
   "env": {
-    "CCJK_CONTEXT_OPTIMIZATION": "true",
-    "CCJK_TOOL_COMPRESSION": "true"
+    "ANTHROPIC_MODEL": "",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": ""
   },
   "language": "",
   "showTurnDuration": false,
@@ -38,7 +41,6 @@
   },
   "permissions": {
     "allow": [
-      "Bash(*)",
       "Bash(sips *)",
       "Bash(pnpm *)",
       "Bash(npm *)",

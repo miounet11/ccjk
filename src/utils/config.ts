@@ -19,7 +19,6 @@ import {
   writeFileAtomic,
 } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
-import { applyAdaptiveModelEnv, normalizeAdaptiveModelSettings } from './model-env-helper'
 import { deepMerge } from './object-utils'
 import { mergeAndCleanPermissions } from './permission-cleaner'
 
@@ -244,14 +243,17 @@ export function updateCustomModel(
   // Clean existing model-related environment variables
   clearModelEnv(settings.env)
 
-  applyAdaptiveModelEnv(settings.env, {
-    primaryModel,
-    defaultHaikuModel: haikuModel,
-    defaultSonnetModel: sonnetModel,
-    defaultOpusModel: opusModel,
-  })
+  // Set environment variables only if values are provided
+  if (primaryModel?.trim()) {
+    settings.env.ANTHROPIC_MODEL = primaryModel.trim()
+  }
+  if (haikuModel?.trim())
+    settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim()
+  if (sonnetModel?.trim())
+    settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = sonnetModel.trim()
+  if (opusModel?.trim())
+    settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = opusModel.trim()
 
-  normalizeAdaptiveModelSettings(settings)
   writeJsonConfig(SETTINGS_FILE, settings)
 }
 
@@ -287,7 +289,6 @@ export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
     settings.model = model
   }
 
-  normalizeAdaptiveModelSettings(settings)
   writeJsonConfig(SETTINGS_FILE, settings)
 }
 
@@ -431,7 +432,6 @@ export function getExistingCustomModelConfig(): {
 
   const {
     ANTHROPIC_MODEL,
-    ANTHROPIC_SMALL_FAST_MODEL,
     ANTHROPIC_DEFAULT_HAIKU_MODEL,
     ANTHROPIC_DEFAULT_SONNET_MODEL,
     ANTHROPIC_DEFAULT_OPUS_MODEL,
@@ -444,7 +444,7 @@ export function getExistingCustomModelConfig(): {
 
   return {
     primaryModel: ANTHROPIC_MODEL,
-    haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL || ANTHROPIC_SMALL_FAST_MODEL,
+    haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL,
     sonnetModel: ANTHROPIC_DEFAULT_SONNET_MODEL,
     opusModel: ANTHROPIC_DEFAULT_OPUS_MODEL,
   }

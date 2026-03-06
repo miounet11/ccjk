@@ -3,8 +3,15 @@ import type { SupportedLang } from '../constants'
 import { existsSync } from 'node:fs'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+// Suppress i18next promotional message at import time
+const originalLog = console.log
+console.log = () => {}
+
 import i18next from 'i18next'
 import Backend from 'i18next-fs-backend'
+
+// Restore console.log immediately after import
+console.log = originalLog
 import { dirname, join } from 'pathe'
 
 // Create i18next instance

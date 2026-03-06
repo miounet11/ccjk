@@ -8,7 +8,6 @@ import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from 
 import { clearModelEnv } from './config.model-keys'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
-import { applyAdaptiveModelEnv, normalizeAdaptiveModelSettings } from './model-env-helper'
 
 export class ClaudeCodeConfigManager {
   static readonly CONFIG_FILE = ZCF_CONFIG_FILE
@@ -257,30 +256,28 @@ export class ClaudeCodeConfigManager {
           delete settings.env.ANTHROPIC_BASE_URL
       }
 
-      const hasAdaptiveModelConfig = Boolean(
+      const hasModelConfig = Boolean(
         profile.primaryModel
         || profile.defaultHaikuModel
         || profile.defaultSonnetModel
         || profile.defaultOpusModel,
       )
 
-      if (hasAdaptiveModelConfig) {
-        // Remove the top-level model override and rely on env vars so Claude
-        // Code can keep its own model routing behavior.
-        delete settings.model
-        applyAdaptiveModelEnv(settings.env, {
-          primaryModel: profile.primaryModel,
-          defaultHaikuModel: profile.defaultHaikuModel,
-          defaultSonnetModel: profile.defaultSonnetModel,
-          defaultOpusModel: profile.defaultOpusModel,
-        })
+      if (hasModelConfig) {
+        if (profile.primaryModel)
+          settings.env.ANTHROPIC_MODEL = profile.primaryModel
+        if (profile.defaultHaikuModel)
+          settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.defaultHaikuModel
+        if (profile.defaultSonnetModel)
+          settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = profile.defaultSonnetModel
+        if (profile.defaultOpusModel)
+          settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = profile.defaultOpusModel
       }
       else {
         // No model config in profile, ensure all model envs are removed
         clearModelEnv(settings.env)
       }
 
-      normalizeAdaptiveModelSettings(settings)
       writeJsonConfig(SETTINGS_FILE, settings)
 
       const { setPrimaryApiKey, addCompletedOnboarding } = await import('./claude-config')
