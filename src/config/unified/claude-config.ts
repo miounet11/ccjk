@@ -12,7 +12,7 @@ import { join } from 'pathe'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../../constants'
 import { ensureDir, exists } from '../../utils/fs-operations'
 import { readJsonConfig, writeJsonConfig } from '../../utils/json-config'
-import { applyAdaptiveModelEnv } from '../../utils/model-env-helper'
+import { applyAdaptiveModelEnv, normalizeAdaptiveModelSettings } from '../../utils/model-env-helper'
 import { deepMerge } from '../../utils/object-utils'
 
 /**
@@ -43,6 +43,7 @@ export function writeClaudeConfig(
   try {
     // Ensure directory exists
     ensureDir(CLAUDE_DIR)
+    normalizeAdaptiveModelSettings(config)
 
     // Write with atomic operation by default
     writeJsonConfig(configPath, config, {

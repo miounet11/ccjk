@@ -334,7 +334,7 @@ function printHelp(): void {
   console.log(`
 ${ansis.green.bold('🌐 CCJK Browser - Zero-Config Web Automation')}
 
-Powered by agent-browser (https://github.com/anthropics/agent-browser)
+Powered by agent-browser (https://github.com/vercel-labs/agent-browser)
 
 ${ansis.bold('USAGE:')}
   ccjk browser <command> [options]
@@ -388,7 +388,7 @@ ${ansis.bold('EXAMPLES:')}
   ${ansis.gray('# Debug mode')}
   ccjk browser open example.com --headed
 
-For more: https://github.com/anthropics/agent-browser
+For more: https://github.com/vercel-labs/agent-browser
 `)
 }
 

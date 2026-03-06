@@ -94,8 +94,8 @@ export async function createSession(options: SessionCreateOptions = {}): Promise
   const sessionName = options.name || `agent-${Date.now()}`
 
   try {
-    // Build command
-    let command = `agent-browser --session ${sessionName}`
+    const url = options.url || 'about:blank'
+    let command = `agent-browser --session ${sessionName} open "${url}"`
 
     if (options.headed) {
       command += ' --headed'
@@ -104,10 +104,6 @@ export async function createSession(options: SessionCreateOptions = {}): Promise
     if (options.headers) {
       command += ` --headers '${JSON.stringify(options.headers)}'`
     }
-
-    // Open URL or just initialize
-    const url = options.url || 'about:blank'
-    command += ` open "${url}"`
 
     await execAsync(command, { timeout: 30000 })
 
@@ -176,7 +172,7 @@ export async function executeInSession(
   const jsonFlag = options.json ? ' --json' : ''
 
   try {
-    const fullCommand = `agent-browser --session ${sessionName}${jsonFlag} ${command}`
+    const fullCommand = `agent-browser --session ${sessionName} ${command}${jsonFlag}`
     const { stdout, stderr } = await execAsync(fullCommand, { timeout })
 
     return {

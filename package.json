@@ -1,9 +1,9 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "13.3.9",
+  "version": "13.3.10",
   "packageManager": "pnpm@10.17.1",
-  "description": "CLI toolkit for Claude Code and Codex setup. Simplifies MCP service installation, API configuration, workflow management, and multi-provider support with guided interactive setup.",
+  "description": "Turn Claude Code into a production-ready AI dev environment with one-command setup, persistent memory, MCP automation, cloud sync, and zero-config browser workflows.",
   "author": {
     "name": "CCJK Team",
     "email": "9248293@gmail.com"

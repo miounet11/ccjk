@@ -2,9 +2,9 @@
 
 # 🚀 CCJK
 
-### Claude Code just got superpowers
+### Turn Claude Code into a production-ready AI dev environment
 
-**One command. Minimal config. 10x productivity.**
+**One command setup · Persistent memory · MCP automation · Cloud sync**
 
 <br/>
 
@@ -18,12 +18,21 @@ npx ccjk
 [![downloads](https://img.shields.io/npm/dm/ccjk?style=flat-square&color=cb3837)](https://www.npmjs.com/package/ccjk)
 [![license](https://img.shields.io/github/license/miounet11/ccjk?style=flat-square)](./LICENSE)
 [![stars](https://img.shields.io/github/stars/miounet11/ccjk?style=flat-square)](https://github.com/miounet11/ccjk/stargazers)
+[![Agent Browser](https://img.shields.io/badge/agent--browser-ready-111827?style=flat-square)](https://github.com/vercel-labs/agent-browser)
 
 [English](./README.en.md) · [中文](./README.zh-CN.md) · [日本語](./README.ja.md)
 
 </div>
 
 ---
+
+## ✨ Why CCJK
+
+- **30-second onboarding** for Claude Code, Codex, MCP services, and browser automation
+- **Persistent project memory** so your AI stops forgetting architecture and conventions
+- **Smarter model + context usage** to cut waste and keep long sessions usable
+- **Cloud sync and remote control** so your setup follows you across devices
+- **Production-ready defaults** with hardened config, validation, and safer automation
 
 ## 💡 What is CCJK?
 
@@ -52,6 +61,13 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 npx ccjk init --silent
 
 # Done. Claude Code is now 10x smarter.
+```
+
+```bash
+# Popular one-liners
+npx ccjk init --silent
+npx ccjk boost
+npx ccjk browser open https://example.com --headed
 ```
 
 **What just happened?**
@@ -95,6 +111,13 @@ npx ccjk init --silent
 | 🤖 "Need multiple AI agents" | 🎭 **Agent Teams** | One-click parallel execution |
 | 📱 "Can't control Claude from my phone" | 🌐 **Remote Control** | Web/App control with one-command setup |
 | 🔐 "Worried about production security" | 🛡️ **Production-Grade Security** | HTTPS enforcement, CORS hardening, secrets validation |
+
+## 🏆 Built For Real Work
+
+- **Claude Code users** who want setup done once, correctly
+- **Teams** who need repeatable onboarding and shared conventions
+- **Power users** who want memory, MCP, browser automation, and multi-agent workflows in one CLI
+- **API users** who care about reducing token waste without losing context quality
 
 ## 🔥 Features That Matter
 

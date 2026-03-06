@@ -6,6 +6,7 @@
 import type { RetryConfig } from '../../types/context'
 import process from 'node:process'
 import Anthropic from '@anthropic-ai/sdk'
+import { DEFAULT_MODELS } from '../../constants'
 
 /**
  * API client configuration
@@ -44,7 +45,7 @@ export class AnthropicApiClient {
     // Set default configuration
     this.config = {
       apiKey: config.apiKey || process.env.ANTHROPIC_API_KEY || '',
-      model: config.model || 'claude-3-5-sonnet-20241022',
+      model: config.model || process.env.ANTHROPIC_MODEL || DEFAULT_MODELS.SONNET,
       maxTokens: config.maxTokens || 1024,
       temperature: config.temperature || 0.3,
       retry: { ...DEFAULT_RETRY_CONFIG, ...config.retry },

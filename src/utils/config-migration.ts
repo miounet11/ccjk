@@ -11,6 +11,7 @@ import { ClaudeCodeConfigManager } from './claude-code-config-manager'
 import { backupExistingConfig } from './config'
 import { exists } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
+import { normalizeAdaptiveModelSettings } from './model-env-helper'
 
 export interface MigrationResult {
   success: boolean
@@ -53,6 +54,26 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
     }
 
     let modified = false
+    const hadDefaultModelSentinel = (settings as any).model === 'default'
+    const hadEmptyModelEnv = Boolean(settings.env && [
+      settings.env.ANTHROPIC_MODEL,
+      settings.env.ANTHROPIC_SMALL_FAST_MODEL,
+      settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL,
+      settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL,
+      settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
+    ].some(value => typeof value === 'string' && value.trim() === ''))
+
+    normalizeAdaptiveModelSettings(settings)
+
+    if (hadDefaultModelSentinel) {
+      result.changes.push('Removed stale settings.model = "default" sentinel so Claude Code falls back to native auto-selection')
+      modified = true
+    }
+
+    if (hadEmptyModelEnv) {
+      result.changes.push('Removed empty model environment variables left by the template/config merge path')
+      modified = true
+    }
 
     // Check for problematic environment variables
     if (settings.env) {

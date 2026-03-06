@@ -19,7 +19,7 @@ import {
   writeFileAtomic,
 } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
-import { applyAdaptiveModelEnv } from './model-env-helper'
+import { applyAdaptiveModelEnv, normalizeAdaptiveModelSettings } from './model-env-helper'
 import { deepMerge } from './object-utils'
 import { mergeAndCleanPermissions } from './permission-cleaner'
 
@@ -251,6 +251,7 @@ export function updateCustomModel(
     defaultOpusModel: opusModel,
   })
 
+  normalizeAdaptiveModelSettings(settings)
   writeJsonConfig(SETTINGS_FILE, settings)
 }
 
@@ -286,6 +287,7 @@ export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
     settings.model = model
   }
 
+  normalizeAdaptiveModelSettings(settings)
   writeJsonConfig(SETTINGS_FILE, settings)
 }
 

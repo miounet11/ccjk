@@ -8,7 +8,7 @@ import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from 
 import { clearModelEnv } from './config.model-keys'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
-import { applyAdaptiveModelEnv } from './model-env-helper'
+import { applyAdaptiveModelEnv, normalizeAdaptiveModelSettings } from './model-env-helper'
 
 export class ClaudeCodeConfigManager {
   static readonly CONFIG_FILE = ZCF_CONFIG_FILE
@@ -280,6 +280,7 @@ export class ClaudeCodeConfigManager {
         clearModelEnv(settings.env)
       }
 
+      normalizeAdaptiveModelSettings(settings)
       writeJsonConfig(SETTINGS_FILE, settings)
 
       const { setPrimaryApiKey, addCompletedOnboarding } = await import('./claude-config')

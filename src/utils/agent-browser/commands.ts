@@ -55,6 +55,8 @@ function buildCommand(cmd: string, options: CommandOptions = {}): string {
     command += ` --session ${options.session}`
   }
 
+  command += ` ${cmd}`
+
   if (options.headed) {
     command += ' --headed'
   }
@@ -62,8 +64,6 @@ function buildCommand(cmd: string, options: CommandOptions = {}): string {
   if (options.json) {
     command += ' --json'
   }
-
-  command += ` ${cmd}`
 
   return command
 }

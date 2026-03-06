@@ -47,9 +47,10 @@ describe('config-migration adaptive model repair', () => {
     mkdirSync(dirname(ZCF_CONFIG_FILE), { recursive: true })
 
     const settings: ClaudeSettings = {
-      model: 'custom',
+      model: 'default' as any,
       env: {
         ANTHROPIC_MODEL: 'claude-opus-4.6',
+        ANTHROPIC_SMALL_FAST_MODEL: '',
         ANTHROPIC_DEFAULT_HAIKU_MODEL: 'claude-haiku-4.5',
         ANTHROPIC_DEFAULT_SONNET_MODEL: 'claude-sonnet-4.6',
         ANTHROPIC_DEFAULT_OPUS_MODEL: 'claude-opus-4.6',
@@ -78,7 +79,8 @@ describe('config-migration adaptive model repair', () => {
     const result = migrateSettingsForTokenRetrieval()
     expect(result.success).toBe(true)
     expect(result.changes.some(change => change.includes('ANTHROPIC_SMALL_FAST_MODEL'))).toBe(true)
-    expect(result.changes.some(change => change.includes('settings.model override'))).toBe(true)
+    expect(result.changes.some(change => change.includes('settings.model = "default"'))).toBe(true)
+    expect(result.changes.some(change => change.includes('empty model environment variables'))).toBe(true)
     expect(result.changes.some(change => change.includes('Preserved profile-level primaryModel'))).toBe(true)
 
     const updatedSettings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8')) as ClaudeSettings

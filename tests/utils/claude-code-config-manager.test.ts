@@ -31,10 +31,14 @@ describe('claudeCodeConfigManager - Model Priority Fix', () => {
 
   it('should keep primary and fast routing env vars when adaptive models are configured', async () => {
     // Step 1: Simulate Claude Code setting settings.model
-    const initialSettings: ClaudeSettings = {
-      model: 'claude-opus-4.6', // This should be deleted
-      env: {},
-    }
+    const initialSettings = {
+      model: 'default',
+      env: {
+        ANTHROPIC_DEFAULT_HAIKU_MODEL: '',
+        ANTHROPIC_DEFAULT_SONNET_MODEL: '',
+        ANTHROPIC_DEFAULT_OPUS_MODEL: '',
+      },
+    } as ClaudeSettings
     writeJsonConfig(SETTINGS_FILE, initialSettings)
 
     // Step 2: Apply profile with custom models

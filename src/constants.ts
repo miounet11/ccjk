@@ -230,6 +230,13 @@ export function isCodeToolType(value: any): value is CodeToolType {
 export const API_DEFAULT_URL = 'https://api.anthropic.com'
 export const API_ENV_KEY = 'ANTHROPIC_API_KEY'
 
+// Default model names
+export const DEFAULT_MODELS = {
+  SONNET: 'claude-3-5-sonnet-20241022',
+  HAIKU: 'claude-haiku-4-5-20251001',
+  OPUS: 'claude-3-opus-20250219',
+} as const
+
 export function resolveCodeToolType(value: unknown): CodeToolType {
   // First check if it's already a valid code tool type
   if (isCodeToolType(value)) {
