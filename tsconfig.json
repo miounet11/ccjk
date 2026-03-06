@@ -7,6 +7,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
+      "@ccjk/wire": ["packages/ccjk-wire/dist/index.d.mts"],
       "@ccjk/v2/hooks": ["src/v2/hooks-v2"],
       "@ccjk/v2/skills": ["src/v2/skills-v2"],
       "@ccjk/v2/brain": ["src/v2/brain-v2"],
