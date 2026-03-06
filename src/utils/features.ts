@@ -40,6 +40,34 @@ import { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } 
 import { promptBoolean } from './toggle-prompt'
 import { formatApiKeyDisplay, validateApiKey } from './validator'
 
+export const DEFAULT_MODEL_CHOICES: Array<{ nameKey: string, fallback: string, value: 'default' | 'opus' | 'sonnet' | 'sonnet[1m]' | 'custom' }> = [
+  {
+    nameKey: 'configuration:defaultModelOption',
+    fallback: 'Default - Let Claude Code choose',
+    value: 'default',
+  },
+  {
+    nameKey: 'configuration:opusModelOption',
+    fallback: 'Opus - Only use opus, high token consumption, use with caution',
+    value: 'opus',
+  },
+  {
+    nameKey: 'configuration:sonnetModelOption',
+    fallback: 'Sonnet - Recommended balanced model for daily coding',
+    value: 'sonnet',
+  },
+  {
+    nameKey: 'configuration:sonnet1mModelOption',
+    fallback: 'Sonnet 1M - 1M context version',
+    value: 'sonnet[1m]',
+  },
+  {
+    nameKey: 'configuration:customModelOption',
+    fallback: 'Custom - Specify custom model names',
+    value: 'custom',
+  },
+]
+
 // Helper function to handle cancelled operations
 async function handleCancellation(): Promise<void> {
   ensureI18nInitialized()
@@ -369,25 +397,15 @@ export async function configureDefaultModelFeature(): Promise<void> {
     type: 'list',
     name: 'model',
     message: i18n.t('configuration:selectDefaultModel') || 'Select default model',
-    choices: addNumbersToChoices([
-      {
-        name: i18n.t('configuration:defaultModelOption') || 'Default - Let Claude Code choose',
-        value: 'default' as const,
-      },
-      {
-        name: i18n.t('configuration:opusModelOption') || 'Opus - Only use opus, high token consumption, use with caution',
-        value: 'opus' as const,
-      },
-      {
-        name: i18n.t('configuration:sonnet1mModelOption') || 'Sonnet 1M - 1M context version',
-        value: 'sonnet[1m]' as const,
-      },
-      {
-        name: i18n.t('configuration:customModelOption') || 'Custom - Specify custom model names',
-        value: 'custom' as const,
-      },
-    ]),
-    default: existingModel ? ['default', 'opus', 'sonnet[1m]', 'custom'].indexOf(existingModel) : 0,
+    choices: addNumbersToChoices(
+      DEFAULT_MODEL_CHOICES.map(choice => ({
+        name: i18n.t(choice.nameKey) || choice.fallback,
+        value: choice.value,
+      })),
+    ),
+    default: existingModel
+      ? DEFAULT_MODEL_CHOICES.findIndex(choice => choice.value === existingModel)
+      : 0,
   })
 
   if (!model) {

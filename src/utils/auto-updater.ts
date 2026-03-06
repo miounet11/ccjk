@@ -432,16 +432,24 @@ export async function checkAndUpdateTools(skipPrompt = false): Promise<void> {
   }
 
   // Summary report
-  if (skipPrompt) {
-    console.log(ansis.bold.cyan(`\n📋 ${i18n.t('updater:updateSummary')}`))
-    for (const result of results) {
-      if (result.success) {
-        console.log(ansis.green(`✔ ${result.tool}: ${i18n.t('updater:success')}`))
-      }
-      else {
-        console.log(ansis.red(`❌ ${result.tool}: ${i18n.t('updater:failed')} ${result.error ? `(${result.error})` : ''}`))
-      }
+  console.log(ansis.bold.cyan(`\n📋 ${i18n.t('updater:updateSummary')}`))
+  let ccjkUpdated = false
+  for (const result of results) {
+    if (result.tool === 'CCJK' && result.success) {
+      ccjkUpdated = true
     }
+    if (result.success) {
+      console.log(ansis.green(`✔ ${result.tool}: ${i18n.t('updater:success')}`))
+    }
+    else {
+      console.log(ansis.red(`❌ ${result.tool}: ${i18n.t('updater:failed')} ${result.error ? `(${result.error})` : ''}`))
+    }
+  }
+
+  // Exit if CCJK was updated
+  if (ccjkUpdated) {
+    console.log(ansis.yellow('\n⚠ Please run ccjk again to use the new version'))
+    process.exit(0)
   }
 }
 
@@ -472,23 +480,8 @@ async function checkCcjkVersionAndPrompt(skipPrompt: boolean): Promise<void> {
       return
     }
 
-    // Prompt for update
-    if (!skipPrompt) {
-      const inquirer = (await import('inquirer')).default
-      const { shouldUpdate } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'shouldUpdate',
-          message: format(i18n.t('updater:updatePrompt'), { tool: 'CCJK', version: latestVersion }),
-          default: true,
-        },
-      ])
-
-      if (!shouldUpdate) {
-        console.log(ansis.gray(i18n.t('updater:updateSkipped')))
-        return
-      }
-    }
+    // Auto-update without prompt
+    console.log(ansis.green(`✔ ${i18n.t('updater:updatePrompt')} Yes`))
 
     // Clear npx cache
     console.log(ansis.dim('Clearing npx cache...'))
@@ -505,8 +498,6 @@ async function checkCcjkVersionAndPrompt(skipPrompt: boolean): Promise<void> {
     try {
       await execWithSudoIfNeeded('npm', ['install', '-g', 'ccjk@latest', '--force'])
       updateSpinner.succeed(ansis.green(`✓ CCJK updated to v${latestVersion}`))
-      console.log(ansis.yellow('\n⚠ Please restart ccjk to use the new version'))
-      process.exit(0)
     }
     catch (error) {
       updateSpinner.fail(ansis.red('✗ CCJK update failed'))
