@@ -9,7 +9,7 @@ catalog:
   '@babel/runtime': ^7.28.6
   '@changesets/cli': ^2.29.7
   '@commitlint/cli': ^19.8.1
-  '@commitlint/config-conventional': ^19.8.1
+  '@commitlint/config-conventional': ^20.4.0
   '@commitlint/types': ^19.8.1
   '@fastify/cors': ^10.0.1
   '@iconify-json/carbon': ^1.2.14
