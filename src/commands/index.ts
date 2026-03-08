@@ -60,3 +60,7 @@ export * from './update'
 export * from './vim'
 
 export * from './workflows'
+
+// Brain system commands
+export * from './brain-status'
+export * from './brain-config'

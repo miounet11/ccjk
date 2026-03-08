@@ -240,8 +240,8 @@ export function updateCustomModel(
   // Initialize env object if it doesn't exist
   settings.env = settings.env || {}
 
-  // Clean existing model-related environment variables
-  clearModelEnv(settings.env)
+  // Clean existing model-related environment variables (override mode for editing)
+  clearModelEnv(settings.env, 'override')
 
   // Set environment variables only if values are provided
   if (primaryModel?.trim()) {
@@ -398,7 +398,10 @@ export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
   }
 
   // Check if using custom model configuration via environment variables
-  const hasModelEnv = MODEL_ENV_KEYS.some((key: ModelEnvKey) => settings.env?.[key])
+  const hasModelEnv = MODEL_ENV_KEYS.some((key: ModelEnvKey) => {
+    const value = settings.env?.[key]
+    return value !== undefined && value !== null && value !== ''
+  })
   if (hasModelEnv) {
     return 'custom'
   }

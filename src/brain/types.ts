@@ -194,6 +194,25 @@ export interface BrainConfig {
   enableValidation?: boolean
   maxMessageSize?: number
   enableDeadLetterQueue?: boolean
+
+  // ============================================================================
+  // Capability Router Configuration (v13.4.0)
+  // ============================================================================
+
+  /** 能力偏好 (1=优先简单, 5=优先复杂) */
+  capabilityPreference?: number
+
+  /** 自动subagent阈值 (复杂度>=此值才自动用subagent) */
+  autoSubagentThreshold?: number
+
+  /** 最大并行agent数 */
+  maxParallelAgents?: number
+
+  /** 是否启用遥测 */
+  enableTelemetry?: boolean
+
+  /** 是否显示决策理由 */
+  showDecisionReasoning?: boolean
 }
 
 /**

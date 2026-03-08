@@ -1986,6 +1986,54 @@ const COMMANDS: CommandDefinition[] = [
       }
     },
   },
+  {
+    name: 'brain-status',
+    description: 'Brain capability routing and telemetry stats',
+    aliases: ['bs'],
+    tier: 'core',
+    options: [
+      { flags: '--detailed, -d', description: 'Show detailed statistics' },
+      { flags: '--json, -j', description: 'Output as JSON' },
+    ],
+    loader: async () => {
+      const { brainStatusCommand } = await import('./commands/brain-status')
+      return async (options: CliOptions) => {
+        await brainStatusCommand({
+          detailed: options.detailed as boolean,
+          json: options.json as boolean,
+        })
+      }
+    },
+  },
+  {
+    name: 'brain-config',
+    description: 'Configure Brain capability routing system',
+    aliases: ['bc'],
+    tier: 'core',
+    options: [
+      { flags: '--preference, -p <level>', description: 'Set capability preference (1-5)' },
+      { flags: '--threshold, -t <value>', description: 'Set auto-subagent threshold (1-10)' },
+      { flags: '--max-agents, -m <count>', description: 'Set max parallel agents' },
+      { flags: '--telemetry <on|off>', description: 'Enable/disable telemetry' },
+      { flags: '--reasoning <on|off>', description: 'Enable/disable reasoning display' },
+      { flags: '--show, -s', description: 'Show current configuration' },
+      { flags: '--reset', description: 'Reset to default configuration' },
+    ],
+    loader: async () => {
+      const { brainConfigCommand } = await import('./commands/brain-config')
+      return async (options: CliOptions) => {
+        await brainConfigCommand({
+          preference: options.preference ? parseFloat(options.preference as string) : undefined,
+          threshold: options.threshold ? parseFloat(options.threshold as string) : undefined,
+          maxAgents: options.maxAgents ? parseInt(options.maxAgents as string, 10) : undefined,
+          telemetry: options.telemetry as string,
+          reasoning: options.reasoning as string,
+          show: options.show as boolean,
+          reset: options.reset as boolean,
+        })
+      }
+    },
+  },
 
   // ==================== Plugin Management ====================
   {

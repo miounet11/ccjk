@@ -14,6 +14,9 @@ import type {
   BrainConfig,
   HealthStatus,
 } from './types'
+import type { TaskContext } from './capability-router'
+import { getSmartRouter } from './smart-router'
+import { getTelemetry } from './telemetry'
 import process from 'node:process'
 import { AgentRegistry, AgentState, BaseAgent } from './agents/base-agent'
 import { CodeAgent } from './agents/code-agent'
@@ -172,6 +175,8 @@ export class Brain {
   private metricsCollector?: MetricsCollector
   private options: Required<BrainInitOptions>
   private messageHistory: BaseAgentMessage[] = []
+  private smartRouter = getSmartRouter()
+  private telemetry = getTelemetry()
 
   constructor(options: BrainInitOptions = {}) {
     const cwd = process.cwd()
@@ -496,6 +501,52 @@ export class Brain {
    */
   clearHistory(): void {
     this.messageHistory = []
+  }
+
+  /**
+   * 智能路由 - 根据任务复杂度决定使用哪个能力层级
+   * @since v13.4.0
+   */
+  async routeTask(input: string, context?: Partial<TaskContext>) {
+    return this.smartRouter.route(input, context)
+  }
+
+  /**
+   * 记录任务执行结果（用于遥测）
+   * @since v13.4.0
+   */
+  async recordTaskExecution(
+    decision: any,
+    result: {
+      success: boolean
+      actualSteps: number
+      duration: number
+      effectScore: number
+    },
+  ) {
+    return this.smartRouter.recordExecution(decision, result)
+  }
+
+  /**
+   * 获取遥测统计
+   * @since v13.4.0
+   */
+  async getTelemetryStats() {
+    return this.telemetry.getStats()
+  }
+
+  /**
+   * 更新路由配置
+   * @since v13.4.0
+   */
+  updateRouterConfig(config: Partial<BrainConfig>) {
+    this.smartRouter.updateConfig({
+      capabilityPreference: config.capabilityPreference,
+      autoSubagentThreshold: config.autoSubagentThreshold,
+      maxParallelAgents: config.maxParallelAgents,
+      enableTelemetry: config.enableTelemetry,
+      showReasoning: config.showDecisionReasoning,
+    })
   }
 
   /**
@@ -1086,6 +1137,53 @@ export * from './types'
 
 export { WorkflowAutomator, workflowAutomator } from './workflow-automator'
 export type { Plan, ReviewIssue, ReviewResult, Task as WorkflowTask } from './workflow-automator'
+
+// ============================================================================
+// CAPABILITY ROUTER & TELEMETRY SYSTEM (v13.4.0)
+// ============================================================================
+
+/**
+ * Capability Router - 基于方法论的能力分层决策系统
+ *
+ * 提供:
+ * - 最小能力原则 - 永远先用最轻、最确定、最可控的能力
+ * - 可量化决策原则 - 每次升级都有明确的量化依据
+ * - 可观测闭环原则 - 记录效果，持续迭代
+ * - 反熵原则 - 多agent是增熵行为，谨慎使用
+ */
+
+export {
+  CapabilityLevel,
+  decideCapability,
+  getCapabilityName,
+} from './capability-router'
+
+export type {
+  TaskContext,
+  TaskDecision,
+} from './capability-router'
+
+export {
+  BrainTelemetry,
+  getTelemetry,
+  resetTelemetry,
+} from './telemetry'
+
+export type {
+  TaskLog,
+  TelemetryStats,
+} from './telemetry'
+
+export {
+  SmartRouter,
+  getSmartRouter,
+  resetSmartRouter,
+} from './smart-router'
+
+export type {
+  RouterConfig,
+  RouterResult,
+} from './smart-router'
 
 /**
  * 统一的智能处理入口

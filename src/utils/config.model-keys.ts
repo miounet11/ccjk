@@ -10,8 +10,13 @@ export const MODEL_ENV_KEYS = [
 
 export type ModelEnvKey = typeof MODEL_ENV_KEYS[number]
 
-export function clearModelEnv(env: Record<string, string | undefined>): void {
+export function clearModelEnv(env: Record<string, string | undefined>, mode: 'reset' | 'override' = 'reset'): void {
   for (const key of MODEL_ENV_KEYS) {
-    delete env[key]
+    if (mode === 'reset' && key === 'ANTHROPIC_MODEL') {
+      env[key] = '' // Set to empty string to allow Claude Code adaptive selection
+    }
+    else {
+      delete env[key]
+    }
   }
 }
