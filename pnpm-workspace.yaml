@@ -5,7 +5,7 @@ packages:
 
 catalog:
   '@antfu/eslint-config': ^5.4.1
-  '@anthropic-ai/sdk': ^0.52.0
+  '@anthropic-ai/sdk': ^0.78.0
   '@babel/runtime': ^7.28.6
   '@changesets/cli': ^2.29.7
   '@commitlint/cli': ^19.8.1
@@ -54,20 +54,20 @@ catalog:
   fastify: ^5.6.2
   fdir: ^6.5.0
   find-up-simple: ^1.0.1
-  fs-extra: ^11.3.2
+  fs-extra: ^11.3.3
   glob: ^11.0.3
   globby: ^14.1.0
   gray-matter: ^4.0.3
   handlebars: ^4.7.8
   husky: ^9.1.7
-  i18next: ^25.5.2
+  i18next: ^25.8.13
   i18next-fs-backend: ^2.6.0
   inquirer: ^12.9.6
   inquirer-toggle: ^1.0.1
   ioredis: ^5.6.0
   jsonwebtoken: ^9.0.2
   level: ^8.0.0
-  lint-staged: ^16.2.0
+  lint-staged: ^16.2.7
   lowdb: ^7.0.1
   lru-cache: ^10.0.0
   nanoid: ^5.1.6
@@ -77,17 +77,17 @@ catalog:
   ohash: ^2.0.11
   ora: ^9.0.0
   pathe: ^2.0.3
-  pkgroll: ^2.14.2
+  pkgroll: ^2.26.3
   prettier: ^3.0.0
   prisma: ^6.11.1
   ps-list: ^8.1.1
   react: ^18.2.0
   react-dom: ^18.2.0
-  react-native: 0.76.5
-  react-native-web: ~0.19.13
+  react-native: 0.84.1
+  react-native-web: ~0.21.2
   react-scripts: 5.0.1
   semver: ^7.7.2
-  shx: ^0.3.3
+  shx: ^0.4.0
   smol-toml: ^1.4.2
   socket.io: ^4.8.1
   socket.io-client: ^4.8.3
@@ -97,10 +97,10 @@ catalog:
   telegraf: ^4.16.3
   tinyexec: ^1.0.1
   tinyglobby: ^0.2.15
-  trash: ^10.0.0
+  trash: ^10.1.0
   tsx: ^4.20.5
   tweetnacl: ^1.0.3
-  typescript: ^5.9.2
+  typescript: ^5
   unbuild: ^3.6.1
   unocss: ^66.5.9
   uuid: ^11.0.5
@@ -159,7 +159,7 @@ catalogs:
   conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5:
     tsx: ^4.20.5
   conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2:
-    typescript: ^5.9.2
+    typescript: ^5
   conflicts_conflicts_conflicts_eslint_h8_0_0_h8_h9_36_0:
     eslint: ^9.36.0
   conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0:
@@ -177,7 +177,7 @@ catalogs:
   conflicts_conflicts_ioredis_h5_9_2_h5_6_1:
     ioredis: ^5.6.1
   conflicts_conflicts_ioredis_h5_9_2_h5_9_3:
-    ioredis: ^5.9.3
+    ioredis: ^5.6.0
   conflicts_conflicts_ofetch_h1_4_1_h1_5_1:
     ofetch: ^1.5.1
   conflicts_conflicts_tinyglobby_h0_2_14_h0_2_15:
@@ -185,11 +185,11 @@ catalogs:
   conflicts_conflicts_tsx_h4_7_2_h4_20_5:
     tsx: ^4.20.5
   conflicts_conflicts_typescript_h5_3_3_h5_9_2:
-    typescript: ^5.9.2
+    typescript: ^5
   conflicts_conflicts_vitest_h1_0_0_h3_2_4:
     vitest: ^3.2.4
   conflicts_conflicts_web-tree-sitter_h0_24_7_h0_26_5:
-    web-tree-sitter: ^0.26.5
+    web-tree-sitter: ^0.26.3
   conflicts_dayjs_h1_11_19:
     dayjs: ^1.11.19
   conflicts_eslint-plugin-format_h1_4_0:
@@ -223,7 +223,7 @@ catalogs:
   conflicts_smol-toml_h1_6_0:
     smol-toml: ^1.6.0
   conflicts_tar_h7_5_9:
-    tar: ^7.5.9
+    tar: ^7.5.2
   conflicts_tinyexec_h1_0_2:
     tinyexec: ^1.0.2
   conflicts_tinyglobby_h0_2_14:
@@ -243,7 +243,7 @@ catalogs:
   conflicts_web-tree-sitter_h0_24_7:
     web-tree-sitter: ^0.24.7
   conflicts_conflicts_conflicts_ioredis_h5_9_2_h5_6_1_h5_9_3:
-    ioredis: ^5.9.3
+    ioredis: ^5.6.0
   conflicts_conflicts_ora_h9_3_0_h8_2_0:
     ora: ^8.2.0
   conflicts_pkgroll_h2_26_3:
@@ -265,9 +265,9 @@ catalogs:
   conflicts_dotenv_h16_6_1:
     dotenv: ^16.6.1
   conflicts_conflicts_pkgroll_h2_26_3_h2_14_2:
-    pkgroll: ^2.14.2
+    pkgroll: ^2.26.3
   conflicts_conflicts_shx_h0_4_0_h0_3_3:
-    shx: ^0.3.3
+    shx: ^0.4.0
   conflicts_conflicts_socket.io-client_h4_8_1_h4_8_3:
     socket.io-client: ^4.8.3
   conflicts_conflicts_dotenv_h16_6_1_h16_4_7:
