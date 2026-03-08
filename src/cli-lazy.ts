@@ -860,6 +860,27 @@ const COMMANDS: CommandDefinition[] = [
     },
   },
   {
+    name: 'impact',
+    description: 'Usage impact page with daily tokens, savings, and before/after trends',
+    aliases: ['gain'],
+    tier: 'extended',
+    options: [
+      { flags: '--days <days>', description: 'Number of days to include (7-90)' },
+      { flags: '--json', description: 'Output as JSON' },
+      { flags: '--output <file>', description: 'Custom HTML output path' },
+    ],
+    loader: async () => {
+      const { impactCommand } = await import('./commands/impact')
+      return async (options: CliOptions) => {
+        await impactCommand({
+          json: options.json as boolean,
+          days: options.days ? Number(options.days) : undefined,
+          output: options.output as string | undefined,
+        })
+      }
+    },
+  },
+  {
     name: 'stats [action]',
     description: 'Usage statistics and analytics',
     tier: 'extended',
@@ -2474,6 +2495,7 @@ function customizeHelpLazy(_sections: any[], version: string): any[] {
       `  ${cyan('ccjk workflows')}    ${gray('wf')}    Manage workflows`,
       `  ${cyan('ccjk ccr')}               CCR proxy management`,
       `  ${cyan('ccjk ccu')}               Usage statistics`,
+      `  ${cyan('ccjk impact')}            Usage impact page`,
       `  ${cyan('ccjk completion')}        Shell completion ${green('NEW')}`,
       `  ${cyan('ccjk uninstall')}         Remove configurations`,
     ].join('\n'),

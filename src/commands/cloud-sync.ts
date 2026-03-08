@@ -25,6 +25,7 @@ import {
   resolveConflict,
 } from '../cloud-sync/index.js'
 import { displayError } from '../utils/error-formatter.js'
+import { showImpactReminder } from '../utils/impact-reminder'
 
 // ============================================================================
 // Types
@@ -343,6 +344,9 @@ export async function syncNow(options: CloudSyncOptions = {}): Promise<SyncResul
       console.log(ansis.dim(`  ↑ Pushed: ${result.pushed.length}  ↓ Pulled: ${result.pulled.length}`))
       if (result.conflicts.length > 0) {
         console.log(ansis.yellow(`  ⚠️ ${result.conflicts.length} conflicts detected`))
+      }
+      if (result.pushed.length > 0) {
+        showImpactReminder('push')
       }
     }
     else {

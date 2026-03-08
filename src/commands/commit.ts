@@ -1,6 +1,7 @@
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { checkGitRepo, commitChanges, generateCommitMessage, getGitStatus, stageAllChanges } from '../utils/git-auto'
+import { showImpactReminder } from '../utils/impact-reminder'
 
 export interface CommitCommandOptions {
   auto?: boolean
@@ -67,6 +68,7 @@ export async function commit(options: CommitCommandOptions = {}): Promise<void> 
   try {
     await commitChanges(message)
     console.log(ansis.green('\n✓ Changes committed'))
+    showImpactReminder('commit')
   }
   catch (error) {
     console.log(ansis.red(`\n✗ Commit failed: ${error}`))

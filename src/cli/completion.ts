@@ -357,6 +357,7 @@ const COMPLETION_COMMANDS: CommandInfo[] = [
   // Other Commands
   { name: 'ccr', description: 'Configure Claude Code Router' },
   { name: 'ccu', description: 'Claude Code usage analysis' },
+  { name: 'impact', description: 'Usage impact page with daily token trends', aliases: ['gain'] },
   { name: 'vim', description: 'Vim mode configuration' },
   { name: 'workflows', description: 'Manage workflows', aliases: ['wf'] },
   { name: 'stats', description: 'Usage statistics' },

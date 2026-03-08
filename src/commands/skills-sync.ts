@@ -20,6 +20,7 @@ import {
   pushSkills,
   syncAllSkills,
 } from '../services/cloud/skills-sync.js'
+import { showImpactReminder } from '../utils/impact-reminder'
 
 // ============================================================================
 // Types
@@ -438,6 +439,10 @@ function displaySyncResult(result: any, lang?: SupportedLang): void {
         }
       }
     }
+  }
+
+  if (result.success && result.uploaded > 0) {
+    showImpactReminder('publish')
   }
 
   console.log('')

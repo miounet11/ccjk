@@ -2,6 +2,7 @@
  * Brain Status Command - 显示能力路由和遥测统计
  */
 
+import type { CapabilityLevel } from '../brain/capability-router'
 import { getTelemetry } from '../brain/telemetry'
 import { getSmartRouter } from '../brain/smart-router'
 import { getCapabilityName } from '../brain/capability-router'
@@ -47,7 +48,7 @@ export async function brainStatusCommand(options: BrainStatusOptions): Promise<v
     // 按层级统计
     console.log('\n🎯 By Capability Level:')
     for (const [level, levelStats] of Object.entries(stats.byLevel)) {
-      const levelNum = Number(level)
+      const levelNum = Number(level) as CapabilityLevel
       const name = getCapabilityName(levelNum)
       const successRate = (levelStats.successRate * 100).toFixed(1)
       const avgDuration = levelStats.avgDuration.toFixed(1)

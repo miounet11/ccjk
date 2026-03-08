@@ -60,6 +60,7 @@ const COMMAND_REFERENCE: CommandInfo[] = [
   { name: 'ccjk workflows', alias: 'wf', description: '管理工作流', category: 'other', examples: ['ccjk wf'] },
   { name: 'ccjk ccr', description: 'CCR 代理管理', category: 'other', examples: ['ccjk ccr'] },
   { name: 'ccjk ccu', description: '使用量统计', category: 'other', examples: ['ccjk ccu'] },
+  { name: 'ccjk impact', alias: 'gain', description: '每日 Token 效果页', category: 'other', examples: ['ccjk impact', 'ccjk impact --days 30'] },
   { name: 'ccjk uninstall', description: '卸载配置', category: 'other', examples: ['ccjk uninstall'] },
 ]
 

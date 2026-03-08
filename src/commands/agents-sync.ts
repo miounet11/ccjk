@@ -33,6 +33,7 @@ import {
   syncAgents,
   uninstallAgent,
 } from '../services/cloud/agents-sync.js'
+import { showImpactReminder } from '../utils/impact-reminder'
 
 // ============================================================================
 // Types
@@ -349,6 +350,10 @@ async function syncCommand(options: AgentsSyncOptions): Promise<void> {
       if (result.skipped.length > 0) {
         console.log()
         console.log(ansis.gray(`${i18n.t('agents:sync.skipped')}: ${result.skipped.length}`))
+      }
+
+      if (result.pushed.length > 0) {
+        showImpactReminder('publish')
       }
     }
     else {

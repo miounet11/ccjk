@@ -896,6 +896,57 @@ export class ContextPersistence {
   }
 
   /**
+   * Query compression metrics with optional filters
+   */
+  getCompressionMetrics(projectHash?: string, options?: {
+    startTime?: number
+    endTime?: number
+    limit?: number
+    sortOrder?: 'asc' | 'desc'
+  }): CompressionMetric[] {
+    let query = 'SELECT * FROM compression_metrics WHERE 1=1'
+    const params: any[] = []
+
+    if (projectHash) {
+      query += ' AND project_hash = ?'
+      params.push(projectHash)
+    }
+
+    if (options?.startTime) {
+      query += ' AND timestamp >= ?'
+      params.push(options.startTime)
+    }
+
+    if (options?.endTime) {
+      query += ' AND timestamp <= ?'
+      params.push(options.endTime)
+    }
+
+    query += ` ORDER BY timestamp ${(options?.sortOrder || 'desc').toUpperCase()}`
+
+    if (options?.limit) {
+      query += ' LIMIT ?'
+      params.push(options.limit)
+    }
+
+    const stmt = this.db.prepare(query)
+    const rows = stmt.all(...params) as any[]
+
+    return rows.map(row => ({
+      id: row.id,
+      projectHash: row.project_hash,
+      contextId: row.context_id,
+      originalTokens: row.original_tokens,
+      compressedTokens: row.compressed_tokens,
+      compressionRatio: row.compression_ratio,
+      timeTakenMs: row.time_taken_ms,
+      algorithm: row.algorithm,
+      strategy: row.strategy,
+      timestamp: row.timestamp,
+    }))
+  }
+
+  /**
    * Clean up old compression metrics
    */
   cleanupCompressionMetrics(maxAge: number): number {
