@@ -394,15 +394,13 @@ export async function configureDefaultModelFeature(): Promise<void> {
   }
 
   const { model } = await inquirer.prompt<{ model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom' }>({
-    type: 'rawlist',
+    type: 'list',
     name: 'model',
     message: i18n.t('configuration:selectDefaultModel') || 'Select default model',
-    choices: addNumbersToChoices(
-      DEFAULT_MODEL_CHOICES.map(choice => ({
-        name: i18n.t(choice.nameKey) || choice.fallback,
-        value: choice.value,
-      })),
-    ),
+    choices: DEFAULT_MODEL_CHOICES.map(choice => ({
+      name: i18n.t(choice.nameKey) || choice.fallback,
+      value: choice.value,
+    })),
     default: existingModel
       ? DEFAULT_MODEL_CHOICES.findIndex(choice => choice.value === existingModel)
       : 0,

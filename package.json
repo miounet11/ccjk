@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "type": "module",
-  "version": "13.3.19",
+  "version": "13.3.20",
   "packageManager": "pnpm@10.17.1",
   "description": "Turn Claude Code into a production-ready AI dev environment with one-command setup, persistent memory, MCP automation, cloud sync, and zero-config browser workflows.",
   "author": {
