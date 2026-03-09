@@ -5,13 +5,19 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 // Suppress i18next promotional message at import time
 const originalLog = console.log
+const originalWarn = console.warn
+const originalInfo = console.info
 console.log = () => {}
+console.warn = () => {}
+console.info = () => {}
 
 import i18next from 'i18next'
 import Backend from 'i18next-fs-backend'
 
-// Restore console.log immediately after import
+// Restore console methods immediately after import
 console.log = originalLog
+console.warn = originalWarn
+console.info = originalInfo
 import { dirname, join } from 'pathe'
 
 // Create i18next instance
@@ -91,7 +97,11 @@ export async function initI18n(language: SupportedLang = 'zh-CN'): Promise<void>
 
   // Suppress npm funding messages from i18next
   const originalLog = console.log
+  const originalWarn = console.warn
+  const originalInfo = console.info
   console.log = () => {}
+  console.warn = () => {}
+  console.info = () => {}
 
   await i18n
     .use(Backend)
@@ -166,8 +176,10 @@ export async function initI18n(language: SupportedLang = 'zh-CN'): Promise<void>
       missingKeyHandler: false,
     })
 
-  // Restore console.log
+  // Restore console methods
   console.log = originalLog
+  console.warn = originalWarn
+  console.info = originalInfo
 
   // Namespaces will be loaded on-demand by i18next-fs-backend
   // No need to preload all 33 namespaces at startup

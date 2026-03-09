@@ -274,6 +274,9 @@ export class ClaudeCodeConfigManager {
           settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = profile.defaultSonnetModel
         if (profile.defaultOpusModel)
           settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = profile.defaultOpusModel
+
+        // Remove settings.model to allow env var-based model selection
+        delete settings.model
       }
       else {
         // No model config in profile, ensure all model envs are removed
