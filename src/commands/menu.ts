@@ -11,6 +11,7 @@ import { displayBannerWithInfo } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { readMcpConfig } from '../utils/claude-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
+import { getExistingModelConfig } from '../utils/config'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import {
   changeScriptLanguageFeature,
@@ -299,12 +300,21 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 
   // -------- Claude Code --------
   console.log(ansis.dim(`  -------- Claude Code --------`))
+
+  // Read current model configuration for display
+  const currentModel = getExistingModelConfig()
+  const modelDisplay = currentModel
+    ? (currentModel === 'default'
+        ? (isZh ? '默认' : 'default')
+        : currentModel)
+    : (isZh ? '未配置' : 'not set')
+
   console.log(`  ${ansis.green('1.')} ${isZh ? '完整初始化' : 'Full Init'} ${ansis.dim(isZh ? '- 安装 Claude Code + 导入工作流 + 配置 API 或 CCR 代理 + 配置 MCP 服务' : '- Install Claude Code + Import workflows + Configure API or CCR proxy + Configure MCP')}`)
   console.log(`  ${ansis.green('2.')} ${isZh ? '导入工作流' : 'Import Workflows'} ${ansis.dim(isZh ? '- 仅导入/更新工作流相关文件' : '- Import/update workflow files only')}`)
   console.log(`  ${ansis.green('3.')} ${isZh ? '配置 API 或 CCR 代理' : 'Configure API or CCR Proxy'} ${ansis.dim(isZh ? '- 配置 API URL、认证信息或 CCR 代理' : '- Configure API URL, auth info or CCR proxy')}`)
   console.log(`  ${ansis.green('4.')} ${isZh ? '远程控制（Web/Telegram）' : 'Remote Control (Web/Telegram)'} ${ansis.dim(isZh ? '- 一键初始化 + 快速绑定 + 二维码配对（核心功能）' : '- One-command setup + quick binding + QR pairing (core feature)')}`)
   console.log(`  ${ansis.green('5.')} ${isZh ? '安装/更新 MCP 服务' : 'Install / Update MCP Services'} ${ansis.dim(isZh ? '- 多选安装推荐服务，自动合并/修复 Windows 配置' : '- Multi-select & install recommended services, auto-fix Windows config')}`)
-  console.log(`  ${ansis.green('6.')} ${isZh ? '配置默认模型' : 'Configure Default Model'} ${ansis.dim(isZh ? '- 设置默认模型（opus/sonnet/sonnet 1m/自定义）' : '- Set default model (opus/sonnet/sonnet 1m/custom)')}`)
+  console.log(`  ${ansis.green('6.')} ${isZh ? '配置默认模型' : 'Configure Default Model'} ${ansis.dim(isZh ? `- 设置默认模型（opus/sonnet/sonnet 1m/自定义）[当前: ${modelDisplay}]` : `- Set default model (opus/sonnet/sonnet 1m/custom) [current: ${modelDisplay}]`)}`)
   console.log(`  ${ansis.green('7.')} ${isZh ? '配置 Claude 全局记忆' : 'Configure Claude Memory'} ${ansis.dim(isZh ? '- 配置 AI 输出语言和输出风格' : '- Configure AI output language and style')}`)
   console.log(`  ${ansis.green('8.')} ${isZh ? '权限 & 环境配置' : 'Permissions & Env Setup'} ${ansis.dim(isZh ? '- 导入环境变量 / 导入推荐权限 / 一键权限预设（最大/开发者/安全）' : '- Import env vars / import permissions / one-click presets (max/dev/safe)')}`)
   console.log('')

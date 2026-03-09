@@ -365,6 +365,12 @@ export async function configCommand(action: string, args: string[], options: Con
       await setProvider(args[0], options)
       break
 
+    case 'model': {
+      const { configureDefaultModelFeature } = await import('../utils/features')
+      await configureDefaultModelFeature()
+      break
+    }
+
     default: {
       // Show help
       const isZh = i18n.language === 'zh-CN'
