@@ -34,7 +34,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload benchmark reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: benchmark-reports
@@ -42,7 +42,7 @@ jobs:
           retention-days: 30
 
       - name: Upload HTML dashboard
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: benchmark-dashboard

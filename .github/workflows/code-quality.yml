@@ -223,7 +223,7 @@ jobs:
           pnpm exec complexity-report -f src/**/*.ts -o complexity.json
 
       - name: Upload complexity report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: complexity-report
           path: complexity.json
@@ -259,7 +259,7 @@ jobs:
           reporters: json
 
       - name: Upload duplicate code report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: duplicate-code-report
           path: jscpd-report.json
