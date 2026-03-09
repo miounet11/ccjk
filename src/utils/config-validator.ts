@@ -12,10 +12,11 @@ export function validateClaudeSettings(settings: any): settings is ClaudeSetting
   }
 
   // Validate model if present
-  // Model field now only accepts built-in presets; default/custom handled via env
-  if (settings.model && !['opus', 'sonnet', 'sonnet[1m]'].includes(settings.model)) {
-    console.log(i18n.t('errors:invalidModel', { model: settings.model }))
-    return false
+  if (settings.model !== undefined) {
+    if (typeof settings.model !== 'string' || !settings.model.trim()) {
+      console.log(i18n.t('errors:invalidModel', { model: settings.model }))
+      return false
+    }
   }
 
   // Validate env object if present
@@ -72,8 +73,8 @@ export function sanitizeClaudeSettings(settings: any): ClaudeSettings {
   }
 
   // Copy valid model
-  if (settings.model && ['opus', 'sonnet', 'sonnet[1m]'].includes(settings.model)) {
-    sanitized.model = settings.model
+  if (typeof settings.model === 'string' && settings.model.trim()) {
+    sanitized.model = settings.model.trim()
   }
 
   // Copy and validate env

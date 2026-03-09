@@ -210,7 +210,7 @@ export function mergeConfigs(sourceFile: string, targetFile: string): void {
 }
 
 /**
- * Update custom model configuration using environment variables
+ * Update custom model configuration using settings.model plus family-specific env overrides
  * @param primaryModel - Primary model name for general tasks
  * @param haikuModel - Default Haiku model (optional)
  * @param sonnetModel - Default Sonnet model (optional)
@@ -234,18 +234,19 @@ export function updateCustomModel(
     settings = existingSettings
   }
 
-  // Delete model field for custom configuration
-  delete settings.model
-
   // Initialize env object if it doesn't exist
   settings.env = settings.env || {}
 
   // Clean existing model-related environment variables (override mode for editing)
   clearModelEnv(settings.env, 'override')
 
-  // Set environment variables only if values are provided
+  // Persist the primary selection in settings.model so Claude Code treats it as the
+  // session default model, while env vars remain dedicated to family-specific overrides.
   if (primaryModel?.trim()) {
-    settings.env.ANTHROPIC_MODEL = primaryModel.trim()
+    settings.model = primaryModel.trim()
+  }
+  else {
+    delete settings.model
   }
   if (haikuModel?.trim()) {
     settings.env.ANTHROPIC_SMALL_FAST_MODEL = haikuModel.trim()
@@ -262,7 +263,7 @@ export function updateCustomModel(
 /**
  * Update the default model configuration in settings.json
  * @param model - The model type to set: opus, sonnet, sonnet[1m], default, or custom
- * Note: 'custom' model type is handled differently - it should use environment variables instead
+ * Note: 'custom' is configured by updateCustomModel().
  */
 export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom'): void {
   let settings = getDefaultSettings()
@@ -398,10 +399,12 @@ export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
   }
 
   // Check if using custom model configuration via environment variables
-  const hasModelEnv = MODEL_ENV_KEYS.some((key: ModelEnvKey) => {
-    const value = settings.env?.[key]
-    return value !== undefined && value !== null && value !== ''
-  })
+  const hasModelEnv = MODEL_ENV_KEYS
+    .filter(key => key !== 'ANTHROPIC_MODEL')
+    .some((key: ModelEnvKey) => {
+      const value = settings.env?.[key]
+      return value !== undefined && value !== null && value !== ''
+    })
   if (hasModelEnv) {
     return 'custom'
   }
@@ -416,8 +419,7 @@ export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
     return settings.model as 'opus' | 'sonnet' | 'sonnet[1m]'
   }
 
-  // Fallback to default if value is invalid
-  return 'default'
+  return 'custom'
 }
 
 /**
@@ -431,25 +433,28 @@ export function getExistingCustomModelConfig(): {
 } | null {
   const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
 
-  if (!settings || !settings.env) {
+  if (!settings) {
     return null
   }
 
   const {
-    ANTHROPIC_MODEL,
     ANTHROPIC_SMALL_FAST_MODEL,
     ANTHROPIC_DEFAULT_HAIKU_MODEL,
     ANTHROPIC_DEFAULT_SONNET_MODEL,
     ANTHROPIC_DEFAULT_OPUS_MODEL,
-  } = settings.env
+  } = settings.env || {}
 
   // Check if any custom model configuration exists
-  if (!ANTHROPIC_MODEL && !ANTHROPIC_DEFAULT_HAIKU_MODEL && !ANTHROPIC_DEFAULT_SONNET_MODEL && !ANTHROPIC_DEFAULT_OPUS_MODEL) {
+  const primaryModel = settings.model && !['opus', 'sonnet', 'sonnet[1m]'].includes(settings.model)
+    ? settings.model
+    : settings.env?.ANTHROPIC_MODEL
+
+  if (!primaryModel && !ANTHROPIC_DEFAULT_HAIKU_MODEL && !ANTHROPIC_DEFAULT_SONNET_MODEL && !ANTHROPIC_DEFAULT_OPUS_MODEL) {
     return null
   }
 
   return {
-    primaryModel: ANTHROPIC_MODEL,
+    primaryModel,
     haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL || ANTHROPIC_SMALL_FAST_MODEL,
     sonnetModel: ANTHROPIC_DEFAULT_SONNET_MODEL,
     opusModel: ANTHROPIC_DEFAULT_OPUS_MODEL,

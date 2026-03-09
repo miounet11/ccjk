@@ -18,7 +18,7 @@ export const MIGRATION_VERSION = '3.8.0'
  * Legacy configuration interface for migration
  */
 interface LegacyClaudeSettings {
-  model?: 'opus' | 'sonnet' | 'sonnet[1m]' | 'custom'
+  model?: string
   env?: {
     ANTHROPIC_API_KEY?: string
     ANTHROPIC_AUTH_TOKEN?: string
@@ -104,7 +104,7 @@ export function validateConfig(config: ClaudeSettings): string[] {
   const errors: string[] = []
 
   // Validate model if set
-  if (config.model && !['opus', 'sonnet', 'sonnet[1m]', 'custom', 'default'].includes(config.model)) {
+  if (config.model !== undefined && (typeof config.model !== 'string' || !config.model.trim())) {
     errors.push(`Invalid model: ${config.model}`)
   }
 

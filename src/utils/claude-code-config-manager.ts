@@ -264,8 +264,12 @@ export class ClaudeCodeConfigManager {
       )
 
       if (hasModelConfig) {
+        clearModelEnv(settings.env, 'override')
+
         if (profile.primaryModel)
-          settings.env.ANTHROPIC_MODEL = profile.primaryModel
+          settings.model = profile.primaryModel
+        else
+          delete settings.model
         if (profile.defaultHaikuModel) {
           settings.env.ANTHROPIC_SMALL_FAST_MODEL = profile.defaultHaikuModel
           settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.defaultHaikuModel
@@ -276,11 +280,13 @@ export class ClaudeCodeConfigManager {
           settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = profile.defaultOpusModel
 
         // Remove settings.model to allow env var-based model selection
-        delete settings.model
+        if (!profile.primaryModel)
+          delete settings.model
       }
       else {
         // No model config in profile, ensure all model envs are removed
         clearModelEnv(settings.env)
+        delete settings.model
       }
 
       writeJsonConfig(SETTINGS_FILE, settings)

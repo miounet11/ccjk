@@ -99,8 +99,7 @@ export function validateClaudeConfig(config: unknown): { valid: boolean, errors:
 
   // Validate model if specified
   if (cfg.model !== undefined) {
-    const validModels = ['opus', 'sonnet', 'sonnet[1m]', 'default', 'custom']
-    if (!validModels.includes(cfg.model)) {
+    if (typeof cfg.model !== 'string' || !cfg.model.trim()) {
       errors.push(`Invalid model: ${cfg.model}`)
     }
   }
@@ -222,9 +221,8 @@ export function getModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' |
     return null
   }
 
-  // Check if using custom model via env vars
-  if (config.env?.ANTHROPIC_MODEL
-    || config.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
+  // Check if using custom family overrides via env vars
+  if (config.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
     || config.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
     || config.env?.ANTHROPIC_DEFAULT_OPUS_MODEL) {
     return 'custom'
@@ -240,7 +238,7 @@ export function getModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' |
     return config.model as 'opus' | 'sonnet' | 'sonnet[1m]'
   }
 
-  return 'default'
+  return 'custom'
 }
 
 /**
@@ -268,7 +266,7 @@ export function setModelConfig(
 
   if (model === 'custom' && customModels) {
     if (customModels.primaryModel) {
-      updates.env.ANTHROPIC_MODEL = customModels.primaryModel
+      updates.model = customModels.primaryModel
     }
     if (customModels.defaultHaikuModel) {
       updates.env.ANTHROPIC_SMALL_FAST_MODEL = customModels.defaultHaikuModel

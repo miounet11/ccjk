@@ -43,8 +43,8 @@ export interface PermissionConfig {
  * Extends the legacy configuration with new fields
  */
 export interface ClaudeSettings {
-  /** Model configuration: opus, sonnet, sonnet[1m], or custom. Custom models should use env variables instead. */
-  model?: 'opus' | 'sonnet' | 'sonnet[1m]' | 'custom'
+  /** Model configuration: built-in aliases or a full Claude model name. */
+  model?: string
 
   /** Environment variables for API configuration */
   env?: {

@@ -4,7 +4,7 @@ import { dirname } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { SETTINGS_FILE } from '../../src/constants'
 import { DEFAULT_MODEL_CHOICES } from '../../src/utils/features'
-import { getExistingModelConfig, updateDefaultModel } from '../../src/utils/config'
+import { getExistingCustomModelConfig, getExistingModelConfig, updateCustomModel, updateDefaultModel } from '../../src/utils/config'
 import { readJsonConfig } from '../../src/utils/json-config'
 
 describe('default model feature', () => {
@@ -40,5 +40,20 @@ describe('default model feature', () => {
     const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
     expect(settings?.model).toBe('sonnet')
     expect(getExistingModelConfig()).toBe('sonnet')
+  })
+
+  it('persists custom primary model in settings.model', () => {
+    updateCustomModel('claude-opus-4.6')
+
+    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    expect(settings?.model).toBe('claude-opus-4.6')
+    expect(settings?.env?.ANTHROPIC_MODEL).toBeUndefined()
+    expect(getExistingModelConfig()).toBe('custom')
+    expect(getExistingCustomModelConfig()).toEqual({
+      primaryModel: 'claude-opus-4.6',
+      haikuModel: undefined,
+      sonnetModel: undefined,
+      opusModel: undefined,
+    })
   })
 })

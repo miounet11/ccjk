@@ -8,7 +8,7 @@ export interface ClaudeCodeProfile {
   apiKey?: string // API key (stored in plain text)
   baseUrl?: string // Custom API URL
   // Model configuration
-  primaryModel?: string // Default model (maps to ANTHROPIC_MODEL)
+  primaryModel?: string // Default model (maps to settings.model)
   defaultHaikuModel?: string // Maps to ANTHROPIC_DEFAULT_HAIKU_MODEL
   defaultSonnetModel?: string // Maps to ANTHROPIC_DEFAULT_SONNET_MODEL
   defaultOpusModel?: string // Maps to ANTHROPIC_DEFAULT_OPUS_MODEL
@@ -29,7 +29,7 @@ export interface ApiConfigDefinition {
   key?: string // API key (required for api_key and auth_token, or when provider is custom)
   url?: string // Custom URL (optional - auto-filled from provider preset)
   default?: boolean // Set as default profile (optional)
-  primaryModel?: string // Primary model (optional - auto-filled from provider preset, e.g., claude-sonnet-4-5)
+  primaryModel?: string // Primary model (optional - auto-filled from provider preset, stored in settings.model)
   defaultHaikuModel?: string // Maps to ANTHROPIC_DEFAULT_HAIKU_MODEL
   defaultSonnetModel?: string // Maps to ANTHROPIC_DEFAULT_SONNET_MODEL
   defaultOpusModel?: string // Maps to ANTHROPIC_DEFAULT_OPUS_MODEL
