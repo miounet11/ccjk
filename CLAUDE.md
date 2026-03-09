@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Date | Version | Change |
 |------|---------|--------|
-| 2026-03-06 | 13.3.11 | Guardrail: custom Claude model config must keep `ANTHROPIC_DEFAULT_HAIKU_MODEL` and `ANTHROPIC_SMALL_FAST_MODEL` synchronized; never remove the fast-model compatibility key |
+| 2026-03-09 | 13.3.22 | Model config improvements: interactive list for model selection, model subcommand added, usage impact dashboard, override mode for custom model editing, i18next promotional message suppression |
 | 2026-03-05 | 13.3.5 | Model selection fix: remove ANTHROPIC_MODEL env var to enable adaptive model selection based on task complexity |
 | 2026-03-04 | 13.3.4 | Fix: remove duplicate prompt hints in model config |
 | 2026-03-04 | 13.3.3 | Architecture documentation update: comprehensive module index with 33 modules, improved navigation structure, coverage tracking |

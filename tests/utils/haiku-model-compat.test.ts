@@ -93,6 +93,41 @@ describe('haiku model compatibility', () => {
     expect(settings?.env?.ANTHROPIC_SMALL_FAST_MODEL).toBe('claude-haiku-4.5')
   })
 
+  it('clears model overrides when profile has no explicit model configuration', async () => {
+    mkdirSync(dirname(SETTINGS_FILE), { recursive: true })
+    mkdirSync(dirname(ZCF_CONFIG_FILE), { recursive: true })
+
+    updateCustomModel(
+      'claude-opus-4.6',
+      'claude-haiku-4.5',
+      'claude-sonnet-4.6',
+      'claude-opus-4.6',
+    )
+
+    const config: ClaudeCodeConfigData = {
+      currentProfileId: 'native-default-profile',
+      profiles: {
+        'native-default-profile': {
+          name: 'native-default-profile',
+          authType: 'api_key',
+          apiKey: 'sk-test',
+          baseUrl: 'https://example.com',
+        },
+      },
+    }
+
+    ClaudeCodeConfigManager.writeConfig(config)
+    await ClaudeCodeConfigManager.applyCurrentProfile()
+
+    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    expect(settings?.model).toBeUndefined()
+    expect(settings?.env?.ANTHROPIC_MODEL).toBe('')
+    expect(settings?.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBeUndefined()
+    expect(settings?.env?.ANTHROPIC_DEFAULT_SONNET_MODEL).toBeUndefined()
+    expect(settings?.env?.ANTHROPIC_DEFAULT_OPUS_MODEL).toBeUndefined()
+    expect(settings?.env?.ANTHROPIC_SMALL_FAST_MODEL).toBeUndefined()
+  })
+
   it('repairs missing Haiku fast-model compatibility during migration', () => {
     mkdirSync(dirname(SETTINGS_FILE), { recursive: true })
 

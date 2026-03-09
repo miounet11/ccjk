@@ -281,13 +281,8 @@ export async function setProvider(providerId: string, options: ConfigOptions = {
     if (codeType === 'claude-code' && provider.claudeCode) {
       config.baseUrl = provider.claudeCode.baseUrl
 
-      // Set default models if available
-      if (provider.claudeCode.defaultModels && provider.claudeCode.defaultModels.length > 0) {
-        config.model = provider.claudeCode.defaultModels[0]
-        if (provider.claudeCode.defaultModels.length > 1) {
-          config.fastModel = provider.claudeCode.defaultModels[1]
-        }
-      }
+      delete config.model
+      delete config.fastModel
     }
 
     // Write config

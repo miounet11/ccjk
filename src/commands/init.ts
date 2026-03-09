@@ -1030,15 +1030,6 @@ export async function init(options: InitOptions = {}): Promise<void> {
             url: preset?.claudeCode?.baseUrl || options.apiUrl || API_DEFAULT_URL,
           }
 
-          // Apply provider preset models if available
-          if (preset?.claudeCode?.defaultModels && preset.claudeCode.defaultModels.length > 0) {
-            const [primary, haiku, sonnet, opus] = preset.claudeCode.defaultModels
-            options.apiModel = options.apiModel || primary
-            options.apiHaikuModel = options.apiHaikuModel || haiku
-            options.apiSonnetModel = options.apiSonnetModel || sonnet
-            options.apiOpusModel = options.apiOpusModel || opus
-          }
-
           // Save configuration to CCJK TOML config for persistence and switching
           await saveSingleConfigToToml(apiConfig, options.provider, options)
         }
@@ -1865,13 +1856,6 @@ async function buildClaudeCodeProfile(params: {
     if (preset?.claudeCode) {
       baseUrl = params.url || preset.claudeCode.baseUrl
       authType = preset.claudeCode.authType
-      if (preset.claudeCode.defaultModels && preset.claudeCode.defaultModels.length > 0) {
-        const [p, h, s, o] = preset.claudeCode.defaultModels
-        primaryModel = primaryModel || p
-        defaultHaikuModel = defaultHaikuModel || h
-        defaultSonnetModel = defaultSonnetModel || s
-        defaultOpusModel = defaultOpusModel || o
-      }
     }
   }
 
