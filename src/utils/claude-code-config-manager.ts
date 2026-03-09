@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 import { join } from 'pathe'
 import { SETTINGS_FILE, ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants'
 import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from './ccjk-config'
-import { clearModelEnv } from './config.model-keys'
+import { overwriteModelSettings } from './config'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
 
@@ -199,6 +199,44 @@ export class ClaudeCodeConfigManager {
     }
   }
 
+  private static settingsMatchProfile(settings: any, profile: ClaudeCodeProfile | null): boolean {
+    const env = settings?.env || {}
+
+    if (!profile) {
+      return !settings?.model
+        && !env.ANTHROPIC_MODEL
+        && !env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+        && !env.ANTHROPIC_DEFAULT_SONNET_MODEL
+        && !env.ANTHROPIC_DEFAULT_OPUS_MODEL
+    }
+
+    const expectedPrimary = profile.primaryModel?.trim()
+    const expectedHaiku = profile.defaultHaikuModel?.trim()
+    const expectedSonnet = profile.defaultSonnetModel?.trim()
+    const expectedOpus = profile.defaultOpusModel?.trim()
+    const hasExplicitModelConfig = Boolean(expectedPrimary || expectedHaiku || expectedSonnet || expectedOpus)
+
+    if (!hasExplicitModelConfig) {
+      return !settings?.model
+        && (env.ANTHROPIC_MODEL === '' || env.ANTHROPIC_MODEL === undefined)
+        && env.ANTHROPIC_DEFAULT_HAIKU_MODEL === undefined
+        && env.ANTHROPIC_DEFAULT_SONNET_MODEL === undefined
+        && env.ANTHROPIC_DEFAULT_OPUS_MODEL === undefined
+    }
+
+    return settings?.model === expectedPrimary
+      && env.ANTHROPIC_MODEL === undefined
+      && env.ANTHROPIC_DEFAULT_HAIKU_MODEL === expectedHaiku
+      && env.ANTHROPIC_SMALL_FAST_MODEL === expectedHaiku
+      && env.ANTHROPIC_DEFAULT_SONNET_MODEL === expectedSonnet
+      && env.ANTHROPIC_DEFAULT_OPUS_MODEL === expectedOpus
+  }
+
+  static async syncCurrentProfileToSettings(): Promise<void> {
+    const currentProfile = this.getCurrentProfile()
+    await this.applyProfileSettings(currentProfile)
+  }
+
   /**
    * Apply profile settings to Claude Code runtime
    */
@@ -218,9 +256,6 @@ export class ClaudeCodeConfigManager {
 
       if (!settings.env)
         settings.env = {}
-
-      // Clean model variables upfront; will re-set based on profile below
-      clearModelEnv(settings.env)
 
       let shouldRestartCcr = false
 
@@ -262,38 +297,56 @@ export class ClaudeCodeConfigManager {
         || profile.defaultSonnetModel
         || profile.defaultOpusModel,
       )
+      const modelMode = hasModelConfig ? 'override' as const : 'reset' as const
 
-      if (hasModelConfig) {
-        clearModelEnv(settings.env, 'override')
-
-        if (profile.primaryModel)
-          settings.model = profile.primaryModel
-        else
-          delete settings.model
-        if (profile.defaultHaikuModel) {
-          settings.env.ANTHROPIC_SMALL_FAST_MODEL = profile.defaultHaikuModel
-          settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.defaultHaikuModel
-        }
-        if (profile.defaultSonnetModel)
-          settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = profile.defaultSonnetModel
-        if (profile.defaultOpusModel)
-          settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = profile.defaultOpusModel
-
-        // Remove settings.model to allow env var-based model selection
-        if (!profile.primaryModel)
-          delete settings.model
-      }
-      else {
-        // No model config in profile, ensure all model envs are removed
-        clearModelEnv(settings.env)
-        delete settings.model
-      }
+      overwriteModelSettings(settings, {
+        primaryModel: profile.primaryModel,
+        haikuModel: profile.defaultHaikuModel,
+        sonnetModel: profile.defaultSonnetModel,
+        opusModel: profile.defaultOpusModel,
+      }, modelMode)
 
       writeJsonConfig(SETTINGS_FILE, settings)
 
       const { setPrimaryApiKey, addCompletedOnboarding } = await import('./claude-config')
       setPrimaryApiKey()
       addCompletedOnboarding()
+
+      let verifiedSettings = readJsonConfig<any>(SETTINGS_FILE) || {}
+      if (!this.settingsMatchProfile(verifiedSettings, profile)) {
+        const repairedSettings = readJsonConfig<any>(SETTINGS_FILE) || {}
+        repairedSettings.env = repairedSettings.env || {}
+
+        if (profile?.authType === 'api_key') {
+          repairedSettings.env.ANTHROPIC_API_KEY = profile.apiKey
+          delete repairedSettings.env.ANTHROPIC_AUTH_TOKEN
+        }
+        else if (profile?.authType === 'auth_token') {
+          repairedSettings.env.ANTHROPIC_AUTH_TOKEN = profile.apiKey
+          delete repairedSettings.env.ANTHROPIC_API_KEY
+        }
+
+        if (profile?.authType !== 'ccr_proxy') {
+          if (profile?.baseUrl)
+            repairedSettings.env.ANTHROPIC_BASE_URL = profile.baseUrl
+          else
+            delete repairedSettings.env.ANTHROPIC_BASE_URL
+        }
+
+        overwriteModelSettings(repairedSettings, {
+          primaryModel: profile?.primaryModel,
+          haikuModel: profile?.defaultHaikuModel,
+          sonnetModel: profile?.defaultSonnetModel,
+          opusModel: profile?.defaultOpusModel,
+        }, profile ? modelMode : 'reset')
+
+        writeJsonConfig(SETTINGS_FILE, repairedSettings)
+        verifiedSettings = readJsonConfig<any>(SETTINGS_FILE) || {}
+      }
+
+      if (!this.settingsMatchProfile(verifiedSettings, profile)) {
+        throw new Error('settings.json verification failed after applying current profile')
+      }
 
       if (shouldRestartCcr) {
         const { runCcrRestart } = await import('./ccr/commands')
@@ -307,8 +360,7 @@ export class ClaudeCodeConfigManager {
   }
 
   static async applyCurrentProfile(): Promise<void> {
-    const currentProfile = this.getCurrentProfile()
-    await this.applyProfileSettings(currentProfile)
+    await this.syncCurrentProfileToSettings()
   }
 
   /**
@@ -422,6 +474,10 @@ export class ClaudeCodeConfigManager {
       // 写入配置
       this.writeConfig(config)
 
+      if (config.currentProfileId === profileKey) {
+        await this.syncCurrentProfileToSettings()
+      }
+
       return {
         success: true,
         backupPath: backupPath || undefined,
@@ -505,6 +561,10 @@ export class ClaudeCodeConfigManager {
 
       this.writeConfig(config)
 
+      if (config.currentProfileId === (nameChanged ? nextKey : id)) {
+        await this.syncCurrentProfileToSettings()
+      }
+
       return {
         success: true,
         backupPath: backupPath || undefined,
@@ -560,6 +620,10 @@ export class ClaudeCodeConfigManager {
       }
 
       this.writeConfig(config)
+
+      if (config.currentProfileId) {
+        await this.syncCurrentProfileToSettings()
+      }
 
       return {
         success: true,
@@ -631,6 +695,10 @@ export class ClaudeCodeConfigManager {
 
       this.writeConfig(config)
 
+      if (config.currentProfileId) {
+        await this.syncCurrentProfileToSettings()
+      }
+
       return {
         success: true,
         backupPath: backupPath || undefined,
@@ -683,6 +751,7 @@ export class ClaudeCodeConfigManager {
       // 更新当前配置ID
       config.currentProfileId = id
       this.writeConfig(config)
+      await this.syncCurrentProfileToSettings()
 
       return { success: true }
     }
@@ -826,6 +895,7 @@ export class ClaudeCodeConfigManager {
       // 清除当前配置ID，表示使用官方登录
       config.currentProfileId = ''
       this.writeConfig(config)
+      await this.applyProfileSettings(null)
 
       return { success: true }
     }

@@ -19,6 +19,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 2026-02-25 | 12.0.8 | Wire up smartGenerateAndInstall: add `generate`/`gen` CLI command, menu G. option, post-init prompt, help doc entry |
 | 2026-02-25 | 12.0.7 | Architecture diagram added; module index expanded to cover all src/ modules; module-level CLAUDE.md files generated |
 
+## Quick Start
+
+```bash
+# Development
+pnpm install
+pnpm build              # Build with unbuild
+pnpm typecheck          # TypeScript validation
+pnpm test:run           # Run unit tests
+pnpm test:integration:run  # Run integration tests
+
+# Test specific file
+pnpm vitest tests/commands/init.integration.test.ts
+
+# Run locally
+node dist/cli.mjs       # Interactive menu
+node dist/cli.mjs init  # Direct command
+```
+
 ## Project Overview
 
 CCJK is a TypeScript CLI tool that configures AI coding environments. It provides one-click setup for Claude Code, Codex, and other AI code tools with MCP services, API configuration, and workflow templates.
@@ -42,6 +60,14 @@ CCJK complements Claude Code CLI — it does NOT compete with it. Critical rules
 
 ## Model Config Guardrails
 
+**v13.3.22+ Features:**
+- Interactive list for model selection (inquirer-based)
+- `ccjk model` subcommand for quick model switching
+- Usage impact dashboard showing which models are affected
+- Override mode for custom model editing
+- i18next promotional message suppression
+
+**Critical Rules:**
 - For custom Claude model routing, keep `ANTHROPIC_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, and `ANTHROPIC_DEFAULT_OPUS_MODEL` in sync with the selected CCJK profile.
 - Always mirror `ANTHROPIC_DEFAULT_HAIKU_MODEL` into `ANTHROPIC_SMALL_FAST_MODEL`.
 - Never delete the Haiku fast-model compatibility key during cleanup, migration, or “priority fix” logic.
@@ -178,28 +204,6 @@ graph TD
 
 **Modules needing documentation**: cloud-plugins, bootstrap, core, interview, intents, mcp-marketplace, monitoring, postmortem, task-manager, terminal, analyzers
 
-## Quick Start
-
-```bash
-# 1. Install dependencies
-pnpm install
-
-# 2. Build the project
-pnpm build
-
-# 3. Run in dev mode
-pnpm dev
-
-# 4. Test the CLI
-node dist/cli.mjs --help
-echo '1' | node dist/cli.mjs 2>&1  # Test menu option 1
-```
-
-**First-time contributors:**
-1. Read the Anti-Aggression Principle section
-2. Understand the Menu → Feature Function Mapping
-3. Run `pnpm typecheck && pnpm build` before committing
-
 ## Build and Development Commands
 
 ```bash
@@ -234,10 +238,11 @@ pnpm test:e2e               # End-to-end tests
 src/
 ├── cli-lazy.ts             # Actual entry point, lazy command registration (~2200 lines)
 ├── commands/
-│   ├── menu.ts             # Main interactive menu (options 1-7 + extras)
+│   ├── menu.ts             # Main interactive menu (options 1-8 + extras)
 │   ├── init.ts             # Full init flow and simplified init
 │   ├── status.ts           # Brain Dashboard (health score + recommendations)
-│   └── boost.ts            # One-click optimization
+│   ├── boost.ts            # One-click optimization
+│   └── model.ts            # Model configuration subcommand (v13.3.22+)
 ├── brain/                  # Multi-agent orchestration
 ├── cloud-sync/             # Cloud config sync (Gist, WebDAV, S3)
 ├── cloud-client/           # Remote API: skills marketplace, recommendations, telemetry
@@ -253,6 +258,7 @@ src/
 │   ├── features.ts         # Feature functions called by menu
 │   ├── config.ts           # Settings.json management
 │   ├── claude-config.ts    # MCP config management
+│   ├── claude-code-config-manager.ts  # Model priority fix (v12.3.1+)
 │   └── permission-cleaner.ts # Permission validation and repair
 ├── config/                 # Workflow, MCP, API provider definitions
 └── i18n/                   # i18next (zh-CN, en)
@@ -265,7 +271,8 @@ This is the most critical flow. Menu options in `src/commands/menu.ts` must call
 - **Option 3**: `configureApiFeature()` from `utils/features.ts`
 - **Option 4**: `configureMcpFeature()` from `utils/features.ts`
 - **Options 5-7**: `configureDefaultModelFeature` / `configureAiMemoryFeature` / `configureEnvPermissionFeature`
-- **Utility items (0, S, -, +, D, H, R, B)**: Return `undefined` to skip "return to menu" prompt
+- **Option 8**: Model configuration with interactive list (v13.3.22+)
+- **Utility items (0, S, -, +, D, H, R, B, G)**: Return `undefined` to skip "return to menu" prompt
 
 ### Config Write Safety
 

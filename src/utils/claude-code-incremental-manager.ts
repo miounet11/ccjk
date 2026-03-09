@@ -461,14 +461,17 @@ async function handleEditProfile(profiles: ClaudeCodeProfile[]): Promise<void> {
       console.log(ansis.gray(i18n.t('common:backupCreated', { path: result.backupPath })))
     }
 
-    // If this is the current profile, apply changes
-    const currentConfig = ClaudeCodeConfigManager.readConfig()
-    if (currentConfig?.currentProfileId === selectedProfile.id) {
-      const updatedProfile = ClaudeCodeConfigManager.getProfileById(selectedProfile.id!)
+    const updatedProfileId = result.updatedProfile?.id || ClaudeCodeConfigManager.generateProfileId(updateData.name!)
+    const switchResult = await ClaudeCodeConfigManager.switchProfile(updatedProfileId)
+    if (switchResult.success) {
+      const updatedProfile = ClaudeCodeConfigManager.getProfileById(updatedProfileId)
       if (updatedProfile) {
-        await ClaudeCodeConfigManager.applyProfileSettings(updatedProfile)
+        console.log(ansis.green(i18n.t('multi-config:profileSetAsDefault', { name: updatedProfile.name })))
         console.log(ansis.green(i18n.t('multi-config:settingsApplied')))
       }
+    }
+    else {
+      console.log(ansis.red(i18n.t('multi-config:failedToSwitchToProfile', { error: switchResult.error })))
     }
   }
   else {

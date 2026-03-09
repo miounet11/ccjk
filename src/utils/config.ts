@@ -209,6 +209,48 @@ export function mergeConfigs(sourceFile: string, targetFile: string): void {
   writeJsonConfig(targetFile, merged)
 }
 
+export interface ModelConfigOverride {
+  primaryModel?: string
+  haikuModel?: string
+  sonnetModel?: string
+  opusModel?: string
+}
+
+/**
+ * Hard-overwrite all model-related settings in memory.
+ * This keeps profile apply/edit behavior deterministic and removes stale model state.
+ */
+export function overwriteModelSettings(
+  settings: ClaudeSettings,
+  {
+    primaryModel,
+    haikuModel,
+    sonnetModel,
+    opusModel,
+  }: ModelConfigOverride,
+  mode: 'reset' | 'override' = 'override',
+): ClaudeSettings {
+  settings.env = settings.env || {}
+  clearModelEnv(settings.env, mode)
+  delete settings.model
+
+  if (primaryModel?.trim()) {
+    settings.model = primaryModel.trim()
+  }
+  if (haikuModel?.trim()) {
+    settings.env.ANTHROPIC_SMALL_FAST_MODEL = haikuModel.trim()
+    settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim()
+  }
+  if (sonnetModel?.trim()) {
+    settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = sonnetModel.trim()
+  }
+  if (opusModel?.trim()) {
+    settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = opusModel.trim()
+  }
+
+  return settings
+}
+
 /**
  * Update custom model configuration using settings.model plus family-specific env overrides
  * @param primaryModel - Primary model name for general tasks
@@ -234,28 +276,12 @@ export function updateCustomModel(
     settings = existingSettings
   }
 
-  // Initialize env object if it doesn't exist
-  settings.env = settings.env || {}
-
-  // Clean existing model-related environment variables (override mode for editing)
-  clearModelEnv(settings.env, 'override')
-
-  // Persist the primary selection in settings.model so Claude Code treats it as the
-  // session default model, while env vars remain dedicated to family-specific overrides.
-  if (primaryModel?.trim()) {
-    settings.model = primaryModel.trim()
-  }
-  else {
-    delete settings.model
-  }
-  if (haikuModel?.trim()) {
-    settings.env.ANTHROPIC_SMALL_FAST_MODEL = haikuModel.trim()
-    settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim()
-  }
-  if (sonnetModel?.trim())
-    settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = sonnetModel.trim()
-  if (opusModel?.trim())
-    settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = opusModel.trim()
+  overwriteModelSettings(settings, {
+    primaryModel,
+    haikuModel,
+    sonnetModel,
+    opusModel,
+  }, 'override')
 
   writeJsonConfig(SETTINGS_FILE, settings)
 }
