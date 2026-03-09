@@ -129,7 +129,7 @@ function attachHandlers(items: MenuItem[]): MenuItem[] {
         return { ...item, handler: async () => await (await import('../mcp')).mcpStatus({}) }
 
       case 'model-config':
-        return { ...item, handler: async () => await (await import('../config')).configCommand('set', ['model'], {}) }
+        return { ...item, handler: async () => await (await import('../../utils/features')).configureDefaultModelFeature() }
 
       case 'memory-config':
         return { ...item, handler: async () => await (await import('../../utils/features')).configureMemoryFeature() }
