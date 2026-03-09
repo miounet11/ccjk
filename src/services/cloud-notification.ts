@@ -29,12 +29,13 @@ import {
 } from '../cloud-client/notifications/types'
 import { writeFileAtomic } from '../utils/fs-operations'
 import { getDeviceInfo } from '../utils/notification/token'
+import { CLOUD_ENDPOINTS } from '../constants'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = 'https://api.claudehome.cn'
+const CLOUD_API_BASE_URL = CLOUD_ENDPOINTS.MAIN.BASE_URL
 const _DEFAULT_TIMEOUT = 30000 // 30 seconds
 const POLL_TIMEOUT = 60000 // 60 seconds for long-polling
 const TOKEN_FILE_PATH = join(homedir(), '.ccjk', 'cloud-token.json')

@@ -22,7 +22,6 @@ import type {
 import consola from 'consola'
 import { CachedCloudClient, CloudCache } from './cache'
 import { createCloudClient } from './client'
-import { getCloudRecommendedHooks, getCommunityHooks, submitHookAnalytics } from './hook-recommendations.js'
 // Import recommendations
 import { getCloudMcpRecommendations, getCloudRecommendations, getCloudSkillRecommendations } from './recommendations'
 
@@ -125,10 +124,7 @@ export {
 export {
   getCloudMcpRecommendations,
   getCloudRecommendations,
-  getCloudRecommendedHooks,
   getCloudSkillRecommendations,
-  getCommunityHooks,
-  submitHookAnalytics,
 }
 
 // Export v8 Templates Client

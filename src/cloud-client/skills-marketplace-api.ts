@@ -17,9 +17,10 @@ import type {
   TrendingParams,
   TrendingResponse,
 } from './skills-marketplace-types'
+import { CLOUD_ENDPOINTS } from '../constants'
 
 /** Base URL for the CCJK API */
-const API_BASE_URL = 'https://api.claudehome.cn/api/v1'
+const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
 
 /** Default cache TTL in milliseconds (5 minutes) */
 const DEFAULT_CACHE_TTL = 5 * 60 * 1000

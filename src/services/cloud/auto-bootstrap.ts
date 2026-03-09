@@ -15,7 +15,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir, hostname, platform, release, type } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
-import { CCJK_CONFIG_DIR } from '../../constants'
+import { CCJK_CONFIG_DIR, CLOUD_ENDPOINTS } from '../../constants'
 
 // ESM compatible __dirname
 const __filename = fileURLToPath(import.meta.url)
@@ -35,7 +35,7 @@ export const DEVICE_CONFIG_FILE = join(CLOUD_CONFIG_DIR, 'device.json')
 export const CLOUD_STATE_FILE = join(CLOUD_CONFIG_DIR, 'state.json')
 
 /** 云服务 API 端点 */
-export const CLOUD_API_ENDPOINT = 'https://api.claudehome.cn/api/v1'
+export const CLOUD_API_ENDPOINT = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
 
 /** 云配置查看页面（预留，初期隐藏） */
 export const CLOUD_DASHBOARD_URL = 'https://cloud.api.claudehome.cn/dashboard'

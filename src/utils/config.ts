@@ -234,7 +234,11 @@ export function overwriteModelSettings(
   clearModelEnv(settings.env, mode)
   delete settings.model
 
-  if (primaryModel?.trim()) {
+  // When family-specific models are configured, do NOT set settings.model
+  // settings.model overrides ALL env vars, breaking adaptive routing
+  // (Haiku for small tasks, Sonnet for standard, Opus for complex)
+  const hasAdaptiveRouting = Boolean(haikuModel?.trim() || sonnetModel?.trim() || opusModel?.trim())
+  if (primaryModel?.trim() && !hasAdaptiveRouting) {
     settings.model = primaryModel.trim()
   }
   if (haikuModel?.trim()) {

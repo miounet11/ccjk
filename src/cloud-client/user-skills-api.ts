@@ -20,12 +20,13 @@ import type {
   UserSkillsResponse,
 } from './skills-marketplace-types'
 import { SkillsMarketplaceApiError } from './skills-marketplace-api'
+import { CLOUD_ENDPOINTS } from '../constants'
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = 'https://api.claudehome.cn/api/v1'
+const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
 
 /**
  * Request options for authenticated requests

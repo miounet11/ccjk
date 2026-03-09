@@ -84,7 +84,7 @@ export const CLOUD_ENDPOINTS = {
    */
   REMOTE: {
     BASE_URL: 'https://remote-api.claudehome.cn',
-    API_VERSION: '', // No version prefix for remote API
+    API_VERSION: '/api/v1', // Remote API uses /api/v1 prefix
   },
 } as const
 

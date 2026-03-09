@@ -12,12 +12,13 @@ import { homedir } from 'node:os'
 import process from 'node:process'
 import { join } from 'pathe'
 import { writeFileAtomic } from '../../utils/fs-operations'
+import { CLOUD_ENDPOINTS } from '../../constants'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = 'https://api.claudehome.cn'
+const CLOUD_API_BASE_URL = CLOUD_ENDPOINTS.MAIN.BASE_URL
 const DEFAULT_TIMEOUT = 30000 // 30 seconds
 const TEMPLATES_FILE = join(process.cwd(), 'src', 'data', 'claude-md-templates.json')
 const CACHE_DIR = join(homedir(), '.ccjk', 'claude-md-cache')

@@ -8,6 +8,7 @@
 import type { $Fetch } from 'ofetch'
 import consola from 'consola'
 import { ofetch } from 'ofetch'
+import { CLOUD_ENDPOINTS } from '../constants'
 
 // ============================================================================
 // Types
@@ -132,7 +133,7 @@ export class TemplatesClient {
   private logger = consola.withTag('templates-client')
 
   constructor(config: TemplatesClientConfig = {}) {
-    this.baseURL = config.baseURL || 'https://api.claudehome.cn'
+    this.baseURL = config.baseURL || CLOUD_ENDPOINTS.MAIN.BASE_URL
     this.language = config.language || 'en'
 
     this.fetch = ofetch.create({

@@ -6,6 +6,12 @@
  */
 
 // ============================================================================
+// Imports
+// ============================================================================
+
+import { CLOUD_ENDPOINTS } from '../../constants'
+
+// ============================================================================
 // Notification Channels
 // ============================================================================
 
@@ -130,7 +136,7 @@ export const DEFAULT_NOTIFICATION_CONFIG: NotificationConfig = {
   enabled: false,
   deviceToken: '',
   threshold: 10, // 10 minutes
-  cloudEndpoint: 'https://api.claudehome.cn',
+  cloudEndpoint: `${CLOUD_ENDPOINTS.REMOTE.BASE_URL}/api/v1`,
   channels: {},
   quietHours: {
     enabled: false,

@@ -8,6 +8,7 @@
  */
 
 import type { SupportedLang } from '../../constants.js'
+import { CLOUD_ENDPOINTS } from '../../constants.js'
 import type { Hook, HookType } from '../../utils/hooks/types.js'
 
 // ============================================================================
@@ -248,7 +249,7 @@ export class CloudHooksSyncClient {
     timeout?: number
     enableLogging?: boolean
   } = {}) {
-    this.baseUrl = options.baseUrl || 'https://api.claudehome.cn/api/v1/hooks'
+    this.baseUrl = options.baseUrl || `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}/hooks`
     this.apiKey = options.apiKey
     this.timeout = options.timeout || 30000
     this.enableLogging = options.enableLogging || false

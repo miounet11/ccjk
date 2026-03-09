@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-03-09 | 13.4.0 | Adaptive routing guard: fix settings.model overriding env-based model routing, startup auto-repair, model routing status in `ccjk status` |
 | 2026-03-09 | 13.3.22 | Model config improvements: interactive list for model selection, model subcommand added, usage impact dashboard, override mode for custom model editing, i18next promotional message suppression |
 | 2026-03-05 | 13.3.5 | Model selection fix: remove ANTHROPIC_MODEL env var to enable adaptive model selection based on task complexity |
 | 2026-03-04 | 13.3.4 | Fix: remove duplicate prompt hints in model config |

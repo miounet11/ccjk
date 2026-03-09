@@ -127,13 +127,13 @@ const ROUTE_MAP: Record<ApiRoute, RouteVersionMap> = {
 
   // Notification endpoints (remote API)
   'notifications.bind': {
-    v1: '/bind/use',
+    v1: '/api/v1/bind/use',
   },
   'notifications.send': {
-    v1: '/notify',
+    v1: '/api/v1/notify',
   },
   'notifications.poll': {
-    v1: '/reply/poll',
+    v1: '/api/v1/reply/poll',
   },
 }
 

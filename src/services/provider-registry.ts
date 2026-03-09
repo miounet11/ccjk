@@ -14,12 +14,13 @@ import type {
 } from '../types/provider'
 import type { CloudApiClient } from './cloud/api-client'
 import { createApiClient } from './cloud/api-client'
+import { CLOUD_ENDPOINTS } from '../constants'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = 'https://api.claudehome.cn/v1'
+const CLOUD_API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
 const REQUEST_TIMEOUT = 10000 // 10 seconds for quick operations
 
 // ============================================================================

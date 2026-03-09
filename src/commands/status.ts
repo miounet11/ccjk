@@ -277,6 +277,41 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null): string[] {
     }
   }
 
+  // Model routing info
+  try {
+    const settingsPath = join(homedir(), '.claude', 'settings.json')
+    if (existsSync(settingsPath)) {
+      const data = JSON.parse(readFileSync(settingsPath, 'utf-8'))
+      const env = data.env || {}
+      const haiku = env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+      const sonnet = env.ANTHROPIC_DEFAULT_SONNET_MODEL
+      const opus = env.ANTHROPIC_DEFAULT_OPUS_MODEL
+      const hasAdaptive = Boolean(haiku || sonnet || opus)
+
+      if (data.model && hasAdaptive) {
+        // Broken state: settings.model overrides adaptive routing
+        lines.push(`  ${label('Model:'.padEnd(14))} ${ansis.red(data.model)} ${ansis.red('(overrides adaptive routing!)')}`)
+        lines.push(`  ${label(''.padEnd(14))} ${ansis.yellow('Run: ccjk boost --fix-model')}`)
+      }
+      else if (hasAdaptive) {
+        // Healthy adaptive routing
+        lines.push(`  ${label('Routing:'.padEnd(14))} ${ansis.green('adaptive')}`)
+        if (haiku)
+          lines.push(`  ${label('  Quick:'.padEnd(14))} ${val(haiku)}`)
+        if (sonnet)
+          lines.push(`  ${label('  Standard:'.padEnd(14))} ${val(sonnet)}`)
+        if (opus)
+          lines.push(`  ${label('  Complex:'.padEnd(14))} ${val(opus)}`)
+      }
+      else if (data.model) {
+        lines.push(`  ${label('Model:'.padEnd(14))} ${val(data.model)}`)
+      }
+    }
+  }
+  catch {
+    // skip model info on error
+  }
+
   return lines
 }
 

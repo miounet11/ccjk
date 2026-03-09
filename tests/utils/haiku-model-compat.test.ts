@@ -53,7 +53,8 @@ describe('haiku model compatibility', () => {
     )
 
     const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
-    expect(settings?.model).toBe('claude-opus-4.6')
+    // settings.model must NOT be set when adaptive routing is configured
+    expect(settings?.model).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_MODEL).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4.5')
     expect(settings?.env?.ANTHROPIC_SMALL_FAST_MODEL).toBe('claude-haiku-4.5')
@@ -87,7 +88,8 @@ describe('haiku model compatibility', () => {
     const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
     expect(settings?.env?.ANTHROPIC_API_KEY).toBe('sk-test')
     expect(settings?.env?.ANTHROPIC_BASE_URL).toBe('https://example.com')
-    expect(settings?.model).toBe('claude-opus-4.6')
+    // settings.model must NOT be set when adaptive routing is configured
+    expect(settings?.model).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_MODEL).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4.5')
     expect(settings?.env?.ANTHROPIC_SMALL_FAST_MODEL).toBe('claude-haiku-4.5')
@@ -164,7 +166,8 @@ describe('haiku model compatibility', () => {
     await ClaudeCodeConfigManager.applyCurrentProfile()
 
     const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
-    expect(settings?.model).toBe('claude-opus-4.6')
+    // settings.model must NOT be set when adaptive routing (haikuModel) is configured
+    expect(settings?.model).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_MODEL).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4.5')
     expect(settings?.env?.ANTHROPIC_SMALL_FAST_MODEL).toBe('claude-haiku-4.5')
@@ -204,7 +207,8 @@ describe('haiku model compatibility', () => {
     await ClaudeCodeConfigManager.switchProfile('second')
 
     const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
-    expect(settings?.model).toBe('4444')
+    // settings.model must NOT be set when adaptive routing is configured
+    expect(settings?.model).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_API_KEY).toBe('sk-second')
     expect(settings?.env?.ANTHROPIC_BASE_URL).toBe('https://second.example.com')
     expect(settings?.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('5555')
@@ -238,7 +242,8 @@ describe('haiku model compatibility', () => {
     })
 
     const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
-    expect(settings?.model).toBe('new-model')
+    // settings.model must NOT be set when adaptive routing (haikuModel) is configured
+    expect(settings?.model).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_API_KEY).toBe('sk-new')
     expect(settings?.env?.ANTHROPIC_BASE_URL).toBe('https://new.example.com')
     expect(settings?.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('haiku-new')
@@ -281,7 +286,8 @@ describe('haiku model compatibility', () => {
     const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
     expect(settings?.env?.ANTHROPIC_API_KEY).toBe('sk-ttkk')
     expect(settings?.env?.ANTHROPIC_BASE_URL).toBe('https://ttkk.example.com')
-    expect(settings?.model).toBe('claude-opus-4.6')
+    // settings.model must NOT be set when adaptive routing is configured
+    expect(settings?.model).toBeUndefined()
   })
 
   it('repairs missing Haiku fast-model compatibility during migration', () => {

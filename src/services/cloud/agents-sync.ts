@@ -35,7 +35,7 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
 import { join } from 'pathe'
-import { CCJK_CONFIG_DIR, CLAUDE_AGENTS_DIR } from '../../constants'
+import { CCJK_CONFIG_DIR, CLAUDE_AGENTS_DIR, CLOUD_ENDPOINTS } from '../../constants'
 import agentTemplatesData from '../../data/agent-templates.json'
 import { writeFileAtomic } from '../../utils/fs-operations'
 
@@ -43,7 +43,7 @@ import { writeFileAtomic } from '../../utils/fs-operations'
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = 'https://api.claudehome.cn'
+const CLOUD_API_BASE_URL = CLOUD_ENDPOINTS.MAIN.BASE_URL
 const DEFAULT_TIMEOUT = 30000 // 30 seconds
 /** Agents directory - uses ~/.claude/agents for Claude Code compatibility */
 const AGENTS_DIR = CLAUDE_AGENTS_DIR

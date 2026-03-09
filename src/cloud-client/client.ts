@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url'
 import consola from 'consola'
 import { ofetch } from 'ofetch'
 import { CloudClientError } from './types'
+import { CLOUD_ENDPOINTS } from '../constants'
 
 // Read version from package.json
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -40,7 +41,7 @@ catch {
  * All API paths should use this prefix for consistency
  */
 const API_PREFIX = '/api/v1'
-const HEALTH_PATH = '/health' // health is NOT under /api/v1 prefix
+const HEALTH_PATH = `${API_PREFIX}/health`
 
 /**
  * Cloud Client Class
@@ -350,7 +351,7 @@ export class CloudClient {
  */
 export function createCloudClient(config?: Partial<CloudClientConfig>): CloudClient {
   return new CloudClient({
-    baseURL: 'https://api.claudehome.cn',
+    baseURL: CLOUD_ENDPOINTS.MAIN.BASE_URL,
     timeout: 10000,
     version: CCJK_VERSION,
     enableCache: true,

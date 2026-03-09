@@ -13,12 +13,13 @@ import type {
   Rating,
   RatingSummary,
 } from './skills-marketplace-types'
+import { CLOUD_ENDPOINTS } from '../constants'
 
 /** Sort options for ratings */
 export type RatingSortOption = 'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful'
 
 /** Base URL for the API */
-const API_BASE_URL = 'https://api.claudehome.cn/api/v1'
+const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
 
 /**
  * Parameters for fetching skill ratings

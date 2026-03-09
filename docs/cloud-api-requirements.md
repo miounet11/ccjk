@@ -1,724 +1,639 @@
-# CCJK Cloud API 需求规范文档
+# CCJK Cloud API Requirements — Backend Contract
 
-> **版本**: v9.0.2
-> **日期**: 2026-01-25
-> **状态**: 待云端实现
-> **更新**: 新增 MCP/Hooks/Skills 数据格式问题
-
----
-
-## 1. 问题背景
-
-### 1.1 当前问题
-
-在 CCJK v9.0.2 云驱动智能设置功能中，发现以下 API 兼容性问题：
-
-| 问题 | 错误信息 | 影响范围 | 优先级 |
-|------|----------|----------|--------|
-| **MCP 配置失败** | `Cannot read properties of undefined (reading 'name')` | MCP 服务安装 | **P0** |
-| **Hooks 安装失败** | `Cannot read properties of undefined (reading 'push')` | Hooks 配置 | **P0** |
-| **Skills 模板缺失** | `Template not found: tpl_xxx` | Skills 安装 | **P1** |
-| Agents 创建失败 | `recommendation.name.toLowerCase is not a function` | 所有代理创建 | P1 |
-| Skills 安装失败 | `Cannot read properties of undefined (reading 'en')` | 技能安装 | P1 |
-| 模板批量获取失败 | `400 Bad Request` on `/api/v8/templates/batch` | 模板下载 | P2 |
-| 遥测上报失败 | `400 Bad Request` on `/api/v8/telemetry/installation` | 使用统计 | P3 |
-
-### 1.2 v9.0.2 新增问题详情
-
-#### 问题 1: MCP 服务配置失败
-
-**错误堆栈**:
-```
-ERROR  MCP 服务配置失败 Cannot read properties of undefined (reading 'name')
-    at dist/chunks/ccjk-mcp.mjs:517:39
-    at Array.forEach (<anonymous>)
-    at ccjkMcp (dist/chunks/ccjk-mcp.mjs:515:26)
-```
-
-**根因**: 云端返回的 MCP 服务创建了临时模板对象，但后续通过 `serviceId` 查找时，本地 `mcpServiceTemplates` 字典中不存在该服务，返回 `undefined`。
-
-**客户端已修复**: 增加 fallback 查找逻辑
-**云端需配合**: 确保返回的 MCP 服务包含完整的 `id`、`name`、`type`、`command`、`args` 字段
+> Generated: 2026-03-09 | CCJK v13.4.0 | Backend v8.2.0
+>
+> This document defines the complete API contract between CCJK CLI (client) and the cloud backend.
+> Backend team should use this as the source of truth for endpoint implementation and verification.
 
 ---
 
-#### 问题 2: Hooks 安装失败
+## 1. Infrastructure
 
-**错误堆栈**:
+### Base URLs
+
+| Endpoint | URL | Purpose |
+|----------|-----|---------|
+| **MAIN** | `https://api.claudehome.cn` | Core API (analysis, templates, telemetry, skills, hooks) |
+| **PLUGINS** | `https://api.claudehome.cn` | Plugin marketplace (same host, different path prefix) |
+| **REMOTE** | `https://remote-api.claudehome.cn` | Real-time features (notifications, WebSocket) |
+
+All URLs are centralized in `src/constants.ts` → `CLOUD_ENDPOINTS`. Never hardcode URLs elsewhere.
+
+### API Versioning
+
+- Main API: `/api/v1/*` (primary), `/api/v8/*` (fallback for templates)
+- Plugins API: `/v1/*`
+- Remote API: `/api/v1/*`
+
+### Client Headers
+
+All requests include:
+
 ```
-ERROR  Hooks installation failed: Cannot read properties of undefined (reading 'push')
-    at groupHooksByCategory (dist/chunks/ccjk-hooks.mjs:1012:27)
-    at ccjkHooks (dist/chunks/ccjk-hooks.mjs:879:29)
+User-Agent: ccjk/{version}
+X-CCJK-Version: {version}
+X-Device-ID: {uuid}          # anonymous, auto-generated
+Content-Type: application/json
 ```
 
-**根因**: 客户端只预定义了 3 个分类 (`pre-commit`, `post-test`, `lifecycle`)，但云端返回的 hooks 包含其他分类（如 `git-hooks`, `workflow`, `commit-msg`），导致数组未初始化。
+Authenticated requests add:
 
-**客户端已修复**: 动态创建未知分类的数组
-**云端需配合**: 使用标准 Git Hook 分类名称（见下方规范）
-
----
-
-#### 问题 3: Skills 模板缺失
-
-**错误信息**:
 ```
-Template not found: tpl_VVvfHw7NA_qw
-Template not found: tpl_uKPyj6viVGfg
-Template not found: tpl_Ox4f9FJhul-A
-... (共 11 个模板缺失)
-```
-
-**根因**: Skills API 返回的 `template_id` 在云端模板存储中不存在
-
-**云端需配合**:
-1. 确保所有返回的 `template_id` 在云端存在
-2. 或直接在响应中包含 `template_content` 字段
-
-### 1.3 历史问题根因分析
-
-云端 API 返回的数据结构与客户端预期不一致：
-
-```javascript
-// 客户端预期格式
-{
-  name: "Agent Name",           // 字符串
-  description: "Description"    // 字符串
-}
-
-// 或多语言对象格式
-{
-  name: { en: "Agent Name", "zh-CN": "代理名称" },
-  description: { en: "Description", "zh-CN": "描述" }
-}
-
-// 实际返回（导致错误）
-{
-  name: { name: { en: "...", "zh-CN": "..." } },  // 嵌套对象
-  description: { description: { en: "...", "zh-CN": "..." } }
-}
+Authorization: Bearer {token}
 ```
 
 ---
 
-## 2. MCP 服务 API 规范 (新增)
+## 2. Health Check
 
-### 2.1 接口信息
+### `GET /api/v1/health`
 
-- **端点**: `GET /api/v8/templates/mcp-servers`
-- **当前版本**: v8.2.0
+**Priority**: CRITICAL — client uses this to determine API availability
 
-### 2.2 响应格式要求
+**Request**: No body
 
-```typescript
-interface CloudMcpService {
-  // ========== 必填字段 ==========
-  id: string              // 唯一标识符
-  name_en: string         // 英文名称
-
-  // ========== 推荐字段 ==========
-  name_zh_cn?: string     // 中文名称
-  description_en?: string // 英文描述
-  description_zh_cn?: string
-  type?: 'stdio' | 'http' | 'websocket'  // 默认 'stdio'
-  command?: string        // 启动命令
-  args?: string[]         // 命令参数
-  npm_package?: string    // npm 包名
-  install_command?: string
-  env?: Record<string, string>
-  category?: 'core' | 'ondemand' | 'scenario'
-  tags?: string[]
-  compatibility?: {
-    languages?: string[]
-    frameworks?: string[]
-  }
-}
-```
-
-### 2.3 示例响应
-
+**Response** (200):
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "id": "filesystem-mcp",
-      "name_en": "Filesystem MCP",
-      "name_zh_cn": "文件系统 MCP",
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@anthropic/mcp-server-filesystem"],
-      "category": "core"
-    }
-  ]
+  "status": "healthy",
+  "version": "8.2.0",
+  "timestamp": "2026-03-09T10:16:21.673Z",
+  "message": "Service is operational"
 }
 ```
+
+**IMPORTANT**: Client calls `/api/v1/health`, NOT `/health`. The root `/health` currently returns 502 — either add a handler or redirect.
+
+**Client behavior**: Cached for 5 minutes. If unhealthy, client falls back to local recommendations.
 
 ---
 
-## 3. Hooks API 规范 (新增)
+## 3. Project Analysis & Recommendations
 
-### 3.1 接口信息
+### `POST /api/v1/specs`
 
-- **端点**: `GET /api/v8/templates/hooks`
+Analyzes a project and returns relevant skill/MCP/agent/hook recommendations.
 
-### 3.2 响应格式要求
-
-```typescript
-interface CloudHook {
-  id: string        // 必填：唯一标识符
-  name_en: string   // 必填：英文名称
-  category: HookCategory  // 必填：必须是有效的 Git Hook 类型
-
-  name_zh_cn?: string
-  description_en?: string
-  description_zh_cn?: string
-  install_command?: string
-  tags?: string[]
-}
-
-// ✅ 有效的 category 值
-type HookCategory =
-  | 'pre-commit'      // 提交前
-  | 'commit-msg'      // 提交消息
-  | 'post-commit'     // 提交后
-  | 'pre-push'        // 推送前
-  | 'post-merge'      // 合并后
-  | 'pre-rebase'      // 变基前
-  | 'post-checkout'   // 检出后
-  | 'post-test'       // 测试后（扩展）
-  | 'lifecycle'       // 生命周期（扩展）
-
-// ❌ 无效的 category 值（当前云端返回）
-// 'git-hooks', 'workflow' - 不是具体的 hook 类型
-```
-
-### 3.3 示例响应
-
+**Request**:
 ```json
 {
-  "data": [
-    {
-      "id": "lint-staged",
-      "name_en": "Lint Staged",
-      "category": "pre-commit",
-      "install_command": "npx lint-staged"
-    },
-    {
-      "id": "commitlint",
-      "name_en": "Commitlint",
-      "category": "commit-msg",
-      "install_command": "npx commitlint --edit $1"
-    }
-  ]
+  "projectRoot": "/path/to/project",
+  "dependencies": { "react": "^18.0.0", "express": "^4.18.0" },
+  "devDependencies": { "typescript": "^5.0.0", "vitest": "^1.0.0" },
+  "gitRemote": "https://github.com/user/repo",
+  "language": "typescript",
+  "ccjkVersion": "13.4.0"
 }
 ```
 
----
-
-## 4. Skills/Templates API 规范 (新增)
-
-### 4.1 接口信息
-
-- **端点**: `GET /api/v8/templates/skills`
-
-### 4.2 响应格式要求
-
-```typescript
-interface CloudSkill {
-  id: string        // 必填
-  name_en: string   // 必填
-
-  // 模板内容（二选一，推荐方案 B）
-  template_id?: string      // 方案 A: 模板 ID（必须存在）
-  template_content?: string // 方案 B: 直接包含内容（推荐）
-
-  name_zh_cn?: string
-  description_en?: string
-  description_zh_cn?: string
-  tags?: string[]
-}
-```
-
-### 4.3 缺失的模板 ID 列表
-
-以下模板需要在云端创建或修复：
-
-| 模板 ID | Skill 名称 |
-|---------|------------|
-| `tpl_VVvfHw7NA_qw` | TypeScript Best Practices |
-| `tpl_uKPyj6viVGfg` | React Best Practices |
-| `tpl_Ox4f9FJhul-A` | Component Generator |
-| `tpl_l9SkEvoBkncY` | Schema Generator |
-| `tpl_m2FEpjnJIXp8` | Test Generator |
-| `tpl_GW52d3V_8CRm` | JSDoc Generator |
-| `tpl_DhHFG_rbdOHk` | Code Refactor |
-| `tpl_zfX8agBWn3Ig` | Import Organizer |
-| `tpl_N6pApssmXhQg` | Security Scanner |
-| `tpl_S8krkPai0MkC` | Security Audit |
-
----
-
-## 5. 多语言字段规范
-
-所有支持多语言的字段必须遵循以下格式之一：
-
-#### 格式 A：纯字符串（简单模式）
+**Response** (200):
 ```json
 {
-  "name": "TypeScript Best Practices",
-  "description": "Essential for TypeScript 5.3+ strict mode"
-}
-```
-
-#### 格式 B：多语言对象（推荐）
-```json
-{
-  "name": {
-    "en": "TypeScript Best Practices",
-    "zh-CN": "TypeScript 最佳实践"
-  },
-  "description": {
-    "en": "Essential for TypeScript 5.3+ strict mode",
-    "zh-CN": "TypeScript 5.3+ 严格模式必备"
-  }
-}
-```
-
-#### ❌ 禁止的格式
-```json
-// 嵌套对象 - 禁止
-{
-  "name": {
-    "name": { "en": "...", "zh-CN": "..." }
-  }
-}
-
-// 空对象 - 禁止
-{
-  "name": {}
-}
-
-// 非字符串值 - 禁止
-{
-  "name": {
-    "en": { "text": "...", "format": "plain" }
-  }
-}
-```
-
-### 2.2 支持的语言代码
-
-| 代码 | 语言 | 备注 |
-|------|------|------|
-| `en` | English | 必须提供，作为 fallback |
-| `zh-CN` | 简体中文 | 可选 |
-| `zh-Hans` | 简体中文（别名） | 可选，等同于 zh-CN |
-| `zh` | 中文（通用） | 可选，fallback 到 zh-CN |
-
----
-
-## 3. API 端点规范
-
-### 3.1 项目分析 API
-
-**端点**: `POST /api/v8/analysis/projects`
-
-#### 请求格式
-```typescript
-interface ProjectAnalysisRequest {
-  /** 项目根目录路径 */
-  projectRoot: string
-  /** 项目依赖 */
-  dependencies?: Record<string, string>
-  /** 开发依赖 */
-  devDependencies?: Record<string, string>
-  /** Git 远程仓库 URL */
-  gitRemote?: string
-  /** 客户端语言偏好 */
-  language?: 'en' | 'zh-CN'
-  /** CCJK 版本 */
-  ccjkVersion?: string
-}
-```
-
-#### 响应格式
-```typescript
-interface ProjectAnalysisResponse {
-  /** 请求追踪 ID */
-  requestId: string
-  /** 推荐列表 */
-  recommendations: Recommendation[]
-  /** 检测到的项目类型 */
-  projectType?: string
-  /** 检测到的框架 */
-  frameworks?: string[]
-}
-
-interface Recommendation {
-  /** 唯一标识符 */
-  id: string
-  /** 显示名称 - 字符串或多语言对象 */
-  name: string | Record<string, string>
-  /** 描述 - 字符串或多语言对象 */
-  description: string | Record<string, string>
-  /** 分类 */
-  category: 'workflow' | 'mcp' | 'agent' | 'tool'
-  /** 相关性评分 (0-1) */
-  relevanceScore: number
-  /** 安装命令 */
-  installCommand?: string
-  /** 配置 JSON */
-  config?: Record<string, any>
-  /** 标签 */
-  tags?: string[]
-  /** 依赖项 */
-  dependencies?: string[]
-}
-```
-
-#### 响应示例
-```json
-{
-  "requestId": "req_abc123",
+  "requestId": "uuid",
   "recommendations": [
     {
-      "id": "ts-best-practices",
-      "name": {
-        "en": "TypeScript Best Practices",
-        "zh-CN": "TypeScript 最佳实践"
-      },
-      "description": {
-        "en": "Essential for TypeScript 5.3+ strict mode",
-        "zh-CN": "TypeScript 5.3+ 严格模式必备"
-      },
-      "category": "workflow",
-      "relevanceScore": 0.98,
-      "tags": ["typescript", "type-checking"]
-    },
-    {
-      "id": "fullstack-assistant",
-      "name": {
-        "en": "Full-Stack Development Assistant",
-        "zh-CN": "全栈开发助手"
-      },
-      "description": {
-        "en": "AI assistant for full-stack development",
-        "zh-CN": "全栈开发 AI 助手"
-      },
-      "category": "agent",
+      "id": "react-workflow",
+      "name": { "en": "React Workflow", "zh-CN": "React 工作流" },
+      "description": { "en": "React development tools", "zh-CN": "React 开发工具" },
+      "category": "skill",
       "relevanceScore": 0.95,
-      "tags": ["fullstack", "assistant"]
+      "installCommand": "ccjk config switch react",
+      "config": {},
+      "tags": ["react", "frontend"],
+      "dependencies": []
     }
   ],
-  "projectType": "typescript-node",
-  "frameworks": ["express", "react"]
+  "projectType": "react",
+  "frameworks": ["react", "typescript"]
 }
 ```
 
-### 3.2 批量模板获取 API
+**`category` enum**: `"skill"` | `"mcp"` | `"agent"` | `"hook"`
 
-**端点**: `POST /api/v8/templates/batch`
+**`relevanceScore`**: float 0.0 — 1.0
 
-#### 请求格式
-```typescript
-interface BatchTemplateRequest {
-  /** 模板 ID 列表 */
-  ids: string[]
-  /** 语言偏好 */
-  language?: 'en' | 'zh-CN'
-}
-```
+**Client behavior**: Cached for 7 days. Falls back to local project-type detection on failure.
 
-#### 响应格式
-```typescript
-interface BatchTemplateResponse {
-  /** 请求追踪 ID */
-  requestId: string
-  /** 模板映射 */
-  templates: Record<string, TemplateResponse>
-  /** 未找到的 ID 列表 */
-  notFound: string[]
-}
+---
 
-interface TemplateResponse {
-  /** 模板 ID */
-  id: string
-  /** 模板类型 */
-  type: 'workflow' | 'output-style' | 'prompt' | 'agent'
-  /** 名称 - 字符串或多语言对象 */
-  name: string | Record<string, string>
-  /** 描述 - 字符串或多语言对象 */
-  description: string | Record<string, string>
-  /** 模板内容 */
-  content: string
-  /** 版本 */
-  version: string
-  /** 作者 */
-  author?: string
-  /** 标签 */
-  tags?: string[]
-  /** 创建时间 (ISO 8601) */
-  createdAt: string
-  /** 更新时间 (ISO 8601) */
-  updatedAt: string
-}
-```
+## 4. Templates
 
-#### 响应示例
+### `GET /api/v1/templates/{id}?language={lang}`
+
+Fetch a single template by ID.
+
+**Response** (200):
 ```json
 {
-  "requestId": "req_def456",
+  "id": "basic-workflow",
+  "type": "workflow",
+  "name": { "en": "Basic Workflow", "zh-CN": "基础工作流" },
+  "description": { "en": "...", "zh-CN": "..." },
+  "content": "...",
+  "version": "1.0.0",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "updatedAt": "2026-03-01T00:00:00Z"
+}
+```
+
+**Client behavior**: Cached for 30 days. Falls back to local template on failure.
+
+### `POST /api/v1/templates/batch`
+
+Fetch multiple templates in one request.
+
+**Request**:
+```json
+{
+  "ids": ["template-1", "template-2"],
+  "language": "en"
+}
+```
+
+**Response** (200):
+```json
+{
+  "requestId": "uuid",
   "templates": {
-    "ts-best-practices": {
-      "id": "ts-best-practices",
-      "type": "workflow",
-      "name": {
-        "en": "TypeScript Best Practices",
-        "zh-CN": "TypeScript 最佳实践"
-      },
-      "description": {
-        "en": "TypeScript 5.3+ best practices",
-        "zh-CN": "TypeScript 5.3+ 最佳实践"
-      },
-      "content": "# TypeScript Best Practices\n\n...",
-      "version": "1.0.0",
-      "author": "CCJK Team",
-      "tags": ["typescript"],
-      "createdAt": "2026-01-01T00:00:00Z",
-      "updatedAt": "2026-01-25T00:00:00Z"
-    }
+    "template-1": { /* TemplateResponse */ },
+    "template-2": { /* TemplateResponse */ }
   },
   "notFound": []
 }
 ```
 
-### 3.3 遥测上报 API
+### V8 Templates API (Fallback)
 
-**端点**: `POST /api/v8/telemetry/installation`
+When v1 template endpoints fail, client falls back to v8:
 
-#### 请求格式
-```typescript
-interface UsageReport {
-  /** 报告 ID */
-  reportId: string
-  /** 指标类型 */
-  metricType: 'template_download' | 'recommendation_shown' | 'recommendation_accepted' | 'analysis_completed' | 'error_occurred'
-  /** 时间戳 (ISO 8601) */
-  timestamp: string
-  /** CCJK 版本 */
-  ccjkVersion: string
-  /** Node.js 版本 */
-  nodeVersion: string
-  /** 操作系统 */
-  platform: string
-  /** 语言 */
-  language?: string
-  /** 附加数据 */
-  data?: Record<string, any>
-}
-```
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v8/templates?type={type}&language={lang}` | GET | List templates |
+| `/api/v8/templates/{id}` | GET | Get single template |
+| `/api/v8/templates` | POST | Batch fetch |
+| `/api/v8/templates/search?q={query}` | GET | Search templates |
 
-#### 响应格式
-```typescript
-interface UsageReportResponse {
-  /** 成功标志 */
-  success: boolean
-  /** 请求 ID */
-  requestId: string
-  /** 消息 */
-  message?: string
-}
-```
-
-### 3.4 健康检查 API
-
-**端点**: `GET /api/v8/health`
-
-#### 响应格式
-```typescript
-interface HealthCheckResponse {
-  /** 服务状态 */
-  status: 'healthy' | 'degraded' | 'unhealthy'
-  /** API 版本 */
-  version: string
-  /** 时间戳 */
-  timestamp: string
-  /** 消息 */
-  message?: string
-}
-```
+**Template types**: `skill` | `mcp` | `agent` | `hook`
 
 ---
 
-## 4. 错误处理规范
+## 5. Skills Marketplace
 
-### 4.1 HTTP 状态码
+### `GET /api/v1/skills/marketplace`
 
-| 状态码 | 含义 | 使用场景 |
-|--------|------|----------|
-| 200 | 成功 | 请求成功处理 |
-| 400 | 请求错误 | 参数格式错误、缺少必填字段 |
-| 401 | 未授权 | API Key 无效或过期 |
-| 404 | 未找到 | 资源不存在 |
-| 429 | 请求过多 | 触发限流 |
-| 500 | 服务器错误 | 内部错误 |
+List skills with pagination and filters.
 
-### 4.2 错误响应格式
+**Query params**: `page`, `limit`, `category`, `sort`, `order` ("asc"/"desc")
 
-```typescript
-interface ErrorResponse {
-  /** 错误代码 */
-  code: string
-  /** 错误消息 */
-  message: string
-  /** 详细信息 */
-  details?: Record<string, any>
-  /** 请求 ID（用于追踪） */
-  requestId?: string
-}
-```
-
-#### 示例
+**Response** (200):
 ```json
 {
-  "code": "INVALID_REQUEST",
-  "message": "Missing required field: projectRoot",
-  "details": {
-    "field": "projectRoot",
-    "reason": "required"
+  "success": true,
+  "data": {
+    "skills": [ /* Skill objects */ ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 100,
+      "totalPages": 5
+    }
+  }
+}
+```
+
+### `GET /api/v1/skills/search`
+
+**Query params**: `q` (search query), `page`, `limit`, `category`, `sort`, `order`
+
+### `GET /api/v1/skills/search/suggestions`
+
+Autocomplete suggestions.
+
+**Query params**: `q` (partial query), `limit` (default 5)
+
+**Response** (200):
+```json
+{
+  "success": true,
+  "data": {
+    "suggestions": ["suggestion1", "suggestion2"]
+  }
+}
+```
+
+### `GET /api/v1/skills/search/trending`
+
+**Query params**: `limit` (default 10), `period` ("day"/"week"/"month")
+
+**Response** (200):
+```json
+{
+  "success": true,
+  "data": {
+    "keywords": [
+      { "keyword": "react", "count": 150 }
+    ]
+  }
+}
+```
+
+**Client cache**: Marketplace 5 min, suggestions 1 min, trending 10 min.
+
+---
+
+## 6. Skill Ratings
+
+### `GET /api/v1/skills/{skillId}/ratings`
+
+**Query params**: `page`, `limit`, `sort` ("newest"/"oldest"/"highest"/"lowest"/"helpful")
+
+**Response** (200):
+```json
+{
+  "success": true,
+  "data": {
+    "ratings": [ /* Rating objects */ ],
+    "summary": {
+      "averageRating": 4.5,
+      "totalRatings": 42,
+      "distribution": { "1": 2, "2": 1, "3": 5, "4": 10, "5": 24 }
+    },
+    "pagination": { "page": 1, "limit": 20, "total": 42, "totalPages": 3 }
+  }
+}
+```
+
+### `POST /api/v1/skills/{skillId}/ratings`
+
+**Auth**: Required (`Authorization: Bearer {token}`)
+
+**Request**:
+```json
+{
+  "userId": "user-uuid",
+  "rating": 5,
+  "review": "Great skill!"
+}
+```
+
+**Error codes**: `DUPLICATE_RATING`, `SKILL_NOT_FOUND`, `UNAUTHORIZED`
+
+---
+
+## 7. User Skills (Authenticated)
+
+All require `Authorization: Bearer {token}`.
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v1/skills/user` | GET | List user's installed skills |
+| `/api/v1/skills/user/install` | POST | Install skill `{ "skillId": "..." }` |
+| `/api/v1/skills/user/uninstall` | POST | Uninstall skill `{ "skillId": "..." }` |
+| `/api/v1/skills/user/{skillId}` | PATCH | Update skill config |
+| `/api/v1/skills/user/quota` | GET | Get usage quota |
+| `/api/v1/skills/user/recommendations` | GET | Personalized recommendations |
+
+**Quota response**:
+```json
+{
+  "success": true,
+  "data": {
+    "maxSkills": 50,
+    "usedSkills": 12,
+    "maxStorage": 104857600,
+    "usedStorage": 5242880
+  }
+}
+```
+
+---
+
+## 8. Plugin Marketplace
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v1/skills/recommendations` | POST | Get plugin recommendations by context |
+| `/api/v1/skills` | GET | Search plugins (query params: `q`, `page`, `limit`, `category`) |
+| `/api/v1/skills/{id}` | GET | Plugin details |
+| `/api/v1/skills/popular` | GET | Popular plugins |
+| `/api/v1/skills/categories` | GET | All categories |
+| `/api/v1/skills/{id}/download` | GET | Download plugin package |
+| `/api/v1/skills/upload` | POST | Upload user plugin (authenticated) |
+
+**Recommendations request**:
+```json
+{
+  "codeToolType": "claude-code",
+  "language": "typescript",
+  "installedPlugins": ["plugin-1", "plugin-2"],
+  "projectContext": {}
+}
+```
+
+**Client behavior**: All GET requests cached for 1 hour. Offline fallback to cached data.
+
+---
+
+## 9. Telemetry
+
+### `POST /api/v1/usage/current`
+
+Non-blocking, fire-and-forget. 5-second timeout. Never blocks client flow.
+
+**Request**:
+```json
+{
+  "reportId": "uuid",
+  "metricType": "template_download",
+  "timestamp": "2026-03-09T10:00:00Z",
+  "ccjkVersion": "13.4.0",
+  "nodeVersion": "v22.0.0",
+  "platform": "darwin",
+  "language": "en",
+  "data": {}
+}
+```
+
+**Metric types**: `template_download` | `recommendation_shown` | `recommendation_accepted` | `analysis_completed` | `error_occurred`
+
+**Batching**: Client buffers up to 10 events, flushes every 30 seconds.
+
+**Opt-out**: Client respects `CCJK_TELEMETRY=false` env var — no requests sent.
+
+---
+
+## 10. Device Registration & Sync
+
+### `POST /api/v1/devices/register`
+
+Anonymous device registration on first CCJK run.
+
+**Request**:
+```json
+{
+  "deviceId": "uuid",
+  "fingerprint": "sha256-hash",
+  "platform": "darwin",
+  "osVersion": "25.3.0",
+  "ccjkVersion": "13.4.0"
+}
+```
+
+### `POST /api/v1/handshake`
+
+Session handshake, negotiates feature flags and sync intervals.
+
+**Headers**: `X-Device-ID: {uuid}`
+
+**Request**:
+```json
+{
+  "deviceId": "uuid",
+  "ccjkVersion": "13.4.0",
+  "platform": "darwin"
+}
+```
+
+**Expected Response**:
+```json
+{
+  "success": true,
+  "featureFlags": {
+    "silentUpgrade": true,
+    "telemetryEnabled": true
   },
-  "requestId": "req_xyz789"
+  "syncInterval": 1800000
+}
+```
+
+### `POST /api/v1/sync`
+
+Periodic background sync (default every 30 minutes).
+
+**Request**:
+```json
+{
+  "deviceId": "uuid",
+  "platform": "darwin",
+  "ccjkVersion": "13.4.0",
+  "stats": {}
 }
 ```
 
 ---
 
-## 5. 客户端兼容性处理
+## 11. Cloud Sync (Sessions & Teleport)
 
-### 5.1 客户端已实现的兼容逻辑
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v1/sessions/upload` | POST | Upload session for cross-device sync |
+| `/api/v1/sessions/{id}` | GET | Download session |
+| `/api/v1/sessions/{id}/status` | GET | Check session sync status |
+| `/api/v1/sessions/{id}` | DELETE | Delete session |
+| `/api/v1/sessions` | GET | List user's sessions |
+| `/api/v1/attributions` | POST | Create attribution record |
+| `/api/v1/attributions/{id}` | GET | Get attribution |
 
-CCJK 客户端已实现 `extractString` 函数处理多语言字段：
+---
 
-```typescript
-function extractString(
-  val: string | Record<string, string> | undefined,
-  fallback: string,
-  preferredLang: 'en' | 'zh-CN' = 'en'
-): string {
-  if (val === undefined || val === null) return fallback
-  if (typeof val === 'string') return val || fallback
+## 12. Hooks Sync
 
-  if (typeof val === 'object') {
-    // 优先使用指定语言
-    const preferred = val[preferredLang]
-    if (typeof preferred === 'string' && preferred) return preferred
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v1/hooks` | GET | List available cloud hooks |
+| `/api/v1/hooks/sync` | POST | Sync local hooks to cloud |
+| `/api/v1/hooks/{id}` | GET | Get specific hook details |
 
-    // 回退到英文
-    const en = val.en || val['en-US']
-    if (typeof en === 'string' && en) return en
+---
 
-    // 回退到中文
-    const zhCN = val['zh-CN'] || val.zh || val['zh-Hans']
-    if (typeof zhCN === 'string' && zhCN) return zhCN
+## 13. Agents Sync
 
-    // 使用第一个可用值
-    for (const v of Object.values(val)) {
-      if (typeof v === 'string' && v) return v
-    }
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v1/agents` | GET | List available agent templates |
+| `/api/v1/agents/sync` | POST | Sync local agents to cloud |
+
+---
+
+## 14. CLAUDE.md Sync
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v1/claude-md/templates` | GET | Get CLAUDE.md templates |
+| `/api/v1/claude-md/sync` | POST | Sync CLAUDE.md content |
+
+---
+
+## 15. Notifications (Remote API)
+
+Base: `https://remote-api.claudehome.cn/api/v1`
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v1/bind/use` | POST | Bind device for push notifications |
+| `/api/v1/notify` | POST | Send notification to device |
+| `/api/v1/reply/poll` | GET | Long-poll for replies (60s timeout) |
+
+**Bind request**:
+```json
+{
+  "deviceToken": "token",
+  "deviceInfo": { "platform": "darwin", "version": "..." },
+  "channels": ["feishu", "email"]
+}
+```
+
+---
+
+## 16. Provider Registry
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/v1/providers` | GET | List available API providers |
+| `/api/v1/providers` | POST | Register new provider |
+| `/api/v1/providers/{id}` | GET | Get provider details |
+
+---
+
+## 17. Error Response Format
+
+All error responses MUST follow this format (never return HTML):
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message"
   }
-
-  return fallback
 }
 ```
 
-### 5.2 云端需要确保的数据格式
+**Standard HTTP status codes**:
 
-1. **`name` 字段**: 必须是字符串或 `{ en: string, "zh-CN"?: string }` 格式
-2. **`description` 字段**: 必须是字符串或 `{ en: string, "zh-CN"?: string }` 格式
-3. **多语言对象的值**: 必须是字符串，不能是嵌套对象
-4. **`en` 字段**: 必须存在，作为 fallback
-
----
-
-## 6. 测试用例
-
-### 6.1 推荐 API 测试
-
-```bash
-# 测试项目分析
-curl -X POST https://api.claudehome.cn/api/v8/analysis/projects \
-  -H "Content-Type: application/json" \
-  -d '{
-    "projectRoot": "/test/project",
-    "dependencies": { "react": "^18.0.0" },
-    "language": "zh-CN",
-    "ccjkVersion": "8.2.0"
-  }'
-
-# 预期响应：recommendations 数组中每个对象的 name/description 必须是字符串或多语言对象
-```
-
-### 6.2 模板批量获取测试
-
-```bash
-# 测试批量模板获取
-curl -X POST https://api.claudehome.cn/api/v8/templates/batch \
-  -H "Content-Type: application/json" \
-  -d '{
-    "ids": ["ts-best-practices", "react-patterns"],
-    "language": "zh-CN"
-  }'
-
-# 预期响应：templates 对象中每个模板的 name/description 必须是字符串或多语言对象
-```
+| Code | Meaning | Client behavior |
+|------|---------|-----------------|
+| 400 | Bad request / validation error | No retry |
+| 401 | Unauthorized (expired token) | No retry |
+| 403 | Forbidden | No retry |
+| 404 | Not found | No retry |
+| 429 | Rate limited | Retry with 1s/2s/4s backoff |
+| 500/502/503/504 | Server error | Retry 3x with 100ms/200ms/400ms backoff |
 
 ---
 
-## 7. 版本兼容性
+## 18. Client Retry & Caching Summary
 
-| CCJK 版本 | API 版本 | 兼容性 |
-|-----------|----------|--------|
-| 8.0.0 - 8.1.x | v8 | 需要云端修复数据格式 |
-| 8.2.0+ | v8 | 客户端已增强兼容性处理 |
+### Retry Policy
 
----
+| Condition | Max Retries | Backoff |
+|-----------|-------------|---------|
+| Network error | 3 | 100ms → 200ms → 400ms |
+| 5xx server error | 3 | 100ms → 200ms → 400ms |
+| 429 rate limit | 3 | 1000ms → 2000ms → 4000ms |
+| 4xx client error | 0 | No retry |
+| Timeout (10s default) | 3 | 100ms → 200ms → 400ms |
 
-## 8. 实施建议
+### Cache TTLs
 
-### 8.1 云端修复优先级
-
-1. **P0 - 立即修复**: `/api/v8/analysis/projects` 返回的 `recommendations` 数据格式
-2. **P1 - 高优先级**: `/api/v8/templates/batch` 请求参数验证和响应格式
-3. **P2 - 中优先级**: `/api/v8/telemetry/installation` 请求参数验证
-
-### 8.2 数据验证建议
-
-云端在返回数据前应进行格式验证：
-
-```typescript
-function validateMultilingualField(field: any): boolean {
-  if (typeof field === 'string') return true
-  if (typeof field === 'object' && field !== null) {
-    // 确保至少有 en 字段
-    if (!field.en || typeof field.en !== 'string') return false
-    // 确保所有值都是字符串
-    for (const value of Object.values(field)) {
-      if (typeof value !== 'string') return false
-    }
-    return true
-  }
-  return false
-}
-```
+| Resource | TTL |
+|----------|-----|
+| Project analysis | 7 days |
+| Templates | 30 days |
+| Health check | 5 minutes |
+| Marketplace listing | 5 minutes |
+| Search suggestions | 1 minute |
+| Trending keywords | 10 minutes |
+| Plugin catalog | 1 hour |
 
 ---
 
-## 9. 联系方式
+## 19. Known Issues & Backend Action Items
 
-如有问题，请联系：
-- **CCJK 客户端团队**: [GitHub Issues](https://github.com/anthropics/claude-code/issues)
-- **云服务团队**: 内部沟通渠道
+### MUST FIX
+
+1. **`/health` root returns 502** — client fixed to use `/api/v1/health`, but add a redirect or handler at `/health` for legacy clients.
+
+2. **All endpoints MUST return JSON** — never return nginx HTML error pages. Client JSON-parses all responses.
+
+3. **Rate limiting should use `X-Device-ID`** — not IP-based. Many users share corporate proxy IPs.
+
+### SHOULD IMPLEMENT
+
+4. **Version negotiation** — respond with `X-Min-Version` header when a forced client update is needed.
+
+5. **Feature flags in handshake** — the `featureFlags` in handshake response should control:
+   - `silentUpgrade: boolean`
+   - `telemetryEnabled: boolean`
+   - `syncInterval: number` (milliseconds)
+   - `minClientVersion: string`
+
+6. **Graceful degradation** — all endpoints should return valid JSON even on internal errors.
+
+### NICE TO HAVE
+
+7. **ETag / If-None-Match** for template caching — reduce bandwidth.
+
+8. **Plugin download checksums** — SHA256 hash in plugin metadata for integrity verification.
+
+9. **WebSocket** for real-time notifications instead of long-polling.
 
 ---
 
-**文档结束**
+## 20. Endpoint Verification Checklist
+
+Please verify each endpoint and fill Status column:
+
+| # | Endpoint | Method | Status |
+|---|----------|--------|--------|
+| 1 | `/api/v1/health` | GET | |
+| 2 | `/api/v1/specs` | POST | |
+| 3 | `/api/v1/templates/{id}` | GET | |
+| 4 | `/api/v1/templates/batch` | POST | |
+| 5 | `/api/v1/usage/current` | POST | |
+| 6 | `/api/v1/devices/register` | POST | |
+| 7 | `/api/v1/handshake` | POST | |
+| 8 | `/api/v1/sync` | POST | |
+| 9 | `/api/v1/skills/marketplace` | GET | |
+| 10 | `/api/v1/skills/search` | GET | |
+| 11 | `/api/v1/skills/search/suggestions` | GET | |
+| 12 | `/api/v1/skills/search/trending` | GET | |
+| 13 | `/api/v1/skills/{id}/ratings` | GET | |
+| 14 | `/api/v1/skills/{id}/ratings` | POST | |
+| 15 | `/api/v1/skills/user` | GET | |
+| 16 | `/api/v1/skills/user/install` | POST | |
+| 17 | `/api/v1/skills/user/uninstall` | POST | |
+| 18 | `/api/v1/skills/user/quota` | GET | |
+| 19 | `/api/v1/skills/user/recommendations` | GET | |
+| 20 | `/api/v1/skills/recommendations` | POST | |
+| 21 | `/api/v1/skills` | GET | |
+| 22 | `/api/v1/skills/{id}` | GET | |
+| 23 | `/api/v1/skills/popular` | GET | |
+| 24 | `/api/v1/skills/categories` | GET | |
+| 25 | `/api/v1/skills/{id}/download` | GET | |
+| 26 | `/api/v1/skills/upload` | POST | |
+| 27 | `/api/v1/hooks` | GET | |
+| 28 | `/api/v1/hooks/sync` | POST | |
+| 29 | `/api/v1/hooks/{id}` | GET | |
+| 30 | `/api/v1/agents` | GET | |
+| 31 | `/api/v1/agents/sync` | POST | |
+| 32 | `/api/v1/claude-md/templates` | GET | |
+| 33 | `/api/v1/claude-md/sync` | POST | |
+| 34 | `/api/v1/sessions/upload` | POST | |
+| 35 | `/api/v1/sessions/{id}` | GET | |
+| 36 | `/api/v1/sessions/{id}/status` | GET | |
+| 37 | `/api/v1/sessions/{id}` | DELETE | |
+| 38 | `/api/v1/sessions` | GET | |
+| 39 | `/api/v1/attributions` | POST | |
+| 40 | `/api/v1/attributions/{id}` | GET | |
+| 41 | `/api/v1/providers` | GET | |
+| 42 | `/api/v1/providers` | POST | |
+| 43 | `/api/v1/providers/{id}` | GET | |
+| 44 | `remote: /api/v1/bind/use` | POST | |
+| 45 | `remote: /api/v1/notify` | POST | |
+| 46 | `remote: /api/v1/reply/poll` | GET | |
+| 47 | `/api/v8/templates` | GET | |
+| 48 | `/api/v8/templates/{id}` | GET | |
+| 49 | `/api/v8/templates/search` | GET | |
+
+**Total: 49 endpoints** — Status: OK / 404 / 500 / Not Implemented

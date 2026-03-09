@@ -35,7 +35,7 @@ import { createGateway } from '../../cloud-client/gateway.js'
 // ============================================================================
 
 import { createSkillsClient } from '../../cloud-client/skills/index.js'
-import { CCJK_CONFIG_DIR, CCJK_SKILLS_DIR } from '../../constants.js'
+import { CCJK_CONFIG_DIR, CCJK_SKILLS_DIR, CLOUD_ENDPOINTS } from '../../constants.js'
 import { writeFileAtomic } from '../../utils/fs-operations'
 
 // ============================================================================
@@ -48,7 +48,7 @@ import { parseSkillMdFile } from '../../utils/skill-md/parser.js'
 // Constants
 // ============================================================================
 
-const _CLOUD_API_BASE_URL = process.env.CCJK_CLOUD_API_URL || 'https://api.claudehome.cn/api/v1'
+const _CLOUD_API_BASE_URL = process.env.CCJK_CLOUD_API_URL || `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
 const SYNC_STATE_FILE = join(CCJK_CONFIG_DIR, 'skills-sync-state.json')
 const DEFAULT_TIMEOUT = 30000 // 30 seconds
 

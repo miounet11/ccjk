@@ -9,6 +9,7 @@
  */
 
 import type { SupportedLang } from '../../constants'
+import { CLOUD_ENDPOINTS } from '../../constants'
 import type { PackageCategory } from '../../types/marketplace'
 import type { CloudApiResponse } from './api-client'
 import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs'
@@ -21,7 +22,7 @@ import { CloudApiClient } from './api-client'
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = 'https://api.claudehome.cn'
+const CLOUD_API_BASE_URL = CLOUD_ENDPOINTS.MAIN.BASE_URL
 const CACHE_DIR = join(homedir(), '.ccjk', 'cache')
 const CACHE_FILE = join(CACHE_DIR, 'plugin-recommendations.json')
 const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours in milliseconds

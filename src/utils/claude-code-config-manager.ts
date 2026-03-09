@@ -224,6 +224,18 @@ export class ClaudeCodeConfigManager {
         && env.ANTHROPIC_DEFAULT_OPUS_MODEL === undefined
     }
 
+    // When family-specific models are configured, settings.model must NOT be set
+    // to preserve adaptive routing (Haiku/Sonnet/Opus per task complexity)
+    const hasAdaptiveRouting = Boolean(expectedHaiku || expectedSonnet || expectedOpus)
+    if (hasAdaptiveRouting) {
+      return !settings?.model
+        && env.ANTHROPIC_MODEL === undefined
+        && env.ANTHROPIC_DEFAULT_HAIKU_MODEL === expectedHaiku
+        && env.ANTHROPIC_SMALL_FAST_MODEL === expectedHaiku
+        && env.ANTHROPIC_DEFAULT_SONNET_MODEL === expectedSonnet
+        && env.ANTHROPIC_DEFAULT_OPUS_MODEL === expectedOpus
+    }
+
     return settings?.model === expectedPrimary
       && env.ANTHROPIC_MODEL === undefined
       && env.ANTHROPIC_DEFAULT_HAIKU_MODEL === expectedHaiku

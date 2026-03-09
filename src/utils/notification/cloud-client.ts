@@ -17,12 +17,13 @@ import type {
 } from './types'
 import { loadNotificationConfig, updateNotificationConfig } from './config'
 import { getDeviceInfo } from './token'
+import { CLOUD_ENDPOINTS } from '../../constants'
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const DEFAULT_CLOUD_ENDPOINT = 'https://api.claudehome.cn'
+const DEFAULT_CLOUD_ENDPOINT = `${CLOUD_ENDPOINTS.REMOTE.BASE_URL}/api/v1`
 const REQUEST_TIMEOUT = 30000 // 30 seconds
 const POLL_TIMEOUT = 60000 // 60 seconds for long-polling
 
