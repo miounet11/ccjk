@@ -108,7 +108,7 @@ const COMPLETION_COMMANDS: CommandInfo[] = [
     subcommands: [
       { name: 'status', description: 'Quick MCP status overview' },
       { name: 'doctor', description: 'Health check and diagnostics' },
-      { name: 'profile', description: 'Switch profile (minimal/dev/full)' },
+      { name: 'profile', description: 'Switch profile (minimal/development/full)' },
       { name: 'release', description: 'Release idle services' },
       { name: 'market', description: 'MCP service marketplace' },
       { name: 'list', description: 'List installed services' },

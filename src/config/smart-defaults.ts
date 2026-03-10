@@ -320,39 +320,9 @@ export class SmartDefaultsDetector {
    * Get recommended MCP services based on environment + project context
    */
   getRecommendedMcpServices(platform: string, project?: ProjectContext): string[] {
-    const runtime = project?.runtime
-
-    // CI: only core documentation MCPs — no browser, no DB, no heavy services
-    if (runtime?.isCI) {
-      return ['context7', 'mcp-deepwiki']
-    }
-
-    // Container: core only — ephemeral environments, skip heavy MCPs
-    if (runtime?.isContainer) {
-      return ['context7', 'mcp-deepwiki']
-    }
-
-    const core = ['context7', 'mcp-deepwiki', 'open-websearch']
-    const extras: string[] = []
-
-    // Browser-based MCP: only if runtime has a browser
-    const hasBrowser = runtime?.hasBrowser ?? (platform === 'darwin' || platform === 'win32')
-    if (hasBrowser) {
-      extras.push('Playwright')
-    }
-
-    // SQLite: useful for most projects
-    extras.push('sqlite')
-
-    // Serena: useful for large codebases with LSP needs (TypeScript, Java, C#)
-    // Skip on headless servers (needs interactive git workflows)
-    if (project && ['typescript', 'java', 'csharp'].includes(project.language)) {
-      if (!(runtime?.isHeadless)) {
-        extras.push('serena')
-      }
-    }
-
-    return [...core, ...extras]
+    void platform
+    void project
+    return ['context7']
   }
 
   /**

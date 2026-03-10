@@ -1,9 +1,6 @@
 import type { McpAutoThreshold, McpServerConfig, McpService } from '../types'
 import { execSync } from 'node:child_process'
-import { homedir } from 'node:os'
 import process from 'node:process'
-
-import { join } from 'pathe'
 
 import { ensureI18nInitialized, i18n } from '../i18n'
 
@@ -43,7 +40,7 @@ export interface McpToolSearchConfig {
   /**
    * Services excluded from auto-mode (always loaded immediately)
    * Core services like 'mcp-search', 'context7' are always excluded
-   * @default ['mcp-search', 'context7', 'sqlite']
+   * @default ['mcp-search', 'context7']
    */
   excludedServices?: string[]
 }
@@ -88,199 +85,18 @@ export interface McpServiceConfig {
   platformRequirements?: McpPlatformRequirements
 }
 
-/**
- * Playwright MCP configuration options
- */
-export interface PlaywrightMcpOptions {
-  /** Profile name for user data directory (default: 'default') */
-  profile?: string
-  /** Run browser in headless mode (default: false) */
-  headless?: boolean
-  /** Browser type: chromium, firefox, webkit (default: 'chromium') */
-  browser?: 'chromium' | 'firefox' | 'webkit'
-  /** Custom user data directory path (overrides profile) */
-  userDataDir?: string
-}
-
-/**
- * Default Playwright profiles directory
- */
-export const PLAYWRIGHT_PROFILES_DIR = join(homedir(), '.ccjk', 'playwright')
-
-/**
- * Generate Playwright MCP configuration with custom options
- * Useful for multi-agent concurrent tasks with separate browser profiles
- *
- * @param options - Playwright MCP configuration options
- * @returns McpServerConfig for Playwright MCP
- *
- * @example
- * // Create config for agent 1
- * const agent1Config = createPlaywrightMcpConfig({ profile: 'agent-1' })
- *
- * // Create config for agent 2 with headless mode
- * const agent2Config = createPlaywrightMcpConfig({ profile: 'agent-2', headless: true })
- *
- * // Create config with custom user data directory
- * const customConfig = createPlaywrightMcpConfig({ userDataDir: '/custom/path' })
- */
-export function createPlaywrightMcpConfig(options: PlaywrightMcpOptions = {}): McpServerConfig {
-  const {
-    profile = 'default',
-    headless = false,
-    browser = 'chromium',
-    userDataDir,
-  } = options
-
-  const resolvedUserDataDir = userDataDir || join(PLAYWRIGHT_PROFILES_DIR, profile)
-
-  const args: string[] = ['-y', '@playwright/mcp@latest']
-
-  // Add browser option
-  args.push('--browser', browser)
-
-  // Add user data directory for profile isolation
-  args.push('--user-data-dir', resolvedUserDataDir)
-
-  // Add headless option if enabled
-  if (headless) {
-    args.push('--headless')
-  }
-
-  return {
-    type: 'stdio',
-    command: 'npx',
-    args,
-    env: {},
-  }
-}
-
-/**
- * Generate multiple Playwright MCP configurations for concurrent agents
- *
- * @param count - Number of agent profiles to generate
- * @param baseOptions - Base options applied to all profiles
- * @returns Array of McpServerConfig with unique profiles
- *
- * @example
- * // Generate 3 agent profiles
- * const configs = createPlaywrightMcpConfigs(3)
- * // Results in profiles: agent-1, agent-2, agent-3
- *
- * // Generate 2 headless agent profiles
- * const headlessConfigs = createPlaywrightMcpConfigs(2, { headless: true })
- */
-export function createPlaywrightMcpConfigs(
-  count: number,
-  baseOptions: Omit<PlaywrightMcpOptions, 'profile'> = {},
-): McpServerConfig[] {
-  return Array.from({ length: count }, (_, i) =>
-    createPlaywrightMcpConfig({
-      ...baseOptions,
-      profile: `agent-${i + 1}`,
-    }))
-}
-
 export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
-  // Documentation and Search Services - Universal (no GUI required)
+  // Documentation service - the only MCP we currently keep enabled in-product
   {
     id: 'context7',
     requiresApiKey: false,
+    defaultSelected: true,
     config: {
       type: 'stdio',
       command: 'npx',
       args: ['-y', '@upstash/context7-mcp@latest'],
       env: {},
     },
-    // Works on all platforms - no special requirements
-  },
-  {
-    id: 'open-websearch',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', 'open-websearch@latest'],
-      env: {
-        MODE: 'stdio',
-        DEFAULT_SEARCH_ENGINE: 'duckduckgo',
-        ALLOWED_SEARCH_ENGINES: 'duckduckgo,bing,brave',
-      },
-    },
-    // Works on all platforms - no special requirements
-  },
-  {
-    id: 'mcp-deepwiki',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', 'mcp-deepwiki@latest'],
-      env: {},
-    },
-    // Works on all platforms - no special requirements
-  },
-  // Development Workflow Services
-  {
-    id: 'spec-workflow',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', '@pimzino/spec-workflow-mcp@latest'],
-      env: {},
-    },
-    // Works on all platforms - no special requirements
-  },
-  {
-    id: 'serena',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'uvx',
-      args: ['--from', 'git+https://github.com/oraios/serena', 'serena', 'start-mcp-server', '--context', 'ide-assistant', '--enable-web-dashboard', 'false'],
-      env: {},
-    },
-    platformRequirements: {
-      requiredCommands: ['uvx'], // Requires uv/uvx to be installed
-    },
-  },
-  // Browser and Automation Services - Require GUI environment
-  {
-    id: 'Playwright',
-    requiresApiKey: false,
-    config: createPlaywrightMcpConfig(), // Uses default profile with chromium browser
-    platformRequirements: {
-      platforms: ['macos', 'windows'], // GUI required - exclude headless Linux/WSL/Termux
-      requiresGui: true,
-    },
-  },
-  // Cross-session Memory Services
-  {
-    id: 'intent-engine',
-    requiresApiKey: false,
-    defaultSelected: true,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', '@origintask/intent-engine@latest', 'mcp'],
-      env: {},
-    },
-    // Works on all platforms - no special requirements
-  },
-  // Anthropic Official MCP Services - Universal
-  // Note: Removed low-value services: filesystem (buggy), puppeteer (duplicate of Playwright),
-  //       memory (Claude has built-in memory), fetch (Claude has WebFetch), sequential-thinking (limited value)
-  {
-    id: 'sqlite',
-    requiresApiKey: false,
-    config: {
-      type: 'stdio',
-      command: 'npx',
-      args: ['-y', '@anthropic-ai/mcp-server-sqlite@latest'],
-      env: {},
-    },
-    // Works on all platforms - no special requirements
   },
 ]
 
@@ -290,54 +106,11 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
 export async function getMcpServices(): Promise<McpService[]> {
   ensureI18nInitialized()
 
-  // Create static MCP service list for i18n-ally compatibility
   const mcpServiceList = [
-    // Documentation and Search Services
     {
       id: 'context7',
       name: i18n.t('mcp:services.context7.name'),
       description: i18n.t('mcp:services.context7.description'),
-    },
-    {
-      id: 'open-websearch',
-      name: i18n.t('mcp:services.open-websearch.name'),
-      description: i18n.t('mcp:services.open-websearch.description'),
-    },
-    {
-      id: 'mcp-deepwiki',
-      name: i18n.t('mcp:services.mcp-deepwiki.name'),
-      description: i18n.t('mcp:services.mcp-deepwiki.description'),
-    },
-    // Development Workflow Services
-    {
-      id: 'spec-workflow',
-      name: i18n.t('mcp:services.spec-workflow.name'),
-      description: i18n.t('mcp:services.spec-workflow.description'),
-    },
-    {
-      id: 'serena',
-      name: i18n.t('mcp:services.serena.name'),
-      description: i18n.t('mcp:services.serena.description'),
-    },
-    // Browser and Automation Services
-    {
-      id: 'Playwright',
-      name: i18n.t('mcp:services.playwright.name'),
-      description: i18n.t('mcp:services.playwright.description'),
-    },
-    // Cross-session Memory Services
-    {
-      id: 'intent-engine',
-      name: i18n.t('mcp:services.intent-engine.name'),
-      description: i18n.t('mcp:services.intent-engine.description'),
-    },
-    // Anthropic Official MCP Services
-    // Note: Removed low-value services: filesystem (buggy), puppeteer (duplicate),
-    //       memory (Claude built-in), fetch (Claude WebFetch), sequential-thinking (limited value)
-    {
-      id: 'sqlite',
-      name: i18n.t('mcp:services.sqlite.name'),
-      description: i18n.t('mcp:services.sqlite.description'),
     },
   ]
 
@@ -535,7 +308,7 @@ export const DEFAULT_MCP_TOOL_SEARCH_CONFIG: Required<McpToolSearchConfig> = {
   mcpAutoEnableThreshold: 10, // 10% per Claude Code 2.1.7 spec
   dynamicServiceDiscovery: true,
   listChangedNotifications: true,
-  excludedServices: ['mcp-search', 'context7', 'sqlite'],
+  excludedServices: ['mcp-search', 'context7'],
 }
 
 /**

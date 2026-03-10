@@ -1050,8 +1050,8 @@ export async function mcpManagerFeature(): Promise<void> {
       },
       {
         name: isZh
-          ? `🔄 切换配置预设  ${ansis.gray('- minimal（轻量）/ dev（开发）/ full（完整）')}`
-          : `🔄 Switch profile  ${ansis.gray('- minimal / dev / full preset')}`,
+          ? `🔄 切换配置预设  ${ansis.gray('- minimal（轻量）/ development（开发）/ full（完整）')}`
+          : `🔄 Switch profile  ${ansis.gray('- minimal / development / full preset')}`,
         value: 'profile',
       },
       {
@@ -1093,18 +1093,19 @@ export async function mcpManagerFeature(): Promise<void> {
       }
       case 'profile': {
         const { listProfiles, useProfile } = await import('../commands/mcp')
-        await listProfiles()
+        const targetTool = readZcfConfig()?.codeToolType === 'codex' ? 'codex' : 'claude-code'
+        await listProfiles({ tool: targetTool })
         const { profileId } = await inquirer.prompt<{ profileId: string }>({
           type: 'list',
           name: 'profileId',
           message: isZh ? '选择要切换的预设:' : 'Select profile to switch:',
           choices: [
             { name: isZh ? 'minimal — 仅核心服务（最低资源占用）' : 'minimal — Core services only (least resources)', value: 'minimal' },
-            { name: isZh ? 'dev — 开发常用服务套装' : 'dev — Dev-oriented service bundle', value: 'dev' },
+            { name: isZh ? 'development — 开发常用服务套装' : 'development — Dev-oriented service bundle', value: 'development' },
             { name: isZh ? 'full — 完整服务（高性能机器推荐）' : 'full — Full services (high-end machines)', value: 'full' },
           ],
         })
-        await useProfile(profileId)
+        await useProfile(profileId, { tool: targetTool })
         break
       }
       case 'release': {

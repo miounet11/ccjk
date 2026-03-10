@@ -207,6 +207,7 @@ const COMMANDS: CommandDefinition[] = [
     description: 'MCP Server management',
     tier: 'extended',
     options: [
+      { flags: '--tool, -T <type>', description: 'Target tool (claude-code, codex)' },
       { flags: '--verbose, -v', description: 'Verbose output' },
       { flags: '--dry-run, -d', description: 'Preview changes' },
       { flags: '--yes, -y', description: 'Skip confirmation prompts' },
@@ -228,9 +229,15 @@ const COMMANDS: CommandDefinition[] = [
           await mcpDoctor(options)
         }
         else if (actionStr === 'profile') {
-          const { listProfiles, useProfile } = await import('./commands/mcp')
-          if (!argsArr[0] || argsArr[0] === 'list') {
+          const { listProfiles, showCurrentProfile, useProfile } = await import('./commands/mcp')
+          if (!argsArr[0] || argsArr[0] === 'list' || argsArr[0] === 'ls') {
             await listProfiles(options)
+          }
+          else if (argsArr[0] === 'current' || argsArr[0] === 'status') {
+            await showCurrentProfile(options)
+          }
+          else if (argsArr[0] === 'use' || argsArr[0] === 'switch') {
+            await useProfile(argsArr[1] || '', options)
           }
           else {
             await useProfile(argsArr[0], options)
