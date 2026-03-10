@@ -10,9 +10,15 @@ import type { CloudClient } from './client'
 import type {
   BatchTemplateRequest,
   BatchTemplateResponse,
+  DeviceRegistrationRequest,
+  DeviceRegistrationResponse,
   HealthCheckResponse,
+  HandshakeRequest,
+  HandshakeResponse,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
+  SyncRequest,
+  SyncResponse,
   TemplateResponse,
   UsageReport,
   UsageReportResponse,
@@ -214,6 +220,18 @@ export class FallbackCloudClient {
    */
   async reportUsage(report: UsageReport): Promise<UsageReportResponse> {
     return this.client.reportUsage(report)
+  }
+
+  async registerDevice(payload?: Partial<DeviceRegistrationRequest>): Promise<DeviceRegistrationResponse> {
+    return this.client.registerDevice(payload)
+  }
+
+  async handshake(payload?: Partial<HandshakeRequest>): Promise<HandshakeResponse> {
+    return this.client.handshake(payload)
+  }
+
+  async syncClientUsage(payload?: Partial<SyncRequest>): Promise<SyncResponse> {
+    return this.client.syncClientUsage(payload)
   }
 
   /**

@@ -40,7 +40,7 @@ export class TelemetryReporter {
   constructor(client: CloudClient, config: Partial<TelemetryConfig> = {}) {
     this.client = client
     this.config = { ...DEFAULT_TELEMETRY_CONFIG, ...config }
-    this.userId = this.config.userId || this.generateUserId()
+    this.userId = this.config.userId || this.client.getIdentity().anonymousUserId || this.generateUserId()
 
     // Start flush timer if enabled
     if (this.config.enabled) {
@@ -354,6 +354,13 @@ export function initializeTelemetry(
   }
 
   globalTelemetry = new TelemetryReporter(client, config)
+
+  if (client.getConfig().autoHandshake !== false && client.getConfig().enableUsageAnalytics !== false) {
+    client.handshake().catch((error) => {
+      consola.debug('Failed to send startup handshake (non-blocking):', error)
+    })
+  }
+
   return globalTelemetry
 }
 

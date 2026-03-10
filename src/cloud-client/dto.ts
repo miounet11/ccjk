@@ -550,15 +550,8 @@ export function validateUsageReport(
   if (!report.reportId || typeof report.reportId !== 'string')
     errors.push('reportId is required and must be a string')
 
-  const validMetricTypes: MetricType[] = [
-    'template_download',
-    'recommendation_shown',
-    'recommendation_accepted',
-    'analysis_completed',
-    'error_occurred',
-  ]
-  if (!validMetricTypes.includes(report.metricType))
-    errors.push(`metricType must be one of: ${validMetricTypes.join(', ')}`)
+  if (!report.metricType || typeof report.metricType !== 'string')
+    errors.push('metricType is required and must be a string')
 
   if (!report.timestamp || typeof report.timestamp !== 'string')
     errors.push('timestamp is required and must be a string')
@@ -571,6 +564,12 @@ export function validateUsageReport(
 
   if (!report.platform || typeof report.platform !== 'string')
     errors.push('platform is required and must be a string')
+
+  if (report.deviceId !== undefined && typeof report.deviceId !== 'string')
+    errors.push('deviceId must be a string when provided')
+
+  if (report.clientVersion !== undefined && typeof report.clientVersion !== 'string')
+    errors.push('clientVersion must be a string when provided')
 
   return {
     valid: errors.length === 0,

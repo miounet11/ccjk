@@ -141,6 +141,8 @@ export type MetricType
     | 'recommendation_accepted'
     | 'analysis_completed'
     | 'error_occurred'
+    | 'command_run'
+    | (string & {})
 
 /**
  * Usage report payload
@@ -158,6 +160,10 @@ export interface UsageReport {
   nodeVersion: string
   /** Operating system */
   platform: string
+  /** Stable device identifier */
+  deviceId?: string
+  /** Client version reported to analytics endpoints */
+  clientVersion?: string
   /** Project language if applicable */
   language?: string
   /** Additional context data - use TelemetryEventData from dto.ts for strict typing */
@@ -298,10 +304,22 @@ export interface CloudClientConfig {
   maxRetries?: number
   /** Enable telemetry reporting */
   enableTelemetry?: boolean
+  /** Enable client usage analytics endpoints */
+  enableUsageAnalytics?: boolean
   /** API key if required */
   apiKey?: string
   /** Language for API responses */
   language?: string
+  /** Stable device token for analytics/auth headers */
+  deviceToken?: string
+  /** Stable device ID for usage analytics dedupe */
+  deviceId?: string
+  /** Stable anonymous installation/user ID */
+  anonymousUserId?: string
+  /** Override analytics platform label */
+  platform?: string
+  /** Automatically send startup handshake on initialization */
+  autoHandshake?: boolean
 }
 
 /**
@@ -356,4 +374,48 @@ export interface TelemetryConfig {
   flushInterval: number
   /** Anonymous user ID */
   userId?: string
+}
+
+export interface ClientIdentity {
+  deviceId: string
+  anonymousUserId: string
+  clientVersion: string
+  platform: string
+  deviceToken?: string
+}
+
+export interface DeviceRegistrationRequest {
+  deviceId: string
+  platform: string
+  clientVersion: string
+}
+
+export interface DeviceRegistrationResponse {
+  success: boolean
+  requestId?: string
+  message?: string
+}
+
+export interface HandshakeRequest {
+  deviceId: string
+  platform: string
+  clientVersion: string
+}
+
+export interface HandshakeResponse {
+  success: boolean
+  requestId?: string
+  message?: string
+}
+
+export interface SyncRequest {
+  deviceId: string
+  platform: string
+  clientVersion: string
+}
+
+export interface SyncResponse {
+  success: boolean
+  requestId?: string
+  message?: string
 }

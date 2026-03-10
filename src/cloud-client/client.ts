@@ -9,17 +9,26 @@ import type { $Fetch } from 'ofetch'
 import type {
   BatchTemplateRequest,
   BatchTemplateResponse,
+  ClientIdentity,
   CloudClientConfig,
+  DeviceRegistrationRequest,
+  DeviceRegistrationResponse,
   HealthCheckResponse,
+  HandshakeRequest,
+  HandshakeResponse,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
+  SyncRequest,
+  SyncResponse,
   TemplateResponse,
   UsageReport,
   UsageReportResponse,
 } from './types'
-import { readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { randomUUID } from 'node:crypto'
 import consola from 'consola'
 import { ofetch } from 'ofetch'
 import { CloudClientError } from './types'
@@ -42,6 +51,13 @@ catch {
  */
 const API_PREFIX = '/api/v1'
 const HEALTH_PATH = `${API_PREFIX}/health`
+const CLIENT_USAGE_STATE_DIR = join(homedir(), '.ccjk')
+const CLIENT_USAGE_STATE_FILE = join(CLIENT_USAGE_STATE_DIR, 'cloud-client-identity.json')
+
+interface StoredClientIdentity {
+  anonymousUserId: string
+  deviceId: string
+}
 
 /**
  * Cloud Client Class
@@ -51,6 +67,7 @@ const HEALTH_PATH = `${API_PREFIX}/health`
 export class CloudClient {
   private fetch: $Fetch
   private config: CloudClientConfig
+  private identity: ClientIdentity
 
   constructor(config: CloudClientConfig) {
     this.config = {
@@ -58,19 +75,101 @@ export class CloudClient {
       enableRetry: true,
       maxRetries: 3,
       enableTelemetry: true,
+      enableUsageAnalytics: true,
+      autoHandshake: true,
       ...config,
     }
+    this.identity = this.resolveIdentity()
 
     this.fetch = ofetch.create({
       baseURL: this.config.baseURL,
       timeout: this.config.timeout,
-      headers: {
-        'User-Agent': `CCJK/${this.config.version || CCJK_VERSION}`,
-        ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
-      },
+      headers: this.getDefaultHeaders(),
       retry: this.config.enableRetry ? this.config.maxRetries : 0,
       retryDelay: context => this.calculateRetryDelay(context.options.retry || 0),
     })
+  }
+
+  private getDefaultHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'User-Agent': `CCJK/${this.identity.clientVersion}`,
+      'X-CCJK-Version': this.identity.clientVersion,
+      'X-Anonymous-User-Id': this.identity.anonymousUserId,
+    }
+
+    if (this.config.apiKey) {
+      headers.Authorization = `Bearer ${this.config.apiKey}`
+    }
+
+    if (this.identity.deviceToken) {
+      headers['X-Device-Token'] = this.identity.deviceToken
+    }
+
+    return headers
+  }
+
+  private resolveIdentity(): ClientIdentity {
+    const storedIdentity = this.loadOrCreateStoredIdentity()
+    const clientVersion = this.config.version || CCJK_VERSION
+
+    return {
+      anonymousUserId: this.config.anonymousUserId || storedIdentity.anonymousUserId,
+      deviceId: this.config.deviceId || storedIdentity.deviceId,
+      clientVersion,
+      platform: this.config.platform || process.platform,
+      deviceToken: this.config.deviceToken,
+    }
+  }
+
+  private loadOrCreateStoredIdentity(): StoredClientIdentity {
+    try {
+      if (existsSync(CLIENT_USAGE_STATE_FILE)) {
+        const stored = JSON.parse(readFileSync(CLIENT_USAGE_STATE_FILE, 'utf-8')) as Partial<StoredClientIdentity>
+        if (stored.anonymousUserId && stored.deviceId) {
+          return {
+            anonymousUserId: stored.anonymousUserId,
+            deviceId: stored.deviceId,
+          }
+        }
+      }
+    }
+    catch (error) {
+      consola.debug('Failed to read stored cloud client identity:', error)
+    }
+
+    const generated: StoredClientIdentity = {
+      anonymousUserId: process.env.CCJK_ANONYMOUS_USER_ID || randomUUID(),
+      deviceId: process.env.CCJK_DEVICE_ID || randomUUID(),
+    }
+
+    try {
+      mkdirSync(CLIENT_USAGE_STATE_DIR, { recursive: true })
+      writeFileSync(CLIENT_USAGE_STATE_FILE, JSON.stringify(generated, null, 2))
+    }
+    catch (error) {
+      consola.debug('Failed to persist cloud client identity:', error)
+    }
+
+    return generated
+  }
+
+  private buildAnalyticsPayload<
+    T extends { deviceId?: string, platform?: string, clientVersion?: string },
+  >(payload?: T): DeviceRegistrationRequest & T {
+    return {
+      deviceId: payload?.deviceId || this.identity.deviceId,
+      platform: payload?.platform || this.identity.platform,
+      clientVersion: payload?.clientVersion || this.identity.clientVersion,
+      ...payload,
+    } as DeviceRegistrationRequest & T
+  }
+
+  private canSendUsageAnalytics(): boolean {
+    return this.config.enableUsageAnalytics !== false
+  }
+
+  getIdentity(): ClientIdentity {
+    return { ...this.identity }
   }
 
   /**
@@ -265,14 +364,28 @@ export class CloudClient {
    * @returns Usage report response
    */
   async reportUsage(report: UsageReport): Promise<UsageReportResponse> {
+    if (!this.canSendUsageAnalytics()) {
+      return {
+        success: false,
+        requestId: '',
+        message: 'Usage analytics disabled',
+      }
+    }
+
     try {
       consola.debug('Reporting usage:', report.metricType)
 
+      const payload = {
+        ...report,
+        deviceId: report.deviceId || this.identity.deviceId,
+        platform: report.platform || this.identity.platform,
+        clientVersion: report.clientVersion || report.ccjkVersion || this.identity.clientVersion,
+      }
+
       // Use short timeout for telemetry (5s)
-      // Server endpoint: GET /usage/current (no /api/v1 prefix for usage module)
       const response = await this.fetch<UsageReportResponse>(`${API_PREFIX}/usage/current`, {
         method: 'POST',
-        body: report,
+        body: payload,
         timeout: 5000, // 5s timeout - telemetry should be fast
       })
 
@@ -322,16 +435,14 @@ export class CloudClient {
    */
   updateConfig(config: Partial<CloudClientConfig>): void {
     this.config = { ...this.config, ...config }
+    this.identity = this.resolveIdentity()
 
     // Update fetch instance with new config
-    if (config.baseURL || config.timeout || config.apiKey) {
+    if (config.baseURL || config.timeout || config.apiKey || config.version || config.deviceToken || config.anonymousUserId || config.deviceId || config.platform) {
       this.fetch = ofetch.create({
         baseURL: this.config.baseURL,
         timeout: this.config.timeout,
-        headers: {
-          'User-Agent': `CCJK/${this.config.version || CCJK_VERSION}`,
-          ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
-        },
+        headers: this.getDefaultHeaders(),
         retry: this.config.enableRetry ? this.config.maxRetries : 0,
         retryDelay: context => this.calculateRetryDelay(context.options.retry || 0),
       })
@@ -343,6 +454,81 @@ export class CloudClient {
    */
   getConfig(): CloudClientConfig {
     return { ...this.config }
+  }
+
+  async registerDevice(payload?: Partial<DeviceRegistrationRequest>): Promise<DeviceRegistrationResponse> {
+    if (!this.canSendUsageAnalytics()) {
+      return {
+        success: false,
+        message: 'Usage analytics disabled',
+      }
+    }
+
+    try {
+      return await this.fetch<DeviceRegistrationResponse>('/device/register', {
+        method: 'POST',
+        body: this.buildAnalyticsPayload(payload),
+        timeout: 5000,
+      })
+    }
+    catch (error) {
+      consola.debug('Failed to register device (non-blocking):', error)
+      return {
+        success: false,
+        requestId: '',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
+  }
+
+  async handshake(payload?: Partial<HandshakeRequest>): Promise<HandshakeResponse> {
+    if (!this.canSendUsageAnalytics()) {
+      return {
+        success: false,
+        message: 'Usage analytics disabled',
+      }
+    }
+
+    try {
+      return await this.fetch<HandshakeResponse>(`${API_PREFIX}/handshake`, {
+        method: 'POST',
+        body: this.buildAnalyticsPayload(payload),
+        timeout: 5000,
+      })
+    }
+    catch (error) {
+      consola.debug('Failed to send handshake (non-blocking):', error)
+      return {
+        success: false,
+        requestId: '',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
+  }
+
+  async syncClientUsage(payload?: Partial<SyncRequest>): Promise<SyncResponse> {
+    if (!this.canSendUsageAnalytics()) {
+      return {
+        success: false,
+        message: 'Usage analytics disabled',
+      }
+    }
+
+    try {
+      return await this.fetch<SyncResponse>(`${API_PREFIX}/sync`, {
+        method: 'POST',
+        body: this.buildAnalyticsPayload(payload),
+        timeout: 5000,
+      })
+    }
+    catch (error) {
+      consola.debug('Failed to sync client usage (non-blocking):', error)
+      return {
+        success: false,
+        requestId: '',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
   }
 }
 
