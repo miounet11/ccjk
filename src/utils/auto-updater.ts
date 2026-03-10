@@ -378,20 +378,8 @@ export async function checkAndUpdateTools(skipPrompt = false): Promise<void> {
   }
 
   const results: Array<{ tool: string, success: boolean, error?: string }> = []
-
-  // Check and update CCJK first
-  console.log(ansis.bold('📦 CCJK'))
-  try {
-    await checkCcjkVersionAndPrompt(skipPrompt)
-    results.push({ tool: 'CCJK', success: true })
-  }
-  catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error(ansis.red(`❌ ${format(i18n.t('updater:updateFailed'), { tool: 'CCJK' })}: ${errorMessage}`))
-    results.push({ tool: 'CCJK', success: false, error: errorMessage })
-  }
-
-  console.log() // Empty line
+  let ccjkUpdated = false
+  let ccjkResult: { tool: string, success: boolean, error?: string } | null = null
 
   // Check and update CCR with error handling
   console.log(ansis.bold('🔀 CCR'))
@@ -431,13 +419,29 @@ export async function checkAndUpdateTools(skipPrompt = false): Promise<void> {
     results.push({ tool: 'CCometixLine', success: false, error: errorMessage })
   }
 
+  console.log() // Empty line
+
+  // Update CCJK last. Self-updating the running package can invalidate lazy-loaded
+  // bundle chunks, so we defer it until the rest of the toolchain work is done.
+  console.log(ansis.bold('📦 CCJK'))
+  try {
+    const result = await checkCcjkVersionAndPrompt(skipPrompt)
+    ccjkUpdated = result.updated
+    ccjkResult = {
+      tool: 'CCJK',
+      success: result.success,
+      error: result.error,
+    }
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`❌ ${format(i18n.t('updater:updateFailed'), { tool: 'CCJK' })}: ${errorMessage}`))
+    ccjkResult = { tool: 'CCJK', success: false, error: errorMessage }
+  }
+
   // Summary report
   console.log(ansis.bold.cyan(`\n📋 ${i18n.t('updater:updateSummary')}`))
-  let ccjkUpdated = false
-  for (const result of results) {
-    if (result.tool === 'CCJK' && result.success) {
-      ccjkUpdated = true
-    }
+  for (const result of ccjkResult ? [ccjkResult, ...results] : results) {
     if (result.success) {
       console.log(ansis.green(`✔ ${result.tool}: ${i18n.t('updater:success')}`))
     }
@@ -457,7 +461,11 @@ export async function checkAndUpdateTools(skipPrompt = false): Promise<void> {
  * Check CCJK version and prompt for update if needed
  * @param skipPrompt - Whether to skip the update prompt
  */
-async function checkCcjkVersionAndPrompt(skipPrompt: boolean): Promise<void> {
+async function checkCcjkVersionAndPrompt(skipPrompt: boolean): Promise<{
+  success: boolean
+  updated: boolean
+  error?: string
+}> {
   try {
     // Get current version from package.json
     const { readFileSync } = await import('node:fs')
@@ -477,7 +485,7 @@ async function checkCcjkVersionAndPrompt(skipPrompt: boolean): Promise<void> {
 
     if (currentVersion === latestVersion) {
       console.log(ansis.green(`✓ ${i18n.t('updater:alreadyLatest')}`))
-      return
+      return { success: true, updated: false }
     }
 
     // Auto-update without prompt
@@ -498,14 +506,19 @@ async function checkCcjkVersionAndPrompt(skipPrompt: boolean): Promise<void> {
     try {
       await execWithSudoIfNeeded('npm', ['install', '-g', 'ccjk@latest', '--force'])
       updateSpinner.succeed(ansis.green(`✓ CCJK updated to v${latestVersion}`))
+      return { success: true, updated: true }
     }
     catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
       updateSpinner.fail(ansis.red('✗ CCJK update failed'))
-      console.error(ansis.red(error instanceof Error ? error.message : String(error)))
+      console.error(ansis.red(errorMessage))
       console.log(ansis.gray('\nTry manually: npm install -g ccjk@latest'))
+      return { success: false, updated: false, error: errorMessage }
     }
   }
   catch (error) {
-    console.error(ansis.red(`${i18n.t('updater:checkFailed')} ${error instanceof Error ? error.message : String(error)}`))
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`${i18n.t('updater:checkFailed')} ${errorMessage}`))
+    return { success: false, updated: false, error: errorMessage }
   }
 }
