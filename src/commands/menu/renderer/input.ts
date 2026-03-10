@@ -52,7 +52,12 @@ const VALID_SHORTCUTS = new Set([
   '7',
   '8',
   '9',
+  '+',
+  '-',
+  '?',
 ])
+
+const DEFAULT_GLOBAL_COMMANDS = ['0', 'q', 'b', 'back', 'm', 'more']
 
 /**
  * Parse and validate menu input
@@ -77,19 +82,24 @@ export function validateMenuInput(
   input: MenuInput,
   itemCount: number,
   items: MenuItem[],
+  allowedCommands: string[] = DEFAULT_GLOBAL_COMMANDS,
 ): string | true {
+  if (allowedCommands.includes(input.normalized)) {
+    return true
+  }
+
   // Check for exit command
-  if (input.normalized === 'q' || input.normalized === 'quit') {
+  if (allowedCommands.includes('q') && (input.normalized === 'q' || input.normalized === 'quit')) {
     return true
   }
 
   // Check for back command
-  if (input.normalized === '0' || input.normalized === 'b' || input.normalized === 'back') {
+  if (allowedCommands.includes('0') && (input.normalized === '0' || input.normalized === 'b' || input.normalized === 'back')) {
     return true
   }
 
   // Check for more command
-  if (input.normalized === 'm' || input.normalized === 'more') {
+  if (allowedCommands.includes('m') && (input.normalized === 'm' || input.normalized === 'more')) {
     return true
   }
 
@@ -120,14 +130,14 @@ export async function promptMenuSelection(
   itemCount: number,
   items: MenuItem[],
   message?: string,
+  allowedCommands: string[] = DEFAULT_GLOBAL_COMMANDS,
 ): Promise<string> {
   const promptMessage = message || i18n.t('common:enterChoice', 'Enter your choice')
 
   // Build validation regex
-  const validShortcuts = items.map(i => i.shortcut).filter(Boolean).join('')
-  const validNumbers = Array.from({ length: itemCount + 1 }, (_, i) => i.toString()).join('')
-  const alwaysValid = ['0', 'q', 'b', 'm']
-  const _validChars = [...new Set([...alwaysValid, ...validShortcuts, ...validNumbers])].join('')
+  const _validShortcuts = items.map(i => i.shortcut).filter(Boolean).join('')
+  const _validNumbers = Array.from({ length: itemCount + 1 }, (_, i) => i.toString()).join('')
+  const _validChars = [...new Set([...allowedCommands, ..._validShortcuts, ..._validNumbers])].join('')
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
@@ -139,7 +149,7 @@ export async function promptMenuSelection(
       }
 
       const input = parseMenuInput(value)
-      const result = validateMenuInput(input, itemCount, items)
+      const result = validateMenuInput(input, itemCount, items, allowedCommands)
       return result
     },
   })

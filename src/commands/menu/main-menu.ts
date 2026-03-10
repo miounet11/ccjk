@@ -10,7 +10,10 @@
  * - expert: All available options including experimental features
  */
 
+import type { CodeToolType } from '../../constants'
 import type { MenuCategory, MenuItem } from './types'
+
+const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'aider', 'continue', 'cline', 'cursor']
 
 /**
  * Quick Actions Category - Always visible first
@@ -38,6 +41,28 @@ export const quickActionsItems: MenuItem[] = [
     shortcut: '2',
   },
   {
+    id: 'workflow-import',
+    label: 'menu:menuOptions.codexImportWorkflow',
+    description: 'menu:menuDescriptions.codexImportWorkflow',
+    category: 'quick',
+    level: 'basic',
+    action: 'command',
+    icon: '📦',
+    shortcut: '3',
+    supportedTools: ['codex'],
+  },
+  {
+    id: 'codex-preset',
+    label: 'menu:menuOptions.codexPreset',
+    description: 'menu:menuDescriptions.codexPreset',
+    category: 'quick',
+    level: 'basic',
+    action: 'command',
+    icon: '🧩',
+    shortcut: '4',
+    supportedTools: ['codex'],
+  },
+  {
     id: 'diagnostics',
     label: 'menu:oneClick.fix',
     description: 'menu:oneClick.fixDesc',
@@ -46,6 +71,7 @@ export const quickActionsItems: MenuItem[] = [
     action: 'command',
     icon: '🔧',
     shortcut: '3',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'update',
@@ -56,6 +82,7 @@ export const quickActionsItems: MenuItem[] = [
     action: 'command',
     icon: '🔄',
     shortcut: '4',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'notifications',
@@ -66,6 +93,7 @@ export const quickActionsItems: MenuItem[] = [
     action: 'command',
     icon: '📱',
     shortcut: '5',
+    supportedTools: NON_CODEX_TOOLS,
   },
 ]
 
@@ -113,6 +141,7 @@ export const configItems: MenuItem[] = [
     action: 'command',
     icon: '🛡️',
     shortcut: 'p',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'config-switch',
@@ -123,6 +152,7 @@ export const configItems: MenuItem[] = [
     action: 'command',
     icon: '🔀',
     shortcut: 's',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'context-config',
@@ -133,6 +163,7 @@ export const configItems: MenuItem[] = [
     action: 'submenu',
     icon: '📊',
     shortcut: 'x',
+    supportedTools: NON_CODEX_TOOLS,
   },
 ]
 
@@ -150,6 +181,7 @@ export const toolsItems: MenuItem[] = [
     action: 'submenu',
     icon: '🔀',
     shortcut: 'r',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'ccusage',
@@ -160,6 +192,7 @@ export const toolsItems: MenuItem[] = [
     action: 'command',
     icon: '📊',
     shortcut: 'u',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'cometix',
@@ -170,6 +203,7 @@ export const toolsItems: MenuItem[] = [
     action: 'submenu',
     icon: '📈',
     shortcut: 'l',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'superpowers',
@@ -180,6 +214,7 @@ export const toolsItems: MenuItem[] = [
     action: 'submenu',
     icon: '⚡',
     shortcut: 'e',
+    supportedTools: NON_CODEX_TOOLS,
   },
 ]
 
@@ -196,6 +231,7 @@ export const cloudItems: MenuItem[] = [
     action: 'submenu',
     icon: '🏪',
     shortcut: 'k',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'marketplace',
@@ -206,6 +242,7 @@ export const cloudItems: MenuItem[] = [
     action: 'submenu',
     icon: '📦',
     shortcut: 'm',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'hooks-sync',
@@ -216,6 +253,7 @@ export const cloudItems: MenuItem[] = [
     action: 'submenu',
     icon: '🔄',
     shortcut: 'h',
+    supportedTools: NON_CODEX_TOOLS,
   },
 ]
 
@@ -232,6 +270,7 @@ export const smartFeaturesItems: MenuItem[] = [
     action: 'submenu',
     icon: '🚀',
     shortcut: 'a',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'smart-guide',
@@ -242,6 +281,7 @@ export const smartFeaturesItems: MenuItem[] = [
     action: 'submenu',
     icon: '🎯',
     shortcut: 'g',
+    supportedTools: NON_CODEX_TOOLS,
   },
 ]
 
@@ -258,6 +298,7 @@ export const ccjkFeaturesItems: MenuItem[] = [
     action: 'submenu',
     icon: '📋',
     shortcut: 'w',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'output-styles',
@@ -268,6 +309,7 @@ export const ccjkFeaturesItems: MenuItem[] = [
     action: 'submenu',
     icon: '🎨',
     shortcut: 'o',
+    supportedTools: NON_CODEX_TOOLS,
   },
 ]
 
@@ -284,6 +326,7 @@ export const systemItems: MenuItem[] = [
     action: 'command',
     icon: '🔍',
     shortcut: 'd',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'workspace',
@@ -294,6 +337,7 @@ export const systemItems: MenuItem[] = [
     action: 'command',
     icon: '📁',
     shortcut: 'z',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'switch-code-tool',
@@ -304,6 +348,7 @@ export const systemItems: MenuItem[] = [
     action: 'command',
     icon: '🔄',
     shortcut: 't',
+    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'uninstall',
@@ -315,6 +360,7 @@ export const systemItems: MenuItem[] = [
     icon: '🗑️',
     confirm: true,
     confirmMessage: 'uninstall.confirm',
+    supportedTools: NON_CODEX_TOOLS,
   },
 ]
 
@@ -334,13 +380,23 @@ export const menuItemsByCategory: Record<MenuCategory, MenuItem[]> = {
 /**
  * Get visible menu items based on level
  */
-export function getVisibleItems(level: 'basic' | 'intermediate' | 'expert'): MenuItem[] {
+export function isItemSupportedForTool(
+  item: MenuItem,
+  codeTool: CodeToolType,
+): boolean {
+  return !item.supportedTools || item.supportedTools.includes(codeTool)
+}
+
+export function getVisibleItems(
+  level: 'basic' | 'intermediate' | 'expert',
+  codeTool: CodeToolType = 'claude-code',
+): MenuItem[] {
   const visible: MenuItem[] = []
   const levels = level === 'basic' ? ['basic'] : level === 'intermediate' ? ['basic', 'intermediate'] : ['basic', 'intermediate', 'expert']
 
   for (const items of Object.values(menuItemsByCategory)) {
     for (const item of items) {
-      if (levels.includes(item.level)) {
+      if (levels.includes(item.level) && isItemSupportedForTool(item, codeTool)) {
         visible.push(item)
       }
     }
@@ -352,11 +408,15 @@ export function getVisibleItems(level: 'basic' | 'intermediate' | 'expert'): Men
 /**
  * Get menu items for a specific category
  */
-export function getItemsByCategory(category: MenuCategory, level: 'basic' | 'intermediate' | 'expert'): MenuItem[] {
+export function getItemsByCategory(
+  category: MenuCategory,
+  level: 'basic' | 'intermediate' | 'expert',
+  codeTool: CodeToolType = 'claude-code',
+): MenuItem[] {
   const items = menuItemsByCategory[category] || []
   const levels = level === 'basic' ? ['basic'] : level === 'intermediate' ? ['basic', 'intermediate'] : ['basic', 'intermediate', 'expert']
 
-  return items.filter(item => levels.includes(item.level))
+  return items.filter(item => levels.includes(item.level) && isItemSupportedForTool(item, codeTool))
 }
 
 /**

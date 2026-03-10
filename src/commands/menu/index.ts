@@ -35,7 +35,7 @@ import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType }
 import { i18n } from '../../i18n/index'
 import { displayBannerWithInfo } from '../../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config'
-import { configureCodexAiMemoryFeature, configureCodexApi, configureCodexDefaultModelFeature, configureCodexMcp, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../../utils/code-tools/codex'
+import { configureCodexAiMemoryFeature, configureCodexApi, configureCodexDefaultModelFeature, configureCodexMcp, configureCodexPresetFeature, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../../utils/code-tools/codex'
 import { resolveCodeType } from '../../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../../utils/error-handler'
 import { changeScriptLanguageFeature } from '../../utils/features'
@@ -58,7 +58,7 @@ import { notificationCommand } from '../notification'
 import { uninstall } from '../uninstall'
 import { update } from '../update'
 import { getItemsForLevel, levelDefinitions } from './progressive'
-import { createAllSections, filterSectionsByItemLimit, findItemByInput, getVisibleItemCount, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu } from './renderer'
+import { createAllSections, filterSectionsByItemLimit, findItemByInput, getToolModeMenuTitle, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu, renderToolModeHero } from './renderer'
 
 /**
  * Default menu configuration
@@ -101,7 +101,7 @@ function getCurrentCodeTool(): CodeToolType {
 /**
  * Attach handlers to menu items dynamically
  */
-function attachHandlers(items: MenuItem[]): MenuItem[] {
+function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
   return items.map((item) => {
     // Skip if handler already exists
     if (item.handler) {
@@ -111,82 +111,243 @@ function attachHandlers(items: MenuItem[]): MenuItem[] {
     // Attach handler based on item id
     switch (item.id) {
       case 'init':
-        return { ...item, handler: async () => await init({ skipBanner: true }) }
+        return {
+          ...item,
+          handler: async () => {
+            if (codeTool === 'codex') {
+              await runCodexFullInit()
+              return
+            }
+            await init({ skipBanner: true })
+          },
+        }
+
+      case 'workflow-import':
+        return {
+          ...item,
+          handler: async () => {
+            await runCodexWorkflowImportWithLanguageSelection()
+          },
+        }
+
+      case 'codex-preset':
+        return {
+          ...item,
+          handler: async () => {
+            await configureCodexPresetFeature()
+          },
+        }
 
       case 'diagnostics':
-        return { ...item, handler: async () => await oneClickCheckup() }
+        return {
+          ...item,
+          handler: async () => {
+            await oneClickCheckup()
+          },
+        }
 
       case 'update':
-        return { ...item, handler: async () => await oneClickUpdate() }
+        return {
+          ...item,
+          handler: async () => {
+            await oneClickUpdate()
+          },
+        }
 
       case 'notifications':
-        return { ...item, handler: async () => await notificationCommand() }
+        return {
+          ...item,
+          handler: async () => {
+            await notificationCommand()
+          },
+        }
 
       case 'api-config':
-        return { ...item, handler: async () => await (await import('../api')).apiCommand('wizard', [], {}) }
+        return {
+          ...item,
+          handler: async () => {
+            if (codeTool === 'codex') {
+              await configureCodexApi()
+              return
+            }
+            await (await import('../api')).apiCommand('wizard', [], {})
+          },
+        }
 
       case 'mcp-config':
-        return { ...item, handler: async () => await (await import('../mcp')).mcpStatus({}) }
+        return {
+          ...item,
+          handler: async () => {
+            if (codeTool === 'codex') {
+              await configureCodexMcp()
+              return
+            }
+            await (await import('../mcp')).mcpStatus({})
+          },
+        }
 
       case 'model-config':
-        return { ...item, handler: async () => await (await import('../../utils/features')).configureDefaultModelFeature() }
+        return {
+          ...item,
+          handler: async () => {
+            if (codeTool === 'codex') {
+              await configureCodexDefaultModelFeature()
+              return
+            }
+            await (await import('../../utils/features')).configureDefaultModelFeature()
+          },
+        }
 
       case 'memory-config':
-        return { ...item, handler: async () => await (await import('../../utils/features')).configureMemoryFeature() }
+        return {
+          ...item,
+          handler: async () => {
+            if (codeTool === 'codex') {
+              await configureCodexAiMemoryFeature()
+              return
+            }
+            await (await import('../../utils/features')).configureMemoryFeature()
+          },
+        }
 
       case 'permission-config':
         return { ...item, handler: async () => await (await import('../permissions')).listPermissions({}) }
 
       case 'config-switch':
-        return { ...item, handler: async () => await configSwitchCommand({ codeType: 'claude-code' }) }
+        return {
+          ...item,
+          handler: async () => {
+            await configSwitchCommand({ codeType: 'claude-code' })
+          },
+        }
 
       case 'context-config':
-        return { ...item, handler: async () => await showContextMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showContextMenu()
+          },
+        }
 
       case 'ccr':
-        return { ...item, handler: async () => await runCcrMenuFeature() }
+        return {
+          ...item,
+          handler: async () => {
+            await runCcrMenuFeature()
+          },
+        }
 
       case 'ccusage':
-        return { ...item, handler: async () => await runCcusageFeature() }
+        return {
+          ...item,
+          handler: async () => {
+            await runCcusageFeature()
+          },
+        }
 
       case 'cometix':
-        return { ...item, handler: async () => await runCometixMenuFeature() }
+        return {
+          ...item,
+          handler: async () => {
+            await runCometixMenuFeature()
+          },
+        }
 
       case 'superpowers':
-        return { ...item, handler: async () => await showSuperpowersMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showSuperpowersMenu()
+          },
+        }
 
       case 'mcp-market':
-        return { ...item, handler: async () => await showMcpMarketMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showMcpMarketMenu()
+          },
+        }
 
       case 'marketplace':
-        return { ...item, handler: async () => await showMarketplaceMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showMarketplaceMenu()
+          },
+        }
 
       case 'hooks-sync':
-        return { ...item, handler: async () => await showHooksSyncMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showHooksSyncMenu()
+          },
+        }
 
       case 'quick-actions':
-        return { ...item, handler: async () => await showQuickActionsMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showQuickActionsMenu()
+          },
+        }
 
       case 'smart-guide':
-        return { ...item, handler: async () => await showSmartGuideMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showSmartGuideMenu()
+          },
+        }
 
       case 'workflows':
-        return { ...item, handler: async () => await showWorkflowsAndSkillsMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showWorkflowsAndSkillsMenu()
+          },
+        }
 
       case 'output-styles':
-        return { ...item, handler: async () => await showOutputStylesMenu() }
+        return {
+          ...item,
+          handler: async () => {
+            await showOutputStylesMenu()
+          },
+        }
 
       case 'doctor':
-        return { ...item, handler: async () => await doctor() }
+        return {
+          ...item,
+          handler: async () => {
+            await doctor()
+          },
+        }
 
       case 'workspace':
-        return { ...item, handler: async () => await workspaceDiagnostics() }
+        return {
+          ...item,
+          handler: async () => {
+            await workspaceDiagnostics()
+          },
+        }
 
       case 'switch-code-tool':
-        return { ...item, handler: async () => await handleCodeToolSwitch(getCurrentCodeTool()) }
+        return {
+          ...item,
+          handler: async () => {
+            await handleCodeToolSwitch(getCurrentCodeTool())
+          },
+        }
 
       case 'uninstall':
-        return { ...item, handler: async () => await uninstall() }
+        return {
+          ...item,
+          handler: async () => {
+            await uninstall()
+          },
+        }
 
       case 'language':
         return { ...item, handler: async () => { await changeScriptLanguageFeature(i18n.language as SupportedLang) } }
@@ -228,42 +389,85 @@ async function oneClickUpdate(): Promise<void> {
   console.log(ansis.green(i18n.t('menu:oneClick.updateComplete')))
 }
 
+function flattenSections(itemsBySection: Array<{ items: MenuItem[] }>): MenuItem[] {
+  return itemsBySection.flatMap(section => section.items)
+}
+
+function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
+  key: string
+  label: string
+  variant?: 'default' | 'danger'
+}> {
+  if (codeTool !== 'codex') {
+    return []
+  }
+
+  return [
+    {
+      key: 's',
+      label: i18n.t('menu:menuOptions.switchCodeTool'),
+    },
+    {
+      key: '+',
+      label: i18n.t('menu:menuOptions.codexCheckUpdates'),
+    },
+    {
+      key: '-',
+      label: i18n.t('menu:menuOptions.codexUninstall'),
+      variant: 'danger',
+    },
+  ]
+}
+
 /**
  * Show the new progressive main menu
  */
-async function showProgressiveMenu(): Promise<MenuResult> {
+async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> {
   // Get items for current level
-  const rawItems = getItemsForLevel(menuState.level)
+  const rawItems = getItemsForLevel(menuState.level, codeTool)
 
   // Attach handlers
-  const items = attachHandlers(rawItems)
+  const items = attachHandlers(rawItems, codeTool)
+  const itemMap = new Map(items.map(item => [item.id, item]))
 
   // Create sections
-  const sections = createAllSections(menuState.level)
+  const sections = createAllSections(menuState.level, codeTool).map(section => ({
+    ...section,
+    items: section.items.map(item => itemMap.get(item.id) || item),
+  }))
 
   // Filter to max items for level
   const maxItems = levelDefinitions[menuState.level].maxItems
   const filteredSections = filterSectionsByItemLimit(sections, maxItems)
+  const visibleItems = flattenSections(filteredSections)
 
   // Count visible items
-  const visibleItemCount = getVisibleItemCount(filteredSections)
+  const visibleItemCount = visibleItems.length
+  const allowMore = codeTool !== 'codex'
+  const footerCommands = getProgressiveFooterCommands(codeTool)
+  const allowedCommands = ['0', 'q', ...(allowMore ? ['m'] : []), ...footerCommands.map(command => command.key)]
+  const menuTitle = getToolModeMenuTitle(codeTool)
 
   // Render menu
+  console.log(renderToolModeHero(codeTool))
+  console.log('')
   const menuOutput = renderMenu(
-    'menu:oneClick.title',
-    items.slice(0, visibleItemCount),
+    menuTitle,
+    visibleItems,
     {
       showShortcuts: true,
       showDescriptions: true,
       useColor: true,
       terminalWidth: 80,
+      showMoreCommand: allowMore,
+      extraFooterCommands: footerCommands,
     },
   )
 
   console.log(menuOutput)
 
   // Prompt for selection
-  const choice = await promptMenuSelection(visibleItemCount, items.slice(0, visibleItemCount))
+  const choice = await promptMenuSelection(visibleItemCount, visibleItems, undefined, allowedCommands)
 
   // Parse input
   const input = parseMenuInput(choice)
@@ -281,9 +485,30 @@ async function showProgressiveMenu(): Promise<MenuResult> {
     return 'continue'
   }
 
-  if (isMoreCommand(input)) {
+  if (allowMore && isMoreCommand(input)) {
     // Show more features submenu
     await showMoreFeaturesMenu()
+    printSeparator()
+    return 'continue'
+  }
+
+  if (codeTool === 'codex' && input.normalized === 's') {
+    const switched = await handleCodeToolSwitch(codeTool)
+    if (switched) {
+      return 'switch'
+    }
+    printSeparator()
+    return 'continue'
+  }
+
+  if (codeTool === 'codex' && input.normalized === '+') {
+    await runCodexUpdate()
+    printSeparator()
+    return 'continue'
+  }
+
+  if (codeTool === 'codex' && input.normalized === '-') {
+    await runCodexUninstall()
     printSeparator()
     return 'continue'
   }
@@ -1204,126 +1429,6 @@ async function showFeaturesOverview(): Promise<void> {
 }
 
 /**
- * Show Codex menu
- */
-async function showCodexMenu(): Promise<MenuResult> {
-  console.log(ansis.green(i18n.t('menu:selectFunction')))
-  console.log('  -------- Codex --------')
-  console.log(
-    `  ${ansis.green('1.')} ${i18n.t('menu:menuOptions.codexFullInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexFullInit')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('2.')} ${i18n.t('menu:menuOptions.codexImportWorkflow')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexImportWorkflow')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('3.')} ${i18n.t('menu:menuOptions.codexConfigureApi')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureApi')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('4.')} ${i18n.t('menu:menuOptions.codexConfigureMcp')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureMcp')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('5.')} ${i18n.t('menu:menuOptions.codexConfigureModel')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureModel')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('6.')} ${i18n.t('menu:menuOptions.codexConfigureAiMemory')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureAiMemory')}`)}`,
-  )
-  console.log('')
-  console.log(
-    `  ${ansis.green('0.')} ${i18n.t('menu:menuOptions.changeLanguage')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('S.')} ${i18n.t('menu:menuOptions.switchCodeTool')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('-.')} ${i18n.t('menu:menuOptions.codexUninstall')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexUninstall')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('+.')} ${i18n.t('menu:menuOptions.codexCheckUpdates')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexCheckUpdates')}`)}`,
-  )
-  console.log(`  ${ansis.red('Q.')} ${ansis.red(i18n.t('menu:menuOptions.exit'))}`)
-  console.log('')
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
-    name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '0', '-', '+', 's', 'S', 'q', 'Q']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
-  })
-
-  if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return 'exit'
-  }
-
-  const normalized = choice.toLowerCase()
-
-  switch (normalized) {
-    case '1':
-      await runCodexFullInit()
-      break
-    case '2':
-      await runCodexWorkflowImportWithLanguageSelection()
-      break
-    case '3':
-      await configureCodexApi()
-      break
-    case '4':
-      await configureCodexMcp()
-      break
-    case '5':
-      await configureCodexDefaultModelFeature()
-      break
-    case '6':
-      await configureCodexAiMemoryFeature()
-      break
-    case '0': {
-      const currentLang = i18n.language as SupportedLang
-      await changeScriptLanguageFeature(currentLang)
-      printSeparator()
-      return undefined
-    }
-    case '-':
-      await runCodexUninstall()
-      printSeparator()
-      return undefined
-    case '+':
-      await runCodexUpdate()
-      printSeparator()
-      return undefined
-    case 's': {
-      const switched = await handleCodeToolSwitch('codex')
-      if (switched) {
-        return 'switch'
-      }
-      printSeparator()
-      return undefined
-    }
-    case 'q':
-      console.log(ansis.green(i18n.t('common:goodbye')))
-      return 'exit'
-    default:
-      return undefined
-  }
-
-  printSeparator()
-
-  const shouldContinue = await promptBoolean({
-    message: i18n.t('common:returnToMenu'),
-    defaultValue: true,
-  })
-
-  if (!shouldContinue) {
-    console.log(ansis.green(i18n.t('common:goodbye')))
-    return 'exit'
-  }
-
-  return undefined
-}
-
-/**
  * Main menu entry point
  */
 export async function showMainMenu(options: { codeType?: string, legacyMenu?: boolean } = {}): Promise<void> {
@@ -1370,16 +1475,13 @@ export async function showMainMenu(options: { codeType?: string, legacyMenu?: bo
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
       let result: MenuResult
-      if (codeTool === 'codex') {
-        result = await showCodexMenu()
-      }
-      else if (useLegacyMenu) {
+      if (useLegacyMenu) {
         // Use legacy full menu
-        result = await showProgressiveMenu()
+        result = await showProgressiveMenu(codeTool)
       }
       else {
         // Use new progressive menu (default)
-        result = await showProgressiveMenu()
+        result = await showProgressiveMenu(codeTool)
       }
 
       if (result === 'exit') {

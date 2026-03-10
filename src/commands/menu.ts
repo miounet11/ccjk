@@ -246,8 +246,15 @@ async function handleHierarchicalMenu(): Promise<MenuResult> {
       break
     }
     case '5': {
-      // API Config
-      await configureApiFeature()
+      // API Config - route to Codex config when in Codex mode
+      const currentCodeTool = getCurrentCodeTool()
+      if (currentCodeTool === 'codex') {
+        const { configureCodexApi } = await import('../utils/code-tools/codex')
+        await configureCodexApi()
+      }
+      else {
+        await configureApiFeature()
+      }
       break
     }
     case '6': {
@@ -382,8 +389,15 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     case '3': {
-      // Configure API or CCR Proxy - use configureApiFeature() like zcf
-      await configureApiFeature()
+      // Configure API or CCR Proxy - route to Codex config when in Codex mode
+      const currentCodeTool = getCurrentCodeTool()
+      if (currentCodeTool === 'codex') {
+        const { configureCodexApi } = await import('../utils/code-tools/codex')
+        await configureCodexApi()
+      }
+      else {
+        await configureApiFeature()
+      }
       break
     }
 

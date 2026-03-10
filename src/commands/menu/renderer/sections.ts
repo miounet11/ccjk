@@ -5,9 +5,10 @@
  * Sections are organized by category and can be dynamically shown/hidden.
  */
 
+import type { CodeToolType } from '../../../constants'
 import type { MenuCategory, MenuItem, MenuLevel, MenuSection } from '../types'
 import { i18n } from '../../../i18n/index'
-import { menuItemsByCategory } from '../main-menu'
+import { getItemsByCategory } from '../main-menu'
 import { getCategoryIcon } from './layout'
 
 /**
@@ -39,13 +40,10 @@ function getCategoryTitle(category: MenuCategory): string {
 export function createSection(
   category: MenuCategory,
   level: MenuLevel = 'basic',
+  codeTool: CodeToolType = 'claude-code',
   collapsed = false,
 ): MenuSection {
-  const allItems = menuItemsByCategory[category] || []
-
-  // Filter items by level
-  const levels = level === 'basic' ? ['basic'] : level === 'intermediate' ? ['basic', 'intermediate'] : ['basic', 'intermediate', 'expert']
-  const items = allItems.filter(item => levels.includes(item.level))
+  const items = getItemsByCategory(category, level, codeTool)
 
   return {
     title: getCategoryTitle(category),
@@ -58,12 +56,15 @@ export function createSection(
 /**
  * Create all sections for a given level
  */
-export function createAllSections(level: MenuLevel = 'basic'): MenuSection[] {
+export function createAllSections(
+  level: MenuLevel = 'basic',
+  codeTool: CodeToolType = 'claude-code',
+): MenuSection[] {
   const categories: MenuCategory[] = ['quick', 'config', 'extensions', 'tools', 'cloud', 'system']
   const sections: MenuSection[] = []
 
   for (const category of categories) {
-    const section = createSection(category, level)
+    const section = createSection(category, level, codeTool)
     if (section.items.length > 0) {
       sections.push(section)
     }

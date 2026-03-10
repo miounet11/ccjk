@@ -43,6 +43,8 @@
     "changeLanguage": "切换语言 / Change Language",
     "switchCodeTool": "切换代码工具",
     "uninstall": "卸载 CCJK",
+    "codexImportWorkflow": "导入工作流",
+    "codexPreset": "预设套装",
     "mcpMarket": "MCP 市场",
     "marketplace": "扩展市场",
     "hooksSync": "Hooks 同步",
@@ -56,6 +58,8 @@
     "changeLanguage": "切换界面语言",
     "switchCodeTool": "在不同代码工具之间切换",
     "uninstall": "卸载 CCJK 及相关配置",
+    "codexImportWorkflow": "安装 Codex Prompt 工作流与 AGENTS 模板",
+    "codexPreset": "一键套用 Codex 能力套装，仅增强工作流与 MCP 服务",
     "mcpMarket": "浏览和安装 MCP 服务",
     "marketplace": "浏览和安装扩展包",
     "hooksSync": "同步 Git Hooks 配置",
@@ -64,6 +68,29 @@
     "workflowsAndSkills": "管理工作流和技能",
     "outputStyles": "配置输出样式",
     "doctor": "运行环境健康检查"
+  },
+  "toolMode": {
+    "claude": {
+      "title": "Claude 工作台",
+      "summary": "完整 CCJK 界面，包含诊断、云功能与扩展能力。",
+      "focus": "工作流、诊断、权限配置与云端集成功能。",
+      "config": "主配置文件：~/.claude/settings.json",
+      "menuTitle": "Claude 控制中心"
+    },
+    "codex": {
+      "title": "Codex 工作台",
+      "summary": "精简界面，聚焦 Provider 接线、Prompts、MCP 与记忆配置。",
+      "focus": "API Provider、MCP 服务、默认模型与 AGENTS 记忆。",
+      "config": "主配置文件：~/.codex/config.toml",
+      "menuTitle": "Codex 控制中心"
+    },
+    "generic": {
+      "title": "工具工作台",
+      "summary": "CCJK 会根据当前代码工具自动调整菜单界面。",
+      "focus": "核心初始化、配置管理与工具专属操作。",
+      "config": "使用当前激活工具的配置档案。",
+      "menuTitle": "CCJK 控制中心"
+    }
   },
   "menu": {
     "title": "CCJK 主菜单",

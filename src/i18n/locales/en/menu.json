@@ -43,6 +43,8 @@
     "changeLanguage": "Change Language / 切换语言",
     "switchCodeTool": "Switch Code Tool",
     "uninstall": "Uninstall CCJK",
+    "codexImportWorkflow": "Import Workflows",
+    "codexPreset": "Preset Bundle",
     "mcpMarket": "MCP Market",
     "marketplace": "Marketplace",
     "hooksSync": "Hooks Sync",
@@ -56,6 +58,8 @@
     "changeLanguage": "Switch interface language",
     "switchCodeTool": "Switch between different code tools",
     "uninstall": "Uninstall CCJK and related configurations",
+    "codexImportWorkflow": "Install Codex prompt workflows and AGENTS templates",
+    "codexPreset": "Apply a ready-made Codex capability bundle for workflows and MCP services",
     "mcpMarket": "Browse and install MCP services",
     "marketplace": "Browse and install extension packages",
     "hooksSync": "Sync Git Hooks configuration",
@@ -64,6 +68,29 @@
     "workflowsAndSkills": "Manage workflows and skills",
     "outputStyles": "Configure output styles",
     "doctor": "Run environment health check"
+  },
+  "toolMode": {
+    "claude": {
+      "title": "Claude Workspace",
+      "summary": "Full CCJK surface with diagnostics, cloud sync, and extensions.",
+      "focus": "Workflows, diagnostics, permissions, and cloud-connected tools.",
+      "config": "Primary config: ~/.claude/settings.json",
+      "menuTitle": "Claude Control Center"
+    },
+    "codex": {
+      "title": "Codex Workspace",
+      "summary": "Lean setup focused on provider wiring, prompts, MCP, and memory.",
+      "focus": "API provider, MCP services, default model, and AGENTS-based memory.",
+      "config": "Primary config: ~/.codex/config.toml",
+      "menuTitle": "Codex Control Center"
+    },
+    "generic": {
+      "title": "Tool Workspace",
+      "summary": "CCJK adapts the menu to the active coding tool.",
+      "focus": "Core setup, configuration, and tool-specific actions.",
+      "config": "Using the active tool configuration profile.",
+      "menuTitle": "CCJK Control Center"
+    }
   },
   "menu": {
     "title": "CCJK Main Menu",

@@ -121,6 +121,23 @@
   "providerManager.wireApiInvalid": "Wire API must be either \"responses\" or \"chat\"",
   "providerManager.unknownError": "Unknown error",
   "envKeyMigrationComplete": "✔ env_key to temp_env_key migration completed",
+  "presetPrompt": "Select a Codex preset bundle",
+  "presetApplied": "✔ Codex preset applied: {{preset}}",
+  "presetSummary": "Workflows {{workflows}} · MCP {{services}}",
+  "presets": {
+    "minimal": {
+      "name": "Minimal",
+      "description": "Lean workflow bundle with search and docs MCP"
+    },
+    "dev": {
+      "name": "Dev",
+      "description": "Balanced workflow bundle with search, docs, and repo context"
+    },
+    "full": {
+      "name": "Full",
+      "description": "Expanded workflow bundle with deeper repo assistance"
+    }
+  },
   "errorSwitchingProvider": "Error switching provider: {{error}}",
   "errorSwitchingToOfficialLogin": "Error switching to official login: {{error}}",
   "errorDuringUninstall": "Error during uninstall: {{error}}"

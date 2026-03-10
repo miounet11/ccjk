@@ -78,6 +78,9 @@ export interface MenuItem {
   /** Disabled reason (i18n key) */
   disabledReason?: string
 
+  /** Restrict visibility to specific code tools */
+  supportedTools?: CodeToolType[]
+
   /** Submenu to navigate to (for action: 'submenu') */
   submenu?: MenuDefinition
 }
@@ -140,6 +143,16 @@ export interface MenuRenderOptions {
 
   /** Terminal width for layout */
   terminalWidth: number
+
+  /** Whether to show the "More" global command */
+  showMoreCommand?: boolean
+
+  /** Additional global footer commands */
+  extraFooterCommands?: Array<{
+    key: string
+    label: string
+    variant?: 'default' | 'danger'
+  }>
 }
 
 /**

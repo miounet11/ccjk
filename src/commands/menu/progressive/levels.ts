@@ -12,6 +12,7 @@
  * 3. Setting a preference in config
  */
 
+import type { CodeToolType } from '../../../constants'
 import type { MenuItem, MenuLevel } from '../types'
 import { getVisibleItems } from '../main-menu'
 
@@ -77,8 +78,11 @@ export const levelDefinitions = {
 /**
  * Get items for a specific level
  */
-export function getItemsForLevel(level: MenuLevel): MenuItem[] {
-  return getVisibleItems(level)
+export function getItemsForLevel(
+  level: MenuLevel,
+  codeTool: CodeToolType = 'claude-code',
+): MenuItem[] {
+  return getVisibleItems(level, codeTool)
 }
 
 /**
@@ -112,8 +116,12 @@ export function getPreviousLevel(current: MenuLevel): MenuLevel {
 /**
  * Check if a level has access to a feature
  */
-export function hasAccessToFeature(level: MenuLevel, featureId: string): boolean {
-  const items = getItemsForLevel(level)
+export function hasAccessToFeature(
+  level: MenuLevel,
+  featureId: string,
+  codeTool: CodeToolType = 'claude-code',
+): boolean {
+  const items = getItemsForLevel(level, codeTool)
   return items.some(item => item.id === featureId)
 }
 

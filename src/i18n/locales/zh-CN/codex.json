@@ -121,6 +121,23 @@
   "providerManager.wireApiInvalid": "Wire API 必须是 \"responses\" 或 \"chat\"",
   "providerManager.unknownError": "未知错误",
   "envKeyMigrationComplete": "✔ 已完成 env_key 到 temp_env_key 的迁移",
+  "presetPrompt": "选择一个 Codex 预设套装",
+  "presetApplied": "✔ 已应用 Codex 预设：{{preset}}",
+  "presetSummary": "工作流 {{workflows}} · MCP {{services}}",
+  "presets": {
+    "minimal": {
+      "name": "Minimal",
+      "description": "轻量工作流套装，包含搜索与文档 MCP"
+    },
+    "dev": {
+      "name": "Dev",
+      "description": "均衡开发工作流套装，包含搜索、文档与仓库上下文能力"
+    },
+    "full": {
+      "name": "Full",
+      "description": "增强型工作流套装，提供更完整的仓库辅助能力"
+    }
+  },
   "errorSwitchingProvider": "切换提供商时出错：{{error}}",
   "errorSwitchingToOfficialLogin": "切换到官方登录时出错：{{error}}",
   "errorDuringUninstall": "卸载过程中出错：{{error}}"

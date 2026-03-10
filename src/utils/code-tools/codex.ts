@@ -947,10 +947,17 @@ export function writeCodexConfig(data: CodexConfigData): void {
   writeFileAtomic(CODEX_CONFIG_FILE, renderCodexConfig(data))
 }
 
-export function writeAuthFile(newEntries: Record<string, string>): void {
+export function writeAuthFile(
+  newEntries: Record<string, string>,
+  authMode?: 'apikey' | 'chatgpt' | 'chatgptAuthTokens',
+): void {
   ensureDir(CODEX_DIR)
   const existing = readJsonConfig<Record<string, string>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
   const merged = { ...existing, ...newEntries }
+  if (authMode) {
+    // Codex CLI valid auth_mode values: 'apikey', 'chatgpt', 'chatgptAuthTokens'
+    ;(merged as any).auth_mode = authMode
+  }
   writeJsonConfig(CODEX_AUTH_FILE, merged, { pretty: true })
 }
 
@@ -1491,8 +1498,8 @@ async function applyCustomApiConfig(customApiConfig: NonNullable<CodexFullInitOp
 
   // Write TOML format for config file using managed renderer
   writeCodexConfig(configData)
-  // Auth file remains JSON format
-  writeJsonConfig(CODEX_AUTH_FILE, authEntries)
+  // Auth file remains JSON format — set auth_mode to 'apikey' for custom providers
+  writeJsonConfig(CODEX_AUTH_FILE, { ...authEntries, auth_mode: 'apikey' })
 
   updateZcfConfig({ codeToolType: 'codex' })
 
@@ -1755,7 +1762,7 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
       baseUrl: selectedProvider === 'custom' ? answers.baseUrl : prefilledBaseUrl!,
       wireApi: selectedProvider === 'custom' ? (answers.wireApi || 'responses') : prefilledWireApi!,
       tempEnvKey,
-      requiresOpenaiAuth: true,
+      requiresOpenaiAuth: false, // Custom/third-party providers use their own API key, not OpenAI OAuth
       model: customModel || prefilledModel || 'gpt-5-codex', // Use custom model, provider's default model, or fallback
     }
 
@@ -1801,7 +1808,7 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
     otherConfig: existingConfig?.otherConfig || [],
   })
 
-  writeAuthFile(authEntries)
+  writeAuthFile(authEntries, 'apikey')
   updateZcfConfig({ codeToolType: 'codex' })
   console.log(ansis.green(i18n.t('codex:apiConfigured')))
 }
@@ -1823,6 +1830,36 @@ export interface CodexFullInitOptions extends CodexWorkflowLanguageOptions {
   }
 }
 
+export type CodexPresetId = 'minimal' | 'dev' | 'full'
+
+export interface CodexPresetDefinition {
+  id: CodexPresetId
+  workflows: string[]
+  mcpServices: string[]
+}
+
+const CODEX_PRESET_DEFINITIONS: Record<CodexPresetId, CodexPresetDefinition> = {
+  minimal: {
+    id: 'minimal',
+    workflows: ['sixStepsWorkflow', 'gitWorkflow'],
+    mcpServices: ['context7', 'open-websearch'],
+  },
+  dev: {
+    id: 'dev',
+    workflows: ['sixStepsWorkflow', 'gitWorkflow'],
+    mcpServices: ['context7', 'open-websearch', 'mcp-deepwiki'],
+  },
+  full: {
+    id: 'full',
+    workflows: ['sixStepsWorkflow', 'gitWorkflow'],
+    mcpServices: ['context7', 'open-websearch', 'mcp-deepwiki', 'serena'],
+  },
+}
+
+export function getCodexPresetDefinitions(): CodexPresetDefinition[] {
+  return Object.values(CODEX_PRESET_DEFINITIONS)
+}
+
 export async function runCodexFullInit(
   options?: CodexFullInitOptions,
 ): Promise<AiOutputLanguage | string> {
@@ -1834,6 +1871,109 @@ export async function runCodexFullInit(
   await configureCodexMcp(options)
 
   return aiOutputLang
+}
+
+function resolveCodexPresetTemplateLang(): SupportedLang {
+  const savedConfig = readZcfConfig()
+  const savedTemplateLang = savedConfig?.templateLang
+  if (savedTemplateLang && SUPPORTED_LANGS.includes(savedTemplateLang)) {
+    return savedTemplateLang
+  }
+
+  const preferredLang = savedConfig?.preferredLang
+  if (preferredLang && SUPPORTED_LANGS.includes(preferredLang)) {
+    return preferredLang
+  }
+
+  return i18n.language === 'zh-CN' ? 'zh-CN' : 'en'
+}
+
+function resolveCodexPresetWorkflows(workflows: string[]): string[] {
+  const workflowLabelMap: Record<string, string> = {
+    sixStepsWorkflow: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
+    gitWorkflow: i18n.t('workflow:workflowOption.gitWorkflow'),
+  }
+
+  return workflows
+    .map(workflow => workflowLabelMap[workflow])
+    .filter((workflow): workflow is string => Boolean(workflow))
+}
+
+export async function applyCodexPreset(presetId: CodexPresetId): Promise<void> {
+  ensureI18nInitialized()
+
+  const preset = CODEX_PRESET_DEFINITIONS[presetId]
+  if (!preset) {
+    throw new Error(`Unknown Codex preset: ${presetId}`)
+  }
+
+  const savedConfig = readZcfConfig()
+  const templateLang = resolveCodexPresetTemplateLang()
+  const preferredLang = savedConfig?.preferredLang || templateLang
+  const aiOutputLang = savedConfig?.aiOutputLang || templateLang
+  const workflows = resolveCodexPresetWorkflows(preset.workflows)
+  const previousSingleBackupMode = process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP
+
+  process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = 'true'
+
+  try {
+    updateTomlConfig(ZCF_CONFIG_FILE, {
+      general: {
+        preferredLang,
+        currentTool: 'codex',
+        templateLang,
+        aiOutputLang,
+      },
+    })
+
+    await runCodexWorkflowImportWithLanguageSelection({
+      skipPrompt: true,
+      aiOutputLang,
+      workflows,
+    })
+
+    await configureCodexMcp({
+      skipPrompt: true,
+      workflows,
+      mcpServices: preset.mcpServices,
+    })
+  }
+  finally {
+    cachedSkipPromptBackup = null
+    if (previousSingleBackupMode === undefined) {
+      delete process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP
+    }
+    else {
+      process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = previousSingleBackupMode
+    }
+  }
+
+  console.log(ansis.green(i18n.t('codex:presetApplied', { preset: i18n.t(`codex:presets.${preset.id}.name`) })))
+  console.log(ansis.gray(i18n.t('codex:presetSummary', {
+    workflows: workflows.join(', '),
+    services: preset.mcpServices.join(', '),
+  })))
+}
+
+export async function configureCodexPresetFeature(): Promise<void> {
+  ensureI18nInitialized()
+
+  const { preset } = await inquirer.prompt<{ preset: CodexPresetId }>([{
+    type: 'list',
+    name: 'preset',
+    message: i18n.t('codex:presetPrompt'),
+    choices: addNumbersToChoices(getCodexPresetDefinitions().map(item => ({
+      name: `${i18n.t(`codex:presets.${item.id}.name`)} ${ansis.gray(`- ${i18n.t(`codex:presets.${item.id}.description`)}`)}`,
+      value: item.id,
+    }))),
+    default: 'dev',
+  }])
+
+  if (!preset) {
+    return
+  }
+
+  await applyCodexPreset(preset)
 }
 
 function ensureCodexAgentsLanguageDirective(aiOutputLang: AiOutputLanguage | string): void {
@@ -2155,9 +2295,10 @@ export async function switchToOfficialLogin(): Promise<boolean> {
 
     writeCodexConfig(updatedConfig)
 
-    // Set OPENAI_API_KEY to null for official mode - preserve other auth settings
+    // Set OPENAI_API_KEY to null for official mode, switch auth_mode back to chatgpt
     const auth = readJsonConfig<Record<string, string | null>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
     auth.OPENAI_API_KEY = null
+    ;(auth as any).auth_mode = 'chatgpt'
     writeJsonConfig(CODEX_AUTH_FILE, auth, { pretty: true })
 
     console.log(ansis.green(i18n.t('codex:officialConfigured')))
@@ -2224,10 +2365,11 @@ export async function switchToProvider(providerId: string): Promise<boolean> {
 
     writeCodexConfig(updatedConfig)
 
-    // Set OPENAI_API_KEY to the provider's environment variable value for VSCode
+    // Set OPENAI_API_KEY to the provider's API key value, switch auth_mode to apikey
     const auth = readJsonConfig<Record<string, string | null>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
     const envValue = auth[provider.tempEnvKey] || null
     auth.OPENAI_API_KEY = envValue
+    ;(auth as any).auth_mode = 'apikey'
     writeJsonConfig(CODEX_AUTH_FILE, auth, { pretty: true })
 
     console.log(ansis.green(i18n.t('codex:providerSwitchSuccess', { provider: providerId })))
@@ -2243,109 +2385,14 @@ export async function switchToProvider(providerId: string): Promise<boolean> {
  * Configure the default model for Codex
  */
 export async function configureCodexDefaultModelFeature(): Promise<void> {
-  ensureI18nInitialized()
-
-  const existingConfig = readCodexConfig()
-  if (!existingConfig) {
-    console.log(ansis.yellow(i18n.t('codex:noConfigFound')))
-    return
-  }
-
-  const currentModel = existingConfig.model || 'gpt-5'
-
-  const modelChoices = [
-    { name: 'gpt-5', value: 'gpt-5' },
-    { name: 'gpt-5-codex', value: 'gpt-5-codex' },
-    { name: 'o3', value: 'o3' },
-    { name: 'o4-mini', value: 'o4-mini' },
-    { name: i18n.t('codex:customModel'), value: 'custom' },
-  ]
-
-  const { selectedModel } = await inquirer.prompt<{ selectedModel: string }>([
-    {
-      type: 'list',
-      name: 'selectedModel',
-      message: i18n.t('codex:selectDefaultModel'),
-      choices: addNumbersToChoices(modelChoices),
-      default: currentModel,
-    },
-  ])
-
-  if (!selectedModel) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
-  }
-
-  let finalModel = selectedModel
-  if (selectedModel === 'custom') {
-    const { customModel } = await inquirer.prompt<{ customModel: string }>([
-      {
-        type: 'input',
-        name: 'customModel',
-        message: i18n.t('codex:enterCustomModel'),
-        validate: (input: string) => input.trim().length > 0 || i18n.t('codex:modelRequired'),
-      },
-    ])
-    finalModel = customModel
-  }
-
-  // Create backup before modification
-  const backupPath = backupCodexComplete()
-  if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
-  }
-
-  try {
-    const updatedConfig: CodexConfigData = {
-      ...existingConfig,
-      model: finalModel,
-    }
-    writeCodexConfig(updatedConfig)
-    console.log(ansis.green(i18n.t('codex:defaultModelUpdated', { model: finalModel })))
-  }
-  catch (error) {
-    console.error(ansis.red(i18n.t('codex:errorUpdatingModel', { error: (error as Error).message })))
-  }
+  const { configureCodexDefaultModelFeature: configureEnhancedCodexDefaultModelFeature } = await import('../features')
+  await configureEnhancedCodexDefaultModelFeature()
 }
 
 /**
  * Configure AI Memory feature for Codex
  */
 export async function configureCodexAiMemoryFeature(): Promise<void> {
-  ensureI18nInitialized()
-
-  console.log(ansis.cyan(i18n.t('codex:aiMemoryFeatureTitle')))
-  console.log(ansis.gray(i18n.t('codex:aiMemoryFeatureDescription')))
-
-  const memoryChoices = [
-    { name: i18n.t('codex:aiMemoryEnable'), value: 'enable' },
-    { name: i18n.t('codex:aiMemoryDisable'), value: 'disable' },
-    { name: i18n.t('codex:aiMemoryViewStatus'), value: 'status' },
-  ]
-
-  const { action } = await inquirer.prompt<{ action: string }>([
-    {
-      type: 'list',
-      name: 'action',
-      message: i18n.t('codex:aiMemorySelectAction'),
-      choices: addNumbersToChoices(memoryChoices),
-    },
-  ])
-
-  if (!action) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
-  }
-
-  switch (action) {
-    case 'enable':
-      console.log(ansis.green(i18n.t('codex:aiMemoryEnabled')))
-      break
-    case 'disable':
-      console.log(ansis.yellow(i18n.t('codex:aiMemoryDisabled')))
-      break
-    case 'status':
-      console.log(ansis.cyan(i18n.t('codex:aiMemoryStatusInfo')))
-      break
-  }
+  const { configureCodexAiMemoryFeature: configureEnhancedCodexAiMemoryFeature } = await import('../features')
+  await configureEnhancedCodexAiMemoryFeature()
 }

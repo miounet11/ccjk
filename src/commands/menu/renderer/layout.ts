@@ -9,6 +9,7 @@
  * - Keyboard shortcut indicators
  */
 
+import type { CodeToolType } from '../../../constants'
 import type { MenuCategory, MenuItem, MenuItemRenderData, MenuRenderOptions, MenuSection } from '../types'
 import ansis from 'ansis'
 import { i18n } from '../../../i18n/index'
@@ -21,6 +22,8 @@ const defaultRenderOptions: MenuRenderOptions = {
   showDescriptions: true,
   useColor: true,
   terminalWidth: 80,
+  showMoreCommand: true,
+  extraFooterCommands: [],
 }
 
 /**
@@ -65,10 +68,52 @@ const boxChars = {
 function t(key: string, defaultValue?: string): string {
   try {
     const result = i18n.t(key)
-    return result !== key ? result : (defaultValue || key)
+    if (typeof result === 'string' && result.length > 0 && result !== key) {
+      return result
+    }
+    return defaultValue || key
   }
   catch {
     return defaultValue || key
+  }
+}
+
+function getToolModeMeta(codeTool: CodeToolType): {
+  icon: string
+  title: string
+  summary: string
+  focus: string
+  config: string
+  menuTitle: string
+} {
+  switch (codeTool) {
+    case 'claude-code':
+      return {
+        icon: '◉',
+        title: t('menu:toolMode.claude.title', 'Claude Workspace'),
+        summary: t('menu:toolMode.claude.summary', 'Full CCJK surface with diagnostics, cloud sync, and extensions.'),
+        focus: t('menu:toolMode.claude.focus', 'Workflows, diagnostics, permissions, and cloud-connected tools.'),
+        config: t('menu:toolMode.claude.config', 'Primary config: ~/.claude/settings.json'),
+        menuTitle: t('menu:toolMode.claude.menuTitle', 'Claude Control Center'),
+      }
+    case 'codex':
+      return {
+        icon: '◆',
+        title: t('menu:toolMode.codex.title', 'Codex Workspace'),
+        summary: t('menu:toolMode.codex.summary', 'Lean setup focused on provider wiring, prompts, MCP, and memory.'),
+        focus: t('menu:toolMode.codex.focus', 'API provider, MCP services, default model, and AGENTS-based memory.'),
+        config: t('menu:toolMode.codex.config', 'Primary config: ~/.codex/config.toml'),
+        menuTitle: t('menu:toolMode.codex.menuTitle', 'Codex Control Center'),
+      }
+    default:
+      return {
+        icon: '•',
+        title: t('menu:toolMode.generic.title', 'Tool Workspace'),
+        summary: t('menu:toolMode.generic.summary', 'CCJK adapts the menu to the active coding tool.'),
+        focus: t('menu:toolMode.generic.focus', 'Core setup, configuration, and tool-specific actions.'),
+        config: t('menu:toolMode.generic.config', 'Using the active tool configuration profile.'),
+        menuTitle: t('menu:toolMode.generic.menuTitle', 'CCJK Control Center'),
+      }
   }
 }
 
@@ -266,6 +311,27 @@ export function renderMenu(
   return lines.join('\n')
 }
 
+export function renderToolModeHero(
+  codeTool: CodeToolType,
+  width = 76,
+): string {
+  const meta = getToolModeMeta(codeTool)
+
+  return renderBox(
+    `${meta.icon} ${meta.title}`,
+    [
+      colors.itemText(meta.summary),
+      `${colors.shortcut('Focus')} ${colors.itemText(meta.focus)}`,
+      `${colors.shortcut('Config')} ${colors.itemText(meta.config)}`,
+    ],
+    width,
+  )
+}
+
+export function getToolModeMenuTitle(codeTool: CodeToolType): string {
+  return getToolModeMeta(codeTool).menuTitle
+}
+
 /**
  * Render menu footer with global shortcuts
  */
@@ -283,11 +349,21 @@ export function renderFooter(options: Partial<MenuRenderOptions> = {}): string {
   }
 
   // More
-  if (opts.showShortcuts) {
-    parts.push(`${colors.shortcut('M')} ${colors.itemText(t('menu:oneClick.more', 'More'))}`)
+  if (opts.showMoreCommand) {
+    if (opts.showShortcuts) {
+      parts.push(`${colors.shortcut('M')} ${colors.itemText(t('menu:oneClick.more', 'More'))}`)
+    }
+    else {
+      parts.push(`M. ${t('menu:oneClick.more', 'More')}`)
+    }
   }
-  else {
-    parts.push(`M. ${t('menu:oneClick.more', 'More')}`)
+
+  for (const command of opts.extraFooterCommands || []) {
+    const keyText = opts.showShortcuts ? command.key.toUpperCase() : `${command.key.toUpperCase()}.`
+    const keyPart = command.variant === 'danger'
+      ? colors.error(keyText)
+      : colors.shortcut(keyText)
+    parts.push(`${keyPart} ${colors.itemText(command.label)}`)
   }
 
   // Quit
