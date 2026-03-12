@@ -38,6 +38,15 @@ export interface GeneralConfig {
   currentTool: CodeToolType
 }
 
+export interface MemoryStorageConfig {
+  claudeDir?: string
+  ccjkDir?: string
+}
+
+export interface StorageConfig {
+  memory?: MemoryStorageConfig
+}
+
 /**
  * Complete CCJK TOML configuration structure
  */
@@ -47,6 +56,7 @@ export interface ZcfTomlConfig {
   general: GeneralConfig
   claudeCode: ClaudeCodeConfig
   codex: CodexConfig
+  storage?: StorageConfig
 }
 
 /**
@@ -56,6 +66,9 @@ export type PartialZcfTomlConfig = Partial<ZcfTomlConfig> & {
   general?: Partial<GeneralConfig>
   claudeCode?: Partial<ClaudeCodeConfig>
   codex?: Partial<CodexConfig>
+  storage?: Partial<StorageConfig> & {
+    memory?: Partial<MemoryStorageConfig>
+  }
 }
 
 /**

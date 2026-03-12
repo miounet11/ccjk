@@ -168,6 +168,10 @@ function listCcjkConfig(ccjkConfig: Record<string, unknown> | null, options: Lis
   if (ccjkConfig.tools) {
     displaySection(isZh ? 'Tools' : '工具配置', ccjkConfig.tools as Record<string, unknown>)
   }
+
+  if (ccjkConfig.storage) {
+    displaySection(isZh ? 'Storage' : '存储配置', ccjkConfig.storage as Record<string, unknown>)
+  }
 }
 
 /**

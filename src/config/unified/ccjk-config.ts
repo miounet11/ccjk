@@ -50,6 +50,9 @@ export function createDefaultCcjkConfig(
         systemPromptStyle: 'senior-architect',
       },
     },
+    storage: {
+      memory: {},
+    },
   }
 }
 
@@ -127,6 +130,14 @@ export function updateCcjkConfig(
         ...updates.tools?.codex,
       },
     },
+    storage: {
+      ...existingConfig.storage,
+      ...updates.storage,
+      memory: {
+        ...existingConfig.storage.memory,
+        ...updates.storage?.memory,
+      },
+    },
   }
 
   writeCcjkConfig(updatedConfig, configPath)
@@ -184,6 +195,10 @@ export function validateCcjkConfig(config: unknown): { valid: boolean, errors: s
     }
   }
 
+  if (!cfg.storage || typeof cfg.storage !== 'object') {
+    errors.push('Invalid or missing storage section')
+  }
+
   return {
     valid: errors.length === 0,
     errors,
@@ -225,6 +240,12 @@ function convertTomlToCcjkConfig(tomlConfig: ZcfTomlConfig | null): CcjkConfig |
         envKeyMigrated: tomlConfig.codex?.envKeyMigrated,
       },
     },
+    storage: {
+      memory: {
+        claudeDir: tomlConfig.storage?.memory?.claudeDir,
+        ccjkDir: tomlConfig.storage?.memory?.ccjkDir,
+      },
+    },
   }
 }
 
@@ -256,6 +277,12 @@ export function convertCcjkConfigToToml(ccjkConfig: CcjkConfig): ZcfTomlConfig {
       systemPromptStyle: ccjkConfig.tools.codex.systemPromptStyle,
       installMethod: ccjkConfig.tools.codex.installMethod,
       envKeyMigrated: ccjkConfig.tools.codex.envKeyMigrated,
+    },
+    storage: {
+      memory: {
+        claudeDir: ccjkConfig.storage.memory.claudeDir,
+        ccjkDir: ccjkConfig.storage.memory.ccjkDir,
+      },
     },
   }
 }

@@ -5,8 +5,8 @@
 
 import type { BrainContext, BrainSession } from './types.js'
 import { readdir, readFile, stat, writeFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { fromClaudeProjectDirName, getClaudeProjectsDir, toClaudeProjectDirName } from '../utils/memory-paths.js'
 
 /**
  * Auto-memory entry structure from Claude Code
@@ -192,7 +192,7 @@ export function brainContextToAutoMemory(context: BrainContext): string {
 export async function findAutoMemoryFiles(
   claudeProjectsDir?: string,
 ): Promise<AutoMemoryDocument[]> {
-  const baseDir = claudeProjectsDir || join(homedir(), '.claude', 'projects')
+  const baseDir = claudeProjectsDir || getClaudeProjectsDir()
   const documents: AutoMemoryDocument[] = []
 
   try {
@@ -208,7 +208,7 @@ export async function findAutoMemoryFiles(
         // Extract project path from directory name
         // Format: -Users-lu-ccjk-public → /Users/lu/ccjk-public
         const projectPath = projectDir.startsWith('-')
-          ? projectDir.slice(1).replace(/-/g, '/')
+          ? fromClaudeProjectDirName(projectDir)
           : projectDir
 
         documents.push({
@@ -275,11 +275,11 @@ export async function syncBrainToAutoMemory(
     return // No project path in session
   }
 
-  const baseDir = config.claudeProjectsDir || join(homedir(), '.claude', 'projects')
+  const baseDir = config.claudeProjectsDir || getClaudeProjectsDir()
 
   // Convert project path to directory name format
   // /Users/lu/ccjk-public → -Users-lu-ccjk-public
-  const projectDirName = `-${projectPath.replace(/\//g, '-')}`
+  const projectDirName = toClaudeProjectDirName(projectPath)
   const memoryDir = join(baseDir, projectDirName, 'memory')
   const memoryPath = join(memoryDir, 'MEMORY.md')
 
@@ -308,7 +308,7 @@ export class AutoMemoryBridge {
 
   constructor(config?: AutoMemoryBridgeConfig) {
     this.config = {
-      claudeProjectsDir: config?.claudeProjectsDir || join(homedir(), '.claude', 'projects'),
+      claudeProjectsDir: config?.claudeProjectsDir || getClaudeProjectsDir(),
       syncInterval: config?.syncInterval ?? 0,
       bidirectional: config?.bidirectional ?? false,
     }

@@ -9,9 +9,10 @@ import { join } from 'pathe'
 import { buildContextPack } from '../context-pack'
 import { writeClaudeContext } from '../context-pack/claude-writer'
 import { analyzeProject } from '../project-intelligence'
+import { handleContextCommand } from './context/index.js'
 
 export interface ContextBuildOptions {
-  action?: 'build' | 'refresh' | 'doctor'
+  action?: 'build' | 'refresh' | 'doctor' | 'analyze' | 'compress' | 'optimize' | 'status'
   target?: 'claude-code' | 'codex'
   output?: string
   force?: boolean
@@ -120,6 +121,11 @@ export async function contextDoctor(): Promise<void> {
 }
 
 export async function contextCommand(options: ContextCommandOptions = {}): Promise<void> {
+  if (options.action && ['analyze', 'compress', 'optimize', 'status'].includes(options.action)) {
+    await handleContextCommand([options.action])
+    return
+  }
+
   if (options.action === 'refresh') {
     await contextRefresh()
     return

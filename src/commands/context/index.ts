@@ -8,6 +8,7 @@ import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import { join } from 'pathe'
 import { getTranslation } from '../../i18n'
+import { inspectMemoryFiles } from '../../utils/memory-sync.js'
 
 /**
  * Context analysis result
@@ -60,8 +61,10 @@ export async function analyzeContext(): Promise<void> {
  */
 export async function showContextStatus(): Promise<void> {
   const t = getTranslation()
+  const memoryStatus = inspectMemoryFiles({ projectPath: process.cwd() })
 
   console.log(ansis.green.bold(`\n📊 ${t('context.status')}\n`))
+  console.log(ansis.white(`Project: ${ansis.bold(process.cwd())}`))
 
   // Check CLAUDE.md
   const claudeMdPath = join(process.cwd(), 'CLAUDE.md')
@@ -98,7 +101,43 @@ export async function showContextStatus(): Promise<void> {
     console.log(`  ${ansis.dim(`... and ${contextFiles.length - 10} more`)}`)
   }
 
+  console.log(ansis.yellow('\nMemory\n'))
+  console.log(`  ${ansis.white(`State: ${describeMemorySyncState(memoryStatus.syncState)}`)}`)
+  console.log(`  ${ansis.dim(`Claude: ${memoryStatus.paths.claude}`)}`)
+  console.log(`  ${ansis.dim(`CCJK:   ${memoryStatus.paths.ccjk}`)}`)
+  if (memoryStatus.parseMode === 'structured') {
+    console.log(`  ${ansis.dim(`Entries: ${memoryStatus.entryCount} | Facts: ${memoryStatus.factCount} | Patterns: ${memoryStatus.patternCount} | Decisions: ${memoryStatus.decisionCount}`)}`)
+  }
+  else if (memoryStatus.parseMode === 'freeform') {
+    console.log(`  ${ansis.dim('Structured parsing: freeform notes detected')}`)
+  }
+  else {
+    console.log(`  ${ansis.dim('Structured parsing: no memory content found')}`)
+  }
+
+  console.log(ansis.yellow('\nNext Commands\n'))
+  console.log(`  ${ansis.white('ccjk context status')} ${ansis.dim('Review project context readiness')}`)
+  console.log(`  ${ansis.white('ccjk memory --status')} ${ansis.dim('Inspect Claude and CCJK memory files')}`)
+  console.log(`  ${ansis.white('ccjk memory --doctor')} ${ansis.dim('Run memory diagnostics and recommendations')}`)
+  console.log(`  ${ansis.white('ccjk context --show')} ${ansis.dim('Preview loaded context layers')}`)
   console.log()
+}
+
+function describeMemorySyncState(syncState: ReturnType<typeof inspectMemoryFiles>['syncState']): string {
+  switch (syncState) {
+    case 'in-sync':
+      return 'Claude and CCJK memory are in sync'
+    case 'claude-only':
+      return 'Only Claude memory has content'
+    case 'ccjk-only':
+      return 'Only CCJK memory has content'
+    case 'claude-newer':
+      return 'Claude memory is newer than the CCJK mirror'
+    case 'ccjk-newer':
+      return 'CCJK mirror is newer than Claude memory'
+    case 'empty':
+      return 'No project memory found'
+  }
 }
 
 /**

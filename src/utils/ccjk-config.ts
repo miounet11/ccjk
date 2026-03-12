@@ -111,6 +111,9 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
       enabled: false,
       systemPromptStyle: 'senior-architect',
     },
+    storage: {
+      memory: {},
+    },
   }
 }
 
@@ -146,6 +149,9 @@ function migrateFromJsonConfig(jsonConfig: any): ZcfTomlConfig {
       enabled: jsonConfig.codeToolType === 'codex',
       systemPromptStyle: jsonConfig.systemPromptStyle || defaultConfig.codex.systemPromptStyle,
     },
+    storage: {
+      memory: {},
+    },
   }
 
   return tomlConfig
@@ -175,6 +181,14 @@ function updateTomlConfig(configPath: string, updates: PartialZcfTomlConfig): Zc
     codex: {
       ...existingConfig.codex,
       ...updates.codex,
+    },
+    storage: {
+      ...existingConfig.storage,
+      ...updates.storage,
+      memory: {
+        ...(existingConfig.storage?.memory || {}),
+        ...(updates.storage?.memory || {}),
+      },
     },
   }
 
@@ -337,6 +351,10 @@ export function writeZcfConfig(config: ZcfConfig): void {
       if (existingTomlConfig.claudeCode.version) {
         tomlConfig.claudeCode.version = existingTomlConfig.claudeCode.version
       }
+    }
+
+    if (existingTomlConfig?.storage) {
+      tomlConfig.storage = existingTomlConfig.storage
     }
 
     writeTomlConfig(ZCF_CONFIG_FILE, tomlConfig)

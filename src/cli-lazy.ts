@@ -316,6 +316,8 @@ const COMMANDS: CommandDefinition[] = [
     aliases: ['mem'],
     tier: 'core',
     options: [
+      { flags: '--status', description: 'Show memory status without changing files' },
+      { flags: '--doctor', description: 'Run memory health diagnostics' },
       { flags: '-v, --view', description: 'View memory content' },
       { flags: '-e, --edit', description: 'Edit memory interactively' },
       { flags: '-s, --sync', description: 'Sync memory using AutoMemoryBridge' },
@@ -325,6 +327,8 @@ const COMMANDS: CommandDefinition[] = [
       const { memoryCommand } = await import('./commands/memory')
       return async (options) => {
         await memoryCommand(options as {
+          status?: boolean
+          doctor?: boolean
           view?: boolean
           edit?: boolean
           sync?: boolean
@@ -478,6 +482,8 @@ const COMMANDS: CommandDefinition[] = [
     aliases: ['mem'],
     tier: 'extended',
     options: [
+      { flags: '--status', description: 'Show memory status without changing files' },
+      { flags: '--doctor', description: 'Run memory health diagnostics' },
       { flags: '-v, --view', description: 'View memory content' },
       { flags: '-e, --edit', description: 'Edit memory interactively' },
       { flags: '-s, --sync', description: 'Sync memory using AutoMemoryBridge' },
@@ -1038,8 +1044,11 @@ const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       const { contextCommand } = await import('./commands/context')
-      return async (options) => {
-        await contextCommand(options as any)
+      return async (options, action: unknown) => {
+        await contextCommand({
+          ...(options as any),
+          action: action as any,
+        })
       }
     },
   },

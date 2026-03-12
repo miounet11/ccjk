@@ -1194,21 +1194,20 @@ export async function configureMergedPermissionsFeature(): Promise<void> {
 }
 
 export async function configureMemoryFeature(): Promise<void> {
-  const { AutoMemoryBridge } = await import('../brain/auto-memory-bridge.js')
   const inquirer = (await import('inquirer')).default
   const ansis = (await import('ansis')).default
   const { execSync } = await import('node:child_process')
   const fs = await import('node:fs/promises')
-  const path = await import('node:path')
-  const os = await import('node:os')
+  const { getCcjkMemoryPath, getClaudeMemoryPath } = await import('./memory-paths.js')
+  const { inspectMemoryFiles, syncMemoryFiles } = await import('./memory-sync.js')
+  const { memoryCheck } = await import('../health/checks/memory-check.js')
 
   console.log(ansis.cyan(`\n${i18n.t('memory:title')}`))
-
-  const bridge = new AutoMemoryBridge()
+  const projectPath = process.cwd()
 
   // Check if memory files exist
-  const claudeMemoryPath = path.join(os.homedir(), '.claude', 'projects', '-Users-lu-ccjk-public', 'memory', 'MEMORY.md')
-  const ccjkMemoryPath = path.join(os.homedir(), '.ccjk', 'memory', 'MEMORY.md')
+  const claudeMemoryPath = getClaudeMemoryPath(projectPath)
+  const ccjkMemoryPath = getCcjkMemoryPath(projectPath)
 
   let claudeMemoryExists = false
   let ccjkMemoryExists = false
@@ -1238,6 +1237,8 @@ export async function configureMemoryFeature(): Promise<void> {
       name: 'action',
       message: i18n.t('memory:selectAction'),
       choices: [
+        { name: 'Status', value: 'status' },
+        { name: 'Doctor', value: 'doctor' },
         { name: i18n.t('memory:viewMemory'), value: 'view' },
         { name: i18n.t('memory:editMemory'), value: 'edit' },
         { name: i18n.t('memory:syncNow'), value: 'sync' },
@@ -1248,8 +1249,34 @@ export async function configureMemoryFeature(): Promise<void> {
   ])
 
   switch (action) {
+    case 'status': {
+      const inspection = inspectMemoryFiles({ projectPath })
+      console.log(ansis.bold('\nMemory Status'))
+      console.log(ansis.gray('─'.repeat(50)))
+      console.log(`State: ${inspection.syncState}`)
+      console.log(`Source: ${inspection.source}`)
+      console.log(`Claude: ${inspection.paths.claude}`)
+      console.log(`CCJK:   ${inspection.paths.ccjk}`)
+      console.log(`Entries: ${inspection.entryCount}`)
+      console.log(ansis.gray('─'.repeat(50)))
+      break
+    }
+    case 'doctor': {
+      const health = await memoryCheck.check()
+      console.log(ansis.bold('\nMemory Doctor'))
+      console.log(ansis.gray('─'.repeat(50)))
+      console.log(`${health.message} (${health.score}/100)`)
+      for (const detail of health.details || []) {
+        console.log(detail)
+      }
+      if (health.fix) {
+        console.log(ansis.yellow(`Fix: ${health.fix}`))
+      }
+      console.log(ansis.gray('─'.repeat(50)))
+      break
+    }
     case 'view': {
-      const memoryPath = path.join(os.homedir(), '.claude', 'projects', '-Users-lu-ccjk-public', 'memory', 'MEMORY.md')
+      const memoryPath = getClaudeMemoryPath(projectPath)
       try {
         const content = await fs.readFile(memoryPath, 'utf-8')
         console.log(`\n${ansis.bold(i18n.t('memory:memoryContent'))}`)
@@ -1263,7 +1290,7 @@ export async function configureMemoryFeature(): Promise<void> {
       break
     }
     case 'edit': {
-      const memoryPath = path.join(os.homedir(), '.claude', 'projects', '-Users-lu-ccjk-public', 'memory', 'MEMORY.md')
+      const memoryPath = getClaudeMemoryPath(projectPath)
       const editor = process.env.EDITOR || 'nano'
       try {
         execSync(`${editor} "${memoryPath}"`, { stdio: 'inherit' })
@@ -1277,7 +1304,7 @@ export async function configureMemoryFeature(): Promise<void> {
     case 'sync': {
       console.log(ansis.cyan(i18n.t('memory:syncing')))
       try {
-        await bridge.syncToClaude()
+        syncMemoryFiles({ projectPath })
         console.log(ansis.green(i18n.t('memory:syncComplete')))
       }
       catch (error) {

@@ -1,5 +1,4 @@
 import type { HealthCheck, HealthResult } from '../types'
-import os from 'node:os'
 import path from 'node:path'
 /**
  * Memory Health Check
@@ -11,6 +10,7 @@ import path from 'node:path'
  * - Provides optimization recommendations
  */
 import fs from 'fs-extra'
+import { getClaudeProjectsDir, getConfiguredMemoryDirectories } from '../../utils/memory-paths'
 
 // Thresholds
 const MAX_MEMORY_SIZE_KB = 100 // Warn if memory file > 100KB
@@ -31,9 +31,9 @@ export const memoryCheck: HealthCheck = {
     }
 
     try {
-      const homeDir = os.homedir()
-      const claudeProjectsDir = path.join(homeDir, '.claude', 'projects')
-      const settingsPath = path.join(homeDir, '.claude', 'settings.json')
+      const memoryDirs = getConfiguredMemoryDirectories()
+      const claudeProjectsDir = getClaudeProjectsDir(memoryDirs.claudeDir)
+      const settingsPath = path.join(memoryDirs.claudeDir, 'settings.json')
 
       let hasMemoryDir = false
       let hasMemoryContent = false

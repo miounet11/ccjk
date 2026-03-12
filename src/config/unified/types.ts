@@ -112,6 +112,9 @@ export interface CcjkConfig {
 
   // Tool-specific configurations
   tools: ToolsConfig
+
+  // Storage overrides
+  storage: StorageConfig
 }
 
 /**
@@ -146,6 +149,15 @@ export interface ToolsConfig {
   continue?: ContinueToolConfig
   cline?: ClineToolConfig
   cursor?: CursorToolConfig
+}
+
+export interface StorageConfig {
+  memory: MemoryStorageConfig
+}
+
+export interface MemoryStorageConfig {
+  claudeDir?: string
+  ccjkDir?: string
 }
 
 /**
@@ -265,6 +277,9 @@ export type PartialCcjkConfig = Partial<CcjkConfig> & {
     continue?: Partial<ContinueToolConfig>
     cline?: Partial<ClineToolConfig>
     cursor?: Partial<CursorToolConfig>
+  }
+  storage?: Partial<StorageConfig> & {
+    memory?: Partial<MemoryStorageConfig>
   }
 }
 

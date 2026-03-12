@@ -261,7 +261,7 @@ function detectScope(key: string): 'ccjk' | 'claude' | 'state' {
   const lowerKey = key.toLowerCase()
 
   // CCJK-specific keys
-  if (lowerKey.startsWith('general.') || lowerKey.startsWith('tools.')) {
+  if (lowerKey.startsWith('general.') || lowerKey.startsWith('tools.') || lowerKey.startsWith('storage.')) {
     return 'ccjk'
   }
 

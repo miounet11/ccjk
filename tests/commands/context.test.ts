@@ -1,81 +1,70 @@
-/**
- * Tests for Context Command
- */
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'pathe'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { showContextStatus } from '../../src/commands/context/index.js'
 
-import { describe, expect, it } from 'vitest'
+const { inspectMemoryFilesMock } = vi.hoisted(() => ({
+  inspectMemoryFilesMock: vi.fn(),
+}))
 
-describe('context Command', () => {
-  describe('handleContextCommand', () => {
-    it('should route to analyze action', async () => {
-      expect(true).toBe(true)
-    })
+vi.mock('../../src/utils/memory-sync.js', () => ({
+  inspectMemoryFiles: inspectMemoryFilesMock,
+}))
 
-    it('should route to status action', async () => {
-      expect(true).toBe(true)
-    })
+describe('showContextStatus', () => {
+  const originalCwd = process.cwd()
+  let tempDir: string
 
-    it('should route to compress action', async () => {
-      expect(true).toBe(true)
-    })
-
-    it('should route to optimize action', async () => {
-      expect(true).toBe(true)
-    })
+  beforeEach(() => {
+    inspectMemoryFilesMock.mockReset()
+    tempDir = mkdtempSync(join(tmpdir(), 'ccjk-context-status-'))
+    process.chdir(tempDir)
   })
 
-  describe('analyzeContext', () => {
-    it('should count files in context', async () => {
-      expect(true).toBe(true)
-    })
-
-    it('should estimate token count', async () => {
-      expect(true).toBe(true)
-    })
-
-    it('should show largest files', async () => {
-      expect(true).toBe(true)
-    })
+  afterEach(() => {
+    process.chdir(originalCwd)
+    rmSync(tempDir, { recursive: true, force: true })
+    vi.restoreAllMocks()
   })
 
-  describe('showContextStatus', () => {
-    it('should check CLAUDE.md existence', async () => {
-      expect(true).toBe(true)
+  it('shows project context readiness, memory status, and operational commands', async () => {
+    writeFileSync(join(tempDir, 'CLAUDE.md'), '# Project Context\n')
+    writeFileSync(join(tempDir, '.claudeignore'), 'dist\n')
+    writeFileSync(join(tempDir, 'README.md'), 'repo readme\n')
+
+    inspectMemoryFilesMock.mockReturnValue({
+      scope: 'project',
+      source: 'already-synced',
+      syncState: 'in-sync',
+      parseMode: 'structured',
+      entryCount: 3,
+      factCount: 1,
+      patternCount: 1,
+      decisionCount: 1,
+      paths: {
+        claude: '/tmp/.claude/projects/-repo/memory/MEMORY.md',
+        ccjk: '/tmp/.ccjk/memory/projects/-repo/MEMORY.md',
+      },
+      snapshots: {
+        claude: { exists: true, hasContent: true, sizeBytes: 128, mtimeMs: 1_000 },
+        ccjk: { exists: true, hasContent: true, sizeBytes: 128, mtimeMs: 1_000 },
+      },
     })
 
-    it('should check .claudeignore existence', async () => {
-      expect(true).toBe(true)
+    const logs: string[] = []
+    vi.spyOn(console, 'log').mockImplementation((...args) => {
+      logs.push(args.join(' '))
     })
 
-    it('should show additional context files', async () => {
-      expect(true).toBe(true)
-    })
-  })
+    await showContextStatus()
 
-  describe('compressContext', () => {
-    it('should identify duplicates', async () => {
-      expect(true).toBe(true)
-    })
-
-    it('should identify large files', async () => {
-      expect(true).toBe(true)
-    })
-
-    it('should estimate savings', async () => {
-      expect(true).toBe(true)
-    })
-  })
-
-  describe('estimateTokens', () => {
-    it('should estimate English text tokens (4 chars per token)', () => {
-      expect(true).toBe(true)
-    })
-
-    it('should estimate Chinese text tokens (2 chars per token)', () => {
-      expect(true).toBe(true)
-    })
-
-    it('should handle mixed text', async () => {
-      expect(true).toBe(true)
-    })
+    expect(inspectMemoryFilesMock).toHaveBeenCalledWith({ projectPath: process.cwd() })
+    expect(logs.join('\n')).toContain('Project:')
+    expect(logs.join('\n')).toContain('CLAUDE.md')
+    expect(logs.join('\n')).toContain('Memory')
+    expect(logs.join('\n')).toContain('Claude and CCJK memory are in sync')
+    expect(logs.join('\n')).toContain('ccjk memory --status')
+    expect(logs.join('\n')).toContain('ccjk context --show')
   })
 })

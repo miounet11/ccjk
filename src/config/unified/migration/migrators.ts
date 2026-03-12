@@ -149,6 +149,9 @@ export async function migrateZcfJsonToCcjk(
           systemPromptStyle: legacyData.systemPromptStyle || 'senior-architect',
         },
       },
+      storage: {
+        memory: {},
+      },
     }
 
     // Write new config
@@ -226,6 +229,12 @@ export async function migrateZcfTomlToCcjk(
           systemPromptStyle: legacyData.codex?.systemPromptStyle || 'senior-architect',
           installMethod: legacyData.codex?.installMethod,
           envKeyMigrated: legacyData.codex?.envKeyMigrated,
+        },
+      },
+      storage: {
+        memory: {
+          claudeDir: legacyData.storage?.memory?.claudeDir,
+          ccjkDir: legacyData.storage?.memory?.ccjkDir,
         },
       },
     }

@@ -122,10 +122,10 @@ npx ccjk browser open https://example.com --headed
 ## 🔥 Features That Matter
 
 ### 🧠 Persistent Memory
-AI remembers your codebase, conventions, and decisions across sessions.
+Manage Claude Code memory and project notes from the CLI.
 ```bash
-ccjk memory --enable
-# Now Claude knows your project structure forever
+ccjk memory
+ccjk memory --edit
 ```
 
 ### 🤖 Agent Teams (NEW)
@@ -249,8 +249,8 @@ ccjk browser status
 ccjk browser stop
 
 # Memory & Context
-ccjk memory --enable
-ccjk compact         # Clean up conversation
+ccjk memory
+ccjk memory --edit
 
 # Zero-Config Permission Presets (NEW)
 ccjk zc --list       # List available presets

@@ -1,40 +1,136 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
 import { x } from 'tinyexec'
-import { AutoMemoryBridge } from '../brain/auto-memory-bridge.js'
-import { CLAUDE_DIR } from '../constants.js'
+import { getClaudeMemoryPath } from '../utils/memory-paths.js'
+import { memoryCheck } from '../health/checks/memory-check.js'
+import { inspectMemoryFiles, syncMemoryFiles } from '../utils/memory-sync.js'
 
 interface MemoryOptions {
+  status?: boolean
+  doctor?: boolean
   view?: boolean
   edit?: boolean
   sync?: boolean
   project?: string
 }
 
-/**
- * Get Claude directory path
- */
-function getClaudeDir(): string {
-  return join(homedir(), CLAUDE_DIR)
+function formatTimestamp(timestampMs: number): string {
+  if (!timestampMs) {
+    return 'never'
+  }
+
+  return new Date(timestampMs).toISOString()
+}
+
+function formatSize(sizeBytes: number): string {
+  return `${(sizeBytes / 1024).toFixed(2)} KB`
+}
+
+function describeSyncState(syncState: ReturnType<typeof inspectMemoryFiles>['syncState']): string {
+  switch (syncState) {
+    case 'in-sync':
+      return 'Claude and CCJK memory are in sync'
+    case 'claude-only':
+      return 'Only Claude memory has content'
+    case 'ccjk-only':
+      return 'Only CCJK memory has content'
+    case 'claude-newer':
+      return 'Claude memory is newer than the CCJK mirror'
+    case 'ccjk-newer':
+      return 'CCJK mirror is newer than Claude memory'
+    case 'empty':
+      return 'No memory content found'
+  }
+}
+
+async function showMemoryStatus(projectPath?: string): Promise<void> {
+  const result = inspectMemoryFiles({ projectPath })
+
+  console.log(ansis.cyan.bold('\n📊 Memory Status'))
+  console.log(ansis.gray(`Scope:   ${result.scope}`))
+  console.log(ansis.gray(`State:   ${describeSyncState(result.syncState)}`))
+  console.log(ansis.gray(`Source:  ${result.source}`))
+  console.log(ansis.gray(`Claude:  ${result.paths.claude}`))
+  console.log(ansis.gray(`CCJK:    ${result.paths.ccjk}`))
+  console.log('')
+  console.log(ansis.bold('Claude Memory'))
+  console.log(ansis.gray(`  Exists:   ${result.snapshots.claude.exists ? 'yes' : 'no'}`))
+  console.log(ansis.gray(`  Content:  ${result.snapshots.claude.hasContent ? 'yes' : 'no'}`))
+  console.log(ansis.gray(`  Size:     ${formatSize(result.snapshots.claude.sizeBytes)}`))
+  console.log(ansis.gray(`  Updated:  ${formatTimestamp(result.snapshots.claude.mtimeMs)}`))
+  console.log(ansis.bold('\nCCJK Mirror'))
+  console.log(ansis.gray(`  Exists:   ${result.snapshots.ccjk.exists ? 'yes' : 'no'}`))
+  console.log(ansis.gray(`  Content:  ${result.snapshots.ccjk.hasContent ? 'yes' : 'no'}`))
+  console.log(ansis.gray(`  Size:     ${formatSize(result.snapshots.ccjk.sizeBytes)}`))
+  console.log(ansis.gray(`  Updated:  ${formatTimestamp(result.snapshots.ccjk.mtimeMs)}`))
+
+  if (result.parseMode === 'structured') {
+    console.log(ansis.bold('\nStructured Summary'))
+    console.log(ansis.gray(`  Entries:    ${result.entryCount}`))
+    console.log(ansis.gray(`  Facts:      ${result.factCount}`))
+    console.log(ansis.gray(`  Patterns:   ${result.patternCount}`))
+    console.log(ansis.gray(`  Decisions:  ${result.decisionCount}`))
+  }
+  else if (result.parseMode === 'freeform') {
+    console.log(ansis.bold('\nStructured Summary'))
+    console.log(ansis.gray('  Freeform notes detected; no structured headings parsed'))
+  }
+
+  console.log('')
+}
+
+async function runMemoryDoctor(projectPath?: string): Promise<void> {
+  const result = inspectMemoryFiles({ projectPath })
+  const health = await memoryCheck.check()
+
+  console.log(ansis.cyan.bold('\n🩺 Memory Doctor'))
+  console.log(ansis.gray(`Project state: ${describeSyncState(result.syncState)}`))
+  console.log(ansis.gray(`Health score:  ${health.score}/100 (${health.status})`))
+  console.log(ansis.gray(`Summary:       ${health.message}`))
+
+  if (health.details && health.details.length > 0) {
+    console.log(ansis.bold('\nHealth Details'))
+    for (const detail of health.details) {
+      console.log(ansis.gray(`  ${detail}`))
+    }
+  }
+
+  const recommendations: string[] = []
+
+  if (result.syncState === 'claude-newer' || result.syncState === 'ccjk-newer' || result.syncState === 'claude-only' || result.syncState === 'ccjk-only') {
+    recommendations.push('Run `ccjk memory --sync` to reconcile Claude memory and the CCJK mirror')
+  }
+
+  if (result.syncState === 'empty') {
+    recommendations.push('Add project memory with `ccjk memory --edit` before relying on sync or doctor checks')
+  }
+
+  if (health.fix) {
+    recommendations.push(health.fix)
+  }
+
+  if (recommendations.length > 0) {
+    console.log(ansis.bold('\nRecommendations'))
+    for (const recommendation of recommendations) {
+      console.log(ansis.gray(`  - ${recommendation}`))
+    }
+  }
+
+  if (health.command) {
+    console.log(ansis.bold('\nSuggested Command'))
+    console.log(ansis.gray(`  ${health.command}`))
+  }
+
+  console.log('')
 }
 
 /**
  * Get memory file path for current or specified project
  */
 function getMemoryPath(projectPath?: string): string {
-  const claudeDir = getClaudeDir()
-
-  if (projectPath) {
-    // Project-specific memory
-    const projectHash = Buffer.from(projectPath).toString('base64').replace(/[/+=]/g, '_')
-    return join(claudeDir, 'projects', projectHash, 'memory', 'MEMORY.md')
-  }
-
-  // Global memory
-  return join(claudeDir, 'memory', 'MEMORY.md')
+  return getClaudeMemoryPath(projectPath)
 }
 
 /**
@@ -184,14 +280,39 @@ async function editMemoryInteractive(memoryPath: string): Promise<void> {
 /**
  * Sync memory using AutoMemoryBridge
  */
-async function syncMemory(_projectPath?: string): Promise<void> {
+async function syncMemory(projectPath?: string): Promise<void> {
   console.log(ansis.cyan('\nSyncing memory with AutoMemoryBridge...'))
 
   try {
-    const _bridge = new AutoMemoryBridge({})
-    // Note: syncMemory method may not exist, using placeholder
-    console.log(ansis.yellow('⚠ AutoMemoryBridge sync not yet implemented'))
-    console.log(ansis.green('✓ Memory sync placeholder executed'))
+    const result = syncMemoryFiles({ projectPath })
+
+    if (result.source === 'none') {
+      console.log(ansis.yellow('⚠ No memory content found in Claude or CCJK storage'))
+      console.log(ansis.gray(`  Claude: ${result.paths.claude}`))
+      console.log(ansis.gray(`  CCJK:   ${result.paths.ccjk}`))
+      return
+    }
+
+    const sourceLabel = result.source === 'already-synced'
+      ? 'Claude and CCJK memory'
+      : `${result.source === 'claude' ? 'Claude' : 'CCJK'} memory`
+    const targetLabel = result.updatedTargets.length === 0
+      ? 'already in sync'
+      : `updated ${result.updatedTargets.map(target => target === 'claude' ? 'Claude' : 'CCJK').join(', ')}`
+
+    console.log(ansis.green(`✓ Synced ${sourceLabel} (${targetLabel})`))
+    console.log(ansis.gray(`  Claude: ${result.paths.claude}`))
+    console.log(ansis.gray(`  CCJK:   ${result.paths.ccjk}`))
+
+    if (result.parseMode === 'structured') {
+      console.log(ansis.gray(
+        `  Structured entries: ${result.entryCount} `
+        + `(facts ${result.factCount}, patterns ${result.patternCount}, decisions ${result.decisionCount})`,
+      ))
+    }
+    else if (result.parseMode === 'freeform') {
+      console.log(ansis.gray('  Synced freeform notes (no structured headings detected)'))
+    }
   }
   catch (error) {
     console.error(ansis.red('Failed to sync memory:'), error)
@@ -203,10 +324,19 @@ async function syncMemory(_projectPath?: string): Promise<void> {
  * Main memory command handler
  */
 export async function memoryCommand(options: MemoryOptions): Promise<void> {
-  const _projectPath = options.project || process.cwd()
   const memoryPath = getMemoryPath(options.project)
 
   // Handle direct flags
+  if (options.status) {
+    await showMemoryStatus(options.project)
+    return
+  }
+
+  if (options.doctor) {
+    await runMemoryDoctor(options.project)
+    return
+  }
+
   if (options.view) {
     const content = readMemory(memoryPath)
     const title = options.project
@@ -236,6 +366,8 @@ export async function memoryCommand(options: MemoryOptions): Promise<void> {
       name: 'action',
       message: 'What would you like to do?',
       choices: [
+        { name: '📊 Status', value: 'status' },
+        { name: '🩺 Doctor', value: 'doctor' },
         { name: '👁️  View memory', value: 'view' },
         { name: '✏️  Edit memory', value: 'edit' },
         { name: '🔄 Sync memory (AutoMemoryBridge)', value: 'sync' },
@@ -246,6 +378,14 @@ export async function memoryCommand(options: MemoryOptions): Promise<void> {
   ])
 
   switch (action) {
+    case 'status':
+      await showMemoryStatus(options.project)
+      break
+
+    case 'doctor':
+      await runMemoryDoctor(options.project)
+      break
+
     case 'view': {
       const content = readMemory(memoryPath)
       const title = options.project
