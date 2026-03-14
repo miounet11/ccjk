@@ -28,10 +28,9 @@
 
 import type { CodeToolType, SupportedLang } from '../../constants'
 import type { MenuItem, MenuLevel, MenuResult } from './types'
-import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../../constants'
+import { CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../../constants'
 import { i18n } from '../../i18n/index'
 import { displayBannerWithInfo } from '../../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config'
@@ -42,7 +41,6 @@ import { changeScriptLanguageFeature } from '../../utils/features'
 import { checkForUpdates, getInstalledPackages } from '../../utils/marketplace/index'
 import { searchPackages } from '../../utils/marketplace/registry'
 import { addNumbersToChoices } from '../../utils/prompt-helpers'
-import { getRuntimeVersion } from '../../utils/runtime-package'
 import { generateQuickActionsPanel, generateSkillReferenceCard, injectSmartGuide, isSmartGuideInstalled, QUICK_ACTIONS, removeSmartGuide } from '../../utils/smart-guide'
 import { checkSuperpowersInstalled, getSuperpowersSkills, installSuperpowers, installSuperpowersViaGit, uninstallSuperpowers, updateSuperpowers } from '../../utils/superpowers'
 import { promptBoolean } from '../../utils/toggle-prompt'
@@ -55,6 +53,7 @@ import { hooksSync } from '../hooks-sync'
 import { init } from '../init'
 import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from '../mcp-market'
 import { notificationCommand } from '../notification'
+import { isOnboardingCompleted, runOnboardingWizard } from '../onboarding-wizard'
 import { uninstall } from '../uninstall'
 import { update } from '../update'
 import { getItemsForLevel, levelDefinitions } from './progressive'
@@ -217,7 +216,7 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
         return {
           ...item,
           handler: async () => {
-            await configSwitchCommand({ codeType: 'claude-code' })
+            await configSwitchCommand({ codeType: codeTool === 'codex' ? 'codex' : 'claude-code' })
           },
         }
 
@@ -345,6 +344,10 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
         return {
           ...item,
           handler: async () => {
+            if (codeTool === 'codex') {
+              await runCodexUninstall()
+              return
+            }
             await uninstall()
           },
         }
@@ -528,6 +531,10 @@ async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> 
     else {
       console.log(ansis.yellow(`No handler for ${selectedItem.id}`))
     }
+
+    if (selectedItem.id === 'switch-code-tool' && getCurrentCodeTool() !== codeTool) {
+      return 'switch'
+    }
   }
 
   printSeparator()
@@ -673,7 +680,9 @@ async function showMoreFeaturesMenu(): Promise<void> {
         break
       }
       case '12':
-        await handleCodeToolSwitch('claude-code')
+        if (await handleCodeToolSwitch(codeTool)) {
+          stayInMenu = false
+        }
         break
       case '13':
         await doctor()
@@ -1330,14 +1339,12 @@ async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
  * Check if this is a first-time user
  */
 async function isFirstTimeUser(): Promise<boolean> {
-  const config = readZcfConfig()
-  if (!config || !config.version) {
-    return true
+  if (isOnboardingCompleted()) {
+    return false
   }
 
-  const { existsSync } = await import('node:fs')
-  const { join } = await import('pathe')
-  if (!existsSync(join(CLAUDE_DIR, 'commands'))) {
+  const config = readZcfConfig()
+  if (!config || !config.version || !config.preferredLang || !config.codeToolType) {
     return true
   }
 
@@ -1345,107 +1352,12 @@ async function isFirstTimeUser(): Promise<boolean> {
 }
 
 /**
- * Show welcome screen for new users
- */
-async function showNewUserWelcome(): Promise<'quick' | 'full' | 'help'> {
-  const version = getRuntimeVersion()
-
-  console.log('')
-  console.log(ansis.green.bold('╔════════════════════════════════════════════════════════════════════════╗'))
-  console.log(`${ansis.green.bold('║')}                                                                        ${ansis.green.bold('║')}`)
-  console.log(ansis.green.bold('║') + ansis.white.bold('     ██████╗  ██████╗      ██╗██╗  ██╗                                 ') + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.white.bold('    ██╔════╝ ██╔════╝      ██║██║ ██╔╝                                 ') + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.white.bold('    ██║      ██║           ██║█████╔╝                                  ') + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.white.bold('    ██║      ██║      ██   ██║██╔═██╗                                  ') + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.white.bold('    ╚██████╗ ╚██████╗ ╚█████╔╝██║  ██╗                                 ') + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.white.bold('     ╚═════╝  ╚═════╝  ╚════╝ ╚═╝  ╚═╝                                 ') + ansis.green.bold('║'))
-  console.log(`${ansis.green.bold('║')}                                                                        ${ansis.green.bold('║')}`)
-  console.log(ansis.green.bold('║') + ansis.gray(`                    Claude Code JinKu - v${version}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(`${ansis.green.bold('║')}                                                                        ${ansis.green.bold('║')}`)
-  console.log(ansis.green.bold('╠════════════════════════════════════════════════════════════════════════╣'))
-  console.log(`${ansis.green.bold('║')}                                                                        ${ansis.green.bold('║')}`)
-  console.log(ansis.green.bold('║') + ansis.yellow.bold(`   ${i18n.t('menu:newUser.welcomeTitle')}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(`${ansis.green.bold('║')}                                                                        ${ansis.green.bold('║')}`)
-  console.log(ansis.green.bold('║') + ansis.white(`   ${i18n.t('menu:newUser.welcomeDesc1')}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.white(`   ${i18n.t('menu:newUser.welcomeDesc2')}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(`${ansis.green.bold('║')}                                                                        ${ansis.green.bold('║')}`)
-  console.log(ansis.green.bold('╠════════════════════════════════════════════════════════════════════════╣'))
-  console.log(`${ansis.green.bold('║')}                                                                        ${ansis.green.bold('║')}`)
-  console.log(ansis.green.bold('║') + ansis.green(`   ${i18n.t('menu:newUser.highlights')}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.gray(`     • ${i18n.t('menu:newUser.highlight1')}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.gray(`     • ${i18n.t('menu:newUser.highlight2')}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.gray(`     • ${i18n.t('menu:newUser.highlight3')}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(ansis.green.bold('║') + ansis.gray(`     • ${i18n.t('menu:newUser.highlight4')}`.padEnd(72)) + ansis.green.bold('║'))
-  console.log(`${ansis.green.bold('║')}                                                                        ${ansis.green.bold('║')}`)
-  console.log(ansis.green.bold('╚════════════════════════════════════════════════════════════════════════╝'))
-  console.log('')
-
-  const { mode } = await inquirer.prompt<{ mode: 'quick' | 'full' | 'help' }>({
-    type: 'list',
-    name: 'mode',
-    message: i18n.t('menu:newUser.selectPrompt'),
-    choices: [
-      {
-        name: ansis.green.bold(i18n.t('menu:newUser.quickStart')) + ansis.dim(` - ${i18n.t('menu:newUser.quickStartDesc')}`),
-        value: 'quick',
-      },
-      {
-        name: ansis.green(i18n.t('menu:newUser.fullConfig')) + ansis.dim(` - ${i18n.t('menu:newUser.fullConfigDesc')}`),
-        value: 'full',
-      },
-      {
-        name: ansis.yellow(i18n.t('menu:newUser.viewHelp')) + ansis.dim(` - ${i18n.t('menu:newUser.viewHelpDesc')}`),
-        value: 'help',
-      },
-    ],
-    loop: false,
-    pageSize: 10,
-  })
-
-  return mode
-}
-
-/**
- * Show features overview for new users
- */
-async function showFeaturesOverview(): Promise<void> {
-  console.log('')
-  console.log(ansis.bold.cyan(i18n.t('menu:newUser.featuresTitle')))
-  console.log('')
-  console.log(ansis.green(i18n.t('menu:newUser.coreFeatures')))
-  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.feature.api')}`)
-  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.feature.workflow')}`)
-  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.feature.mcp')}`)
-  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.feature.outputStyle')}`)
-  console.log('')
-  console.log(ansis.green(i18n.t('menu:newUser.recommendedPlugins')))
-  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.plugin.ccr')}`)
-  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.plugin.ccusage')}`)
-  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.plugin.cometix')}`)
-  console.log(`  ${ansis.green('•')} ${i18n.t('menu:newUser.plugin.superpowers')}`)
-  console.log('')
-  console.log(ansis.dim(i18n.t('menu:newUser.pressEnter')))
-  await inquirer.prompt([{ type: 'input', name: 'continue', message: '' }])
-}
-
-/**
  * Main menu entry point
  */
-export async function showMainMenu(options: { codeType?: string, legacyMenu?: boolean } = {}): Promise<void> {
+export async function showMainMenu(options: { codeType?: string } = {}): Promise<void> {
   try {
-    // New user detection
     if (await isFirstTimeUser()) {
-      const mode = await showNewUserWelcome()
-
-      if (mode === 'quick') {
-        await init({ skipPrompt: false })
-        return
-      }
-      else if (mode === 'help') {
-        await showFeaturesOverview()
-        return showMainMenu(options)
-      }
-      // 'full' mode continues to normal menu
+      await runOnboardingWizard({ preferredCodeTool: options.codeType })
     }
 
     // Handle code type parameter if provided
@@ -1465,24 +1377,13 @@ export async function showMainMenu(options: { codeType?: string, legacyMenu?: bo
       }
     }
 
-    // Check if legacy menu is requested
-    const useLegacyMenu = options.legacyMenu || process.env.CCJK_LEGACY_MENU === '1'
-
     // Menu loop
     let exitMenu = false
     while (!exitMenu) {
       const codeTool = getCurrentCodeTool()
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
-      let result: MenuResult
-      if (useLegacyMenu) {
-        // Use legacy full menu
-        result = await showProgressiveMenu(codeTool)
-      }
-      else {
-        // Use new progressive menu (default)
-        result = await showProgressiveMenu(codeTool)
-      }
+      const result = await showProgressiveMenu(codeTool)
 
       if (result === 'exit') {
         exitMenu = true
@@ -1504,3 +1405,6 @@ export async function showMainMenu(options: { codeType?: string, legacyMenu?: bo
  * Export types
  */
 export * from './types'
+export const __testUtils = {
+  attachHandlers,
+}

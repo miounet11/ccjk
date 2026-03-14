@@ -1,7 +1,7 @@
 {
   "name": "@ccjk/server",
   "version": "1.0.0",
-  "description": "Cloud backend for CCJK remote control",
+  "description": "Backend service for CCJK remote control",
   "author": "CCJK Team",
   "license": "MIT",
   "type": "module",

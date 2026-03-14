@@ -2,22 +2,13 @@
 
 # CCJK
 
-### Claude Code 的超级增强器
+### 面向 Claude Code、Codex 与现代 AI 编码工作流的生产级开发环境
 
-节省 30-50% Token · 最小配置 · 一条命令
-
-<br/>
-
-<!-- TODO: 替换为真实演示 GIF -->
-<img src="https://raw.githubusercontent.com/miounet11/ccjk/main/assets/demo.gif" alt="CCJK 演示" width="600" />
-
-<br/>
+**30 秒上手 · 持久记忆 · Agent Teams · 远程控制**
 
 ```bash
 npx ccjk
 ```
-
-<br/>
 
 [![npm](https://img.shields.io/npm/v/ccjk?style=flat-square&color=cb3837)](https://www.npmjs.com/package/ccjk)
 [![downloads](https://img.shields.io/npm/dm/ccjk?style=flat-square&color=cb3837)](https://www.npmjs.com/package/ccjk)
@@ -29,159 +20,67 @@ npx ccjk
 
 ---
 
-## CCJK 是什么？
+## CCJK 现在强调什么
 
-CCJK 为 [Claude Code](https://github.com/anthropics/claude-code) 注入超能力：
+- **30 秒 onboarding**：把 Claude Code、Codex、MCP 和浏览器自动化拉到可用状态
+- **持久记忆**：让 AI 跨会话记住项目结构、约定和上下文
+- **Agent Teams**：复杂任务支持并行执行
+- **远程控制**：可从浏览器或移动端接入会话
+- **Capability Discovery + Presets**：发现推荐能力，并配合权限预设快速落地
+- **Production-ready defaults**：默认配置更接近真实生产环境
 
-- **🧠 持久记忆** — AI 跨会话记住你的代码库
-- **⚡ 节省 30-50% Token** — 智能上下文压缩
-- **🔧 最小配置** — 自动检测项目类型，一条命令搞定
-- **☁️ 云端同步** — 跨设备、跨团队共享配置
-- **🌐 远程控制** — 手机/网页随时掌控 Claude Code（v11.1.1 新增）
-- **🛡️ 生产级安全** — HTTPS 强制、CORS 加固、密钥校验（v11.1.1 新增）
-
-## 快速开始
+## 推荐上手路径
 
 ```bash
-# 在项目目录运行
+# 首次使用，走引导式 onboarding
 npx ccjk
 
-# 完成。Claude Code 已超级充能。
+# 自动化 / CI
+export ANTHROPIC_API_KEY="sk-ant-..."
+npx ccjk init --silent
+
+# 安装后建议补两步
+npx ccjk boost
+npx ccjk zc --preset dev
 ```
 
-安装后可直接使用浏览器自动化（默认已启用）：
+可选后续：
 
 ```bash
-ccjk browser start https://example.com
-ccjk browser status
-ccjk browser stop
+npx ccjk remote setup
+npx ccjk doctor
+npx ccjk mcp list
 ```
 
-## 为什么选 CCJK？
+## 为什么这条路径是主路径
 
-| 没有 CCJK | 有 CCJK |
-|:----------|:--------|
-| 每次对话重复项目背景 | AI 记住一切 |
-| 60+ 分钟手动配置 | 30 秒，一条命令 |
-| Token 成本高 | 降低 30-50% |
-| 配置只在单设备 | 云端同步所有设备 |
-| 无法通过手机/网页控制 Claude | 远程控制，任意设备操作 |
-| 生产环境配置存局隐患 | 生产级安全加固，开笄1秒失败 |
+| 场景         | 对应命令                   | 作用                         |
+| :----------- | :------------------------- | :--------------------------- |
+| 首次上手     | `npx ccjk`                 | 用引导式流程完成 onboarding  |
+| 自动化初始化 | `npx ccjk init --silent`   | 在 CI 或脚本中无交互落地配置 |
+| 配置优化     | `npx ccjk boost`           | 做一次环境收敛和优化         |
+| 权限收口     | `npx ccjk zc --preset dev` | 应用推荐权限预设             |
+| 远程接入     | `npx ccjk remote setup`    | 配置远程控制                 |
 
-## 核心功能
+## 常用能力
 
-<details>
-<summary><b>🌐 远程控制（v11.1.1 新增）</b></summary>
+- **Persistent Memory**：减少重复解释项目背景
+- **Agent Teams**：把多代理并行能力直接接入 CLI
+- **Remote Control**：浏览器、手机、平板都能控会话
+- **Capability Discovery**：帮助用户理解该启用哪些能力
+- **Zero-Config Presets**：快速应用 `max`、`dev`、`safe` 等权限配置
 
-任意设备控制 Claude Code — 手机、浏览器、应用均可。
+## 文档入口
 
-```bash
-ccjk remote setup    # 一键远程初始化（互动引导）
-ccjk remote doctor   # 远程连接体检（容错、解决建议）
-ccjk remote status   # 实时运行状态（Daemon 、服务器、认证）
-```
-
-支持 CI/CD 非交互模式:
-```bash
-ccjk remote setup --non-interactive \
-  --server-url https://your-server.com \
-  --auth-token <token> \
-  --binding-code <code>
-```
-
-</details>
-
-<details>
-<summary><b>🛡️ 生产级安全加固（v11.1.1 新增）</b></summary>
-
-所有配置默认候均已适配生产环境安全标准：
-
-- ✅ **HTTPS 强制** — 生产环境下所有服务地址必须为 `https://`
-- ✅ **CORS 加固** — 生产环境拒绝通配符 `*` 源
-- ✅ **密鑰校验** — 开发默认密鑰（`dev-secret` 等）启动时直接拦截
-- ✅ **快速失败** — 配置错误即刻退出，没有静默退化
-- ✅ **Daemon 配置** — 从 `~/.ccjk/daemon.json` 读取，必字段校验
-
-</details>
-
-<details>
-<summary><b>🧠 智能技能系统</b></summary>
-
-根据工作流自动激活：
-- 代码审查 — 上线前捕获 Bug
-- 安全审计 — OWASP Top 10 扫描
-- 性能分析 — 识别瓶颈
-- 文档生成 — 从代码自动生成
-
-</details>
-
-<details>
-<summary><b>☁️ 云端同步</b></summary>
-
-配置随处可用：
-- GitHub Gist（免费）
-- WebDAV（自托管）
-- S3（企业级）
-
-```bash
-npx ccjk cloud enable --provider github-gist
-```
-
-</details>
-
-<details>
-<summary><b>🔌 生态集成</b></summary>
-
-一个工具包，统一体验：
-- **CCR** — 多提供商路由
-- **CCUsage** — 使用量分析
-- **MCP 市场** — 插件商店
-
-</details>
-
-## 常用命令
-
-```bash
-npx ccjk           # 交互式设置
-npx ccjk i         # 完整初始化
-
-# 远程控制（v11.1.1 新增）
-ccjk remote setup                       # 一键远程初始化（推荐）
-ccjk remote setup --non-interactive \   # CI/CD 非交互模式
-  --server-url https://... \
-  --auth-token <token> \
-  --binding-code <code>
-ccjk remote doctor                      # 远程体检（含修复建议）
-ccjk remote status                      # 实时运行状态
-
-# 其他
-npx ccjk u         # 更新工作流
-npx ccjk sync      # 云端同步
-npx ccjk doctor    # 健康检查
-
-# 浏览器自动化（默认可用）
-ccjk browser start <url>
-ccjk browser status
-ccjk browser stop
-```
-
-## 文档
-
-完整文档请访问 [docs/README.md](./docs/README.md)
+- 总文档索引：[docs/README.md](./docs/README.md)
+- 英文站点入口：[docs/en/index.md](./docs/en/index.md)
+- 中文站点入口：[docs/zh-CN/index.md](./docs/zh-CN/index.md)
 
 ## 社区
 
-- [Telegram](https://t.me/ccjk_community) — 加入讨论
-- [Issues](https://github.com/miounet11/ccjk/issues) — 反馈问题
+- [Telegram](https://t.me/ccjk_community)
+- [GitHub Issues](https://github.com/miounet11/ccjk/issues)
 
 ## 许可证
 
 MIT © [CCJK Contributors](https://github.com/miounet11/ccjk/graphs/contributors)
-
----
-
-<div align="center">
-
-**如果 CCJK 帮到了你，请给个 ⭐**
-
-</div>

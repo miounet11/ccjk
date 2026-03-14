@@ -4,17 +4,27 @@ title: Commands Overview
 
 # Commands Overview
 
-CCJK CLI is implemented based on `cac`, and all commands can be called via `npx ccjk <command>`. Common commands are as follows:
+CCJK CLI is exposed through `npx ccjk <command>`. The current high-signal commands are:
 
-| Command | Description |
-| --- | --- |
-| `ccjk` | Open interactive menu, aggregating all functions |
-| `ccjk init` / `ccjk i` | Complete initialization, covering Claude Code or Codex |
-| `ccjk update` / `ccjk u` | Update workflows and templates, with language and output style options |
-| `ccjk ccr` | Manage Claude Code Router proxy |
-| `ccjk ccu` | Claude Code usage analysis and statistics |
-| `ccjk uninstall` | Uninstall configuration with option to keep backups |
-| `ccjk config-switch` / `ccjk cs` | Switch between multiple configurations |
-| `ccjk check-updates` / `ccjk check` | Check and upgrade toolchain |
+| Command                 | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `ccjk`                  | Guided onboarding and interactive menu   |
+| `ccjk init --silent`    | Non-interactive setup for CI and scripts |
+| `ccjk boost`            | One-click post-install optimization      |
+| `ccjk zc --preset <id>` | Apply a zero-config permission preset    |
+| `ccjk remote setup`     | Configure remote control                 |
+| `ccjk doctor`           | Diagnose environment problems            |
+| `ccjk mcp list`         | Inspect MCP services                     |
+| `ccjk agent-teams --on` | Enable Agent Teams                       |
+| `ccjk memory`           | Manage persistent memory                 |
+| `ccjk update`           | Refresh workflows and templates          |
 
-Each command supports `--help` to view detailed parameters. The following chapters will explain each one.
+Recommended default path:
+
+```bash
+npx ccjk
+npx ccjk boost
+npx ccjk zc --preset dev
+```
+
+Use `init --silent` only when you need automation.

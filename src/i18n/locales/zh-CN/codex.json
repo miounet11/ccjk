@@ -124,6 +124,42 @@
   "presetPrompt": "选择一个 Codex 预设套装",
   "presetApplied": "✔ 已应用 Codex 预设：{{preset}}",
   "presetSummary": "工作流 {{workflows}} · MCP {{services}}",
+  "efficiency": {
+    "prompt": "选择 Codex 提效项",
+    "notConfigured": "未配置",
+    "quickOptimizeModelApplied": "✔ 已补齐推荐 Codex 模型：{{model}}",
+    "quickOptimizeModelKept": "保留当前 Codex 模型：{{model}}",
+    "styleLabels": {
+      "seniorArchitect": "资深架构师",
+      "speedCoder": "速度编码者",
+      "pairProgrammer": "结对程序员"
+    },
+    "actions": {
+      "quickOptimize": {
+        "name": "快速提效",
+        "description": "应用推荐 Codex 套装，并补齐缺失默认项"
+      },
+      "presetBundles": {
+        "name": "预设套装",
+        "description": "选择 minimal、dev 或 full 工作流套装"
+      },
+      "model": {
+        "name": "默认模型",
+        "description": "当前：{{model}}"
+      },
+      "docsMcp": {
+        "name": "文档 MCP",
+        "description": "查看或安装 Codex MCP 服务（当前：{{count}}）"
+      },
+      "promptMemory": {
+        "name": "Prompt 与记忆",
+        "description": "Prompt：{{prompt}} · 语言：{{language}}"
+      },
+      "back": {
+        "name": "返回"
+      }
+    }
+  },
   "presets": {
     "minimal": {
       "name": "Minimal",

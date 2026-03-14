@@ -24,13 +24,13 @@ import { resolveAiOutputLanguage } from '../prompts'
 import { promptBoolean } from '../toggle-prompt'
 import { detectConfigManagementMode } from './codex-config-detector'
 import { configureCodexMcp } from './codex-configure'
+import { applyCodexPlatformCommand } from './codex-platform'
 
 // Cache to avoid repeated backups in skip-prompt mode
 let cachedSkipPromptBackup: string | null = null
 
 // Public export for easy reuse and testing
-export { applyCodexPlatformCommand } from './codex-platform'
-export { CODEX_DIR }
+export { applyCodexPlatformCommand, CODEX_DIR }
 
 export interface CodexProvider {
   id: string
@@ -1487,7 +1487,7 @@ async function applyCustomApiConfig(customApiConfig: NonNullable<CodexFullInitOp
 
   // Write configuration files
   const configData: CodexConfigData = {
-    model: model || existingConfig?.model || 'claude-3-5-sonnet-20241022', // Prefer provided model, then existing, fallback default
+    model: model || existingConfig?.model || 'gpt-5-codex', // Prefer provided model, then existing, fallback default
     modelProvider: providerId,
     modelProviderCommented: false,
     providers,
@@ -1831,6 +1831,7 @@ export interface CodexFullInitOptions extends CodexWorkflowLanguageOptions {
 }
 
 export type CodexPresetId = 'minimal' | 'dev' | 'full'
+type CodexEfficiencyAction = 'quick-optimize' | 'preset-bundles' | 'model' | 'docs-mcp' | 'prompt-memory' | 'back'
 
 export interface CodexPresetDefinition {
   id: CodexPresetId
@@ -1858,6 +1859,10 @@ const CODEX_PRESET_DEFINITIONS: Record<CodexPresetId, CodexPresetDefinition> = {
 
 export function getCodexPresetDefinitions(): CodexPresetDefinition[] {
   return Object.values(CODEX_PRESET_DEFINITIONS)
+}
+
+export function getCodexEfficiencyActionIds(): CodexEfficiencyAction[] {
+  return ['quick-optimize', 'preset-bundles', 'model', 'docs-mcp', 'prompt-memory', 'back']
 }
 
 export async function runCodexFullInit(
@@ -1955,9 +1960,69 @@ export async function applyCodexPreset(presetId: CodexPresetId): Promise<void> {
   })))
 }
 
-export async function configureCodexPresetFeature(): Promise<void> {
-  ensureI18nInitialized()
+function formatCodexModelSummary(model: string | null | undefined): string {
+  if (!model)
+    return i18n.t('codex:efficiency.notConfigured')
 
+  const labels: Record<string, string> = {
+    'gpt-5-codex': 'GPT-5-Codex',
+    'codex-mini-latest': 'codex-mini-latest',
+    'gpt-5': 'GPT-5',
+  }
+
+  return labels[model] || model
+}
+
+function formatCodexStyleSummary(style: string | null | undefined): string {
+  if (!style)
+    return i18n.t('codex:efficiency.notConfigured')
+
+  const styleLabels: Record<string, string> = {
+    'senior-architect': i18n.t('codex:efficiency.styleLabels.seniorArchitect'),
+    'speed-coder': i18n.t('codex:efficiency.styleLabels.speedCoder'),
+    'pair-programmer': i18n.t('codex:efficiency.styleLabels.pairProgrammer'),
+  }
+
+  return styleLabels[style] || style
+}
+
+function buildCodexEfficiencyChoices(): Array<{ name: string, value: CodexEfficiencyAction }> {
+  const codexConfig = readCodexConfig()
+  const zcfConfig = readDefaultTomlConfig()
+  const modelSummary = formatCodexModelSummary(codexConfig?.model)
+  const mcpSummary = codexConfig?.mcpServices?.length ?? 0
+  const promptSummary = formatCodexStyleSummary(zcfConfig?.codex?.systemPromptStyle)
+  const languageSummary = zcfConfig?.general?.aiOutputLang || zcfConfig?.general?.preferredLang || i18n.t('codex:efficiency.notConfigured')
+
+  return addNumbersToChoices([
+    {
+      name: `${i18n.t('codex:efficiency.actions.quickOptimize.name')} ${ansis.gray(`- ${i18n.t('codex:efficiency.actions.quickOptimize.description')}`)}`,
+      value: 'quick-optimize',
+    },
+    {
+      name: `${i18n.t('codex:efficiency.actions.presetBundles.name')} ${ansis.gray(`- ${i18n.t('codex:efficiency.actions.presetBundles.description')}`)}`,
+      value: 'preset-bundles',
+    },
+    {
+      name: `${i18n.t('codex:efficiency.actions.model.name')} ${ansis.gray(`- ${i18n.t('codex:efficiency.actions.model.description', { model: modelSummary })}`)}`,
+      value: 'model',
+    },
+    {
+      name: `${i18n.t('codex:efficiency.actions.docsMcp.name')} ${ansis.gray(`- ${i18n.t('codex:efficiency.actions.docsMcp.description', { count: mcpSummary })}`)}`,
+      value: 'docs-mcp',
+    },
+    {
+      name: `${i18n.t('codex:efficiency.actions.promptMemory.name')} ${ansis.gray(`- ${i18n.t('codex:efficiency.actions.promptMemory.description', { prompt: promptSummary, language: languageSummary })}`)}`,
+      value: 'prompt-memory',
+    },
+    {
+      name: i18n.t('codex:efficiency.actions.back.name'),
+      value: 'back',
+    },
+  ])
+}
+
+async function promptCodexPresetBundle(): Promise<CodexPresetId | null> {
   const { preset } = await inquirer.prompt<{ preset: CodexPresetId }>([{
     type: 'list',
     name: 'preset',
@@ -1969,11 +2034,88 @@ export async function configureCodexPresetFeature(): Promise<void> {
     default: 'dev',
   }])
 
-  if (!preset) {
-    return
+  return preset || null
+}
+
+function ensureCodexRecommendedModel(defaultModel: string = 'gpt-5-codex'): string | null {
+  const existingConfig = readCodexConfig()
+  if (existingConfig?.model) {
+    return null
   }
 
-  await applyCodexPreset(preset)
+  writeCodexConfig({
+    model: defaultModel,
+    modelProvider: existingConfig?.modelProvider || null,
+    providers: existingConfig?.providers || [],
+    mcpServices: existingConfig?.mcpServices || [],
+    managed: true,
+    otherConfig: existingConfig?.otherConfig || [],
+    modelProviderCommented: existingConfig?.modelProviderCommented,
+  })
+
+  return defaultModel
+}
+
+async function runCodexQuickOptimize(): Promise<void> {
+  await applyCodexPreset('dev')
+
+  const appliedModel = ensureCodexRecommendedModel()
+  if (appliedModel) {
+    console.log(ansis.green(i18n.t('codex:efficiency.quickOptimizeModelApplied', { model: appliedModel })))
+  }
+  else {
+    const currentModel = readCodexConfig()?.model
+    if (currentModel) {
+      console.log(ansis.gray(i18n.t('codex:efficiency.quickOptimizeModelKept', { model: formatCodexModelSummary(currentModel) })))
+    }
+  }
+}
+
+export async function configureCodexPresetFeature(): Promise<void> {
+  ensureI18nInitialized()
+
+  while (true) {
+    const { action } = await inquirer.prompt<{ action: CodexEfficiencyAction }>([{
+      type: 'list',
+      name: 'action',
+      message: i18n.t('codex:efficiency.prompt'),
+      choices: buildCodexEfficiencyChoices(),
+      default: 'quick-optimize',
+    }])
+
+    if (!action || action === 'back') {
+      return
+    }
+
+    if (action === 'quick-optimize') {
+      await runCodexQuickOptimize()
+      continue
+    }
+
+    if (action === 'preset-bundles') {
+      const preset = await promptCodexPresetBundle()
+      if (preset) {
+        await applyCodexPreset(preset)
+      }
+      continue
+    }
+
+    if (action === 'model') {
+      const { configureCodexDefaultModelFeature } = await import('../features')
+      await configureCodexDefaultModelFeature()
+      continue
+    }
+
+    if (action === 'docs-mcp') {
+      await configureCodexMcp()
+      continue
+    }
+
+    if (action === 'prompt-memory') {
+      const { configureCodexAiMemoryFeature } = await import('../features')
+      await configureCodexAiMemoryFeature()
+    }
+  }
 }
 
 function ensureCodexAgentsLanguageDirective(aiOutputLang: AiOutputLanguage | string): void {
@@ -2348,11 +2490,12 @@ export async function switchToProvider(providerId: string): Promise<boolean> {
     else {
       // Provider doesn't have a model, check current model
       const currentModel = existingConfig.model
-      if (currentModel !== 'gpt-5' && currentModel !== 'gpt-5-codex') {
-        // Current model is neither gpt-5 nor gpt-5-codex, change to gpt-5-codex
+      const stableCodexModels = new Set(['gpt-5', 'gpt-5-codex', 'codex-mini-latest'])
+      if (!currentModel || !stableCodexModels.has(currentModel)) {
+        // Fall back to the recommended stable Codex model when the current value is unknown.
         targetModel = 'gpt-5-codex'
       }
-      // Otherwise keep the current model (gpt-5 or gpt-5-codex)
+      // Otherwise keep the current stable model.
     }
 
     // Uncomment model_provider and set to specified provider

@@ -68,6 +68,41 @@ export const DEFAULT_MODEL_CHOICES: Array<{ nameKey: string, fallback: string, v
   },
 ]
 
+export type CodexStableModel = 'gpt-5-codex' | 'codex-mini-latest' | 'gpt-5'
+export type CodexModelChoice = CodexStableModel | 'custom'
+
+export const CODEX_MODEL_CHOICES: Array<{ nameKey: string, fallback: string, value: CodexModelChoice }> = [
+  {
+    nameKey: 'configuration:codexModelOptions.gpt5Codex',
+    fallback: 'GPT-5-Codex - Recommended default for serious coding work',
+    value: 'gpt-5-codex',
+  },
+  {
+    nameKey: 'configuration:codexModelOptions.codexMiniLatest',
+    fallback: 'codex-mini-latest - Faster and lighter for high-frequency tasks',
+    value: 'codex-mini-latest',
+  },
+  {
+    nameKey: 'configuration:codexModelOptions.gpt5',
+    fallback: 'GPT-5 - General-purpose fallback for mixed tasks',
+    value: 'gpt-5',
+  },
+  {
+    nameKey: 'configuration:codexModelOptions.custom',
+    fallback: 'Custom - Specify custom model names',
+    value: 'custom',
+  },
+]
+
+export function formatCodexModelLabel(model: string): string {
+  const predefined = CODEX_MODEL_CHOICES.find(choice => choice.value === model)
+  if (predefined) {
+    return i18n.t(predefined.nameKey) || predefined.fallback
+  }
+
+  return model
+}
+
 // Helper function to handle cancelled operations
 async function handleCancellation(): Promise<void> {
   ensureI18nInitialized()
@@ -728,11 +763,7 @@ export async function configureCodexDefaultModelFeature(): Promise<void> {
   if (currentModel) {
     // Display existing configuration
     console.log(`\n${ansis.green(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
-    const modelDisplay = currentModel === 'gpt-5-codex'
-      ? 'GPT-5-Codex'
-      : currentModel === 'gpt-5'
-        ? 'GPT-5'
-        : currentModel.charAt(0).toUpperCase() + currentModel.slice(1)
+    const modelDisplay = formatCodexModelLabel(currentModel)
     console.log(ansis.gray(`  ${i18n.t('configuration:currentModel') || 'Current model'}: ${modelDisplay}\n`))
 
     // Ask user what to do with existing config
@@ -747,25 +778,22 @@ export async function configureCodexDefaultModelFeature(): Promise<void> {
     }
   }
 
-  const { model } = await inquirer.prompt<{ model: 'gpt-5' | 'gpt-5-codex' | 'custom' }>({
+  const supportedModels = CODEX_MODEL_CHOICES.map(choice => choice.value)
+  const defaultModel: CodexModelChoice = currentModel && supportedModels.includes(currentModel as CodexModelChoice)
+    ? currentModel as CodexModelChoice
+    : currentModel
+      ? 'custom'
+      : 'gpt-5-codex'
+
+  const { model } = await inquirer.prompt<{ model: CodexModelChoice }>({
     type: 'list',
     name: 'model',
     message: i18n.t('configuration:selectDefaultModel') || 'Select default model',
-    choices: addNumbersToChoices([
-      {
-        name: i18n.t('configuration:codexModelOptions.gpt5'),
-        value: 'gpt-5' as const,
-      },
-      {
-        name: i18n.t('configuration:codexModelOptions.gpt5Codex'),
-        value: 'gpt-5-codex' as const,
-      },
-      {
-        name: i18n.t('configuration:codexModelOptions.custom'),
-        value: 'custom' as const,
-      },
-    ]),
-    default: currentModel ? ['gpt-5', 'gpt-5-codex', 'custom'].indexOf(currentModel as any) : 1, // Default to gpt-5-codex
+    choices: addNumbersToChoices(CODEX_MODEL_CHOICES.map(choice => ({
+      name: i18n.t(choice.nameKey) || choice.fallback,
+      value: choice.value,
+    }))),
+    default: defaultModel,
   })
 
   if (!model) {
@@ -1284,7 +1312,7 @@ export async function configureMemoryFeature(): Promise<void> {
         console.log(content)
         console.log(ansis.gray('─'.repeat(50)))
       }
-      catch (error) {
+      catch (_error) {
         console.log(ansis.red(i18n.t('memory:readError')))
       }
       break
@@ -1296,7 +1324,7 @@ export async function configureMemoryFeature(): Promise<void> {
         execSync(`${editor} "${memoryPath}"`, { stdio: 'inherit' })
         console.log(ansis.green(i18n.t('memory:editComplete')))
       }
-      catch (error) {
+      catch (_error) {
         console.log(ansis.red(i18n.t('memory:editError')))
       }
       break
@@ -1307,7 +1335,7 @@ export async function configureMemoryFeature(): Promise<void> {
         syncMemoryFiles({ projectPath })
         console.log(ansis.green(i18n.t('memory:syncComplete')))
       }
-      catch (error) {
+      catch (_error) {
         console.log(ansis.red(i18n.t('memory:syncError')))
       }
       break

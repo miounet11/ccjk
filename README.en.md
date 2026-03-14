@@ -2,124 +2,66 @@
 
 # CCJK
 
-### The missing power-up for Claude Code
+### Production-ready AI dev environment for Claude Code, Codex, and modern coding workflows
 
-Save 30-50% tokens. Minimal config. One command.
-
-<br/>
-
-<!-- TODO: Replace with real demo GIF -->
-<img src="https://raw.githubusercontent.com/miounet11/ccjk/main/assets/demo.gif" alt="CCJK Demo" width="600" />
-
-<br/>
+**30-second onboarding · Persistent memory · Agent Teams · Remote control**
 
 ```bash
 npx ccjk
 ```
-
-<br/>
 
 [![npm](https://img.shields.io/npm/v/ccjk?style=flat-square&color=cb3837)](https://www.npmjs.com/package/ccjk)
 [![downloads](https://img.shields.io/npm/dm/ccjk?style=flat-square&color=cb3837)](https://www.npmjs.com/package/ccjk)
 [![license](https://img.shields.io/github/license/miounet11/ccjk?style=flat-square)](./LICENSE)
 
-[English](./README.md) · [中文](./README.zh-CN.md) · [日本語](./README.ja.md)
+[Canonical English README](./README.md) · [中文](./README.zh-CN.md) · [日本語](./README.ja.md)
 
 </div>
 
 ---
 
-## What is CCJK?
+## What CCJK Covers
 
-CCJK supercharges [Claude Code](https://github.com/anthropics/claude-code) with:
+- **30-second onboarding** for Claude Code, Codex, MCP services, and browser automation
+- **Persistent memory** so the assistant keeps project context across sessions
+- **Agent Teams** for parallel execution on larger tasks
+- **Remote control** for browser or mobile-driven sessions
+- **Capability discovery + presets** for recommended services and safer permission defaults
 
-- **🧠 Persistent Memory** — AI remembers your codebase across sessions
-- **⚡ 30-50% token reduction** — Smart context compression
-- **🔧 Minimal Config** — Auto-detects project type, one command setup
-- **☁️ Cloud Sync** — Share configs across devices and teams
-
-## Quick Start
+## Recommended Path
 
 ```bash
-# Run in your project directory
+# Guided setup
 npx ccjk
 
-# That's it. Claude Code is now supercharged.
+# Automation / CI
+export ANTHROPIC_API_KEY="sk-ant-..."
+npx ccjk init --silent
+
+# Tighten and personalize
+npx ccjk boost
+npx ccjk zc --preset dev
 ```
 
-## Why CCJK?
-
-| Without CCJK | With CCJK |
-|:-------------|:----------|
-| Repeat project context every chat | AI remembers everything |
-| 60+ min manual configuration | 30 seconds, one command |
-| High token costs | 30-50% reduction |
-| Single device configs | Cloud sync across all devices |
-
-## Features
-
-<details>
-<summary><b>🧠 Smart Skills System</b></summary>
-
-Auto-activated skills based on your workflow:
-- Code Review — Catch bugs before production
-- Security Audit — OWASP Top 10 scanning
-- Performance Analysis — Identify bottlenecks
-- Documentation — Auto-generate from code
-
-</details>
-
-<details>
-<summary><b>☁️ Cloud Sync</b></summary>
-
-Sync your setup everywhere:
-- GitHub Gist (free)
-- WebDAV (self-hosted)
-- S3 (enterprise)
+Optional next steps:
 
 ```bash
-npx ccjk cloud enable --provider github-gist
+npx ccjk remote setup
+npx ccjk doctor
+npx ccjk mcp list
 ```
 
-</details>
+## Docs
 
-<details>
-<summary><b>🔌 Ecosystem Integration</b></summary>
-
-One toolkit, unified experience:
-- **CCR** — Multi-provider routing
-- **CCUsage** — Usage analytics
-- **MCP Market** — Plugin marketplace
-
-</details>
-
-## Commands
-
-```bash
-npx ccjk           # Interactive setup
-npx ccjk i         # Full initialization
-npx ccjk u         # Update workflows
-npx ccjk sync      # Cloud sync
-npx ccjk doctor    # Health check
-```
-
-## Documentation
-
-Visit [docs/README.md](./docs/README.md) for full documentation.
+- Full English README: [README.md](./README.md)
+- Documentation hub: [docs/README.md](./docs/README.md)
+- Docs site entry: [docs/en/index.md](./docs/en/index.md)
 
 ## Community
 
-- [Telegram](https://t.me/ccjk_community) — Chat with us
-- [Issues](https://github.com/miounet11/ccjk/issues) — Bug reports & features
+- [Telegram](https://t.me/ccjk_community)
+- [GitHub Issues](https://github.com/miounet11/ccjk/issues)
 
 ## License
 
 MIT © [CCJK Contributors](https://github.com/miounet11/ccjk/graphs/contributors)
-
----
-
-<div align="center">
-
-**If CCJK saves you time, consider giving it a ⭐**
-
-</div>

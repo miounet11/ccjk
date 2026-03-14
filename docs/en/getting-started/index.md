@@ -4,30 +4,25 @@ title: Quick Start
 
 # Quick Start
 
-This chapter introduces how to initialize your environment with CCJK in minutes, covering pre-installation preparation, common commands, and recommended operation sequence.
+This section gives the current default onboarding path for CCJK.
 
-## Quick Navigation
+## Recommended Sequence
 
-If you're new to CCJK, we recommend following these steps:
+1. Run `npx ccjk` for guided onboarding.
+2. Use `npx ccjk init --silent` when you need CI or scripted setup.
+3. Run `npx ccjk boost` after install to tighten the environment.
+4. Apply a permission preset with `npx ccjk zc --preset dev`.
+5. Add `npx ccjk remote setup` only if you need browser/mobile remote control.
 
-1. **View [Installation Guide](installation.md)** - Learn about system requirements, usage methods, interactive and non-interactive initialization flows, and complete configuration steps
-2. **Familiarize with core features** - Check [Features](../features/) to understand Claude Code, Codex, MCP services, CCR proxy, and other core capabilities
-3. **Master CLI commands** - Refer to [CLI Commands](../cli/) to learn how to use various commands
+## Why This Sequence
 
-## Recommended Workflow
+- It matches the current README and npm-facing story.
+- It keeps `npx ccjk` as the primary first-run command.
+- It treats `init --silent` as automation, not the default beginner path.
+- It surfaces capability discovery and presets earlier in the workflow.
 
-### First-Time Use
+## Continue Reading
 
-1. Run `npx ccjk` or `npx ccjk init` for complete initialization
-2. Select code tool type (Claude Code or Codex)
-3. Configure API key or use API provider preset
-4. Select MCP services to install
-5. Select workflow templates and output styles
-
-### Existing Environment
-
-- Run `npx ccjk update` to update workflows and templates
-- Use `npx ccjk` to open interactive menu for incremental configuration
-- Use `npx ccjk config-switch` to switch between different configurations
-
-> 💡 **Tip**: During operation, if you need to understand specific features, feel free to jump to the corresponding feature chapter or CLI command documentation.
+- [Installation Guide](installation.md)
+- [CLI Overview](../cli/index.md)
+- [Features](../features/index.md)

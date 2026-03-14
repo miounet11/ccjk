@@ -104,6 +104,7 @@ git checkout -b fix/your-bug-fix
 ```
 
 **分支命名规范**：
+
 - `feat/` - 新功能
 - `fix/` - Bug 修复
 - `docs/` - 文档更新
@@ -163,7 +164,7 @@ git push origin feat/your-feature-name
 
 1. 在 GitHub 上访问您的 fork
 2. 点击 "New Pull Request"
-3. 选择 `UfoMiao/ccjk:main` 作为目标分支
+3. 选择 `miounet11/ccjk:main` 作为目标分支
 4. 填写 PR 描述（使用模板）
 5. 等待代码审查
 
@@ -181,29 +182,30 @@ git push origin feat/your-feature-name
 
 ```typescript
 // ✅ 好的示例
-import type { Config } from '../types/config'
-import { readConfig } from '../utils/config'
+import type { Config } from '../types/config';
+import { readConfig } from '../utils/config';
 
 export async function processConfig(): Promise<Config | null> {
-  const config = await readConfig()
-  return config
+  const config = await readConfig();
+  return config;
 }
 
 // ❌ 避免
-import {Config} from "../types/config"; // 使用双引号和分号
+import { Config } from '../types/config'; // 使用双引号和分号
 const config = await readConfig(); // 避免不必要的 await
 ```
 
 ### 导出规范
 
 - **优先使用命名导出**：
+
   ```typescript
   // ✅ 推荐
   export function processData() {}
-  export const CONSTANT = 'value'
-  
+  export const CONSTANT = 'value';
+
   // ❌ 避免
-  export default function() {}
+  export default function () {}
   ```
 
 - **避免副作用**：模块应只包含定义，避免在模块顶层执行代码
@@ -211,22 +213,24 @@ const config = await readConfig(); // 避免不必要的 await
 ### 字符串处理
 
 - **使用 i18n**：所有用户可见的字符串应通过 i18n 系统
+
   ```typescript
   // ✅ 推荐
-  console.log(i18n.t('common:success'))
-  
+  console.log(i18n.t('common:success'));
+
   // ❌ 避免硬编码
-  console.log('Success')
+  console.log('Success');
   ```
 
 - **使用常量**：配置值应定义为常量
+
   ```typescript
   // ✅ 推荐
-  const DEFAULT_PORT = 3456
-  const API_TIMEOUT = 60000
-  
+  const DEFAULT_PORT = 3456;
+  const API_TIMEOUT = 60000;
+
   // ❌ 避免魔法数字
-  const port = 3456
+  const port = 3456;
   ```
 
 ### 错误处理
@@ -234,11 +238,10 @@ const config = await readConfig(); // 避免不必要的 await
 - **使用类型安全的错误处理**：
   ```typescript
   try {
-    await operation()
-  }
-  catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.error(message)
+    await operation();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
   }
   ```
 
@@ -302,6 +305,7 @@ feat(config): add multi-config support
 
 ```markdown
 ## 变更类型
+
 - [ ] 新功能
 - [ ] Bug 修复
 - [ ] 文档更新
@@ -309,15 +313,19 @@ feat(config): add multi-config support
 - [ ] 其他（请说明）
 
 ## 变更描述
+
 简要描述此次 PR 的变更内容...
 
 ## 相关 Issue
+
 Closes #123
 
 ## 测试说明
+
 描述如何验证这些变更...
 
 ## 检查清单
+
 - [ ] 代码遵循项目规范
 - [ ] 添加了必要的测试
 - [ ] 所有测试通过
@@ -353,6 +361,7 @@ gitbook/zh-CN/
 ```
 
 **更新文档时**：
+
 1. 同步更新中英文文档
 2. 保持文档结构一致
 3. 检查语法和格式

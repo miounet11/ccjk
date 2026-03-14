@@ -4,13 +4,25 @@ title: CLI コマンド概要
 
 # CLI コマンド概要
 
-CCJK の主要 CLI を一覧します。詳細は各ページを参照してください。
+CCJK CLI は `npx ccjk <command>` で利用できます。現在優先して見せるべきコマンドは次のとおりです。
 
-- `ccjk init`：環境初期化、ワークフロー/テンプレート導入
-- `ccjk update`：テンプレート/ワークフロー/ツールの更新
-- `ccjk menu` (`npx ccjk`)：インタラクティブメニュー
-- `ccjk ccr`：Claude Code Router の管理
-- `ccjk ccu`：利用状況 (ccusage) の表示
-- `ccjk config-switch` / `ccjk cs`：複数設定の切り替え
-- `ccjk check-updates` / `ccjk check`：アップデート確認
-- `ccjk uninstall`：選択的なアンインストール
+- `ccjk`：ガイド付き onboarding とインタラクティブメニュー
+- `ccjk init --silent`：CI / スクリプト向け非対話セットアップ
+- `ccjk boost`：導入後のワンクリック最適化
+- `ccjk zc --preset <id>`：ゼロ設定権限プリセットの適用
+- `ccjk remote setup`：リモートコントロール設定
+- `ccjk doctor`：環境診断
+- `ccjk mcp list`：MCP サービス確認
+- `ccjk agent-teams --on`：Agent Teams の有効化
+- `ccjk memory`：永続メモリ管理
+- `ccjk update`：ワークフローとテンプレートの更新
+
+推奨デフォルトパス：
+
+```bash
+npx ccjk
+npx ccjk boost
+npx ccjk zc --preset dev
+```
+
+`init --silent` は自動化が必要な場合にのみ使います。

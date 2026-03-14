@@ -8,11 +8,23 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
-import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, SETTINGS_FILE } from '../constants'
+import {
+  API_DEFAULT_URL,
+  CODE_TOOL_BANNERS,
+  DEFAULT_CODE_TOOL_TYPE,
+  SETTINGS_FILE,
+} from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo, padToDisplayWidth } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
-import { backupCcrConfig, configureCcrProxy, createDefaultCcrConfig, readCcrConfig, setupCcrConfiguration, writeCcrConfig } from '../utils/ccr/config'
+import {
+  backupCcrConfig,
+  configureCcrProxy,
+  createDefaultCcrConfig,
+  readCcrConfig,
+  setupCcrConfiguration,
+  writeCcrConfig,
+} from '../utils/ccr/config'
 import { installCcr, isCcrInstalled } from '../utils/ccr/installer'
 import {
   addCompletedOnboarding,
@@ -185,17 +197,19 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
   }
 
   // Validate configAction
-  if (options.configAction && !['new', 'backup', 'merge', 'docs-only', 'skip'].includes(options.configAction)) {
-    throw new Error(
-      i18n.t('errors:invalidConfigAction', { value: options.configAction }),
-    )
+  if (
+    options.configAction
+    && !['new', 'backup', 'merge', 'docs-only', 'skip'].includes(options.configAction)
+  ) {
+    throw new Error(i18n.t('errors:invalidConfigAction', { value: options.configAction }))
   }
 
   // Validate apiType
-  if (options.apiType && !['auth_token', 'api_key', 'ccr_proxy', 'skip'].includes(options.apiType)) {
-    throw new Error(
-      i18n.t('errors:invalidApiType', { value: options.apiType }),
-    )
+  if (
+    options.apiType
+    && !['auth_token', 'api_key', 'ccr_proxy', 'skip'].includes(options.apiType)
+  ) {
+    throw new Error(i18n.t('errors:invalidApiType', { value: options.apiType }))
   }
 
   // Validate multi-configuration parameters
@@ -243,26 +257,49 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
     const validServices = MCP_SERVICE_CONFIGS.map(s => s.id)
     for (const service of options.mcpServices) {
       if (!validServices.includes(service)) {
-        throw new Error(i18n.t('errors:invalidMcpService', { service, validServices: validServices.join(', ') }))
+        throw new Error(
+          i18n.t('errors:invalidMcpService', { service, validServices: validServices.join(', ') }),
+        )
       }
     }
   }
 
   // Parse and validate output styles
   if (Array.isArray(options.outputStyles)) {
-    const validStyles = ['speed-coder', 'senior-architect', 'pair-programmer', 'default', 'explanatory', 'learning']
+    const validStyles = [
+      'speed-coder',
+      'senior-architect',
+      'pair-programmer',
+      'default',
+      'explanatory',
+      'learning',
+    ]
     for (const style of options.outputStyles) {
       if (!validStyles.includes(style)) {
-        throw new Error(i18n.t('errors:invalidOutputStyle', { style, validStyles: validStyles.join(', ') }))
+        throw new Error(
+          i18n.t('errors:invalidOutputStyle', { style, validStyles: validStyles.join(', ') }),
+        )
       }
     }
   }
 
   // Validate default output style
   if (options.defaultOutputStyle) {
-    const validStyles = ['speed-coder', 'senior-architect', 'pair-programmer', 'default', 'explanatory', 'learning']
+    const validStyles = [
+      'speed-coder',
+      'senior-architect',
+      'pair-programmer',
+      'default',
+      'explanatory',
+      'learning',
+    ]
     if (!validStyles.includes(options.defaultOutputStyle)) {
-      throw new Error(i18n.t('errors:invalidDefaultOutputStyle', { style: options.defaultOutputStyle, validStyles: validStyles.join(', ') }))
+      throw new Error(
+        i18n.t('errors:invalidDefaultOutputStyle', {
+          style: options.defaultOutputStyle,
+          validStyles: validStyles.join(', '),
+        }),
+      )
     }
   }
 
@@ -286,7 +323,9 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
     const validWorkflows = WORKFLOW_CONFIG_BASE.map(w => w.id)
     for (const workflow of options.workflows) {
       if (!validWorkflows.includes(workflow)) {
-        throw new Error(i18n.t('errors:invalidWorkflow', { workflow, validWorkflows: validWorkflows.join(', ') }))
+        throw new Error(
+          i18n.t('errors:invalidWorkflow', { workflow, validWorkflows: validWorkflows.join(', ') }),
+        )
       }
     }
   }
@@ -358,7 +397,13 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
       )
 
       if (apiResult.cancelled) {
-        console.log(ansis.yellow(i18n.language === 'zh-CN' ? '⚠ 已跳过 API 配置，稍后可通过菜单选项 3 配置' : '⚠ API config skipped, configure later via menu option 3'))
+        console.log(
+          ansis.yellow(
+            i18n.language === 'zh-CN'
+              ? '⚠ 已跳过 API 配置，稍后可通过菜单选项 3 配置'
+              : '⚠ API config skipped, configure later via menu option 3',
+          ),
+        )
       }
       else if (apiResult.apiKey) {
         defaults.apiKey = apiResult.apiKey
@@ -406,7 +451,9 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
         defaultValue: true,
       })
       if (!confirmed) {
-        console.log(ansis.yellow(i18n.language === 'zh-CN' ? '已取消安装' : 'Installation cancelled'))
+        console.log(
+          ansis.yellow(i18n.language === 'zh-CN' ? '已取消安装' : 'Installation cancelled'),
+        )
         return
       }
     }
@@ -442,12 +489,13 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
     console.log(ansis.bold.cyan('🎯 Quick Start:'))
     console.log(ansis.gray('  1. Open your project directory'))
     console.log(ansis.gray('  2. Run: claude'))
-    console.log(ansis.gray('  3. Start coding with AI assistance!\n'))
+    console.log(ansis.gray('  3. Run: npx ccjk boost'))
+    console.log(ansis.gray('  4. Run: npx ccjk zc --preset dev\n'))
 
-    console.log(ansis.gray('💡 Advanced Options:'))
-    console.log(ansis.gray('  • npx ccjk menu    - Interactive configuration'))
-    console.log(ansis.gray('  • npx ccjk update  - Update workflows'))
-    console.log(ansis.gray('  • npx ccjk ccr     - Configure proxy'))
+    console.log(ansis.gray('💡 Useful follow-ups:'))
+    console.log(ansis.gray('  • npx ccjk remote setup  - Configure remote control'))
+    console.log(ansis.gray('  • npx ccjk doctor        - Diagnose setup issues'))
+    console.log(ansis.gray('  • npx ccjk update        - Refresh workflows and templates'))
     console.log('')
   }
   catch (error) {
@@ -504,7 +552,8 @@ export async function silentInit(options: InitOptions = {}): Promise<void> {
     options.installSuperpowers = false
     options.installAgentBrowser = options.installAgentBrowser ?? true
     options.workflows = false // Skip workflows in silent mode
-    options.orchestration = options.orchestration || defaults.workflows.orchestrationLevel || 'minimal'
+    options.orchestration
+      = options.orchestration || defaults.workflows.orchestrationLevel || 'minimal'
 
     // Minimal output
     console.log(`Initializing CCJK (silent mode)...`)
@@ -535,10 +584,14 @@ async function handleSuperpowersInstallation(options: InitOptions): Promise<void
     if (status.installed) {
       console.log(ansis.green(`✔ ${i18n.t('superpowers:alreadyInstalled')}`))
       if (status.version) {
-        console.log(ansis.gray(`  ${i18n.t('superpowers:status.version', { version: status.version })}`))
+        console.log(
+          ansis.gray(`  ${i18n.t('superpowers:status.version', { version: status.version })}`),
+        )
       }
       if (status.skillCount) {
-        console.log(ansis.gray(`  ${i18n.t('superpowers:status.skillCount', { count: status.skillCount })}`))
+        console.log(
+          ansis.gray(`  ${i18n.t('superpowers:status.skillCount', { count: status.skillCount })}`),
+        )
       }
       return
     }
@@ -687,7 +740,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     async function handleCustomApiConfiguration(existingConfig: any): Promise<any> {
       // For Claude Code, always use the new incremental configuration management
       if (codeToolType === 'claude-code') {
-        const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
+        const { configureIncrementalManagement }
+          = await import('../utils/claude-code-incremental-manager')
         await configureIncrementalManagement()
         return null
       }
@@ -805,16 +859,19 @@ export async function init(options: InitOptions = {}): Promise<void> {
             ? 'custom'
             : options.apiType === 'skip'
               ? 'skip'
-              : options.skipPrompt ? 'skip' : undefined
+              : options.skipPrompt
+                ? 'skip'
+                : undefined
 
-      const customApiConfig = (!hasApiConfigs && options.apiType === 'api_key' && options.apiKey)
-        ? {
-            type: 'api_key' as const,
-            token: options.apiKey,
-            baseUrl: options.apiUrl,
-            model: options.apiModel, // Add model parameter for Codex
-          }
-        : undefined
+      const customApiConfig
+        = !hasApiConfigs && options.apiType === 'api_key' && options.apiKey
+          ? {
+              type: 'api_key' as const,
+              token: options.apiKey,
+              baseUrl: options.apiUrl,
+              model: options.apiModel, // Add model parameter for Codex
+            }
+          : undefined
 
       // Convert workflows parameter to string array
       let selectedWorkflows: string[] | undefined
@@ -844,10 +901,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
         version: ccjkVersion,
         preferredLang: i18n.language as SupportedLang, // CCJK界面语言
         templateLang: configLang, // 模板语言
-        aiOutputLang: resolvedAiOutputLang
-          ?? options.aiOutputLang
-          ?? zcfConfig?.aiOutputLang
-          ?? 'en',
+        aiOutputLang:
+          resolvedAiOutputLang ?? options.aiOutputLang ?? zcfConfig?.aiOutputLang ?? 'en',
         codeToolType,
       })
       console.log(ansis.green(i18n.t('codex:setupComplete')))
@@ -855,7 +910,12 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 4: Select AI output language
-    const aiOutputLang = await resolveAiOutputLanguage(i18n.language as SupportedLang, options.aiOutputLang, zcfConfig, options.skipPrompt)
+    const aiOutputLang = await resolveAiOutputLanguage(
+      i18n.language as SupportedLang,
+      options.aiOutputLang,
+      zcfConfig,
+      options.skipPrompt,
+    )
 
     // Step 4: Check and handle Claude Code installation
     const installationStatus = await getInstallationStatus()
@@ -973,19 +1033,33 @@ export async function init(options: InitOptions = {}): Promise<void> {
     if (!options.skipPrompt && (isNewInstall || ['backup', 'merge', 'new'].includes(action))) {
       const isZh = i18n.language === 'zh-CN'
       console.log('')
-      console.log(ansis.bold.cyan(isZh ? '💎 顶级大神编排理念（默认首选）' : '💎 Expert Workflow Orchestration (Default First Choice)'))
-      console.log(ansis.dim(isZh
-        ? '可同步优化规划、验证、子代理与规则执行质量，建议首次安装立即启用。'
-        : 'Improves planning, verification, subagent strategy, and rule execution quality. Recommended on first install.'))
+      console.log(
+        ansis.bold.cyan(
+          isZh
+            ? '💎 顶级大神编排理念（默认首选）'
+            : '💎 Expert Workflow Orchestration (Default First Choice)',
+        ),
+      )
+      console.log(
+        ansis.dim(
+          isZh
+            ? '可同步优化规划、验证、子代理与规则执行质量，建议首次安装立即启用。'
+            : 'Improves planning, verification, subagent strategy, and rule execution quality. Recommended on first install.',
+        ),
+      )
 
-      const { orchestrationChoice } = await inquirer.prompt<{ orchestrationChoice: 'off' | 'minimal' | 'standard' | 'max' }>({
+      const { orchestrationChoice } = await inquirer.prompt<{
+        orchestrationChoice: 'off' | 'minimal' | 'standard' | 'max'
+      }>({
         type: 'list',
         name: 'orchestrationChoice',
         message: isZh ? '请选择默认编排级别：' : 'Select default orchestration level:',
         default: 'max',
         choices: addNumbersToChoices([
           {
-            name: isZh ? '顶级模式（推荐）- 最大化质量与流程约束' : 'Expert Mode (Recommended) - Maximum quality and workflow enforcement',
+            name: isZh
+              ? '顶级模式（推荐）- 最大化质量与流程约束'
+              : 'Expert Mode (Recommended) - Maximum quality and workflow enforcement',
             value: 'max',
           },
           {
@@ -993,7 +1067,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
             value: 'standard',
           },
           {
-            name: isZh ? '轻量模式 - 更少流程，更快执行' : 'Minimal Mode - Lighter process, faster execution',
+            name: isZh
+              ? '轻量模式 - 更少流程，更快执行'
+              : 'Minimal Mode - Lighter process, faster execution',
             value: 'minimal',
           },
           {
@@ -1004,7 +1080,11 @@ export async function init(options: InitOptions = {}): Promise<void> {
       })
 
       options.orchestration = orchestrationChoice
-      console.log(ansis.green(`✔ ${isZh ? '已设为默认首选' : 'Set as default first choice'}: ${orchestrationChoice}`))
+      console.log(
+        ansis.green(
+          `✔ ${isZh ? '已设为默认首选' : 'Set as default first choice'}: ${orchestrationChoice}`,
+        ),
+      )
     }
 
     // Step 6: Configure API (skip if only updating docs)
@@ -1196,10 +1276,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     if (options.skipPrompt) {
       // Use provided output styles and default
       if (options.outputStyles !== false) {
-        await configureOutputStyle(
-          options.outputStyles as string[],
-          options.defaultOutputStyle,
-        )
+        await configureOutputStyle(options.outputStyles as string[], options.defaultOutputStyle)
       }
     }
     else {
@@ -1218,7 +1295,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 9.5: Configure API models if provided (Claude Code only)
-    const hasModelParams = options.apiModel || options.apiHaikuModel || options.apiSonnetModel || options.apiOpusModel
+    const hasModelParams
+      = options.apiModel || options.apiHaikuModel || options.apiSonnetModel || options.apiOpusModel
     if (hasModelParams && action !== 'docs-only' && codeToolType === 'claude-code') {
       if (options.skipPrompt) {
         // In skip-prompt mode, configure models
@@ -1303,10 +1381,14 @@ export async function init(options: InitOptions = {}): Promise<void> {
               const adjusted = { ...config, args: [...(config.args || [])] }
               const idx = adjusted.args.indexOf('--context')
               if (idx >= 0 && idx + 1 < adjusted.args.length) {
-                adjusted.args[idx + 1] = (codeToolType as CodeToolType === 'codex') ? 'codex' : 'ide-assistant'
+                adjusted.args[idx + 1]
+                  = (codeToolType as CodeToolType) === 'codex' ? 'codex' : 'ide-assistant'
               }
               else {
-                adjusted.args.push('--context', (codeToolType as CodeToolType === 'codex') ? 'codex' : 'ide-assistant')
+                adjusted.args.push(
+                  '--context',
+                  (codeToolType as CodeToolType) === 'codex' ? 'codex' : 'ide-assistant',
+                )
               }
               config = adjusted
             }
@@ -1315,7 +1397,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
             if (service.requiresApiKey) {
               if (options.skipPrompt) {
                 // In skip-prompt mode, skip services that require API keys
-                console.log(ansis.yellow(`${i18n.t('common:skip')}: ${service.name} (requires API key)`))
+                console.log(
+                  ansis.yellow(`${i18n.t('common:skip')}: ${service.name} (requires API key)`),
+                )
                 continue
               }
               else {
@@ -1331,7 +1415,12 @@ export async function init(options: InitOptions = {}): Promise<void> {
                   continue
                 }
 
-                config = buildMcpServerConfig(service.config, response.apiKey, service.apiKeyPlaceholder, service.apiKeyEnvVar)
+                config = buildMcpServerConfig(
+                  service.config,
+                  response.apiKey,
+                  service.apiKeyPlaceholder,
+                  service.apiKeyEnvVar,
+                )
               }
             }
 
@@ -1356,7 +1445,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
             console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`))
 
             // Check and display performance warning
-            const { checkMcpPerformance, formatPerformanceWarning } = await import('../utils/mcp-performance')
+            const { checkMcpPerformance, formatPerformanceWarning }
+              = await import('../utils/mcp-performance')
             const serviceCount = Object.keys(newServers).length
             const perfWarning = checkMcpPerformance(serviceCount)
             if (perfWarning) {
@@ -1425,7 +1515,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
       }
 
       if (shouldInstallAgentBrowser) {
-        const { checkAgentBrowserInstalled, installAgentBrowser } = await import('../utils/agent-browser/installer')
+        const { checkAgentBrowserInstalled, installAgentBrowser }
+          = await import('../utils/agent-browser/installer')
         const installed = await checkAgentBrowserInstalled()
         const success = installed ? true : await installAgentBrowser()
 
@@ -1434,12 +1525,24 @@ export async function init(options: InitOptions = {}): Promise<void> {
           const { browserSkill } = await import('../utils/agent-browser/skill')
           addSkill(browserSkill)
           agentBrowserReady = true
-          console.log(ansis.green(`✔ ${isZh ? 'Agent Browser 已就绪，浏览器 Skill 已启用' : 'Agent Browser ready, browser skill enabled'}`))
-          console.log(ansis.gray(`  ${isZh ? '可直接使用:' : 'Use directly:'} ccjk browser start https://example.com`))
+          console.log(
+            ansis.green(
+              `✔ ${isZh ? 'Agent Browser 已就绪，浏览器 Skill 已启用' : 'Agent Browser ready, browser skill enabled'}`,
+            ),
+          )
+          console.log(
+            ansis.gray(
+              `  ${isZh ? '可直接使用:' : 'Use directly:'} ccjk browser start https://example.com`,
+            ),
+          )
         }
       }
       else {
-        console.log(ansis.yellow(isZh ? '⚠ 已跳过 Agent Browser 安装' : '⚠ Agent Browser installation skipped'))
+        console.log(
+          ansis.yellow(
+            isZh ? '⚠ 已跳过 Agent Browser 安装' : '⚠ Agent Browser installation skipped',
+          ),
+        )
       }
     }
     catch (error) {
@@ -1467,7 +1570,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
         language: configLang as SupportedLang,
         source: options.initSource,
       })
-      console.log(ansis.green(`✔ Workflow orchestration: ${finalOrchestrationLevel} (${policyPath})`))
+      console.log(
+        ansis.green(`✔ Workflow orchestration: ${finalOrchestrationLevel} (${policyPath})`),
+      )
     }
     catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
@@ -1487,9 +1592,12 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     // Step 12.1: Ask to import recommended environment variables and permissions (if not skip-prompt)
     if (!options.skipPrompt) {
-      const { importRecommendedEnv, importRecommendedPermissions } = await import('../utils/simple-config')
+      const { importRecommendedEnv, importRecommendedPermissions }
+        = await import('../utils/simple-config')
       const confirmImport = await promptBoolean({
-        message: i18n.t('configuration:recommendImportEnvPerm') || '导入 CCJK 推荐的环境变量和权限配置？（推荐，可减少权限弹窗）',
+        message:
+          i18n.t('configuration:recommendImportEnvPerm')
+          || '导入 CCJK 推荐的环境变量和权限配置？（推荐，可减少权限弹窗）',
         defaultValue: true,
       })
 
@@ -1506,10 +1614,14 @@ export async function init(options: InitOptions = {}): Promise<void> {
         // Import permissions
         try {
           await importRecommendedPermissions()
-          console.log(ansis.green(`✔ ${i18n.t('configuration:permissionsImportSuccess') || '权限配置已导入'}`))
+          console.log(
+            ansis.green(`✔ ${i18n.t('configuration:permissionsImportSuccess') || '权限配置已导入'}`),
+          )
         }
         catch (error) {
-          console.error(ansis.yellow(`⚠ ${i18n.t('configuration:permissionsImportFailed')}: ${error}`))
+          console.error(
+            ansis.yellow(`⚠ ${i18n.t('configuration:permissionsImportFailed')}: ${error}`),
+          )
         }
 
         console.log() // Add blank line
@@ -1520,42 +1632,120 @@ export async function init(options: InitOptions = {}): Promise<void> {
     if (!options.skipPrompt && !options.skipBanner)
       tracker.complete()
     console.log('')
-    console.log(ansis.bold.green('╔══════════════════════════════════════════════════════════════╗'))
-    console.log(ansis.bold.green('║') + ansis.bold.white(padToDisplayWidth(`  ${i18n.t('configuration:setupCompleteTitle')}`, 62)) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('╠══════════════════════════════════════════════════════════════╣'))
-    console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + ansis.green(padToDisplayWidth(`  ${i18n.t('configuration:nextSteps')}`, 62)) + ansis.bold.green('║'))
-    console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep1')}`, 62) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail')}`, 62)) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail2')}`, 62)) + ansis.bold.green('║'))
-    console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep2')}`, 62) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + ansis.green(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep2Example')}`, 62)) + ansis.bold.green('║'))
-    console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep3')} `, 44) + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep3Command'), 18)) + ansis.bold.green('║'))
-    console.log(ansis.bold.green('║') + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep4')} `, 44) + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep4Command'), 18)) + ansis.bold.green('║'))
-    console.log(`${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`)
-    console.log(ansis.bold.green('╚══════════════════════════════════════════════════════════════╝'))
+    console.log(
+      ansis.bold.green('╔══════════════════════════════════════════════════════════════╗'),
+    )
+    console.log(
+      ansis.bold.green('║')
+      + ansis.bold.white(padToDisplayWidth(`  ${i18n.t('configuration:setupCompleteTitle')}`, 62))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      ansis.bold.green('╠══════════════════════════════════════════════════════════════╣'),
+    )
+    console.log(
+      `${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`,
+    )
+    console.log(
+      ansis.bold.green('║')
+      + ansis.green(padToDisplayWidth(`  ${i18n.t('configuration:nextSteps')}`, 62))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      `${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`,
+    )
+    console.log(
+      ansis.bold.green('║')
+      + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep1')}`, 62)
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      ansis.bold.green('║')
+      + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail')}`, 62))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      ansis.bold.green('║')
+      + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail2')}`, 62))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      `${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`,
+    )
+    console.log(
+      ansis.bold.green('║')
+      + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep2')}`, 62)
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      ansis.bold.green('║')
+      + ansis.green(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep2Example')}`, 62))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      `${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`,
+    )
+    console.log(
+      ansis.bold.green('║')
+      + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep3')} `, 44)
+      + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep3Command'), 18))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      ansis.bold.green('║')
+      + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep4')} `, 44)
+      + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep4Command'), 18))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      `${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`,
+    )
+    console.log(
+      ansis.bold.green('╚══════════════════════════════════════════════════════════════╝'),
+    )
 
     if (isNewInstall || ['backup', 'merge', 'new'].includes(action)) {
       const isZh = i18n.language === 'zh-CN'
-      console.log(ansis.cyan(isZh ? '🧠 上下文优化已启用（默认）' : '🧠 Context optimization is enabled (default)'))
-      console.log(ansis.dim(isZh
-        ? '   建议立即运行: ccjk morning  查看健康分与收益摘要'
-        : '   Recommended now: ccjk morning  to view health score and value summary'))
-      console.log(ansis.dim(isZh
-        ? '   深度复盘: ccjk review  | 上下文详情: ccjk context --show'
-        : '   Deep review: ccjk review  | Context details: ccjk context --show'))
+      console.log(
+        ansis.cyan(
+          isZh ? '🧠 上下文优化已启用（默认）' : '🧠 Context optimization is enabled (default)',
+        ),
+      )
+      console.log(
+        ansis.dim(
+          isZh
+            ? '   建议立即运行: ccjk morning  查看健康分与收益摘要'
+            : '   Recommended now: ccjk morning  to view health score and value summary',
+        ),
+      )
+      console.log(
+        ansis.dim(
+          isZh
+            ? '   深度复盘: ccjk review  | 上下文详情: ccjk context --show'
+            : '   Deep review: ccjk review  | Context details: ccjk context --show',
+        ),
+      )
 
       if (agentBrowserReady) {
-        console.log(ansis.cyan(isZh ? '🌐 浏览器自动化已就绪（无缝）' : '🌐 Browser automation is ready (seamless)'))
-        console.log(ansis.dim(isZh
-          ? '   直接开始: ccjk browser start https://example.com'
-          : '   Start directly: ccjk browser start https://example.com'))
-        console.log(ansis.dim(isZh
-          ? '   常用操作: ccjk browser status  |  ccjk browser stop'
-          : '   Common actions: ccjk browser status  |  ccjk browser stop'))
+        console.log(
+          ansis.cyan(
+            isZh ? '🌐 浏览器自动化已就绪（无缝）' : '🌐 Browser automation is ready (seamless)',
+          ),
+        )
+        console.log(
+          ansis.dim(
+            isZh
+              ? '   直接开始: ccjk browser start https://example.com'
+              : '   Start directly: ccjk browser start https://example.com',
+          ),
+        )
+        console.log(
+          ansis.dim(
+            isZh
+              ? '   常用操作: ccjk browser status  |  ccjk browser stop'
+              : '   Common actions: ccjk browser status  |  ccjk browser stop',
+          ),
+        )
       }
     }
 
@@ -1574,7 +1764,10 @@ export async function init(options: InitOptions = {}): Promise<void> {
  * @param options - Command line options
  * @param codeToolType - Target code tool type
  */
-export async function handleMultiConfigurations(options: InitOptions, codeToolType: CodeToolType): Promise<void> {
+export async function handleMultiConfigurations(
+  options: InitOptions,
+  codeToolType: CodeToolType,
+): Promise<void> {
   const { ensureI18nInitialized } = await import('../i18n')
   ensureI18nInitialized()
 
@@ -1587,7 +1780,11 @@ export async function handleMultiConfigurations(options: InitOptions, codeToolTy
         configs = JSON.parse(options.apiConfigs) as ApiConfigDefinition[]
       }
       catch (error) {
-        throw new Error(i18n.t('multi-config:invalidJson', { error: error instanceof Error ? error.message : String(error) }))
+        throw new Error(
+          i18n.t('multi-config:invalidJson', {
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        )
       }
     }
 
@@ -1599,7 +1796,11 @@ export async function handleMultiConfigurations(options: InitOptions, codeToolTy
         configs = JSON.parse(fileContent) as ApiConfigDefinition[]
       }
       catch (error) {
-        throw new Error(i18n.t('multi-config:fileReadFailed', { error: error instanceof Error ? error.message : String(error) }))
+        throw new Error(
+          i18n.t('multi-config:fileReadFailed', {
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        )
       }
     }
 
@@ -1653,10 +1854,12 @@ export async function validateApiConfigs(configs: ApiConfigDefinition[]): Promis
 
     // Validate provider if specified
     if (config.provider && !validProviders.includes(config.provider)) {
-      throw new Error(i18n.t('errors:invalidProvider', {
-        provider: config.provider,
-        validProviders: validProviders.join(', '),
-      }))
+      throw new Error(
+        i18n.t('errors:invalidProvider', {
+          provider: config.provider,
+          validProviders: validProviders.join(', '),
+        }),
+      )
     }
 
     // Validate name is present (after auto-generation)
@@ -1699,12 +1902,13 @@ async function handleClaudeCodeConfigs(configs: ApiConfigDefinition[]): Promise<
     const result = await ClaudeCodeConfigManager.addProfile(profile)
 
     if (!result.success) {
-      throw new Error(i18n.t('multi-config:configProfileAddFailed', { name: config.name, error: result.error }))
+      throw new Error(
+        i18n.t('multi-config:configProfileAddFailed', { name: config.name, error: result.error }),
+      )
     }
 
-    const storedProfile = result.addedProfile
-      || ClaudeCodeConfigManager.getProfileByName(config.name!)
-      || profile
+    const storedProfile
+      = result.addedProfile || ClaudeCodeConfigManager.getProfileByName(config.name!) || profile
     addedProfiles.push(storedProfile)
 
     console.log(ansis.green(`✔ ${i18n.t('multi-config:profileAdded', { name: config.name })}`))
@@ -1720,12 +1924,15 @@ async function handleClaudeCodeConfigs(configs: ApiConfigDefinition[]): Promise<
   // Set default profile if specified
   const defaultConfig = configs.find(c => c.default)
   if (defaultConfig) {
-    const profile = addedProfiles.find(p => p.name === defaultConfig.name)
-      || ClaudeCodeConfigManager.getProfileByName(defaultConfig.name!)
+    const profile
+      = addedProfiles.find(p => p.name === defaultConfig.name)
+        || ClaudeCodeConfigManager.getProfileByName(defaultConfig.name!)
     if (profile && profile.id) {
       await ClaudeCodeConfigManager.switchProfile(profile.id)
       await ClaudeCodeConfigManager.applyProfileSettings(profile)
-      console.log(ansis.green(`✔ ${i18n.t('multi-config:defaultProfileSet', { name: defaultConfig.name })}`))
+      console.log(
+        ansis.green(`✔ ${i18n.t('multi-config:defaultProfileSet', { name: defaultConfig.name })}`),
+      )
     }
   }
 
@@ -1748,17 +1955,23 @@ async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promise<void>
       const result = await addProviderToExisting(provider, config.key || '')
 
       if (!result.success) {
-        throw new Error(i18n.t('multi-config:providerAddFailed', { name: config.name, error: result.error }))
+        throw new Error(
+          i18n.t('multi-config:providerAddFailed', { name: config.name, error: result.error }),
+        )
       }
 
       addedProviderIds.push(provider.id)
       console.log(ansis.green(`✔ ${i18n.t('multi-config:providerAdded', { name: config.name })}`))
     }
     catch (error) {
-      console.error(ansis.red(i18n.t('multi-config:providerAddFailed', {
-        name: config.name,
-        error: error instanceof Error ? error.message : String(error),
-      })))
+      console.error(
+        ansis.red(
+          i18n.t('multi-config:providerAddFailed', {
+            name: config.name,
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        ),
+      )
       throw error
     }
   }
@@ -1772,10 +1985,19 @@ async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promise<void>
     const providerId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-')
     if (addedProviderIds.includes(providerId)) {
       await switchCodexProvider(providerId)
-      console.log(ansis.green(`✔ ${i18n.t('multi-config:defaultProviderSet', { name: displayName })}`))
+      console.log(
+        ansis.green(`✔ ${i18n.t('multi-config:defaultProviderSet', { name: displayName })}`),
+      )
     }
     else {
-      console.log(ansis.red(i18n.t('multi-config:providerAddFailed', { name: displayName, error: 'provider not added' })))
+      console.log(
+        ansis.red(
+          i18n.t('multi-config:providerAddFailed', {
+            name: displayName,
+            error: 'provider not added',
+          }),
+        ),
+      )
     }
   }
 }
@@ -1808,7 +2030,12 @@ async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promise<void>
 async function saveSingleConfigToToml(
   apiConfig: { authType: 'api_key' | 'auth_token', key: string, url?: string },
   provider?: string,
-  options?: { apiModel?: string, apiHaikuModel?: string, apiSonnetModel?: string, apiOpusModel?: string },
+  options?: {
+    apiModel?: string
+    apiHaikuModel?: string
+    apiSonnetModel?: string
+    apiOpusModel?: string
+  },
 ): Promise<void> {
   try {
     const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
@@ -1816,20 +2043,29 @@ async function saveSingleConfigToToml(
     const result = await ClaudeCodeConfigManager.addProfile(profile)
 
     if (result.success) {
-      const savedProfile = result.addedProfile || ClaudeCodeConfigManager.getProfileByName(profile.name) || profile
+      const savedProfile
+        = result.addedProfile || ClaudeCodeConfigManager.getProfileByName(profile.name) || profile
       // Set as default and apply settings
       if (savedProfile.id) {
         await ClaudeCodeConfigManager.switchProfile(savedProfile.id)
         await ClaudeCodeConfigManager.applyProfileSettings(savedProfile)
       }
-      console.log(ansis.green(`✔ ${i18n.t('configuration:singleConfigSaved', { name: profile.name })}`))
+      console.log(
+        ansis.green(`✔ ${i18n.t('configuration:singleConfigSaved', { name: profile.name })}`),
+      )
     }
     else {
-      console.warn(ansis.yellow(`${i18n.t('configuration:singleConfigSaveFailed')}: ${result.error}`))
+      console.warn(
+        ansis.yellow(`${i18n.t('configuration:singleConfigSaveFailed')}: ${result.error}`),
+      )
     }
   }
   catch (error) {
-    console.warn(ansis.yellow(`${i18n.t('configuration:singleConfigSaveFailed')}: ${error instanceof Error ? error.message : String(error)}`))
+    console.warn(
+      ansis.yellow(
+        `${i18n.t('configuration:singleConfigSaveFailed')}: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    )
   }
 }
 
@@ -1846,7 +2082,14 @@ async function buildClaudeCodeProfile(params: {
 }): Promise<ClaudeCodeProfile> {
   const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
 
-  let { url: baseUrl, authType, primaryModel, defaultHaikuModel, defaultSonnetModel, defaultOpusModel } = params
+  let {
+    url: baseUrl,
+    authType,
+    primaryModel,
+    defaultHaikuModel,
+    defaultSonnetModel,
+    defaultOpusModel,
+  } = params
   baseUrl = baseUrl || API_DEFAULT_URL
 
   if (params.provider && params.provider !== 'custom') {
@@ -1875,7 +2118,12 @@ async function buildClaudeCodeProfile(params: {
 async function convertSingleConfigToProfile(
   apiConfig: { authType: 'api_key' | 'auth_token', key: string, url?: string },
   provider?: string,
-  options?: { apiModel?: string, apiHaikuModel?: string, apiSonnetModel?: string, apiOpusModel?: string },
+  options?: {
+    apiModel?: string
+    apiHaikuModel?: string
+    apiSonnetModel?: string
+    apiOpusModel?: string
+  },
 ): Promise<ClaudeCodeProfile> {
   return buildClaudeCodeProfile({
     name: provider && provider !== 'custom' ? provider : 'custom-config',
@@ -1986,7 +2234,14 @@ export async function smartInit(options: InitOptions = {}): Promise<void> {
     console.log('')
 
     console.log(ansis.cyan('💡 Reasoning:'))
-    console.log(ansis.gray(selection.reasoning.split('\n').map(line => `  ${line}`).join('\n')))
+    console.log(
+      ansis.gray(
+        selection.reasoning
+          .split('\n')
+          .map(line => `  ${line}`)
+          .join('\n'),
+      ),
+    )
     console.log('')
 
     // Step 3: Confirm with user (unless skip-prompt or --yes)
@@ -2043,7 +2298,10 @@ export async function smartInit(options: InitOptions = {}): Promise<void> {
     console.log('')
   }
   catch (error) {
-    console.error(ansis.red('❌ Smart initialization failed:'), error instanceof Error ? error.message : error)
+    console.error(
+      ansis.red('❌ Smart initialization failed:'),
+      error instanceof Error ? error.message : error,
+    )
     throw error
   }
 }

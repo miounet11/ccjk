@@ -1,21 +1,155 @@
+import type { SupportedLang } from '../constants'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-/**
- * New User Onboarding Wizard
- * 3-step guided setup for first-time users
- */
 import ansis from 'ansis'
+import inquirer from 'inquirer'
 import { join } from 'pathe'
-import { CCJK_CONFIG_DIR } from '../constants'
-import { runHealthCheck } from '../health'
-import { i18n } from '../i18n'
+import {
+  CCJK_CONFIG_DIR,
+  DEFAULT_CODE_TOOL_TYPE,
+  LANG_LABELS,
+  SUPPORTED_LANGS,
+} from '../constants'
+import { changeLanguage } from '../i18n'
+import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
+import { addNumbersToChoices } from '../utils/prompt-helpers'
+import { getRuntimeVersion } from '../utils/runtime-package'
 
 const ONBOARDING_STATE_FILE = join(CCJK_CONFIG_DIR, 'onboarding.json')
+const PRIMARY_ONBOARDING_TOOLS = ['claude-code', 'codex'] as const
+
+type OnboardingCodeTool = (typeof PRIMARY_ONBOARDING_TOOLS)[number]
+
+const LANGUAGE_SELECTION_MESSAGES = {
+  selectLanguage: 'Select CCJK display language / 选择 CCJK 显示语言',
+} as const
+
+const TOOL_LABELS: Record<OnboardingCodeTool, { en: string, zh: string }> = {
+  'claude-code': {
+    en: 'Claude Code',
+    zh: 'Claude Code',
+  },
+  'codex': {
+    en: 'Codex',
+    zh: 'Codex',
+  },
+}
 
 export interface OnboardingState {
   completed: boolean
   completedAt: string
-  completedSteps?: number[] // which steps finished (1, 2, 3)
-  version?: string // ccjk version when onboarding ran
+  completedSteps?: number[]
+  version?: string
+}
+
+interface OnboardingOptions {
+  reset?: boolean
+  preferredCodeTool?: string
+}
+
+function isSupportedLang(value: unknown): value is SupportedLang {
+  return SUPPORTED_LANGS.includes(value as SupportedLang)
+}
+
+function isPrimaryOnboardingTool(value: unknown): value is OnboardingCodeTool {
+  return PRIMARY_ONBOARDING_TOOLS.includes(value as OnboardingCodeTool)
+}
+
+function resolveOnboardingCodeTool(value?: unknown): OnboardingCodeTool {
+  if (isPrimaryOnboardingTool(value)) {
+    return value
+  }
+
+  return DEFAULT_CODE_TOOL_TYPE === 'codex' ? 'codex' : 'claude-code'
+}
+
+function getToolLabel(tool: OnboardingCodeTool, lang: SupportedLang): string {
+  return lang === 'zh-CN' ? TOOL_LABELS[tool].zh : TOOL_LABELS[tool].en
+}
+
+function getLanguageLabel(lang: SupportedLang): string {
+  return LANG_LABELS[lang]
+}
+
+function readSavedLanguage(): SupportedLang | null {
+  const savedConfig = readZcfConfig()
+  return isSupportedLang(savedConfig?.preferredLang) ? savedConfig.preferredLang : null
+}
+
+async function ensureOnboardingLanguageSelection(force = false): Promise<SupportedLang> {
+  const savedConfig = readZcfConfig()
+  const savedLanguage = readSavedLanguage()
+  const defaultLanguage = savedLanguage || 'en'
+
+  if (savedLanguage && !force) {
+    await changeLanguage(savedLanguage)
+    return savedLanguage
+  }
+
+  const { lang } = await inquirer.prompt<{ lang: SupportedLang }>({
+    type: 'list',
+    name: 'lang',
+    message: LANGUAGE_SELECTION_MESSAGES.selectLanguage,
+    choices: addNumbersToChoices(SUPPORTED_LANGS.map(language => ({
+      name: LANG_LABELS[language],
+      value: language,
+    }))),
+    default: SUPPORTED_LANGS.indexOf(defaultLanguage),
+  })
+
+  const selectedLanguage = isSupportedLang(lang) ? lang : defaultLanguage
+
+  updateZcfConfig({
+    version: getRuntimeVersion(),
+    preferredLang: selectedLanguage,
+    templateLang: savedConfig?.templateLang || selectedLanguage,
+  })
+  await changeLanguage(selectedLanguage)
+
+  return selectedLanguage
+}
+
+async function selectOnboardingCodeTool(
+  lang: SupportedLang,
+  options: OnboardingOptions = {},
+): Promise<OnboardingCodeTool> {
+  const savedConfig = readZcfConfig()
+  const preferredTool = resolveOnboardingCodeTool(options.preferredCodeTool)
+  const defaultTool = resolveOnboardingCodeTool(savedConfig?.codeToolType || preferredTool)
+
+  if (options.preferredCodeTool && isPrimaryOnboardingTool(options.preferredCodeTool)) {
+    updateZcfConfig({
+      version: getRuntimeVersion(),
+      codeToolType: options.preferredCodeTool,
+    })
+    return options.preferredCodeTool
+  }
+
+  const isZh = lang === 'zh-CN'
+  const { tool } = await inquirer.prompt<{ tool: OnboardingCodeTool }>({
+    type: 'list',
+    name: 'tool',
+    message: isZh ? '选择代码工具' : 'Choose your code tool',
+    choices: addNumbersToChoices([
+      {
+        name: `${getToolLabel('claude-code', lang)} - ${isZh ? '完整 CCJK 控制中心，默认推荐' : 'Full CCJK control center, default choice'}`,
+        value: 'claude-code',
+      },
+      {
+        name: `${getToolLabel('codex', lang)} - ${isZh ? 'Codex 专属控制中心、Provider / MCP / Memory 配置' : 'Codex-specific control center for provider, MCP, and memory setup'}`,
+        value: 'codex',
+      },
+    ]),
+    default: PRIMARY_ONBOARDING_TOOLS.indexOf(defaultTool),
+  })
+
+  const selectedTool = resolveOnboardingCodeTool(tool)
+
+  updateZcfConfig({
+    version: getRuntimeVersion(),
+    codeToolType: selectedTool,
+  })
+
+  return selectedTool
 }
 
 export function readOnboardingState(): OnboardingState | null {
@@ -46,110 +180,49 @@ export function isOnboardingCompleted(): boolean {
   return state?.completed === true
 }
 
-/**
- * Run the 3-step onboarding wizard.
- * Pass reset=true to re-run even if already completed.
- */
-export async function runOnboardingWizard(options: { reset?: boolean } = {}): Promise<void> {
-  if (options.reset) {
-    // Clear state so wizard runs fresh
-    try { writeOnboardingState({ completed: false, completedAt: '', completedSteps: [] }) }
-    catch {}
+export async function runOnboardingWizard(options: OnboardingOptions = {}): Promise<void> {
+  if (isOnboardingCompleted() && !options.reset) {
+    return
   }
 
-  const existingState = readOnboardingState()
-  const completedSteps = new Set(existingState?.completedSteps ?? [])
-  const isZh = i18n.language === 'zh-CN'
+  if (options.reset) {
+    writeOnboardingState({ completed: false, completedAt: '', completedSteps: [] })
+  }
+
+  const selectedLanguage = await ensureOnboardingLanguageSelection(options.reset === true)
+  const isZh = selectedLanguage === 'zh-CN'
 
   console.log('')
   console.log(ansis.bold.yellow(isZh ? '🎉 欢迎使用 CCJK！' : '🎉 Welcome to CCJK!'))
   console.log(ansis.dim(isZh
-    ? '   让我们用 3 步完成初始化配置'
-    : '   Let\'s get you set up in 3 steps'))
+    ? '   先确认语言和代码工具，再进入对应控制中心。'
+    : '   Confirm language and code tool first, then enter the matching control center.'))
   console.log('')
 
-  // Step 1: Environment detection
-  const step1Done = completedSteps.has(1)
-  console.log(ansis.bold(`${isZh ? '步骤 1/3' : 'Step 1/3'}: ${isZh ? '环境检测' : 'Environment Detection'}${step1Done ? ansis.green(' ✔') : ''}`))
-  if (!step1Done) {
-    try {
-      const { detectSmartDefaults } = await import('../config/smart-defaults')
-      const defaults = await detectSmartDefaults()
-      if (defaults) {
-        console.log(ansis.green(`  ✔ ${isZh ? '检测到' : 'Detected'}: ${defaults.codeToolType || 'claude-code'}`))
-        if (defaults.mcpServices?.length) {
-          console.log(ansis.dim(`  ${isZh ? '推荐 MCP 服务' : 'Recommended MCP'}: ${defaults.mcpServices.slice(0, 3).join(', ')}`))
-        }
-      }
-      else {
-        console.log(ansis.dim(`  ${isZh ? '使用默认配置' : 'Using default configuration'}`))
-      }
-      completedSteps.add(1)
-    }
-    catch {
-      console.log(ansis.dim(`  ${isZh ? '环境检测跳过' : 'Environment detection skipped'}`))
-    }
-  }
-  else {
-    console.log(ansis.dim(`  ${isZh ? '已完成，跳过' : 'Already done, skipping'}`))
-  }
+  console.log(ansis.bold(`${isZh ? '步骤 1/2' : 'Step 1/2'}: ${isZh ? '显示语言' : 'Display language'}`))
+  console.log(ansis.green(`  ✔ ${getLanguageLabel(selectedLanguage)}`))
   console.log('')
 
-  // Step 2: API setup
-  const step2Done = completedSteps.has(2)
-  console.log(ansis.bold(`${isZh ? '步骤 2/3' : 'Step 2/3'}: ${isZh ? 'API 配置' : 'API Configuration'}${step2Done ? ansis.green(' ✔') : ''}`))
-  if (!step2Done) {
-    try {
-      const { getExistingApiConfig } = await import('../utils/config')
-      const existing = getExistingApiConfig()
-      if (existing?.key || existing?.url) {
-        console.log(ansis.green(`  ✔ ${isZh ? '已配置' : 'Already configured'}`))
-        completedSteps.add(2)
-      }
-      else {
-        const { configureApiFeature } = await import('../utils/features')
-        await configureApiFeature()
-        completedSteps.add(2)
-      }
-    }
-    catch {
-      console.log(ansis.yellow(`  ${isZh ? '⚠ API 配置跳过，稍后可通过菜单配置' : '⚠ API setup skipped, configure later via menu'}`))
-    }
-  }
-  else {
-    console.log(ansis.dim(`  ${isZh ? '已完成，跳过' : 'Already done, skipping'}`))
-  }
+  console.log(ansis.bold(`${isZh ? '步骤 2/2' : 'Step 2/2'}: ${isZh ? '代码工具' : 'Code tool'}`))
+  const selectedTool = await selectOnboardingCodeTool(selectedLanguage, options)
+  console.log(ansis.green(`  ✔ ${getToolLabel(selectedTool, selectedLanguage)}`))
   console.log('')
 
-  // Step 3: Health check
-  console.log(ansis.bold(`${isZh ? '步骤 3/3' : 'Step 3/3'}: ${isZh ? '环境验证' : 'Verification'}`))
-  try {
-    const health = await runHealthCheck()
-    const passCount = health.results.filter(r => r.status === 'pass').length
-    const total = health.results.length
-    const scoreColor = health.totalScore >= 75 ? ansis.green : health.totalScore >= 50 ? ansis.yellow : ansis.red
-    console.log(scoreColor(`  ✔ ${isZh ? '健康分' : 'Health score'}: ${health.totalScore}/100 (${passCount}/${total} ${isZh ? '通过' : 'passed'})`))
-    if (health.recommendations.length > 0) {
-      const top = health.recommendations[0]
-      console.log(ansis.dim(`  ${isZh ? '建议' : 'Tip'}: ${top.title}`))
-      if (top.command) {
-        console.log(ansis.dim(`    → ${top.command}`))
-      }
-    }
-  }
-  catch {
-    console.log(ansis.dim(`  ${isZh ? '验证跳过' : 'Verification skipped'}`))
-  }
-  console.log('')
-
-  completedSteps.add(3)
-  // Mark complete
   writeOnboardingState({
     completed: true,
     completedAt: new Date().toISOString(),
-    completedSteps: Array.from(completedSteps),
+    completedSteps: [1, 2],
+    version: getRuntimeVersion(),
   })
 
-  console.log(ansis.bold.green(isZh ? '✅ 初始化完成！进入主菜单...' : '✅ Setup complete! Loading main menu...'))
+  console.log(
+    ansis.bold.green(
+      isZh
+        ? `✅ 正在进入 ${getToolLabel(selectedTool, selectedLanguage)} 控制中心...`
+        : `✅ Loading ${getToolLabel(selectedTool, selectedLanguage)} control center...`,
+    ),
+  )
   console.log('')
 }
+
+export type { OnboardingCodeTool }

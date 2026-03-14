@@ -4,30 +4,25 @@ title: 快速开始
 
 # 快速开始
 
-本章介绍如何在几分钟内通过 CCJK 初始化环境，涵盖安装前准备、常见命令与推荐操作顺序。
+这里给出 CCJK 当前推荐的默认 onboarding 路径。
 
-## 快速导航
+## 推荐顺序
 
-如果你首次接触 CCJK，建议按照以下步骤操作：
+1. 先运行 `npx ccjk`，走引导式 onboarding。
+2. 需要 CI 或脚本时，再用 `npx ccjk init --silent`。
+3. 安装完成后运行 `npx ccjk boost` 做一次环境优化。
+4. 用 `npx ccjk zc --preset dev` 应用权限预设。
+5. 只有在需要浏览器或移动端远程接入时，再执行 `npx ccjk remote setup`。
 
-1. **查看 [使用指南](installation.md)** - 了解系统要求、使用方式、交互式与非交互式初始化流程，以及完整的配置步骤
-2. **熟悉核心功能** - 查看 [功能特性](../features/) 了解 Claude Code、Codex、MCP 服务、CCR 代理等核心能力
-3. **掌握 CLI 命令** - 参考 [CLI 命令](../cli/) 学习各种命令的使用方法
+## 为什么推荐这条路径
 
-## 推荐操作流程
+- 它和当前 README、npm 叙事一致。
+- 它把 `npx ccjk` 作为首次使用的主入口。
+- 它把 `init --silent` 明确为自动化路径，而不是默认新手路径。
+- 它更早暴露 capability discovery 和 permission presets。
 
-### 首次使用
+## 继续阅读
 
-1. 运行 `npx ccjk` 或 `npx ccjk init` 进行完整初始化
-2. 选择代码工具类型（Claude Code 或 Codex）
-3. 配置 API 密钥或使用 API 提供商预设
-4. 选择需要安装的 MCP 服务
-5. 选择工作流模板和输出风格
-
-### 已有环境
-
-- 运行 `npx ccjk update` 更新工作流和模板
-- 使用 `npx ccjk` 打开交互式菜单进行增量配置
-- 通过 `npx ccjk config-switch` 切换不同的配置
-
-> 💡 **提示**：在操作过程中，如需了解特定功能，请随时跳转到对应的功能章节或 CLI 命令文档。
+- [安装指南](installation.md)
+- [CLI 概览](../cli/index.md)
+- [功能特性](../features/index.md)

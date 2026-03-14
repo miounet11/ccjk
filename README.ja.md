@@ -2,22 +2,13 @@
 
 # CCJK
 
-### Claude Code のパワーアップツール
+### Claude Code・Codex・現代的な AI コーディングワークフロー向けの production-ready AI 開発環境
 
-30-50% トークン削減 · ゼロ設定 · ワンコマンド
-
-<br/>
-
-<!-- TODO: 実際のデモGIFに置き換え -->
-<img src="https://raw.githubusercontent.com/miounet11/ccjk/main/assets/demo.gif" alt="CCJK デモ" width="600" />
-
-<br/>
+**30 秒 onboarding · 永続メモリ · Agent Teams · リモートコントロール**
 
 ```bash
 npx ccjk
 ```
-
-<br/>
 
 [![npm](https://img.shields.io/npm/v/ccjk?style=flat-square&color=cb3837)](https://www.npmjs.com/package/ccjk)
 [![downloads](https://img.shields.io/npm/dm/ccjk?style=flat-square&color=cb3837)](https://www.npmjs.com/package/ccjk)
@@ -29,97 +20,48 @@ npx ccjk
 
 ---
 
-## CCJK とは？
+## CCJK の現在の主張
 
-CCJK は [Claude Code](https://github.com/anthropics/claude-code) を強化します：
+- **30 秒 onboarding**：Claude Code、Codex、MCP、ブラウザ自動化をすばやく利用可能にする
+- **永続メモリ**：セッションをまたいでプロジェクト文脈を保持する
+- **Agent Teams**：大きな作業を並列で進められる
+- **リモートコントロール**：ブラウザやモバイルから接続できる
+- **Capability Discovery + Presets**：推奨能力と権限プリセットを見つけやすい
 
-- **🧠 永続メモリ** — AI がセッション間でコードベースを記憶
-- **⚡ 30-50% トークン削減** — スマートコンテキスト圧縮
-- **🔧 ゼロ設定** — プロジェクトタイプを自動検出、ワンコマンドで設定
-- **☁️ クラウド同期** — デバイス間・チーム間で設定を共有
-
-## クイックスタート
+## 推奨パス
 
 ```bash
-# プロジェクトディレクトリで実行
+# ガイド付きセットアップ
 npx ccjk
 
-# 完了。Claude Code がパワーアップしました。
+# CI / 自動化
+export ANTHROPIC_API_KEY="sk-ant-..."
+npx ccjk init --silent
+
+# 導入後の最適化
+npx ccjk boost
+npx ccjk zc --preset dev
 ```
 
-## なぜ CCJK？
-
-| CCJK なし | CCJK あり |
-|:----------|:----------|
-| 毎回プロジェクトコンテキストを繰り返す | AI がすべてを記憶 |
-| 60分以上の手動設定 | 30秒、ワンコマンド |
-| 高いトークンコスト | 30-50% 削減 |
-| 単一デバイスの設定 | 全デバイスでクラウド同期 |
-
-## 主要機能
-
-<details>
-<summary><b>🧠 スマートスキルシステム</b></summary>
-
-ワークフローに基づいて自動アクティベート：
-- コードレビュー — 本番前にバグをキャッチ
-- セキュリティ監査 — OWASP Top 10 スキャン
-- パフォーマンス分析 — ボトルネックを特定
-- ドキュメント生成 — コードから自動生成
-
-</details>
-
-<details>
-<summary><b>☁️ クラウド同期</b></summary>
-
-どこでも設定を同期：
-- GitHub Gist（無料）
-- WebDAV（セルフホスト）
-- S3（エンタープライズ）
+任意の次ステップ：
 
 ```bash
-npx ccjk cloud enable --provider github-gist
-```
-
-</details>
-
-<details>
-<summary><b>🔌 エコシステム統合</b></summary>
-
-ひとつのツールキット、統一された体験：
-- **CCR** — マルチプロバイダールーティング
-- **CCUsage** — 使用量分析
-- **MCP マーケット** — プラグインマーケットプレイス
-
-</details>
-
-## コマンド
-
-```bash
-npx ccjk           # インタラクティブセットアップ
-npx ccjk i         # フル初期化
-npx ccjk u         # ワークフロー更新
-npx ccjk sync      # クラウド同期
-npx ccjk doctor    # ヘルスチェック
+npx ccjk remote setup
+npx ccjk doctor
+npx ccjk mcp list
 ```
 
 ## ドキュメント
 
-完全なドキュメントは [docs/README.md](./docs/README.md) をご覧ください。
+- メイン README: [README.md](./README.md)
+- ドキュメントハブ: [docs/README.md](./docs/README.md)
+- 日本語ドキュメント入口: [docs/ja-JP/index.md](./docs/ja-JP/index.md)
 
 ## コミュニティ
 
-- [Telegram](https://t.me/ccjk_community) — チャット
-- [Issues](https://github.com/miounet11/ccjk/issues) — バグ報告・機能リクエスト
+- [Telegram](https://t.me/ccjk_community)
+- [GitHub Issues](https://github.com/miounet11/ccjk/issues)
 
 ## ライセンス
 
 MIT © [CCJK Contributors](https://github.com/miounet11/ccjk/graphs/contributors)
-
----
-
-<div align="center">
-
-**CCJK が役に立ったら、⭐ をお願いします**
-
-</div>

@@ -83,7 +83,7 @@ const COMMANDS: CommandDefinition[] = [
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
     ],
     loader: async () => {
-      const { showMainMenu } = await import('./commands/menu')
+      const { showMainMenu } = await import('./commands/menu/index')
       return async (options) => {
         await showMainMenu({ codeType: options.codeType as string })
       }

@@ -104,6 +104,7 @@ git checkout -b fix/your-bug-fix
 ```
 
 **Branch Naming Conventions**:
+
 - `feat/` - New features
 - `fix/` - Bug fixes
 - `docs/` - Documentation updates
@@ -163,7 +164,7 @@ git push origin feat/your-feature-name
 
 1. Visit your fork on GitHub
 2. Click "New Pull Request"
-3. Select `UfoMiao/ccjk:main` as target branch
+3. Select `miounet11/ccjk:main` as target branch
 4. Fill in PR description (use template)
 5. Wait for code review
 
@@ -181,29 +182,30 @@ git push origin feat/your-feature-name
 
 ```typescript
 // ✅ Good example
-import type { Config } from '../types/config'
-import { readConfig } from '../utils/config'
+import type { Config } from '../types/config';
+import { readConfig } from '../utils/config';
 
 export async function processConfig(): Promise<Config | null> {
-  const config = await readConfig()
-  return config
+  const config = await readConfig();
+  return config;
 }
 
 // ❌ Avoid
-import {Config} from "../types/config"; // Using double quotes and semicolons
+import { Config } from '../types/config'; // Using double quotes and semicolons
 const config = await readConfig(); // Avoid unnecessary await
 ```
 
 ### Export Standards
 
 - **Prefer named exports**:
+
   ```typescript
   // ✅ Recommended
   export function processData() {}
-  export const CONSTANT = 'value'
-  
+  export const CONSTANT = 'value';
+
   // ❌ Avoid
-  export default function() {}
+  export default function () {}
   ```
 
 - **Avoid side effects**: Modules should only contain definitions, avoid executing code at module top level
@@ -211,22 +213,24 @@ const config = await readConfig(); // Avoid unnecessary await
 ### String Handling
 
 - **Use i18n**: All user-visible strings should go through i18n system
+
   ```typescript
   // ✅ Recommended
-  console.log(i18n.t('common:success'))
-  
+  console.log(i18n.t('common:success'));
+
   // ❌ Avoid hardcoding
-  console.log('Success')
+  console.log('Success');
   ```
 
 - **Use constants**: Configuration values should be defined as constants
+
   ```typescript
   // ✅ Recommended
-  const DEFAULT_PORT = 3456
-  const API_TIMEOUT = 60000
-  
+  const DEFAULT_PORT = 3456;
+  const API_TIMEOUT = 60000;
+
   // ❌ Avoid magic numbers
-  const port = 3456
+  const port = 3456;
   ```
 
 ### Error Handling
@@ -234,11 +238,10 @@ const config = await readConfig(); // Avoid unnecessary await
 - **Use type-safe error handling**:
   ```typescript
   try {
-    await operation()
-  }
-  catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.error(message)
+    await operation();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
   }
   ```
 
@@ -302,6 +305,7 @@ feat(config): add multi-config support
 
 ```markdown
 ## Change Type
+
 - [ ] New Feature
 - [ ] Bug Fix
 - [ ] Documentation Update
@@ -309,15 +313,19 @@ feat(config): add multi-config support
 - [ ] Other (please specify)
 
 ## Change Description
+
 Briefly describe the changes in this PR...
 
 ## Related Issue
+
 Closes #123
 
 ## Testing Instructions
+
 Describe how to verify these changes...
 
 ## Checklist
+
 - [ ] Code follows project standards
 - [ ] Added necessary tests
 - [ ] All tests pass
@@ -353,6 +361,7 @@ gitbook/zh-CN/
 ```
 
 **When updating documentation**:
+
 1. Synchronously update Chinese and English documentation
 2. Keep documentation structure consistent
 3. Check grammar and format
@@ -458,5 +467,3 @@ git rebase -i upstream/main
 - **Documentation**: Check project documentation for more information
 
 Thank you for your contributions! 🎉
-
-

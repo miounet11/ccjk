@@ -1,6 +1,6 @@
 # @ccjk/server
 
-Cloud backend for CCJK remote control.
+Backend service for CCJK remote control.
 
 ## Features
 

@@ -124,6 +124,42 @@
   "presetPrompt": "Select a Codex preset bundle",
   "presetApplied": "✔ Codex preset applied: {{preset}}",
   "presetSummary": "Workflows {{workflows}} · MCP {{services}}",
+  "efficiency": {
+    "prompt": "Select a Codex efficiency action",
+    "notConfigured": "Not configured",
+    "quickOptimizeModelApplied": "✔ Recommended Codex model applied: {{model}}",
+    "quickOptimizeModelKept": "Keeping current Codex model: {{model}}",
+    "styleLabels": {
+      "seniorArchitect": "Senior Architect",
+      "speedCoder": "Speed Coder",
+      "pairProgrammer": "Pair Programmer"
+    },
+    "actions": {
+      "quickOptimize": {
+        "name": "Quick Optimize",
+        "description": "Apply the recommended Codex bundle and fill missing defaults"
+      },
+      "presetBundles": {
+        "name": "Preset Bundles",
+        "description": "Choose minimal, dev, or full workflow bundles"
+      },
+      "model": {
+        "name": "Default Model",
+        "description": "Current: {{model}}"
+      },
+      "docsMcp": {
+        "name": "Docs MCP",
+        "description": "Review or install Codex MCP services (current: {{count}})"
+      },
+      "promptMemory": {
+        "name": "Prompt & Memory",
+        "description": "Prompt: {{prompt}} · Language: {{language}}"
+      },
+      "back": {
+        "name": "Back"
+      }
+    }
+  },
   "presets": {
     "minimal": {
       "name": "Minimal",

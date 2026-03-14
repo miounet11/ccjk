@@ -2,9 +2,9 @@
 
 # 🚀 CCJK
 
-### Turn Claude Code into a production-ready AI dev environment
+### Production-ready AI dev environment for Claude Code, Codex, and modern coding workflows
 
-**One command setup · Persistent memory · MCP automation · Cloud sync**
+**30-second onboarding · Persistent memory · Agent Teams · Remote control**
 
 <br/>
 
@@ -30,13 +30,14 @@ npx ccjk
 
 - **30-second onboarding** for Claude Code, Codex, MCP services, and browser automation
 - **Persistent project memory** so your AI stops forgetting architecture and conventions
+- **Capability discovery + presets** so recommended tools and permission profiles are easier to apply
 - **Smarter model + context usage** to cut waste and keep long sessions usable
 - **Cloud sync and remote control** so your setup follows you across devices
 - **Production-ready defaults** with hardened config, validation, and safer automation
 
 ## 💡 What is CCJK?
 
-The **missing toolkit** for [Claude Code](https://github.com/anthropics/claude-code) that developers actually want:
+The production layer on top of [Claude Code](https://github.com/anthropics/claude-code), Codex, and the rest of your AI coding workflow:
 
 ```diff
 - Manually configure Claude Code for 60+ minutes
@@ -53,32 +54,37 @@ The **missing toolkit** for [Claude Code](https://github.com/anthropics/claude-c
 ## ⚡ Quick Start
 
 ```bash
-# Interactive setup (recommended for first-time users)
+# Guided onboarding (recommended)
 npx ccjk
 
-# Silent mode (for CI/CD or automated setups)
+# Non-interactive onboarding (CI / automation)
 export ANTHROPIC_API_KEY="sk-ant-..."
 npx ccjk init --silent
 
-# Done. Claude Code is now 10x smarter.
+# Harden and personalize the environment
+npx ccjk boost
+npx ccjk zc --preset dev
 ```
 
 ```bash
-# Popular one-liners
-npx ccjk init --silent
-npx ccjk boost
+# Optional next steps
+npx ccjk remote setup
+npx ccjk mcp list
 npx ccjk browser open https://example.com --headed
 ```
 
 **What just happened?**
+
 - ✅ Auto-detected your project type (React/Vue/Node/Python/Go/Rust/etc)
 - ✅ Configured optimal MCP services for your stack
+- ✅ Surfaced capability discovery hints and preset-friendly defaults
 - ✅ Set up persistent memory (AI remembers your codebase)
 - ✅ Enabled smart context compression (30-50% token reduction)
 - ✅ Installed Agent Browser for seamless browser tasks
 - ✅ Ready for cloud sync (optional)
 
 **Before CCJK:**
+
 ```
 ❌ 60+ minutes manual configuration
 ❌ Repeat context every conversation
@@ -90,6 +96,7 @@ npx ccjk browser open https://example.com --headed
 ```
 
 **After CCJK:**
+
 ```
 ✅ 30 seconds one-command setup
 ✅ AI remembers everything
@@ -102,15 +109,16 @@ npx ccjk browser open https://example.com --headed
 
 ## 🎯 Why Developers Love CCJK
 
-| Problem | CCJK Solution | Impact |
-|:--------|:--------------|:-------|
-| 😫 "Claude forgot my project structure" | 🧠 **Persistent Memory** | AI remembers everything across sessions |
-| 💸 "My API bills are insane" | ⚡ **Smart Compression** | 30-50% token reduction |
-| ⏰ "Setup takes forever" | 🔧 **Minimal Config** | 30 seconds, one command |
-| 🔄 "Lost my configs again" | ☁️ **Cloud Sync** | GitHub Gist / WebDAV / S3 |
-| 🤖 "Need multiple AI agents" | 🎭 **Agent Teams** | One-click parallel execution |
-| 📱 "Can't control Claude from my phone" | 🌐 **Remote Control** | Web/App control with one-command setup |
-| 🔐 "Worried about production security" | 🛡️ **Production-Grade Security** | HTTPS enforcement, CORS hardening, secrets validation |
+| Problem                                 | CCJK Solution                         | Impact                                                |
+| :-------------------------------------- | :------------------------------------ | :---------------------------------------------------- |
+| 😫 "Claude forgot my project structure" | 🧠 **Persistent Memory**              | AI remembers everything across sessions               |
+| 💸 "My API bills are insane"            | ⚡ **Smart Compression**              | 30-50% token reduction                                |
+| ⏰ "Setup takes forever"                | 🔧 **Minimal Config**                 | 30 seconds, one command                               |
+| 🧭 "I don't know what to enable"        | 🧩 **Capability Discovery + Presets** | Recommended services and permission profiles          |
+| 🔄 "Lost my configs again"              | ☁️ **Cloud Sync**                     | GitHub Gist / WebDAV / S3                             |
+| 🤖 "Need multiple AI agents"            | 🎭 **Agent Teams**                    | One-click parallel execution                          |
+| 📱 "Can't control Claude from my phone" | 🌐 **Remote Control**                 | Web/App control with one-command setup                |
+| 🔐 "Worried about production security"  | 🛡️ **Production-Grade Security**      | HTTPS enforcement, CORS hardening, secrets validation |
 
 ## 🏆 Built For Real Work
 
@@ -122,27 +130,35 @@ npx ccjk browser open https://example.com --headed
 ## 🔥 Features That Matter
 
 ### 🧠 Persistent Memory
+
 Manage Claude Code memory and project notes from the CLI.
+
 ```bash
 ccjk memory
 ccjk memory --edit
 ```
 
 ### 🤖 Agent Teams (NEW)
+
 Parallel AI execution for complex tasks.
+
 ```bash
 ccjk agent-teams --on
 # One agent writes code, another writes tests, simultaneously
 ```
 
 ### ⚡ Smart Context Compression
+
 Automatic conversation cleanup before hitting token limits.
+
 - 30-50% token reduction (rule-based) or 40-60% (LLM-based)
 - Zero manual intervention
 - Preserves critical context
 
 ### ☁️ Cloud Sync
+
 Your configs follow you everywhere.
+
 ```bash
 ccjk cloud enable --provider github-gist  # Free
 ccjk cloud enable --provider webdav       # Self-hosted
@@ -150,21 +166,27 @@ ccjk cloud enable --provider s3           # Enterprise
 ```
 
 ### 🎯 Smart Skills
+
 Auto-activated based on your workflow:
+
 - **Code Review** — Catch bugs before production
 - **Security Audit** — OWASP Top 10 scanning
 - **Performance** — Identify bottlenecks
 - **Docs** — Auto-generate from code
 
 ### 🔌 MCP Marketplace
+
 One-click install for 50+ MCP services:
+
 ```bash
 ccjk mcp install filesystem puppeteer postgres
 # Done. No manual config.
 ```
 
 ### 🌐 Browser Automation (Out of the Box)
+
 Use browser skills directly after install:
+
 ```bash
 ccjk browser start https://example.com
 ccjk browser status
@@ -172,7 +194,9 @@ ccjk browser stop
 ```
 
 ### 🌐 Remote Control (NEW in v11.1.1)
+
 Control Claude Code from any device — browser, phone, or tablet.
+
 ```bash
 ccjk remote setup    # One-command: configure server URL, auth token & binding in 30s
 ccjk remote doctor   # Diagnose connectivity, auth, daemon health
@@ -180,6 +204,7 @@ ccjk remote status   # Live runtime status (daemon, server, auth)
 ```
 
 **Supports both interactive and non-interactive (CI/CD) modes:**
+
 ```bash
 ccjk remote setup --non-interactive \
   --server-url https://your-server.com \
@@ -188,7 +213,9 @@ ccjk remote setup --non-interactive \
 ```
 
 ### 🛡️ Production-Grade Security (NEW in v11.1.1)
+
 All config defaults are now hardened for real-world deployments:
+
 - ✅ **HTTPS enforcement** — All service URLs require `https://` in production
 - ✅ **CORS hardening** — Wildcard `*` origins rejected in production
 - ✅ **Secret validation** — Dev-default secrets (`dev-secret`, `dev-session-secret`) blocked at startup
@@ -196,7 +223,9 @@ All config defaults are now hardened for real-world deployments:
 - ✅ **Daemon config loading** — Reads from `~/.ccjk/daemon.json`, validates required fields
 
 ### 🔓 Zero-Config Permission Presets (NEW)
+
 One-click permission configuration for different use cases:
+
 ```bash
 ccjk zc --list              # View available presets
 ccjk zc --preset max        # Maximum permissions (all commands)
@@ -205,11 +234,13 @@ ccjk zc --preset safe       # Safe preset (read-only operations)
 ```
 
 **Available Presets:**
+
 - **max** — All common commands, file operations, and MCP servers (100+ permissions)
 - **dev** — Build tools, git, package managers, and file operations (50+ permissions)
 - **safe** — Read-only commands, no file modifications (20+ permissions)
 
 Each preset automatically:
+
 - ✅ Backs up your current settings
 - ✅ Merges with existing permissions (no data loss)
 - ✅ Removes invalid/dangerous patterns
@@ -224,6 +255,7 @@ ccjk init          # Full initialization
 ccjk init --silent # Silent mode (non-interactive, uses env vars)
 ccjk status        # Health check + recommendations
 ccjk boost         # One-click optimization
+ccjk zc --preset dev # Apply recommended developer permissions
 
 # Agent Teams (NEW)
 ccjk agent-teams --on     # Enable parallel AI execution
@@ -267,13 +299,13 @@ npx ccjk doctor    # Health check
 ## 💬 What Developers Say
 
 > "CCJK cut my Claude Code setup from 2 hours to 30 seconds. Game changer."
-> — *Senior Engineer at YC Startup*
+> — _Senior Engineer at YC Startup_
 
 > "The Agent Teams feature is insane. One agent writes code, another writes tests, simultaneously."
-> — *Full-stack Developer*
+> — _Full-stack Developer_
 
 > "Saved $200/month on API costs with the context compression alone."
-> — *Indie Hacker*
+> — _Indie Hacker_
 
 ## 🌟 Why Star This Repo?
 
@@ -304,6 +336,7 @@ Visit [docs/README.md](./docs/README.md) for full documentation.
 ## 🤝 Contributing
 
 We welcome contributions! Whether it's:
+
 - 🐛 Bug reports
 - 💡 Feature requests
 - 📖 Documentation improvements
@@ -314,6 +347,7 @@ Check out our [Contributing Guide](./CONTRIBUTING.md) to get started.
 ## 🙏 Acknowledgments
 
 Built on top of:
+
 - [Claude Code](https://github.com/anthropics/claude-code) by Anthropic
 - [ZCF](https://github.com/UfoMiao/zcf) by UfoMiao
 
