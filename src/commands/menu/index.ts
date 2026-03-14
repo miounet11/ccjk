@@ -57,7 +57,7 @@ import { isOnboardingCompleted, runOnboardingWizard } from '../onboarding-wizard
 import { uninstall } from '../uninstall'
 import { update } from '../update'
 import { getItemsForLevel, levelDefinitions } from './progressive'
-import { createAllSections, filterSectionsByItemLimit, findItemByInput, getToolModeMenuTitle, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu, renderToolModeHero } from './renderer'
+import { createAllSections, filterSectionsByItemLimit, findItemByInput, getToolModeMenuTitle, getVisibleItemCount, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu, renderToolModeHero } from './renderer'
 
 /**
  * Default menu configuration
@@ -454,6 +454,97 @@ function getMenuShellConfig(codeTool: CodeToolType): {
  * Show the new progressive main menu
  */
 async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> {
+  if (codeTool !== 'codex') {
+    const rawItems = getItemsForLevel(menuState.level, 'claude-code')
+    const items = attachHandlers(rawItems, 'claude-code')
+    const sections = createAllSections(menuState.level, 'claude-code')
+    const maxItems = levelDefinitions[menuState.level].maxItems
+    const filteredSections = filterSectionsByItemLimit(sections, maxItems)
+    const visibleItemCount = getVisibleItemCount(filteredSections)
+    const visibleItems = items.slice(0, visibleItemCount)
+    const footerCommands = [
+      {
+        key: 's',
+        label: i18n.t('menu:menuOptions.switchCodeTool'),
+      },
+    ]
+    const allowedCommands = ['0', 'q', 'm', 's']
+
+    const menuOutput = renderMenu(
+      'menu:oneClick.title',
+      visibleItems,
+      {
+        showShortcuts: true,
+        showDescriptions: true,
+        useColor: true,
+        terminalWidth: 80,
+        showMoreCommand: true,
+        extraFooterCommands: footerCommands,
+      },
+    )
+
+    console.log(menuOutput)
+
+    const choice = await promptMenuSelection(visibleItemCount, visibleItems, undefined, allowedCommands)
+    const input = parseMenuInput(choice)
+
+    if (isExitCommand(input)) {
+      console.log(ansis.green(i18n.t('common:goodbye')))
+      return 'exit'
+    }
+
+    if (isBackCommand(input)) {
+      const currentLang = i18n.language as SupportedLang
+      await changeScriptLanguageFeature(currentLang)
+      printSeparator()
+      return 'continue'
+    }
+
+    if (isMoreCommand(input)) {
+      await showMoreFeaturesMenu()
+      printSeparator()
+      return 'continue'
+    }
+
+    if (input.normalized === 's') {
+      const switched = await handleCodeToolSwitch(codeTool)
+      if (switched) {
+        return 'switch'
+      }
+      printSeparator()
+      return 'continue'
+    }
+
+    const selectedItem = findItemByInput(input, filteredSections)
+
+    if (selectedItem) {
+      menuState.actionsPerformed.push(selectedItem.id)
+      menuState.usageCount++
+
+      const hydratedItem = visibleItems.find(item => item.id === selectedItem.id) || items.find(item => item.id === selectedItem.id)
+      if (hydratedItem?.handler) {
+        await hydratedItem.handler()
+      }
+      else {
+        console.log(ansis.yellow(`No handler for ${selectedItem.id}`))
+      }
+    }
+
+    printSeparator()
+
+    const shouldContinue = await promptBoolean({
+      message: i18n.t('common:returnToMenu'),
+      defaultValue: true,
+    })
+
+    if (!shouldContinue) {
+      console.log(ansis.green(i18n.t('common:goodbye')))
+      return 'exit'
+    }
+
+    return 'continue'
+  }
+
   // Get items for current level
   const rawItems = getItemsForLevel(menuState.level, codeTool)
 

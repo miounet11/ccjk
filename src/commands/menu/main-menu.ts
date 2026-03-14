@@ -321,7 +321,7 @@ export const systemItems: MenuItem[] = [
     id: 'codex-switch-tool',
     label: 'menuOptions.switchCodeTool',
     description: 'menuDescriptions.switchCodeTool',
-    category: 'system',
+    category: 'quick',
     level: 'basic',
     action: 'command',
     icon: '🔄',

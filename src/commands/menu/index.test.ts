@@ -97,4 +97,12 @@ describe('progressive menu handlers', () => {
     })
     expect(__testUtils.getMenuShellConfig('codex').footerCommands.map(command => command.key)).toEqual(['s', '+', '-'])
   })
+
+  it('still accepts Claude switch input when enabled as a global menu command', async () => {
+    const { getVisibleItems } = await import('./main-menu')
+    const { parseMenuInput, validateMenuInput } = await import('./renderer/input')
+    const items = getVisibleItems('basic', 'claude-code')
+
+    expect(validateMenuInput(parseMenuInput('s'), items.length, items, ['0', 'q', 'm', 's'])).toBe(true)
+  })
 })
