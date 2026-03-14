@@ -60,9 +60,10 @@ CCJK 为 Codex 创建以下目录结构：
 ├── auth.json            # 认证信息
 ├── AGENTS.md            # AI 代理配置和系统提示
 ├── prompts/             # 工作流提示词目录
-│   ├── ccjk/
-│   │   ├── workflow.md  # 六阶段工作流
-│   │   └── ...
+│   ├── workflow.md      # 六阶段工作流
+│   ├── feat.md          # 功能规划工作流
+│   ├── init-project.md  # 项目初始化提示词
+│   ├── git-commit.md    # Git 辅助命令
 │   └── ...
 └── backup/              # 配置备份目录
     └── YYYY-MM-DD_HH-mm-ss/
@@ -150,17 +151,20 @@ npx ccjk i -s -T codex -p 302ai -k "sk-xxx" \
 
 ### 支持的 MCP 服务
 
-Codex 支持与 Claude Code 相同的 MCP 服务：
+CCJK 为 Codex 提供一套更适合代码场景的 MCP 组合，支持通过复选框交互选择和预设套餐快速应用：
 
 | 服务 | 说明 | 是否需要 API Key |
 |------|------|-----------------|
 | Context7 | 文档查询 | ❌ |
 | Open Web Search | 网页搜索 | ❌ |
-| Spec Workflow | 工作流管理 | ❌ |
 | DeepWiki | GitHub 文档 | ❌ |
-| Playwright | 浏览器控制 | ❌ |
-| Exa | Exa 搜索 | ✅ |
+| Spec Workflow | 工作流管理 | ❌ |
 | Serena | 语义代码检索 | ❌ |
+| Playwright | 浏览器控制 | ❌ |
+| Intent Engine | 任务意图分析 | ❌ |
+| SQLite | 本地数据库检查 | ❌ |
+
+> 💡 **Codex 推荐默认组合**：`Context7 + Open Web Search + DeepWiki + Serena`（如果本机环境支持 Serena，会自动纳入推荐）。
 
 ### 配置 MCP 服务
 
@@ -181,30 +185,39 @@ MCP 服务配置保存在 `~/.codex/config.toml` 的 `[mcp_server]` 条目中。
 
 ## 工作流系统
 
-Codex 目前支持以下工作流模板（使用 `/prompts:` 前缀）：
+Codex 目前支持以下 `/prompts:` 工作流模板：
 
 | 工作流 | Codex 命令 | Claude Code 命令 | 说明 |
 |--------|-----------|-----------------|------|
 | **六阶段工作流** | `/prompts:workflow` | `/ccjk:workflow` | 完整的六阶段开发流程（研究→构思→计划→执行→优化→评审） |
+| **功能规划** | `/prompts:feat` | `/ccjk:feat` | 新功能规划与实现启动 |
+| **项目初始化** | `/prompts:init-project` | `/init-project` | 项目初始化与结构建议 |
 | **Git 工作流** | `/prompts:git-commit` | `/git-commit` | 智能 Git 提交 |
 | | `/prompts:git-rollback` | `/git-rollback` | 安全回滚 |
 | | `/prompts:git-cleanBranches` | `/git-cleanBranches` | 清理已合并分支 |
 | | `/prompts:git-worktree` | `/git-worktree` | Git 工作树管理 |
+| **面试工作流** | `/prompts:interview` | N/A | 面试准备与问答引导 |
+| **Spec 优先 TDD** | `/prompts:spec-first-tdd` | N/A | 规格优先的实现流程 |
+| **持续交付** | `/prompts:continuous-delivery` | N/A | 交付与发布约束清单 |
+| **重构大师** | `/prompts:refactoring-master` | N/A | 结构化重构工作流 |
+| **线性方法** | `/prompts:linear-method` | N/A | 聚焦执行的线性工作流 |
 
 > 💡 **提示**：
 > - Codex 使用 `/prompts:` 前缀来访问工作流命令，这是 Codex 的命令格式规范
-> - Codex 目前仅支持六阶段工作流和 Git 工作流，功能开发工作流（feat）、项目初始化（init-project）和 BMad 工作流暂未在 Codex 中提供
+> - CCJK 提供 Codex 预设套餐（`minimal`、`dev`、`full`），可先应用推荐的 MCP + prompts 组合，再通过复选框微调
+> - BMad 目前仍然只在 Claude Code 中提供
 
 ### 与 Claude Code 的差异
 
-虽然 Codex 和 Claude Code 共享相同的 MCP 服务，但在工作流支持上存在差异：
+虽然 Codex 和 Claude Code 共享相同的 MCP 基础设施，但工作流覆盖范围仍有差异：
 
 | 工作流类型 | Claude Code | Codex |
 |-----------|------------|-------|
 | 六阶段工作流 | ✅ `/ccjk:workflow` | ✅ `/prompts:workflow` |
-| 功能开发工作流 | ✅ `/ccjk:feat` | ❌ 暂不支持 |
-| 项目初始化 | ✅ `/init-project` | ❌ 暂不支持 |
+| 功能开发工作流 | ✅ `/ccjk:feat` | ✅ `/prompts:feat` |
+| 项目初始化 | ✅ `/init-project` | ✅ `/prompts:init-project` |
 | Git 工作流 | ✅ `/git-commit` 等 | ✅ `/prompts:git-commit` 等 |
+| 高级 Prompt 套件 | 部分支持 | ✅ `/prompts:interview`、`/prompts:spec-first-tdd`、`/prompts:refactoring-master` 等 |
 | BMad 工作流 | ✅ `/bmad-init` | ❌ 暂不支持 |
 
 ### 导入工作流
@@ -214,13 +227,13 @@ Codex 目前支持以下工作流模板（使用 `/prompts:` 前缀）：
 npx ccjk i -s -T codex --workflows all
 
 # 选择性安装
-npx ccjk i -s -T codex --workflows commonTools,sixStepsWorkflow
+npx ccjk i -s -T codex --workflows sixStepsWorkflow,essentialTools,gitWorkflow
 
 # 通过菜单导入
 npx ccjk → 选择 S（切换到 Codex）→ 选择 4（导入工作流）
 ```
 
-工作流文件保存在 `~/.codex/prompts/` 目录中。
+工作流文件直接保存在 `~/.codex/prompts/` 目录中，因此可以直接映射为 `/prompts:<文件名>`。
 
 ## 系统提示与输出风格
 

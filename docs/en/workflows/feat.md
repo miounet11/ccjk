@@ -35,9 +35,13 @@ Use the following command in Claude Code:
 
 ### Codex
 
-> ⚠️ **Note**: Feature development workflow (feat) is currently only available in Claude Code. Codex does not support this workflow yet.
+Codex supports the same entry point through:
 
-If you need similar functionality, you can use `/prompts:workflow` six-stage workflow in Codex to implement feature development tasks.
+```bash
+/prompts:feat Implement user comment functionality, supporting likes, replies, and deletion
+```
+
+You can still fall back to `/prompts:workflow` when you want the broader six-stage execution loop.
 
 ## Workflow Stages
 
@@ -279,5 +283,4 @@ Planning results output by feature development workflow should:
 - [Workflow System](../features/workflows.md) - Detailed workflow information
 
 > 💡 **Tip**: Feature development workflow is an ideal tool for planning new features. Through structured requirements analysis, solution design, and implementation planning, you can ensure quality and completeness of feature development. It's recommended to use feature development workflow for complete planning before starting coding.
-
 

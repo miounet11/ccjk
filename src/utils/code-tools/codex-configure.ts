@@ -1,13 +1,81 @@
 import type { CodexFullInitOptions, CodexMcpService } from './codex'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { getMcpServices, MCP_SERVICE_CONFIGS } from '../../config/mcp-services'
+import { getMcpServices, getMcpServicesWithCompatibility, isMcpServiceCompatible, MCP_SERVICE_CONFIGS } from '../../config/mcp-services'
 import { ensureI18nInitialized, i18n } from '../../i18n'
 import { updateZcfConfig } from '../ccjk-config'
-import { selectMcpServices } from '../mcp-selector'
 import { getSystemRoot, isWindows } from '../platform'
+import { addNumbersToChoices } from '../prompt-helpers'
 import { backupCodexComplete, getBackupMessage, readCodexConfig, writeCodexConfig } from './codex'
 import { applyCodexPlatformCommand } from './codex-platform'
+
+const CODEX_RECOMMENDED_MCP_SERVICE_IDS = ['context7', 'open-websearch', 'mcp-deepwiki', 'serena'] as const
+const CODEX_MANAGED_MCP_SERVICE_IDS = new Set(MCP_SERVICE_CONFIGS.map(service => service.id.toLowerCase()))
+
+export function getRecommendedCodexMcpServiceIds(): string[] {
+  return CODEX_RECOMMENDED_MCP_SERVICE_IDS.filter((id) => {
+    const config = MCP_SERVICE_CONFIGS.find(service => service.id === id)
+    if (!config) {
+      return false
+    }
+
+    return isMcpServiceCompatible(id).compatible
+  })
+}
+
+export function reconcileCodexMcpServices(existingServices: CodexMcpService[], selectedServices: CodexMcpService[]): CodexMcpService[] {
+  const preservedServices = existingServices.filter(service => !CODEX_MANAGED_MCP_SERVICE_IDS.has(service.id.toLowerCase()))
+  return [...preservedServices, ...selectedServices]
+}
+
+function applyWindowsEnvToCodexMcpServices(services: CodexMcpService[]): CodexMcpService[] {
+  return services.map((svc) => {
+    if (isWindows()) {
+      const systemRoot = getSystemRoot()
+      if (systemRoot) {
+        return {
+          ...svc,
+          env: {
+            ...(svc.env || {}),
+            SYSTEMROOT: systemRoot,
+          },
+        }
+      }
+    }
+
+    return svc
+  })
+}
+
+async function selectCodexMcpServices(existingServiceIds: string[]): Promise<string[] | undefined> {
+  ensureI18nInitialized()
+
+  const services = await getMcpServicesWithCompatibility()
+  const recommendedIds = new Set(getRecommendedCodexMcpServiceIds())
+  const currentIds = new Set(existingServiceIds.map(id => id.toLowerCase()))
+  const useCurrentSelection = currentIds.size > 0
+
+  const choices = addNumbersToChoices(services.map(service => ({
+    name: `${service.name} - ${ansis.gray(service.description)}`,
+    value: service.id,
+    checked: useCurrentSelection ? currentIds.has(service.id.toLowerCase()) : recommendedIds.has(service.id),
+    disabled: service.compatible ? false : service.incompatibleReason || true,
+  })))
+
+  const { services: selectedIds } = await inquirer.prompt<{ services: string[] }>({
+    type: 'checkbox',
+    name: 'services',
+    message: `${i18n.t('mcp:selectMcpServices')}${i18n.t('common:multiSelectHint')}`,
+    choices,
+  })
+
+  if (selectedIds === undefined) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return undefined
+  }
+
+  return selectedIds
+}
 
 export async function configureCodexMcp(options?: CodexFullInitOptions): Promise<void> {
   ensureI18nInitialized()
@@ -36,9 +104,7 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
     // Use provided mcpServices list or default to all non-API-key services
     const defaultServiceIds = Array.isArray(options?.mcpServices)
       ? options.mcpServices
-      : MCP_SERVICE_CONFIGS
-          .filter(service => !service.requiresApiKey)
-          .map(service => service.id)
+      : getRecommendedCodexMcpServiceIds()
 
     const baseProviders = existingConfig?.providers || []
     const existingServices = existingConfig?.mcpServices || []
@@ -47,6 +113,8 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
     for (const id of defaultServiceIds) {
       const configInfo = MCP_SERVICE_CONFIGS.find(service => service.id === id)
       if (!configInfo)
+        continue
+      if (!isMcpServiceCompatible(id).compatible)
         continue
 
       let command = configInfo.config.command || id
@@ -82,27 +150,7 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
       })
     }
 
-    const mergedMap = new Map<string, CodexMcpService>()
-    for (const svc of existingServices)
-      mergedMap.set(svc.id.toLowerCase(), { ...svc })
-    for (const svc of selection)
-      mergedMap.set(svc.id.toLowerCase(), { ...svc })
-
-    const finalServices = Array.from(mergedMap.values()).map((svc) => {
-      if (isWindows()) {
-        const systemRoot = getSystemRoot()
-        if (systemRoot) {
-          return {
-            ...svc,
-            env: {
-              ...(svc.env || {}),
-              SYSTEMROOT: systemRoot,
-            },
-          }
-        }
-      }
-      return svc
-    })
+    const finalServices = applyWindowsEnvToCodexMcpServices(reconcileCodexMcpServices(existingServices, selection))
 
     writeCodexConfig({
       model: existingConfig?.model || null,
@@ -117,7 +165,7 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
     return
   }
 
-  const selectedIds = await selectMcpServices()
+  const selectedIds = await selectCodexMcpServices(existingConfig?.mcpServices?.map(service => service.id) || [])
   if (!selectedIds)
     return
 
@@ -129,21 +177,7 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
   if (selectedIds.length === 0) {
     console.log(ansis.yellow(i18n.t('codex:noMcpConfigured')))
 
-    const preserved = (existingServices || []).map((svc) => {
-      if (isWindows()) {
-        const systemRoot = getSystemRoot()
-        if (systemRoot) {
-          return {
-            ...svc,
-            env: {
-              ...(svc.env || {}),
-              SYSTEMROOT: systemRoot,
-            },
-          }
-        }
-      }
-      return svc
-    })
+    const preserved = applyWindowsEnvToCodexMcpServices(reconcileCodexMcpServices(existingServices, []))
 
     writeCodexConfig({
       model: existingConfig?.model || null,
@@ -214,27 +248,7 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
     })
   }
 
-  const mergedMap = new Map<string, CodexMcpService>()
-  for (const svc of existingServices)
-    mergedMap.set(svc.id.toLowerCase(), { ...svc })
-  for (const svc of selection)
-    mergedMap.set(svc.id.toLowerCase(), { ...svc })
-
-  const finalServices = Array.from(mergedMap.values()).map((svc) => {
-    if (isWindows()) {
-      const systemRoot = getSystemRoot()
-      if (systemRoot) {
-        return {
-          ...svc,
-          env: {
-            ...(svc.env || {}),
-            SYSTEMROOT: systemRoot,
-          },
-        }
-      }
-    }
-    return svc
-  })
+  const finalServices = applyWindowsEnvToCodexMcpServices(reconcileCodexMcpServices(existingServices, selection))
 
   writeCodexConfig({
     model: existingConfig?.model || null,

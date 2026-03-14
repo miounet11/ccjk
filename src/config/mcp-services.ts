@@ -86,7 +86,7 @@ export interface McpServiceConfig {
 }
 
 export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
-  // Documentation service - the only MCP we currently keep enabled in-product
+  // Documentation and research services
   {
     id: 'context7',
     requiresApiKey: false,
@@ -95,6 +95,87 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       type: 'stdio',
       command: 'npx',
       args: ['-y', '@upstash/context7-mcp@latest'],
+      env: {},
+    },
+  },
+  {
+    id: 'open-websearch',
+    requiresApiKey: false,
+    config: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', 'open-websearch@latest'],
+      env: {
+        MODE: 'stdio',
+        DEFAULT_SEARCH_ENGINE: 'duckduckgo',
+        ALLOWED_SEARCH_ENGINES: 'duckduckgo,bing,brave',
+      },
+    },
+  },
+  {
+    id: 'mcp-deepwiki',
+    requiresApiKey: false,
+    config: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', 'mcp-deepwiki@latest'],
+      env: {},
+    },
+  },
+  {
+    id: 'spec-workflow',
+    requiresApiKey: false,
+    config: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', '@pimzino/spec-workflow-mcp@latest'],
+      env: {},
+    },
+  },
+  {
+    id: 'serena',
+    requiresApiKey: false,
+    config: {
+      type: 'stdio',
+      command: 'uvx',
+      args: ['--from', 'git+https://github.com/oraios/serena', 'serena', 'start-mcp-server', '--context', 'ide-assistant', '--enable-web-dashboard', 'false'],
+      env: {},
+    },
+    platformRequirements: {
+      requiredCommands: ['uvx'],
+    },
+  },
+  {
+    id: 'Playwright',
+    requiresApiKey: false,
+    config: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', '@playwright/mcp@latest', '--browser', 'chromium'],
+      env: {},
+    },
+    platformRequirements: {
+      platforms: ['macos', 'windows'],
+      requiresGui: true,
+    },
+  },
+  {
+    id: 'intent-engine',
+    requiresApiKey: false,
+    config: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', '@origintask/intent-engine@latest', 'mcp'],
+      env: {},
+    },
+  },
+  {
+    id: 'sqlite',
+    requiresApiKey: false,
+    config: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', '@anthropic-ai/mcp-server-sqlite@latest'],
       env: {},
     },
   },
@@ -111,6 +192,41 @@ export async function getMcpServices(): Promise<McpService[]> {
       id: 'context7',
       name: i18n.t('mcp:services.context7.name'),
       description: i18n.t('mcp:services.context7.description'),
+    },
+    {
+      id: 'open-websearch',
+      name: i18n.t('mcp:services.open-websearch.name'),
+      description: i18n.t('mcp:services.open-websearch.description'),
+    },
+    {
+      id: 'mcp-deepwiki',
+      name: i18n.t('mcp:services.mcp-deepwiki.name'),
+      description: i18n.t('mcp:services.mcp-deepwiki.description'),
+    },
+    {
+      id: 'spec-workflow',
+      name: i18n.t('mcp:services.spec-workflow.name'),
+      description: i18n.t('mcp:services.spec-workflow.description'),
+    },
+    {
+      id: 'serena',
+      name: i18n.t('mcp:services.serena.name'),
+      description: i18n.t('mcp:services.serena.description'),
+    },
+    {
+      id: 'Playwright',
+      name: i18n.t('mcp:services.Playwright.name'),
+      description: i18n.t('mcp:services.Playwright.description'),
+    },
+    {
+      id: 'intent-engine',
+      name: i18n.t('mcp:services.intent-engine.name'),
+      description: i18n.t('mcp:services.intent-engine.description'),
+    },
+    {
+      id: 'sqlite',
+      name: i18n.t('mcp:services.sqlite.name'),
+      description: i18n.t('mcp:services.sqlite.description'),
     },
   ]
 

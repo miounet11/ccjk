@@ -60,9 +60,10 @@ CCJK creates the following directory structure for Codex:
 ├── auth.json            # Authentication information
 ├── AGENTS.md            # AI agent configuration and system prompts
 ├── prompts/             # Workflow prompt directory
-│   ├── ccjk/
-│   │   ├── workflow.md  # Six-stage workflow
-│   │   └── ...
+│   ├── workflow.md      # Six-stage workflow
+│   ├── feat.md          # Feature planning workflow
+│   ├── init-project.md  # Project bootstrap prompt
+│   ├── git-commit.md    # Git helpers
 │   └── ...
 └── backup/              # Configuration backup directory
     └── YYYY-MM-DD_HH-mm-ss/
@@ -150,17 +151,20 @@ npx ccjk i -s -T codex -p 302ai -k "sk-xxx" \
 
 ### Supported MCP Services
 
-Codex supports the same MCP services as Claude Code:
+Codex supports a Codex-focused MCP set in CCJK, with interactive checkbox selection and preset bundles:
 
 | Service | Description | Requires API Key |
 |------|------|-----------------|
 | Context7 | Document query | ❌ |
 | Open Web Search | Web search | ❌ |
-| Spec Workflow | Workflow management | ❌ |
 | DeepWiki | GitHub documentation | ❌ |
-| Playwright | Browser control | ❌ |
-| Exa | Exa search | ✅ |
+| Spec Workflow | Workflow management | ❌ |
 | Serena | Semantic code search | ❌ |
+| Playwright | Browser control | ❌ |
+| Intent Engine | Task intent analysis | ❌ |
+| SQLite | Local database inspection | ❌ |
+
+> 💡 **Recommended default for Codex**: `Context7 + Open Web Search + DeepWiki + Serena` (Serena is shown only when the local environment supports it).
 
 ### Configure MCP Services
 
@@ -181,30 +185,39 @@ MCP service configuration is saved in the `[mcp_server]` entries of `~/.codex/co
 
 ## Workflow System
 
-Codex currently supports the following workflow templates (using `/prompts:` prefix):
+Codex supports the following prompt workflows through `/prompts:`:
 
 | Workflow | Codex Command | Claude Code Command | Description |
 |--------|-----------|-----------------|------|
 | **Six-Stage Workflow** | `/prompts:workflow` | `/ccjk:workflow` | Complete six-stage development process (Research→Ideation→Planning→Execution→Optimization→Review) |
+| **Feature Planning** | `/prompts:feat` | `/ccjk:feat` | Feature planning and implementation kickoff |
+| **Project Bootstrap** | `/prompts:init-project` | `/init-project` | Project initialization and structure guidance |
 | **Git Workflow** | `/prompts:git-commit` | `/git-commit` | Smart Git commit |
 | | `/prompts:git-rollback` | `/git-rollback` | Safe rollback |
 | | `/prompts:git-cleanBranches` | `/git-cleanBranches` | Clean merged branches |
 | | `/prompts:git-worktree` | `/git-worktree` | Git worktree management |
+| **Interview Workflow** | `/prompts:interview` | N/A | Interview preparation and guided Q&A |
+| **Spec-First TDD** | `/prompts:spec-first-tdd` | N/A | Specification-first implementation flow |
+| **Continuous Delivery** | `/prompts:continuous-delivery` | N/A | Delivery and release discipline checklist |
+| **Refactoring Master** | `/prompts:refactoring-master` | N/A | Structured refactoring workflow |
+| **Linear Method** | `/prompts:linear-method` | N/A | Linear execution workflow for focused delivery |
 
 > 💡 **Tip**:
 > - Codex uses `/prompts:` prefix to access workflow commands, which is Codex's command format specification
-> - Codex currently only supports six-stage workflow and Git workflows. Feature development workflow (feat), project initialization (init-project), and BMad workflow are not yet available in Codex
+> - CCJK provides Codex preset bundles (`minimal`, `dev`, `full`) so users can apply recommended MCP + prompt combinations and then refine them with checkboxes
+> - BMad remains Claude Code-only at the moment
 
 ### Differences from Claude Code
 
-Although Codex and Claude Code share the same MCP services, there are differences in workflow support:
+Although Codex and Claude Code share the same MCP foundation, workflow coverage still differs:
 
 | Workflow Type | Claude Code | Codex |
 |-----------|------------|-------|
 | Six-Stage Workflow | ✅ `/ccjk:workflow` | ✅ `/prompts:workflow` |
-| Feature Development Workflow | ✅ `/ccjk:feat` | ❌ Not yet supported |
-| Project Initialization | ✅ `/init-project` | ❌ Not yet supported |
+| Feature Development Workflow | ✅ `/ccjk:feat` | ✅ `/prompts:feat` |
+| Project Initialization | ✅ `/init-project` | ✅ `/prompts:init-project` |
 | Git Workflow | ✅ `/git-commit` etc. | ✅ `/prompts:git-commit` etc. |
+| Advanced Prompt Packs | Partial | ✅ `/prompts:interview`, `/prompts:spec-first-tdd`, `/prompts:refactoring-master`, etc. |
 | BMad Workflow | ✅ `/bmad-init` | ❌ Not yet supported |
 
 ### Import Workflows
@@ -214,13 +227,13 @@ Although Codex and Claude Code share the same MCP services, there are difference
 npx ccjk i -s -T codex --workflows all
 
 # Selective installation
-npx ccjk i -s -T codex --workflows commonTools,sixStepsWorkflow
+npx ccjk i -s -T codex --workflows sixStepsWorkflow,essentialTools,gitWorkflow
 
 # Import through menu
 npx ccjk → Select S (Switch to Codex) → Select 4 (Import Workflows)
 ```
 
-Workflow files are saved in the `~/.codex/prompts/` directory.
+Workflow files are saved directly in the `~/.codex/prompts/` directory, so commands map cleanly to `/prompts:<filename>`.
 
 ## System Prompts and Output Styles
 
@@ -332,5 +345,4 @@ Learn more about Codex related features:
 - 📚 [Workflow Details](../workflows/) - Learn about workflows available in Codex
 - 🔧 [Configuration Management](../advanced/configuration.md) - Deep dive into Codex configuration management
 - 🎯 [MCP Service Integration](mcp.md) - Detailed information about MCP service usage in Codex
-
 

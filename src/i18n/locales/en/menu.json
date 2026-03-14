@@ -11,6 +11,7 @@
     "updateComplete": "Update complete! All components are up to date.",
     "notify": "Notifications",
     "notifyDesc": "View system notifications and announcements",
+    "more": "More",
     "running": "Running..."
   },
   "moreMenu": {
@@ -43,8 +44,11 @@
     "changeLanguage": "Change Language / 切换语言",
     "switchCodeTool": "Switch Code Tool",
     "uninstall": "Uninstall CCJK",
+    "exit": "Exit",
     "codexImportWorkflow": "Import Workflows",
     "codexPreset": "Efficiency Center",
+    "codexCheckUpdates": "Update Codex",
+    "codexUninstall": "Uninstall Codex",
     "mcpMarket": "MCP Market",
     "marketplace": "Marketplace",
     "hooksSync": "Hooks Sync",
@@ -68,6 +72,69 @@
     "workflowsAndSkills": "Manage workflows and skills",
     "outputStyles": "Configure output styles",
     "doctor": "Run environment health check"
+  },
+  "switchCodeToolPrompt": "Select the code tool to open",
+  "codeToolSwitched": "Switched to {{tool}}",
+  "menuSections": {
+    "quickStart": "Quick Start",
+    "configCenter": "Config Center",
+    "extensions": "Tools",
+    "smartFeatures": "Extensions",
+    "cloudServices": "Cloud Services",
+    "systemSettings": "System Settings"
+  },
+  "configCenter": {
+    "api": "API Configuration",
+    "apiDesc": "One-click API key setup (Anthropic/OpenRouter/Custom)",
+    "mcp": "MCP Configuration",
+    "mcpDesc": "Configure Model Context Protocol services",
+    "model": "Model Configuration",
+    "modelDesc": "Select and configure AI models",
+    "memory": "Memory Configuration",
+    "memoryDesc": "Configure conversation memory settings",
+    "permission": "Permission Configuration",
+    "permissionDesc": "Manage tool and file permissions",
+    "configSwitch": "Config Switch",
+    "configSwitchDesc": "Switch between configuration profiles",
+    "context": "Context Configuration",
+    "contextDesc": "Configure context window and limits"
+  },
+  "ccjkFeatures": {
+    "workflowsTitle": "Workflows & Skills",
+    "viewInstalledWorkflows": "View installed workflows",
+    "viewInstalledSkills": "View installed skills",
+    "installNewWorkflow": "Install or update workflows",
+    "noSkillsInstalled": "No skills installed",
+    "skillCount": "{{count}} skills installed",
+    "outputStylesTitle": "Output Styles",
+    "availableStyles": "Available styles"
+  },
+  "mcpMarket": {
+    "title": "MCP Market",
+    "search": "Search services",
+    "searchDesc": "Find MCP services by keyword",
+    "searchPrompt": "Enter a search keyword",
+    "install": "Install service",
+    "installDesc": "Install an MCP service by name",
+    "installPrompt": "Enter the service name to install",
+    "uninstall": "Uninstall service",
+    "uninstallDesc": "Remove an installed MCP service",
+    "uninstallPrompt": "Enter the service name to uninstall",
+    "list": "List installed services",
+    "listDesc": "Show all installed MCP services",
+    "trending": "Trending services",
+    "trendingDesc": "Browse popular MCP services"
+  },
+  "hooksSync": {
+    "title": "Hooks Cloud Sync",
+    "viewStatus": "View status",
+    "viewStatusDesc": "Check synced hooks and local status",
+    "syncNow": "Sync now",
+    "syncNowDesc": "Pull the latest hooks from the cloud",
+    "configure": "Configure sync",
+    "configureDesc": "Manage hook sync settings",
+    "browseTemplates": "Browse templates",
+    "browseTemplatesDesc": "Explore reusable hook templates"
   },
   "toolMode": {
     "claude": {

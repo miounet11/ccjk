@@ -141,14 +141,18 @@
       },
       "presetBundles": {
         "name": "Preset Bundles",
-        "description": "Choose minimal, dev, or full workflow bundles"
+        "description": "Choose minimal, dev, or full prompt and MCP bundles"
+      },
+      "workflowPrompts": {
+        "name": "Workflow Prompts",
+        "description": "Select Codex /prompts commands to install (current: {{count}})"
       },
       "model": {
         "name": "Default Model",
         "description": "Current: {{model}}"
       },
       "docsMcp": {
-        "name": "Docs MCP",
+        "name": "MCP Services",
         "description": "Review or install Codex MCP services (current: {{count}})"
       },
       "promptMemory": {
@@ -163,15 +167,15 @@
   "presets": {
     "minimal": {
       "name": "Minimal",
-      "description": "Lean workflow bundle with search and docs MCP"
+      "description": "Core six-step + Git prompts with lightweight research MCP"
     },
     "dev": {
       "name": "Dev",
-      "description": "Balanced workflow bundle with search, docs, and repo context"
+      "description": "Recommended daily coding bundle with planning prompts and repo research MCP"
     },
     "full": {
       "name": "Full",
-      "description": "Expanded workflow bundle with deeper repo assistance"
+      "description": "Expanded prompt library with deeper codebase assistance and semantic search"
     }
   },
   "errorSwitchingProvider": "Error switching provider: {{error}}",

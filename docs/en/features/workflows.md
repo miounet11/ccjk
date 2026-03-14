@@ -10,19 +10,19 @@ CCJK pre-configures multiple workflows through `WORKFLOW_CONFIG_BASE` and automa
 
 | ID | Category | Default | Command File | Description | Claude Code | Codex |
 | --- | --- | --- | --- | --- | ----------- | ----- |
-| `commonTools` | common | Yes | `init-project.md` | Provides project initialization and common tool commands | ✅ | ❌ |
+| `commonTools` | common | Yes | `init-project.md` | Provides project initialization and common tool commands | ✅ | ✅ |
 | `sixStepsWorkflow` | sixStep | Yes | `workflow.md` | Six-stage structured development workflow (Research→Ideation→Planning→Execution→Optimization→Review) | ✅ | ✅ |
-| `featPlanUx` | plan | Yes | `feat.md` | Feature development workflow, includes planning and UI/UX agents | ✅ | ❌ |
+| `featPlanUx` | plan | Yes | `feat.md` | Feature development workflow, includes planning and UI/UX agents | ✅ | ✅ |
 | `gitWorkflow` | git | Yes | `git-commit.md` etc. | Git commit, rollback, cleanup, worktree management | ✅ | ✅ |
 | `bmadWorkflow` | bmad | Yes | `bmad-init.md` | BMad agile process entry | ✅ | ❌ |
 
-> ⚠️ **Note**: Codex currently only supports `sixStepsWorkflow` (six-stage workflow) and `gitWorkflow` (Git workflow). Other workflows are not yet available in Codex.
+> ⚠️ **Note**: BMad is still Claude Code-only. Codex supports the six-stage workflow, feature planning, project bootstrap, Git helpers, and selected advanced prompt packs installed into `~/.codex/prompts/`.
 
 ## Installation and Updates
 
 - `ccjk init` imports all workflows by default. Users can selectively install via `--workflows`.
 - `ccjk update` re-executes workflow import after template updates to ensure content synchronization.
-- Workflow files are automatically installed to Claude Code/Codex's `prompts/workflows/` directory.
+- Workflow files are installed into each tool's native command directory. For Codex, that is `~/.codex/prompts/`.
 
 ## Agent Auto Installation
 
@@ -47,5 +47,4 @@ CCJK workflows use different command prefixes in different tools:
   - Codex: `/prompts:workflow <task description>`
 - Use with Git workflows to quickly complete the cycle of requirement breakdown → coding → commit
 - After completing key milestones, request AI to generate progress summaries for easy cross-conversation continuity
-
 

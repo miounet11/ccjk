@@ -223,7 +223,7 @@ npx ccjk i -s -w sixStepsWorkflow,gitWorkflow
 npx ccjk i -s -w skip
 ```
 
-> ⚠️ **注意**：Codex 目前仅支持 `sixStepsWorkflow` 和 `gitWorkflow`，其他工作流暂未在 Codex 中提供。
+> ⚠️ **注意**：BMad 仍然仅支持 Claude Code。Codex 已支持 `sixStepsWorkflow`、`essentialTools`、`gitWorkflow` 以及多种高级 prompt 套件。
 
 ### 输出风格配置
 

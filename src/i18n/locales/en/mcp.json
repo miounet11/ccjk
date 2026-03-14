@@ -13,6 +13,8 @@
   "services.spec-workflow.name": "Spec Workflow",
   "services.serena.name": "Serena Assistant",
   "services.serena.description": "Semantic code retrieval and editing akin to an IDE; extracts symbol-level entities and leverages relations to greatly improve token efficiency with coding agents",
+  "services.Playwright.name": "Playwright Browser",
+  "services.Playwright.description": "Browser automation and end-to-end verification for GUI workflows",
   "services.agent-browser.description": "Vercel Labs browser automation for web interaction and testing",
   "services.agent-browser.name": "Agent Browser",
   "services.filesystem.name": "Filesystem Operations",

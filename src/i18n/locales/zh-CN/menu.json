@@ -11,6 +11,7 @@
     "updateComplete": "更新完成！所有组件已是最新版本。",
     "notify": "通知中心",
     "notifyDesc": "查看系统通知和公告",
+    "more": "更多",
     "running": "正在执行..."
   },
   "moreMenu": {
@@ -43,8 +44,11 @@
     "changeLanguage": "切换语言 / Change Language",
     "switchCodeTool": "切换代码工具",
     "uninstall": "卸载 CCJK",
+    "exit": "退出",
     "codexImportWorkflow": "导入工作流",
     "codexPreset": "效率中心",
+    "codexCheckUpdates": "更新 Codex",
+    "codexUninstall": "卸载 Codex",
     "mcpMarket": "MCP 市场",
     "marketplace": "扩展市场",
     "hooksSync": "Hooks 同步",
@@ -68,6 +72,69 @@
     "workflowsAndSkills": "管理工作流和技能",
     "outputStyles": "配置输出样式",
     "doctor": "运行环境健康检查"
+  },
+  "switchCodeToolPrompt": "选择要进入的代码工具",
+  "codeToolSwitched": "已切换到 {{tool}}",
+  "menuSections": {
+    "quickStart": "快速开始",
+    "configCenter": "配置中心",
+    "extensions": "工具集成",
+    "smartFeatures": "扩展能力",
+    "cloudServices": "云端服务",
+    "systemSettings": "系统设置"
+  },
+  "configCenter": {
+    "api": "API 配置",
+    "apiDesc": "一键配置 API 密钥（Anthropic/OpenRouter/自定义）",
+    "mcp": "MCP 配置",
+    "mcpDesc": "配置 Model Context Protocol 服务",
+    "model": "模型配置",
+    "modelDesc": "选择和配置 AI 模型",
+    "memory": "记忆配置",
+    "memoryDesc": "配置对话记忆设置",
+    "permission": "权限配置",
+    "permissionDesc": "管理工具和文件权限",
+    "configSwitch": "配置切换",
+    "configSwitchDesc": "在配置文件之间切换",
+    "context": "上下文配置",
+    "contextDesc": "配置上下文窗口和限制"
+  },
+  "ccjkFeatures": {
+    "workflowsTitle": "工作流与技能",
+    "viewInstalledWorkflows": "查看已安装工作流",
+    "viewInstalledSkills": "查看已安装技能",
+    "installNewWorkflow": "安装或更新工作流",
+    "noSkillsInstalled": "当前没有安装技能",
+    "skillCount": "已安装 {{count}} 个技能",
+    "outputStylesTitle": "输出风格",
+    "availableStyles": "可用风格"
+  },
+  "mcpMarket": {
+    "title": "MCP 市场",
+    "search": "搜索服务",
+    "searchDesc": "按关键词查找 MCP 服务",
+    "searchPrompt": "输入搜索关键词",
+    "install": "安装服务",
+    "installDesc": "按名称安装 MCP 服务",
+    "installPrompt": "输入要安装的服务名称",
+    "uninstall": "卸载服务",
+    "uninstallDesc": "移除已安装的 MCP 服务",
+    "uninstallPrompt": "输入要卸载的服务名称",
+    "list": "查看已安装服务",
+    "listDesc": "列出当前已安装的 MCP 服务",
+    "trending": "热门服务",
+    "trendingDesc": "浏览流行的 MCP 服务"
+  },
+  "hooksSync": {
+    "title": "Hooks 云同步",
+    "viewStatus": "查看状态",
+    "viewStatusDesc": "检查云端同步和本地状态",
+    "syncNow": "立即同步",
+    "syncNowDesc": "从云端拉取最新 Hooks",
+    "configure": "配置同步",
+    "configureDesc": "管理 Hooks 同步设置",
+    "browseTemplates": "浏览模板",
+    "browseTemplatesDesc": "查看可复用的 Hook 模板"
   },
   "toolMode": {
     "claude": {

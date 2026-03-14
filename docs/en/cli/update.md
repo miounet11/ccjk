@@ -141,7 +141,7 @@ The execution flow of `ccjk update` is as follows:
 - ✅ BMad workflow (`/bmad-init`)
 - ✅ Common tools (`/init-project`)
 
-> ⚠️ **Note**: Codex currently only supports six-stage workflow and Git workflows.
+> ⚠️ **Note**: BMad remains Claude Code-only. Codex supports six-stage workflow, feature planning, project bootstrap, Git helpers, and selected advanced prompt packs via `/prompts:`.
 
 ### Prompt Content
 
@@ -301,5 +301,4 @@ If version check doesn't prompt:
 - [check-updates](check-updates.md) - Version check command
 
 > 💡 **Tip**: It's recommended to regularly run `ccjk update` to keep workflow templates and prompts up to date, especially when new features are released or templates are updated.
-
 

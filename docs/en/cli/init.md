@@ -223,7 +223,7 @@ npx ccjk i -s -w sixStepsWorkflow,gitWorkflow
 npx ccjk i -s -w skip
 ```
 
-> ⚠️ **Note**: Codex currently only supports `sixStepsWorkflow` and `gitWorkflow`. Other workflows are not yet available in Codex.
+> ⚠️ **Note**: BMad remains Claude Code-only. Codex supports `sixStepsWorkflow`, `essentialTools`, `gitWorkflow`, and several advanced prompt packs.
 
 ### Output Style Configuration
 
@@ -428,5 +428,4 @@ ls -la ~/.codex/prompts/
 - [MCP Services](../features/mcp.md) - Detailed MCP service information
 
 > 💡 **Tip**: For first-time use, it's recommended to use interactive mode (without `-s` parameter), so you can better understand the meaning of each option. After familiarizing yourself, you can use non-interactive mode to improve efficiency.
-
 

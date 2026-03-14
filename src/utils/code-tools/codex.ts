@@ -1,6 +1,7 @@
 import type { AiOutputLanguage, SupportedLang } from '../../constants'
 import type { CodexUninstallItem, CodexUninstallResult } from './codex-uninstaller'
 import process from 'node:process'
+import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
 import dayjs from 'dayjs'
@@ -1257,12 +1258,12 @@ export async function runCodexWorkflowSelection(options?: CodexFullInitOptions):
     return
 
   // Get available workflow files (recursively)
-  let allWorkflows = getAllWorkflowFiles(workflowSrc, preferredLang)
+  let allWorkflows = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang)
 
   // If no workflows found for preferred language, fallback to zh-CN
   if (allWorkflows.length === 0 && preferredLang === 'en') {
     preferredLang = 'zh-CN'
-    allWorkflows = getAllWorkflowFiles(workflowSrc, preferredLang)
+    allWorkflows = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang)
   }
 
   if (allWorkflows.length === 0)
@@ -1284,7 +1285,7 @@ export async function runCodexWorkflowSelection(options?: CodexFullInitOptions):
     // If specific workflows are provided, install only those
     if (presetWorkflows.length > 0) {
       const selectedWorkflows = allWorkflows.filter(workflow =>
-        presetWorkflows.includes(workflow.name),
+        presetWorkflows.includes(workflow.id) || presetWorkflows.includes(workflow.name),
       )
       // Expand grouped selections (e.g., Git) to concrete files
       workflowsToInstall = expandSelectedWorkflowPaths(selectedWorkflows.map(w => w.path), workflowSrc, preferredLang)
@@ -1311,7 +1312,7 @@ export async function runCodexWorkflowSelection(options?: CodexFullInitOptions):
     name: 'workflows',
     message: i18n.t('codex:workflowSelectionPrompt'),
     choices: addNumbersToChoices(allWorkflows.map(workflow => ({
-      name: workflow.name,
+      name: `${workflow.name} ${ansis.gray(`- ${workflow.description}`)}`,
       value: workflow.path,
       checked: true, // Default all selected
     }))),
@@ -1341,40 +1342,114 @@ export async function runCodexWorkflowSelection(options?: CodexFullInitOptions):
   }
 }
 
-// Sentinel value for grouped Git workflow option
+// Sentinel values for grouped workflow options
+const ESSENTIAL_GROUP_SENTINEL = '::essentialGroup'
 const GIT_GROUP_SENTINEL = '::gitGroup'
 
-function getAllWorkflowFiles(workflowSrc: string, preferredLang: string): Array<{ name: string, path: string }> {
-  const workflows: Array<{ name: string, path: string }> = []
+function getCodexWorkflowOptionDefinitions(workflowSrc: string, preferredLang: string): CodexWorkflowOption[] {
+  const options: CodexWorkflowOption[] = []
 
-  // workflowSrc is templates/common/workflow/
-  // Check for sixStep workflow (single file, use real path directly)
-  const sixStepFile = join(workflowSrc, 'sixStep', preferredLang, 'workflow.md')
-  if (exists(sixStepFile)) {
-    workflows.push({
-      name: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
-      path: sixStepFile,
+  const pushIfExists = (
+    id: CodexWorkflowOptionId,
+    nameKey: string,
+    descriptionKey: string,
+    path: string,
+    existsCheck: () => boolean = () => exists(path),
+  ): void => {
+    if (!existsCheck()) {
+      return
+    }
+
+    options.push({
+      id,
+      name: i18n.t(nameKey),
+      description: i18n.t(descriptionKey),
+      path,
     })
   }
 
-  // Add Git workflow as a grouped option mirroring Claude Code's description
-  const gitPromptsDir = join(workflowSrc, 'git', preferredLang)
-  if (exists(gitPromptsDir)) {
-    workflows.push({
-      name: i18n.t('workflow:workflowOption.gitWorkflow'),
-      // Use sentinel path for grouped selection; expanded later
-      path: GIT_GROUP_SENTINEL,
-    })
-  }
+  pushIfExists(
+    'sixStepsWorkflow',
+    'workflow:workflowOption.sixStepsWorkflow',
+    'workflow:workflowDescription.sixStepsWorkflow',
+    join(workflowSrc, 'sixStep', preferredLang, 'workflow.md'),
+  )
 
-  return workflows
+  pushIfExists(
+    'essentialTools',
+    'workflow:workflowOption.essentialTools',
+    'workflow:workflowDescription.essentialTools',
+    ESSENTIAL_GROUP_SENTINEL,
+    () => getEssentialPromptFiles(workflowSrc, preferredLang).length > 0,
+  )
+
+  pushIfExists(
+    'gitWorkflow',
+    'workflow:workflowOption.gitWorkflow',
+    'workflow:workflowDescription.gitWorkflow',
+    GIT_GROUP_SENTINEL,
+    () => getGitPromptFiles(workflowSrc, preferredLang).length > 0,
+  )
+
+  pushIfExists(
+    'interviewWorkflow',
+    'workflow:workflowOption.interviewWorkflow',
+    'workflow:workflowDescription.interviewWorkflow',
+    join(workflowSrc, 'interview', preferredLang, 'interview.md'),
+  )
+
+  pushIfExists(
+    'specFirstTDD',
+    'workflow:workflowOption.specFirstTDD',
+    'workflow:workflowDescription.specFirstTDD',
+    join(workflowSrc, 'specFirstTDD', preferredLang, 'spec-first-tdd.md'),
+  )
+
+  pushIfExists(
+    'continuousDelivery',
+    'workflow:workflowOption.continuousDelivery',
+    'workflow:workflowDescription.continuousDelivery',
+    join(workflowSrc, 'continuousDelivery', preferredLang, 'continuous-delivery.md'),
+  )
+
+  pushIfExists(
+    'refactoringMaster',
+    'workflow:workflowOption.refactoringMaster',
+    'workflow:workflowDescription.refactoringMaster',
+    join(workflowSrc, 'refactoringMaster', preferredLang, 'refactoring-master.md'),
+  )
+
+  pushIfExists(
+    'linearMethod',
+    'workflow:workflowOption.linearMethod',
+    'workflow:workflowDescription.linearMethod',
+    join(workflowSrc, 'linearMethod', preferredLang, 'linear-method.md'),
+  )
+
+  return options
+}
+
+export function getCodexWorkflowOptionIds(): CodexWorkflowOptionId[] {
+  return [
+    'sixStepsWorkflow',
+    'essentialTools',
+    'gitWorkflow',
+    'interviewWorkflow',
+    'specFirstTDD',
+    'continuousDelivery',
+    'refactoringMaster',
+    'linearMethod',
+  ]
 }
 
 // Expand grouped selections to actual file paths
 function expandSelectedWorkflowPaths(paths: string[], workflowSrc: string, preferredLang: string): string[] {
   const expanded: string[] = []
   for (const p of paths) {
-    if (p === GIT_GROUP_SENTINEL) {
+    if (p === ESSENTIAL_GROUP_SENTINEL) {
+      expanded.push(...getEssentialPromptFiles(workflowSrc, preferredLang))
+    }
+    else if (p === GIT_GROUP_SENTINEL) {
       expanded.push(...getGitPromptFiles(workflowSrc, preferredLang))
     }
     else {
@@ -1382,6 +1457,23 @@ function expandSelectedWorkflowPaths(paths: string[], workflowSrc: string, prefe
     }
   }
   return expanded
+}
+
+function getEssentialPromptFiles(workflowSrc: string, preferredLang: string): string[] {
+  const essentialDir = join(workflowSrc, 'essential', preferredLang)
+  const files = [
+    'feat.md',
+    'init-project.md',
+  ]
+
+  const resolved: string[] = []
+  for (const f of files) {
+    const full = join(essentialDir, f)
+    if (exists(full))
+      resolved.push(full)
+  }
+
+  return resolved
 }
 
 // Resolve actual Git prompt files from templates
@@ -1400,7 +1492,18 @@ function getGitPromptFiles(workflowSrc: string, preferredLang: string): string[]
     if (exists(full))
       resolved.push(full)
   }
+
   return resolved
+}
+
+function resolveCodexWorkflowNames(workflowIds: string[], preferredLang: SupportedLang): string[] {
+  const workflowSrc = join(getRootDir(), 'templates', 'common', 'workflow')
+  const options = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang)
+  const optionMap = new Map(options.map(option => [option.id, option.name]))
+
+  return workflowIds
+    .map(workflowId => optionMap.get(workflowId as CodexWorkflowOptionId))
+    .filter((workflowName): workflowName is string => Boolean(workflowName))
 }
 
 function toProvidersList(providers: CodexProvider[]): Array<{ name: string, value: string }> {
@@ -1831,12 +1934,20 @@ export interface CodexFullInitOptions extends CodexWorkflowLanguageOptions {
 }
 
 export type CodexPresetId = 'minimal' | 'dev' | 'full'
-type CodexEfficiencyAction = 'quick-optimize' | 'preset-bundles' | 'model' | 'docs-mcp' | 'prompt-memory' | 'back'
+type CodexEfficiencyAction = 'quick-optimize' | 'preset-bundles' | 'workflow-prompts' | 'model' | 'docs-mcp' | 'prompt-memory' | 'back'
+type CodexWorkflowOptionId = 'sixStepsWorkflow' | 'essentialTools' | 'gitWorkflow' | 'interviewWorkflow' | 'specFirstTDD' | 'continuousDelivery' | 'refactoringMaster' | 'linearMethod'
 
 export interface CodexPresetDefinition {
   id: CodexPresetId
   workflows: string[]
   mcpServices: string[]
+}
+
+interface CodexWorkflowOption {
+  id: CodexWorkflowOptionId
+  name: string
+  description: string
+  path: string
 }
 
 const CODEX_PRESET_DEFINITIONS: Record<CodexPresetId, CodexPresetDefinition> = {
@@ -1847,12 +1958,12 @@ const CODEX_PRESET_DEFINITIONS: Record<CodexPresetId, CodexPresetDefinition> = {
   },
   dev: {
     id: 'dev',
-    workflows: ['sixStepsWorkflow', 'gitWorkflow'],
+    workflows: ['sixStepsWorkflow', 'essentialTools', 'gitWorkflow'],
     mcpServices: ['context7', 'open-websearch', 'mcp-deepwiki'],
   },
   full: {
     id: 'full',
-    workflows: ['sixStepsWorkflow', 'gitWorkflow'],
+    workflows: ['sixStepsWorkflow', 'essentialTools', 'gitWorkflow', 'specFirstTDD', 'refactoringMaster', 'linearMethod', 'interviewWorkflow'],
     mcpServices: ['context7', 'open-websearch', 'mcp-deepwiki', 'serena'],
   },
 }
@@ -1862,7 +1973,7 @@ export function getCodexPresetDefinitions(): CodexPresetDefinition[] {
 }
 
 export function getCodexEfficiencyActionIds(): CodexEfficiencyAction[] {
-  return ['quick-optimize', 'preset-bundles', 'model', 'docs-mcp', 'prompt-memory', 'back']
+  return ['quick-optimize', 'preset-bundles', 'workflow-prompts', 'model', 'docs-mcp', 'prompt-memory', 'back']
 }
 
 export async function runCodexFullInit(
@@ -1893,17 +2004,6 @@ function resolveCodexPresetTemplateLang(): SupportedLang {
   return i18n.language === 'zh-CN' ? 'zh-CN' : 'en'
 }
 
-function resolveCodexPresetWorkflows(workflows: string[]): string[] {
-  const workflowLabelMap: Record<string, string> = {
-    sixStepsWorkflow: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
-    gitWorkflow: i18n.t('workflow:workflowOption.gitWorkflow'),
-  }
-
-  return workflows
-    .map(workflow => workflowLabelMap[workflow])
-    .filter((workflow): workflow is string => Boolean(workflow))
-}
-
 export async function applyCodexPreset(presetId: CodexPresetId): Promise<void> {
   ensureI18nInitialized()
 
@@ -1916,7 +2016,8 @@ export async function applyCodexPreset(presetId: CodexPresetId): Promise<void> {
   const templateLang = resolveCodexPresetTemplateLang()
   const preferredLang = savedConfig?.preferredLang || templateLang
   const aiOutputLang = savedConfig?.aiOutputLang || templateLang
-  const workflows = resolveCodexPresetWorkflows(preset.workflows)
+  const workflowIds = preset.workflows
+  const workflowNames = resolveCodexWorkflowNames(workflowIds, templateLang)
   const previousSingleBackupMode = process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP
 
   process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = 'true'
@@ -1934,12 +2035,12 @@ export async function applyCodexPreset(presetId: CodexPresetId): Promise<void> {
     await runCodexWorkflowImportWithLanguageSelection({
       skipPrompt: true,
       aiOutputLang,
-      workflows,
+      workflows: workflowIds,
     })
 
     await configureCodexMcp({
       skipPrompt: true,
-      workflows,
+      workflows: workflowIds,
       mcpServices: preset.mcpServices,
     })
   }
@@ -1955,7 +2056,7 @@ export async function applyCodexPreset(presetId: CodexPresetId): Promise<void> {
 
   console.log(ansis.green(i18n.t('codex:presetApplied', { preset: i18n.t(`codex:presets.${preset.id}.name`) })))
   console.log(ansis.gray(i18n.t('codex:presetSummary', {
-    workflows: workflows.join(', '),
+    workflows: workflowNames.join(', '),
     services: preset.mcpServices.join(', '),
   })))
 }
@@ -1986,11 +2087,22 @@ function formatCodexStyleSummary(style: string | null | undefined): string {
   return styleLabels[style] || style
 }
 
+function getInstalledCodexPromptCount(): number {
+  if (!exists(CODEX_PROMPTS_DIR)) {
+    return 0
+  }
+
+  return readdirSync(CODEX_PROMPTS_DIR, { withFileTypes: true })
+    .filter(entry => entry.isFile() && entry.name.endsWith('.md'))
+    .length
+}
+
 function buildCodexEfficiencyChoices(): Array<{ name: string, value: CodexEfficiencyAction }> {
   const codexConfig = readCodexConfig()
   const zcfConfig = readDefaultTomlConfig()
   const modelSummary = formatCodexModelSummary(codexConfig?.model)
   const mcpSummary = codexConfig?.mcpServices?.length ?? 0
+  const workflowSummary = getInstalledCodexPromptCount()
   const promptSummary = formatCodexStyleSummary(zcfConfig?.codex?.systemPromptStyle)
   const languageSummary = zcfConfig?.general?.aiOutputLang || zcfConfig?.general?.preferredLang || i18n.t('codex:efficiency.notConfigured')
 
@@ -2002,6 +2114,10 @@ function buildCodexEfficiencyChoices(): Array<{ name: string, value: CodexEffici
     {
       name: `${i18n.t('codex:efficiency.actions.presetBundles.name')} ${ansis.gray(`- ${i18n.t('codex:efficiency.actions.presetBundles.description')}`)}`,
       value: 'preset-bundles',
+    },
+    {
+      name: `${i18n.t('codex:efficiency.actions.workflowPrompts.name')} ${ansis.gray(`- ${i18n.t('codex:efficiency.actions.workflowPrompts.description', { count: workflowSummary })}`)}`,
+      value: 'workflow-prompts',
     },
     {
       name: `${i18n.t('codex:efficiency.actions.model.name')} ${ansis.gray(`- ${i18n.t('codex:efficiency.actions.model.description', { model: modelSummary })}`)}`,
@@ -2097,6 +2213,11 @@ export async function configureCodexPresetFeature(): Promise<void> {
       if (preset) {
         await applyCodexPreset(preset)
       }
+      continue
+    }
+
+    if (action === 'workflow-prompts') {
+      await runCodexWorkflowSelection()
       continue
     }
 

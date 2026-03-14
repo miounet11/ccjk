@@ -30,12 +30,16 @@ Use the following commands in Claude Code:
 
 Use the following commands in Codex (note the `/prompts:` prefix):
 - `/prompts:workflow` - Six-stage workflow
+- `/prompts:feat` - Feature planning workflow
+- `/prompts:init-project` - Project bootstrap prompt
 - `/prompts:git-commit` - Git commit command
 - `/prompts:git-rollback` - Git rollback command
 - `/prompts:git-cleanBranches` - Clean merged branches
 - `/prompts:git-worktree` - Git worktree management
+- `/prompts:spec-first-tdd` - Spec-first TDD workflow
+- `/prompts:refactoring-master` - Refactoring workflow
 
-> ⚠️ **Note**: Codex currently only supports six-stage workflow and Git workflows. Feature development workflow (feat), project initialization (init-project), and BMad workflow are not yet available in Codex.
+> ⚠️ **Note**: BMad remains Claude Code-only. Codex now supports six-stage, feature planning, project bootstrap, Git helpers, and several advanced prompt packs through `/prompts:`.
 
 > 💡 **Tip**: Codex uses `/prompts:` prefix to access all workflow commands, which is Codex's command format specification.
 

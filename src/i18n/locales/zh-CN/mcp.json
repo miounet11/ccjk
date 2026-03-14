@@ -13,6 +13,8 @@
   "services.spec-workflow.name": "Spec 工作流",
   "services.serena.name": "Serena 助手",
   "services.serena.description": "提供类似 IDE 的语义代码检索与编辑，支持符号级实体提取与关系结构利用；与现有编码代理配合可显著提升标记效率",
+  "services.Playwright.name": "Playwright 浏览器",
+  "services.Playwright.description": "适用于图形界面的浏览器自动化与端到端验证",
   "services.agent-browser.description": "Vercel Labs 浏览器自动化，用于网页交互和测试",
   "services.agent-browser.name": "Agent Browser 浏览器自动化",
   "services.filesystem.name": "文件系统操作",

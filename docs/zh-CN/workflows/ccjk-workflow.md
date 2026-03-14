@@ -192,10 +192,10 @@ title: CCJK 六阶段工作流
 /init-project
 
 # 2. 或初始化项目（Codex）
-# Codex 暂不支持 init-project，可直接使用工作流
+/prompts:init-project
 
 # 3. 执行工作流
-/ccjk:workflow <任务描述>
+/prompts:workflow <任务描述>
 ```
 
 初始化后会生成：

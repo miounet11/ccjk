@@ -21,13 +21,13 @@ CCJK 内置多套经过验证的工作流：
 
 | ID | 分类 | 默认 | 描述 | Claude Code | Codex |
 | --- | --- | --- | --- | ----------- | ----- |
-| `commonTools` | common | ✅ | 项目初始化与常用工具 | ✅ | ❌ |
+| `commonTools` | common | ✅ | 项目初始化与常用工具 | ✅ | ✅ |
 | `sixStepsWorkflow` | sixStep | ✅ | 六阶段结构化开发工作流 | ✅ | ✅ |
-| `featPlanUx` | plan | ✅ | 功能开发工作流（含规划与 UI/UX） | ✅ | ❌ |
+| `featPlanUx` | plan | ✅ | 功能开发工作流（含规划与 UI/UX） | ✅ | ✅ |
 | `gitWorkflow` | git | ✅ | Git 提交、回滚、清理管理 | ✅ | ✅ |
 | `bmadWorkflow` | bmad | ✅ | BMad 敏捷流程 | ✅ | ❌ |
 
-> ⚠️ **注意**：Codex 目前仅支持 `sixStepsWorkflow` 和 `gitWorkflow`。
+> ⚠️ **注意**：BMad 仍然仅支持 Claude Code。Codex 已支持六阶段工作流、功能规划、项目初始化、Git 辅助命令，以及安装到 `~/.codex/prompts/` 的部分高级 prompt 套件。
 
 ### 六阶段工作流（Six Steps Workflow）
 
@@ -148,7 +148,7 @@ ccjk update --workflows
 
 ```
 Claude Code: ~/.claude/prompts/workflows/
-Codex:       ~/.codex/prompts/workflows/
+Codex:       ~/.codex/prompts/
 ```
 
 ## 命令格式

@@ -61,7 +61,7 @@ export const MCP_PROFILES: McpProfile[] = [
     nameZh: '研究模式',
     description: 'Enhanced documentation and search',
     descriptionZh: '增强文档和搜索功能',
-    services: ['context7', 'open-websearch', 'mcp-deepwiki', 'memory', 'sequential-thinking'],
+    services: ['context7', 'open-websearch', 'mcp-deepwiki', 'intent-engine', 'serena'],
     maxServices: 6,
     tier: 'ondemand',
   },

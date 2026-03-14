@@ -81,4 +81,20 @@ describe('progressive menu handlers', () => {
 
     expect(mockConfigureCodexPresetFeature).toHaveBeenCalledTimes(1)
   })
+
+  it('uses separate menu shells for Claude and Codex', async () => {
+    const { __testUtils } = await import('./index')
+
+    expect(__testUtils.getMenuShellConfig('claude-code')).toMatchObject({
+      allowMore: true,
+      footerCommands: [],
+      showHero: false,
+    })
+
+    expect(__testUtils.getMenuShellConfig('codex')).toMatchObject({
+      allowMore: false,
+      showHero: true,
+    })
+    expect(__testUtils.getMenuShellConfig('codex').footerCommands.map(command => command.key)).toEqual(['s', '+', '-'])
+  })
 })

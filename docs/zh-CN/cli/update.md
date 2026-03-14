@@ -141,7 +141,7 @@ npx ccjk u -s -g zh-CN -T claude-code
 - ✅ BMad 工作流（`/bmad-init`）
 - ✅ 通用工具（`/init-project`）
 
-> ⚠️ **注意**：Codex 目前仅支持六阶段工作流和 Git 工作流。
+> ⚠️ **注意**：BMad 仍然仅支持 Claude Code。Codex 已支持六阶段工作流、功能规划、项目初始化、Git 辅助命令，以及部分高级 `/prompts:` 套件。
 
 ### 提示词内容
 

@@ -35,9 +35,13 @@ title: 功能开发工作流
 
 ### Codex
 
-> ⚠️ **注意**：功能开发工作流（feat）目前仅在 Claude Code 中提供，Codex 暂不支持此工作流。
+Codex 也支持相同的入口：
 
-如果需要类似功能，可以在 Codex 中使用 `/prompts:workflow` 六阶段工作流来实现功能开发任务。
+```bash
+/prompts:feat 实现用户评论功能，支持点赞、回复和删除
+```
+
+如果你希望走完整的六阶段执行闭环，仍然可以使用 `/prompts:workflow`。
 
 ## 工作流阶段
 

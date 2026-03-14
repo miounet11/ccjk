@@ -6,6 +6,7 @@ describe('getCodexEfficiencyActionIds', () => {
     expect(getCodexEfficiencyActionIds()).toEqual([
       'quick-optimize',
       'preset-bundles',
+      'workflow-prompts',
       'model',
       'docs-mcp',
       'prompt-memory',

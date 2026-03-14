@@ -318,6 +318,17 @@ export const ccjkFeaturesItems: MenuItem[] = [
  */
 export const systemItems: MenuItem[] = [
   {
+    id: 'codex-switch-tool',
+    label: 'menuOptions.switchCodeTool',
+    description: 'menuDescriptions.switchCodeTool',
+    category: 'system',
+    level: 'basic',
+    action: 'command',
+    icon: '🔄',
+    shortcut: 's',
+    supportedTools: ['codex'],
+  },
+  {
     id: 'doctor',
     label: 'menuOptions.doctor',
     description: 'menuDescriptions.doctor',

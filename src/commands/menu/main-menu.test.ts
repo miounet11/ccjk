@@ -24,6 +24,7 @@ describe('tool-aware menu visibility', () => {
       'mcp-config',
       'model-config',
       'memory-config',
+      'codex-switch-tool',
     ])
   })
 

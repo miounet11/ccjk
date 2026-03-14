@@ -333,6 +333,7 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
         }
 
       case 'switch-code-tool':
+      case 'codex-switch-tool':
         return {
           ...item,
           handler: async () => {
@@ -422,6 +423,33 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
   ]
 }
 
+function getMenuShellConfig(codeTool: CodeToolType): {
+  allowMore: boolean
+  footerCommands: Array<{
+    key: string
+    label: string
+    variant?: 'default' | 'danger'
+  }>
+  menuTitle: string
+  showHero: boolean
+} {
+  if (codeTool === 'codex') {
+    return {
+      allowMore: false,
+      footerCommands: getProgressiveFooterCommands(codeTool),
+      menuTitle: getToolModeMenuTitle(codeTool),
+      showHero: true,
+    }
+  }
+
+  return {
+    allowMore: true,
+    footerCommands: [],
+    menuTitle: i18n.t('menu:menu.title', 'CCJK Main Menu'),
+    showHero: false,
+  }
+}
+
 /**
  * Show the new progressive main menu
  */
@@ -446,24 +474,24 @@ async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> 
 
   // Count visible items
   const visibleItemCount = visibleItems.length
-  const allowMore = codeTool !== 'codex'
-  const footerCommands = getProgressiveFooterCommands(codeTool)
-  const allowedCommands = ['0', 'q', ...(allowMore ? ['m'] : []), ...footerCommands.map(command => command.key)]
-  const menuTitle = getToolModeMenuTitle(codeTool)
+  const menuShell = getMenuShellConfig(codeTool)
+  const allowedCommands = ['0', 'q', ...(menuShell.allowMore ? ['m'] : []), ...menuShell.footerCommands.map(command => command.key)]
 
   // Render menu
-  console.log(renderToolModeHero(codeTool))
-  console.log('')
+  if (menuShell.showHero) {
+    console.log(renderToolModeHero(codeTool))
+    console.log('')
+  }
   const menuOutput = renderMenu(
-    menuTitle,
+    menuShell.menuTitle,
     visibleItems,
     {
       showShortcuts: true,
       showDescriptions: true,
       useColor: true,
       terminalWidth: 80,
-      showMoreCommand: allowMore,
-      extraFooterCommands: footerCommands,
+      showMoreCommand: menuShell.allowMore,
+      extraFooterCommands: menuShell.footerCommands,
     },
   )
 
@@ -488,7 +516,7 @@ async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> 
     return 'continue'
   }
 
-  if (allowMore && isMoreCommand(input)) {
+  if (menuShell.allowMore && isMoreCommand(input)) {
     // Show more features submenu
     await showMoreFeaturesMenu()
     printSeparator()
@@ -532,7 +560,7 @@ async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> 
       console.log(ansis.yellow(`No handler for ${selectedItem.id}`))
     }
 
-    if (selectedItem.id === 'switch-code-tool' && getCurrentCodeTool() !== codeTool) {
+    if (['switch-code-tool', 'codex-switch-tool'].includes(selectedItem.id) && getCurrentCodeTool() !== codeTool) {
       return 'switch'
     }
   }
@@ -1407,4 +1435,5 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
 export * from './types'
 export const __testUtils = {
   attachHandlers,
+  getMenuShellConfig,
 }

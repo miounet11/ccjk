@@ -192,10 +192,10 @@ Before starting workflow, it's recommended to initialize project configuration:
 /init-project
 
 # 2. Or initialize project (Codex)
-# Codex doesn't support init-project yet, can directly use workflow
+/prompts:init-project
 
 # 3. Execute workflow
-/ccjk:workflow <task description>
+/prompts:workflow <task description>
 ```
 
 After initialization, will generate:
@@ -325,5 +325,4 @@ For very complex tasks:
 - [Workflow System](../features/workflows.md) - Detailed workflow information
 
 > 💡 **Tip**: The six-stage workflow is CCJK's core functionality, suitable for most development tasks. It's recommended to start with small tasks to familiarize yourself with the process, then gradually apply to more complex projects. Proper use of stage confirmation mechanism can provide better development experience.
-
 
