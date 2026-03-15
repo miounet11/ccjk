@@ -3,10 +3,10 @@
  * Fixes problematic settings that interfere with Claude Code token retrieval
  */
 
-import type { ClaudeSettings } from '../types/config'
 import ansis from 'ansis'
 import { SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import type { ClaudeSettings } from '../types/config'
 import { backupExistingConfig } from './config'
 import { exists } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
@@ -24,6 +24,8 @@ export interface MigrationResult {
  * Fixes:
  * 1. Removes CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC (breaks token retrieval)
  * 2. Reduces excessive MCP_TIMEOUT values (> 20000ms)
+ * 3. Removes invalid `model: "default"` from settings.json
+ * 4. Removes explicit settings.model when adaptive routing env vars are configured
  *
  * @returns Migration result with changes made
  */
@@ -52,6 +54,11 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
     }
 
     let modified = false
+    const hasAdaptiveRouting = Boolean(
+      settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
+      || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
+      || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL,
+    )
 
     // Check for problematic environment variables
     if (settings.env) {
@@ -78,6 +85,18 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
           modified = true
         }
       }
+    }
+
+    if (settings.model === 'default') {
+      delete settings.model
+      result.changes.push('Removed invalid settings.model value "default"')
+      modified = true
+    }
+
+    if (settings.model && hasAdaptiveRouting) {
+      delete settings.model
+      result.changes.push('Removed settings.model to restore adaptive Haiku/Sonnet/Opus routing')
+      modified = true
     }
 
     // If no changes needed, return success
@@ -129,8 +148,21 @@ export function needsMigration(): boolean {
     const hasMissingHaikuFastCompat = Boolean(
       settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL,
     )
+    const hasAdaptiveRouting = Boolean(
+      settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+      || settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL
+      || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
+    )
+    const hasInvalidDefaultModel = settings.model === 'default'
+    const hasAdaptiveModelOverride = Boolean(settings.model && hasAdaptiveRouting)
 
-    return Boolean(hasProblematicVar || hasExcessiveTimeout || hasMissingHaikuFastCompat)
+    return Boolean(
+      hasProblematicVar
+      || hasExcessiveTimeout
+      || hasMissingHaikuFastCompat
+      || hasInvalidDefaultModel
+      || hasAdaptiveModelOverride,
+    )
   }
   catch {
     return false
@@ -227,6 +259,21 @@ export function getProblematicSettings(): string[] {
       if (!Number.isNaN(timeout) && timeout > 20000) {
         problems.push(`MCP_TIMEOUT: ${timeout}ms is too high (recommended: 10000-15000ms)`)
       }
+    }
+
+    if (settings.model === 'default') {
+      problems.push('settings.model: "default" is invalid and causes provider routing failures')
+    }
+
+    if (
+      settings.model
+      && (
+        settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+        || settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL
+        || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL
+      )
+    ) {
+      problems.push('settings.model overrides adaptive model routing from ANTHROPIC_DEFAULT_*_MODEL env vars')
     }
   }
   catch {

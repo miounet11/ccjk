@@ -1,5 +1,5 @@
-import type { ClaudeSettings } from '../types/config'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import type { ClaudeSettings } from '../types/config'
 
 /**
  * Validate Claude settings configuration
@@ -13,7 +13,7 @@ export function validateClaudeSettings(settings: any): settings is ClaudeSetting
 
   // Validate model if present
   if (settings.model !== undefined) {
-    if (typeof settings.model !== 'string' || !settings.model.trim()) {
+    if (typeof settings.model !== 'string' || !settings.model.trim() || settings.model.trim() === 'default') {
       console.log(i18n.t('errors:invalidModel', { model: settings.model }))
       return false
     }
@@ -73,7 +73,7 @@ export function sanitizeClaudeSettings(settings: any): ClaudeSettings {
   }
 
   // Copy valid model
-  if (typeof settings.model === 'string' && settings.model.trim()) {
+  if (typeof settings.model === 'string' && settings.model.trim() && settings.model.trim() !== 'default') {
     sanitized.model = settings.model.trim()
   }
 

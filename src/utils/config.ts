@@ -1,28 +1,38 @@
-import type { AiOutputLanguage } from '../constants'
-import type { ApiConfig, ClaudeSettings } from '../types/config'
-import type { ModelEnvKey } from './config.model-keys'
-import type { CopyDirOptions } from './fs-operations'
-import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
 import dayjs from 'dayjs'
 import inquirer from 'inquirer'
+import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
+import type { AiOutputLanguage } from '../constants'
 import { AI_OUTPUT_LANGUAGES, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE, SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import type { ApiConfig, ClaudeSettings } from '../types/config'
 import { addCompletedOnboarding, setPrimaryApiKey } from './claude-config'
+import type { ModelEnvKey } from './config.model-keys'
 import { clearModelEnv, MODEL_ENV_KEYS } from './config.model-keys'
+import type { CopyDirOptions } from './fs-operations'
 import {
-  copyDir,
-  copyFile,
-  ensureDir,
-  exists,
-  writeFileAtomic,
+    copyDir,
+    copyFile,
+    ensureDir,
+    exists,
+    writeFileAtomic,
 } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
 import { deepMerge } from './object-utils'
 import { mergeAndCleanPermissions } from './permission-cleaner'
 
 export type { ApiConfig } from '../types/config'
+
+const BUILTIN_MODEL_VALUES = ['opus', 'sonnet', 'sonnet[1m]'] as const
+
+function hasAdaptiveRoutingEnv(settings: ClaudeSettings): boolean {
+  return Boolean(
+    settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
+    || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
+    || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL,
+  )
+}
 
 export function ensureClaudeDir(): void {
   ensureDir(CLAUDE_DIR)
@@ -387,6 +397,15 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
     // Ensure user's env vars are preserved
     mergedSettings.env = mergedEnv
 
+    // `model: "default"` is not a valid Claude Code runtime value.
+    // When adaptive routing env vars are present, any explicit `model` also breaks routing.
+    if (mergedSettings.model === 'default') {
+      delete mergedSettings.model
+    }
+    if (mergedSettings.model && hasAdaptiveRoutingEnv(mergedSettings)) {
+      delete mergedSettings.model
+    }
+
     // Handle permissions.allow array specially to avoid duplicates and clean invalid entries
     if (mergedSettings.permissions && mergedSettings.permissions.allow) {
       // Always use template's permission format as base, add user's unique valid ones
@@ -440,12 +459,11 @@ export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
   }
 
   // If model field doesn't exist, it means using default
-  if (!settings.model) {
+  if (!settings.model || settings.model === 'default') {
     return 'default'
   }
 
-  const validModels: Array<'opus' | 'sonnet' | 'sonnet[1m]'> = ['opus', 'sonnet', 'sonnet[1m]']
-  if (validModels.includes(settings.model as any)) {
+  if (BUILTIN_MODEL_VALUES.includes(settings.model as any)) {
     return settings.model as 'opus' | 'sonnet' | 'sonnet[1m]'
   }
 
@@ -475,7 +493,7 @@ export function getExistingCustomModelConfig(): {
   } = settings.env || {}
 
   // Check if any custom model configuration exists
-  const primaryModel = settings.model && !['opus', 'sonnet', 'sonnet[1m]'].includes(settings.model)
+  const primaryModel = settings.model && settings.model !== 'default' && !BUILTIN_MODEL_VALUES.includes(settings.model as any)
     ? settings.model
     : settings.env?.ANTHROPIC_MODEL
 

@@ -71,7 +71,20 @@ export async function detectSettingsIssues(): Promise<ConfigIssue[]> {
       || env.ANTHROPIC_DEFAULT_SONNET_MODEL
       || env.ANTHROPIC_DEFAULT_OPUS_MODEL,
     )
-    if (settings.model && hasAdaptiveEnvVars) {
+    if (settings.model === 'default') {
+      issues.push({
+        type: 'invalid',
+        severity: 'critical',
+        description: 'settings.model is set to invalid runtime value "default"',
+        fix: async () => {
+          delete settings.model
+          writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+          return true
+        },
+      })
+    }
+
+    if (settings.model && settings.model !== 'default' && hasAdaptiveEnvVars) {
       issues.push({
         type: 'invalid',
         severity: 'critical',
