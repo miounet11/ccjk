@@ -62,12 +62,10 @@ export async function showApiConfigMenu(title?: string, options?: { context?: 'i
   console.log('')
 
   const choices = [
-    { name: isZh ? '1. 使用官方登录（不配置 API）' : '1. Use Official Login (No API Config)', value: 'official' },
-    { name: isZh ? '2. 自定义 API 配置' : '2. Custom API Configuration', value: 'custom' },
-    { name: isZh ? '3. 使用 CCR 代理' : '3. Use CCR Proxy', value: 'ccr' },
-    { name: isZh ? '4. 切换 API 配置' : '4. Switch API Configuration', value: 'switch' },
-    { name: isZh ? '5. 查看当前配置' : '5. View Current Configuration', value: 'view' },
-    { name: isZh ? '6. 跳过 API 配置' : '6. Skip API Configuration', value: 'skip' },
+    { name: isZh ? '使用官方登录' : 'Use Official Login', value: 'official' },
+    { name: isZh ? '自定义 API 配置' : 'Custom API Configuration', value: 'custom' },
+    { name: isZh ? '使用 CCR 代理' : 'Use CCR Proxy', value: 'ccr' },
+    { name: isZh ? '跳过（稍后手动配置）' : 'Skip (Configure Later)', value: 'skip' },
   ]
 
   const { choice } = await inquirer.prompt<{ choice: ApiConfigMode }>({
@@ -75,7 +73,8 @@ export async function showApiConfigMenu(title?: string, options?: { context?: 'i
     name: 'choice',
     message: isZh ? '请选择 API 配置模式:' : 'Select API configuration mode:',
     choices,
-    pageSize: 10,
+    default: 'custom',
+    pageSize: 8,
   })
 
   const codeTool = getCurrentCodeTool()

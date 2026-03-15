@@ -17,8 +17,8 @@ describe('tool-aware menu visibility', () => {
     const itemIds = getVisibleItems('basic', 'codex').map(item => item.id)
 
     expect(itemIds).toEqual([
-      'api-config',
       'init',
+      'api-config',
       'workflow-import',
       'codex-preset',
       'mcp-config',

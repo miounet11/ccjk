@@ -21,16 +21,6 @@ const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'aider', 'continue', 'cl
  */
 export const quickActionsItems: MenuItem[] = [
   {
-    id: 'api-config',
-    label: 'menu:configCenter.api',
-    description: 'menu:configCenter.apiDesc',
-    category: 'quick',
-    level: 'basic',
-    action: 'command',
-    icon: '🔑',
-    shortcut: '1',
-  },
-  {
     id: 'init',
     label: 'menu:oneClick.setup',
     description: 'menu:oneClick.setupDesc',
@@ -38,7 +28,28 @@ export const quickActionsItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '⚡',
+    shortcut: '1',
+  },
+  {
+    id: 'diagnostics',
+    label: 'menu:oneClick.fix',
+    description: 'menu:oneClick.fixDesc',
+    category: 'quick',
+    level: 'basic',
+    action: 'command',
+    icon: '🔧',
     shortcut: '2',
+    supportedTools: NON_CODEX_TOOLS,
+  },
+  {
+    id: 'api-config',
+    label: 'menu:configCenter.api',
+    description: 'menu:configCenter.apiDesc',
+    category: 'quick',
+    level: 'basic',
+    action: 'command',
+    icon: '🔑',
+    shortcut: '3',
   },
   {
     id: 'workflow-import',
@@ -48,7 +59,7 @@ export const quickActionsItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '📦',
-    shortcut: '3',
+    shortcut: '4',
     supportedTools: ['codex'],
   },
   {
@@ -59,19 +70,8 @@ export const quickActionsItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '🧩',
-    shortcut: '4',
+    shortcut: '5',
     supportedTools: ['codex'],
-  },
-  {
-    id: 'diagnostics',
-    label: 'menu:oneClick.fix',
-    description: 'menu:oneClick.fixDesc',
-    category: 'quick',
-    level: 'basic',
-    action: 'command',
-    icon: '🔧',
-    shortcut: '3',
-    supportedTools: NON_CODEX_TOOLS,
   },
   {
     id: 'update',
@@ -448,10 +448,10 @@ export function getItemById(id: string): MenuItem | undefined {
  * For backward compatibility during migration
  */
 export const legacyKeyToItemId: Record<string, string> = {
-  // Quick Actions (API config is #1 - core feature)
-  '1': 'api-config',
-  '2': 'init',
-  '3': 'diagnostics',
+  // Quick Actions
+  '1': 'init',
+  '2': 'diagnostics',
+  '3': 'api-config',
   '4': 'update',
   '5': 'notifications',
   // Config

@@ -169,7 +169,8 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
               await configureCodexApi()
               return
             }
-            await (await import('../api')).apiCommand('wizard', [], {})
+            const { showApiConfigMenu } = await import('../api-config-selector')
+            await showApiConfigMenu(undefined, { context: 'menu' })
           },
         }
 
