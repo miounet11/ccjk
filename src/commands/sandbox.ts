@@ -6,7 +6,7 @@ import type { SupportedLang } from '../constants.js'
 import type { AuditLogFilter } from '../types/sandbox.js'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { i18n } from '../i18n/index.js'
+import { i18n, resolveSupportedLanguage } from '../i18n/index.js'
 import { getGlobalSandboxManager } from '../sandbox/sandbox-manager.js'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler.js'
 import { addNumbersToChoices } from '../utils/prompt-helpers.js'
@@ -62,7 +62,7 @@ function formatDuration(ms: number): string {
  */
 async function enableSandbox(options: SandboxOptions): Promise<void> {
   const manager = getGlobalSandboxManager()
-  const lang = options.lang || 'en'
+  const lang = resolveSupportedLanguage(options.lang)
 
   console.log(ansis.green(i18n.t('sandbox:enablingTitle', { lng: lang })))
 
@@ -124,7 +124,7 @@ async function enableSandbox(options: SandboxOptions): Promise<void> {
  */
 async function disableSandbox(options: SandboxOptions): Promise<void> {
   const manager = getGlobalSandboxManager()
-  const lang = options.lang || 'en'
+  const lang = resolveSupportedLanguage(options.lang)
 
   const { confirm } = await inquirer.prompt([
     {
@@ -149,7 +149,7 @@ async function disableSandbox(options: SandboxOptions): Promise<void> {
  */
 async function showStatus(options: SandboxOptions): Promise<void> {
   const manager = getGlobalSandboxManager()
-  const lang = options.lang || 'en'
+  const lang = resolveSupportedLanguage(options.lang)
   const status = manager.getStatus()
 
   console.log(ansis.green.bold(`\n${i18n.t('sandbox:statusTitle', { lng: lang })}`))
@@ -200,7 +200,7 @@ async function showStatus(options: SandboxOptions): Promise<void> {
  */
 async function showAuditLogs(options: SandboxOptions): Promise<void> {
   const manager = getGlobalSandboxManager()
-  const lang = options.lang || 'en'
+  const lang = resolveSupportedLanguage(options.lang)
 
   if (!manager.getStatus().enabled) {
     console.log(ansis.yellow(i18n.t('sandbox:notEnabled', { lng: lang })))
@@ -254,7 +254,7 @@ async function showAuditLogs(options: SandboxOptions): Promise<void> {
  */
 async function clearAuditLogs(options: SandboxOptions): Promise<void> {
   const manager = getGlobalSandboxManager()
-  const lang = options.lang || 'en'
+  const lang = resolveSupportedLanguage(options.lang)
 
   if (!manager.getStatus().enabled) {
     console.log(ansis.yellow(i18n.t('sandbox:notEnabled', { lng: lang })))
@@ -353,7 +353,7 @@ async function showSandboxMenu(lang: SupportedLang): Promise<void> {
  */
 export async function sandbox(options: SandboxOptions = {}): Promise<void> {
   try {
-    const lang = options.lang || 'en'
+    const lang = resolveSupportedLanguage(options.lang)
 
     // If action is specified, execute directly
     if (options.action) {

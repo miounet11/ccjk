@@ -200,8 +200,17 @@ export async function changeLanguage(lng: SupportedLang): Promise<void> {
   await i18n.changeLanguage(lng)
 }
 
+export function resolveSupportedLanguage(language?: string | null, fallback: SupportedLang = 'en'): SupportedLang {
+  const effectiveLanguage = language || i18n.language || fallback
+  if (typeof effectiveLanguage === 'string' && effectiveLanguage.toLowerCase().startsWith('zh')) {
+    return 'zh-CN'
+  }
+
+  return 'en'
+}
+
 export function getCurrentLanguage(): SupportedLang {
-  return i18n.language as SupportedLang
+  return resolveSupportedLanguage(i18n.language)
 }
 
 // Get translation function with namespace support

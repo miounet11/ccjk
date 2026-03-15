@@ -7,7 +7,7 @@ import type { SupportedLang } from '../constants'
 import type { Hook, HookCommandOptions } from '../types/hooks'
 import ansis from 'ansis'
 import { hookManager } from '../hooks/hook-manager'
-import { i18n } from '../i18n'
+import { i18n, resolveSupportedLanguage } from '../i18n'
 import { HookType } from '../types/hooks'
 import { COLORS, STATUS } from '../utils/banner'
 
@@ -213,7 +213,7 @@ export async function hooksCommand(
   args: string[] = [],
   options: HookCommandOptions = {},
 ): Promise<void> {
-  const lang = options.lang || 'en'
+  const lang = resolveSupportedLanguage(options.lang)
 
   // Set i18n language
   await i18n.changeLanguage(lang)

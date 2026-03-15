@@ -18,7 +18,7 @@ import type { InitOptions } from './init'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { detectSmartDefaults } from '../config/smart-defaults'
-import { i18n } from '../i18n'
+import { i18n, resolveSupportedLanguage } from '../i18n'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { getRuntimeVersion } from '../utils/runtime-package'
 import { init } from './init'
@@ -360,7 +360,7 @@ export async function quickSetup(options: QuickSetupOptions = {}): Promise<Quick
 
   try {
     // Initialize i18n
-    const lang = options.lang || 'en'
+    const lang = resolveSupportedLanguage(options.lang)
     if (lang !== i18n.language) {
       await i18n.changeLanguage(lang)
     }

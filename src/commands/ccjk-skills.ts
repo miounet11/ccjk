@@ -19,7 +19,7 @@ import consola from 'consola'
 import inquirer from 'inquirer'
 import { analyzeProject } from '../analyzers'
 import { getTemplatesClient } from '../cloud-client'
-import { i18n } from '../i18n'
+import { i18n, resolveSupportedLanguage } from '../i18n'
 import { getSkillParser } from '../plugins-v2'
 
 // ESM compatible __dirname
@@ -77,9 +77,14 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
   const startTime = Date.now()
 
   try {
+    const lang = resolveSupportedLanguage(options.lang)
+    if (lang !== i18n.language) {
+      await i18n.changeLanguage(lang)
+    }
+
     // Parse options
     const opts: Required<CcjkSkillsOptions> = {
-      lang: options.lang || 'en',
+      lang,
       interactive: options.interactive ?? true,
       category: options.category || ('' as SkillCategory),
       tags: options.tags || [],

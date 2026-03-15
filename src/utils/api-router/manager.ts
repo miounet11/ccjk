@@ -7,6 +7,7 @@ import type {
  */
 import ansis from 'ansis'
 import inquirer from 'inquirer'
+import { i18n } from '../../i18n'
 import {
   getAllPresets,
   getChinesePresets,
@@ -41,10 +42,20 @@ export {
   validateApiKey,
 } from './simple-mode'
 
+type ApiRouterLang = 'en' | 'zh-CN'
+
+function resolveApiRouterLang(lang?: ApiRouterLang | string): ApiRouterLang {
+  const effectiveLang = lang || i18n.language
+  return typeof effectiveLang === 'string' && effectiveLang.toLowerCase().startsWith('zh')
+    ? 'zh-CN'
+    : 'en'
+}
+
 /**
  * Display current API configuration status
  */
-export function displayCurrentStatus(lang: 'en' | 'zh-CN' = 'en'): void {
+export function displayCurrentStatus(lang?: ApiRouterLang): void {
+  lang = resolveApiRouterLang(lang)
   const { mode, provider } = detectCurrentMode()
   const config = getCurrentConfig()
 
@@ -94,7 +105,8 @@ export function displayCurrentStatus(lang: 'en' | 'zh-CN' = 'en'): void {
 /**
  * Interactive API configuration wizard
  */
-export async function runConfigWizard(lang: 'en' | 'zh-CN' = 'en'): Promise<ApiConfigResult> {
+export async function runConfigWizard(lang?: ApiRouterLang): Promise<ApiConfigResult> {
+  lang = resolveApiRouterLang(lang)
   console.log('')
   console.log(ansis.green('═'.repeat(50)))
   console.log(ansis.bold.cyan(lang === 'zh-CN' ? '  API 配置向导' : '  API Configuration Wizard'))
@@ -379,7 +391,8 @@ async function runCcrSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
 /**
  * Test API connection
  */
-export async function testApiConnection(lang: 'en' | 'zh-CN' = 'en'): Promise<boolean> {
+export async function testApiConnection(lang?: ApiRouterLang): Promise<boolean> {
+  lang = resolveApiRouterLang(lang)
   const config = getCurrentConfig()
 
   if (!config || (!config.ANTHROPIC_API_KEY && !config.ANTHROPIC_AUTH_TOKEN)) {

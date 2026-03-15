@@ -14,7 +14,7 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
 import hookTemplatesData from '../data/hook-templates.json'
-import { i18n } from '../i18n/index.js'
+import { i18n, resolveSupportedLanguage } from '../i18n/index.js'
 import {
   CloudHooksSyncClient,
   convertFromCloudHook,
@@ -64,7 +64,10 @@ export async function hooksSync(options: HooksSyncOptions = {}): Promise<void> {
       displayBannerWithInfo()
     }
 
-    const lang = options.lang || 'zh-CN'
+    const lang = resolveSupportedLanguage(options.lang)
+    if (lang !== i18n.language) {
+      await i18n.changeLanguage(lang)
+    }
 
     // Execute action based on options
     if (options.action) {

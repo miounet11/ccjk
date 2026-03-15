@@ -15,7 +15,7 @@ import type { SetupOrchestratorOptions, SetupResult } from '../orchestrators/set
 import ansis from 'ansis'
 import { consola } from 'consola'
 import { ProjectAnalyzer } from '../analyzers'
-import { i18n } from '../i18n'
+import { i18n, resolveSupportedLanguage } from '../i18n'
 import { SetupOrchestrator } from '../orchestrators/setup-orchestrator'
 
 /**
@@ -31,7 +31,7 @@ export interface CcjkSetupOptions extends SetupOrchestratorOptions {
  */
 export async function ccjkSetup(options: CcjkSetupOptions = {}): Promise<number> {
   // Set language
-  const lang = options.lang || 'en'
+  const lang = resolveSupportedLanguage(options.lang)
   if (lang !== i18n.language) {
     await i18n.changeLanguage(lang)
   }

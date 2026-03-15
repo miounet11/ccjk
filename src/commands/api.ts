@@ -4,7 +4,7 @@ import type { SupportedLang } from '../constants'
  * Unified API configuration for Claude Code
  */
 import ansis from 'ansis'
-import { format, i18n } from '../i18n'
+import { format, i18n, resolveSupportedLanguage } from '../i18n'
 import {
   displayCurrentStatus,
   getAllPresets,
@@ -13,6 +13,10 @@ import {
   testApiConnection,
 } from '../utils/api-router'
 import { COLORS, STATUS } from '../utils/banner'
+
+function resolveApiCommandLanguage(lang?: SupportedLang): SupportedLang {
+  return resolveSupportedLanguage(lang || i18n.language)
+}
 
 /**
  * API command options
@@ -84,22 +88,22 @@ export function setupApi(
 /**
  * Show current status
  */
-export function showStatus(lang: SupportedLang = 'en'): void {
-  displayCurrentStatus(lang)
+export function showStatus(lang?: SupportedLang): void {
+  displayCurrentStatus(resolveApiCommandLanguage(lang))
 }
 
 /**
  * Test API connection
  */
-export async function testApi(lang: SupportedLang = 'en'): Promise<void> {
-  await testApiConnection(lang)
+export async function testApi(lang?: SupportedLang): Promise<void> {
+  await testApiConnection(resolveApiCommandLanguage(lang))
 }
 
 /**
  * Interactive wizard
  */
-export async function runWizard(lang: SupportedLang = 'en'): Promise<void> {
-  await runConfigWizard(lang)
+export async function runWizard(lang?: SupportedLang): Promise<void> {
+  await runConfigWizard(resolveApiCommandLanguage(lang))
 }
 
 /**
@@ -110,7 +114,7 @@ export async function apiCommand(
   args: string[] = [],
   options: ApiCommandOptions = {},
 ): Promise<void> {
-  const lang = options.lang || 'en'
+  const lang = resolveApiCommandLanguage(options.lang)
 
   switch (action) {
     case 'list':

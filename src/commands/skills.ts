@@ -11,7 +11,7 @@ import type { SupportedLang } from '../constants.js'
 import type { CcjkSkill, SkillCategory } from '../skills/types.js'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { i18n } from '../i18n/index.js'
+import { i18n, resolveSupportedLanguage } from '../i18n/index.js'
 import {
   addSkill,
   createBatchSkills,
@@ -58,6 +58,10 @@ export interface SkillCreateOptions extends SkillsOptions {
   devops?: boolean
 }
 
+function resolveSkillsLanguage(lang?: SupportedLang): SupportedLang {
+  return resolveSupportedLanguage(lang)
+}
+
 // ============================================================================
 // Main Commands
 // ============================================================================
@@ -66,6 +70,7 @@ export interface SkillCreateOptions extends SkillsOptions {
  * List all available skills
  */
 export async function listSkills(options: SkillsOptions = {}): Promise<void> {
+  const lang = resolveSkillsLanguage(options.lang)
   console.log('')
   console.log(ansis.bold.cyan('━'.repeat(60)))
   console.log(ansis.bold.cyan(`  ${i18n.t('skills:title.list')}`))
@@ -102,8 +107,8 @@ export async function listSkills(options: SkillsOptions = {}): Promise<void> {
 
       for (const skill of categorySkills) {
         const statusIcon = skill.enabled ? ansis.green('✓') : ansis.dim('○')
-        const name = skill.name[options.lang || 'en']
-        const description = skill.description[options.lang || 'en']
+        const name = skill.name[lang]
+        const description = skill.description[lang]
         const triggers = skill.triggers.map(t => ansis.green(t)).join(', ')
 
         console.log(`  ${statusIcon} ${ansis.bold(name)} ${ansis.dim(`(${skill.id})`)}`)
@@ -132,6 +137,7 @@ export async function listSkills(options: SkillsOptions = {}): Promise<void> {
  * Run a skill
  */
 export async function runSkill(skillName: string, options: SkillRunOptions = {}): Promise<void> {
+  const lang = resolveSkillsLanguage(options.lang)
   console.log('')
   console.log(ansis.bold.cyan('━'.repeat(60)))
   console.log(ansis.bold.cyan(`  ${i18n.t('skills:title.run')}`))
@@ -158,7 +164,7 @@ export async function runSkill(skillName: string, options: SkillRunOptions = {})
     }
 
     if (!skill.enabled) {
-      console.warn(ansis.yellow(`  ${i18n.t('skills:warning.skillDisabled', { name: skill.name[options.lang || 'en'] })}`))
+      console.warn(ansis.yellow(`  ${i18n.t('skills:warning.skillDisabled', { name: skill.name[lang] })}`))
       console.log('')
       console.log(ansis.dim(`  ${i18n.t('skills:hint.enableSkill')}`))
       console.log(ansis.dim(`    ccjk skills enable ${skill.id}`))
@@ -167,8 +173,8 @@ export async function runSkill(skillName: string, options: SkillRunOptions = {})
     }
 
     // Display skill info
-    console.log(ansis.bold(`  ${skill.name[options.lang || 'en']}`))
-    console.log(ansis.dim(`  ${skill.description[options.lang || 'en']}`))
+    console.log(ansis.bold(`  ${skill.name[lang]}`))
+    console.log(ansis.dim(`  ${skill.description[lang]}`))
     console.log('')
 
     // Display skill template
@@ -194,6 +200,7 @@ export async function runSkill(skillName: string, options: SkillRunOptions = {})
  * Show skill information
  */
 export async function showSkillInfo(skillName: string, options: SkillsOptions = {}): Promise<void> {
+  const lang = resolveSkillsLanguage(options.lang)
   console.log('')
   console.log(ansis.bold.cyan('━'.repeat(60)))
   console.log(ansis.bold.cyan(`  ${i18n.t('skills:title.info')}`))
@@ -209,8 +216,8 @@ export async function showSkillInfo(skillName: string, options: SkillsOptions = 
       return
     }
 
-    const name = skill.name[options.lang || 'en']
-    const description = skill.description[options.lang || 'en']
+    const name = skill.name[lang]
+    const description = skill.description[lang]
     const statusBadge = skill.enabled ? ansis.bgGreen.white(' ENABLED ') : ansis.bgRed.white(' DISABLED ')
 
     console.log(`${ansis.bold.green(`  ${name}`)} ${statusBadge}`)
@@ -262,6 +269,7 @@ export async function showSkillInfo(skillName: string, options: SkillsOptions = 
  * Create a new skill
  */
 export async function createSkill(skillName: string, options: SkillCreateOptions = {}): Promise<void> {
+  const lang = resolveSkillsLanguage(options.lang)
   console.log('')
   console.log(ansis.bold.cyan('━'.repeat(60)))
   console.log(ansis.bold.cyan(`  ${i18n.t('skills:title.create')}`))
@@ -344,7 +352,7 @@ export async function createSkill(skillName: string, options: SkillCreateOptions
         type: 'editor',
         name: 'template',
         message: i18n.t('skills:prompt.template'),
-        default: getDefaultTemplate(skillName, options.lang),
+        default: getDefaultTemplate(skillName, lang),
       },
     ])
 
@@ -370,7 +378,7 @@ export async function createSkill(skillName: string, options: SkillCreateOptions
     const result = addSkill(skill)
 
     if (result.success) {
-      console.log(ansis.green(`\n  ✓ ${i18n.t('skills:message.skillCreated', { name: skill.name[options.lang || 'en'] })}`))
+      console.log(ansis.green(`\n  ✓ ${i18n.t('skills:message.skillCreated', { name: skill.name[lang] })}`))
       console.log(ansis.dim(`    ${i18n.t('skills:label.path')}: ${result.path}`))
       console.log('')
       console.log(ansis.dim(`  ${i18n.t('skills:hint.runSkill')}`))
@@ -392,6 +400,7 @@ export async function createSkill(skillName: string, options: SkillCreateOptions
  */
 export async function enableSkill(skillName: string, options: SkillsOptions = {}): Promise<void> {
   try {
+    const lang = resolveSkillsLanguage(options.lang)
     const skill = getSkill(skillName)
     if (!skill) {
       console.error(ansis.red(`  ${i18n.t('skills:error.skillNotFound', { name: skillName })}`))
@@ -399,13 +408,13 @@ export async function enableSkill(skillName: string, options: SkillsOptions = {}
     }
 
     if (skill.enabled) {
-      console.log(ansis.yellow(`  ${i18n.t('skills:message.alreadyEnabled', { name: skill.name[options.lang || 'en'] })}`))
+      console.log(ansis.yellow(`  ${i18n.t('skills:message.alreadyEnabled', { name: skill.name[lang] })}`))
       return
     }
 
     const success = setSkillEnabled(skillName, true)
     if (success) {
-      console.log(ansis.green(`  ✓ ${i18n.t('skills:message.skillEnabled', { name: skill.name[options.lang || 'en'] })}`))
+      console.log(ansis.green(`  ✓ ${i18n.t('skills:message.skillEnabled', { name: skill.name[lang] })}`))
     }
     else {
       console.error(ansis.red(`  ${i18n.t('skills:error.enableFailed')}`))
@@ -422,6 +431,7 @@ export async function enableSkill(skillName: string, options: SkillsOptions = {}
  */
 export async function disableSkill(skillName: string, options: SkillsOptions = {}): Promise<void> {
   try {
+    const lang = resolveSkillsLanguage(options.lang)
     const skill = getSkill(skillName)
     if (!skill) {
       console.error(ansis.red(`  ${i18n.t('skills:error.skillNotFound', { name: skillName })}`))
@@ -429,13 +439,13 @@ export async function disableSkill(skillName: string, options: SkillsOptions = {
     }
 
     if (!skill.enabled) {
-      console.log(ansis.yellow(`  ${i18n.t('skills:message.alreadyDisabled', { name: skill.name[options.lang || 'en'] })}`))
+      console.log(ansis.yellow(`  ${i18n.t('skills:message.alreadyDisabled', { name: skill.name[lang] })}`))
       return
     }
 
     const success = setSkillEnabled(skillName, false)
     if (success) {
-      console.log(ansis.green(`  ✓ ${i18n.t('skills:message.skillDisabled', { name: skill.name[options.lang || 'en'] })}`))
+      console.log(ansis.green(`  ✓ ${i18n.t('skills:message.skillDisabled', { name: skill.name[lang] })}`))
     }
     else {
       console.error(ansis.red(`  ${i18n.t('skills:error.disableFailed')}`))
@@ -452,6 +462,7 @@ export async function disableSkill(skillName: string, options: SkillsOptions = {
  */
 export async function deleteSkill(skillName: string, options: SkillsOptions = {}): Promise<void> {
   try {
+    const lang = resolveSkillsLanguage(options.lang)
     const skill = getSkill(skillName)
     if (!skill) {
       console.error(ansis.red(`  ${i18n.t('skills:error.skillNotFound', { name: skillName })}`))
@@ -462,7 +473,7 @@ export async function deleteSkill(skillName: string, options: SkillsOptions = {}
     const { confirm } = await inquirer.prompt<{ confirm: boolean }>({
       type: 'confirm',
       name: 'confirm',
-      message: i18n.t('skills:prompt.confirmDelete', { name: skill.name[options.lang || 'en'] }),
+      message: i18n.t('skills:prompt.confirmDelete', { name: skill.name[lang] }),
       default: false,
     })
 
@@ -473,7 +484,7 @@ export async function deleteSkill(skillName: string, options: SkillsOptions = {}
 
     const success = removeSkill(skillName)
     if (success) {
-      console.log(ansis.green(`  ✓ ${i18n.t('skills:message.skillDeleted', { name: skill.name[options.lang || 'en'] })}`))
+      console.log(ansis.green(`  ✓ ${i18n.t('skills:message.skillDeleted', { name: skill.name[lang] })}`))
     }
     else {
       console.error(ansis.red(`  ${i18n.t('skills:error.deleteFailed')}`))

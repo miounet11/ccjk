@@ -3,7 +3,7 @@ import type { UninstallItem } from '../utils/uninstaller'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
-import { ensureI18nInitialized, i18n } from '../i18n'
+import { ensureI18nInitialized, i18n, resolveSupportedLanguage } from '../i18n'
 import { readZcfConfig } from '../utils/ccjk-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
@@ -51,8 +51,13 @@ export async function uninstall(options: UninstallOptions = {}): Promise<void> {
         : DEFAULT_CODE_TOOL_TYPE
     }
 
+    const lang = resolveSupportedLanguage(options.lang)
+    if (lang !== i18n.language) {
+      await i18n.changeLanguage(lang)
+    }
+
     // Initialize uninstaller
-    const uninstaller = new ZcfUninstaller(options.lang || 'en')
+    const uninstaller = new ZcfUninstaller(lang)
 
     // For Codex, use Codex-specific uninstaller
     if (codeType === 'codex') {
