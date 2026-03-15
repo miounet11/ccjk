@@ -139,15 +139,15 @@ Concerns:
 
 ## 5. Test Coverage Gaps
 
-| Module | Test Files | LOC | Risk |
-|--------|-----------|-----|------|
-| plugins-v2 | 0 | 7,306 | 🔴 High — next-gen plugin system untested |
-| health | 0 | — | 🔴 High — health scores drive user decisions |
-| mcp-marketplace | 0 | 4,070 | 🔴 High — installs third-party packages |
-| brain | 9 | 37,291 | 🔴 High — most complex module, only 9 test files |
-| discovery | 0 | — | 🟡 Medium — recommendation engine untested |
-| generation | 0 | — | 🟡 Medium — smart generation untested |
-| monitoring | 0 | 3,647 | 🟡 Medium |
+| Module | Test Files | LOC | Risk | Status |
+|--------|-----------|-----|------|--------|
+| plugins-v2 | 0 | 7,306 | 🔴 High — next-gen plugin system untested | Open |
+| health | 2 | — | ✅ Fixed — scorer + 5 checks covered | Done (53 tests) |
+| mcp-marketplace | 2 | 4,070 | ✅ Fixed — security scanner + client covered | Done (60 tests) |
+| brain | 15 | 37,291 | 🟡 Improved — was 9 files, now 15 | Done (+141 tests) |
+| discovery | 0 | — | 🟡 Medium — recommendation engine untested | Open |
+| generation | 0 | — | 🟡 Medium — smart generation untested | Open |
+| monitoring | 0 | 3,647 | 🟡 Medium — only 2 consumers, low priority | Open |
 
 Benchmark: context/ has 22 test files covering 10,541 LOC — the gold standard for test coverage in this project.
 
@@ -155,22 +155,26 @@ Benchmark: context/ has 22 test files covering 10,541 LOC — the gold standard 
 
 ### P0 — Immediate
 
-1. **skills v1 vs plugins-v2 overlap**: Two systems coexist, user confusion, double maintenance cost. Need clear migration path or merge.
-2. **brain/ test coverage**: 37K LOC with only 9 test files — any refactor is high-risk.
-3. **mcp-marketplace zero tests**: Installs third-party packages and runs security scans — must have tests.
+1. **skills v1 vs plugins-v2 overlap**: ✅ Migration strategy documented (`docs/skills-migration-strategy.md`)
+2. **brain/ test coverage**: ✅ 6 new test files added (capability-router, metrics, task-queue, context-overflow-detector, skill-parser, result-aggregator)
+3. **mcp-marketplace zero tests**: ✅ 2 test files added (security-scanner, marketplace-client)
 
 ### P1 — Near-term
 
-4. **cli-lazy.ts split**: 2928-line single file. Split by tier or functional domain into multiple registration modules.
-5. **init.ts split**: 2307 lines. Split by phase (banner/config/api/mcp/workflows/tools/completion).
-6. **Command count governance**: 69 commands, some likely have very low usage. Add telemetry to measure command frequency, data-driven pruning.
-7. **config v3 vs existing config**: `src/config/v3/` and `src/config/unified/` — have they replaced old config logic? If not, two config systems running in parallel is risky.
+4. **cli-lazy.ts split**: ✅ Split into 3 modules (294 + 2053 + 694 lines)
+5. **init.ts split**: ✅ Split into 3 modules (1239 + 663 + 446 lines)
+6. **Command count governance**: Open — needs telemetry
+7. **config v3 vs existing config**: ✅ RESOLVED — v3/unified serves `ccjk config` subcommands, old system manages `settings.json`. Coexistence by design.
 
 ### P2 — Medium-term
 
-8. **code-tools adapter pruning**: Aider/Continue/Cline/Cursor — if usage is low, consider downgrading to community-contributed or lazy-loaded.
+8. **code-tools adapter pruning**: ~~Aider/Continue/Cline/Cursor — if usage is low, consider downgrading.~~ RESOLVED: All 6 adapters are tiny (54-91 lines each, 488 total). No pruning needed — the real complexity is in `utils/code-tools/codex*.ts`, not the adapters.
 9. **Cloud module consolidation**: cloud-client / cloud-sync / cloud-plugins (18K lines) — consider merging into unified cloud/ module.
-10. **monitoring module evaluation**: 3647 lines with no docs or tests — confirm whether it's actually in use.
+10. **monitoring module evaluation**: ~~3647 lines with no docs or tests — confirm whether it's actually in use.~~ RESOLVED: Only 2 consumers (`commands/monitor.ts`, `brain/health-monitor.ts`). Low usage but not dead. Consider lazy-loading or flagging as optional.
+
+### P1-7 — Config v3 Investigation
+
+RESOLVED: `src/config/v3/` and `src/config/unified/` are NOT duplicates of the old config system. They serve the new `ccjk config` subcommands (`src/commands/config/`). The old config files (`config.ts`, `config-migration.ts`, etc.) handle `settings.json` management. Both systems coexist by design — v3/unified manages ccjk's own config, while the old system manages Claude Code's `settings.json`.
 
 ## 7. Config System Health (Deep Dive)
 
