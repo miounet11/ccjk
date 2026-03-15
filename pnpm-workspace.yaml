@@ -8,7 +8,7 @@ catalog:
   '@anthropic-ai/sdk': ^0.52.0
   '@babel/runtime': ^7.28.6
   '@changesets/cli': ^2.29.7
-  '@commitlint/cli': ^19.8.1
+  '@commitlint/cli': ^20.4.1
   '@commitlint/config-conventional': ^19.8.1
   '@commitlint/types': ^19.8.1
   '@fastify/cors': ^10.0.1
