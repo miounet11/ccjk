@@ -71,12 +71,24 @@ describe('api router manager language resolution', () => {
     await expect(runConfigWizard()).rejects.toThrow('stop')
     expect(prompt).toHaveBeenCalledWith(expect.objectContaining({
       message: '选择配置模式:',
-      choices: expect.arrayContaining([
+      choices: [
         expect.objectContaining({
-          name: '1. 快速配置 (推荐) - 选择预设提供商',
+          name: '1. 自定义配置 - 手动输入 API 地址和密钥',
+          value: 'custom',
+        }),
+        expect.objectContaining({
+          name: '2. 官方 Anthropic API - 直接连接 Anthropic',
+          value: 'official',
+        }),
+        expect.objectContaining({
+          name: '3. CCR 高级路由 - 完整 Claude Code Router 配置',
+          value: 'ccr',
+        }),
+        expect.objectContaining({
+          name: '4. 快速配置 (推荐) - 选择预设提供商',
           value: 'quick',
         }),
-      ]),
+      ],
     }))
   })
 

@@ -117,9 +117,9 @@ export async function runConfigWizard(lang?: ApiRouterLang): Promise<ApiConfigRe
   const modeChoices = [
     {
       name: lang === 'zh-CN'
-        ? '1. 快速配置 (推荐) - 选择预设提供商'
-        : '1. Quick Setup (Recommended) - Choose preset provider',
-      value: 'quick' as const,
+        ? '1. 自定义配置 - 手动输入 API 地址和密钥'
+        : '1. Custom Configuration - Manual API URL and key',
+      value: 'custom' as const,
     },
     {
       name: lang === 'zh-CN'
@@ -129,15 +129,15 @@ export async function runConfigWizard(lang?: ApiRouterLang): Promise<ApiConfigRe
     },
     {
       name: lang === 'zh-CN'
-        ? '3. 自定义配置 - 手动输入 API 地址和密钥'
-        : '3. Custom Configuration - Manual API URL and key',
-      value: 'custom' as const,
+        ? '3. CCR 高级路由 - 完整 Claude Code Router 配置'
+        : '3. CCR Advanced Router - Full Claude Code Router setup',
+      value: 'ccr' as const,
     },
     {
       name: lang === 'zh-CN'
-        ? '4. CCR 高级路由 - 完整 Claude Code Router 配置'
-        : '4. CCR Advanced Router - Full Claude Code Router setup',
-      value: 'ccr' as const,
+        ? '4. 快速配置 (推荐) - 选择预设提供商'
+        : '4. Quick Setup (Recommended) - Choose preset provider',
+      value: 'quick' as const,
     },
   ]
 
