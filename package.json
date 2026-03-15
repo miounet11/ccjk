@@ -186,7 +186,7 @@
     "husky": "^9.1.7",
     "i18next": "^25.8.13",
     "i18next-fs-backend": "^2.6.1",
-    "inquirer": "^12.9.6",
+    "inquirer": "^13.3.0",
     "inquirer-toggle": "^1.0.1",
     "lint-staged": "^16.2.7",
     "lowdb": "^7.0.1",
