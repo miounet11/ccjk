@@ -141,12 +141,12 @@ Concerns:
 
 | Module | Test Files | LOC | Risk | Status |
 |--------|-----------|-----|------|--------|
-| plugins-v2 | 0 | 7,306 | 🔴 High — next-gen plugin system untested | Open |
+| plugins-v2 | 1 | 7,306 | 🟡 Improved — intent-engine covered | Done (19 tests) |
 | health | 2 | — | ✅ Fixed — scorer + 5 checks covered | Done (53 tests) |
 | mcp-marketplace | 2 | 4,070 | ✅ Fixed — security scanner + client covered | Done (60 tests) |
 | brain | 15 | 37,291 | 🟡 Improved — was 9 files, now 15 | Done (+141 tests) |
-| discovery | 0 | — | 🟡 Medium — recommendation engine untested | Open |
-| generation | 0 | — | 🟡 Medium — smart generation untested | Open |
+| discovery | 1 | — | ✅ Fixed — skill-matcher covered | Done (14 tests) |
+| generation | 1 | — | ✅ Fixed — validator covered | Done (29 tests) |
 | monitoring | 0 | 3,647 | 🟡 Medium — only 2 consumers, low priority | Open |
 
 Benchmark: context/ has 22 test files covering 10,541 LOC — the gold standard for test coverage in this project.
