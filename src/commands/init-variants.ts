@@ -298,7 +298,7 @@ export async function simplifiedInit(options: InitOptions = {}): Promise<void> {
         { context: 'init' },
       )
 
-      if (apiResult.cancelled) {
+      if (apiResult.cancelled || apiResult.mode === 'skip') {
         console.log(
           ansis.yellow(
             i18n.language === 'zh-CN'

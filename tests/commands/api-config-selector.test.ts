@@ -68,4 +68,15 @@ describe('api config selector', () => {
       ],
     }))
   })
+
+  it('routes custom selection to the legacy custom API management flow', async () => {
+    const { showApiConfigMenu } = await import('../../src/commands/api-config-selector')
+    const { handleCustomApiMode } = await import('../../src/utils/features')
+
+    prompt.mockResolvedValueOnce({ choice: 'custom' })
+
+    await showApiConfigMenu(undefined, { context: 'menu' })
+
+    expect(handleCustomApiMode).toHaveBeenCalledTimes(1)
+  })
 })

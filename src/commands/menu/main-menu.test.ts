@@ -4,6 +4,16 @@ import { parseMenuInput, validateMenuInput } from './renderer/input'
 import { getToolModeMenuTitle, renderFooter, renderToolModeHero } from './renderer/layout'
 
 describe('tool-aware menu visibility', () => {
+  it('keeps Claude basic quick actions ordered for setup-first onboarding', () => {
+    const itemIds = getVisibleItems('basic', 'claude-code').slice(0, 3).map(item => item.id)
+
+    expect(itemIds).toEqual([
+      'init',
+      'diagnostics',
+      'api-config',
+    ])
+  })
+
   it('keeps Claude basic menu items Claude-focused', () => {
     const itemIds = getVisibleItems('basic', 'claude-code').map(item => item.id)
 

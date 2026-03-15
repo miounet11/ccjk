@@ -16,12 +16,11 @@ import { i18n } from '../i18n'
 import { readZcfConfig } from '../utils/ccjk-config'
 import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
 import { handleCustomApiMode } from '../utils/features'
-import { configSwitchCommand } from './config-switch'
 
 /**
  * API configuration mode selected by user
  */
-export type ApiConfigMode = 'official' | 'custom' | 'ccr' | 'switch' | 'view' | 'skip'
+export type ApiConfigMode = 'official' | 'custom' | 'ccr' | 'skip'
 
 /**
  * API configuration result
@@ -88,12 +87,6 @@ export async function showApiConfigMenu(title?: string, options?: { context?: 'i
 
     case 'ccr':
       return await handleCcrProxy(codeTool, isZh)
-
-    case 'switch':
-      return await handleConfigSwitch(codeTool)
-
-    case 'view':
-      return await handleViewConfig(codeTool)
 
     case 'skip':
       return { mode: 'skip', success: true, cancelled: false }
@@ -178,32 +171,6 @@ async function handleCcrProxy(codeTool: CodeToolType, isZh: boolean): Promise<Ap
     console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'))
     console.log('')
     return { mode: 'ccr', success: false, cancelled: false }
-  }
-}
-
-/**
- * Handle configuration switch
- */
-async function handleConfigSwitch(codeTool: CodeToolType): Promise<ApiConfigResult> {
-  try {
-    await configSwitchCommand({ codeType: codeTool })
-    return { mode: 'switch', success: true, cancelled: false }
-  }
-  catch {
-    return { mode: 'switch', success: false, cancelled: false }
-  }
-}
-
-/**
- * Handle view configuration
- */
-async function handleViewConfig(codeTool: CodeToolType): Promise<ApiConfigResult> {
-  try {
-    await configSwitchCommand({ codeType: codeTool, list: true })
-    return { mode: 'view', success: true, cancelled: false }
-  }
-  catch {
-    return { mode: 'view', success: false, cancelled: false }
   }
 }
 
