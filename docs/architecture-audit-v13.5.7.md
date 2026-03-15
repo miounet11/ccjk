@@ -147,7 +147,7 @@ Concerns:
 | brain | 15 | 37,291 | 🟡 Improved — was 9 files, now 15 | Done (+141 tests) |
 | discovery | 1 | — | ✅ Fixed — skill-matcher covered | Done (14 tests) |
 | generation | 1 | — | ✅ Fixed — validator covered | Done (29 tests) |
-| monitoring | 0 | 3,647 | 🟡 Medium — only 2 consumers, low priority | Open |
+| monitoring | 1 | 3,647 | ✅ Fixed — metrics-collector covered | Done (17 tests) |
 
 Benchmark: context/ has 22 test files covering 10,541 LOC — the gold standard for test coverage in this project.
 
