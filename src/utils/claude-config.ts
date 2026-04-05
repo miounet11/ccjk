@@ -1,4 +1,4 @@
-import type { ClaudeConfiguration, McpServerConfig } from '../types'
+import type { ClaudeConfiguration, McpServerConfig, MyclaudeProviderProfile } from '../types'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE } from '../constants'
@@ -268,6 +268,24 @@ export function setPrimaryApiKey(): void {
     // Don't throw error to avoid breaking the main flow
     // This is important but shouldn't block the configuration process
   }
+}
+
+export function setMyclaudeProviderProfiles(profiles: MyclaudeProviderProfile[], activeProfileId?: string): void {
+  const config = readMcpConfig() || { mcpServers: {} }
+  config.myclaudeProviderProfiles = profiles
+  config.myclaudeActiveProviderProfileId = activeProfileId || profiles[0]?.id
+  writeMcpConfig(config)
+}
+
+export function clearMyclaudeProviderProfiles(): void {
+  const config = readMcpConfig()
+  if (!config) {
+    return
+  }
+
+  delete config.myclaudeProviderProfiles
+  delete config.myclaudeActiveProviderProfileId
+  writeMcpConfig(config)
 }
 
 export function syncMcpPermissions(): void {

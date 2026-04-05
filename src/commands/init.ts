@@ -11,8 +11,10 @@ import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
 import {
   API_DEFAULT_URL,
   CODE_TOOL_BANNERS,
+  CODE_TOOL_INFO,
   DEFAULT_CODE_TOOL_TYPE,
   SETTINGS_FILE,
+  isClaudeFamilyCodeTool,
 } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo, padToDisplayWidth } from '../utils/banner'
@@ -30,15 +32,17 @@ import {
   addCompletedOnboarding,
   backupMcpConfig,
   buildMcpServerConfig,
+  clearMyclaudeProviderProfiles,
   fixWindowsMcpConfig,
   readMcpConfig,
   replaceMcpServers,
+  setMyclaudeProviderProfiles,
   setPrimaryApiKey,
   syncMcpPermissions,
   writeMcpConfig,
 } from '../utils/claude-config'
 import { runCodexFullInit } from '../utils/code-tools/codex'
-import { resolveCodeType } from '../utils/code-type-resolver'
+import { resolveCodeType, resolveStartupCodeType } from '../utils/code-type-resolver'
 import { installCometixLine, isCometixLineInstalled } from '../utils/cometix/installer'
 import {
   applyAiLanguageDirective,
@@ -59,11 +63,11 @@ import {
 import { configureApiCompletely, modifyApiConfigPartially } from '../utils/config-operations'
 import { displayError } from '../utils/error-formatter'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
-import { getInstallationStatus, installClaudeCode } from '../utils/installer'
+import { getInstallationStatus, installClaudeCode, installMyclaude } from '../utils/installer'
 import { selectMcpServices } from '../utils/mcp-selector'
 import { parseOrchestrationLevel, writeOrchestrationPolicy } from '../utils/orchestration'
 import { configureOutputStyle } from '../utils/output-style'
-import { isTermux, isWindows } from '../utils/platform'
+import { isTermux, isWindows, type CodeType } from '../utils/platform'
 import { ProgressTracker } from '../utils/progress-tracker'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { resolveAiOutputLanguage } from '../utils/prompts'
@@ -118,7 +122,11 @@ export { validateSkipPromptOptions, simplifiedInit, silentInit, smartInit } from
 export { handleMultiConfigurations, validateApiConfigs, saveSingleConfigToToml, convertSingleConfigToProfile } from './init-multi-config'
 
 import { handleSuperpowersInstallation, validateSkipPromptOptions, silentInit, smartInit } from './init-variants'
-import { handleMultiConfigurations, saveSingleConfigToToml } from './init-multi-config'
+import {
+  convertSingleConfigToProfile,
+  handleMultiConfigurations,
+  saveSingleConfigToToml,
+} from './init-multi-config'
 
 export async function init(options: InitOptions = {}): Promise<void> {
   options.initSource = options.initSource || 'init'
@@ -177,13 +185,16 @@ export async function init(options: InitOptions = {}): Promise<void> {
       tracker.nextStep()
     let codeToolType: CodeToolType
     try {
-      codeToolType = await resolveCodeType(options.codeType)
+      codeToolType = await resolveStartupCodeType({
+        codeTypeParam: options.codeType,
+        interactive: !options.skipPrompt,
+      })
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.error(ansis.red(`${i18n.t('errors:generalError')} ${errorMessage}`))
       // Fallback to default value
-      codeToolType = DEFAULT_CODE_TOOL_TYPE
+      codeToolType = await resolveCodeType(options.codeType).catch(() => DEFAULT_CODE_TOOL_TYPE)
     }
     options.codeType = codeToolType
 
@@ -216,8 +227,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     async function handleCustomApiConfiguration(existingConfig: any): Promise<any> {
-      // For Claude Code, always use the new incremental configuration management
-      if (codeToolType === 'claude-code') {
+      // For Claude-family runtimes, always use the new incremental configuration management
+      if (codeToolType === 'claude-code' || codeToolType === 'myclaude') {
         const { configureIncrementalManagement }
           = await import('../utils/claude-code-incremental-manager')
         await configureIncrementalManagement()
@@ -395,52 +406,60 @@ export async function init(options: InitOptions = {}): Promise<void> {
       options.skipPrompt,
     )
 
-    // Step 4: Check and handle Claude Code installation
-    const installationStatus = await getInstallationStatus()
+    // Step 4: Check and handle target runtime installation
+    const installerCodeType: CodeType = isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code'
+    const installationStatus = await getInstallationStatus(installerCodeType)
+    const codeToolName = CODE_TOOL_INFO[codeToolType].name
 
-    // Handle installations (including none or existing)
-    if (installationStatus.hasGlobal) {
-      // Global installation exists - verify and ensure symlink
-      const { verifyInstallation, displayVerificationResult } = await import('../utils/installer')
-      const verification = await verifyInstallation('claude-code')
-      if (verification.symlinkCreated) {
-        console.log(ansis.green(`✔ ${i18n.t('installation:alreadyInstalled')}`))
-        displayVerificationResult(verification, 'claude-code')
-      }
-      else if (!verification.success) {
-        // If verification failed, try to install
-        console.log(ansis.yellow(`⚠ ${i18n.t('installation:verificationFailed')}`))
-        if (verification.error) {
-          console.log(ansis.gray(`  ${verification.error}`))
+    if (isClaudeFamilyCodeTool(codeToolType)) {
+      // Handle installations (including none or existing)
+      if (installationStatus.hasGlobal) {
+        const { verifyInstallation, displayVerificationResult } = await import('../utils/installer')
+        const verification = await verifyInstallation(installerCodeType)
+        if (verification.symlinkCreated) {
+          console.log(ansis.green(`✔ ${codeToolName} ${i18n.t('installation:alreadyInstalled')}`))
+          displayVerificationResult(verification, installerCodeType)
         }
-      }
-    }
-    else {
-      // No installation found - install Claude Code
-      if (options.skipPrompt) {
-        // In skip-prompt mode, auto-install Claude Code with npm (skip method selection)
-        await installClaudeCode(true)
+        else if (!verification.success) {
+          console.log(ansis.yellow(`⚠ ${i18n.t('installation:verificationFailed')}`))
+          if (verification.error) {
+            console.log(ansis.gray(`  ${verification.error}`))
+          }
+        }
       }
       else {
-        const shouldInstall = await promptBoolean({
-          message: i18n.t('installation:installPrompt'),
-          defaultValue: true,
-        })
-
-        if (shouldInstall) {
-          // In interactive mode, allow method selection
-          await installClaudeCode(false)
+        if (options.skipPrompt) {
+          if (codeToolType === 'myclaude') {
+            await installMyclaude(true)
+          }
+          else {
+            await installClaudeCode(true)
+          }
         }
         else {
-          console.log(ansis.yellow(i18n.t('common:skip')))
+          const shouldInstall = await promptBoolean({
+            message: i18n.t('installation:installPrompt'),
+            defaultValue: true,
+          })
+
+          if (shouldInstall) {
+            if (codeToolType === 'myclaude') {
+              await installMyclaude(false)
+            }
+            else {
+              await installClaudeCode(false)
+            }
+          }
+          else {
+            console.log(ansis.yellow(i18n.t('common:skip')))
+          }
         }
       }
-    }
 
-    // Step 4.5: Check for Claude Code updates (if any installation exists)
-    if (installationStatus.hasGlobal) {
-      // Skip version check if Claude Code was just installed (it's already latest)
-      await checkClaudeCodeVersionAndPrompt(options.skipPrompt)
+      // Step 4.5: Check for Claude Code updates when Claude Code is the selected runtime
+      if (installationStatus.hasGlobal && codeToolType === 'claude-code') {
+        await checkClaudeCodeVersionAndPrompt(options.skipPrompt)
+      }
     }
 
     // Step 5: Handle existing config
@@ -576,6 +595,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
         if (options.apiConfigs || options.apiConfigsFile) {
           await handleMultiConfigurations(options, codeToolType)
           apiConfig = null // Multi-config handles its own API configuration
+          if (codeToolType === 'claude-code') {
+            clearMyclaudeProviderProfiles()
+          }
         }
         else if (options.provider && options.apiKey) {
           // Handle provider-based configuration
@@ -768,14 +790,53 @@ export async function init(options: InitOptions = {}): Promise<void> {
         console.log(ansis.green(`✔ ${i18n.t('api:apiConfigSuccess')}`))
         console.log(ansis.gray(`  URL: ${configuredApi.url}`))
         console.log(ansis.gray(`  Key: ${formatApiKeyDisplay(configuredApi.key)}`))
-        // addCompletedOnboarding is now called inside configureApi
+
+        if (codeToolType === 'myclaude') {
+          try {
+            if (!configuredApi.authType) {
+              throw new Error('Configured API is missing authType')
+            }
+
+            const profile = await convertSingleConfigToProfile(
+              {
+                authType: configuredApi.authType,
+                key: configuredApi.key,
+                url: configuredApi.url,
+              },
+              options.provider,
+              {
+                apiModel: options.apiModel,
+                apiHaikuModel: options.apiHaikuModel,
+                apiSonnetModel: options.apiSonnetModel,
+                apiOpusModel: options.apiOpusModel,
+              },
+            )
+            setMyclaudeProviderProfiles([
+              {
+                id: profile.id || profile.name,
+                name: profile.name,
+                provider: options.provider || 'custom',
+                apiKey: profile.apiKey,
+                baseUrl: profile.baseUrl,
+                model: profile.primaryModel,
+                fastModel: profile.defaultHaikuModel,
+              },
+            ], profile.id || profile.name)
+          }
+          catch (error) {
+            console.log(ansis.yellow(`⚠ Failed to write myclaude provider profile: ${error}`))
+          }
+        }
+        else if (codeToolType === 'claude-code') {
+          clearMyclaudeProviderProfiles()
+        }
       }
     }
 
-    // Step 9.5: Configure API models if provided (Claude Code only)
+    // Step 9.5: Configure API models if provided (Claude-family runtimes)
     const hasModelParams
       = options.apiModel || options.apiHaikuModel || options.apiSonnetModel || options.apiOpusModel
-    if (hasModelParams && action !== 'docs-only' && codeToolType === 'claude-code') {
+    if (hasModelParams && action !== 'docs-only' && (codeToolType === 'claude-code' || codeToolType === 'myclaude')) {
       if (options.skipPrompt) {
         // In skip-prompt mode, configure models
         const { updateCustomModel } = await import('../utils/config')

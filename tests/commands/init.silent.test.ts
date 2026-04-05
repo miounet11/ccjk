@@ -47,25 +47,22 @@ describe('init command - silent mode', () => {
     delete process.env.CLAUDE_API_KEY
   })
 
-  it('should auto-select top 3 MCP services based on platform', async () => {
+  it('should auto-select the current MCP defaults', async () => {
     const { detectSmartDefaults } = await import('../../src/config/smart-defaults')
     const defaults = await detectSmartDefaults()
 
     expect(defaults.mcpServices).toBeDefined()
     expect(Array.isArray(defaults.mcpServices)).toBe(true)
-    expect(defaults.mcpServices.length).toBeGreaterThanOrEqual(3)
-
-    // Top 3 should include core services
-    const top3 = defaults.mcpServices.slice(0, 3)
-    expect(top3).toContain('context7')
+    expect(defaults.mcpServices.length).toBeGreaterThanOrEqual(1)
+    expect(defaults.mcpServices).toContain('context7')
   })
 
-  it('should detect code tool type from filesystem', async () => {
+  it('should detect supported code tool types from filesystem', async () => {
     const { detectCodeToolType } = await import('../../src/config/smart-defaults')
     const codeToolType = detectCodeToolType()
 
     expect(codeToolType).toBeDefined()
-    expect(['claude-code', 'codex']).toContain(codeToolType)
+    expect(['claude-code', 'myclaude', 'codex']).toContain(codeToolType)
   })
 
   it('should throw error in silent mode without API key', async () => {

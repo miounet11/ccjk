@@ -43,7 +43,7 @@ describe('smartDefaultsDetector', () => {
       expect(defaults).toMatchObject({
         platform: 'linux',
         homeDir: '/mock/home',
-        mcpServices: ['context7', 'mcp-deepwiki', 'open-websearch', 'sqlite'],
+        mcpServices: ['context7'],
         skills: [
           'ccjk:git-commit',
           'ccjk:feat',
@@ -129,24 +129,24 @@ describe('smartDefaultsDetector', () => {
   })
 
   describe('getRecommendedMcpServices()', () => {
-    it('should return core services for unknown platform', () => {
+    it('should return the current core MCP set for unknown platform', () => {
       const services = detector.getRecommendedMcpServices('unknown')
-      expect(services).toEqual(['context7', 'mcp-deepwiki', 'open-websearch'])
+      expect(services).toEqual(['context7'])
     })
 
-    it('should return platform-specific services for macOS', () => {
+    it('should return the current core MCP set for macOS', () => {
       const services = detector.getRecommendedMcpServices('darwin')
-      expect(services).toEqual(['context7', 'mcp-deepwiki', 'open-websearch', 'Playwright', 'sqlite'])
+      expect(services).toEqual(['context7'])
     })
 
-    it('should return platform-specific services for Linux', () => {
+    it('should return the current core MCP set for Linux', () => {
       const services = detector.getRecommendedMcpServices('linux')
-      expect(services).toEqual(['context7', 'mcp-deepwiki', 'open-websearch', 'sqlite'])
+      expect(services).toEqual(['context7'])
     })
 
-    it('should return platform-specific services for Windows', () => {
+    it('should return the current core MCP set for Windows', () => {
       const services = detector.getRecommendedMcpServices('win32')
-      expect(services).toEqual(['context7', 'mcp-deepwiki', 'open-websearch', 'Playwright', 'sqlite'])
+      expect(services).toEqual(['context7'])
     })
   })
 
@@ -342,7 +342,7 @@ describe('smart-defaults', () => {
       expect(defaults).toMatchObject({
         platform: 'linux',
         homeDir: '/mock/home',
-        mcpServices: ['context7', 'mcp-deepwiki', 'open-websearch', 'sqlite'],
+        mcpServices: ['context7'],
         skills: [
           'ccjk:git-commit',
           'ccjk:feat',
@@ -435,6 +435,20 @@ describe('smart-defaults', () => {
       const defaults = await detectSmartDefaults()
 
       expect(defaults.codeToolType).toBe('codex')
+    })
+
+    it('should detect myclaude when global config contains provider profiles', async () => {
+      vi.mocked(existsSync).mockImplementation((path) => {
+        return path === join('/mock/home', '.claude.json')
+      })
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
+        myclaudeActiveProviderProfileId: 'primary',
+        myclaudeProviderProfiles: [{ id: 'primary', name: 'Primary' }],
+      }))
+
+      const defaults = await detectSmartDefaults()
+
+      expect(defaults.codeToolType).toBe('myclaude')
     })
 
     it('should default to claude-code when no tool is detected', async () => {

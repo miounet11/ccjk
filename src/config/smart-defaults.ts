@@ -3,8 +3,9 @@ import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
+import { CODE_TOOL_INFO } from '../constants'
 import { resolveOrchestrationLevelFromRuntime } from '../utils/orchestration'
-import { getPlatform } from '../utils/platform'
+import { commandExists, getPlatform } from '../utils/platform'
 import { scanProject } from './project-scanner'
 
 export interface SmartDefaults {
@@ -72,7 +73,7 @@ export class SmartDefaultsDetector {
     const platform = getPlatform()
     const apiKey = this.detectApiKey()
     const apiProvider = this.detectApiProvider(apiKey)
-    const ccVersion = this.detectClaudeCodeVersion()
+    const ccVersion = await this.detectClaudeCodeVersion()
     const projectContext = scanProject(cwd)
 
     return {
@@ -142,20 +143,34 @@ export class SmartDefaultsDetector {
   /**
    * Detect installed Claude Code version
    */
-  private detectClaudeCodeVersion(): string | undefined {
-    try {
-      const output = execSync('claude --version 2>/dev/null || echo ""', {
-        encoding: 'utf-8',
-        timeout: 5000,
-      }).trim()
+  private async detectClaudeCodeVersion(): Promise<string | undefined> {
+    const candidateCommands = [
+      CODE_TOOL_INFO['claude-code'].runtimeCommand,
+      CODE_TOOL_INFO.myclaude.runtimeCommand,
+    ]
 
-      // Parse version from output (e.g., "claude 1.0.16" or "1.0.16")
-      const match = output.match(/(\d+\.\d+\.\d+)/)
-      return match ? match[1] : undefined
+    for (const command of candidateCommands) {
+      try {
+        if (!(await commandExists(command))) {
+          continue
+        }
+
+        const output = execSync(`${command} --version 2>/dev/null || echo ""`, {
+          encoding: 'utf-8',
+          timeout: 5000,
+        }).trim()
+
+        const match = output.match(/(\d+\.\d+\.\d+)/)
+        if (match) {
+          return match[1]
+        }
+      }
+      catch {
+        // Try next runtime command
+      }
     }
-    catch {
-      return undefined
-    }
+
+    return undefined
   }
 
   /**
@@ -255,7 +270,28 @@ export class SmartDefaultsDetector {
    * This is a static method so it can be called without instantiating the full detector.
    */
   static detectCodeToolType(): string {
-    // Check for Claude Code installation (~/.claude on macOS/Linux, ~/.config/claude on some systems)
+    const myclaudeMarkers = [
+      join(homedir(), '.claude.json'),
+      join(homedir(), '.claude', 'config.json'),
+    ]
+
+    try {
+      if (myclaudeMarkers.some(p => existsSync(p))) {
+        const globalConfigPath = join(homedir(), '.claude.json')
+        if (existsSync(globalConfigPath)) {
+          const configContent = readFileSync(globalConfigPath, 'utf-8')
+          const config = JSON.parse(configContent)
+          if (config.myclaudeActiveProviderProfileId || config.myclaudeProviderProfiles) {
+            return 'myclaude'
+          }
+        }
+      }
+    }
+    catch {
+      // Ignore parse errors and continue with marker-based detection
+    }
+
+    // Check for Claude-family installation (~/.claude on macOS/Linux, ~/.config/claude on some systems)
     const claudeCodePaths = [
       join(homedir(), '.claude'),
       join(homedir(), '.config', 'claude'),

@@ -140,12 +140,15 @@ export const ZCF_CONFIG_DIR = CCJK_CONFIG_DIR
 /** @deprecated Use CCJK_CONFIG_FILE instead */
 export const ZCF_CONFIG_FILE = CCJK_CONFIG_FILE
 
-export const CODE_TOOL_TYPES = ['claude-code', 'codex', 'aider', 'continue', 'cline', 'cursor'] as const
+export const CODE_TOOL_TYPES = ['claude-code', 'myclaude', 'codex', 'aider', 'continue', 'cline', 'cursor'] as const
 export type CodeToolType = (typeof CODE_TOOL_TYPES)[number]
 export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'claude-code'
+export const CLAUDE_FAMILY_CODE_TOOL_TYPES = ['claude-code', 'myclaude'] as const
+export type ClaudeFamilyCodeToolType = (typeof CLAUDE_FAMILY_CODE_TOOL_TYPES)[number]
 
 export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
   'claude-code': 'for Claude Code',
+  'myclaude': 'for myclaude',
   'codex': 'for Codex',
   'aider': 'for Aider',
   'continue': 'for Continue',
@@ -156,6 +159,8 @@ export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
 // Short aliases for code tool types
 export const CODE_TOOL_ALIASES: Record<string, CodeToolType> = {
   cc: 'claude-code',
+  mc: 'myclaude',
+  mycode: 'myclaude',
   cx: 'codex',
   ad: 'aider',
   ct: 'continue',
@@ -163,15 +168,21 @@ export const CODE_TOOL_ALIASES: Record<string, CodeToolType> = {
   cu: 'cursor',
 }
 
-// Tool metadata for display and management
-export const CODE_TOOL_INFO: Record<CodeToolType, {
+export interface CodeToolRuntimeInfo {
   name: string
   description: string
   website: string
   installCmd: string
   configFormat: 'json' | 'toml' | 'yaml'
   category: 'cli' | 'extension' | 'editor'
-}> = {
+  runtimeCommand: string
+  configBackend: 'claude-family' | 'tool-specific'
+  nativeSlashCommands?: string[]
+  managesProviderProfiles?: boolean
+}
+
+// Tool metadata for display and management
+export const CODE_TOOL_INFO: Record<CodeToolType, CodeToolRuntimeInfo> = {
   'claude-code': {
     name: 'Claude Code',
     description: 'Anthropic official CLI for Claude',
@@ -179,6 +190,109 @@ export const CODE_TOOL_INFO: Record<CodeToolType, {
     installCmd: 'npm install -g @anthropic-ai/claude-code',
     configFormat: 'json',
     category: 'cli',
+    runtimeCommand: 'claude',
+    configBackend: 'claude-family',
+    nativeSlashCommands: [
+      '/help',
+      '/clear',
+      '/exit',
+      '/quit',
+      '/resume',
+      '/compact',
+      '/context',
+      '/status',
+      '/plan',
+      '/execute',
+      '/rewind',
+      '/mcp',
+      '/doctor',
+      '/settings',
+      '/config',
+      '/version',
+      '/agents',
+      '/skills',
+      '/commands',
+      '/tasks',
+      '/memory',
+      '/memories',
+      '/model',
+      '/cost',
+      '/permissions',
+      '/hooks',
+      '/init',
+      '/login',
+      '/logout',
+      '/bug',
+      '/terminal',
+      '/ide',
+      '/review',
+      '/pr',
+      '/vim',
+      '/listen',
+      '/add',
+      '/install',
+      '/allowed-tools',
+      '/think',
+      '/thinking',
+    ],
+    managesProviderProfiles: false,
+  },
+  'myclaude': {
+    name: 'myclaude',
+    description: 'Provider-first Claude-family coding CLI',
+    website: 'https://github.com/mycode699/myclaude-code',
+    installCmd: 'npm install -g myclaude-code && myclaude install --force',
+    configFormat: 'json',
+    category: 'cli',
+    runtimeCommand: 'myclaude',
+    configBackend: 'claude-family',
+    nativeSlashCommands: [
+      '/help',
+      '/clear',
+      '/exit',
+      '/quit',
+      '/resume',
+      '/compact',
+      '/context',
+      '/status',
+      '/plan',
+      '/execute',
+      '/rewind',
+      '/mcp',
+      '/doctor',
+      '/settings',
+      '/config',
+      '/version',
+      '/agents',
+      '/skills',
+      '/commands',
+      '/tasks',
+      '/memory',
+      '/memories',
+      '/model',
+      '/cost',
+      '/permissions',
+      '/hooks',
+      '/init',
+      '/login',
+      '/logout',
+      '/bug',
+      '/terminal',
+      '/ide',
+      '/review',
+      '/pr',
+      '/vim',
+      '/listen',
+      '/add',
+      '/install',
+      '/allowed-tools',
+      '/think',
+      '/thinking',
+      '/provider',
+      '/team',
+      '/mao',
+    ],
+    managesProviderProfiles: true,
   },
   'codex': {
     name: 'Codex',
@@ -187,6 +301,8 @@ export const CODE_TOOL_INFO: Record<CodeToolType, {
     installCmd: 'npm install -g @openai/codex',
     configFormat: 'toml',
     category: 'cli',
+    runtimeCommand: 'codex',
+    configBackend: 'tool-specific',
   },
   'aider': {
     name: 'Aider',
@@ -195,6 +311,8 @@ export const CODE_TOOL_INFO: Record<CodeToolType, {
     installCmd: 'pip install aider-chat',
     configFormat: 'yaml',
     category: 'cli',
+    runtimeCommand: 'aider',
+    configBackend: 'tool-specific',
   },
   'continue': {
     name: 'Continue',
@@ -203,6 +321,8 @@ export const CODE_TOOL_INFO: Record<CodeToolType, {
     installCmd: 'pip install continuedev',
     configFormat: 'json',
     category: 'extension',
+    runtimeCommand: 'continue',
+    configBackend: 'tool-specific',
   },
   'cline': {
     name: 'Cline',
@@ -211,6 +331,8 @@ export const CODE_TOOL_INFO: Record<CodeToolType, {
     installCmd: 'code --install-extension saoudrizwan.claude-dev',
     configFormat: 'json',
     category: 'extension',
+    runtimeCommand: 'cline',
+    configBackend: 'tool-specific',
   },
   'cursor': {
     name: 'Cursor CLI',
@@ -219,11 +341,25 @@ export const CODE_TOOL_INFO: Record<CodeToolType, {
     installCmd: 'curl https://cursor.com/install -fsSL | bash',
     configFormat: 'json',
     category: 'editor',
+    runtimeCommand: 'cursor',
+    configBackend: 'tool-specific',
   },
 }
 
 export function isCodeToolType(value: any): value is CodeToolType {
   return CODE_TOOL_TYPES.includes(value as CodeToolType)
+}
+
+export function isClaudeFamilyCodeTool(value: any): value is ClaudeFamilyCodeToolType {
+  return CLAUDE_FAMILY_CODE_TOOL_TYPES.includes(value as ClaudeFamilyCodeToolType)
+}
+
+export function getCodeToolRuntimeCommand(codeTool: CodeToolType): string {
+  return CODE_TOOL_INFO[codeTool].runtimeCommand
+}
+
+export function getCodeToolNativeSlashCommands(codeTool: CodeToolType): string[] {
+  return CODE_TOOL_INFO[codeTool].nativeSlashCommands || []
 }
 
 // API configuration constants

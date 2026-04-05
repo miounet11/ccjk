@@ -13,7 +13,10 @@
  */
 
 import type { ExecutionResult } from './auto-executor'
+import type { CodeToolType } from '../../constants'
 import { EventEmitter } from 'node:events'
+import { DEFAULT_CODE_TOOL_TYPE, getCodeToolNativeSlashCommands, isCodeToolType } from '../../constants'
+import { readZcfConfig } from '../../utils/ccjk-config'
 import { contextLoader } from '../context-loader'
 import { emitCommandHookEvent } from '../hooks/command-hook-bridge'
 import { getSkillRegistry } from '../skill-registry'
@@ -54,106 +57,14 @@ export class CliInterceptor extends EventEmitter {
     verbose: false,
   })
 
-  // Claude Code native commands that should bypass interception
-  // Reference: https://deepwiki.com/FlorianBruniaux/claude-code-ultimate-guide/16-command-reference
-  private readonly systemCommands = [
-    // Session Management
-    '/help',
-    '/clear',
-    '/exit',
-    '/quit',
-    '/resume',
+  private getActiveCodeTool(): CodeToolType {
+    const codeToolType = readZcfConfig()?.codeToolType
+    return isCodeToolType(codeToolType) ? codeToolType : DEFAULT_CODE_TOOL_TYPE
+  }
 
-    // Context Management
-    '/compact',
-    '/context',
-    '/status',
-
-    // Mode Control
-    '/plan',
-    '/execute',
-
-    // History
-    '/rewind',
-
-    // Diagnostic
-    '/mcp',
-    '/doctor',
-
-    // Configuration
-    '/settings',
-    '/config',
-    '/version',
-
-    // Extension System
-    '/agents',
-    '/skills',
-    '/commands',
-
-    // Plugin/Marketplace - CCJK 接管，不在此列表
-    // '/plugin',
-    // '/plugins',
-
-    // Tasks
-    '/tasks',
-
-    // Memory
-    '/memory',
-    '/memories',
-
-    // Model
-    '/model',
-
-    // Cost
-    '/cost',
-
-    // Permissions
-    '/permissions',
-
-    // Hooks
-    '/hooks',
-
-    // Init
-    '/init',
-
-    // Login/Logout
-    '/login',
-    '/logout',
-
-    // Bug report
-    '/bug',
-
-    // Terminal
-    '/terminal',
-
-    // IDE
-    '/ide',
-
-    // Review
-    '/review',
-
-    // PR
-    '/pr',
-
-    // Vim mode
-    '/vim',
-
-    // Listen mode
-    '/listen',
-
-    // Add files
-    '/add',
-
-    // Install
-    '/install',
-
-    // Allowed tools
-    '/allowed-tools',
-
-    // Thinking
-    '/think',
-    '/thinking',
-  ]
+  private getSystemCommands(): string[] {
+    return getCodeToolNativeSlashCommands(this.getActiveCodeTool())
+  }
 
   // Simple queries that don't need interception
   private readonly simpleQueryPatterns = [
@@ -237,17 +148,19 @@ export class CliInterceptor extends EventEmitter {
   private shouldBypass(input: string): { bypass: boolean, reason: string } {
     const normalized = input.trim().toLowerCase()
 
-    // Pass through native slash commands by default (Claude compatibility),
+    const systemCommands = this.getSystemCommands()
+
+    // Pass through target-native slash commands by default,
     // except CCJK-owned slash prefixes.
     if (normalized.startsWith('/')) {
       const isCcjkOwned = this.config.ccjkOwnedSlashPrefixes.some(prefix => normalized.startsWith(prefix))
-      if (!isCcjkOwned) {
+      if (!isCcjkOwned && systemCommands.some(cmd => normalized.startsWith(cmd))) {
         return { bypass: true, reason: 'Native slash command passthrough' }
       }
     }
 
     // System commands bypass
-    if (this.systemCommands.some(cmd => normalized.startsWith(cmd))) {
+    if (systemCommands.some(cmd => normalized.startsWith(cmd))) {
       return { bypass: true, reason: 'System command' }
     }
 

@@ -4,11 +4,13 @@
  * profile conversion, and provider management.
  */
 import type { CodeToolType } from '../constants'
+import type { MyclaudeProviderProfile } from '../types'
 import type { ApiConfigDefinition, ClaudeCodeProfile } from '../types/claude-code-config'
 import type { CodexProvider } from '../utils/code-tools/codex'
 import ansis from 'ansis'
 import { API_DEFAULT_URL } from '../constants'
 import { i18n } from '../i18n'
+import { setMyclaudeProviderProfiles } from '../utils/claude-config'
 import { displayError } from '../utils/error-formatter'
 import type { InitOptions } from './init'
 
@@ -63,6 +65,9 @@ export async function handleMultiConfigurations(
     // Process configurations based on code tool type
     if (codeToolType === 'claude-code') {
       await handleClaudeCodeConfigs(configs)
+    }
+    else if (codeToolType === 'myclaude') {
+      await handleMyclaudeConfigs(configs)
     }
     else if (codeToolType === 'codex') {
       await handleCodexConfigs(configs)
@@ -191,6 +196,22 @@ export async function handleClaudeCodeConfigs(configs: ApiConfigDefinition[]): P
 
   // Sync CCR configuration if needed
   await ClaudeCodeConfigManager.syncCcrProfile()
+}
+
+/**
+ * Handle Codex API configurations
+ * @param configs - Array of API configurations
+ */
+export async function handleMyclaudeConfigs(configs: ApiConfigDefinition[]): Promise<void> {
+  const profiles = await Promise.all(configs.map(config => convertToMyclaudeProviderProfile(config)))
+  const activeProfile = profiles.find((_, index) => configs[index]?.default) || profiles[0]
+
+  setMyclaudeProviderProfiles(profiles, activeProfile?.id)
+
+  const summary = profiles
+    .map(profile => `${profile.name} [${profile.provider}]`)
+    .join(', ')
+  console.log(ansis.gray(`  • ~/.claude.json: ${summary}`))
 }
 
 /**
@@ -403,6 +424,22 @@ export async function convertToClaudeCodeProfile(config: ApiConfigDefinition): P
     defaultSonnetModel: config.defaultSonnetModel,
     defaultOpusModel: config.defaultOpusModel,
   })
+}
+
+export async function convertToMyclaudeProviderProfile(
+  config: ApiConfigDefinition,
+): Promise<MyclaudeProviderProfile> {
+  const claudeProfile = await convertToClaudeCodeProfile(config)
+
+  return {
+    id: claudeProfile.id || claudeProfile.name,
+    name: claudeProfile.name,
+    provider: config.provider || 'custom',
+    apiKey: claudeProfile.apiKey,
+    baseUrl: claudeProfile.baseUrl,
+    model: claudeProfile.primaryModel,
+    fastModel: claudeProfile.defaultHaikuModel,
+  }
 }
 
 /**

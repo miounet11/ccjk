@@ -5,25 +5,28 @@ import inquirer from 'inquirer'
 import { join } from 'pathe'
 import {
   CCJK_CONFIG_DIR,
-  DEFAULT_CODE_TOOL_TYPE,
   LANG_LABELS,
   SUPPORTED_LANGS,
 } from '../constants'
+import { STARTUP_CODE_TOOL_CHOICES } from '../utils/code-type-resolver'
 import { changeLanguage } from '../i18n'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { getRuntimeVersion } from '../utils/runtime-package'
 
 const ONBOARDING_STATE_FILE = join(CCJK_CONFIG_DIR, 'onboarding.json')
-const PRIMARY_ONBOARDING_TOOLS = ['claude-code', 'codex'] as const
 
-type OnboardingCodeTool = (typeof PRIMARY_ONBOARDING_TOOLS)[number]
+type OnboardingCodeTool = (typeof STARTUP_CODE_TOOL_CHOICES)[number]
 
 const LANGUAGE_SELECTION_MESSAGES = {
   selectLanguage: 'Select CCJK display language / 选择 CCJK 显示语言',
 } as const
 
 const TOOL_LABELS: Record<OnboardingCodeTool, { en: string, zh: string }> = {
+  'myclaude': {
+    en: 'myclaude',
+    zh: 'myclaude',
+  },
   'claude-code': {
     en: 'Claude Code',
     zh: 'Claude Code',
@@ -51,7 +54,7 @@ function isSupportedLang(value: unknown): value is SupportedLang {
 }
 
 function isPrimaryOnboardingTool(value: unknown): value is OnboardingCodeTool {
-  return PRIMARY_ONBOARDING_TOOLS.includes(value as OnboardingCodeTool)
+  return STARTUP_CODE_TOOL_CHOICES.includes(value as OnboardingCodeTool)
 }
 
 function resolveOnboardingCodeTool(value?: unknown): OnboardingCodeTool {
@@ -59,7 +62,7 @@ function resolveOnboardingCodeTool(value?: unknown): OnboardingCodeTool {
     return value
   }
 
-  return DEFAULT_CODE_TOOL_TYPE === 'codex' ? 'codex' : 'claude-code'
+  return 'myclaude'
 }
 
 function getToolLabel(tool: OnboardingCodeTool, lang: SupportedLang): string {
@@ -131,7 +134,11 @@ async function selectOnboardingCodeTool(
     message: isZh ? '选择代码工具' : 'Choose your code tool',
     choices: addNumbersToChoices([
       {
-        name: `${getToolLabel('claude-code', lang)} - ${isZh ? '完整 CCJK 控制中心，默认推荐' : 'Full CCJK control center, default choice'}`,
+        name: `${getToolLabel('myclaude', lang)} - ${isZh ? 'Provider-first 控制中心（默认推荐）' : 'Provider-first control center (recommended default)'}`,
+        value: 'myclaude',
+      },
+      {
+        name: `${getToolLabel('claude-code', lang)} - ${isZh ? 'Claude 家族经典控制中心' : 'Classic Claude-family control center'}`,
         value: 'claude-code',
       },
       {
@@ -139,7 +146,7 @@ async function selectOnboardingCodeTool(
         value: 'codex',
       },
     ]),
-    default: PRIMARY_ONBOARDING_TOOLS.indexOf(defaultTool),
+    default: STARTUP_CODE_TOOL_CHOICES.indexOf(defaultTool),
   })
 
   const selectedTool = resolveOnboardingCodeTool(tool)

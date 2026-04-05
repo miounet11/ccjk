@@ -100,7 +100,7 @@ export const COMMANDS: CommandDefinition[] = [
       const { update } = await import('./commands/update')
       return async (options: CliOptions) => {
         await update({
-          codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           configLang: options.configLang,
           aiOutputLang: options.aiOutputLang,
         })
@@ -134,7 +134,7 @@ export const COMMANDS: CommandDefinition[] = [
       return async (options: CliOptions) => {
         await doctor({
           checkProviders: options.checkProviders as boolean | undefined,
-          codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           fixSettings: options.fixSettings as boolean | undefined,
           json: options.json as boolean | undefined,
         })
@@ -529,8 +529,36 @@ export const COMMANDS: CommandDefinition[] = [
         const { providersCommand } = await import('./commands/providers')
         await providersCommand(actionStr || 'list', {
           lang: options.lang,
-          codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           verbose: options.verbose as boolean | undefined,
+        })
+      }
+    },
+  },
+  {
+    name: 'research <action> [...args]',
+    description: 'Run focused autoresearch-style experiments',
+    tier: 'extended',
+    options: [
+      { flags: '--name <name>', description: 'Experiment name' },
+      { flags: '--cmd <command>', description: 'Shell command to execute' },
+      { flags: '--metric <name>', description: 'Metric name to parse from output' },
+      { flags: '--budget-ms <ms>', description: 'Execution budget in milliseconds' },
+      { flags: '--cwd <path>', description: 'Working directory for the command' },
+      { flags: '--limit <n>', description: 'Number of sessions to list' },
+    ],
+    loader: async () => {
+      return async (options, action: unknown, args: unknown) => {
+        const actionStr = action as string
+        const argsArr = args as string[]
+        const { researchCommand } = await import('./commands/research')
+        await researchCommand(actionStr || 'help', argsArr, {
+          name: options.name as string | undefined,
+          cmd: options.cmd as string | undefined,
+          metric: options.metric as string | undefined,
+          budgetMs: options.budgetMs ? Number(options.budgetMs) : undefined,
+          cwd: options.cwd as string | undefined,
+          limit: options.limit ? Number(options.limit) : undefined,
         })
       }
     },
@@ -927,7 +955,7 @@ export const COMMANDS: CommandDefinition[] = [
       return async (options: CliOptions, target: unknown) => {
         await configSwitchCommand({
           target: target as string,
-          codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           list: options.list as boolean,
         })
       }
@@ -1373,7 +1401,7 @@ export const COMMANDS: CommandDefinition[] = [
           args.push(value as string)
         await configCommand(args[0] || 'list', args.slice(1), {
           lang: options.lang,
-          codeType: options.codeType as 'codex' | 'claude-code' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           global: options.global as boolean | undefined,
           json: options.json as boolean | undefined,
         })

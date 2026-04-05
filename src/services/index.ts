@@ -110,3 +110,24 @@ export type {
 } from './cloud/silent-updater'
 
 // Context Management Service
+
+export {
+  getBestResearchResult,
+  getLatestResearchSession,
+  getResearchReport,
+  getResearchSessionStatus,
+  listResearchResults,
+  listResearchSessions,
+  runResearchExperiment,
+} from './research-runner'
+
+export type {
+  ResearchPhase,
+  ResearchReport,
+  ResearchResultRow,
+  ResearchRunOptions,
+  ResearchRunResult,
+  ResearchSessionStatus,
+  ResearchSessionSummary,
+  ResearchVerdict,
+} from './research-runner'

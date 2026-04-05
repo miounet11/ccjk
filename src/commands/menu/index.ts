@@ -35,7 +35,7 @@ import { i18n } from '../../i18n/index'
 import { displayBannerWithInfo } from '../../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config'
 import { configureCodexAiMemoryFeature, configureCodexApi, configureCodexDefaultModelFeature, configureCodexMcp, configureCodexPresetFeature, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../../utils/code-tools/codex'
-import { resolveCodeType } from '../../utils/code-type-resolver'
+import { resolveStartupCodeType } from '../../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../../utils/error-handler'
 import { changeScriptLanguageFeature } from '../../utils/features'
 import { checkForUpdates, getInstalledPackages } from '../../utils/marketplace/index'
@@ -117,7 +117,7 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
               await runCodexFullInit()
               return
             }
-            await init({ skipBanner: true })
+            await init({ skipBanner: true, codeType: codeTool })
           },
         }
 
@@ -217,7 +217,7 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
         return {
           ...item,
           handler: async () => {
-            await configSwitchCommand({ codeType: codeTool === 'codex' ? 'codex' : 'claude-code' })
+            await configSwitchCommand({ codeType: codeTool })
           },
         }
 
@@ -403,6 +403,15 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
   label: string
   variant?: 'default' | 'danger'
 }> {
+  if (codeTool === 'myclaude') {
+    return [
+      {
+        key: 's',
+        label: i18n.t('menu:menuOptions.switchCodeTool'),
+      },
+    ]
+  }
+
   if (codeTool !== 'codex') {
     return []
   }
@@ -434,9 +443,9 @@ function getMenuShellConfig(codeTool: CodeToolType): {
   menuTitle: string
   showHero: boolean
 } {
-  if (codeTool === 'codex') {
+  if (codeTool === 'codex' || codeTool === 'myclaude') {
     return {
-      allowMore: false,
+      allowMore: codeTool !== 'myclaude',
       footerCommands: getProgressiveFooterCommands(codeTool),
       menuTitle: getToolModeMenuTitle(codeTool),
       showHero: true,
@@ -455,7 +464,7 @@ function getMenuShellConfig(codeTool: CodeToolType): {
  * Show the new progressive main menu
  */
 async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> {
-  if (codeTool !== 'codex') {
+  if (codeTool !== 'codex' && codeTool !== 'myclaude') {
     const rawItems = getItemsForLevel(menuState.level, 'claude-code')
     const items = attachHandlers(rawItems, 'claude-code')
     const sections = createAllSections(menuState.level, 'claude-code')
@@ -789,7 +798,7 @@ async function showMoreFeaturesMenu(): Promise<void> {
         await (await import('../permissions')).listPermissions({})
         break
       case '9':
-        await configSwitchCommand({ codeType: 'claude-code' })
+        await configSwitchCommand({ codeType: codeTool })
         break
       case '10':
         await showContextMenu()
@@ -1420,6 +1429,7 @@ async function showOutputStylesMenu(): Promise<void> {
 async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
   const CODE_TOOL_LABELS: Record<CodeToolType, string> = {
     'claude-code': 'Claude Code',
+    'myclaude': 'myclaude',
     'codex': 'Codex',
     'aider': 'Aider',
     'continue': 'Continue',
@@ -1480,21 +1490,23 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       await runOnboardingWizard({ preferredCodeTool: options.codeType })
     }
 
-    // Handle code type parameter if provided
-    if (options.codeType) {
-      try {
-        const resolvedType = await resolveCodeType(options.codeType)
-        const currentType = getCurrentCodeTool()
+    try {
+      const previousType = getCurrentCodeTool()
+      const resolvedType = await resolveStartupCodeType({
+        codeTypeParam: options.codeType,
+        interactive: true,
+      })
 
-        if (resolvedType !== currentType) {
-          updateZcfConfig({ codeToolType: resolvedType })
+      if (resolvedType !== previousType || options.codeType) {
+        updateZcfConfig({ codeToolType: resolvedType })
+        if (resolvedType !== previousType) {
           console.log(ansis.green(`✔ Switched to ${resolvedType}`))
         }
       }
-      catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err)
-        console.error(ansis.yellow(errorMessage))
-      }
+    }
+    catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      console.error(ansis.yellow(errorMessage))
     }
 
     // Menu loop

@@ -63,6 +63,17 @@ export interface McpToolSearchConfig {
   excludedServices?: string[]
 }
 
+export interface MyclaudeProviderProfile {
+  id: string
+  name: string
+  provider: string
+  apiKey?: string
+  baseUrl?: string
+  model?: string
+  fastModel?: string
+  [key: string]: unknown
+}
+
 export interface ClaudeConfiguration {
   mcpServers: Record<string, McpServerConfig>
   hasCompletedOnboarding?: boolean
@@ -73,6 +84,8 @@ export interface ClaudeConfiguration {
   env?: Record<string, string>
   primaryApiKey?: string
   installMethod?: InstallMethod
+  myclaudeProviderProfiles?: MyclaudeProviderProfile[]
+  myclaudeActiveProviderProfileId?: string
 
   /**
    * MCP Tool Search configuration (v3.8+)
