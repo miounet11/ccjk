@@ -112,14 +112,13 @@ export function sectionDivider(title?: string, width: number = 50): string {
 }
 
 /**
- * Display command discovery banner with bilingual command list
- * Shows CCJK commands and Claude Code commands
+ * Display command discovery banner with a bilingual CCJK command list.
+ * This startup surface only documents commands provided by the shipped `ccjk` CLI.
  */
 export function displayCommandDiscovery(): void {
   ensureI18nInitialized()
   const isZhCN = i18n.language === 'zh-CN'
 
-  // CCJK Commands section
   console.log(ansis.green.bold(`\n${i18n.t('cli:commandDiscovery.title')}`))
   console.log(ansis.gray('─'.repeat(60)))
 
@@ -134,26 +133,6 @@ export function displayCommandDiscovery(): void {
   ]
 
   for (const { cmd, desc, descEn } of ccjkCommands) {
-    const cmdPadded = cmd.padEnd(12)
-    if (isZhCN) {
-      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)} ${ansis.gray(`(${descEn})`)}`)
-    }
-    else {
-      console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)}`)
-    }
-  }
-
-  // Claude Code Commands section
-  console.log(ansis.green.bold(`\n${i18n.t('cli:commandDiscovery.claudeCodeTitle')}`))
-  console.log(ansis.gray('─'.repeat(60)))
-
-  const claudeCommands = [
-    { cmd: '/help', desc: i18n.t('cli:commandDiscovery.help'), descEn: 'Show all commands' },
-    { cmd: '/clear', desc: i18n.t('cli:commandDiscovery.clear'), descEn: 'Clear conversation' },
-    { cmd: '/reset', desc: i18n.t('cli:commandDiscovery.reset'), descEn: 'Reset session' },
-  ]
-
-  for (const { cmd, desc, descEn } of claudeCommands) {
     const cmdPadded = cmd.padEnd(12)
     if (isZhCN) {
       console.log(`  ${ansis.cyan(cmdPadded)} - ${ansis.white(desc)} ${ansis.gray(`(${descEn})`)}`)

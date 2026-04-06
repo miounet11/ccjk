@@ -34,14 +34,14 @@ describe('research command', () => {
     vi.restoreAllMocks()
   })
 
-  it('runs a research experiment and prints phase, verdict, and parsed metric', async () => {
+  it('runs a research experiment with explicit objective and baseline comparison', async () => {
     const { researchCommand } = await import('../../src/commands/research')
 
     runResearchExperimentMock.mockResolvedValue({
       sessionId: 'research-1',
       taskId: 'task-1',
-      name: 'baseline',
-      command: 'python train.py',
+      name: 'candidate',
+      command: 'python train.py --lr 1e-4',
       cwd: '/repo',
       metricName: 'val_bpb',
       metricValue: 1.23,
@@ -51,9 +51,23 @@ describe('research command', () => {
       stdout: 'val_bpb=1.23',
       stderr: '',
       durationMs: 1234,
-      phase: 'baseline',
+      phase: 'experiment',
+      objective: 'minimize',
       verdict: 'PASS',
-      phaseHistory: ['brief', 'baseline', 'verify', 'report'],
+      verdictReason: 'Candidate is better than baseline (1.23 vs 1.4, Δ -0.17 / -12.14%).',
+      baselineSessionId: 'research-0',
+      comparison: {
+        baselineSessionId: 'research-0',
+        baselineName: 'baseline',
+        objective: 'minimize',
+        result: 'better',
+        baselineMetricValue: 1.4,
+        candidateMetricValue: 1.23,
+        delta: -0.17,
+        percentDelta: -12.14,
+        summary: 'Candidate is better than baseline (1.23 vs 1.4, Δ -0.17 / -12.14%).',
+      },
+      phaseHistory: ['brief', 'experiment', 'verify', 'report'],
       createdAt: '2026-04-05T12:00:00.000Z',
     })
 
@@ -64,24 +78,31 @@ describe('research command', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
     await researchCommand('run', [], {
-      name: 'baseline',
-      cmd: 'python train.py',
+      name: 'candidate',
+      cmd: 'python train.py --lr 1e-4',
       metric: 'val_bpb',
       cwd: '/repo',
       budgetMs: 5000,
+      objective: 'minimize',
+      baseline: 'research-0',
     })
 
     expect(runResearchExperimentMock).toHaveBeenCalledWith({
-      name: 'baseline',
-      command: 'python train.py',
+      name: 'candidate',
+      command: 'python train.py --lr 1e-4',
       metricName: 'val_bpb',
       budgetMs: 5000,
       cwd: '/repo',
+      baselineSessionId: 'research-0',
+      objective: 'minimize',
       dbPath: undefined,
     })
     expect(logs.join('\n')).toContain('Research Run')
-    expect(logs.join('\n')).toContain('Phase:     baseline')
+    expect(logs.join('\n')).toContain('Phase:     experiment')
+    expect(logs.join('\n')).toContain('Objective: minimize')
     expect(logs.join('\n')).toContain('Verdict:   PASS')
+    expect(logs.join('\n')).toContain('Baseline:  baseline (research-0)')
+    expect(logs.join('\n')).toContain('Compare:   better')
     expect(logs.join('\n')).toContain('val_bpb=1.23')
   })
 
@@ -100,22 +121,30 @@ describe('research command', () => {
     expect(errors.join('\n')).toContain('--cmd is required')
   })
 
-  it('shows latest research session status with phase and verdict when no session id is passed', async () => {
+  it('shows latest research session status with phase, objective, and comparison details when no session id is passed', async () => {
     const { researchCommand } = await import('../../src/commands/research')
 
     getLatestResearchSessionMock.mockReturnValue({ id: 'research-2' })
     getResearchSessionStatusMock.mockReturnValue({
       sessionId: 'research-2',
       metadata: {
-        name: 'baseline',
-        command: 'python train.py',
+        name: 'candidate',
+        command: 'python train.py --lr 1e-4',
         metricName: 'val_bpb',
         metricValue: 1.23,
         currentPhase: 'report',
+        objective: 'minimize',
         verdict: 'PASS',
+        verdictReason: 'Candidate is better than baseline (1.23 vs 1.4, Δ -0.17 / -12.14%).',
         status: 'completed',
         exitCode: 0,
         durationMs: 1200,
+        comparison: {
+          baselineName: 'baseline',
+          baselineSessionId: 'research-0',
+          result: 'better',
+          summary: 'Candidate is better than baseline (1.23 vs 1.4, Δ -0.17 / -12.14%).',
+        },
       },
       metrics: {
         totalTasks: 1,
@@ -128,7 +157,7 @@ describe('research command', () => {
       decisions: [
         {
           id: 'decision-1',
-          outcome: 'val_bpb=1.23',
+          outcome: 'Candidate is better than baseline (1.23 vs 1.4, Δ -0.17 / -12.14%).',
           decision: 'record research run',
         },
       ],
@@ -149,24 +178,30 @@ describe('research command', () => {
     expect(getResearchSessionStatusMock).toHaveBeenCalledWith('research-2', undefined)
     expect(logs.join('\n')).toContain('Research Status')
     expect(logs.join('\n')).toContain('Phase:     report')
+    expect(logs.join('\n')).toContain('Objective: minimize')
     expect(logs.join('\n')).toContain('Verdict:   PASS')
-    expect(logs.join('\n')).toContain('val_bpb=1.23')
+    expect(logs.join('\n')).toContain('Reason:    Candidate is better than baseline')
+    expect(logs.join('\n')).toContain('Baseline:  baseline')
+    expect(logs.join('\n')).toContain('Compare:   better')
+    expect(logs.join('\n')).toContain('Summary:   Candidate is better than baseline')
   })
 
-  it('lists recent research sessions with workflow metadata', async () => {
+  it('lists recent research sessions with objective and baseline metadata', async () => {
     const { researchCommand } = await import('../../src/commands/research')
 
     listResearchSessionsMock.mockReturnValue([
       {
         id: 'research-3',
-        name: 'baseline',
-        command: 'python train.py',
+        name: 'candidate',
+        command: 'python train.py --lr 1e-4',
         metricName: 'val_bpb',
         cwd: '/repo',
         createdAt: 123,
         budgetMs: 5000,
         currentPhase: 'report',
+        objective: 'minimize',
         verdict: 'PASS',
+        baselineSessionId: 'research-0',
       },
     ])
 
@@ -180,8 +215,10 @@ describe('research command', () => {
     expect(listResearchSessionsMock).toHaveBeenCalledWith(5, undefined)
     expect(logs.join('\n')).toContain('Research Sessions')
     expect(logs.join('\n')).toContain('phase: report')
+    expect(logs.join('\n')).toContain('objective: minimize')
     expect(logs.join('\n')).toContain('verdict: PASS')
-    expect(logs.join('\n')).toContain('python train.py')
+    expect(logs.join('\n')).toContain('baseline: research-0')
+    expect(logs.join('\n')).toContain('python train.py --lr 1e-4')
   })
 
   it('shows compact recent research results and the current best run', async () => {
@@ -235,24 +272,32 @@ describe('research command', () => {
     expect(logs.join('\n')).toContain('2026-04-05T12:00:00.000Z · experiment-a · completed · val_bpb=1.11 · 2200ms')
   })
 
-  it('renders a compact persisted research report', async () => {
+  it('renders a compact persisted research report with comparison reasoning', async () => {
     const { researchCommand } = await import('../../src/commands/research')
 
     getResearchReportMock.mockReturnValue({
       sessionId: 'research-5',
-      name: 'baseline',
+      name: 'candidate',
       createdAt: '2026-04-05T12:00:00.000Z',
       currentPhase: 'report',
       verdict: 'PASS',
-      command: 'python train.py',
+      verdictReason: 'Candidate is better than baseline (1.23 vs 1.4, Δ -0.17 / -12.14%).',
+      command: 'python train.py --lr 1e-4',
       cwd: '/repo',
       status: 'completed',
       exitCode: 0,
       metricName: 'val_bpb',
       metricValue: 1.23,
+      objective: 'minimize',
+      baselineSessionId: 'research-0',
+      comparison: {
+        baselineName: 'baseline',
+        baselineSessionId: 'research-0',
+        result: 'better',
+      },
       durationMs: 1300,
-      phaseHistory: ['brief', 'baseline', 'verify', 'report'],
-      outcome: 'val_bpb=1.23',
+      phaseHistory: ['brief', 'experiment', 'verify', 'report'],
+      outcome: 'Candidate is better than baseline (1.23 vs 1.4, Δ -0.17 / -12.14%).',
       content: '# CCJK Research Report\n\n**Verdict**: PASS',
     })
 
@@ -267,6 +312,10 @@ describe('research command', () => {
     expect(logs.join('\n')).toContain('Research Report')
     expect(logs.join('\n')).toContain('Created:   2026-04-05T12:00:00.000Z')
     expect(logs.join('\n')).toContain('Metric:    val_bpb=1.23')
-    expect(logs.join('\n')).toContain('Outcome:   val_bpb=1.23')
+    expect(logs.join('\n')).toContain('Objective: minimize')
+    expect(logs.join('\n')).toContain('Reason:    Candidate is better than baseline')
+    expect(logs.join('\n')).toContain('Baseline:  baseline (research-0)')
+    expect(logs.join('\n')).toContain('Compare:   better')
+    expect(logs.join('\n')).toContain('Outcome:   Candidate is better than baseline')
   })
 })

@@ -1,15 +1,9 @@
 /**
- * CLI Interceptor - Automatic Input Interception and Routing
+ * CLI Interceptor - Optional input interception and routing.
  *
- * Intercepts ALL user input before it reaches Claude Code.
- * Automatically determines the best execution path without user intervention.
- *
- * Users never need to type:
- * - /ccjk:feat
- * - /ccjk:mayor
- * - /plan
- *
- * The system automatically decides and executes.
+ * This component only affects runtimes that explicitly call it before handing
+ * user input to another tool runtime. It is not enabled by default by the main
+ * `src/cli.ts` → `src/cli-lazy.ts` entry path.
  */
 
 import type { ExecutionResult } from './auto-executor'
@@ -46,7 +40,7 @@ export interface InterceptionResult {
 }
 
 /**
- * CLI Interceptor - Automatically intercepts and routes all user input
+ * CLI Interceptor for runtimes that explicitly opt into brain routing.
  */
 export class CliInterceptor extends EventEmitter {
   private config: Required<CliInterceptorConfig>
@@ -91,7 +85,7 @@ export class CliInterceptor extends EventEmitter {
   }
 
   /**
-   * Intercept user input and route automatically
+   * Intercept user input when this component is explicitly integrated.
    */
   async intercept(userInput: string): Promise<InterceptionResult> {
     if (!this.config.enabled) {
@@ -187,10 +181,8 @@ export class CliInterceptor extends EventEmitter {
    * Show intent message to user
    */
   private showIntentMessage(_input: string): void {
-    // This will be displayed to the user
-    console.log('\n🧠 Analyzing your request...')
-    console.log('   System will automatically handle: skills, agents, MCP tools\n')
-    console.log('   Smart mode: ambiguity checks + capability-ranked tool selection + telemetry\n')
+    console.log('\n🧠 Brain router is handling this request...')
+    console.log('   It may use skills, agents, and MCP tools based on the active routing config.\n')
   }
 
   private async handleBypassedCommand(input: string, reason: string): Promise<void> {

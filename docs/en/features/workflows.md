@@ -4,47 +4,61 @@ title: Workflow System
 
 # Workflow System
 
-CCJK pre-configures multiple workflows through `WORKFLOW_CONFIG_BASE` and automatically imports them during initialization or updates:
+CCJK ships a small set of real workflow bundles defined in `src/config/workflows.ts`. These bundles are installed into each tool's native command directory during `ccjk init` or `ccjk update`.
 
-## Pre-configured Workflows Overview
+## Built-in workflow bundles
 
-| ID | Category | Default | Command File | Description | Claude Code | Codex |
-| --- | --- | --- | --- | --- | ----------- | ----- |
-| `commonTools` | common | Yes | `init-project.md` | Provides project initialization and common tool commands | ✅ | ✅ |
-| `sixStepsWorkflow` | sixStep | Yes | `workflow.md` | Six-stage structured development workflow (Research→Ideation→Planning→Execution→Optimization→Review) | ✅ | ✅ |
-| `featPlanUx` | plan | Yes | `feat.md` | Feature development workflow, includes planning and UI/UX agents | ✅ | ✅ |
-| `gitWorkflow` | git | Yes | `git-commit.md` etc. | Git commit, rollback, cleanup, worktree management | ✅ | ✅ |
-| `bmadWorkflow` | bmad | Yes | `bmad-init.md` | BMad agile process entry | ✅ | ❌ |
+| Workflow ID | Default | Installed commands | Auto-installed agents | Claude Code | Codex |
+| --- | --- | --- | --- | --- | --- |
+| `interviewWorkflow` | Yes | `interview.md` | None | `/ccjk:interview` | `/prompts:interview` |
+| `essentialTools` | Yes | `init-project.md`, `feat.md` | `init-architect`, `get-current-datetime`, `planner`, `ui-ux-designer` | `/ccjk:init-project`, `/ccjk:feat` | `/prompts:init-project`, `/prompts:feat` |
+| `gitWorkflow` | Yes | `git-commit.md`, `git-rollback.md`, `git-cleanBranches.md`, `git-worktree.md` | None | `/ccjk:git-commit` etc. | `/prompts:git-commit` etc. |
+| `sixStepsWorkflow` | No | `workflow.md` | None | `/ccjk:workflow` | `/prompts:workflow` |
+| `specFirstTDD` | No | `spec-first-tdd.md` | None | `/ccjk:spec-first-tdd` | `/prompts:spec-first-tdd` |
+| `continuousDelivery` | No | `continuous-delivery.md` | None | `/ccjk:continuous-delivery` | `/prompts:continuous-delivery` |
+| `refactoringMaster` | No | `refactoring-master.md` | None | `/ccjk:refactoring-master` | `/prompts:refactoring-master` |
+| `linearMethod` | No | `linear-method.md` | None | `/ccjk:linear-method` | `/prompts:linear-method` |
 
-> ⚠️ **Note**: BMad is still Claude Code-only. Codex supports the six-stage workflow, feature planning, project bootstrap, Git helpers, and selected advanced prompt packs installed into `~/.codex/prompts/`.
+> Note: older docs may mention `commonTools` or `featPlanUx`. In the current product surface, both `/ccjk:init-project` and `/ccjk:feat` come from the `essentialTools` bundle.
 
-## Installation and Updates
+## Installation locations
 
-- `ccjk init` imports all workflows by default. Users can selectively install via `--workflows`.
-- `ccjk update` re-executes workflow import after template updates to ensure content synchronization.
-- Workflow files are installed into each tool's native command directory. For Codex, that is `~/.codex/prompts/`.
+- **Claude Code**: `~/.claude/commands/ccjk/`
+- **Codex**: `~/.codex/prompts/`
+- **Feature-planning agents for Claude Code**: `~/.claude/agents/ccjk/essential/`
 
-## Agent Auto Installation
+## Installation and updates
 
-- For workflows requiring agents (like `featPlanUx`), CCJK will synchronously copy `agents/planner.md`, `agents/ui-ux-designer.md`.
-- Supports automatic processing based on `autoInstallAgents` field.
+```bash
+# Install the default workflow set
+npx ccjk init
 
-## Command Format
+# Install a specific subset
+npx ccjk init --workflows interviewWorkflow,essentialTools,gitWorkflow
 
-CCJK workflows use different command prefixes in different tools:
+# Update installed workflow content
+npx ccjk update
+```
 
-| Tool | Command Prefix | Examples |
-|------|---------|------|
-| **Claude Code** | `/ccjk:` or `/` | `/ccjk:workflow`, `/git-commit` |
-| **Codex** | `/prompts:` | `/prompts:workflow`, `/prompts:git-commit` |
+CCJK copies workflow templates from `templates/common/workflow/` and keeps command filenames aligned with the final slash-command names.
 
-> 💡 **Tip**: Codex uses `/prompts:` prefix to access all workflow commands, while Claude Code uses `/ccjk:` prefix or direct `/` prefix.
+## Command format by tool
 
-## Usage Recommendations
+| Tool | Directory | Prefix | Examples |
+| --- | --- | --- | --- |
+| Claude Code | `~/.claude/commands/ccjk/` | `/ccjk:` | `/ccjk:feat`, `/ccjk:workflow`, `/ccjk:git-commit` |
+| Codex | `~/.codex/prompts/` | `/prompts:` | `/prompts:feat`, `/prompts:workflow`, `/prompts:git-commit` |
 
-- When using workflows for the first time, you can ask AI to output task progress documents for easy continuation in new conversations
-  - Claude Code: `/ccjk:workflow <task description>`
-  - Codex: `/prompts:workflow <task description>`
-- Use with Git workflows to quickly complete the cycle of requirement breakdown → coding → commit
-- After completing key milestones, request AI to generate progress summaries for easy cross-conversation continuity
+## Recommended starting points
 
+- **New feature planning**: `essentialTools` → `/ccjk:feat` or `/prompts:feat`
+- **Project bootstrap**: `essentialTools` → `/ccjk:init-project` or `/prompts:init-project`
+- **Structured implementation**: `sixStepsWorkflow` → `/ccjk:workflow` or `/prompts:workflow`
+- **Git operations**: `gitWorkflow`
+- **Interview practice**: `interviewWorkflow`
+
+## Related pages
+
+- [Claude Code Configuration](claude-code.md)
+- [Codex Support](codex.md)
+- [Feature Development Workflow](../workflows/feat.md)

@@ -192,7 +192,7 @@ interface McpRequirement {
 }
 
 /**
- * Auto Executor - Fully automatic execution with zero user intervention
+ * Auto Executor - Automatic execution when invoked by brain routing.
  */
 export class AutoExecutor extends EventEmitter {
   private config: Required<AutoExecutorConfig>
@@ -215,7 +215,7 @@ export class AutoExecutor extends EventEmitter {
   }
 
   /**
-   * Execute user request automatically
+   * Execute a user request after a router has selected this executor.
    */
   async execute(userInput: string): Promise<ExecutionResult> {
     const executionId = `exec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`

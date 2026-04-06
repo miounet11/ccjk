@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 2026-03-05 | 13.3.5 | Model selection fix: remove ANTHROPIC_MODEL env var to enable adaptive model selection based on task complexity |
 | 2026-03-04 | 13.3.4 | Fix: remove duplicate prompt hints in model config |
 | 2026-03-04 | 13.3.3 | Architecture documentation update: comprehensive module index with 33 modules, improved navigation structure, coverage tracking |
-| 2026-03-04 | 12.2.2 | Slash command compatibility: CLI interceptor for `/clear`, `/reset` commands; auto-executor for brain router |
+| 2026-03-04 | 12.2.2 | Brain-router groundwork: added interceptor and auto-executor modules for optional slash-command compatibility experiments |
 | 2026-03-03 | 12.3.1 | Fix model priority: primaryModel now correctly sets ANTHROPIC_MODEL env var, and ANTHROPIC_MODEL is properly cleared when switching profiles |
 | 2026-03-03 | 12.2.1 | Smart routing and telemetry improvements |
 | 2026-03-02 | 12.1.0 | Fast installation & hierarchical menu system |
@@ -56,7 +56,7 @@ CCJK is a TypeScript CLI tool that configures AI coding environments. It provide
 CCJK complements Claude Code CLI — it does NOT compete with it. Critical rules:
 - Skills must ONLY run when user explicitly invokes them
 - No unsolicited output (no welcome banners, no auto-print on startup)
-- Brain hook runs in silent mode
+- Brain hook runs in silent mode when it is explicitly integrated
 - `bootstrapCloudServices()` is skipped entirely during interactive menu to prevent config write races
 
 ## Model Config Guardrails
@@ -308,7 +308,7 @@ This is the most critical flow. Menu options in `src/commands/menu.ts` must call
 
 **Smart Generation:** `src/generation/` provides `smartGenerateAndInstall()` — analyzes project, selects templates, writes agent/skill configs.
 
-**Brain Router:** `src/brain/router/` handles CLI command interception and auto-execution. The CLI interceptor (`cli-interceptor.ts`) enables slash command compatibility (`/clear`, `/reset`) and the auto-executor (`auto-executor.ts`) manages brain router command execution.
+**Brain Router:** `src/brain/router/` contains optional interception and auto-execution components. These modules are not wired into the main `src/cli.ts` → `src/cli-lazy.ts` entry path by default, so do not describe them as active shipped startup behavior without verifying the integration.
 
 ## Coding Standards
 
@@ -381,4 +381,4 @@ git push origin main
 - Use `writeJsonConfig()` for all JSON writes to ensure atomic operations.
 - Run `pnpm typecheck && pnpm build` before committing to catch type errors early.
 - When configuring custom models, ensure `settings.model` is removed to allow env var-based model selection.
-- Brain router commands should use the CLI interceptor for slash command compatibility.
+- If you work on brain-router commands, verify the actual entry-path integration before claiming CLI interception or slash-command compatibility.

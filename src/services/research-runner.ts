@@ -39,6 +39,21 @@ interface CommandExecutionResult {
 
 export type ResearchPhase = 'brief' | 'baseline' | 'experiment' | 'verify' | 'report'
 export type ResearchVerdict = 'PASS' | 'FAIL' | 'PARTIAL'
+export type ResearchObjective = 'maximize' | 'minimize'
+export type ResearchObjectiveMode = ResearchObjective | 'auto'
+export type ResearchComparisonResult = 'better' | 'worse' | 'equal' | 'unknown'
+
+export interface ResearchComparisonSummary {
+  baselineSessionId: string
+  baselineName: string
+  objective: ResearchObjective
+  result: ResearchComparisonResult
+  baselineMetricValue?: number
+  candidateMetricValue?: number
+  delta?: number
+  percentDelta?: number
+  summary: string
+}
 
 export interface ResearchRunOptions {
   name?: string
@@ -47,6 +62,8 @@ export interface ResearchRunOptions {
   budgetMs?: number
   cwd?: string
   maxRetries?: number
+  baselineSessionId?: string
+  objective?: ResearchObjectiveMode
   dbPath?: string
 }
 
@@ -65,7 +82,11 @@ export interface ResearchRunResult {
   stderr: string
   durationMs: number
   phase: ResearchPhase
+  objective: ResearchObjective
   verdict: ResearchVerdict
+  verdictReason: string
+  baselineSessionId?: string
+  comparison?: ResearchComparisonSummary
   phaseHistory: ResearchPhase[]
   createdAt: string
 }
@@ -79,7 +100,9 @@ export interface ResearchSessionSummary {
   metricName?: string
   budgetMs: number
   currentPhase: ResearchPhase
+  objective?: ResearchObjective
   verdict?: ResearchVerdict
+  baselineSessionId?: string
 }
 
 export interface ResearchSessionStatus {
@@ -113,12 +136,16 @@ export interface ResearchReport {
   createdAt: string
   currentPhase: ResearchPhase
   verdict: ResearchVerdict
+  verdictReason: string
   command: string
   cwd: string
   status: string
   exitCode: number
   metricName?: string
   metricValue?: number
+  objective?: ResearchObjective
+  baselineSessionId?: string
+  comparison?: ResearchComparisonSummary
   durationMs: number
   phaseHistory: ResearchPhase[]
   outcome: string
@@ -179,18 +206,6 @@ function inferResearchPhase(name: string): ResearchPhase {
 
 function buildPhaseHistory(runPhase: ResearchPhase): ResearchPhase[] {
   return ['brief', runPhase, 'verify', 'report']
-}
-
-function determineVerdict(success: boolean, metricName?: string, metricValue?: number): ResearchVerdict {
-  if (!success) {
-    return 'FAIL'
-  }
-
-  if (metricName && metricValue === undefined) {
-    return 'PARTIAL'
-  }
-
-  return 'PASS'
 }
 
 function sanitizeLedgerField(value: unknown): string {
@@ -300,18 +315,162 @@ function readAllResultRows(dbPath?: string): ResearchResultRow[] {
     .filter((row): row is ResearchResultRow => Boolean(row))
 }
 
-function metricDirection(metricName?: string): 'asc' | 'desc' {
+function resolveResearchObjective(metricName?: string, objective: ResearchObjectiveMode = 'auto'): ResearchObjective {
+  if (objective === 'maximize' || objective === 'minimize') {
+    return objective
+  }
+
   const normalized = (metricName || '').toLowerCase()
   if (!normalized) {
-    return 'desc'
+    return 'maximize'
   }
 
   const lowerIsBetter = ['loss', 'error', 'bpb', 'perplexity', 'ppl', 'latency', 'duration', 'time', 'cost', 'price', 'wer', 'cer']
   if (lowerIsBetter.some(keyword => normalized.includes(keyword))) {
-    return 'asc'
+    return 'minimize'
   }
 
-  return 'desc'
+  return 'maximize'
+}
+
+function compareMetricValues(
+  baselineMetricValue: number | undefined,
+  candidateMetricValue: number | undefined,
+  objective: ResearchObjective,
+): ResearchComparisonResult {
+  if (baselineMetricValue === undefined || candidateMetricValue === undefined) {
+    return 'unknown'
+  }
+
+  if (candidateMetricValue === baselineMetricValue) {
+    return 'equal'
+  }
+
+  if (objective === 'minimize') {
+    return candidateMetricValue < baselineMetricValue ? 'better' : 'worse'
+  }
+
+  return candidateMetricValue > baselineMetricValue ? 'better' : 'worse'
+}
+
+function formatSignedNumber(value: number | undefined): string {
+  if (value === undefined) {
+    return 'unknown'
+  }
+
+  return `${value > 0 ? '+' : ''}${value}`
+}
+
+function formatPercent(value: number | undefined): string {
+  if (value === undefined) {
+    return 'unknown'
+  }
+
+  return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`
+}
+
+function buildComparisonSummary(input: {
+  baselineSessionId: string
+  baselineName: string
+  baselineMetricValue?: number
+  candidateMetricValue?: number
+  objective: ResearchObjective
+}): ResearchComparisonSummary {
+  const result = compareMetricValues(input.baselineMetricValue, input.candidateMetricValue, input.objective)
+  const delta = input.baselineMetricValue !== undefined && input.candidateMetricValue !== undefined
+    ? input.candidateMetricValue - input.baselineMetricValue
+    : undefined
+  const percentDelta = input.baselineMetricValue !== undefined
+    && input.baselineMetricValue !== 0
+    && delta !== undefined
+    ? (delta / input.baselineMetricValue) * 100
+    : undefined
+
+  const goal = input.objective === 'minimize' ? 'lower' : 'higher'
+  let summary = `Needs ${goal} ${input.objective === 'minimize' ? 'metric reduction' : 'metric lift'} data.`
+
+  if (result === 'better') {
+    summary = `Candidate is better than baseline (${input.candidateMetricValue} vs ${input.baselineMetricValue}, Δ ${formatSignedNumber(delta)} / ${formatPercent(percentDelta)}).`
+  }
+  else if (result === 'worse') {
+    summary = `Candidate is worse than baseline (${input.candidateMetricValue} vs ${input.baselineMetricValue}, Δ ${formatSignedNumber(delta)} / ${formatPercent(percentDelta)}).`
+  }
+  else if (result === 'equal') {
+    summary = `Candidate matches baseline (${input.candidateMetricValue}).`
+  }
+
+  return {
+    baselineSessionId: input.baselineSessionId,
+    baselineName: input.baselineName,
+    objective: input.objective,
+    result,
+    baselineMetricValue: input.baselineMetricValue,
+    candidateMetricValue: input.candidateMetricValue,
+    delta,
+    percentDelta,
+    summary,
+  }
+}
+
+function determineVerdict(args: {
+  success: boolean
+  metricName?: string
+  metricValue?: number
+  comparison?: ResearchComparisonSummary
+}): { verdict: ResearchVerdict, reason: string } {
+  if (!args.success) {
+    return {
+      verdict: 'FAIL',
+      reason: 'Command execution failed.',
+    }
+  }
+
+  if (args.metricName && args.metricValue === undefined) {
+    return {
+      verdict: 'PARTIAL',
+      reason: `Metric ${args.metricName} was configured but not found in output.`,
+    }
+  }
+
+  if (args.comparison?.result === 'worse') {
+    return {
+      verdict: 'FAIL',
+      reason: args.comparison.summary,
+    }
+  }
+
+  if (args.comparison?.result === 'unknown') {
+    return {
+      verdict: 'PARTIAL',
+      reason: args.comparison.summary,
+    }
+  }
+
+  if (args.comparison?.result === 'equal') {
+    return {
+      verdict: 'PARTIAL',
+      reason: args.comparison.summary,
+    }
+  }
+
+  if (args.comparison?.result === 'better') {
+    return {
+      verdict: 'PASS',
+      reason: args.comparison.summary,
+    }
+  }
+
+  if (args.metricName && args.metricValue !== undefined) {
+    return {
+      verdict: 'PASS',
+      reason: `Metric ${args.metricName}=${args.metricValue} was captured successfully.`,
+    }
+  }
+
+  return {
+    verdict: 'PASS',
+    reason: 'Command completed successfully.',
+  }
 }
 
 function selectBestByMetric(rows: ResearchResultRow[]): ResearchResultRow | undefined {
@@ -325,13 +484,13 @@ function selectBestByMetric(rows: ResearchResultRow[]): ResearchResultRow | unde
     return newestMetricRow
   }
 
-  const direction = metricDirection(newestMetricRow.metricName)
+  const objective = resolveResearchObjective(newestMetricRow.metricName)
   return candidates.reduce((best, current) => {
-    if (!best.metricValue || current.metricValue === undefined) {
+    if (best.metricValue === undefined || current.metricValue === undefined) {
       return best
     }
 
-    if (direction === 'asc') {
+    if (objective === 'minimize') {
       return current.metricValue < best.metricValue ? current : best
     }
 
@@ -339,7 +498,7 @@ function selectBestByMetric(rows: ResearchResultRow[]): ResearchResultRow | unde
   })
 }
 
-function buildResearchTask(taskId: string, options: Required<Pick<ResearchRunOptions, 'name' | 'command' | 'cwd' | 'maxRetries' | 'budgetMs'>> & Pick<ResearchRunOptions, 'metricName'>): BrainTask {
+function buildResearchTask(taskId: string, options: Required<Pick<ResearchRunOptions, 'name' | 'command' | 'cwd' | 'maxRetries' | 'budgetMs'>> & Pick<ResearchRunOptions, 'metricName' | 'baselineSessionId'>): BrainTask {
   return {
     id: taskId,
     name: options.name,
@@ -368,6 +527,7 @@ function buildResearchTask(taskId: string, options: Required<Pick<ResearchRunOpt
       custom: {
         metricName: options.metricName,
         cwd: options.cwd,
+        baselineSessionId: options.baselineSessionId,
       },
     },
     createdAt: new Date().toISOString(),
@@ -375,7 +535,7 @@ function buildResearchTask(taskId: string, options: Required<Pick<ResearchRunOpt
   }
 }
 
-function normalizeRunOptions(options: ResearchRunOptions): Required<Pick<ResearchRunOptions, 'command' | 'name' | 'cwd' | 'budgetMs' | 'maxRetries'>> & Pick<ResearchRunOptions, 'metricName' | 'dbPath'> {
+function normalizeRunOptions(options: ResearchRunOptions): Required<Pick<ResearchRunOptions, 'command' | 'name' | 'cwd' | 'budgetMs' | 'maxRetries' | 'objective'>> & Pick<ResearchRunOptions, 'metricName' | 'dbPath' | 'baselineSessionId'> {
   return {
     command: options.command,
     name: options.name || `research-${Date.now()}`,
@@ -383,6 +543,8 @@ function normalizeRunOptions(options: ResearchRunOptions): Required<Pick<Researc
     budgetMs: options.budgetMs || DEFAULT_BUDGET_MS,
     maxRetries: options.maxRetries ?? 0,
     metricName: options.metricName,
+    baselineSessionId: options.baselineSessionId,
+    objective: options.objective || 'auto',
     dbPath: options.dbPath,
   }
 }
@@ -402,6 +564,28 @@ export async function runResearchExperiment(options: ResearchRunOptions): Promis
   const sessionId = `research-${Date.now()}-${nanoid(6)}`
   const taskId = `research-task-${nanoid(8)}`
   const task = buildResearchTask(taskId, normalized)
+  const objective = resolveResearchObjective(normalized.metricName, normalized.objective)
+
+  let baselineSummary: ResearchSessionSummary | undefined
+  let comparison: ResearchComparisonSummary | undefined
+  let baselineMetricValue: number | undefined
+
+  if (normalized.baselineSessionId) {
+    baselineSummary = listResearchSessions(Number.MAX_SAFE_INTEGER, normalized.dbPath)
+      .find(session => session.id === normalized.baselineSessionId)
+
+    const baselineReport = getResearchReport(normalized.baselineSessionId, normalized.dbPath)
+    if (baselineReport) {
+      baselineMetricValue = baselineReport.metricValue
+      comparison = buildComparisonSummary({
+        baselineSessionId: baselineReport.sessionId,
+        baselineName: baselineReport.name,
+        baselineMetricValue,
+        candidateMetricValue: undefined,
+        objective,
+      })
+    }
+  }
 
   persistence.saveSession(sessionId, {
     kind: RESEARCH_SESSION_KIND,
@@ -410,6 +594,8 @@ export async function runResearchExperiment(options: ResearchRunOptions): Promis
     cwd: normalized.cwd,
     metricName: normalized.metricName,
     budgetMs: normalized.budgetMs,
+    objective,
+    baselineSessionId: normalized.baselineSessionId,
     currentPhase: runPhase,
     phaseHistory: ['brief', runPhase],
     createdAt,
@@ -465,7 +651,25 @@ export async function runResearchExperiment(options: ResearchRunOptions): Promis
   const status = finalizedResult.success ? 'completed' : getFailureStatus(finalizedResult, error)
   const combinedOutput = [finalizedResult.stdout, finalizedResult.stderr].filter(Boolean).join('\n')
   const metricValue = extractMetricValue(combinedOutput, normalized.metricName)
-  const verdict = determineVerdict(finalizedResult.success, normalized.metricName, metricValue)
+
+  if (normalized.baselineSessionId) {
+    comparison = buildComparisonSummary({
+      baselineSessionId: normalized.baselineSessionId,
+      baselineName: baselineSummary?.name || normalized.baselineSessionId,
+      baselineMetricValue,
+      candidateMetricValue: metricValue,
+      objective,
+    })
+  }
+
+  const verdictDecision = determineVerdict({
+    success: finalizedResult.success,
+    metricName: normalized.metricName,
+    metricValue,
+    comparison,
+  })
+  const verdict = verdictDecision.verdict
+  const verdictReason = verdictDecision.reason
 
   const output: TaskOutput = {
     data: {
@@ -480,13 +684,18 @@ export async function runResearchExperiment(options: ResearchRunOptions): Promis
       durationMs,
       attempts,
       phase: runPhase,
+      objective,
       verdict,
+      verdictReason,
+      baselineSessionId: normalized.baselineSessionId,
+      comparison,
     },
     logs: combinedOutput ? combinedOutput.split(/\r?\n/) : [],
     metadata: {
       status,
       success: finalizedResult.success,
       verdict,
+      objective,
     },
   }
 
@@ -512,7 +721,7 @@ export async function runResearchExperiment(options: ResearchRunOptions): Promis
     taskId,
     decision: 'record research run',
     reasoning: normalized.metricName
-      ? `Executed the research command and tracked metric ${normalized.metricName}.`
+      ? `Executed the research command and evaluated metric ${normalized.metricName} with objective ${objective}.`
       : 'Executed the research command without a configured metric parser.',
     context: JSON.stringify({
       command: normalized.command,
@@ -520,12 +729,10 @@ export async function runResearchExperiment(options: ResearchRunOptions): Promis
       budgetMs: normalized.budgetMs,
       metricName: normalized.metricName,
       phase: runPhase,
+      objective,
+      baselineSessionId: normalized.baselineSessionId,
     }),
-    outcome: finalizedResult.success
-      ? metricValue === undefined
-        ? 'completed without metric'
-        : `${normalized.metricName}=${metricValue}`
-      : finalizedResult.error || error?.message || 'failed',
+    outcome: verdictReason,
   })
 
   persistence.saveSession(sessionId, {
@@ -535,13 +742,17 @@ export async function runResearchExperiment(options: ResearchRunOptions): Promis
     cwd: normalized.cwd,
     metricName: normalized.metricName,
     budgetMs: normalized.budgetMs,
+    objective,
+    baselineSessionId: normalized.baselineSessionId,
     currentPhase: 'report',
     phaseHistory,
     runPhase,
     verdict,
+    verdictReason,
     status,
     exitCode: finalizedResult.exitCode,
     metricValue,
+    comparison,
     durationMs,
     createdAt,
   })
@@ -577,7 +788,11 @@ export async function runResearchExperiment(options: ResearchRunOptions): Promis
     stderr: finalizedResult.stderr,
     durationMs,
     phase: runPhase,
+    objective,
     verdict,
+    verdictReason,
+    baselineSessionId: normalized.baselineSessionId,
+    comparison,
     phaseHistory,
     createdAt,
   }
@@ -598,7 +813,9 @@ export function listResearchSessions(limit: number = DEFAULT_SESSION_LIMIT, dbPa
       metricName: session.metadata.metricName,
       budgetMs: session.metadata.budgetMs || DEFAULT_BUDGET_MS,
       currentPhase: session.metadata.currentPhase || 'experiment',
+      objective: session.metadata.objective as ResearchObjective | undefined,
       verdict: session.metadata.verdict,
+      baselineSessionId: session.metadata.baselineSessionId as string | undefined,
     }))
 }
 
@@ -650,8 +867,15 @@ export function getResearchReport(sessionId?: string, dbPath?: string): Research
   const latestTask = status.tasks[status.tasks.length - 1]
   const outputData = (latestTask?.output as TaskOutput | undefined)?.data || {}
   const phaseHistory = (status.metadata.phaseHistory as ResearchPhase[] | undefined) || []
-  const verdict = (status.metadata.verdict as ResearchVerdict | undefined)
-    || determineVerdict(status.metrics.failedTasks === 0, status.metadata.metricName, outputData.metricValue as number | undefined)
+  const comparison = status.metadata.comparison as ResearchComparisonSummary | undefined
+  const verdictDecision = determineVerdict({
+    success: status.metrics.failedTasks === 0,
+    metricName: status.metadata.metricName as string | undefined,
+    metricValue: outputData.metricValue as number | undefined,
+    comparison,
+  })
+  const verdict = (status.metadata.verdict as ResearchVerdict | undefined) || verdictDecision.verdict
+  const verdictReason = String(status.metadata.verdictReason || verdictDecision.reason)
   const currentPhase = (status.metadata.currentPhase as ResearchPhase | undefined) || 'report'
 
   const createdAt = String(status.metadata.createdAt || '')
@@ -679,8 +903,20 @@ export function getResearchReport(sessionId?: string, dbPath?: string): Research
   lines.push(`**Exit Code**: ${outputData.exitCode ?? 'unknown'}`)
   lines.push(`**Status**: ${outputData.status || status.metadata.status || 'unknown'}`)
   lines.push(`**Metric**: ${status.metadata.metricName ? `${status.metadata.metricName}=${outputData.metricValue ?? 'not found'}` : 'not configured'}`)
+  lines.push(`**Objective**: ${status.metadata.objective || outputData.objective || 'unknown'}`)
   lines.push(`**Duration**: ${outputData.durationMs ?? status.metadata.durationMs ?? 0}ms`)
+  lines.push(`**Reason**: ${verdictReason}`)
   lines.push(`**Outcome**: ${outcome}`)
+
+  if (comparison) {
+    lines.push('')
+    lines.push('## Comparison')
+    lines.push('')
+    lines.push(`- Baseline: ${comparison.baselineName} (${comparison.baselineSessionId})`)
+    lines.push(`- Objective: ${comparison.objective}`)
+    lines.push(`- Result: ${comparison.result}`)
+    lines.push(`- Summary: ${comparison.summary}`)
+  }
 
   if (phaseHistory.length > 0) {
     lines.push('')
@@ -695,12 +931,16 @@ export function getResearchReport(sessionId?: string, dbPath?: string): Research
     createdAt,
     currentPhase,
     verdict,
+    verdictReason,
     command: status.metadata.command || outputData.command || 'unknown',
     cwd: status.metadata.cwd || outputData.cwd || process.cwd(),
     status: String(outputData.status || status.metadata.status || 'unknown'),
     exitCode: Number(outputData.exitCode ?? 0),
     metricName: status.metadata.metricName,
     metricValue: typeof outputData.metricValue === 'number' ? outputData.metricValue : undefined,
+    objective: status.metadata.objective as ResearchObjective | undefined,
+    baselineSessionId: status.metadata.baselineSessionId as string | undefined,
+    comparison,
     durationMs: Number(outputData.durationMs ?? status.metadata.durationMs ?? 0),
     phaseHistory,
     outcome,

@@ -38,15 +38,16 @@ describe('displayCommandDiscovery', () => {
     consoleSpy.mockRestore()
   })
 
-  it('should display Claude Code commands section', () => {
+  it('should only display shipped CCJK commands', () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     displayCommandDiscovery()
 
     const output = consoleSpy.mock.calls.map(call => String(call[0])).join('\n')
-    expect(output).toContain('/help')
-    expect(output).toContain('/clear')
-    expect(output).toContain('/reset')
+    expect(output).not.toContain('/clear')
+    expect(output).not.toContain('/reset')
+    expect(output).toContain('/status')
+    expect(output).toContain('/health')
 
     consoleSpy.mockRestore()
   })
@@ -59,9 +60,10 @@ describe('displayCommandDiscovery', () => {
 
     const output = consoleSpy.mock.calls.map(call => String(call[0])).join('\n')
     expect(output).toContain('CCJK')
-    expect(output).toContain('Claude Code')
+    expect(output).toContain('ccjk 命令')
     expect(output).toContain('大脑仪表盘')
     expect(output).toContain('Brain Dashboard')
+    expect(output).not.toContain('Claude Code')
 
     consoleSpy.mockRestore()
   })
