@@ -182,7 +182,7 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
               await configureCodexMcp()
               return
             }
-            await (await import('../mcp')).mcpStatus({})
+            await (await import('../../utils/features')).configureMcpFeature()
           },
         }
 

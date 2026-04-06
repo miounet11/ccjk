@@ -4,7 +4,7 @@ import { exec } from 'tinyexec'
 import { ensureI18nInitialized, format, i18n } from '../i18n'
 import { shouldUseSudoForGlobalInstall } from './platform'
 import { promptBoolean } from './toggle-prompt'
-import { checkCcrVersion, checkClaudeCodeVersion, checkCometixLineVersion, fixBrokenNpmSymlink, handleDuplicateInstallations } from './version-checker'
+import { checkCcrVersion, checkClaudeCodeVersion, checkCometixLineVersion, checkMyclaudeVersion, fixBrokenNpmSymlink, handleDuplicateInstallations } from './version-checker'
 
 /**
  * Execute a command with sudo support for Linux non-root users.
@@ -360,6 +360,71 @@ export async function updateCometixLine(force = false, skipPrompt = false): Prom
   }
 }
 
+export async function updateMyclaude(force = false, skipPrompt = false): Promise<boolean> {
+  ensureI18nInitialized()
+  const spinner = ora(i18n.t('updater:checkingVersion')).start()
+
+  try {
+    const { installed, currentVersion, latestVersion, needsUpdate } = await checkMyclaudeVersion()
+    spinner.stop()
+
+    if (!installed) {
+      console.log(ansis.yellow('myclaude is not installed'))
+      return false
+    }
+
+    if (!needsUpdate && !force) {
+      console.log(ansis.green(`myclaude is up to date (v${currentVersion || ''})`))
+      return true
+    }
+
+    if (!latestVersion) {
+      console.log(ansis.yellow(i18n.t('updater:cannotCheckVersion')))
+      return false
+    }
+
+    console.log(ansis.green(format(i18n.t('updater:currentVersion'), { version: currentVersion || '' })))
+    console.log(ansis.green(format(i18n.t('updater:latestVersion'), { version: latestVersion })))
+
+    if (!skipPrompt) {
+      const confirm = await promptBoolean({
+        message: format(i18n.t('updater:confirmUpdate'), { tool: 'myclaude' }),
+        defaultValue: true,
+      })
+
+      if (!confirm) {
+        console.log(ansis.gray(i18n.t('updater:updateSkipped')))
+        return true
+      }
+    }
+    else {
+      console.log(ansis.green(format(i18n.t('updater:autoUpdating'), { tool: 'myclaude' })))
+    }
+
+    const updateSpinner = ora(format(i18n.t('updater:updating'), { tool: 'myclaude' })).start()
+
+    try {
+      await execWithSudoIfNeeded('npm', ['update', '-g', 'myclaude-code'])
+      const installResult = await exec('myclaude', ['install', '--force'])
+      if (installResult.exitCode !== 0) {
+        throw new Error(installResult.stderr || `Command failed with exit code ${installResult.exitCode}`)
+      }
+      updateSpinner.succeed(format(i18n.t('updater:updateSuccess'), { tool: 'myclaude' }))
+      return true
+    }
+    catch (error) {
+      updateSpinner.fail(format(i18n.t('updater:updateFailed'), { tool: 'myclaude' }))
+      console.error(ansis.red(error instanceof Error ? error.message : String(error)))
+      return false
+    }
+  }
+  catch (error) {
+    spinner.fail(i18n.t('updater:checkFailed'))
+    console.error(ansis.red(error instanceof Error ? error.message : String(error)))
+    return false
+  }
+}
+
 export async function checkAndUpdateTools(skipPrompt = false): Promise<void> {
   ensureI18nInitialized()
   console.log(ansis.bold.cyan(`\n🔍 ${i18n.t('updater:checkingTools')}\n`))
@@ -451,6 +516,59 @@ export async function checkAndUpdateTools(skipPrompt = false): Promise<void> {
   }
 
   // Exit if CCJK was updated
+  if (ccjkUpdated) {
+    console.log(ansis.yellow('\n⚠ Please run ccjk again to use the new version'))
+    process.exit(0)
+  }
+}
+
+export async function checkAndUpdateMyclaudeTools(skipPrompt = false): Promise<void> {
+  ensureI18nInitialized()
+  console.log(ansis.bold.cyan(`\n🔍 ${i18n.t('updater:checkingTools')}\n`))
+
+  const results: Array<{ tool: string, success: boolean, error?: string }> = []
+  let ccjkUpdated = false
+  let ccjkResult: { tool: string, success: boolean, error?: string } | null = null
+
+  console.log(ansis.bold('✨ myclaude'))
+  try {
+    const success = await updateMyclaude(false, skipPrompt)
+    results.push({ tool: 'myclaude', success })
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`❌ ${format(i18n.t('updater:updateFailed'), { tool: 'myclaude' })}: ${errorMessage}`))
+    results.push({ tool: 'myclaude', success: false, error: errorMessage })
+  }
+
+  console.log()
+
+  console.log(ansis.bold('📦 CCJK'))
+  try {
+    const result = await checkCcjkVersionAndPrompt(skipPrompt)
+    ccjkUpdated = result.updated
+    ccjkResult = {
+      tool: 'CCJK',
+      success: result.success,
+      error: result.error,
+    }
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(ansis.red(`❌ ${format(i18n.t('updater:updateFailed'), { tool: 'CCJK' })}: ${errorMessage}`))
+    ccjkResult = { tool: 'CCJK', success: false, error: errorMessage }
+  }
+
+  console.log(ansis.bold.cyan(`\n📋 ${i18n.t('updater:updateSummary')}`))
+  for (const result of ccjkResult ? [ccjkResult, ...results] : results) {
+    if (result.success) {
+      console.log(ansis.green(`✔ ${result.tool}: ${i18n.t('updater:success')}`))
+    }
+    else {
+      console.log(ansis.red(`❌ ${result.tool}: ${i18n.t('updater:failed')} ${result.error ? `(${result.error})` : ''}`))
+    }
+  }
+
   if (ccjkUpdated) {
     console.log(ansis.yellow('\n⚠ Please run ccjk again to use the new version'))
     process.exit(0)

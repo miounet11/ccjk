@@ -1,4 +1,5 @@
 import type { ClaudeConfiguration, McpServerConfig, MyclaudeProviderProfile } from '../types'
+import type { ClaudeCodeConfigData, ClaudeCodeProfile } from '../types/claude-code-config'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
 import { ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE } from '../constants'
@@ -273,8 +274,47 @@ export function setPrimaryApiKey(): void {
 export function setMyclaudeProviderProfiles(profiles: MyclaudeProviderProfile[], activeProfileId?: string): void {
   const config = readMcpConfig() || { mcpServers: {} }
   config.myclaudeProviderProfiles = profiles
-  config.myclaudeActiveProviderProfileId = activeProfileId || profiles[0]?.id
+  config.myclaudeActiveProviderProfileId = activeProfileId ?? profiles[0]?.id
   writeMcpConfig(config)
+}
+
+export function setMyclaudeActiveProviderProfile(activeProfileId?: string): void {
+  const config = readMcpConfig() || { mcpServers: {} }
+  config.myclaudeActiveProviderProfileId = activeProfileId ?? ''
+  writeMcpConfig(config)
+}
+
+function toMyclaudeProviderProfile(
+  profile: ClaudeCodeProfile,
+  existing?: MyclaudeProviderProfile,
+): MyclaudeProviderProfile {
+  return {
+    id: profile.id || existing?.id || profile.name,
+    name: profile.name,
+    provider: profile.provider || existing?.provider || 'custom',
+    apiKey: profile.apiKey,
+    baseUrl: profile.baseUrl,
+    model: profile.primaryModel,
+    fastModel: profile.defaultHaikuModel,
+    authType: profile.authType,
+    primaryModel: profile.primaryModel,
+    defaultHaikuModel: profile.defaultHaikuModel,
+    defaultSonnetModel: profile.defaultSonnetModel,
+    defaultOpusModel: profile.defaultOpusModel,
+  }
+}
+
+export function syncMyclaudeProviderProfilesFromClaudeConfig(configData: ClaudeCodeConfigData | null): void {
+  if (!configData) {
+    clearMyclaudeProviderProfiles()
+    return
+  }
+
+  const existingProfiles = readMcpConfig()?.myclaudeProviderProfiles || []
+  const existingById = new Map(existingProfiles.map(profile => [String(profile.id), profile]))
+  const profiles = Object.entries(configData.profiles).map(([id, profile]) => toMyclaudeProviderProfile({ ...profile, id }, existingById.get(id)))
+
+  setMyclaudeProviderProfiles(profiles, configData.currentProfileId ?? '')
 }
 
 export function clearMyclaudeProviderProfiles(): void {

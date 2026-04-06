@@ -12,7 +12,7 @@
  */
 
 import type { MenuDefinition, MenuItem } from '../types'
-import { configureAiMemoryFeature, configureApiFeature, configureDefaultModelFeature, configureEnvPermissionFeature, configureMcpFeature } from '../../../utils/features'
+import { configureApiFeature, configureDefaultModelFeature, configureEnvPermissionFeature, configureMcpFeature, configureMemoryFeature } from '../../../utils/features'
 import { showContextMenu } from '../../context-menu'
 
 /**
@@ -68,7 +68,7 @@ export const configMenuItems: MenuItem[] = [
     icon: '🧠',
     shortcut: '4',
     handler: async () => {
-      await configureAiMemoryFeature()
+      await configureMemoryFeature()
     },
   },
   {

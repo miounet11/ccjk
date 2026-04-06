@@ -384,6 +384,8 @@ export class ClaudeCodeConfigManager {
       authType: profile.authType,
     }
 
+    if (profile.provider)
+      sanitized.provider = profile.provider
     if (profile.apiKey)
       sanitized.apiKey = profile.apiKey
     if (profile.baseUrl)

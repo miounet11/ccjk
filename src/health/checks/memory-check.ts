@@ -3,7 +3,7 @@ import path from 'node:path'
 /**
  * Memory Health Check
  *
- * Checks Claude auto-memory status:
+ * Checks shared Claude-family memory status:
  * - Existence of memory files in ~/.claude/projects
  * - File size and staleness warnings
  * - Last modification time
@@ -184,7 +184,7 @@ export const memoryCheck: HealthCheck = {
       const fixes: string[] = []
 
       if (!hasMemoryDir || !hasMemoryContent) {
-        fixes.push('Enable Claude auto-memory in settings')
+        fixes.push('Enable shared Claude-family memory in settings')
         result.command = 'ccjk menu'
       }
 

@@ -100,7 +100,7 @@ export async function showApiConfigMenu(title?: string, options?: { context?: 'i
  * Handle official login selection
  */
 async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promise<ApiConfigResult> {
-  if (codeTool === 'claude-code') {
+  if (codeTool === 'claude-code' || codeTool === 'myclaude') {
     const result = await ClaudeCodeConfigManager.switchToOfficial()
     if (result.success) {
       console.log('')
@@ -131,7 +131,7 @@ async function handleCustomConfig(_isZh: boolean, context?: 'init' | 'menu'): Pr
   try {
     const codeTool = getCurrentCodeTool()
 
-    if (codeTool === 'claude-code' && context === 'init') {
+    if ((codeTool === 'claude-code' || codeTool === 'myclaude') && context === 'init') {
       // During init flow, skip management menu and go directly to add profile
       const { addProfileDirect } = await import('../utils/claude-code-incremental-manager')
       await addProfileDirect()
@@ -151,7 +151,7 @@ async function handleCustomConfig(_isZh: boolean, context?: 'init' | 'menu'): Pr
  * Handle CCR proxy selection
  */
 async function handleCcrProxy(codeTool: CodeToolType, isZh: boolean): Promise<ApiConfigResult> {
-  if (codeTool === 'claude-code') {
+  if (codeTool === 'claude-code' || codeTool === 'myclaude') {
     const result = await ClaudeCodeConfigManager.switchToCcr()
     if (result.success) {
       console.log('')

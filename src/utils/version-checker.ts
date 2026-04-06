@@ -1059,6 +1059,23 @@ export async function checkCometixLineVersion(): Promise<{
   }
 }
 
+export async function checkMyclaudeVersion(): Promise<{
+  installed: boolean
+  currentVersion: string | null
+  latestVersion: string | null
+  needsUpdate: boolean
+}> {
+  const currentVersion = await getInstalledVersion('myclaude')
+  const latestVersion = await getLatestVersion('myclaude-code')
+
+  return {
+    installed: currentVersion !== null,
+    currentVersion,
+    latestVersion,
+    needsUpdate: currentVersion && latestVersion ? shouldUpdate(currentVersion, latestVersion) : false,
+  }
+}
+
 /**
  * Check Claude Code version and prompt for update if needed
  *

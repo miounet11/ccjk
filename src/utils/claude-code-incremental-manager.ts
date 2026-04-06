@@ -1,9 +1,11 @@
 import type { ClaudeCodeProfile } from '../types/claude-code-config'
+import type { ApiProviderPreset } from '../config/api-providers'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { ClaudeCodeConfigManager } from './claude-code-config-manager'
 import { addNumbersToChoices } from './prompt-helpers'
+import { readZcfConfig } from './ccjk-config'
 import { promptBoolean } from './toggle-prompt'
 import { validateApiKey } from './validator'
 // Inline i18n helper to avoid extra file
@@ -24,6 +26,16 @@ export function getAuthTypeLabel(authType: ClaudeCodeProfile['authType']): strin
 /**
  * Configure incremental management interface for existing Claude Code configurations
  */
+async function syncMyclaudeProfilesIfNeeded(): Promise<void> {
+  const zcfConfig = readZcfConfig()
+  if (zcfConfig?.codeToolType !== 'myclaude') {
+    return
+  }
+
+  const { syncMyclaudeProviderProfilesFromClaudeConfig } = await import('./claude-config')
+  syncMyclaudeProviderProfilesFromClaudeConfig(ClaudeCodeConfigManager.readConfig())
+}
+
 export async function configureIncrementalManagement(): Promise<void> {
   ensureI18nInitialized()
 
@@ -32,6 +44,7 @@ export async function configureIncrementalManagement(): Promise<void> {
   if (!config || !config.profiles || Object.keys(config.profiles).length === 0) {
     // No existing configurations, add first one
     await handleAddProfile()
+    await syncMyclaudeProfilesIfNeeded()
     return
   }
 
@@ -79,6 +92,8 @@ export async function configureIncrementalManagement(): Promise<void> {
       await handleDeleteProfile(profiles)
       break
   }
+
+  await syncMyclaudeProfilesIfNeeded()
 }
 
 async function promptContinueAdding(): Promise<boolean> {
@@ -94,12 +109,28 @@ async function promptContinueAdding(): Promise<boolean> {
  */
 export async function addProfileDirect(): Promise<void> {
   ensureI18nInitialized()
-  return handleAddProfile()
+  await handleAddProfile()
+  await syncMyclaudeProfilesIfNeeded()
 }
 
 /**
  * Handle adding a new Claude Code profile
  */
+function getProviderDefaultModels(provider?: ApiProviderPreset): {
+  primaryModel?: string
+  haikuModel?: string
+  sonnetModel?: string
+  opusModel?: string
+} {
+  const defaults = provider?.claudeCode?.defaultModels || []
+  return {
+    primaryModel: defaults[0],
+    haikuModel: defaults[1] || defaults[0],
+    sonnetModel: defaults[2] || defaults[0],
+    opusModel: defaults[3],
+  }
+}
+
 async function handleAddProfile(): Promise<void> {
   console.log(ansis.green(`\n${i18n.t('multi-config:addingNewProfile')}`))
 
@@ -121,13 +152,13 @@ async function handleAddProfile(): Promise<void> {
 
   let prefilledBaseUrl: string | undefined
   let prefilledAuthType: 'api_key' | 'auth_token' | undefined
-  if (selectedProvider !== 'custom') {
-    const provider = providers.find((p: any) => p.id === selectedProvider)
-    if (provider?.claudeCode) {
-      prefilledBaseUrl = provider.claudeCode.baseUrl
-      prefilledAuthType = provider.claudeCode.authType
-      console.log(ansis.gray(i18n.t('api:providerSelected', { name: provider.name })))
-    }
+  const selectedProviderPreset = selectedProvider !== 'custom'
+    ? providers.find((p: any) => p.id === selectedProvider)
+    : undefined
+  if (selectedProviderPreset?.claudeCode) {
+    prefilledBaseUrl = selectedProviderPreset.claudeCode.baseUrl
+    prefilledAuthType = selectedProviderPreset.claudeCode.authType
+    console.log(ansis.gray(i18n.t('api:providerSelected', { name: selectedProviderPreset.name })))
   }
 
   const answers = await inquirer.prompt<{
@@ -141,7 +172,7 @@ async function handleAddProfile(): Promise<void> {
       type: 'input',
       name: 'profileName',
       message: i18n.t('multi-config:profileNamePrompt'),
-      default: selectedProvider !== 'custom' ? providers.find((p: any) => p.id === selectedProvider)?.name : undefined,
+      default: selectedProviderPreset?.name,
       validate: (input: string) => {
         const trimmed = input.trim()
         if (!trimmed) {
@@ -189,7 +220,7 @@ async function handleAddProfile(): Promise<void> {
       type: 'input',
       name: 'apiKey',
       message: selectedProvider !== 'custom'
-        ? i18n.t('api:enterProviderApiKey', { provider: providers.find((p: any) => p.id === selectedProvider)?.name || selectedProvider })
+        ? i18n.t('api:enterProviderApiKey', { provider: selectedProviderPreset?.name || selectedProvider })
         : i18n.t('multi-config:apiKeyPrompt'),
       when: (answers: any) => selectedProvider === 'custom' ? answers.authType !== 'ccr_proxy' : true,
       validate: (input: string) => {
@@ -209,11 +240,17 @@ async function handleAddProfile(): Promise<void> {
     },
   ])
 
-  // For custom provider, prompt for model configuration
+  // Always offer model configuration so preset providers can use custom routing too
   let modelConfig: { primaryModel: string, haikuModel: string, sonnetModel: string, opusModel: string } | null = null
-  if (selectedProvider === 'custom') {
+  {
     const { promptCustomModels } = await import('./features')
-    modelConfig = await promptCustomModels()
+    const defaults = getProviderDefaultModels(selectedProviderPreset)
+    modelConfig = await promptCustomModels(
+      defaults.primaryModel,
+      defaults.haikuModel,
+      defaults.sonnetModel,
+      defaults.opusModel,
+    )
   }
 
   // Continue with setAsDefault prompt
@@ -229,6 +266,7 @@ async function handleAddProfile(): Promise<void> {
     id: profileId,
     name: profileName,
     authType: selectedProvider === 'custom' ? answers.authType : prefilledAuthType!,
+    provider: selectedProvider,
   }
 
   if (profile.authType !== 'ccr_proxy') {
@@ -271,6 +309,7 @@ async function handleAddProfile(): Promise<void> {
     const updateResult = await ClaudeCodeConfigManager.updateProfile(existingProfile.id!, {
       name: profile.name,
       authType: profile.authType,
+      provider: profile.provider,
       apiKey: profile.apiKey,
       baseUrl: profile.baseUrl,
       primaryModel: profile.primaryModel,

@@ -4,6 +4,8 @@ const mockRunCodexFullInit = vi.fn()
 const mockRunCodexUninstall = vi.fn()
 const mockInit = vi.fn()
 const mockConfigureCodexPresetFeature = vi.fn()
+const mockConfigureMemoryFeature = vi.fn()
+const mockNotificationCommand = vi.fn()
 
 vi.mock('../../utils/code-tools/codex', () => ({
   runCodexFullInit: mockRunCodexFullInit,
@@ -19,6 +21,18 @@ vi.mock('../../utils/code-tools/codex', () => ({
 
 vi.mock('../init', () => ({
   init: mockInit,
+}))
+
+vi.mock('../../utils/features', async () => {
+  const actual = await vi.importActual<typeof import('../../utils/features')>('../../utils/features')
+  return {
+    ...actual,
+    configureMemoryFeature: mockConfigureMemoryFeature,
+  }
+})
+
+vi.mock('../notification', () => ({
+  notificationCommand: mockNotificationCommand,
 }))
 
 describe('progressive menu handlers', () => {
@@ -96,6 +110,42 @@ describe('progressive menu handlers', () => {
       showHero: true,
     })
     expect(__testUtils.getMenuShellConfig('codex').footerCommands.map(command => command.key)).toEqual(['s', '+', '-'])
+  })
+
+  it('routes myclaude memory config to the shared memory feature', async () => {
+    const { __testUtils } = await import('./index')
+    const [item] = __testUtils.attachHandlers([
+      {
+        id: 'memory-config',
+        label: 'menu:configCenter.memory',
+        description: 'menu:configCenter.memoryDesc',
+        category: 'config',
+        level: 'basic',
+        action: 'command',
+      },
+    ] as any, 'myclaude')
+
+    await item.handler?.()
+
+    expect(mockConfigureMemoryFeature).toHaveBeenCalledTimes(1)
+  })
+
+  it('routes notifications to the notification command in myclaude mode', async () => {
+    const { __testUtils } = await import('./index')
+    const [item] = __testUtils.attachHandlers([
+      {
+        id: 'notifications',
+        label: 'menu:oneClick.notify',
+        description: 'menu:oneClick.notifyDesc',
+        category: 'quick',
+        level: 'basic',
+        action: 'command',
+      },
+    ] as any, 'myclaude')
+
+    await item.handler?.()
+
+    expect(mockNotificationCommand).toHaveBeenCalledTimes(1)
   })
 
   it('still accepts Claude switch input when enabled as a global menu command', async () => {

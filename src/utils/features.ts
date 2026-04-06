@@ -147,8 +147,8 @@ export async function handleCustomApiMode(): Promise<void> {
   const zcfConfig = readZcfConfig()
   const codeToolType = zcfConfig?.codeToolType || 'claude-code'
 
-  // For Claude Code, use the new incremental configuration management
-  if (codeToolType === 'claude-code') {
+  // For Claude-family runtimes, use the new incremental configuration management
+  if (codeToolType === 'claude-code' || codeToolType === 'myclaude') {
     const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
     await configureIncrementalManagement()
     return
@@ -1222,6 +1222,8 @@ export async function configureMergedPermissionsFeature(): Promise<void> {
 }
 
 export async function configureMemoryFeature(): Promise<void> {
+  ensureI18nInitialized()
+  const isZh = i18n.language === 'zh-CN'
   const inquirer = (await import('inquirer')).default
   const ansis = (await import('ansis')).default
   const { execSync } = await import('node:child_process')
@@ -1271,6 +1273,8 @@ export async function configureMemoryFeature(): Promise<void> {
         { name: i18n.t('memory:editMemory'), value: 'edit' },
         { name: i18n.t('memory:syncNow'), value: 'sync' },
         { name: i18n.t('memory:configureRules'), value: 'rules' },
+        { name: isZh ? '🌐 配置 AI 输出语言' : '🌐 Configure AI output language', value: 'language' },
+        { name: isZh ? '🎨 配置输出风格' : '🎨 Configure output style', value: 'outputStyle' },
         { name: i18n.t('memory:back'), value: 'back' },
       ],
     },
@@ -1343,6 +1347,14 @@ export async function configureMemoryFeature(): Promise<void> {
     case 'rules': {
       console.log(ansis.yellow(i18n.t('memory:rulesInfo')))
       console.log(i18n.t('memory:rulesDescription'))
+      break
+    }
+    case 'language': {
+      await changeScriptLanguageFeature(i18n.language as SupportedLang)
+      break
+    }
+    case 'outputStyle': {
+      await configureOutputStyle()
       break
     }
     case 'back':

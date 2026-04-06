@@ -1,6 +1,6 @@
 {
   "title": "通知系统",
-  "description": "通过飞书、企业微信、邮件、短信接收任务完成通知",
+  "description": "通过云端与本地渠道接收任务提醒和完成通知",
 
   "status.enabled": "已启用",
   "status.disabled": "已禁用",
@@ -126,7 +126,7 @@
   "errors.cloudError": "云服务错误: {{error}}",
   "errors.tokenInvalid": "设备令牌无效，请重新生成。",
 
-  "menu.title": "📱 通知设置",
+  "menu.title": "📱 任务提醒设置",
   "menu.configure": "配置通知",
   "menu.viewStatus": "查看状态",
   "menu.testNotification": "发送测试",

@@ -6,6 +6,7 @@ import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { readZcfConfig } from '../utils/ccjk-config'
 import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
+import { setMyclaudeActiveProviderProfile, syncMyclaudeProviderProfilesFromClaudeConfig } from '../utils/claude-config'
 import { listCodexProviders, readCodexConfig, switchToOfficialLogin as switchCodexOfficialLogin, switchCodexProvider, switchToProvider } from '../utils/code-tools/codex'
 import { handleGeneralError } from '../utils/error-handler'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
@@ -72,10 +73,21 @@ function resolveCodeType(codeType?: unknown): CodeToolType {
 /**
  * Handle --list flag to show available configurations
  */
+function syncMyclaudeStateIfNeeded(codeType: CodeToolType, currentProfileId?: string): void {
+  if (codeType !== 'myclaude') {
+    return
+  }
+
+  if (currentProfileId !== undefined) {
+    setMyclaudeActiveProviderProfile(currentProfileId)
+  }
+  syncMyclaudeProviderProfilesFromClaudeConfig(ClaudeCodeConfigManager.readConfig())
+}
+
 async function handleList(codeType?: CodeToolType): Promise<void> {
   const targetCodeType = resolveCodeType(codeType)
 
-  if (targetCodeType === 'claude-code') {
+  if (targetCodeType === 'claude-code' || targetCodeType === 'myclaude') {
     await listClaudeCodeProfiles()
   }
   else if (targetCodeType === 'codex') {
@@ -154,8 +166,8 @@ async function listClaudeCodeProfiles(): Promise<void> {
 async function handleDirectSwitch(codeType: CodeToolType, target: string): Promise<void> {
   const resolvedCodeType = resolveCodeType(codeType)
 
-  if (resolvedCodeType === 'claude-code') {
-    await handleClaudeCodeDirectSwitch(target)
+  if (resolvedCodeType === 'claude-code' || resolvedCodeType === 'myclaude') {
+    await handleClaudeCodeDirectSwitch(target, resolvedCodeType)
   }
   else if (resolvedCodeType === 'codex') {
     await switchCodexProvider(target)
@@ -167,12 +179,13 @@ async function handleDirectSwitch(codeType: CodeToolType, target: string): Promi
  * Handle direct Claude Code profile switch
  * @param target - Profile ID or special value ('official', 'ccr')
  */
-async function handleClaudeCodeDirectSwitch(target: string): Promise<void> {
+async function handleClaudeCodeDirectSwitch(target: string, codeType: CodeToolType = 'claude-code'): Promise<void> {
   if (target === 'official') {
     const result = await ClaudeCodeConfigManager.switchToOfficial()
     if (result.success) {
       try {
         await ClaudeCodeConfigManager.applyProfileSettings(null)
+        syncMyclaudeStateIfNeeded(codeType, '')
         console.log(ansis.green(i18n.t('multi-config:successfullySwitchedToOfficial')))
       }
       catch (error) {
@@ -190,6 +203,7 @@ async function handleClaudeCodeDirectSwitch(target: string): Promise<void> {
       try {
         const profile = ClaudeCodeConfigManager.getProfileById('ccr-proxy')
         await ClaudeCodeConfigManager.applyProfileSettings(profile)
+        syncMyclaudeStateIfNeeded(codeType, 'ccr-proxy')
         console.log(ansis.green(i18n.t('multi-config:successfullySwitchedToCcr')))
       }
       catch (error) {
@@ -231,6 +245,7 @@ async function handleClaudeCodeDirectSwitch(target: string): Promise<void> {
     if (result.success) {
       try {
         await ClaudeCodeConfigManager.applyProfileSettings({ ...resolvedProfile, id: resolvedId })
+        syncMyclaudeStateIfNeeded(codeType, resolvedId)
         console.log(ansis.green(i18n.t('multi-config:successfullySwitchedToProfile', { name: resolvedProfile.name })))
       }
       catch (error) {
@@ -250,8 +265,8 @@ async function handleClaudeCodeDirectSwitch(target: string): Promise<void> {
 async function handleInteractiveSwitch(codeType?: CodeToolType): Promise<void> {
   const resolvedCodeType = resolveCodeType(codeType)
 
-  if (resolvedCodeType === 'claude-code') {
-    await handleClaudeCodeInteractiveSwitch()
+  if (resolvedCodeType === 'claude-code' || resolvedCodeType === 'myclaude') {
+    await handleClaudeCodeInteractiveSwitch(resolvedCodeType)
   }
   else if (resolvedCodeType === 'codex') {
     await handleCodexInteractiveSwitch()
@@ -261,7 +276,7 @@ async function handleInteractiveSwitch(codeType?: CodeToolType): Promise<void> {
 /**
  * Handle interactive Claude Code configuration selection
  */
-async function handleClaudeCodeInteractiveSwitch(): Promise<void> {
+async function handleClaudeCodeInteractiveSwitch(codeType: CodeToolType = 'claude-code'): Promise<void> {
   const config = ClaudeCodeConfigManager.readConfig()
 
   if (!config || !config.profiles || Object.keys(config.profiles).length === 0) {
@@ -324,7 +339,7 @@ async function handleClaudeCodeInteractiveSwitch(): Promise<void> {
       return
     }
 
-    await handleClaudeCodeDirectSwitch(selectedConfig)
+    await handleClaudeCodeDirectSwitch(selectedConfig, codeType)
   }
   catch (error: any) {
     // Handle user exit (Ctrl+C)

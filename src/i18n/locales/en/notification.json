@@ -1,6 +1,6 @@
 {
   "title": "Notification System",
-  "description": "Task completion notifications via Feishu, WeChat Work, Email, SMS",
+  "description": "Task alerts and completion notifications via cloud and local delivery channels",
 
   "status.enabled": "Enabled",
   "status.disabled": "Disabled",
@@ -126,7 +126,7 @@
   "errors.cloudError": "Cloud service error: {{error}}",
   "errors.tokenInvalid": "Device token is invalid. Please regenerate.",
 
-  "menu.title": "📱 Notification Settings",
+  "menu.title": "📱 Task Alert Settings",
   "menu.configure": "Configure Notifications",
   "menu.viewStatus": "View Status",
   "menu.testNotification": "Send Test",

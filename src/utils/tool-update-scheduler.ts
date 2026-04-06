@@ -1,6 +1,6 @@
 import type { CodeToolType } from '../constants'
 import { ensureI18nInitialized } from '../i18n'
-import { checkAndUpdateTools } from './auto-updater'
+import { checkAndUpdateMyclaudeTools, checkAndUpdateTools } from './auto-updater'
 import { runCodexUpdate } from './code-tools/codex'
 
 /**
@@ -20,6 +20,9 @@ export class ToolUpdateScheduler {
       case 'claude-code':
         await this.updateClaudeCodeTools(skipPrompt)
         break
+      case 'myclaude':
+        await this.updateMyclaudeTools(skipPrompt)
+        break
       case 'codex':
         await this.updateCodexTools(skipPrompt)
         break
@@ -34,6 +37,14 @@ export class ToolUpdateScheduler {
    */
   private async updateClaudeCodeTools(skipPrompt: boolean): Promise<void> {
     await checkAndUpdateTools(skipPrompt)
+  }
+
+  /**
+   * Update myclaude related tools
+   * @param skipPrompt - Whether to skip interactive prompts
+   */
+  private async updateMyclaudeTools(skipPrompt: boolean): Promise<void> {
+    await checkAndUpdateMyclaudeTools(skipPrompt)
   }
 
   /**

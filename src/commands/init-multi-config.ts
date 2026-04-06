@@ -379,6 +379,7 @@ export async function buildClaudeCodeProfile(params: {
   return {
     name: params.name,
     authType,
+    provider: params.provider || 'custom',
     apiKey: params.key,
     baseUrl,
     primaryModel,
@@ -439,6 +440,11 @@ export async function convertToMyclaudeProviderProfile(
     baseUrl: claudeProfile.baseUrl,
     model: claudeProfile.primaryModel,
     fastModel: claudeProfile.defaultHaikuModel,
+    authType: claudeProfile.authType,
+    primaryModel: claudeProfile.primaryModel,
+    defaultHaikuModel: claudeProfile.defaultHaikuModel,
+    defaultSonnetModel: claudeProfile.defaultSonnetModel,
+    defaultOpusModel: claudeProfile.defaultOpusModel,
   }
 }
 

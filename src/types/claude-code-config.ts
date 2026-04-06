@@ -5,6 +5,7 @@
 export interface ClaudeCodeProfile {
   name: string // Display name
   authType: 'api_key' | 'auth_token' | 'ccr_proxy'
+  provider?: string // Source provider preset or 'custom'
   apiKey?: string // API key (stored in plain text)
   baseUrl?: string // Custom API URL
   // Model configuration
