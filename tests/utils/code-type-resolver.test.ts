@@ -43,7 +43,7 @@ describe('code type resolver', () => {
     vi.resetModules()
     mockLanguage = 'en'
     mockReadZcfConfigAsync.mockResolvedValue(null)
-    mockDetectCodeToolType.mockReturnValue('claude-code')
+    mockDetectCodeToolType.mockReturnValue('myclaude')
   })
 
   it('resolves explicit myclaude alias without prompting and persists it', async () => {

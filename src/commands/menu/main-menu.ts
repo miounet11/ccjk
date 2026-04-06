@@ -13,7 +13,7 @@
 import type { CodeToolType } from '../../constants'
 import type { MenuCategory, MenuItem } from './types'
 
-const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'aider', 'continue', 'cline', 'cursor']
+const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'myclaude', 'aider', 'continue', 'cline', 'cursor']
 
 /**
  * Quick Actions Category - Always visible first
@@ -93,6 +93,17 @@ export const quickActionsItems: MenuItem[] = [
     action: 'command',
     icon: '📱',
     shortcut: '5',
+    supportedTools: NON_CODEX_TOOLS,
+  },
+  {
+    id: 'switch-code-tool',
+    label: 'menuOptions.switchCodeTool',
+    description: 'menuDescriptions.switchCodeTool',
+    category: 'quick',
+    level: 'basic',
+    action: 'command',
+    icon: '🔄',
+    shortcut: 's',
     supportedTools: NON_CODEX_TOOLS,
   },
 ]
@@ -348,17 +359,6 @@ export const systemItems: MenuItem[] = [
     action: 'command',
     icon: '📁',
     shortcut: 'z',
-    supportedTools: NON_CODEX_TOOLS,
-  },
-  {
-    id: 'switch-code-tool',
-    label: 'menuOptions.switchCodeTool',
-    description: 'menuDescriptions.switchCodeTool',
-    category: 'system',
-    level: 'expert',
-    action: 'command',
-    icon: '🔄',
-    shortcut: 't',
     supportedTools: NON_CODEX_TOOLS,
   },
   {

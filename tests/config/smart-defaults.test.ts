@@ -351,7 +351,7 @@ describe('smart-defaults', () => {
           'ccjk:git-worktree',
         ],
         agents: ['typescript-cli-architect', 'ccjk-testing-specialist'],
-        codeToolType: 'claude-code',
+        codeToolType: 'myclaude',
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
@@ -451,12 +451,12 @@ describe('smart-defaults', () => {
       expect(defaults.codeToolType).toBe('myclaude')
     })
 
-    it('should default to claude-code when no tool is detected', async () => {
+    it('should default to myclaude when no tool is detected', async () => {
       vi.mocked(existsSync).mockReturnValue(false)
 
       const defaults = await detectSmartDefaults()
 
-      expect(defaults.codeToolType).toBe('claude-code')
+      expect(defaults.codeToolType).toBe('myclaude')
     })
   })
 

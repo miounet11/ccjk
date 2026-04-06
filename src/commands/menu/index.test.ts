@@ -60,7 +60,7 @@ describe('progressive menu handlers', () => {
 
     await item.handler?.()
 
-    expect(mockInit).toHaveBeenCalledWith({ skipBanner: true })
+    expect(mockInit).toHaveBeenCalledWith({ skipBanner: true, codeType: 'claude-code' })
     expect(mockRunCodexFullInit).not.toHaveBeenCalled()
   })
 
@@ -92,7 +92,7 @@ describe('progressive menu handlers', () => {
     })
 
     expect(__testUtils.getMenuShellConfig('codex')).toMatchObject({
-      allowMore: false,
+      allowMore: true,
       showHero: true,
     })
     expect(__testUtils.getMenuShellConfig('codex').footerCommands.map(command => command.key)).toEqual(['s', '+', '-'])

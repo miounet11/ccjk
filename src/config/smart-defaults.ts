@@ -306,8 +306,8 @@ export class SmartDefaultsDetector {
       return 'codex'
     }
 
-    // Default to Claude Code
-    return 'claude-code'
+    // Default to myclaude
+    return 'myclaude'
   }
 
   /**

@@ -142,7 +142,7 @@ export const ZCF_CONFIG_FILE = CCJK_CONFIG_FILE
 
 export const CODE_TOOL_TYPES = ['claude-code', 'myclaude', 'codex', 'aider', 'continue', 'cline', 'cursor'] as const
 export type CodeToolType = (typeof CODE_TOOL_TYPES)[number]
-export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'claude-code'
+export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'myclaude'
 export const CLAUDE_FAMILY_CODE_TOOL_TYPES = ['claude-code', 'myclaude'] as const
 export type ClaudeFamilyCodeToolType = (typeof CLAUDE_FAMILY_CODE_TOOL_TYPES)[number]
 

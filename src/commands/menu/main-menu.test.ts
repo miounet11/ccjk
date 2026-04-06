@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { levelDefinitions } from './progressive/levels'
 import { getVisibleItems } from './main-menu'
 import { parseMenuInput, validateMenuInput } from './renderer/input'
+import { filterSectionsByItemLimit, createAllSections } from './renderer/sections'
 import { getToolModeMenuTitle, renderFooter, renderToolModeHero } from './renderer/layout'
 
 describe('tool-aware menu visibility', () => {
@@ -19,8 +21,28 @@ describe('tool-aware menu visibility', () => {
 
     expect(itemIds).toContain('diagnostics')
     expect(itemIds).toContain('notifications')
+    expect(itemIds).toContain('switch-code-tool')
     expect(itemIds).toContain('doctor')
     expect(itemIds).not.toContain('workflow-import')
+  })
+
+  it('shows the switch-code-tool item in myclaude basic mode', () => {
+    const itemIds = getVisibleItems('basic', 'myclaude').map(item => item.id)
+
+    expect(itemIds).toContain('switch-code-tool')
+    expect(itemIds).not.toContain('workflow-import')
+    expect(itemIds).not.toContain('codex-switch-tool')
+  })
+
+  it('keeps switch-code-tool visible after basic menu item capping', () => {
+    const claudeSections = filterSectionsByItemLimit(createAllSections('basic', 'claude-code'), levelDefinitions.basic.maxItems)
+    const myclaudeSections = filterSectionsByItemLimit(createAllSections('basic', 'myclaude'), levelDefinitions.basic.maxItems)
+
+    const claudeItemIds = claudeSections.flatMap(section => section.items.map(item => item.id))
+    const myclaudeItemIds = myclaudeSections.flatMap(section => section.items.map(item => item.id))
+
+    expect(claudeItemIds).toContain('switch-code-tool')
+    expect(myclaudeItemIds).toContain('switch-code-tool')
   })
 
   it('shows a reduced Codex basic menu', () => {
