@@ -80,7 +80,7 @@ function main() {
   run('pnpm build', 'Build')
 
   if (shouldRunTests) {
-    run('pnpm test:run', 'Tests')
+    run('pnpm test:release', 'Release tests')
   }
 
   run('npm pack --dry-run', 'Pack dry run')

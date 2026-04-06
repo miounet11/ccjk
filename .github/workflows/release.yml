@@ -94,9 +94,9 @@ jobs:
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
         run: pnpm typecheck
 
-      - name: Run unit tests
+      - name: Run release smoke suite
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
-        run: pnpm test:run
+        run: pnpm test:release
 
       - name: Build project
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
