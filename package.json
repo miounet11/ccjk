@@ -96,7 +96,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:run": "vitest run",
-    "test:release": "vitest run src/commands/menu/index.test.ts src/commands/menu/main-menu.test.ts src/utils/tool-update-scheduler.test.ts tests/commands/api-config-selector.test.ts tests/commands/init.silent.test.ts tests/commands/onboarding-wizard.test.ts tests/commands/research.test.ts tests/config/smart-defaults.test.ts tests/utils/banner.test.ts tests/utils/code-type-resolver.test.ts tests/utils/memory-feature.test.ts",
+    "test:release": "vitest run src/commands/menu/index.test.ts src/commands/menu/main-menu.test.ts src/utils/tool-update-scheduler.test.ts tests/commands/api-config-selector.test.ts tests/commands/init.silent.test.ts tests/commands/onboarding-wizard.test.ts tests/commands/research.test.ts tests/utils/banner.test.ts tests/utils/code-type-resolver.test.ts tests/utils/memory-feature.test.ts",
     "test:watch": "vitest watch",
     "test:e2e": "NODE_ENV=test vitest --config vitest.e2e.config.ts",
     "test:e2e:run": "NODE_ENV=test vitest run --config vitest.e2e.config.ts",
