@@ -3,8 +3,6 @@ name: Release
 on:
   push:
     branches: [main]
-    paths:
-      - '.changeset/**'
   workflow_dispatch:
 
 concurrency:
@@ -13,12 +11,10 @@ concurrency:
 
 jobs:
   release:
-    name: Release
+    name: Publish to npm
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
-      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,68 +33,115 @@ jobs:
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Detect version change
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          AFTER_VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version || '')")
+          echo "after_version=${AFTER_VERSION}" >> "$GITHUB_OUTPUT"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "before_version=manual" >> "$GITHUB_OUTPUT"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Manual release requested for ${AFTER_VERSION}."
+            exit 0
+          fi
+
+          BEFORE_SHA="${{ github.event.before }}"
+          BEFORE_VERSION=""
+
+          if [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+            if git show "$BEFORE_SHA:package.json" >/tmp/package-before.json 2>/dev/null; then
+              BEFORE_VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('/tmp/package-before.json', 'utf8')).version || '')")
+            fi
+          fi
+
+          echo "before_version=${BEFORE_VERSION}" >> "$GITHUB_OUTPUT"
+
+          if [ "$BEFORE_VERSION" != "$AFTER_VERSION" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Detected version change: ${BEFORE_VERSION:-<none>} -> ${AFTER_VERSION}"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "No package version change detected; skipping npm publish."
+          fi
+
+      - name: Check npm for existing version
+        id: npm
+        if: steps.version.outputs.publish == 'true'
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.after_version }}
+        run: |
+          set -euo pipefail
+
+          if npm view "ccjk@${PACKAGE_VERSION}" version >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "ccjk@${PACKAGE_VERSION} already exists on npm; skipping publish."
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+            echo "ccjk@${PACKAGE_VERSION} is not yet published."
+          fi
+
       - name: Install dependencies
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
         run: pnpm install --frozen-lockfile
 
-      - name: Run tests
+      - name: Fix catalog references
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
+        run: node scripts/fix-package-catalog.mjs
+
+      - name: Run TypeScript check
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
+        run: pnpm typecheck
+
+      - name: Run unit tests
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
         run: pnpm test:run
 
       - name: Build project
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
         run: pnpm build
 
-      - name: 'Fix catalog: references before publish'
-        run: node scripts/fix-package-catalog.mjs
-
-      - name: Create Release Pull Request or Publish
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          version: pnpm changeset version
-          publish: pnpm changeset publish
-          commit: 'chore: release'
-          title: 'chore: release'
+      - name: Publish package
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+
+      - name: Create git tag
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.after_version }}
+        run: |
+          set -euo pipefail
+
+          TAG="v${PACKAGE_VERSION}"
+          if git ls-remote --tags origin "${TAG}" | grep -q "refs/tags/${TAG}$"; then
+            echo "Tag ${TAG} already exists on origin."
+          else
+            git tag "${TAG}" "${GITHUB_SHA}"
+            git push origin "${TAG}"
+          fi
 
       - name: Create GitHub Release
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.changesets.outputs.publishedPackages }}
-          name: Release v${{ steps.changesets.outputs.publishedPackages }}
+          tag_name: v${{ steps.version.outputs.after_version }}
+          name: Release v${{ steps.version.outputs.after_version }}
           body: |
-            ## Changes
+            Published `ccjk@${{ steps.version.outputs.after_version }}` to npm.
 
-            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
-
-            ## Installation
-
+            Install or verify with:
             ```bash
-            npm install -g ccjk@${{ steps.changesets.outputs.publishedPackages }}
-            # or
-            pnpm add -g ccjk@${{ steps.changesets.outputs.publishedPackages }}
-            ```
-
-            ## Docker
-
-            ```bash
-            docker pull ccjk/ccjk:${{ steps.changesets.outputs.publishedPackages }}
-            docker pull ccjk/ccjk:latest
+            npm install -g ccjk@${{ steps.version.outputs.after_version }}
+            npx --yes ccjk@latest --version
             ```
           generate_release_notes: true
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify release
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          text: |
-            🎉 New release published!
-            Version: ${{ steps.changesets.outputs.publishedPackages }}
-            Package: ccjk
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        if: always() && steps.changesets.outputs.published == 'true'
