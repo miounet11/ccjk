@@ -76,6 +76,7 @@ function main() {
   assertCleanGitStatus()
   assertNoCatalogProtocol()
 
+  run('pnpm build:release:deps', 'Build workspace release dependencies')
   run('pnpm typecheck', 'Type check')
   run('pnpm build', 'Build')
 

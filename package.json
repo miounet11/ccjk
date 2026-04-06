@@ -84,6 +84,7 @@
   "scripts": {
     "dev": "tsx ./src/cli.ts",
     "build": "unbuild",
+    "build:release:deps": "pnpm --filter @ccjk/wire build && pnpm --filter @ccjk/evolution build",
     "start": "node bin/ccjk.mjs",
     "typecheck": "tsc --noEmit",
     "release:verify": "node scripts/release-verify.mjs",

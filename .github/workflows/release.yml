@@ -90,6 +90,10 @@ jobs:
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
         run: node scripts/fix-package-catalog.mjs
 
+      - name: Build workspace release dependencies
+        if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
+        run: pnpm build:release:deps
+
       - name: Run TypeScript check
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
         run: pnpm typecheck
