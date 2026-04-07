@@ -32,8 +32,8 @@ async function syncMyclaudeProfilesIfNeeded(): Promise<void> {
     return
   }
 
-  const { syncMyclaudeProviderProfilesFromClaudeConfig } = await import('./claude-config')
-  syncMyclaudeProviderProfilesFromClaudeConfig(ClaudeCodeConfigManager.readConfig())
+  const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('./claude-config')
+  syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
 }
 
 export async function configureIncrementalManagement(): Promise<void> {

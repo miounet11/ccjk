@@ -78,6 +78,13 @@ function t(key: string, defaultValue?: string): string {
   }
 }
 
+export interface ToolModeRuntimeSummary {
+  runtimeLabel?: string
+  profileLabel?: string
+  routeLabel?: string
+  modelLabel?: string
+}
+
 function getToolModeMeta(codeTool: CodeToolType): {
   icon: string
   title: string
@@ -95,6 +102,15 @@ function getToolModeMeta(codeTool: CodeToolType): {
         focus: t('menu:toolMode.claude.focus', 'Workflows, diagnostics, permissions, and cloud-connected tools.'),
         config: t('menu:toolMode.claude.config', 'Primary config: ~/.claude/settings.json'),
         menuTitle: t('menu:toolMode.claude.menuTitle', 'Claude Control Center'),
+      }
+    case 'myclaude':
+      return {
+        icon: '◉',
+        title: t('menu:toolMode.myclaude.title', 'myclaude Workspace'),
+        summary: t('menu:toolMode.myclaude.summary', 'Provider-first control center with explicit runtime status at startup.'),
+        focus: t('menu:toolMode.myclaude.focus', 'Provider profiles, routing state, model slots, and Claude-family compatible configuration.'),
+        config: t('menu:toolMode.myclaude.config', 'Primary config: ~/.claude.json (runtime) + ~/.ccjk/config.toml (reusable profiles)'),
+        menuTitle: t('menu:toolMode.myclaude.menuTitle', 'myclaude Control Center'),
       }
     case 'codex':
       return {
@@ -314,16 +330,31 @@ export function renderMenu(
 export function renderToolModeHero(
   codeTool: CodeToolType,
   width = 76,
+  runtimeSummary?: ToolModeRuntimeSummary,
 ): string {
   const meta = getToolModeMeta(codeTool)
+  const content = [
+    colors.itemText(meta.summary),
+    `${colors.shortcut('Focus')} ${colors.itemText(meta.focus)}`,
+    `${colors.shortcut('Config')} ${colors.itemText(meta.config)}`,
+  ]
+
+  if (runtimeSummary?.runtimeLabel) {
+    content.push(`${colors.shortcut('Runtime')} ${colors.itemText(runtimeSummary.runtimeLabel)}`)
+  }
+  if (runtimeSummary?.profileLabel) {
+    content.push(`${colors.shortcut('Profile')} ${colors.itemText(runtimeSummary.profileLabel)}`)
+  }
+  if (runtimeSummary?.routeLabel) {
+    content.push(`${colors.shortcut('Route')} ${colors.itemText(runtimeSummary.routeLabel)}`)
+  }
+  if (runtimeSummary?.modelLabel) {
+    content.push(`${colors.shortcut('Models')} ${colors.itemText(runtimeSummary.modelLabel)}`)
+  }
 
   return renderBox(
     `${meta.icon} ${meta.title}`,
-    [
-      colors.itemText(meta.summary),
-      `${colors.shortcut('Focus')} ${colors.itemText(meta.focus)}`,
-      `${colors.shortcut('Config')} ${colors.itemText(meta.config)}`,
-    ],
+    content,
     width,
   )
 }

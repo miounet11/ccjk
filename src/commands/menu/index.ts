@@ -27,6 +27,7 @@
  */
 
 import type { CodeToolType, SupportedLang } from '../../constants'
+import type { MyclaudeProviderSyncResult } from '../../utils/claude-config'
 import type { MenuItem, MenuLevel, MenuResult } from './types'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
@@ -433,6 +434,37 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
   ]
 }
 
+function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | null | undefined): {
+  runtimeLabel?: string
+  profileLabel?: string
+  routeLabel?: string
+  modelLabel?: string
+} | undefined {
+  if (!syncResult?.activeProfile) {
+    return {
+      runtimeLabel: 'myclaude / no active provider synced',
+    }
+  }
+
+  const profile = syncResult.activeProfile
+  const routeFamily = profile.baseUrl ? 'OpenAI-compatible gateway' : 'Official runtime route'
+  const primaryModel = typeof profile.primaryModel === 'string' ? profile.primaryModel : profile.model
+  const fastModel = typeof profile.defaultHaikuModel === 'string' ? profile.defaultHaikuModel : profile.fastModel
+  const sonnetModel = typeof profile.defaultSonnetModel === 'string' ? profile.defaultSonnetModel : undefined
+  const modelParts = [
+    primaryModel ? `primary ${primaryModel}` : undefined,
+    fastModel ? `fast ${fastModel}` : undefined,
+    sonnetModel ? `exec ${sonnetModel}` : undefined,
+  ].filter(Boolean)
+
+  return {
+    runtimeLabel: 'myclaude',
+    profileLabel: `${profile.name} (${syncResult.activeProfileId || profile.id})`,
+    routeLabel: profile.baseUrl ? `${routeFamily} · ${profile.baseUrl}` : routeFamily,
+    modelLabel: modelParts.join(' · ') || undefined,
+  }
+}
+
 function getMenuShellConfig(codeTool: CodeToolType): {
   allowMore: boolean
   footerCommands: Array<{
@@ -463,7 +495,10 @@ function getMenuShellConfig(codeTool: CodeToolType): {
 /**
  * Show the new progressive main menu
  */
-async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> {
+async function showProgressiveMenu(
+  codeTool: CodeToolType,
+  runtimeSyncResult?: MyclaudeProviderSyncResult | null,
+): Promise<MenuResult> {
   if (codeTool !== 'codex' && codeTool !== 'myclaude') {
     const rawItems = getItemsForLevel(menuState.level, 'claude-code')
     const items = attachHandlers(rawItems, 'claude-code')
@@ -580,7 +615,7 @@ async function showProgressiveMenu(codeTool: CodeToolType): Promise<MenuResult> 
 
   // Render menu
   if (menuShell.showHero) {
-    console.log(renderToolModeHero(codeTool))
+    console.log(renderToolModeHero(codeTool, 76, codeTool === 'myclaude' ? buildMyclaudeRuntimeSummary(runtimeSyncResult) : undefined))
     console.log('')
   }
   const menuOutput = renderMenu(
@@ -1490,6 +1525,8 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       await runOnboardingWizard({ preferredCodeTool: options.codeType })
     }
 
+    let myclaudeRuntimeSyncResult: MyclaudeProviderSyncResult | null = null
+
     try {
       const previousType = getCurrentCodeTool()
       const resolvedType = await resolveStartupCodeType({
@@ -1503,6 +1540,11 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
           console.log(ansis.green(`✔ Switched to ${resolvedType}`))
         }
       }
+
+      if (resolvedType === 'myclaude') {
+        const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../utils/claude-config')
+        myclaudeRuntimeSyncResult = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
+      }
     }
     catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)
@@ -1515,7 +1557,12 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       const codeTool = getCurrentCodeTool()
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
-      const result = await showProgressiveMenu(codeTool)
+      if (codeTool === 'myclaude') {
+        const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../utils/claude-config')
+        myclaudeRuntimeSyncResult = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
+      }
+
+      const result = await showProgressiveMenu(codeTool, myclaudeRuntimeSyncResult)
 
       if (result === 'exit') {
         exitMenu = true

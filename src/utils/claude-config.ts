@@ -1,12 +1,20 @@
 import type { ClaudeConfiguration, McpServerConfig, MyclaudeProviderProfile } from '../types'
 import type { ClaudeCodeConfigData, ClaudeCodeProfile } from '../types/claude-code-config'
+
+export interface MyclaudeProviderSyncResult {
+  activeProfileId: string
+  activeProfile: MyclaudeProviderProfile | null
+  profiles: MyclaudeProviderProfile[]
+}
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'pathe'
-import { ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE } from '../constants'
+import { ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE, SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { backupJsonConfig, readJsonConfig, writeJsonConfig } from './json-config'
 import { deepClone } from './object-utils'
 import { getMcpCommand, isWindows } from './platform'
+import { overwriteModelSettings } from './config'
+import { ClaudeCodeConfigManager } from './claude-code-config-manager'
 
 export function getMcpConfigPath(): string {
   return ClAUDE_CONFIG_FILE
@@ -304,28 +312,80 @@ function toMyclaudeProviderProfile(
   }
 }
 
-export function syncMyclaudeProviderProfilesFromClaudeConfig(configData: ClaudeCodeConfigData | null): void {
+function syncMyclaudeActiveProfileToSettings(profile: MyclaudeProviderProfile | null): void {
+  const settings = readJsonConfig<Record<string, any>>(SETTINGS_FILE) || {}
+  settings.env = settings.env || {}
+
+  if (profile?.authType === 'auth_token') {
+    settings.env.ANTHROPIC_AUTH_TOKEN = profile.apiKey
+    delete settings.env.ANTHROPIC_API_KEY
+  }
+  else if (profile?.apiKey) {
+    settings.env.ANTHROPIC_API_KEY = profile.apiKey
+    delete settings.env.ANTHROPIC_AUTH_TOKEN
+  }
+  else {
+    delete settings.env.ANTHROPIC_API_KEY
+    delete settings.env.ANTHROPIC_AUTH_TOKEN
+  }
+
+  if (profile?.baseUrl) {
+    settings.env.ANTHROPIC_BASE_URL = profile.baseUrl
+  }
+  else {
+    delete settings.env.ANTHROPIC_BASE_URL
+  }
+
+  overwriteModelSettings(settings, {
+    primaryModel: typeof profile?.primaryModel === 'string' ? profile.primaryModel : typeof profile?.model === 'string' ? profile.model : undefined,
+    haikuModel: typeof profile?.defaultHaikuModel === 'string' ? profile.defaultHaikuModel : typeof profile?.fastModel === 'string' ? profile.fastModel : undefined,
+    sonnetModel: typeof profile?.defaultSonnetModel === 'string' ? profile.defaultSonnetModel : undefined,
+    opusModel: typeof profile?.defaultOpusModel === 'string' ? profile.defaultOpusModel : undefined,
+  }, profile ? 'override' : 'reset')
+
+  writeJsonConfig(SETTINGS_FILE, settings)
+}
+
+export function syncMyclaudeProviderProfilesFromClaudeConfig(configData: ClaudeCodeConfigData | null): MyclaudeProviderSyncResult {
   if (!configData) {
     clearMyclaudeProviderProfiles()
-    return
+    return {
+      activeProfileId: '',
+      activeProfile: null,
+      profiles: [],
+    }
   }
 
   const existingProfiles = readMcpConfig()?.myclaudeProviderProfiles || []
   const existingById = new Map(existingProfiles.map(profile => [String(profile.id), profile]))
   const profiles = Object.entries(configData.profiles).map(([id, profile]) => toMyclaudeProviderProfile({ ...profile, id }, existingById.get(id)))
+  const activeProfileId = configData.currentProfileId ?? ''
+  const activeProfile = profiles.find(profile => profile.id === activeProfileId) || null
 
-  setMyclaudeProviderProfiles(profiles, configData.currentProfileId ?? '')
+  setMyclaudeProviderProfiles(profiles, activeProfileId)
+  syncMyclaudeActiveProfileToSettings(activeProfile)
+
+  return {
+    activeProfileId,
+    activeProfile,
+    profiles,
+  }
+}
+
+export function syncMyclaudeProviderProfilesFromCurrentClaudeConfig(): MyclaudeProviderSyncResult {
+  const configData = ClaudeCodeConfigManager.readConfig()
+  return syncMyclaudeProviderProfilesFromClaudeConfig(configData)
 }
 
 export function clearMyclaudeProviderProfiles(): void {
   const config = readMcpConfig()
-  if (!config) {
-    return
+  if (config) {
+    delete config.myclaudeProviderProfiles
+    delete config.myclaudeActiveProviderProfileId
+    writeMcpConfig(config)
   }
 
-  delete config.myclaudeProviderProfiles
-  delete config.myclaudeActiveProviderProfileId
-  writeMcpConfig(config)
+  syncMyclaudeActiveProfileToSettings(null)
 }
 
 export function syncMcpPermissions(): void {

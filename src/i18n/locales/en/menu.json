@@ -144,6 +144,13 @@
       "config": "Primary config: ~/.claude/settings.json",
       "menuTitle": "Claude Control Center"
     },
+    "myclaude": {
+      "title": "myclaude Workspace",
+      "summary": "Provider-first control center with explicit runtime status at startup.",
+      "focus": "Provider profiles, routing state, model slots, and Claude-family compatible configuration.",
+      "config": "Primary config: ~/.claude.json (runtime) + ~/.ccjk/config.toml (reusable profiles)",
+      "menuTitle": "myclaude Control Center"
+    },
     "codex": {
       "title": "Codex Workspace",
       "summary": "Lean setup focused on provider wiring, prompts, MCP, and memory.",
