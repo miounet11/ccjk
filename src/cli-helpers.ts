@@ -5,7 +5,6 @@
  */
 import type { CAC } from 'cac'
 import type { SupportedLang } from './constants'
-import type { CliOptions } from './cli-lazy'
 import { COMMANDS } from './cli-commands'
 
 const SPECIAL_STARTUP_COMMANDS = [
@@ -462,95 +461,6 @@ export async function showCommandDiscoveryBanner(): Promise<void> {
   }
   catch {
     // Silently ignore banner display errors
-  }
-}
-
-/**
- * 运行轻量级 CLI
- * 这是 CCJK 的主入口点，使用懒加载架构
- */
-export async function runLazyCli(): Promise<void> {
-  // 🎯 立即显示启动提示，避免空白屏幕
-  const spinner = await showStartupSpinner()
-
-  try {
-    // 🔧 Auto-migrate settings.json (idempotent, silent)
-    try {
-      const { runMigration } = await import('./config/migrator')
-      runMigration()
-    }
-    catch {
-      // Never block CLI on migration failure
-    }
-
-    // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
-    // 仅在显式命令路径执行，避免默认接管交互菜单与宿主 runtime
-    bootstrapCloudServices()
-
-    // 🧠 Auto-initialize Brain hooks if remote control is enabled
-    try {
-      const { autoInitBrainHooks } = await import('./brain/hooks/auto-init')
-      await autoInitBrainHooks()
-    }
-    catch {
-      // Never block CLI on hook initialization failure
-    }
-
-    // 🔧 自动修复配置问题
-    try {
-      const { runAutoFixOnStartup } = await import('./core/auto-fix')
-      await runAutoFixOnStartup()
-    }
-    catch {
-      // Never block CLI on auto-fix failure
-    }
-
-    // 🚀 自动检查更新
-    try {
-      const { autoCheckUpdates } = await import('./core/auto-upgrade')
-      autoCheckUpdates(true) // 异步执行，不阻塞启动
-    }
-    catch {
-      // Never block CLI on update check failure
-    }
-
-    // 🚀 快速启动检测：检查是否为供应商短码
-    const handled = await tryQuickProviderLaunch()
-    if (handled) {
-      spinner?.stop()
-      return // 快速启动已处理，不进入常规 CLI
-    }
-
-    // 🧠 启动期仅保留显式 slash command 路径；普通参数交给 CLI 正常解析
-    const args = process.argv.slice(2)
-    if (args.length > 0 && args[0].startsWith('/')) {
-      spinner?.stop()
-      const { executeSlashCommand } = await import('./commands/slash-commands')
-      const slashHandled = await executeSlashCommand(args.join(' '))
-      if (slashHandled) {
-        return
-      }
-    }
-
-    const cac = (await import('cac')).default
-    const cli = cac('ccjk')
-    const { setupCommandsLazy } = await import('./cli-lazy')
-    await setupCommandsLazy(cli)
-
-    // 停止 spinner，准备显示菜单或执行命令
-    spinner?.stop()
-
-    // 🏥 Run health alerts check (unless --silent flag is present)
-    await runHealthAlertsCheck()
-
-    // 📋 Show command discovery banner on first run or with --help
-    await showCommandDiscoveryBanner()
-
-    cli.parse()
-  }
-  catch (error) {
-    spinner?.stop()
-    throw error
   }
 }
 

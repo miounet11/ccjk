@@ -79,12 +79,6 @@ export interface MyclaudeProviderProfile {
   defaultSonnetModel?: string
   defaultOpusModel?: string
   mode?: MyclaudeProviderMode
-  source?: string
-  sourceDetail?: string
-  routeFamily?: string
-  pathLabel?: string
-  routingStrategy?: string
-  strategyNote?: string
   [key: string]: unknown
 }
 

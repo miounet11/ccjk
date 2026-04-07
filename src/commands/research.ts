@@ -8,6 +8,15 @@ import {
   listResearchSessions,
   runResearchExperiment,
 } from '../services/research-runner'
+import { initResearchProgram } from '../services/research-program'
+import {
+  getResearchLoopReport,
+  getResearchLoopStatus,
+  resumeResearchLoop,
+  runResearchRound,
+  startResearchLoop,
+  stopResearchLoop,
+} from '../services/research-loop'
 
 export interface ResearchCommandOptions {
   name?: string
@@ -19,6 +28,10 @@ export interface ResearchCommandOptions {
   baseline?: string
   objective?: 'maximize' | 'minimize' | 'auto'
   dbPath?: string
+  program?: string
+  maxRounds?: number
+  maxNoImproveRounds?: number
+  targetMetric?: number
 }
 
 function printDivider(): void {
@@ -63,6 +76,40 @@ function getLatestTaskData(status: Awaited<ReturnType<typeof getResearchSessionS
   return (latestTask?.output as any)?.data || {}
 }
 
+function getLoopOverrides(options: ResearchCommandOptions) {
+  return {
+    cwd: options.cwd,
+    budgetMs: options.budgetMs,
+    maxRounds: options.maxRounds,
+    maxNoImproveRounds: options.maxNoImproveRounds,
+    targetMetric: options.targetMetric,
+  }
+}
+
+function printResearchLoopStatus(status: NonNullable<ReturnType<typeof getResearchLoopStatus>>): void {
+  console.log('')
+  console.log(ansis.bold.cyan('🔁 Research Loop Status'))
+  printDivider()
+  console.log(ansis.gray(`Session:   ${status.sessionId}`))
+  console.log(ansis.gray(`Name:      ${status.metadata.name}`))
+  console.log(ansis.gray(`Status:    ${status.metadata.status}`))
+  console.log(ansis.gray(`Stop:      ${status.metadata.stopReason || 'running'}`))
+  console.log(ansis.gray(`Rounds:    ${status.metadata.currentRound}/${status.metadata.maxRounds}`))
+  console.log(ansis.gray(`Objective: ${status.metadata.objective}`))
+  console.log(ansis.gray(`Metric:    ${formatMetric(status.metadata.metric, status.metadata.bestMetricValue)}`))
+  console.log(ansis.gray(`Baseline:  ${status.metadata.baselineSessionId || 'none'}`))
+  console.log(ansis.gray(`Best:      ${status.metadata.bestSessionId || 'none'}`))
+  console.log(ansis.gray(`Accepted:  ${status.metadata.acceptedRoundSessionIds.length}`))
+  console.log(ansis.gray(`Rejected:  ${status.metadata.rejectedRoundSessionIds.length}`))
+  console.log(ansis.gray(`Streak:    ${status.metadata.noImproveStreak}/${status.metadata.maxNoImproveRounds}`))
+
+  if (status.latestRound) {
+    console.log(ansis.gray(`Latest:    round ${status.latestRound.round} · ${status.latestRound.verdict} · ${formatMetric(status.latestRound.metricName, status.latestRound.metricValue)}`))
+  }
+
+  console.log('')
+}
+
 export async function researchCommand(
   action: string,
   args: string[] = [],
@@ -71,6 +118,21 @@ export async function researchCommand(
   switch (action) {
     case 'run':
       await runResearchCommand(options)
+      return
+    case 'init':
+      await initResearchCommand(options)
+      return
+    case 'loop':
+      await startResearchLoopCommand(options)
+      return
+    case 'round':
+      await runResearchRoundCommand((args[0] as string | undefined) || undefined, options)
+      return
+    case 'resume':
+      await resumeResearchLoopCommand((args[0] as string | undefined) || undefined, options)
+      return
+    case 'stop':
+      await stopResearchLoopCommand((args[0] as string | undefined) || undefined, options)
       return
     case 'status':
       await showResearchStatus((args[0] as string | undefined) || undefined, options)
@@ -149,7 +211,67 @@ async function runResearchCommand(options: ResearchCommandOptions): Promise<void
   console.log('')
 }
 
+async function initResearchCommand(options: ResearchCommandOptions): Promise<void> {
+  const { programPath } = initResearchProgram(options.program, options.cwd)
+
+  console.log('')
+  console.log(ansis.bold.cyan('🧭 Research Program'))
+  printDivider()
+  console.log(ansis.gray(`Program:   ${programPath}`))
+  console.log('')
+}
+
+async function startResearchLoopCommand(options: ResearchCommandOptions): Promise<void> {
+  const status = await startResearchLoop({
+    programPath: options.program,
+    cwd: options.cwd,
+    dbPath: options.dbPath,
+    overrides: getLoopOverrides(options),
+  })
+
+  printResearchLoopStatus(status)
+}
+
+async function runResearchRoundCommand(sessionId: string | undefined, options: ResearchCommandOptions): Promise<void> {
+  const status = await runResearchRound({
+    sessionId,
+    cwd: options.cwd,
+    dbPath: options.dbPath,
+    overrides: getLoopOverrides(options),
+  })
+
+  printResearchLoopStatus(status)
+}
+
+async function resumeResearchLoopCommand(sessionId: string | undefined, options: ResearchCommandOptions): Promise<void> {
+  const status = await resumeResearchLoop({
+    sessionId,
+    cwd: options.cwd,
+    dbPath: options.dbPath,
+    overrides: getLoopOverrides(options),
+  })
+
+  printResearchLoopStatus(status)
+}
+
+async function stopResearchLoopCommand(sessionId: string | undefined, options: ResearchCommandOptions): Promise<void> {
+  const status = stopResearchLoop({ sessionId, dbPath: options.dbPath })
+  if (!status) {
+    console.log(ansis.yellow(sessionId ? `Research loop session not found: ${sessionId}` : 'No research loop sessions found.'))
+    console.log('')
+    return
+  }
+
+  printResearchLoopStatus(status)
+}
+
 async function showResearchStatus(sessionId: string | undefined, options: ResearchCommandOptions): Promise<void> {
+  const loopStatus = getResearchLoopStatus(sessionId, options.dbPath)
+  if (loopStatus) {
+    printResearchLoopStatus(loopStatus)
+    return
+  }
+
   const resolvedSessionId = sessionId || getLatestResearchSession(options.dbPath)?.id
   if (!resolvedSessionId) {
     console.log(ansis.yellow('No research sessions found.'))
@@ -271,6 +393,16 @@ async function showResearchResults(options: ResearchCommandOptions): Promise<voi
 }
 
 async function showResearchReport(sessionId: string | undefined, options: ResearchCommandOptions): Promise<void> {
+  const loopReport = getResearchLoopReport(sessionId, options.dbPath)
+  if (loopReport) {
+    console.log('')
+    console.log(ansis.bold.cyan('📝 Research Loop Report'))
+    printDivider()
+    console.log(loopReport.content)
+    console.log('')
+    return
+  }
+
   const report = getResearchReport(sessionId, options.dbPath)
   if (!report) {
     console.log(ansis.yellow(sessionId ? `Research session not found: ${sessionId}` : 'No research sessions found.'))
@@ -309,14 +441,21 @@ export function showResearchHelp(): void {
   console.log('')
   console.log(ansis.bold.cyan('ccjk research'))
   printDivider()
+  console.log('  init     Create a research program template')
+  console.log('  loop     Start a persisted research loop')
+  console.log('  round    Run one candidate round for a loop')
+  console.log('  resume   Continue a persisted research loop until stop')
+  console.log('  stop     Stop a running research loop')
   console.log('  run      Run a persisted research experiment with optional baseline comparison')
   console.log('  status   Show the latest or selected research session status')
   console.log('  sessions List recent research sessions')
   console.log('  results  Show recent result rows and the current best run')
   console.log('  report   Render a compact persisted research report')
   console.log('')
+  console.log(ansis.dim('Example: ccjk research init'))
+  console.log(ansis.dim('Example: ccjk research loop --program .ccjk/research/program.md'))
+  console.log(ansis.dim('Example: ccjk research round research-loop-123'))
   console.log(ansis.dim('Example: ccjk research run --name baseline --cmd "python train.py" --metric val_bpb --objective minimize'))
-  console.log(ansis.dim('Example: ccjk research run --name candidate --cmd "python train.py --lr 1e-4" --metric val_bpb --baseline research-123'))
   console.log(ansis.dim('Example: ccjk research report research-123'))
   console.log('')
 }

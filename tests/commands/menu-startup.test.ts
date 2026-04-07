@@ -5,6 +5,12 @@ const mockUpdateZcfConfig = vi.fn()
 const mockResolveStartupCodeType = vi.fn()
 const mockDisplayBannerWithInfo = vi.fn()
 const mockSyncMyclaudeProviderProfilesFromCurrentClaudeConfig = vi.fn()
+const mockBuildMyclaudeProviderPresentation = vi.fn(() => ({
+  modeLabel: 'OpenAI-native',
+  sourceLabel: 'Imported from ccjk · Reusable profile imported from the compatible ccjk configuration.',
+  routeLabel: 'OpenAI-family route through a compatible gateway · https://router.example.com/v1',
+  strategyLabel: 'Custom routing · Advanced custom routing. Validate carefully when mixing model families.',
+}))
 const mockPromptMenuSelection = vi.fn()
 const mockRenderToolModeHero = vi.fn(() => 'hero')
 const mockRenderMenu = vi.fn(() => 'menu')
@@ -40,6 +46,7 @@ vi.mock('../../src/utils/banner', () => ({
 }))
 
 vi.mock('../../src/utils/claude-config', () => ({
+  buildMyclaudeProviderPresentation: mockBuildMyclaudeProviderPresentation,
   syncMyclaudeProviderProfilesFromCurrentClaudeConfig: mockSyncMyclaudeProviderProfilesFromCurrentClaudeConfig,
 }))
 
@@ -159,12 +166,7 @@ describe('menu startup myclaude runtime sync', () => {
         name: 'TTQQ',
         provider: 'custom',
         baseUrl: 'https://router.example.com/v1',
-        routeFamily: 'OpenAI-native',
-        pathLabel: 'OpenAI-family route through a compatible gateway · https://router.example.com/v1',
-        routingStrategy: 'Custom routing',
-        strategyNote: 'Advanced custom routing. Validate carefully when mixing model families.',
-        source: 'Imported from ccjk',
-        sourceDetail: 'Reusable profile imported from the compatible ccjk configuration.',
+        mode: 'openai-native',
         primaryModel: 'claude-sonnet-4-6',
         defaultHaikuModel: 'claude-haiku-4-5',
         defaultSonnetModel: 'claude-sonnet-4-6',
@@ -179,7 +181,7 @@ describe('menu startup myclaude runtime sync', () => {
 
     await showMainMenu()
 
-    expect(mockSyncMyclaudeProviderProfilesFromCurrentClaudeConfig).toHaveBeenCalledTimes(2)
+    expect(mockSyncMyclaudeProviderProfilesFromCurrentClaudeConfig).toHaveBeenCalledTimes(1)
     expect(mockRenderToolModeHero).toHaveBeenCalledWith(
       'myclaude',
       76,

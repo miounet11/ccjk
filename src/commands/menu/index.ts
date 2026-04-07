@@ -27,6 +27,8 @@
  */
 
 import type { CodeToolType, SupportedLang } from '../../constants'
+import type { ToolModeRuntimeSummary } from './renderer'
+import { buildMyclaudeProviderPresentation } from '../../utils/claude-config'
 import type { MyclaudeProviderSyncResult } from '../../utils/claude-config'
 import type { MenuItem, MenuLevel, MenuResult } from './types'
 import ansis from 'ansis'
@@ -434,15 +436,7 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
   ]
 }
 
-function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | null | undefined): {
-  runtimeLabel?: string
-  profileLabel?: string
-  modeLabel?: string
-  sourceLabel?: string
-  routeLabel?: string
-  strategyLabel?: string
-  modelLabel?: string
-} | undefined {
+function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | null | undefined): ToolModeRuntimeSummary | undefined {
   if (!syncResult?.activeProfile) {
     return {
       runtimeLabel: 'myclaude / no active provider synced',
@@ -450,6 +444,7 @@ function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | nu
   }
 
   const profile = syncResult.activeProfile
+  const presentation = buildMyclaudeProviderPresentation(profile)
   const primaryModel = typeof profile.primaryModel === 'string' ? profile.primaryModel : profile.model
   const fastModel = typeof profile.defaultHaikuModel === 'string' ? profile.defaultHaikuModel : profile.fastModel
   const sonnetModel = typeof profile.defaultSonnetModel === 'string' ? profile.defaultSonnetModel : undefined
@@ -464,10 +459,7 @@ function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | nu
   return {
     runtimeLabel: 'myclaude',
     profileLabel: `${profile.name} (${syncResult.activeProfileId || profile.id})`,
-    modeLabel: profile.routeFamily,
-    sourceLabel: [profile.source, profile.sourceDetail].filter(Boolean).join(' · ') || undefined,
-    routeLabel: profile.pathLabel,
-    strategyLabel: [profile.routingStrategy, profile.strategyNote].filter(Boolean).join(' · ') || undefined,
+    ...presentation,
     modelLabel: modelParts.join(' · ') || undefined,
   }
 }
@@ -1548,10 +1540,6 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
         }
       }
 
-      if (resolvedType === 'myclaude') {
-        const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../utils/claude-config')
-        myclaudeRuntimeSyncResult = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
-      }
     }
     catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)

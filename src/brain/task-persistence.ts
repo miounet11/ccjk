@@ -117,6 +117,30 @@ export interface RecoveryState {
 export class TaskPersistence {
   private db: Database.Database
   private dbPath: string
+  private getSessionStmt?: Database.Statement
+
+  private parseSessionMetadata(value: unknown): Record<string, any> {
+    if (typeof value !== 'string' || value.length === 0) {
+      return {}
+    }
+
+    try {
+      const parsed = JSON.parse(value)
+      return parsed && typeof parsed === 'object' ? parsed : {}
+    }
+    catch {
+      return {}
+    }
+  }
+
+  private rowToSession(row: any): { id: string, createdAt: number, updatedAt: number, metadata: Record<string, any> } {
+    return {
+      id: row.id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      metadata: this.parseSessionMetadata(row.metadata),
+    }
+  }
 
   constructor(dbPath?: string) {
     // Default to ~/.ccjk/brain.db
@@ -353,7 +377,7 @@ export class TaskPersistence {
     `)
 
     const sessionRow = sessionStmt.get(sessionId) as any
-    const metadata = sessionRow ? JSON.parse(sessionRow.metadata) : {}
+    const metadata = sessionRow ? this.parseSessionMetadata(sessionRow.metadata) : {}
 
     return {
       sessionId,
@@ -376,6 +400,22 @@ export class TaskPersistence {
   }
 
   /**
+   * Get session by ID
+   */
+  getSession(sessionId: string): { id: string, createdAt: number, updatedAt: number, metadata: Record<string, any> } | undefined {
+    this.getSessionStmt ||= this.db.prepare(`
+      SELECT * FROM sessions WHERE id = ?
+    `)
+
+    const row = this.getSessionStmt.get(sessionId) as any
+    if (!row) {
+      return undefined
+    }
+
+    return this.rowToSession(row)
+  }
+
+  /**
    * List recent sessions
    */
   listSessions(limit: number = 10): Array<{ id: string, createdAt: number, metadata: Record<string, any> }> {
@@ -384,11 +424,14 @@ export class TaskPersistence {
     `)
 
     const rows = stmt.all(limit) as any[]
-    return rows.map(row => ({
-      id: row.id,
-      createdAt: row.created_at,
-      metadata: JSON.parse(row.metadata),
-    }))
+    return rows.map(row => {
+      const session = this.rowToSession(row)
+      return {
+        id: session.id,
+        createdAt: session.createdAt,
+        metadata: session.metadata,
+      }
+    })
   }
 
   /**

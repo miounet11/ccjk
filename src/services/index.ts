@@ -131,3 +131,35 @@ export type {
   ResearchSessionSummary,
   ResearchVerdict,
 } from './research-runner'
+
+export {
+  DEFAULT_RESEARCH_PROGRAM_PATH,
+  initResearchProgram,
+  parseResearchProgram,
+  readResearchProgram,
+} from './research-program'
+
+export type {
+  ResearchProgram,
+  ResearchProgramObjective,
+} from './research-program'
+
+export {
+  getResearchLoopReport,
+  getResearchLoopSessionStatus,
+  getResearchLoopStatus,
+  resumeResearchLoop,
+  runResearchRound,
+  startResearchLoop,
+  stopResearchLoop,
+} from './research-loop'
+
+export type {
+  ResearchLoopCliOverrides,
+  ResearchLoopReport,
+  ResearchLoopRoundRecord,
+  ResearchLoopSessionMetadata,
+  ResearchLoopStatus,
+  ResearchLoopStatusValue,
+  ResearchLoopStopReason,
+} from './research-loop'

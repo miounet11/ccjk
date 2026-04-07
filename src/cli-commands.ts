@@ -24,6 +24,45 @@ interface CommandDefinition {
   deprecationMessage?: string
 }
 
+function parseOptionalNumber(value: unknown, flag: string): number | undefined {
+  if (value === undefined) {
+    return undefined
+  }
+
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${flag} must be a valid number`)
+  }
+
+  return parsed
+}
+
+function parseOptionalPositiveNumber(value: unknown, flag: string): number | undefined {
+  const parsed = parseOptionalNumber(value, flag)
+  if (parsed === undefined) {
+    return undefined
+  }
+
+  if (parsed <= 0) {
+    throw new Error(`${flag} must be greater than 0`)
+  }
+
+  return parsed
+}
+
+function parseOptionalPositiveInteger(value: unknown, flag: string): number | undefined {
+  const parsed = parseOptionalPositiveNumber(value, flag)
+  if (parsed === undefined) {
+    return undefined
+  }
+
+  if (!Number.isInteger(parsed)) {
+    throw new Error(`${flag} must be an integer`)
+  }
+
+  return parsed
+}
+
 
 export const COMMANDS: CommandDefinition[] = [
   // ==================== Core Commands ====================
@@ -545,9 +584,14 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--metric <name>', description: 'Metric name to parse from output' },
       { flags: '--objective <mode>', description: 'Metric objective (auto|maximize|minimize)' },
       { flags: '--baseline <sessionId>', description: 'Baseline session id to compare against' },
+      { flags: '--program <path>', description: 'Research program file path' },
+      { flags: '--db-path <path>', description: 'Research database path' },
       { flags: '--budget-ms <ms>', description: 'Execution budget in milliseconds' },
       { flags: '--cwd <path>', description: 'Working directory for the command' },
       { flags: '--limit <n>', description: 'Number of sessions to list' },
+      { flags: '--max-rounds <n>', description: 'Maximum loop rounds' },
+      { flags: '--max-no-improve-rounds <n>', description: 'Maximum no-improve rounds before stop' },
+      { flags: '--target-metric <value>', description: 'Stop the loop when target metric is reached' },
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
@@ -560,9 +604,14 @@ export const COMMANDS: CommandDefinition[] = [
           metric: options.metric as string | undefined,
           objective: options.objective as 'maximize' | 'minimize' | 'auto' | undefined,
           baseline: options.baseline as string | undefined,
-          budgetMs: options.budgetMs ? Number(options.budgetMs) : undefined,
+          program: options.program as string | undefined,
+          dbPath: options.dbPath as string | undefined,
+          budgetMs: parseOptionalPositiveNumber(options.budgetMs, '--budget-ms'),
           cwd: options.cwd as string | undefined,
-          limit: options.limit ? Number(options.limit) : undefined,
+          limit: parseOptionalPositiveInteger(options.limit, '--limit'),
+          maxRounds: parseOptionalPositiveInteger(options.maxRounds, '--max-rounds'),
+          maxNoImproveRounds: parseOptionalPositiveInteger(options.maxNoImproveRounds, '--max-no-improve-rounds'),
+          targetMetric: parseOptionalNumber(options.targetMetric, '--target-metric'),
         })
       }
     },

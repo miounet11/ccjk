@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { COMMANDS } from '../../src/cli-commands'
 
 const {
   getBestResearchResultMock,
@@ -8,6 +9,13 @@ const {
   listResearchResultsMock,
   listResearchSessionsMock,
   runResearchExperimentMock,
+  initResearchProgramMock,
+  getResearchLoopReportMock,
+  getResearchLoopStatusMock,
+  resumeResearchLoopMock,
+  runResearchRoundMock,
+  startResearchLoopMock,
+  stopResearchLoopMock,
 } = vi.hoisted(() => ({
   getBestResearchResultMock: vi.fn(),
   getLatestResearchSessionMock: vi.fn(),
@@ -16,6 +24,13 @@ const {
   listResearchResultsMock: vi.fn(),
   listResearchSessionsMock: vi.fn(),
   runResearchExperimentMock: vi.fn(),
+  initResearchProgramMock: vi.fn(),
+  getResearchLoopReportMock: vi.fn(),
+  getResearchLoopStatusMock: vi.fn(),
+  resumeResearchLoopMock: vi.fn(),
+  runResearchRoundMock: vi.fn(),
+  startResearchLoopMock: vi.fn(),
+  stopResearchLoopMock: vi.fn(),
 }))
 
 vi.mock('../../src/services/research-runner', () => ({
@@ -26,6 +41,19 @@ vi.mock('../../src/services/research-runner', () => ({
   listResearchResults: listResearchResultsMock,
   listResearchSessions: listResearchSessionsMock,
   runResearchExperiment: runResearchExperimentMock,
+}))
+
+vi.mock('../../src/services/research-program', () => ({
+  initResearchProgram: initResearchProgramMock,
+}))
+
+vi.mock('../../src/services/research-loop', () => ({
+  getResearchLoopReport: getResearchLoopReportMock,
+  getResearchLoopStatus: getResearchLoopStatusMock,
+  resumeResearchLoop: resumeResearchLoopMock,
+  runResearchRound: runResearchRoundMock,
+  startResearchLoop: startResearchLoopMock,
+  stopResearchLoop: stopResearchLoopMock,
 }))
 
 describe('research command', () => {
@@ -119,6 +147,98 @@ describe('research command', () => {
 
     expect(runResearchExperimentMock).not.toHaveBeenCalled()
     expect(errors.join('\n')).toContain('--cmd is required')
+  })
+
+  it('initializes a research program template', async () => {
+    const { researchCommand } = await import('../../src/commands/research')
+
+    initResearchProgramMock.mockReturnValue({
+      programPath: '/repo/.ccjk/research/program.md',
+      content: 'template',
+    })
+
+    const logs: string[] = []
+    vi.spyOn(console, 'log').mockImplementation((...args) => {
+      logs.push(args.join(' '))
+    })
+
+    await researchCommand('init', [], { program: '.ccjk/research/program.md', cwd: '/repo' })
+
+    expect(initResearchProgramMock).toHaveBeenCalledWith('.ccjk/research/program.md', '/repo')
+    expect(logs.join('\n')).toContain('Research Program')
+    expect(logs.join('\n')).toContain('/repo/.ccjk/research/program.md')
+  })
+
+  it('starts a research loop with CLI overrides', async () => {
+    const { researchCommand } = await import('../../src/commands/research')
+
+    startResearchLoopMock.mockResolvedValue({
+      sessionId: 'loop-1',
+      metadata: {
+        name: 'repo-research',
+        status: 'running',
+        stopReason: undefined,
+        currentRound: 2,
+        maxRounds: 5,
+        objective: 'maximize',
+        metric: 'score',
+        bestMetricValue: 12,
+        baselineSessionId: 'baseline-1',
+        bestSessionId: 'round-2',
+        acceptedRoundSessionIds: ['round-1', 'round-2'],
+        rejectedRoundSessionIds: [],
+        maxNoImproveRounds: 2,
+        noImproveStreak: 0,
+      },
+      latestRound: {
+        round: 2,
+        verdict: 'PASS',
+        metricName: 'score',
+        metricValue: 12,
+      },
+      rounds: [],
+    })
+
+    const logs: string[] = []
+    vi.spyOn(console, 'log').mockImplementation((...args) => {
+      logs.push(args.join(' '))
+    })
+
+    await researchCommand('loop', [], {
+      program: '/repo/.ccjk/research/program.md',
+      cwd: '/repo',
+      dbPath: '/repo/.ccjk/research.db',
+      budgetMs: 1000,
+      maxRounds: 5,
+      maxNoImproveRounds: 2,
+      targetMetric: 12,
+    })
+
+    expect(startResearchLoopMock).toHaveBeenCalledWith({
+      programPath: '/repo/.ccjk/research/program.md',
+      cwd: '/repo',
+      dbPath: '/repo/.ccjk/research.db',
+      overrides: {
+        cwd: '/repo',
+        budgetMs: 1000,
+        maxRounds: 5,
+        maxNoImproveRounds: 2,
+        targetMetric: 12,
+      },
+    })
+    expect(logs.join('\n')).toContain('Research Loop Status')
+    expect(logs.join('\n')).toContain('Rounds:    2/5')
+    expect(logs.join('\n')).toContain('Latest:    round 2 · PASS · score=12')
+  })
+
+  it('rejects invalid numeric CLI options before invoking the command', async () => {
+    const command = COMMANDS.find(item => item.name === 'research <action> [...args]')
+    expect(command).toBeDefined()
+
+    const loader = await command!.loader()
+
+    await expect(loader({ maxRounds: 'abc' } as any, 'loop', [])).rejects.toThrow('--max-rounds must be a valid number')
+    expect(startResearchLoopMock).not.toHaveBeenCalled()
   })
 
   it('shows latest research session status with phase, objective, and comparison details when no session id is passed', async () => {

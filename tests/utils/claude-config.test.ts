@@ -54,6 +54,7 @@ describe('claude-config myclaude sync', () => {
       name: 'TTQQ',
       provider: 'custom',
       baseUrl: 'https://router.example.com/v1',
+      mode: 'openai-native',
       primaryModel: 'claude-sonnet-4-6',
       defaultHaikuModel: 'claude-haiku-4-5',
       defaultSonnetModel: 'claude-sonnet-4-6',
