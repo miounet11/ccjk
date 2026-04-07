@@ -6,6 +6,68 @@
 import type { CAC } from 'cac'
 import type { SupportedLang } from './constants'
 import type { CliOptions } from './cli-lazy'
+import { COMMANDS } from './cli-commands'
+
+const SPECIAL_STARTUP_COMMANDS = [
+  'cloud',
+  'c',
+  'system',
+  'sys',
+  'plugin',
+  'completion',
+  'skills-sync',
+  'agents-sync',
+  'marketplace',
+  'quick',
+  'deep',
+  'setup',
+  'sync',
+  'versions',
+  'permissions',
+  'config-scan',
+  'workspace',
+]
+
+const EXPLICIT_STARTUP_COMMANDS = new Set([
+  ...COMMANDS.flatMap((command) => {
+    const primaryName = command.name.split(/[ <[]/, 1)[0]?.toLowerCase()
+    const aliases = command.aliases?.map(alias => alias.toLowerCase()) || []
+    return primaryName ? [primaryName, ...aliases] : aliases
+  }),
+  ...SPECIAL_STARTUP_COMMANDS,
+])
+
+export function shouldBootstrapCloudServicesForArgs(args: string[]): boolean {
+  if (args.length === 0) {
+    return false
+  }
+
+  const optionArgsWithValue = new Set(['-l', '--lang', '-g', '--all-lang', '-T', '--code-type'])
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index]
+    if (!arg) {
+      continue
+    }
+
+    if (optionArgsWithValue.has(arg)) {
+      index += 1
+      continue
+    }
+
+    if (arg.startsWith('--lang=') || arg.startsWith('--all-lang=') || arg.startsWith('--code-type=')) {
+      continue
+    }
+
+    if (arg.startsWith('-') || arg.startsWith('/')) {
+      continue
+    }
+
+    return EXPLICIT_STARTUP_COMMANDS.has(arg.toLowerCase())
+  }
+
+  return false
+}
 
 export async function registerSpecialCommands(cli: CAC): Promise<void> {
   // ==================== 云同步统一命令 ====================
@@ -422,7 +484,7 @@ export async function runLazyCli(): Promise<void> {
     }
 
     // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
-    // 在后台执行：设备注册、握手、自动同步、静默升级
+    // 仅在显式命令路径执行，避免默认接管交互菜单与宿主 runtime
     bootstrapCloudServices()
 
     // 🧠 Auto-initialize Brain hooks if remote control is enabled
@@ -459,26 +521,14 @@ export async function runLazyCli(): Promise<void> {
       return // 快速启动已处理，不进入常规 CLI
     }
 
-    // 🧠 智能意图识别 - 自动路由到对应的 skill
+    // 🧠 启动期仅保留显式 slash command 路径；普通参数交给 CLI 正常解析
     const args = process.argv.slice(2)
-    if (args.length > 0) {
-      // 1. 检查 slash commands
-      if (args[0].startsWith('/')) {
-        spinner?.stop()
-        const { executeSlashCommand } = await import('./commands/slash-commands')
-        const slashHandled = await executeSlashCommand(args.join(' '))
-        if (slashHandled) {
-          return
-        }
-      }
-      // 2. 智能意图识别
-      else {
-        const { handleIntentRecognition } = await import('./core/intent-engine')
-        const intentHandled = await handleIntentRecognition()
-        if (intentHandled) {
-          spinner?.stop()
-          return
-        }
+    if (args.length > 0 && args[0].startsWith('/')) {
+      spinner?.stop()
+      const { executeSlashCommand } = await import('./commands/slash-commands')
+      const slashHandled = await executeSlashCommand(args.join(' '))
+      if (slashHandled) {
+        return
       }
     }
 
@@ -614,11 +664,8 @@ export async function tryQuickProviderLaunch(): Promise<boolean> {
  * race conditions with config writes.
  */
 export function bootstrapCloudServices(): void {
-  // Skip background bootstrap when entering interactive menu —
-  // the menu writes to settings.json and background tasks can clobber those writes
   const args = process.argv.slice(2)
-  const isInteractiveMenu = args.length === 0 || (args.length === 1 && ['-l', '--lang'].includes(args[0]))
-  if (isInteractiveMenu) {
+  if (!shouldBootstrapCloudServicesForArgs(args)) {
     return
   }
 

@@ -437,7 +437,10 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
 function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | null | undefined): {
   runtimeLabel?: string
   profileLabel?: string
+  modeLabel?: string
+  sourceLabel?: string
   routeLabel?: string
+  strategyLabel?: string
   modelLabel?: string
 } | undefined {
   if (!syncResult?.activeProfile) {
@@ -447,20 +450,24 @@ function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | nu
   }
 
   const profile = syncResult.activeProfile
-  const routeFamily = profile.baseUrl ? 'OpenAI-compatible gateway' : 'Official runtime route'
   const primaryModel = typeof profile.primaryModel === 'string' ? profile.primaryModel : profile.model
   const fastModel = typeof profile.defaultHaikuModel === 'string' ? profile.defaultHaikuModel : profile.fastModel
   const sonnetModel = typeof profile.defaultSonnetModel === 'string' ? profile.defaultSonnetModel : undefined
+  const opusModel = typeof profile.defaultOpusModel === 'string' ? profile.defaultOpusModel : undefined
   const modelParts = [
     primaryModel ? `primary ${primaryModel}` : undefined,
-    fastModel ? `fast ${fastModel}` : undefined,
-    sonnetModel ? `exec ${sonnetModel}` : undefined,
+    fastModel ? `haiku ${fastModel}` : undefined,
+    sonnetModel ? `sonnet ${sonnetModel}` : undefined,
+    opusModel ? `opus ${opusModel}` : undefined,
   ].filter(Boolean)
 
   return {
     runtimeLabel: 'myclaude',
     profileLabel: `${profile.name} (${syncResult.activeProfileId || profile.id})`,
-    routeLabel: profile.baseUrl ? `${routeFamily} · ${profile.baseUrl}` : routeFamily,
+    modeLabel: profile.routeFamily,
+    sourceLabel: [profile.source, profile.sourceDetail].filter(Boolean).join(' · ') || undefined,
+    routeLabel: profile.pathLabel,
+    strategyLabel: [profile.routingStrategy, profile.strategyNote].filter(Boolean).join(' · ') || undefined,
     modelLabel: modelParts.join(' · ') || undefined,
   }
 }

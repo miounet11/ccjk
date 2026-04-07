@@ -212,7 +212,7 @@ export async function runLazyCli(): Promise<void> {
     }
 
     // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
-    // 在后台执行：设备注册、握手、自动同步、静默升级
+    // 仅在显式命令路径执行，避免默认接管交互菜单与宿主 runtime
     bootstrapCloudServices()
 
     // 🧠 Auto-initialize Brain hooks if remote control is enabled
@@ -249,26 +249,14 @@ export async function runLazyCli(): Promise<void> {
       return // 快速启动已处理，不进入常规 CLI
     }
 
-    // 🧠 智能意图识别 - 自动路由到对应的 skill
+    // 🧠 启动期仅保留显式 slash command 路径；普通参数交给 CLI 正常解析
     const args = process.argv.slice(2)
-    if (args.length > 0) {
-      // 1. 检查 slash commands
-      if (args[0].startsWith('/')) {
-        spinner?.stop()
-        const { executeSlashCommand } = await import('./commands/slash-commands')
-        const slashHandled = await executeSlashCommand(args.join(' '))
-        if (slashHandled) {
-          return
-        }
-      }
-      // 2. 智能意图识别
-      else {
-        const { handleIntentRecognition } = await import('./core/intent-engine')
-        const intentHandled = await handleIntentRecognition()
-        if (intentHandled) {
-          spinner?.stop()
-          return
-        }
+    if (args.length > 0 && args[0].startsWith('/')) {
+      spinner?.stop()
+      const { executeSlashCommand } = await import('./commands/slash-commands')
+      const slashHandled = await executeSlashCommand(args.join(' '))
+      if (slashHandled) {
+        return
       }
     }
 

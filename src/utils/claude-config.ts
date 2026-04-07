@@ -1,4 +1,4 @@
-import type { ClaudeConfiguration, McpServerConfig, MyclaudeProviderProfile } from '../types'
+import type { ClaudeConfiguration, McpServerConfig, MyclaudeProviderMode, MyclaudeProviderProfile } from '../types'
 import type { ClaudeCodeConfigData, ClaudeCodeProfile } from '../types/claude-code-config'
 
 export interface MyclaudeProviderSyncResult {
@@ -292,6 +292,60 @@ export function setMyclaudeActiveProviderProfile(activeProfileId?: string): void
   writeMcpConfig(config)
 }
 
+function detectMyclaudeProviderMode(profile: Pick<MyclaudeProviderProfile, 'authType' | 'baseUrl'>): MyclaudeProviderMode {
+  if (profile.authType === 'ccr_proxy') {
+    return 'ccr-proxy'
+  }
+  if (profile.baseUrl) {
+    return 'openai-native'
+  }
+  return 'official'
+}
+
+export function describeMyclaudeProviderProfile(profile: Partial<MyclaudeProviderProfile>): Pick<MyclaudeProviderProfile, 'mode' | 'source' | 'sourceDetail' | 'routeFamily' | 'pathLabel' | 'routingStrategy' | 'strategyNote'> {
+  const mode = detectMyclaudeProviderMode({
+    authType: profile.authType,
+    baseUrl: profile.baseUrl,
+  })
+
+  const hasAdaptiveRouting = Boolean(profile.defaultHaikuModel || profile.defaultSonnetModel || profile.defaultOpusModel)
+  const hasPrimaryModel = Boolean(profile.primaryModel || profile.model)
+
+  const routeFamily = mode === 'ccr-proxy'
+    ? 'CCR-proxy'
+    : mode === 'openai-native'
+      ? 'OpenAI-native'
+      : 'Anthropic-native'
+
+  const pathLabel = mode === 'ccr-proxy'
+    ? profile.baseUrl ? `Claude-family route through CCR · ${profile.baseUrl}` : 'Claude-family route through CCR'
+    : mode === 'openai-native'
+      ? profile.baseUrl ? `OpenAI-family route through a compatible gateway · ${profile.baseUrl}` : 'OpenAI-family route through a compatible gateway'
+      : 'Official Anthropic route'
+
+  const routingStrategy = hasAdaptiveRouting
+    ? 'Custom routing'
+    : hasPrimaryModel
+      ? 'Single-model override'
+      : 'Native runtime default'
+
+  const strategyNote = hasAdaptiveRouting
+    ? 'Advanced custom routing. Validate carefully when mixing model families.'
+    : hasPrimaryModel
+      ? 'Primary model is pinned for the active profile.'
+      : 'Runtime follows the official provider defaults.'
+
+  return {
+    mode,
+    source: 'Imported from ccjk',
+    sourceDetail: 'Reusable profile imported from the compatible ccjk configuration.',
+    routeFamily,
+    pathLabel,
+    routingStrategy,
+    strategyNote,
+  }
+}
+
 function toMyclaudeProviderProfile(
   profile: ClaudeCodeProfile,
   existing?: MyclaudeProviderProfile,
@@ -309,6 +363,15 @@ function toMyclaudeProviderProfile(
     defaultHaikuModel: profile.defaultHaikuModel,
     defaultSonnetModel: profile.defaultSonnetModel,
     defaultOpusModel: profile.defaultOpusModel,
+    ...describeMyclaudeProviderProfile({
+      authType: profile.authType,
+      baseUrl: profile.baseUrl,
+      model: profile.primaryModel,
+      primaryModel: profile.primaryModel,
+      defaultHaikuModel: profile.defaultHaikuModel,
+      defaultSonnetModel: profile.defaultSonnetModel,
+      defaultOpusModel: profile.defaultOpusModel,
+    }),
   }
 }
 

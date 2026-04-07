@@ -2,6 +2,8 @@
  * Core types for the code tool abstraction layer
  */
 
+import type { CodeToolType } from '../../constants'
+
 /**
  * Configuration for a code tool
  */
@@ -71,6 +73,45 @@ export interface ToolCapabilities {
 }
 
 /**
+ * Runtime-native capability set exposed by the host tool
+ */
+export interface RuntimeNativeCapabilities {
+  agentLoop: boolean
+  planTask: boolean
+  subagents: boolean
+  slashCommands: boolean
+  mcp: boolean
+  permissions: boolean
+  memory: boolean
+  ideIntegration: boolean
+  worktree: boolean
+  statusline: boolean
+}
+
+/**
+ * Capability set that CCJK should continue to manage for a runtime
+ */
+export interface RuntimeManagedCapabilities {
+  providerProfiles: boolean
+  modelRouting: boolean
+  configSync: boolean
+  permissionRepair: boolean
+  mcpBundles: boolean
+  doctor: boolean
+}
+
+/**
+ * Runtime capability descriptor used by status/menu/doctor surfaces
+ */
+export interface RuntimeCapabilityDescriptor {
+  runtime: CodeToolType
+  ownership: 'host-native' | 'hybrid' | 'ccjk-managed'
+  configBackend: 'claude-family' | 'tool-specific'
+  native: RuntimeNativeCapabilities
+  managedByCcjk: RuntimeManagedCapabilities
+}
+
+/**
  * Tool metadata
  */
 export interface ToolMetadata {
@@ -88,4 +129,6 @@ export interface ToolMetadata {
   documentation?: string
   /** Tool capabilities */
   capabilities: ToolCapabilities
+  /** Runtime capability descriptor */
+  runtime?: RuntimeCapabilityDescriptor
 }

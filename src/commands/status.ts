@@ -6,16 +6,19 @@
 
 import type { ProjectContext } from '../config/project-scanner'
 import type { SmartDefaults } from '../config/smart-defaults'
+import type { RuntimeCapabilityDescriptor } from '../code-tools'
 import type { HealthReport } from '../health/types'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import process from 'node:process'
 import ansis from 'ansis'
 import { join } from 'pathe'
+import { getRuntimeCapabilityDescriptor } from '../code-tools'
 import { scanProject } from '../config/project-scanner'
 import { MetricsDisplay } from '../context/metrics-display'
 import { getContextPersistence } from '../context/persistence'
 import { runHealthCheck } from '../health/index'
+import { resolveCodeType } from '../utils/code-type-resolver'
 
 // ============================================================================
 // Types
@@ -158,7 +161,7 @@ function renderProjectSection(ctx: ProjectContext): string[] {
   return lines
 }
 
-function renderRuntimeSection(ctx: ProjectContext): string[] {
+function renderRuntimeSection(ctx: ProjectContext, capability?: RuntimeCapabilityDescriptor): string[] {
   const lines: string[] = []
   lines.push(heading('Runtime'))
 
@@ -185,6 +188,34 @@ function renderRuntimeSection(ctx: ProjectContext): string[] {
   }
 
   lines.push(`  ${label('Browser:'.padEnd(14))} ${rt.hasBrowser ? ansis.green('available') : ansis.gray('unavailable')}`)
+
+  if (capability) {
+    const nativeFeatures = [
+      capability.native.agentLoop && 'agent-loop',
+      capability.native.planTask && 'plan/task',
+      capability.native.subagents && 'subagents',
+      capability.native.slashCommands && 'slash-commands',
+      capability.native.mcp && 'mcp',
+      capability.native.permissions && 'permissions',
+      capability.native.memory && 'memory',
+      capability.native.ideIntegration && 'ide',
+      capability.native.worktree && 'worktree',
+      capability.native.statusline && 'statusline',
+    ].filter(Boolean) as string[]
+
+    const managedByCcjk = [
+      capability.managedByCcjk.providerProfiles && 'profiles',
+      capability.managedByCcjk.modelRouting && 'models',
+      capability.managedByCcjk.configSync && 'config-sync',
+      capability.managedByCcjk.permissionRepair && 'permission-repair',
+      capability.managedByCcjk.mcpBundles && 'mcp-bundles',
+      capability.managedByCcjk.doctor && 'doctor',
+    ].filter(Boolean) as string[]
+
+    lines.push(`  ${label('Ownership:'.padEnd(14))} ${val(capability.ownership)}`)
+    lines.push(`  ${label('Native:'.padEnd(14))} ${nativeFeatures.length > 0 ? val(nativeFeatures.join(', ')) : ansis.gray('none')}`)
+    lines.push(`  ${label('CCJK:'.padEnd(14))} ${managedByCcjk.length > 0 ? val(managedByCcjk.join(', ')) : ansis.gray('none')}`)
+  }
 
   return lines
 }
@@ -434,12 +465,15 @@ function suggestNextAction(health: HealthReport, _ctx: ProjectContext): string[]
 export async function statusCommand(options: StatusOptions = {}): Promise<void> {
   try {
     // Gather all data
-    const [ctx, defaults, installed, health] = await Promise.all([
+    const [ctx, defaults, installed, health, codeTool] = await Promise.all([
       scanProject(),
       loadSmartDefaults(),
       Promise.resolve(loadInstalledSettings()),
       runHealthCheck(),
+      resolveCodeType(),
     ])
+
+    const capability = getRuntimeCapabilityDescriptor(codeTool)
 
     // JSON output
     if (options.json) {
@@ -448,6 +482,8 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
         smartDefaults: defaults,
         installed,
         health,
+        codeTool,
+        capability,
       }, null, 2))
       return
     }
@@ -456,7 +492,7 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
     const sections: string[][] = []
 
     sections.push(renderProjectSection(ctx))
-    sections.push(renderRuntimeSection(ctx))
+    sections.push(renderRuntimeSection(ctx, capability))
 
     if (defaults) {
       sections.push(renderMcpSection(defaults.mcpServices, installed.mcpServers))

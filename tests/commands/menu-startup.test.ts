@@ -159,9 +159,16 @@ describe('menu startup myclaude runtime sync', () => {
         name: 'TTQQ',
         provider: 'custom',
         baseUrl: 'https://router.example.com/v1',
+        routeFamily: 'OpenAI-native',
+        pathLabel: 'OpenAI-family route through a compatible gateway · https://router.example.com/v1',
+        routingStrategy: 'Custom routing',
+        strategyNote: 'Advanced custom routing. Validate carefully when mixing model families.',
+        source: 'Imported from ccjk',
+        sourceDetail: 'Reusable profile imported from the compatible ccjk configuration.',
         primaryModel: 'claude-sonnet-4-6',
         defaultHaikuModel: 'claude-haiku-4-5',
         defaultSonnetModel: 'claude-sonnet-4-6',
+        defaultOpusModel: 'claude-opus-4-6',
       },
       profiles: [],
     })
@@ -179,8 +186,11 @@ describe('menu startup myclaude runtime sync', () => {
       expect.objectContaining({
         runtimeLabel: 'myclaude',
         profileLabel: 'TTQQ (ttqq)',
-        routeLabel: 'OpenAI-compatible gateway · https://router.example.com/v1',
-        modelLabel: 'primary claude-sonnet-4-6 · fast claude-haiku-4-5 · exec claude-sonnet-4-6',
+        modeLabel: 'OpenAI-native',
+        sourceLabel: 'Imported from ccjk · Reusable profile imported from the compatible ccjk configuration.',
+        routeLabel: 'OpenAI-family route through a compatible gateway · https://router.example.com/v1',
+        strategyLabel: 'Custom routing · Advanced custom routing. Validate carefully when mixing model families.',
+        modelLabel: 'primary claude-sonnet-4-6 · haiku claude-haiku-4-5 · sonnet claude-sonnet-4-6 · opus claude-opus-4-6',
       }),
     )
     expect(mockDisplayBannerWithInfo).toHaveBeenCalledWith('for myclaude')

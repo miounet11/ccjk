@@ -81,7 +81,10 @@ function t(key: string, defaultValue?: string): string {
 export interface ToolModeRuntimeSummary {
   runtimeLabel?: string
   profileLabel?: string
+  modeLabel?: string
+  sourceLabel?: string
   routeLabel?: string
+  strategyLabel?: string
   modelLabel?: string
 }
 
@@ -345,8 +348,17 @@ export function renderToolModeHero(
   if (runtimeSummary?.profileLabel) {
     content.push(`${colors.shortcut('Profile')} ${colors.itemText(runtimeSummary.profileLabel)}`)
   }
+  if (runtimeSummary?.modeLabel) {
+    content.push(`${colors.shortcut('Mode')} ${colors.itemText(runtimeSummary.modeLabel)}`)
+  }
+  if (runtimeSummary?.sourceLabel) {
+    content.push(`${colors.shortcut('Source')} ${colors.itemText(runtimeSummary.sourceLabel)}`)
+  }
   if (runtimeSummary?.routeLabel) {
     content.push(`${colors.shortcut('Route')} ${colors.itemText(runtimeSummary.routeLabel)}`)
+  }
+  if (runtimeSummary?.strategyLabel) {
+    content.push(`${colors.shortcut('Strategy')} ${colors.itemText(runtimeSummary.strategyLabel)}`)
   }
   if (runtimeSummary?.modelLabel) {
     content.push(`${colors.shortcut('Models')} ${colors.itemText(runtimeSummary.modelLabel)}`)

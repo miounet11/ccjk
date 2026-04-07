@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { levelDefinitions } from './progressive/levels'
-import { getVisibleItems } from './main-menu'
+import { __testUtils, getVisibleItems } from './main-menu'
 import { parseMenuInput, validateMenuInput } from './renderer/input'
 import { filterSectionsByItemLimit, createAllSections } from './renderer/sections'
 import { getToolModeMenuTitle, renderFooter, renderToolModeHero } from './renderer/layout'
@@ -68,6 +68,25 @@ describe('tool-aware menu visibility', () => {
     expect(itemIds).not.toContain('quick-actions')
     expect(itemIds).not.toContain('marketplace')
     expect(itemIds).not.toContain('doctor')
+  })
+
+  it('keeps slash-command-driven extensions on myclaude but hides them on codex', () => {
+    const myclaudeItemIds = getVisibleItems('intermediate', 'myclaude').map(item => item.id)
+    const codexItemIds = getVisibleItems('intermediate', 'codex').map(item => item.id)
+
+    expect(myclaudeItemIds).toContain('quick-actions')
+    expect(myclaudeItemIds).toContain('smart-guide')
+    expect(myclaudeItemIds).toContain('workflows')
+    expect(codexItemIds).not.toContain('quick-actions')
+    expect(codexItemIds).not.toContain('smart-guide')
+    expect(codexItemIds).not.toContain('workflows')
+  })
+
+  it('applies capability rules directly for statusline and cloud features', () => {
+    expect(__testUtils.isItemSupportedByCapabilities({ id: 'cometix' } as any, 'myclaude')).toBe(true)
+    expect(__testUtils.isItemSupportedByCapabilities({ id: 'cometix' } as any, 'codex')).toBe(false)
+    expect(__testUtils.isItemSupportedByCapabilities({ id: 'marketplace' } as any, 'myclaude')).toBe(true)
+    expect(__testUtils.isItemSupportedByCapabilities({ id: 'marketplace' } as any, 'codex')).toBe(false)
   })
 })
 

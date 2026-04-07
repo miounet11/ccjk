@@ -63,6 +63,8 @@ export interface McpToolSearchConfig {
   excludedServices?: string[]
 }
 
+export type MyclaudeProviderMode = 'official' | 'openai-native' | 'ccr-proxy'
+
 export interface MyclaudeProviderProfile {
   id: string
   name: string
@@ -71,6 +73,18 @@ export interface MyclaudeProviderProfile {
   baseUrl?: string
   model?: string
   fastModel?: string
+  authType?: 'api_key' | 'auth_token' | 'ccr_proxy'
+  primaryModel?: string
+  defaultHaikuModel?: string
+  defaultSonnetModel?: string
+  defaultOpusModel?: string
+  mode?: MyclaudeProviderMode
+  source?: string
+  sourceDetail?: string
+  routeFamily?: string
+  pathLabel?: string
+  routingStrategy?: string
+  strategyNote?: string
   [key: string]: unknown
 }
 

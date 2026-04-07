@@ -11,9 +11,38 @@
  */
 
 import type { CodeToolType } from '../../constants'
+import type { RuntimeCapabilityDescriptor } from '../../code-tools/core/types'
 import type { MenuCategory, MenuItem } from './types'
+import { getRuntimeCapabilityDescriptor } from '../../code-tools'
 
 const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'myclaude', 'aider', 'continue', 'cline', 'cursor']
+
+type MenuCapabilityRule = (descriptor: RuntimeCapabilityDescriptor) => boolean
+
+const CLAUDE_FAMILY_SLASH_RULE: MenuCapabilityRule = descriptor => descriptor.native.slashCommands && descriptor.configBackend === 'claude-family'
+
+const MENU_ITEM_CAPABILITY_RULES: Partial<Record<string, MenuCapabilityRule>> = {
+  'diagnostics': descriptor => descriptor.managedByCcjk.doctor,
+  'doctor': descriptor => descriptor.managedByCcjk.doctor,
+  'workspace': descriptor => descriptor.managedByCcjk.doctor,
+  'api-config': descriptor => descriptor.managedByCcjk.configSync || descriptor.managedByCcjk.providerProfiles,
+  'mcp-config': descriptor => descriptor.native.mcp && descriptor.managedByCcjk.mcpBundles,
+  'model-config': descriptor => descriptor.managedByCcjk.modelRouting,
+  'memory-config': descriptor => descriptor.native.memory,
+  'permission-config': descriptor => descriptor.native.permissions && descriptor.managedByCcjk.permissionRepair,
+  'config-switch': descriptor => descriptor.managedByCcjk.configSync || descriptor.managedByCcjk.providerProfiles,
+  'ccr': descriptor => descriptor.configBackend === 'claude-family',
+  'ccusage': descriptor => descriptor.configBackend === 'claude-family',
+  'cometix': descriptor => descriptor.native.statusline,
+  'superpowers': CLAUDE_FAMILY_SLASH_RULE,
+  'mcp-market': descriptor => descriptor.native.mcp && descriptor.managedByCcjk.mcpBundles,
+  'marketplace': descriptor => descriptor.configBackend === 'claude-family',
+  'hooks-sync': descriptor => descriptor.configBackend === 'claude-family',
+  'quick-actions': CLAUDE_FAMILY_SLASH_RULE,
+  'smart-guide': CLAUDE_FAMILY_SLASH_RULE,
+  'workflows': CLAUDE_FAMILY_SLASH_RULE,
+  'output-styles': CLAUDE_FAMILY_SLASH_RULE,
+}
 
 /**
  * Quick Actions Category - Always visible first
@@ -391,11 +420,29 @@ export const menuItemsByCategory: Record<MenuCategory, MenuItem[]> = {
 /**
  * Get visible menu items based on level
  */
+function isItemSupportedByCapabilities(
+  item: MenuItem,
+  codeTool: CodeToolType,
+): boolean {
+  const descriptor = getRuntimeCapabilityDescriptor(codeTool)
+  if (!descriptor) {
+    return true
+  }
+
+  const rule = MENU_ITEM_CAPABILITY_RULES[item.id]
+  return rule ? rule(descriptor) : true
+}
+
 export function isItemSupportedForTool(
   item: MenuItem,
   codeTool: CodeToolType,
 ): boolean {
-  return !item.supportedTools || item.supportedTools.includes(codeTool)
+  const toolSupported = !item.supportedTools || item.supportedTools.includes(codeTool)
+  if (!toolSupported) {
+    return false
+  }
+
+  return isItemSupportedByCapabilities(item, codeTool)
 }
 
 export function getVisibleItems(
@@ -447,6 +494,10 @@ export function getItemById(id: string): MenuItem | undefined {
  * Map of legacy menu keys to new menu item IDs
  * For backward compatibility during migration
  */
+export const __testUtils = {
+  isItemSupportedByCapabilities,
+}
+
 export const legacyKeyToItemId: Record<string, string> = {
   // Quick Actions
   '1': 'init',

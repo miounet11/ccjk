@@ -2,6 +2,8 @@
  * Main entry point for code-tools module
  */
 
+import type { CodeToolType } from '../constants'
+import type { RuntimeCapabilityDescriptor } from './core/types'
 import { AiderTool } from './adapters/aider'
 import { ClaudeCodeTool } from './adapters/claude-code'
 import { ClineTool } from './adapters/cline'
@@ -27,6 +29,34 @@ export * from './core/tool-factory'
 export { createTool } from './core/tool-factory'
 export * from './core/tool-registry'
 
+const RUNTIME_CAPABILITY_FALLBACKS: Partial<Record<CodeToolType, RuntimeCapabilityDescriptor>> = {
+  myclaude: {
+    runtime: 'myclaude',
+    ownership: 'hybrid',
+    configBackend: 'claude-family',
+    native: {
+      agentLoop: true,
+      planTask: true,
+      subagents: true,
+      slashCommands: true,
+      mcp: true,
+      permissions: true,
+      memory: true,
+      ideIntegration: true,
+      worktree: true,
+      statusline: true,
+    },
+    managedByCcjk: {
+      providerProfiles: true,
+      modelRouting: true,
+      configSync: true,
+      permissionRepair: true,
+      mcpBundles: true,
+      doctor: true,
+    },
+  },
+}
+
 // Get registry instance
 const registry = ToolRegistry.getInstance()
 
@@ -40,3 +70,8 @@ registry.registerToolClass('cursor', CursorTool)
 
 export { getRegistry } from './core/tool-registry'
 export * from './core/types'
+
+export function getRuntimeCapabilityDescriptor(name: CodeToolType | string): RuntimeCapabilityDescriptor | undefined {
+  const normalizedName = name.toLowerCase() as CodeToolType
+  return registry.getTool(normalizedName)?.getMetadata().runtime || RUNTIME_CAPABILITY_FALLBACKS[normalizedName]
+}

@@ -80,6 +80,47 @@ import { selectAndInstallWorkflows } from '../utils/workflow-installer'
 
 const ccjkVersion = getRuntimeVersion()
 
+interface SetupCompletionGuidance {
+  step1: string
+  step1Detail: string
+  step1Detail2: string
+  step2: string
+  step2Example: string
+  step3: string
+  step3Command: string
+  step4: string
+  step4Command: string
+}
+
+export function getSetupCompletionGuidance(codeToolType: CodeToolType): SetupCompletionGuidance {
+  if (codeToolType === 'myclaude') {
+    return {
+      step1: i18n.t('configuration:guidanceStep1', { runtime: 'myclaude' }),
+      step1Detail: i18n.t('configuration:guidanceStep1MyclaudeDetail'),
+      step1Detail2: i18n.t('configuration:guidanceStep1MyclaudeDetail2'),
+      step2: i18n.t('configuration:guidanceStep2'),
+      step2Example: i18n.t('configuration:guidanceStep2Example'),
+      step3: i18n.t('configuration:guidanceStep3Myclaude'),
+      step3Command: i18n.t('configuration:guidanceStep3MyclaudeCommand'),
+      step4: i18n.t('configuration:guidanceStep4'),
+      step4Command: i18n.t('configuration:guidanceStep4Command'),
+    }
+  }
+
+  const runtimeLabel = CODE_TOOL_INFO[codeToolType]?.name || 'Claude Code'
+  return {
+    step1: i18n.t('configuration:guidanceStep1', { runtime: runtimeLabel }),
+    step1Detail: i18n.t('configuration:guidanceStep1Detail'),
+    step1Detail2: i18n.t('configuration:guidanceStep1Detail2'),
+    step2: i18n.t('configuration:guidanceStep2'),
+    step2Example: i18n.t('configuration:guidanceStep2Example'),
+    step3: i18n.t('configuration:guidanceStep3'),
+    step3Command: i18n.t('configuration:guidanceStep3Command'),
+    step4: i18n.t('configuration:guidanceStep4'),
+    step4Command: i18n.t('configuration:guidanceStep4Command'),
+  }
+}
+
 export interface InitOptions {
   configLang?: SupportedLang
   aiOutputLang?: AiOutputLanguage | string
@@ -1170,6 +1211,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     // Step 13: Success message with enhanced guidance
     if (!options.skipPrompt && !options.skipBanner)
       tracker.complete()
+    const completionGuidance = getSetupCompletionGuidance(codeToolType)
     console.log('')
     console.log(
       ansis.bold.green('╔══════════════════════════════════════════════════════════════╗'),
@@ -1195,30 +1237,17 @@ export async function init(options: InitOptions = {}): Promise<void> {
     )
     console.log(
       ansis.bold.green('║')
-      + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep1')}`, 62)
+      + padToDisplayWidth(`  ${completionGuidance.step1}`, 62)
       + ansis.bold.green('║'),
     )
     console.log(
       ansis.bold.green('║')
-      + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail')}`, 62))
+      + ansis.dim(padToDisplayWidth(`     ${completionGuidance.step1Detail}`, 62))
       + ansis.bold.green('║'),
     )
     console.log(
       ansis.bold.green('║')
-      + ansis.dim(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep1Detail2')}`, 62))
-      + ansis.bold.green('║'),
-    )
-    console.log(
-      `${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`,
-    )
-    console.log(
-      ansis.bold.green('║')
-      + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep2')}`, 62)
-      + ansis.bold.green('║'),
-    )
-    console.log(
-      ansis.bold.green('║')
-      + ansis.green(padToDisplayWidth(`     ${i18n.t('configuration:guidanceStep2Example')}`, 62))
+      + ansis.dim(padToDisplayWidth(`     ${completionGuidance.step1Detail2}`, 62))
       + ansis.bold.green('║'),
     )
     console.log(
@@ -1226,14 +1255,27 @@ export async function init(options: InitOptions = {}): Promise<void> {
     )
     console.log(
       ansis.bold.green('║')
-      + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep3')} `, 44)
-      + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep3Command'), 18))
+      + padToDisplayWidth(`  ${completionGuidance.step2}`, 62)
       + ansis.bold.green('║'),
     )
     console.log(
       ansis.bold.green('║')
-      + padToDisplayWidth(`  ${i18n.t('configuration:guidanceStep4')} `, 44)
-      + ansis.yellow(padToDisplayWidth(i18n.t('configuration:guidanceStep4Command'), 18))
+      + ansis.green(padToDisplayWidth(`     ${completionGuidance.step2Example}`, 62))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      `${ansis.bold.green('║')}                                                              ${ansis.bold.green('║')}`,
+    )
+    console.log(
+      ansis.bold.green('║')
+      + padToDisplayWidth(`  ${completionGuidance.step3} `, 44)
+      + ansis.yellow(padToDisplayWidth(completionGuidance.step3Command, 18))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      ansis.bold.green('║')
+      + padToDisplayWidth(`  ${completionGuidance.step4} `, 44)
+      + ansis.yellow(padToDisplayWidth(completionGuidance.step4Command, 18))
       + ansis.bold.green('║'),
     )
     console.log(

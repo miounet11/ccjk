@@ -26,6 +26,31 @@ export class ClaudeCodeTool extends BaseCodeTool implements IChatTool, IFileEdit
         supportsTesting: true,
         supportsDebugging: true,
       },
+      runtime: {
+        runtime: 'claude-code',
+        ownership: 'host-native',
+        configBackend: 'claude-family',
+        native: {
+          agentLoop: true,
+          planTask: true,
+          subagents: true,
+          slashCommands: true,
+          mcp: true,
+          permissions: true,
+          memory: true,
+          ideIntegration: true,
+          worktree: true,
+          statusline: true,
+        },
+        managedByCcjk: {
+          providerProfiles: false,
+          modelRouting: true,
+          configSync: true,
+          permissionRepair: true,
+          mcpBundles: true,
+          doctor: true,
+        },
+      },
     }
   }
 
