@@ -861,6 +861,11 @@ export async function init(options: InitOptions = {}): Promise<void> {
                 baseUrl: profile.baseUrl,
                 model: profile.primaryModel,
                 fastModel: profile.defaultHaikuModel,
+                authType: profile.authType,
+                primaryModel: profile.primaryModel,
+                defaultHaikuModel: profile.defaultHaikuModel,
+                defaultSonnetModel: profile.defaultSonnetModel,
+                defaultOpusModel: profile.defaultOpusModel,
               },
             ], profile.id || profile.name)
           }

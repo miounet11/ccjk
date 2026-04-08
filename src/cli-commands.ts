@@ -1853,6 +1853,9 @@ export const COMMANDS: CommandDefinition[] = [
     options: [
       { flags: '--json', description: 'Output as JSON' },
       { flags: '--compact', description: 'Compact output' },
+      { flags: '--fix', description: 'Run fixable recommendations' },
+      { flags: '--yes, -y', description: 'Auto-confirm fixes' },
+      { flags: '--dry-run', description: 'Preview fix commands without executing' },
     ],
     loader: async () => {
       const { statusCommand } = await import('./commands/status')
@@ -1860,6 +1863,9 @@ export const COMMANDS: CommandDefinition[] = [
         await statusCommand({
           json: options.json as boolean,
           compact: options.compact as boolean,
+          fix: options.fix as boolean,
+          yes: options.yes as boolean,
+          dryRun: options.dryRun as boolean,
         })
       }
     },

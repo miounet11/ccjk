@@ -6,6 +6,33 @@ import { existsSync, readFileSync } from 'node:fs'
 import process from 'node:process'
 import { SETTINGS_FILE } from '../../constants'
 
+function collectModelDetails(settings: any): string[] {
+  const env = settings?.env || {}
+  const details: string[] = []
+
+  const primaryModel = settings?.model && settings.model !== 'default'
+    ? settings.model
+    : env.ANTHROPIC_MODEL
+  const haikuModel = env.ANTHROPIC_DEFAULT_HAIKU_MODEL || env.ANTHROPIC_SMALL_FAST_MODEL
+  const sonnetModel = env.ANTHROPIC_DEFAULT_SONNET_MODEL
+  const opusModel = env.ANTHROPIC_DEFAULT_OPUS_MODEL
+
+  if (primaryModel) {
+    details.push(`  primary: ${primaryModel}`)
+  }
+  if (haikuModel) {
+    details.push(`  haiku: ${haikuModel}`)
+  }
+  if (sonnetModel) {
+    details.push(`  sonnet: ${sonnetModel}`)
+  }
+  if (opusModel) {
+    details.push(`  opus: ${opusModel}`)
+  }
+
+  return details
+}
+
 export const modelCheck: HealthCheck = {
   name: 'Default Model',
   weight: 5,
@@ -24,7 +51,13 @@ export const modelCheck: HealthCheck = {
 
       const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
       const hasModel = settings.model || settings.defaultModel || settings.preferredModel
+        || settings.env?.ANTHROPIC_MODEL
+        || settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
+        || settings.env?.ANTHROPIC_SMALL_FAST_MODEL
+        || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
+        || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL
       const hasApiKey = settings.apiKey || settings.env?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY
+      const details = collectModelDetails(settings)
 
       if (!hasApiKey) {
         return {
@@ -35,7 +68,7 @@ export const modelCheck: HealthCheck = {
           message: 'No API key configured (using default)',
           fix: 'Configure API for direct access',
           command: 'ccjk menu',
-          details: ['  Using Claude Code default API'],
+          details: details.length > 0 ? details : ['  Using Claude Code default API'],
         }
       }
 
@@ -44,7 +77,8 @@ export const modelCheck: HealthCheck = {
         status: 'pass',
         score: hasModel ? 100 : 70,
         weight: this.weight,
-        message: hasModel ? `Model: ${hasModel}` : 'API configured (default model)',
+        message: hasModel ? `Model configured` : 'API configured (default model)',
+        details,
       }
     }
     catch {

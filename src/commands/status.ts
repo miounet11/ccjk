@@ -27,6 +27,9 @@ import { resolveCodeType } from '../utils/code-type-resolver'
 export interface StatusOptions {
   json?: boolean
   compact?: boolean
+  fix?: boolean
+  yes?: boolean
+  dryRun?: boolean
 }
 
 interface InstalledSettings {
@@ -285,9 +288,22 @@ function renderHooksSection(recommended: string[], installed: Record<string, any
   return lines
 }
 
-function renderClaudeCodeSection(defaults: SmartDefaults | null): string[] {
+function getRuntimeSectionTitle(codeTool?: string): string {
+  switch (codeTool) {
+    case 'myclaude':
+      return 'myclaude'
+    case 'codex':
+      return 'Codex'
+    case 'claude-code':
+      return 'Claude Code'
+    default:
+      return 'Claude Runtime'
+  }
+}
+
+function renderClaudeCodeSection(defaults: SmartDefaults | null, codeTool?: string): string[] {
   const lines: string[] = []
-  lines.push(heading('Claude Code'))
+  lines.push(heading(getRuntimeSectionTitle(codeTool)))
 
   const version = defaults?.claudeCodeVersion
   lines.push(`  ${label('Version:'.padEnd(14))} ${version ? val(version) : ansis.gray('not detected')}`)
@@ -311,13 +327,34 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null): string[] {
   // Model routing info
   try {
     const settingsPath = join(homedir(), '.claude', 'settings.json')
+    const myclaudePath = join(homedir(), '.claude.json')
     if (existsSync(settingsPath)) {
       const data = JSON.parse(readFileSync(settingsPath, 'utf-8'))
       const env = data.env || {}
       const haiku = env.ANTHROPIC_DEFAULT_HAIKU_MODEL
       const sonnet = env.ANTHROPIC_DEFAULT_SONNET_MODEL
       const opus = env.ANTHROPIC_DEFAULT_OPUS_MODEL
+      const primary = data.model || env.ANTHROPIC_MODEL
       const hasAdaptive = Boolean(haiku || sonnet || opus)
+
+      if (existsSync(myclaudePath)) {
+        try {
+          const myclaudeData = JSON.parse(readFileSync(myclaudePath, 'utf-8'))
+          const activeId = myclaudeData.myclaudeActiveProviderProfileId
+          const activeProfile = Array.isArray(myclaudeData.myclaudeProviderProfiles)
+            ? myclaudeData.myclaudeProviderProfiles.find((profile: any) => String(profile?.id) === String(activeId))
+            : null
+          if (activeId) {
+            lines.push(`  ${label('Provider:'.padEnd(14))} ${val(`myclaude/${activeId}`)}`)
+          }
+          if (activeProfile?.baseUrl) {
+            lines.push(`  ${label('API Base:'.padEnd(14))} ${val(activeProfile.baseUrl)}`)
+          }
+        }
+        catch {
+          // ignore myclaude metadata parse issues
+        }
+      }
 
       if (data.model && hasAdaptive) {
         // Broken state: settings.model overrides adaptive routing
@@ -327,6 +364,8 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null): string[] {
       else if (hasAdaptive) {
         // Healthy adaptive routing
         lines.push(`  ${label('Routing:'.padEnd(14))} ${ansis.green('adaptive')}`)
+        if (primary)
+          lines.push(`  ${label('  Primary:'.padEnd(14))} ${val(primary)}`)
         if (haiku)
           lines.push(`  ${label('  Quick:'.padEnd(14))} ${val(haiku)}`)
         if (sonnet)
@@ -334,8 +373,8 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null): string[] {
         if (opus)
           lines.push(`  ${label('  Complex:'.padEnd(14))} ${val(opus)}`)
       }
-      else if (data.model) {
-        lines.push(`  ${label('Model:'.padEnd(14))} ${val(data.model)}`)
+      else if (primary) {
+        lines.push(`  ${label('Model:'.padEnd(14))} ${val(primary)}`)
       }
     }
   }
@@ -391,6 +430,11 @@ function renderHealthSection(report: HealthReport, compact: boolean): string[] {
       const icon = STATUS_ICONS[r.status]
       const scoreText = ansis.gray(`${r.score}/${r.weight}`)
       lines.push(`  ${icon} ${r.name.padEnd(18)} ${scoreText.padEnd(10)} ${ansis.gray(r.message)}`)
+      if (r.details?.length) {
+        for (const detail of r.details) {
+          lines.push(`     ${ansis.gray(detail)}`)
+        }
+      }
     }
   }
 
@@ -497,12 +541,12 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
     if (defaults) {
       sections.push(renderMcpSection(defaults.mcpServices, installed.mcpServers))
       sections.push(renderHooksSection(defaults.recommendedHooks, installed.hooks))
-      sections.push(renderClaudeCodeSection(defaults))
+      sections.push(renderClaudeCodeSection(defaults, codeTool))
     }
     else {
       sections.push(renderMcpSection([], installed.mcpServers))
       sections.push(renderHooksSection([], installed.hooks))
-      sections.push(renderClaudeCodeSection(null))
+      sections.push(renderClaudeCodeSection(null, codeTool))
     }
 
     sections.push(renderHealthSection(health, options.compact || false))
@@ -530,11 +574,14 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
     }
     console.log()
 
-    // Offer one-click fix for fixable items
+    // Offer opt-in fixes for fixable items
     const fixable = health.results.filter(r => r.status !== 'pass' && r.command)
-    if (fixable.length > 0 && !options.json) {
+    if (fixable.length > 0 && !options.json && options.fix) {
       const { autoFix } = await import('../health/auto-fixer')
-      await autoFix(fixable)
+      await autoFix(fixable, {
+        autoApprove: options.yes,
+        dryRun: options.dryRun,
+      })
     }
   }
   catch (error) {
