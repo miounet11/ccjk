@@ -96,7 +96,7 @@ jobs:
 
       - name: Run TypeScript check
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
-        run: pnpm typecheck
+        run: pnpm typecheck:root
 
       - name: Run release smoke suite
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
@@ -104,7 +104,7 @@ jobs:
 
       - name: Build project
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
-        run: pnpm build
+        run: pnpm build:root
 
       - name: Publish package
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
