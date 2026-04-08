@@ -1,9 +1,11 @@
 # Development Dockerfile
 FROM node:22-alpine
 
+ARG PNPM_VERSION=10.17.1
+
 # Install pnpm and development tools
 RUN apk add --no-cache git && \
-    npm install -g pnpm@9
+    npm install -g pnpm@${PNPM_VERSION}
 
 # Set working directory
 WORKDIR /app
