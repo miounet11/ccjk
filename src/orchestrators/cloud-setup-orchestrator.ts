@@ -113,6 +113,8 @@ export interface CloudSetupResult {
 }
 
 export interface CloudRecommendations {
+  /** Recommendation source */
+  source: 'cloud' | 'local'
   /** Skills recommendations */
   skills: Recommendation[]
   /** MCP services recommendations */
@@ -223,7 +225,13 @@ export class CloudSetupOrchestrator {
       }
 
       // Step 5: Batch download templates
-      const templates = await this.downloadTemplates(recommendations, options)
+      const templates = recommendations.source === 'cloud'
+        ? await this.downloadTemplates(recommendations, options)
+        : {
+            requestId: 'local-templates-skipped',
+            templates: {},
+            notFound: [],
+          }
 
       // Step 6: Execute installation (parallel)
       const result = await this.executeInstallation(recommendations, templates, options)
@@ -378,6 +386,7 @@ export class CloudSetupOrchestrator {
       // Categorize recommendations
       const fingerprint = this.generateProjectFingerprint(analysis)
       const recommendations: CloudRecommendations = {
+        source: 'cloud',
         skills: data.recommendations.filter((r: Recommendation) => r.category === 'skill'),
         mcpServices: data.recommendations.filter((r: Recommendation) => r.category === 'mcp'),
         agents: data.recommendations.filter((r: Recommendation) => r.category === 'agent'),
@@ -549,6 +558,7 @@ export class CloudSetupOrchestrator {
 
     const fingerprint = this.generateProjectFingerprint(analysis)
     return {
+      source: 'local',
       skills: recommendations.filter(r => r.category === 'skill'),
       mcpServices: recommendations.filter(r => r.category === 'mcp'),
       agents: recommendations.filter(r => r.category === 'agent'),
@@ -759,8 +769,18 @@ export class CloudSetupOrchestrator {
       return templates
     }
     catch (error) {
-      this.logger.error('Failed to download templates:', error)
-      throw error
+      // Template downloads should not block local fallback or report generation flows.
+      this.logger.warn('Failed to download templates, continuing without templates:', error)
+      return {
+        requestId: 'template-download-failed',
+        templates: {},
+        notFound: [
+          ...recommendations.skills.map(r => r.id),
+          ...recommendations.mcpServices.map(r => r.id),
+          ...recommendations.agents.map(r => r.id),
+          ...recommendations.hooks.map(r => r.id),
+        ],
+      }
     }
   }
 
@@ -1101,9 +1121,15 @@ export class CloudSetupOrchestrator {
     recommendations: CloudRecommendations,
     options: CloudSetupOptions,
   ): Promise<string> {
+    const reportExtension = options.reportFormat === 'json'
+      ? 'json'
+      : options.reportFormat === 'html'
+        ? 'html'
+        : 'md'
+
     const reportPath = join(
       process.cwd(),
-      `ccjk-setup-report-${new Date().toISOString().replace(/[:.]/g, '-')}.${options.reportFormat || 'md'}`,
+      `ccjk-setup-report-${new Date().toISOString().replace(/[:.]/g, '-')}.${reportExtension}`,
     )
 
     let content = ''

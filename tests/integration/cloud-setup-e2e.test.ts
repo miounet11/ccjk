@@ -15,7 +15,9 @@ import type {
   ProjectAnalysisResponse,
 } from '../../src/cloud-client/types'
 import type { CloudApiResponse } from '../../src/services/cloud/api-client'
+import { unlink } from 'node:fs/promises'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ccjkSkills } from '../../src/commands/ccjk-skills'
 import { CloudSetupOrchestrator } from '../../src/orchestrators/cloud-setup-orchestrator'
 import {
   createMockAnalysisResponse,
@@ -204,6 +206,7 @@ describe('cloud Setup E2E Integration Tests', () => {
       expect(result.reportPath).toBeDefined()
       if (result.reportPath) {
         expect(result.reportPath).toMatch(/\.md$/)
+        await unlink(result.reportPath).catch(() => {})
       }
     }, 30000)
   })
@@ -320,8 +323,7 @@ describe('cloud Setup E2E Integration Tests', () => {
       mockServer.setResponse('templates.batch', templateResponse)
 
       // Mock installation failure
-      const { ccjkSkills } = require('../../src/commands/ccjk-skills')
-      ccjkSkills.mockRejectedValueOnce(new Error('Installation failed'))
+      vi.mocked(ccjkSkills).mockRejectedValueOnce(new Error('Installation failed'))
 
       // Act
       const result = await orchestrator.executeCloudSetup({

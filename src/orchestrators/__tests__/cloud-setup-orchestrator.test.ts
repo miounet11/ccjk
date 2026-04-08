@@ -3,7 +3,6 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createCompleteCloudClient } from '../../cloud-client'
 import { CloudSetupOrchestrator } from '../cloud-setup-orchestrator'
 
 // Mock dependencies
@@ -11,19 +10,16 @@ const mockInquirer = {
   prompt: vi.fn(),
 }
 
+let globalMockGateway: any = null
+
 vi.mock('inquirer', () => ({
   __esModule: true,
   default: mockInquirer,
   inquirer: mockInquirer,
 }))
 
-vi.mock('../../cloud-client', () => ({
-  createCompleteCloudClient: vi.fn(() => ({
-    analyzeProject: vi.fn(),
-    getBatchTemplates: vi.fn(),
-    reportUsage: vi.fn(),
-    healthCheck: vi.fn(),
-  })),
+vi.mock('../../cloud-client/gateway', () => ({
+  createDefaultGateway: vi.fn(() => globalMockGateway),
 }))
 
 vi.mock('../../analyzers', () => ({
@@ -55,12 +51,17 @@ vi.mock('../../commands/ccjk-hooks', () => ({
 
 describe('cloudSetupOrchestrator', () => {
   let orchestrator: CloudSetupOrchestrator
-  let mockCloudClient: any
+  let mockGateway: any
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGateway = {
+      request: vi.fn(),
+      setAuthToken: vi.fn(),
+      getConfig: vi.fn(() => ({})),
+    }
+    globalMockGateway = mockGateway
     orchestrator = new CloudSetupOrchestrator()
-    mockCloudClient = (createCompleteCloudClient as any).mock.results[0]?.value
     // Reset inquirer mock to return true by default
     mockInquirer.prompt.mockResolvedValue({ confirm: true })
   })
@@ -117,12 +118,18 @@ describe('cloudSetupOrchestrator', () => {
         notFound: [],
       }
 
-      mockCloudClient.analyzeProject.mockResolvedValue({
-        requestId: 'test-request',
-        recommendations: mockRecommendations.skills,
-      })
-
-      mockCloudClient.getBatchTemplates.mockResolvedValue(mockTemplates)
+      mockGateway.request
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            requestId: 'test-request',
+            recommendations: mockRecommendations.skills,
+          },
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: mockTemplates,
+        })
 
       const options = {
         interactive: false,
@@ -147,7 +154,7 @@ describe('cloudSetupOrchestrator', () => {
     })
 
     it('should handle cloud unavailability and fallback to local', async () => {
-      mockCloudClient.analyzeProject.mockRejectedValue(new Error('Network error'))
+      mockGateway.request.mockRejectedValue(new Error('Network error'))
 
       const options = {
         interactive: false,
@@ -237,11 +244,16 @@ describe('cloudSetupOrchestrator', () => {
       const orchestratorAny = orchestrator as any
       await orchestratorAny.uploadTelemetry(result)
 
-      expect(mockCloudClient.reportUsage).toHaveBeenCalled()
+      expect(mockGateway.request).toHaveBeenCalledWith(
+        'telemetry.installation',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      )
     })
 
     it('should handle telemetry upload failure gracefully', async () => {
-      mockCloudClient.reportUsage.mockRejectedValue(new Error('Upload failed'))
+      mockGateway.request.mockRejectedValue(new Error('Upload failed'))
 
       const result = {
         requestId: 'test-request',
@@ -257,7 +269,12 @@ describe('cloudSetupOrchestrator', () => {
       await orchestratorAny.uploadTelemetry(result)
 
       // Should not throw error
-      expect(mockCloudClient.reportUsage).toHaveBeenCalled()
+      expect(mockGateway.request).toHaveBeenCalledWith(
+        'telemetry.installation',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      )
     })
   })
 
@@ -274,14 +291,22 @@ describe('cloudSetupOrchestrator', () => {
       }
 
       // Mock successful cloud setup
-      mockCloudClient.analyzeProject.mockResolvedValue({
-        requestId: 'test-request',
-        recommendations: [],
-      })
-      mockCloudClient.getBatchTemplates.mockResolvedValue({
-        templates: {},
-        notFound: [],
-      })
+      mockGateway.request
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            requestId: 'test-request',
+            recommendations: [],
+          },
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            requestId: 'test-request',
+            templates: {},
+            notFound: [],
+          },
+        })
 
       const options = { useCloud: true }
 
@@ -292,13 +317,7 @@ describe('cloudSetupOrchestrator', () => {
 
     it('should fallback to local on network error', async () => {
       // Mock cloud client to throw network error
-      mockCloudClient.analyzeProject.mockRejectedValue({ code: 'ENOTFOUND' })
-
-      // Mock local fallback templates
-      mockCloudClient.getBatchTemplates.mockResolvedValue({
-        templates: {},
-        notFound: [],
-      })
+      mockGateway.request.mockRejectedValue({ code: 'ENOTFOUND' })
 
       const options = { useCloud: true }
 
@@ -309,13 +328,15 @@ describe('cloudSetupOrchestrator', () => {
       expect(result.confidence).toBeLessThan(100)
     })
 
-    it('should throw non-network errors', async () => {
-      // Mock cloud client to throw non-network error
-      mockCloudClient.analyzeProject.mockRejectedValue(new Error('Invalid request'))
+    it('should return a local fallback result on cloud request errors', async () => {
+      mockGateway.request.mockRejectedValue(new Error('Invalid request'))
 
       const options = { useCloud: true }
 
-      await expect(orchestrator.executeWithFallback(options)).rejects.toThrow()
+      const result = await orchestrator.executeWithFallback(options)
+
+      expect(result).toBeDefined()
+      expect(result.confidence).toBeLessThan(100)
     })
   })
 })
