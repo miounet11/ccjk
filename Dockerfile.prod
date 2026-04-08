@@ -9,14 +9,11 @@ RUN npm install -g pnpm@${PNPM_VERSION}
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+# Copy source code
+COPY . .
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile --prod=false
-
-# Copy source code
-COPY . .
 
 # Build project
 RUN pnpm build
@@ -38,6 +35,7 @@ COPY package.json ./
 # Copy built files and runtime dependencies from base stage
 COPY --from=base /app/dist ./dist
 COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/templates ./templates
 
 # Create non-root user
 RUN addgroup -g 1001 -S ccjk && \

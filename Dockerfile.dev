@@ -10,14 +10,11 @@ RUN apk add --no-cache git && \
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-
-# Install all dependencies (including dev)
-RUN pnpm install --frozen-lockfile
-
 # Copy source code
 COPY . .
+
+# Install all dependencies (including workspace dev deps)
+RUN pnpm install --frozen-lockfile
 
 # Build project
 RUN pnpm build
