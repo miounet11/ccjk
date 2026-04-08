@@ -17,15 +17,15 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
@@ -130,19 +130,30 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.version.outputs.publish == 'true' && steps.npm.outputs.already_published != 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.after_version }}
-          name: Release v${{ steps.version.outputs.after_version }}
-          body: |
-            Published `ccjk@${{ steps.version.outputs.after_version }}` to npm.
-
-            Install or verify with:
-            ```bash
-            npm install -g ccjk@${{ steps.version.outputs.after_version }}
-            npx --yes ccjk@latest --version
-            ```
-          generate_release_notes: true
-          make_latest: true
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_VERSION: ${{ steps.version.outputs.after_version }}
+        run: |
+          set -euo pipefail
+
+          TAG="v${PACKAGE_VERSION}"
+          RELEASE_NOTES=$(cat <<EOF
+          Published ccjk@${PACKAGE_VERSION} to npm.
+
+          Install or verify with:
+          - npm install -g ccjk@${PACKAGE_VERSION}
+          - npx --yes ccjk@latest --version
+          EOF
+          )
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists."
+          else
+            gh release create "${TAG}" \
+              --verify-tag \
+              --title "Release ${TAG}" \
+              --notes "${RELEASE_NOTES}" \
+              --generate-notes \
+              --latest
+          fi
