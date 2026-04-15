@@ -7,15 +7,22 @@ describe('init completion guidance', () => {
     await initI18n('en')
   })
 
-  it('uses myclaude-specific completion guidance without fake /ccjk overview command', () => {
+  it('uses myclaude-specific completion guidance for installed workflow commands', () => {
     const guidance = getSetupCompletionGuidance('myclaude')
 
     expect(guidance.step1).toContain('myclaude')
     expect(guidance.step1Detail).toContain('/ccjk:feat')
-    expect(guidance.step1Detail2).toContain('/commit')
-    expect(guidance.step1Detail2).toContain('/workflow')
+    expect(guidance.step1Detail).toContain('/ccjk:git-commit')
+    expect(guidance.step1Detail2).toContain('/ccjk:init-project')
+    expect(guidance.step1Detail2).toContain('/commands')
+    expect(guidance.step1Detail2).not.toContain('/commit')
+    expect(guidance.step1Detail2).not.toContain('/workflow')
     expect(guidance.step1Detail2).not.toContain('/ccjk - View All')
     expect(guidance.step3Command).toBe('/commands')
+    expect(guidance.step4).toContain('Verify setup health')
+    expect(guidance.step4Command).toBe('npx ccjk doctor')
+    expect(guidance.step5).toContain('Keep CCJK updated')
+    expect(guidance.step5Command).toBe('npx ccjk update')
   })
 
   it('keeps claude-code completion guidance for installed workflow commands', () => {
@@ -25,5 +32,7 @@ describe('init completion guidance', () => {
     expect(guidance.step1Detail).toContain('/ccjk:feat')
     expect(guidance.step1Detail2).toContain('/commands')
     expect(guidance.step3Command).toBe('npx ccjk features')
+    expect(guidance.step4Command).toBe('npx ccjk doctor')
+    expect(guidance.step5Command).toBe('npx ccjk update')
   })
 })

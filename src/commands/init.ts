@@ -90,6 +90,8 @@ interface SetupCompletionGuidance {
   step3Command: string
   step4: string
   step4Command: string
+  step5: string
+  step5Command: string
 }
 
 export function getSetupCompletionGuidance(codeToolType: CodeToolType): SetupCompletionGuidance {
@@ -104,6 +106,8 @@ export function getSetupCompletionGuidance(codeToolType: CodeToolType): SetupCom
       step3Command: i18n.t('configuration:guidanceStep3MyclaudeCommand'),
       step4: i18n.t('configuration:guidanceStep4'),
       step4Command: i18n.t('configuration:guidanceStep4Command'),
+      step5: i18n.t('configuration:guidanceStep5'),
+      step5Command: i18n.t('configuration:guidanceStep5Command'),
     }
   }
 
@@ -118,6 +122,8 @@ export function getSetupCompletionGuidance(codeToolType: CodeToolType): SetupCom
     step3Command: i18n.t('configuration:guidanceStep3Command'),
     step4: i18n.t('configuration:guidanceStep4'),
     step4Command: i18n.t('configuration:guidanceStep4Command'),
+    step5: i18n.t('configuration:guidanceStep5'),
+    step5Command: i18n.t('configuration:guidanceStep5Command'),
   }
 }
 
@@ -1281,6 +1287,12 @@ export async function init(options: InitOptions = {}): Promise<void> {
       ansis.bold.green('║')
       + padToDisplayWidth(`  ${completionGuidance.step4} `, 44)
       + ansis.yellow(padToDisplayWidth(completionGuidance.step4Command, 18))
+      + ansis.bold.green('║'),
+    )
+    console.log(
+      ansis.bold.green('║')
+      + padToDisplayWidth(`  ${completionGuidance.step5} `, 44)
+      + ansis.yellow(padToDisplayWidth(completionGuidance.step5Command, 18))
       + ansis.bold.green('║'),
     )
     console.log(
