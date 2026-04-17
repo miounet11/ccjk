@@ -8,11 +8,15 @@
  */
 
 import type { ProviderRegistry, QuickLaunchConfig, QuickLaunchOptions } from '../types/provider'
+import type { ClaudeSettings } from '../types/config'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import ora from 'ora'
+import { SETTINGS_FILE } from '../constants'
 import { getProviderRegistry } from '../services/provider-registry'
 import { isValidApiUrl } from '../types/provider'
+import { configureApi, overwriteModelSettings } from '../utils/config'
+import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
 
 // ============================================================================
 // Constants
@@ -482,54 +486,15 @@ async function saveProviderConfig(config: QuickLaunchConfig): Promise<void> {
   const spinner = ora('正在保存配置...').start()
 
   try {
-    // Import the configuration utilities
-    const { readJsonFile, writeJsonFile } = await import('../utils/fs-operations')
-    const { join } = await import('pathe')
-    const { homedir } = await import('node:os')
-    const { existsSync, mkdirSync } = await import('node:fs')
+    configureApi({
+      url: config.provider.apiUrl,
+      key: config.apiKey,
+      authType: 'api_key',
+    })
 
-    // Get Claude Code settings path (~/.claude/settings.json)
-    const claudeDir = join(homedir(), '.claude')
-    const settingsPath = join(claudeDir, 'settings.json')
-
-    // Ensure directory exists
-    if (!existsSync(claudeDir)) {
-      mkdirSync(claudeDir, { recursive: true })
-    }
-
-    // Read existing settings or create new
-    let settings: Record<string, unknown> = {}
-    try {
-      if (existsSync(settingsPath)) {
-        settings = readJsonFile(settingsPath) || {}
-      }
-    }
-    catch {
-      // File doesn't exist or invalid, use empty object
-    }
-
-    // Update API configuration
-    settings.apiProvider = 'custom'
-    settings.apiUrl = config.provider.apiUrl
-    settings.apiKey = config.apiKey
-
-    settings.model = config.model
-
-    // Also set environment variables for compatibility
-    const envConfig = {
-      ANTHROPIC_BASE_URL: config.provider.apiUrl,
-      ANTHROPIC_API_KEY: config.apiKey,
-      ANTHROPIC_MODEL: config.model,
-    }
-
-    // Merge env config
-    settings.env = {
-      ...(settings.env as Record<string, string> || {}),
-      ...envConfig,
-    }
-
-    // Write settings
-    writeJsonFile(settingsPath, settings)
+    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || {}
+    overwriteModelSettings(settings, { primaryModel: config.model }, 'override')
+    writeJsonConfig(SETTINGS_FILE, settings)
 
     spinner.succeed(ansis.green('配置已保存'))
   }

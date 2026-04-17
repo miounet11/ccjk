@@ -14,6 +14,7 @@ import {
   CODE_TOOL_INFO,
   DEFAULT_CODE_TOOL_TYPE,
   SETTINGS_FILE,
+  ZCF_CONFIG_FILE,
   isClaudeFamilyCodeTool,
 } from '../constants'
 import { i18n } from '../i18n'
@@ -43,6 +44,7 @@ import {
 } from '../utils/claude-config'
 import { runCodexFullInit } from '../utils/code-tools/codex'
 import { resolveCodeType, resolveStartupCodeType } from '../utils/code-type-resolver'
+import { updateTomlConfig } from '../utils/ccjk-config'
 import { installCometixLine, isCometixLineInstalled } from '../utils/cometix/installer'
 import {
   applyAiLanguageDirective,
@@ -92,6 +94,28 @@ interface SetupCompletionGuidance {
   step4Command: string
   step5: string
   step5Command: string
+}
+
+interface InitArchetypeProfile {
+  id: 'pc-dev' | 'app-dev' | 'text-studio' | 'service-ops' | 'research' | 'automation' | 'custom'
+  name: string
+  goal: string
+}
+
+function getDefaultArchetypeProfile(codeToolType: CodeToolType): InitArchetypeProfile {
+  if (codeToolType === 'myclaude') {
+    return {
+      id: 'pc-dev',
+      name: 'PC Software Development',
+      goal: 'Use myclaude / Clavue as the primary execution runtime for coding, debugging, testing, and shipping',
+    }
+  }
+
+  return {
+    id: 'pc-dev',
+    name: 'PC Software Development',
+    goal: 'Build, debug, test, and ship software efficiently',
+  }
 }
 
 export function getSetupCompletionGuidance(codeToolType: CodeToolType): SetupCompletionGuidance {
@@ -1179,6 +1203,56 @@ export async function init(options: InitOptions = {}): Promise<void> {
       templateLang: configLang, // 模板语言
       aiOutputLang: aiOutputLang as AiOutputLanguage | string,
       codeToolType,
+    })
+
+    const defaultArchetype = getDefaultArchetypeProfile(codeToolType)
+    const runtimeDistribution = codeToolType === 'myclaude'
+      ? 'clavue'
+      : codeToolType === 'claude-code'
+          ? 'claude-code'
+          : 'generic'
+
+    updateTomlConfig(ZCF_CONFIG_FILE, {
+      adaptation: {
+        runtimeProfile: {
+          target: codeToolType,
+          distribution: runtimeDistribution,
+          compatMode: codeToolType === 'myclaude' ? 'native' : 'compatible',
+          providerStrategy: codeToolType === 'myclaude' ? 'profile-based' : 'env-based',
+        },
+        archetypeProfile: defaultArchetype,
+        capabilityProfile: {
+          coding: true,
+          planning: true,
+          taskTracking: true,
+          memory: true,
+          browserAutomation: false,
+          research: true,
+          documentAuthoring: false,
+          serviceOps: false,
+          multiAgent: codeToolType === 'myclaude',
+        },
+        policyProfile: {
+          permissionPreset: 'dev',
+          verificationMode: 'required',
+          destructiveActionPolicy: 'confirm',
+          workflowFallbackMode: 'graceful',
+        },
+        contextProfile: {
+          memoryMode: 'project-aware',
+          compressionMode: 'runtime-native',
+          instructionLayering: 'runtime-first',
+        },
+        profileSelection: {
+          workflowPack: 'desktop-engineering',
+          toolPack: 'typescript-node-react',
+        },
+        uiProfile: {
+          language: configLang as SupportedLang,
+          outputStyle: 'concise',
+          operatorMode: 'execution-first',
+        },
+      },
     })
 
     // Step 12.1: Ask to import recommended environment variables and permissions (if not skip-prompt)

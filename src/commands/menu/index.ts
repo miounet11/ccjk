@@ -89,6 +89,57 @@ function printSeparator(): void {
   console.log(`\n${ansis.dim('─'.repeat(50))}\n`)
 }
 
+interface SimpleNumericMenuOption {
+  key: string
+  label: string
+  description?: string
+  action: () => Promise<void>
+}
+
+async function runSimpleNumericMenu(options: {
+  title: string
+  subtitle?: string
+  items: SimpleNumericMenuOption[]
+  backLabel?: string
+  showSeparatorAfterAction?: boolean
+}): Promise<void> {
+  console.log(ansis.green(options.title))
+  if (options.subtitle) {
+    console.log(options.subtitle)
+  }
+
+  for (const item of options.items) {
+    const description = item.description ? ` ${ansis.gray(`- ${item.description}`)}` : ''
+    console.log(`  ${ansis.green(`${item.key}.`)} ${item.label}${description}`)
+  }
+
+  console.log(`  ${ansis.green('0.')} ${options.backLabel || i18n.t('common:back')}`)
+  console.log('')
+
+  const validChoices = ['0', ...options.items.map(item => item.key)]
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: value => validChoices.includes(value) || i18n.t('common:invalidChoice'),
+  })
+
+  if (!choice || choice === '0') {
+    return
+  }
+
+  const selectedItem = options.items.find(item => item.key === choice)
+  if (!selectedItem) {
+    return
+  }
+
+  await selectedItem.action()
+
+  if (options.showSeparatorAfterAction ?? true) {
+    printSeparator()
+  }
+}
+
 /**
  * Get current code tool type
  */
@@ -1194,55 +1245,36 @@ async function showMarketplaceMenu(): Promise<void> {
 }
 
 async function showHooksSyncMenu(): Promise<void> {
-  const _lang = i18n.language as SupportedLang
-
-  console.log(ansis.green(i18n.t('menu:hooksSync.title')))
-  console.log('  -------- Hooks Cloud Sync --------')
-  console.log(
-    `  ${ansis.green('1.')} ${i18n.t('menu:hooksSync.viewStatus')} ${ansis.gray(`- ${i18n.t('menu:hooksSync.viewStatusDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('2.')} ${i18n.t('menu:hooksSync.syncNow')} ${ansis.gray(`- ${i18n.t('menu:hooksSync.syncNowDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('3.')} ${i18n.t('menu:hooksSync.configure')} ${ansis.gray(`- ${i18n.t('menu:hooksSync.configureDesc')}`)}`,
-  )
-  console.log(
-    `  ${ansis.green('4.')} ${i18n.t('menu:hooksSync.browseTemplates')} ${ansis.gray(`- ${i18n.t('menu:hooksSync.browseTemplatesDesc')}`)}`,
-  )
-  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`)
-  console.log('')
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
-    name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', '3', '4', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
+  await runSimpleNumericMenu({
+    title: i18n.t('menu:hooksSync.title'),
+    subtitle: '  -------- Hooks Cloud Sync --------',
+    items: [
+      {
+        key: '1',
+        label: i18n.t('menu:hooksSync.viewStatus'),
+        description: i18n.t('menu:hooksSync.viewStatusDesc'),
+        action: async () => hooksSync({ action: 'list' }),
+      },
+      {
+        key: '2',
+        label: i18n.t('menu:hooksSync.syncNow'),
+        description: i18n.t('menu:hooksSync.syncNowDesc'),
+        action: async () => hooksSync({ action: 'sync' }),
+      },
+      {
+        key: '3',
+        label: i18n.t('menu:hooksSync.configure'),
+        description: i18n.t('menu:hooksSync.configureDesc'),
+        action: async () => hooksSync({}),
+      },
+      {
+        key: '4',
+        label: i18n.t('menu:hooksSync.browseTemplates'),
+        description: i18n.t('menu:hooksSync.browseTemplatesDesc'),
+        action: async () => hooksSync({ action: 'templates' }),
+      },
+    ],
   })
-
-  if (!choice || choice === '0') {
-    return
-  }
-
-  switch (choice) {
-    case '1':
-      await hooksSync({ action: 'list' })
-      break
-    case '2':
-      await hooksSync({ action: 'sync' })
-      break
-    case '3':
-      await hooksSync({})
-      break
-    case '4':
-      await hooksSync({ action: 'templates' })
-      break
-  }
-
-  printSeparator()
 }
 
 async function showQuickActionsMenu(): Promise<void> {

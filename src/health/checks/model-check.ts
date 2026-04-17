@@ -50,16 +50,21 @@ export const modelCheck: HealthCheck = {
       }
 
       const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
-      const hasModel = settings.model || settings.defaultModel || settings.preferredModel
+      const hasModel = settings.model
         || settings.env?.ANTHROPIC_MODEL
         || settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
         || settings.env?.ANTHROPIC_SMALL_FAST_MODEL
         || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
         || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL
-      const hasApiKey = settings.apiKey || settings.env?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY
+      const hasCredential = settings.authToken
+        || settings.apiKey
+        || settings.env?.ANTHROPIC_AUTH_TOKEN
+        || settings.env?.ANTHROPIC_API_KEY
+        || process.env.ANTHROPIC_AUTH_TOKEN
+        || process.env.ANTHROPIC_API_KEY
       const details = collectModelDetails(settings)
 
-      if (!hasApiKey) {
+      if (!hasCredential) {
         return {
           name: this.name,
           status: 'warn',

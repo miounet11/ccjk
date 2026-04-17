@@ -2,383 +2,236 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Changelog
-
-| Date | Version | Change |
-|------|---------|--------|
-| 2026-03-09 | 13.4.0 | Adaptive routing guard: fix settings.model overriding env-based model routing, startup auto-repair, model routing status in `ccjk status` |
-| 2026-03-09 | 13.3.22 | Model config improvements: interactive list for model selection, model subcommand added, usage impact dashboard, override mode for custom model editing, i18next promotional message suppression |
-| 2026-03-05 | 13.3.5 | Model selection fix: remove ANTHROPIC_MODEL env var to enable adaptive model selection based on task complexity |
-| 2026-03-04 | 13.3.4 | Fix: remove duplicate prompt hints in model config |
-| 2026-03-04 | 13.3.3 | Architecture documentation update: comprehensive module index with 33 modules, improved navigation structure, coverage tracking |
-| 2026-03-04 | 12.2.2 | Brain-router groundwork: added interceptor and auto-executor modules for optional slash-command compatibility experiments |
-| 2026-03-03 | 12.3.1 | Fix model priority: primaryModel now correctly sets ANTHROPIC_MODEL env var, and ANTHROPIC_MODEL is properly cleared when switching profiles |
-| 2026-03-03 | 12.2.1 | Smart routing and telemetry improvements |
-| 2026-03-02 | 12.1.0 | Fast installation & hierarchical menu system |
-| 2026-02-27 | 12.0.15 | Menu system refactored: hierarchical menu with 3-level structure, unified shortcuts (1-8, L, H, Q), optimized i18n (8-12 chars CN, 20-40 chars EN), enabled via CCJK_HIERARCHICAL_MENU=1 |
-| 2026-02-27 | 12.0.15 | CLAUDE.md review: added Quick Start section and debugging gotchas |
-| 2026-02-25 | 12.0.8 | Wire up smartGenerateAndInstall: add `generate`/`gen` CLI command, menu G. option, post-init prompt, help doc entry |
-| 2026-02-25 | 12.0.7 | Architecture diagram added; module index expanded to cover all src/ modules; module-level CLAUDE.md files generated |
-
-## Quick Start
-
-```bash
-# Development
-pnpm install
-pnpm build              # Build with unbuild
-pnpm typecheck          # TypeScript validation
-pnpm test:run           # Run unit tests
-pnpm test:integration:run  # Run integration tests
-
-# Test specific file
-pnpm vitest tests/commands/init.integration.test.ts
-
-# Run locally
-node dist/cli.mjs       # Interactive menu
-node dist/cli.mjs init  # Direct command
-```
-
 ## Project Overview
 
-CCJK is a TypeScript CLI tool that configures AI coding environments. It provides one-click setup for Claude Code, Codex, and other AI code tools with MCP services, API configuration, and workflow templates.
+CCJK is a TypeScript CLI for setting up and managing AI coding environments around Claude Code, myclaude, Codex, and related workflows. It combines local CLI setup, configuration management, MCP/service installation, workflow template installation, and project-aware recommendations.
 
-**Key capabilities:**
-- Brain System: Multi-agent orchestration with context compression
-- Cloud Sync: Configuration synchronization via GitHub Gist, WebDAV, or S3
-- MCP Marketplace: One-click MCP service installation
-- Health Monitor: Score-based setup quality assessment (`ccjk status`)
-- Code Tool Abstraction: Unified interface for Claude Code, Codex, Aider, Continue, Cline, Cursor
-- Cloud Client: Remote skills marketplace, recommendations, and telemetry
-- Smart Generation: Auto-detect project type and generate agents/skills
+The repo is a pnpm workspace. The root package builds the CLI plus workspace packages under `packages/*`.
 
-## Anti-Aggression Principle
-
-CCJK complements Claude Code CLI — it does NOT compete with it. Critical rules:
-- Skills must ONLY run when user explicitly invokes them
-- No unsolicited output (no welcome banners, no auto-print on startup)
-- Brain hook runs in silent mode when it is explicitly integrated
-- `bootstrapCloudServices()` is skipped entirely during interactive menu to prevent config write races
-
-## Model Config Guardrails
-
-**v13.3.22+ Features:**
-- Interactive list for model selection (inquirer-based)
-- `ccjk model` subcommand for quick model switching
-- Usage impact dashboard showing which models are affected
-- Override mode for custom model editing
-- i18next promotional message suppression
-
-**Critical Rules:**
-- For custom Claude model routing, keep `ANTHROPIC_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, and `ANTHROPIC_DEFAULT_OPUS_MODEL` in sync with the selected CCJK profile.
-- Always mirror `ANTHROPIC_DEFAULT_HAIKU_MODEL` into `ANTHROPIC_SMALL_FAST_MODEL`.
-- Never delete the Haiku fast-model compatibility key during cleanup, migration, or “priority fix” logic.
-- Do not assume missing `settings.model` is harmless; `/model` display and user expectations can diverge from env-only state.
-
-## Architecture Overview
-
-```mermaid
-graph TD
-    A["bin/ccjk.mjs"] --> B["src/cli.ts"]
-    B --> C["src/cli-lazy.ts"]
-    C --> D["commands/"]
-    C --> E["brain/"]
-    C --> F["cloud-sync/"]
-    C --> G["code-tools/"]
-    C --> H["health/"]
-    C --> I["discovery/"]
-    C --> J["utils/"]
-    C --> K["config/"]
-    C --> L["i18n/"]
-    C --> M["context/"]
-    C --> N["agents/"]
-    C --> O["cloud-client/"]
-    C --> P["generation/"]
-    C --> Q["skills/"]
-    C --> R["api-providers/"]
-    C --> S["orchestrators/"]
-    C --> T["services/"]
-    C --> U["workflow/"]
-
-    click D "./src/commands/CLAUDE.md" "Commands module"
-    click E "./src/brain/CLAUDE.md" "Brain module"
-    click F "./src/cloud-sync/CLAUDE.md" "Cloud Sync module"
-    click G "./src/code-tools/CLAUDE.md" "Code Tools module"
-    click H "./src/health/CLAUDE.md" "Health module"
-    click I "./src/discovery/CLAUDE.md" "Discovery module"
-    click J "./src/utils/CLAUDE.md" "Utils module"
-    click K "./src/config/CLAUDE.md" "Config module"
-    click L "./src/i18n/CLAUDE.md" "i18n module"
-    click M "./src/context/CLAUDE.md" "Context module"
-    click N "./src/agents/CLAUDE.md" "Agents module"
-    click O "./src/cloud-client/CLAUDE.md" "Cloud Client module"
-    click P "./src/generation/CLAUDE.md" "Generation module"
-    click Q "./src/skills/CLAUDE.md" "Skills module"
-    click R "./src/api-providers/CLAUDE.md" "API Providers module"
-    click S "./src/orchestrators/CLAUDE.md" "Orchestrators module"
-    click T "./src/services/CLAUDE.md" "Services module"
-    click U "./src/workflow/CLAUDE.md" "Workflow module"
-```
-
-## Module Index
-
-### Core Modules (High Priority)
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| CLI Entry | `src/cli.ts` + `src/cli-lazy.ts` | Lazy-loading command registration (~2200 lines) | ✓ | High |
-| commands | `src/commands/` | All CLI command implementations (init, menu, mcp, agents, etc.) | ✓ | High |
-| brain | `src/brain/` | Multi-agent orchestration, skill hot-reload, session management | ✓ | Medium |
-| code-tools | `src/code-tools/` | Unified abstraction for Claude Code, Codex, Aider, Continue, Cline, Cursor | ✓ | High |
-| utils | `src/utils/` | Config management, platform support, installer, workflow installer | ✓ | High |
-| config | `src/config/` | Workflow, MCP service, and API provider definitions | ✓ | High |
-
-### Cloud & Sync Modules
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| cloud-sync | `src/cloud-sync/` | Config sync via GitHub Gist, WebDAV, S3 | ✓ | Medium |
-| cloud-client | `src/cloud-client/` | Remote API client: skills marketplace, recommendations, telemetry | ✓ | High |
-| cloud-plugins | `src/cloud-plugins/` | Cloud plugin management and recommendation engine | ✗ | Low |
-
-### Intelligence & Context Modules
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| context | `src/context/` | Context window management, compression, caching, analytics | ✓ | Medium |
-| agents | `src/agents/` | Cowork orchestration patterns for multi-agent tasks | ✓ | Medium |
-| generation | `src/generation/` | Smart project analysis → agent/skill config generation | ✓ | Low |
-| skills | `src/skills/` | Skill registry, auto-trigger, intent detection | ✓ | Medium |
-| intents | `src/intents/` | Intent detection and routing | ✗ | Low |
-| discovery | `src/discovery/` | Project analyzer + skill/MCP matcher | ✓ | Medium |
-| analyzers | `src/analyzers/` | Code and project analysis utilities | ✗ | Low |
-
-### API & Provider Modules
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| api-providers | `src/api-providers/` | Multi-provider API management (302.AI, GLM, OpenAI, Anthropic, etc.) | ✓ | High |
-
-### System & Infrastructure Modules
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| health | `src/health/` | Score-based health check engine (6 weighted checks) | ✓ | Low |
-| monitoring | `src/monitoring/` | System monitoring and metrics collection | ✗ | Low |
-| orchestrators | `src/orchestrators/` | Task orchestration and workflow management | ✓ | Medium |
-| workflow | `src/workflow/` | Workflow definition and execution | ✓ | Medium |
-| task-manager | `src/task-manager/` | Task queue and execution management | ✗ | Low |
-| services | `src/services/` | Shared services and utilities | ✓ | Medium |
-
-### Security & Execution Modules
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| permissions | `src/permissions/` | Permission management and validation | ✓ | Medium |
-| sandbox | `src/sandbox/` | Sandboxed execution environment | ✓ | Low |
-
-### UI & Interaction Modules
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| i18n | `src/i18n/` | i18next with zh-CN and en locales (15 translation modules) | ✓ | High |
-| cli | `src/cli/` | Shell completion for Bash, Zsh, Fish, PowerShell | ✓ | Low |
-| terminal | `src/terminal/` | Terminal UI and interaction utilities | ✗ | Low |
-| interview | `src/interview/` | Interactive interview system for configuration | ✗ | Low |
-
-### Marketplace & Plugins
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| mcp-marketplace | `src/mcp-marketplace/` | MCP service marketplace and discovery | ✗ | Medium |
-| plugins-v2 | `src/plugins-v2/` | Plugin system v2 architecture | ✓ | Low |
-
-### Support Modules
-
-| Module | Path | Responsibility | Doc Status | Test Coverage |
-|--------|------|----------------|------------|---------------|
-| bootstrap | `src/bootstrap/` | Application bootstrap and initialization | ✗ | Low |
-| core | `src/core/` | Core utilities and shared functionality | ✗ | Medium |
-| types | `src/types/` | Shared TypeScript type definitions | ✓ | N/A |
-| postmortem | `src/postmortem/` | Post-execution analysis and reporting | ✗ | Low |
-
-**Documentation Coverage**: 24/33 modules (72.7%)
-
-**Modules needing documentation**: cloud-plugins, bootstrap, core, interview, intents, mcp-marketplace, monitoring, postmortem, task-manager, terminal, analyzers
-
-## Build and Development Commands
+## Common Commands
 
 ```bash
-pnpm dev                    # Run CLI in development mode (tsx)
-pnpm build                  # Production build (unbuild)
-pnpm typecheck              # TypeScript type checking
-pnpm lint                   # ESLint check
-pnpm lint:fix               # Auto-fix ESLint issues
-pnpm test:run               # Run tests once (no watch)
-pnpm vitest <pattern>       # Run specific test file
-pnpm test:e2e               # End-to-end tests
+pnpm install
+
+# Development
+pnpm dev
+pnpm build      # builds workspace release deps first, then the root CLI bundle
+pnpm typecheck  # typechecks after building required workspace deps
+pnpm lint
+
+# Tests
+pnpm test:run
+pnpm test:integration:run
+pnpm test:e2e:run
+pnpm vitest tests/commands/init.integration.test.ts
+pnpm vitest <path>
+
+# Run the built CLI locally
+node dist/cli.mjs
+node dist/cli.mjs init
 ```
 
-**Quick verification:** `pnpm typecheck && pnpm build`
+## Test Suite Boundaries
 
-**Test a menu option:** `echo '<option>' | node dist/cli.mjs 2>&1`
+- `pnpm test:run` runs the main Vitest suite.
+- `pnpm test:integration:run` uses `vitest.integration.config.ts` and expects local service-style env defaults such as Postgres/Redis/Elasticsearch.
+- `pnpm test:e2e:run` uses `vitest.e2e.config.ts` with longer timeouts and serial execution.
+- Use `pnpm vitest <path>` when you only need one file.
 
 ## Architecture
 
-### Entry Point Flow
+### Core logic and core value
 
-`bin/ccjk.mjs` → `src/cli.ts` → `src/cli-lazy.ts` (actual command registration)
+CCJK's core logic is not “be another assistant.” It is a provider-first setup and orchestration layer that sits between the user, the selected coding runtime, and the runtime's real config stores.
 
-`cli-lazy.ts` is the real entry point (~2200 lines). It uses a tiered lazy-loading system:
-- **core**: Commands registered at startup, executed lazily (init, menu, status, boost)
-- **extended**: Fully lazy-loaded (doctor, mcp, codex, etc.)
-- **deprecated**: Show migration messages
+In practice, the main loop is:
+- resolve which runtime is being managed (`src/utils/code-type-resolver.ts`)
+- run the right setup or menu flow (`src/commands/init.ts`, `src/commands/menu/index.ts`)
+- write configuration into the correct layers (`~/.ccjk/` state, `~/.claude/` settings/MCP files, runtime-specific profile state)
+- install and wire reusable capabilities (MCP servers, workflow templates, generated skills/agents)
+- keep the configured runtime usable without taking over its normal interaction model
 
-### Key Modules
+CCJK's core value is operational leverage:
+- one control plane for multiple coding runtimes instead of separate manual setup flows
+- consistent provider/profile/model configuration across init, menu, and repair paths
+- project-aware recommendations and installable workflows that shorten setup time
+- additive automation that improves Claude-family/myclaude/Codex environments without replacing them
 
-```
-src/
-├── cli-lazy.ts             # Actual entry point, lazy command registration (~2200 lines)
-├── commands/
-│   ├── menu.ts             # Main interactive menu (options 1-8 + extras)
-│   ├── init.ts             # Full init flow and simplified init
-│   ├── status.ts           # Brain Dashboard (health score + recommendations)
-│   ├── boost.ts            # One-click optimization
-│   └── model.ts            # Model configuration subcommand (v13.3.22+)
-├── brain/                  # Multi-agent orchestration
-├── cloud-sync/             # Cloud config sync (Gist, WebDAV, S3)
-├── cloud-client/           # Remote API: skills marketplace, recommendations, telemetry
-├── code-tools/             # Code tool abstraction layer
-├── health/                 # Health scoring engine (6 weighted checks)
-├── discovery/              # Project analyzer + skill/MCP matcher
-├── generation/             # Smart agent/skill generation from project analysis
-├── skills/                 # Skill registry, auto-trigger, intent detection
-├── context/                # Context window management and compression
-├── agents/                 # Cowork orchestration patterns
-├── api-providers/          # Multi-provider API management
-├── utils/
-│   ├── features.ts         # Feature functions called by menu
-│   ├── config.ts           # Settings.json management
-│   ├── claude-config.ts    # MCP config management
-│   ├── claude-code-config-manager.ts  # Model priority fix (v12.3.1+)
-│   └── permission-cleaner.ts # Permission validation and repair
-├── config/                 # Workflow, MCP, API provider definitions
-└── i18n/                   # i18next (zh-CN, en)
-```
+When evaluating a change, ask whether it strengthens or weakens these invariants:
+- runtime selection stays explicit and traceable
+- config sync stays correct across all storage layers
+- workflow/MCP installation remains config-driven
+- startup behavior remains additive rather than intrusive
 
-### Menu → Feature Function Mapping
+### CLI startup path
 
-This is the most critical flow. Menu options in `src/commands/menu.ts` must call specific functions:
-- **Option 1**: `init({ skipBanner: true })` — NOT `simplifiedInit()`
-- **Option 3**: `configureApiFeature()` from `utils/features.ts`
-- **Option 4**: `configureMcpFeature()` from `utils/features.ts`
-- **Options 5-7**: `configureDefaultModelFeature` / `configureAiMemoryFeature` / `configureEnvPermissionFeature`
-- **Option 8**: Model configuration with interactive list (v13.3.22+)
-- **Utility items (0, S, -, +, D, H, R, B, G)**: Return `undefined` to skip "return to menu" prompt
+The actual runtime path is:
 
-### Config Write Safety
+`bin/ccjk.mjs` → `src/cli.ts` → `src/cli-lazy.ts`
 
-`bootstrapCloudServices()` runs via `setImmediate()` in background and can write to `settings.json`. To prevent race conditions:
-- It is **skipped entirely** when entering interactive menu (no args)
-- `configureApi()` reads existing settings directly (no template merge) and verifies writes
-- `syncMcpPermissions()` uses atomic writes via `writeJsonConfig()`
-- All JSON writes use `writeJsonConfig()` which does atomic rename
+`src/cli.ts` is intentionally thin. `src/cli-lazy.ts` owns startup behavior, lazy command setup, language initialization, startup checks, and slash-command handling.
 
-## Testing Strategy
+`src/cli-lazy.ts` also performs startup-side orchestration before normal command parsing: startup spinner, settings migration, cloud bootstrap hook, Brain hook auto-init, auto-fix, update checks, quick provider launch detection, and slash-command dispatch.
 
-- **Unit tests**: `tests/` mirrors `src/` structure; run with `pnpm test:run`
-- **Integration tests**: `tests/integration/` and `tests/v2/integration/`; run with `pnpm test:integration:run`
-- **E2E tests**: `tests/e2e/`; run with `pnpm test:e2e:run`
-- **V2 tests**: New test suite with `pnpm test:v2:run`
-- **Benchmarks**: `scripts/benchmark-compression.ts`, `scripts/benchmark-fts5-search.ts`
-- **Test a specific file**: `pnpm vitest tests/commands/init.integration.test.ts`
-- **Watch mode**: `pnpm test:watch` (unit), `pnpm test:integration` (integration), `pnpm test:v2:watch` (v2)
-- **Coverage**: Add `:coverage` suffix to any test command (e.g., `pnpm test:coverage`)
+### Command registration and execution
 
-## Key Patterns
+- `src/cli-commands.ts` is the command registry. Each command declares its name/options and a lazy `loader()`.
+- `src/cli-lazy.ts` walks that registry and wires it into CAC.
+- The registry contains some legacy overlap and duplicate-looking entries (`memory`, `config`, `context`, `ccjk:skills`). Trace the actual handler path instead of assuming the first matching block is authoritative.
+- Some commands are also registered outside the main registry via `registerSpecialCommands()` in `src/cli-lazy.ts`.
+- If you add or change a command, confirm both the command definition and the lazy-loaded handler stay aligned.
 
-**i18n:** All user-facing strings use `i18n.t('namespace:key')`. Translations in `src/i18n/locales/{zh-CN,en}/`.
+### Main user flows
 
-**Configuration:** User configs in `~/.claude/settings.json`. Backups in `~/.claude/backup/`. Template in `templates/claude-code/common/settings.json`.
+- `src/commands/init.ts` is the main setup orchestration path. It selects the target code tool, configures API access, installs MCP services/workflows, and branches into silent/smart variants via `src/commands/init-variants`.
+- `src/commands/menu/index.ts` is the real interactive menu entry. The top-level `src/commands/menu.ts` is only a re-export shim.
+- The menu is mostly a dispatcher: handlers in `src/commands/menu/index.ts` route into `src/utils/features.ts`, command modules, or runtime-specific helpers.
+- `src/utils/features.ts` contains many of the user-facing configuration entry points that menu actions call.
 
-**Permissions:** Claude Code only recognizes: `Bash(pattern)`, `Read(path)`, `Write(path)`, `Edit(path)`, `NotebookEdit(path)`, `WebFetch(domain)`, `MCP(server:tool)`, `mcp__server_name`. Do NOT use `AllowEdit`, `AllowWrite`, etc. — these are invalid and will be auto-stripped by `permission-cleaner.ts`.
+### Configuration model
 
-**Code Tool Abstraction:** `src/code-tools/core/` defines `ICodeTool` interface. Adapters in `src/code-tools/adapters/`.
+Most user-visible behavior is driven by a few layers working together:
 
-**Cloud Client:** `src/cloud-client/` wraps the remote API with retry, caching, and local fallback layers. Use `createCompleteCloudClient()` for production use.
+- `src/utils/config.ts` and related helpers manage API/model/settings changes.
+- `src/utils/claude-config.ts` manages Claude-family config files, MCP server wiring, and profile-related updates.
+- `src/utils/code-type-resolver.ts` determines which runtime/tool is being configured.
+- `src/code-tools/` is the abstraction layer for runtime-specific behavior (`claude-code`, `myclaude`, `codex`, etc.).
 
-**Smart Generation:** `src/generation/` provides `smartGenerateAndInstall()` — analyzes project, selects templates, writes agent/skill configs.
+Runtime selection is central: `src/utils/code-type-resolver.ts` prefers stored CCJK config, then fresh detection, then the default. That decision affects the menu, init flow, and whether Claude-family or Codex-specific code paths run.
 
-**Brain Router:** `src/brain/router/` contains optional interception and auto-execution components. These modules are not wired into the main `src/cli.ts` → `src/cli-lazy.ts` entry path by default, so do not describe them as active shipped startup behavior without verifying the integration.
+Configuration state is split across multiple stores. CCJK state lives under `~/.ccjk/`, while Claude-family runtime state lives in `~/.claude/` files such as `settings.json` and related config JSON. `src/utils/claude-config.ts` also manages MCP state and myclaude provider profile sync, so config work should verify every affected layer rather than assuming a single source of truth.
 
-## Coding Standards
+myclaude support is profile-sync based, not just a label swap. `src/utils/claude-config.ts` syncs the active provider profile into Claude settings/env state, and `src/commands/menu/index.ts` renders runtime-specific myclaude status from that synced profile data.
 
-- **ESM-Only**: No CommonJS. Use `pathe` for paths, `tinyexec` for commands.
-- **TypeScript**: Strict mode, ESNext target.
-- **Cross-Platform**: Handle Windows paths, macOS, Linux, Termux.
-- **File Deletion**: Use `trash` package.
-- **Language**: Code comments, docs, and commits in English.
+When working on config changes, verify both the shared helpers and the runtime-specific path. This repo supports multiple coding runtimes, not just one.
 
-## Release & Publishing
+### Discovery, generation, and workflows
+
+Several subsystems feed recommendations and installed assets into setup flows:
+
+- `src/discovery/` analyzes the current project and produces skill/MCP recommendations.
+- `src/generation/` turns project analysis into generated agents/skills.
+- `src/config/workflows.ts` is the source of truth for installable workflow definitions and template mapping.
+- `src/utils/workflow-installer.ts` consumes that config and copies command/agent templates into the user environment.
+- `templates/` contains the files copied into user environments.
+
+### Menu wiring matters
+
+The interactive menu is a critical integration surface. Keep handler wiring consistent with the current implementation in `src/commands/menu/index.ts`, especially for init/config/model/memory/MCP actions.
+
+## Project-Specific Rules
+
+### CCJK complements Claude Code
+
+This project is intentionally additive. Do not turn CCJK into a competing assistant runtime with unsolicited behavior.
+
+Important consequences already reflected in the codebase:
+- skills should only run when explicitly invoked
+- avoid startup behavior that hijacks normal interactive CLI usage
+- be careful describing experimental brain-router pieces as shipped default behavior
+
+### Cloud bootstrap is not normal interactive-menu behavior
+
+`bootstrapCloudServices()` exists in `src/cli-lazy.ts`, but the repo guidance is explicit that interactive menu entry should not be described as if cloud bootstrap is part of the normal menu startup path. Verify the actual invocation path before claiming startup behavior.
+
+### Model routing has sharp edges
+
+For Claude-family runtimes, `settings.model` and `settings.env.ANTHROPIC_*` can override each other in surprising ways. Changes in this area should preserve the intended env-based routing behavior and compatibility keys such as the fast-model mapping.
+
+### Root config is not the same as Claude config
+
+CCJK state is not only in `~/.claude/`. The project also relies on CCJK-managed config under `~/.ccjk/`, and code-tool resolution depends on that state.
+
+### Prefer live code paths over nested docs when they disagree
+
+Some module-local `src/**/CLAUDE.md` snapshots lag current root behavior. Use them for subsystem orientation, but trust the current startup path, command registry, and active handlers in code when there is a conflict.
+
+## Working Effectively In This Repo
+
+- If a command or behavior looks monolithic, check whether it was split into a newer module first. The menu flow is a good example: the real implementation is under `src/commands/menu/`.
+- Prefer verifying behavior through the actual command registry and startup path rather than trusting older documentation comments.
+- No `.cursor/rules/**/*`, `.cursorrules`, or `.github/copilot-instructions.md` files are present at repo root, so there is no extra editor-rule layer to merge.
+- README claims should only influence repo guidance when they match current code paths; avoid repeating marketing-style feature descriptions as implementation facts.
+- For repo-wide guidance, use this file first. For subsystem details, check the nearest module-level `src/**/CLAUDE.md` file if one exists.
+
+## Verification
+
+For most CLI changes, the quickest useful verification is:
 
 ```bash
-# 1. Bump version in package.json
-# 2. Fix catalog: references if any
-node scripts/fix-package-catalog.mjs
-grep -c "catalog:" package.json  # Must return 0
-
-# 3. Build and publish
+pnpm typecheck
 pnpm build
-npm publish --access public --ignore-scripts  # Skip tests if pre-existing failures
-
-# 4. Push to GitHub
-git push origin main
 ```
 
-**CRITICAL**: pnpm's `catalog:` protocol in `package.json` causes npm install failures. Always run `node scripts/fix-package-catalog.mjs` before publishing and verify `grep -c "catalog:" package.json` returns 0.
+Then run the affected command through the built CLI, for example:
 
-## Common Tasks
+```bash
+node dist/cli.mjs
+node dist/cli.mjs init
+```
 
-**Adding a Command:**
-1. Create file in `src/commands/`
-2. Add i18n strings in `src/i18n/locales/{zh-CN,en}/`
-3. Register in `src/cli-lazy.ts` COMMANDS array with appropriate tier
-4. Write tests in `tests/commands/`
+# CLAUDE.md
 
-**Adding MCP Service:** Define in `src/config/mcp-services.ts`, add i18n strings.
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-**Adding API Provider:** Define in `src/api-providers/providers/`, add validation and i18n.
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-**Adding Workflow:** Define in `src/config/workflows.ts`, add templates in `templates/`.
+## 1. Think Before Coding
 
-## Debugging Gotchas
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-**Tool-specific issues:**
-- macOS `cat` has no `-A` flag (use `od -c` or `hexdump` instead)
-- zsh doesn't expand `*.md` globs in Bash tool; use `python3 glob.glob()` or quote patterns
-- Parallel tool calls with sibling errors cause ALL calls in batch to fail
-- File edits can appear to succeed but actually fail; always verify with grep/read after
-- IDE/file watchers may revert file changes between tool calls; chain sed+git add in one command
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-**Config-related:**
-- ccjk config lives at `~/.ccjk/config.toml` (via ZCF_CONFIG_DIR), NOT inside `~/.claude/`
-- Full uninstall removes `~/.claude/` but leaves `~/.ccjk/config.toml` with stale codeTool preference
-- `resolveCodeType()` in `code-type-resolver.ts` is the central resolver: stored config → fresh detection → default
-- Menu option 1 must pass `codeType: 'claude-code'` to init() to override stale config
+## 2. Simplicity First
 
-**Model Priority (v12.3.1+):**
-- Claude Code config priority: `settings.model` > `settings.env.ANTHROPIC_*` env vars
-- When custom models are configured via ccjk, they're set as env vars (ANTHROPIC_MODEL, ANTHROPIC_DEFAULT_HAIKU_MODEL, etc.)
-- If `settings.model` exists, it overrides all env vars, breaking custom model selection
-- `claude-code-config-manager.ts` now deletes `settings.model` when custom model env vars are detected
-- This allows Claude Code to use different models based on context (Haiku for quick tasks, Sonnet for standard, Opus for complex)
+**Minimum code that solves the problem. Nothing speculative.**
 
-## AI Usage Guidelines
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-- When modifying menu flow, always verify the Menu → Feature Function Mapping above.
-- When adding permissions, only use the valid Claude Code permission formats listed above.
-- When writing new commands, follow the lazy-loading pattern in `cli-lazy.ts`.
-- Never call `bootstrapCloudServices()` synchronously in the menu path.
-- Use `writeJsonConfig()` for all JSON writes to ensure atomic operations.
-- Run `pnpm typecheck && pnpm build` before committing to catch type errors early.
-- When configuring custom models, ensure `settings.model` is removed to allow env var-based model selection.
-- If you work on brain-router commands, verify the actual entry-path integration before claiming CLI interception or slash-command compatibility.
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

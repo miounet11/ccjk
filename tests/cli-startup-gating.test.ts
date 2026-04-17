@@ -62,15 +62,19 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('../src/cli-helpers', () => ({
-  bootstrapCloudServices: mocks.mockBootstrapCloudServices,
-  customizeHelpLazy: vi.fn((sections: unknown[]) => sections),
-  registerSpecialCommands: mocks.mockRegisterSpecialCommands,
-  runHealthAlertsCheck: mocks.mockRunHealthAlertsCheck,
-  showCommandDiscoveryBanner: mocks.mockShowCommandDiscoveryBanner,
-  showStartupSpinner: mocks.mockShowStartupSpinner,
-  tryQuickProviderLaunch: mocks.mockTryQuickProviderLaunch,
-}))
+vi.mock('../src/cli-helpers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/cli-helpers')>()
+  return {
+    ...actual,
+    bootstrapCloudServices: mocks.mockBootstrapCloudServices,
+    customizeHelpLazy: vi.fn((sections: unknown[]) => sections),
+    registerSpecialCommands: mocks.mockRegisterSpecialCommands,
+    runHealthAlertsCheck: mocks.mockRunHealthAlertsCheck,
+    showCommandDiscoveryBanner: mocks.mockShowCommandDiscoveryBanner,
+    showStartupSpinner: mocks.mockShowStartupSpinner,
+    tryQuickProviderLaunch: mocks.mockTryQuickProviderLaunch,
+  }
+})
 
 vi.mock('../src/config/migrator', () => ({
   runMigration: mocks.mockRunMigration,
@@ -102,6 +106,13 @@ vi.mock('cac', () => ({
 
 describe('cli startup takeover gating', () => {
   const originalArgv = process.argv
+
+  function expectMaintenanceSkipped(): void {
+    expect(mocks.mockRunMigration).not.toHaveBeenCalled()
+    expect(mocks.mockAutoInitBrainHooks).not.toHaveBeenCalled()
+    expect(mocks.mockRunAutoFixOnStartup).not.toHaveBeenCalled()
+    expect(mocks.mockAutoCheckUpdates).not.toHaveBeenCalled()
+  }
 
   beforeEach(() => {
     vi.resetModules()
@@ -144,21 +155,73 @@ describe('cli startup takeover gating', () => {
     const { runLazyCli } = await import('../src/cli-lazy')
     await runLazyCli()
 
-    expect(mocks.mockBootstrapCloudServices).toHaveBeenCalledTimes(1)
+    expect(mocks.mockBootstrapCloudServices).not.toHaveBeenCalled()
+    expectMaintenanceSkipped()
     expect(mocks.mockExecuteSlashCommand).toHaveBeenCalledWith('/status')
     expect(mocks.mockHandleIntentRecognition).not.toHaveBeenCalled()
     expect(mocks.mockCli.parse).not.toHaveBeenCalled()
   })
 
-  it('stops auto intent takeover for ordinary arguments', async () => {
+  it('skips eager maintenance for ordinary text arguments', async () => {
     process.argv = ['node', 'ccjk', 'fix', 'bug']
 
     const { runLazyCli } = await import('../src/cli-lazy')
     await runLazyCli()
 
-    expect(mocks.mockBootstrapCloudServices).toHaveBeenCalledTimes(1)
+    expect(mocks.mockBootstrapCloudServices).not.toHaveBeenCalled()
+    expectMaintenanceSkipped()
+    expect(mocks.mockTryQuickProviderLaunch).not.toHaveBeenCalled()
     expect(mocks.mockExecuteSlashCommand).not.toHaveBeenCalled()
     expect(mocks.mockHandleIntentRecognition).not.toHaveBeenCalled()
+    expect(mocks.mockCli.parse).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps cloud bootstrap for known explicit commands', async () => {
+    process.argv = ['node', 'ccjk', 'status']
+
+    const { runLazyCli } = await import('../src/cli-lazy')
+    await runLazyCli()
+
+    expect(mocks.mockBootstrapCloudServices).toHaveBeenCalledTimes(1)
+    expectMaintenanceSkipped()
+    expect(mocks.mockTryQuickProviderLaunch).not.toHaveBeenCalled()
+    expect(mocks.mockCli.parse).toHaveBeenCalledTimes(1)
+  })
+
+  it('checks single unknown tokens as quick-provider shortcodes without maintenance', async () => {
+    process.argv = ['node', 'ccjk', '302']
+    mocks.mockTryQuickProviderLaunch.mockResolvedValue(true)
+
+    const { runLazyCli } = await import('../src/cli-lazy')
+    await runLazyCli()
+
+    expect(mocks.mockBootstrapCloudServices).not.toHaveBeenCalled()
+    expectMaintenanceSkipped()
+    expect(mocks.mockTryQuickProviderLaunch).toHaveBeenCalledTimes(1)
+    expect(mocks.mockCli.parse).not.toHaveBeenCalled()
+  })
+
+  it('skips eager maintenance on default interactive startup', async () => {
+    process.argv = ['node', 'ccjk']
+
+    const { runLazyCli } = await import('../src/cli-lazy')
+    await runLazyCli()
+
+    expect(mocks.mockBootstrapCloudServices).not.toHaveBeenCalled()
+    expectMaintenanceSkipped()
+    expect(mocks.mockTryQuickProviderLaunch).not.toHaveBeenCalled()
+    expect(mocks.mockCli.parse).toHaveBeenCalledTimes(1)
+  })
+
+  it('skips eager maintenance on help paths', async () => {
+    process.argv = ['node', 'ccjk', '--help']
+
+    const { runLazyCli } = await import('../src/cli-lazy')
+    await runLazyCli()
+
+    expect(mocks.mockBootstrapCloudServices).not.toHaveBeenCalled()
+    expectMaintenanceSkipped()
+    expect(mocks.mockTryQuickProviderLaunch).not.toHaveBeenCalled()
     expect(mocks.mockCli.parse).toHaveBeenCalledTimes(1)
   })
 })

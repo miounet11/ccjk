@@ -13,7 +13,7 @@ import { ensureI18nInitialized, i18n } from '../i18n'
 import { backupJsonConfig, readJsonConfig, writeJsonConfig } from './json-config'
 import { deepClone } from './object-utils'
 import { getMcpCommand, isWindows } from './platform'
-import { overwriteModelSettings } from './config'
+import { clearLegacyTopLevelRuntimeSettings, overwriteModelSettings } from './config'
 import { ClaudeCodeConfigManager } from './claude-code-config-manager'
 
 export function getMcpConfigPath(): string {
@@ -279,10 +279,18 @@ export function setPrimaryApiKey(): void {
   }
 }
 
+function normalizeMyclaudeProviderProfile(profile: MyclaudeProviderProfile): MyclaudeProviderProfile {
+  return {
+    ...profile,
+    ...describeMyclaudeProviderProfile(profile),
+  }
+}
+
 export function setMyclaudeProviderProfiles(profiles: MyclaudeProviderProfile[], activeProfileId?: string): void {
   const config = readMcpConfig() || { mcpServers: {} }
-  config.myclaudeProviderProfiles = profiles
-  config.myclaudeActiveProviderProfileId = activeProfileId ?? profiles[0]?.id
+  const normalizedProfiles = profiles.map(normalizeMyclaudeProviderProfile)
+  config.myclaudeProviderProfiles = normalizedProfiles
+  config.myclaudeActiveProviderProfileId = activeProfileId ?? normalizedProfiles[0]?.id
   writeMcpConfig(config)
 }
 
@@ -380,6 +388,8 @@ function toMyclaudeProviderProfile(
 function syncMyclaudeActiveProfileToSettings(profile: MyclaudeProviderProfile | null): void {
   const settings = readJsonConfig<Record<string, any>>(SETTINGS_FILE) || {}
   settings.env = settings.env || {}
+
+  clearLegacyTopLevelRuntimeSettings(settings)
 
   if (profile?.authType === 'auth_token') {
     settings.env.ANTHROPIC_AUTH_TOKEN = profile.apiKey

@@ -26,6 +26,16 @@ export type { ApiConfig } from '../types/config'
 
 const BUILTIN_MODEL_VALUES = ['opus', 'sonnet', 'sonnet[1m]'] as const
 
+export function clearLegacyTopLevelRuntimeSettings(settings: Record<string, any>): void {
+  delete settings.baseUrl
+  delete settings.apiProvider
+  delete settings.apiUrl
+  delete settings.apiKey
+  delete settings.authToken
+  delete settings.defaultModel
+  delete settings.preferredModel
+}
+
 function hasAdaptiveRoutingEnv(settings: ClaudeSettings): boolean {
   return Boolean(
     settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
@@ -118,6 +128,8 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
     settings.env = {}
   }
 
+  clearLegacyTopLevelRuntimeSettings(settings)
+
   // Update API configuration based on auth type
   if (apiConfig.authType === 'api_key') {
     settings.env.ANTHROPIC_API_KEY = apiConfig.key
@@ -165,6 +177,7 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
       console.error(ansis.red('⚠ API config write verification failed — retrying...'))
       // Re-read, re-apply, re-write
       const freshSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || settings
+      clearLegacyTopLevelRuntimeSettings(freshSettings)
       if (!freshSettings.env)
         freshSettings.env = {}
       if (apiConfig.authType === 'api_key') {
@@ -290,6 +303,8 @@ export function updateCustomModel(
     settings = existingSettings
   }
 
+  clearLegacyTopLevelRuntimeSettings(settings)
+
   overwriteModelSettings(settings, {
     primaryModel,
     haikuModel,
@@ -312,6 +327,8 @@ export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
   if (existingSettings) {
     settings = existingSettings
   }
+
+  clearLegacyTopLevelRuntimeSettings(settings)
 
   // Ensure env object exists
   if (!settings.env) {

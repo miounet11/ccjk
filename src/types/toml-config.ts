@@ -1,6 +1,68 @@
 import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
 import type { ClaudeCodeProfile } from './claude-code-config'
 
+export type RuntimeCompatMode = 'native' | 'compatible' | 'degraded'
+export type ProviderStrategy = 'profile-based' | 'env-based' | 'tool-specific'
+export type OperatingArchetypeId = 'pc-dev' | 'app-dev' | 'text-studio' | 'service-ops' | 'research' | 'automation' | 'custom'
+export type SafetyLevel = 'safe' | 'dev' | 'max'
+export type VerificationMode = 'required' | 'recommended' | 'manual'
+export type DestructiveActionPolicy = 'confirm' | 'block' | 'allow'
+export type WorkflowFallbackMode = 'graceful' | 'strict' | 'off'
+export type MemoryMode = 'project-aware' | 'session-only' | 'off'
+export type CompressionMode = 'runtime-native' | 'ccjk-managed' | 'off'
+export type InstructionLayering = 'runtime-first' | 'ccjk-first' | 'merged'
+export type OperatorMode = 'execution-first' | 'planning-first' | 'conversational'
+
+export interface RuntimeProfile {
+  target: CodeToolType
+  distribution?: 'clavue' | 'myclaude' | 'claude-code' | 'codex' | 'generic'
+  compatMode: RuntimeCompatMode
+  providerStrategy: ProviderStrategy
+}
+
+export interface ArchetypeProfile {
+  id: OperatingArchetypeId
+  name: string
+  goal: string
+}
+
+export interface CapabilityProfile {
+  coding: boolean
+  planning: boolean
+  taskTracking: boolean
+  memory: boolean
+  browserAutomation: boolean
+  research: boolean
+  documentAuthoring: boolean
+  serviceOps: boolean
+  multiAgent: boolean
+}
+
+export interface PolicyProfile {
+  permissionPreset: SafetyLevel
+  verificationMode: VerificationMode
+  destructiveActionPolicy: DestructiveActionPolicy
+  workflowFallbackMode: WorkflowFallbackMode
+}
+
+export interface ContextProfile {
+  memoryMode: MemoryMode
+  compressionMode: CompressionMode
+  instructionLayering: InstructionLayering
+}
+
+export interface ProfileSelection {
+  providerProfile?: string
+  workflowPack?: string
+  toolPack?: string
+}
+
+export interface UiProfile {
+  language: SupportedLang
+  outputStyle: string
+  operatorMode: OperatorMode
+}
+
 /**
  * Claude Code specific configuration
  * Features: Multiple output styles selection
@@ -47,6 +109,16 @@ export interface StorageConfig {
   memory?: MemoryStorageConfig
 }
 
+export interface AdaptationConfig {
+  runtimeProfile?: RuntimeProfile
+  archetypeProfile?: ArchetypeProfile
+  capabilityProfile?: CapabilityProfile
+  policyProfile?: PolicyProfile
+  contextProfile?: ContextProfile
+  profileSelection?: ProfileSelection
+  uiProfile?: UiProfile
+}
+
 /**
  * Complete CCJK TOML configuration structure
  */
@@ -57,6 +129,7 @@ export interface ZcfTomlConfig {
   claudeCode: ClaudeCodeConfig
   codex: CodexConfig
   storage?: StorageConfig
+  adaptation?: AdaptationConfig
 }
 
 /**
@@ -69,6 +142,7 @@ export type PartialZcfTomlConfig = Partial<ZcfTomlConfig> & {
   storage?: Partial<StorageConfig> & {
     memory?: Partial<MemoryStorageConfig>
   }
+  adaptation?: Partial<AdaptationConfig>
 }
 
 /**

@@ -6,15 +6,18 @@
 import { existsSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
+import { CLAUDE_DIR, SETTINGS_FILE, ZCF_CONFIG_FILE } from '../constants'
 import { i18n } from '../i18n'
 import { ensureDir, writeFileAtomic } from '../utils/fs-operations'
 import { mergeAndCleanPermissions } from '../utils/permission-cleaner'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
+import { updateTomlConfig } from '../utils/ccjk-config'
 
 // ============================================================================
 // Permission Presets
 // ============================================================================
+
+type ZeroConfigArchetype = 'pc-dev' | 'app-dev' | 'text-studio' | 'service-ops' | 'research' | 'automation' | 'custom'
 
 interface PermissionPreset {
   id: string
@@ -260,6 +263,80 @@ const SAFE_PRESET: PermissionPreset = {
 
 const PRESETS: PermissionPreset[] = [MAX_PRESET, DEV_PRESET, SAFE_PRESET]
 
+function getArchetypeProfile(archetype: ZeroConfigArchetype = 'pc-dev') {
+  switch (archetype) {
+    case 'app-dev':
+      return {
+        id: 'app-dev' as const,
+        name: 'Application Development',
+        goal: 'Plan, build, verify, and ship application features with a product-focused workflow',
+      }
+    case 'text-studio':
+      return {
+        id: 'text-studio' as const,
+        name: 'Text Studio',
+        goal: 'Research, draft, edit, and review text-heavy work with a documentation-first workflow',
+      }
+    case 'service-ops':
+      return {
+        id: 'service-ops' as const,
+        name: 'Service Operations',
+        goal: 'Inspect, operate, and maintain services safely with verification and controlled changes',
+      }
+    case 'research':
+      return {
+        id: 'research' as const,
+        name: 'Research and Analysis',
+        goal: 'Investigate code, docs, and technical options before applying targeted changes',
+      }
+    case 'automation':
+      return {
+        id: 'automation' as const,
+        name: 'Automation and Scripting',
+        goal: 'Automate repetitive development and operations tasks with reliable execution flows',
+      }
+    case 'custom':
+      return {
+        id: 'custom' as const,
+        name: 'Custom Workflow',
+        goal: 'Adapt CCJK to a custom working style and toolchain combination',
+      }
+    case 'pc-dev':
+    default:
+      return {
+        id: 'pc-dev' as const,
+        name: 'PC Software Development',
+        goal: 'Build, debug, test, and ship software efficiently',
+      }
+  }
+}
+
+function getCapabilityProfile(archetype: ZeroConfigArchetype = 'pc-dev') {
+  return {
+    coding: archetype !== 'text-studio' && archetype !== 'research',
+    planning: true,
+    taskTracking: true,
+    memory: true,
+    browserAutomation: false,
+    research: true,
+    documentAuthoring: archetype === 'text-studio' || archetype === 'research',
+    serviceOps: archetype === 'service-ops',
+    multiAgent: archetype !== 'custom',
+  }
+}
+
+function getOperatorMode(archetype: ZeroConfigArchetype = 'pc-dev') {
+  if (archetype === 'research' || archetype === 'text-studio') {
+    return 'planning-first' as const
+  }
+
+  if (archetype === 'custom') {
+    return 'conversational' as const
+  }
+
+  return 'execution-first' as const
+}
+
 // ============================================================================
 // Configuration Management
 // ============================================================================
@@ -336,6 +413,37 @@ function applyPreset(preset: PermissionPreset, currentSettings: any): any {
   return newSettings
 }
 
+function applyAdaptationPreset(preset: PermissionPreset, archetype: ZeroConfigArchetype = 'pc-dev'): void {
+  const safetyLevel = preset.id === 'safe' ? 'safe' : preset.id === 'max' ? 'max' : 'dev'
+
+  updateTomlConfig(ZCF_CONFIG_FILE, {
+    adaptation: {
+      archetypeProfile: getArchetypeProfile(archetype),
+      capabilityProfile: getCapabilityProfile(archetype),
+      policyProfile: {
+        permissionPreset: safetyLevel,
+        verificationMode: safetyLevel === 'safe' ? 'manual' : 'required',
+        destructiveActionPolicy: safetyLevel === 'max' ? 'confirm' : 'confirm',
+        workflowFallbackMode: 'graceful',
+      },
+      contextProfile: {
+        memoryMode: archetype === 'custom' ? 'session-only' : 'project-aware',
+        compressionMode: 'runtime-native',
+        instructionLayering: 'runtime-first',
+      },
+      profileSelection: {
+        workflowPack: archetype === 'service-ops' ? 'service-operations' : 'desktop-engineering',
+        toolPack: archetype === 'text-studio' ? 'document-authoring' : 'typescript-node-react',
+      },
+      uiProfile: {
+        language: i18n.language === 'zh-CN' ? 'zh-CN' : 'en',
+        outputStyle: 'concise',
+        operatorMode: getOperatorMode(archetype),
+      },
+    },
+  })
+}
+
 /**
  * Show what will be added by the preset
  */
@@ -386,6 +494,7 @@ export interface ZeroConfigOptions {
   preset?: string
   list?: boolean
   skipBackup?: boolean
+  archetype?: ZeroConfigArchetype
 }
 
 /**
@@ -478,6 +587,7 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
   // Apply preset
   const newSettings = applyPreset(selectedPreset, currentSettings)
   saveSettings(newSettings)
+  applyAdaptationPreset(selectedPreset, options.archetype)
 
   console.log('')
   console.log(ansis.green(`✅ ${isZh ? '权限预设已应用' : 'Permission preset applied'}: ${selectedPreset.name}`))

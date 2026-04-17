@@ -41,6 +41,13 @@ interface LanguageOptions {
   skipPrompt?: boolean
 }
 
+type StartupPathKind = 'interactive' | 'slash' | 'help' | 'version' | 'command' | 'quick-provider' | 'plain-args'
+
+interface StartupPathInfo {
+  args: string[]
+  kind: StartupPathKind
+}
+
 // ============================================================================
 // 懒加载命令注册表
 // ============================================================================
@@ -55,7 +62,7 @@ type CommandTier = 'core' | 'extended' | 'deprecated'
 
 
 import { COMMANDS } from './cli-commands'
-import { registerSpecialCommands, customizeHelpLazy, runHealthAlertsCheck, showCommandDiscoveryBanner, showStartupSpinner, tryQuickProviderLaunch, bootstrapCloudServices } from './cli-helpers'
+import { registerSpecialCommands, customizeHelpLazy, runHealthAlertsCheck, showCommandDiscoveryBanner, showStartupSpinner, tryQuickProviderLaunch, bootstrapCloudServices, shouldBootstrapCloudServicesForArgs } from './cli-helpers'
 
 // ============================================================================
 // 语言处理（轻量版）
@@ -122,6 +129,58 @@ function extractLanguageOptions(options: unknown): LanguageOptions {
     allLang: typeof obj.allLang === 'string' ? obj.allLang : undefined,
     skipPrompt: typeof obj.skipPrompt === 'boolean' ? obj.skipPrompt : undefined,
   }
+}
+
+function classifyStartupPath(args: string[]): StartupPathInfo {
+  const positionalArgs: string[] = []
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index]
+    if (!arg)
+      continue
+
+    if (arg === '-l' || arg === '--lang' || arg === '-g' || arg === '--all-lang' || arg === '-T' || arg === '--code-type') {
+      index += 1
+      continue
+    }
+
+    if (arg.startsWith('--lang=') || arg.startsWith('--all-lang=') || arg.startsWith('--code-type=')) {
+      continue
+    }
+
+    positionalArgs.push(arg)
+  }
+
+  const firstToken = positionalArgs[0]
+  if (!firstToken) {
+    return { args, kind: 'interactive' }
+  }
+
+  if (firstToken === '-h' || firstToken === '--help' || firstToken === 'help') {
+    return { args, kind: 'help' }
+  }
+
+  if (firstToken === '-v' || firstToken === '--version') {
+    return { args, kind: 'version' }
+  }
+
+  if (firstToken.startsWith('/')) {
+    return { args, kind: 'slash' }
+  }
+
+  if (firstToken.startsWith('-')) {
+    return { args, kind: 'plain-args' }
+  }
+
+  if (shouldBootstrapCloudServicesForArgs(args)) {
+    return { args, kind: 'command' }
+  }
+
+  if (positionalArgs.length === 1) {
+    return { args, kind: 'quick-provider' }
+  }
+
+  return { args, kind: 'plain-args' }
 }
 
 // ============================================================================
@@ -200,61 +259,29 @@ export async function setupCommandsLazy(cli: CAC): Promise<void> {
 export async function runLazyCli(): Promise<void> {
   // 🎯 立即显示启动提示，避免空白屏幕
   const spinner = await showStartupSpinner()
+  const startupPath = classifyStartupPath(process.argv.slice(2))
 
   try {
-    // 🔧 Auto-migrate settings.json (idempotent, silent)
-    try {
-      const { runMigration } = await import('./config/migrator')
-      runMigration()
-    }
-    catch {
-      // Never block CLI on migration failure
-    }
-
     // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
     // 仅在显式命令路径执行，避免默认接管交互菜单与宿主 runtime
-    bootstrapCloudServices()
-
-    // 🧠 Auto-initialize Brain hooks if remote control is enabled
-    try {
-      const { autoInitBrainHooks } = await import('./brain/hooks/auto-init')
-      await autoInitBrainHooks()
-    }
-    catch {
-      // Never block CLI on hook initialization failure
-    }
-
-    // 🔧 自动修复配置问题
-    try {
-      const { runAutoFixOnStartup } = await import('./core/auto-fix')
-      await runAutoFixOnStartup()
-    }
-    catch {
-      // Never block CLI on auto-fix failure
-    }
-
-    // 🚀 自动检查更新
-    try {
-      const { autoCheckUpdates } = await import('./core/auto-upgrade')
-      autoCheckUpdates(true) // 异步执行，不阻塞启动
-    }
-    catch {
-      // Never block CLI on update check failure
+    if (startupPath.kind === 'command') {
+      bootstrapCloudServices()
     }
 
     // 🚀 快速启动检测：检查是否为供应商短码
-    const handled = await tryQuickProviderLaunch()
-    if (handled) {
-      spinner?.stop()
-      return // 快速启动已处理，不进入常规 CLI
+    if (startupPath.kind === 'quick-provider') {
+      const handled = await tryQuickProviderLaunch()
+      if (handled) {
+        spinner?.stop()
+        return // 快速启动已处理，不进入常规 CLI
+      }
     }
 
     // 🧠 启动期仅保留显式 slash command 路径；普通参数交给 CLI 正常解析
-    const args = process.argv.slice(2)
-    if (args.length > 0 && args[0].startsWith('/')) {
+    if (startupPath.kind === 'slash') {
       spinner?.stop()
       const { executeSlashCommand } = await import('./commands/slash-commands')
-      const slashHandled = await executeSlashCommand(args.join(' '))
+      const slashHandled = await executeSlashCommand(startupPath.args.join(' '))
       if (slashHandled) {
         return
       }

@@ -7,16 +7,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
-      "@ccjk/wire": ["packages/ccjk-wire/dist/index.d.mts"],
-      "@ccjk/v2/hooks": ["src/v2/hooks-v2"],
-      "@ccjk/v2/skills": ["src/v2/skills-v2"],
-      "@ccjk/v2/brain": ["src/v2/brain-v2"],
-      "@ccjk/v2/agents": ["src/v2/agents-v2"],
-      "@ccjk/v2/workflow": ["src/v2/workflow-v2"],
-      "@ccjk/v2/cloud-sync": ["src/v2/cloud-sync-v2"],
-      "@ccjk/v2/actionbook": ["src/v2/actionbook"],
-      "@ccjk/v2/integration": ["src/v2/integration"],
-      "@ccjk/v2/*": ["src/v2/*"]
+      "@ccjk/wire": ["packages/ccjk-wire/dist/index.d.mts"]
     },
     "resolveJsonModule": true,
     "strict": true,

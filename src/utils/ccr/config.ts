@@ -11,7 +11,7 @@ import { join } from 'pathe'
 import { SETTINGS_FILE } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
 import { addCompletedOnboarding, setPrimaryApiKey } from '../claude-config'
-import { backupExistingConfig } from '../config'
+import { backupExistingConfig, clearLegacyTopLevelRuntimeSettings } from '../config'
 import { readJsonConfig, writeJsonConfig } from '../json-config'
 import { promptBoolean } from '../toggle-prompt'
 import { fetchProviderPresets } from './presets'
@@ -83,6 +83,8 @@ export async function configureCcrProxy(ccrConfig: CcrConfig): Promise<void> {
   if (!settings.env) {
     settings.env = {}
   }
+
+  clearLegacyTopLevelRuntimeSettings(settings)
 
   // Remove ANTHROPIC_AUTH_TOKEN when switching to CCR proxy to avoid conflicts
   delete settings.env.ANTHROPIC_AUTH_TOKEN

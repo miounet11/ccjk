@@ -19,7 +19,7 @@ Use `pnpm` with Node 20+.
 The codebase is TypeScript-first, ESM by default, with 2-space indentation, semicolons, single quotes, trailing commas (`es5`), and `printWidth: 100`. ESLint uses `@antfu/eslint-config`; Prettier handles formatting. Prefer descriptive file names matching the exported responsibility, such as `provider-registry.ts` or `setup-wizard.test.ts`. Use `camelCase` for variables/functions, `PascalCase` for types/classes/components, and `SCREAMING_SNAKE_CASE` only for true constants and environment keys.
 
 ## Testing Guidelines
-Vitest is the primary test runner; Jest remains configured for legacy `src/**/__tests__` patterns. Name tests `*.test.ts` or `*.spec.ts`. Keep fast unit tests near the module when practical, and place scenario-driven coverage in `tests/integration`, `tests/e2e`, or `tests/v2`. Before opening a PR, run the smallest relevant suite plus `pnpm typecheck`.
+Vitest is the primary test runner; Jest remains configured for legacy `src/**/__tests__` patterns. Name tests `*.test.ts` or `*.spec.ts`. Keep fast unit tests near the module when practical, and place scenario-driven coverage in `tests/integration` or `tests/e2e`. Before opening a PR, run the smallest relevant suite plus `pnpm typecheck`.
 
 ## Commit & Pull Request Guidelines
 Commits follow Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`, with optional scopes and headers under 100 characters. Recent history favors concise subjects such as `fix: remove duplicate prompt hints in model config`. PRs should explain user-visible impact, list validation commands run, link issues when applicable, and include screenshots or terminal output for UI, docs, or CLI behavior changes.

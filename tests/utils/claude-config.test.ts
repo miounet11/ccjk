@@ -43,7 +43,16 @@ describe('claude-config myclaude sync', () => {
         },
       },
     })
-    mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json') ? { env: {} } : { mcpServers: {} })
+    mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
+      ? {
+          env: {},
+          baseUrl: 'https://stale.example.com/v1',
+          apiKey: 'sk-stale',
+          authToken: 'token-stale',
+          defaultModel: 'stale-default',
+          preferredModel: 'stale-preferred',
+        }
+      : { mcpServers: {} })
 
     const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config')
     const result = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
@@ -79,6 +88,16 @@ describe('claude-config myclaude sync', () => {
     )
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('settings.json'),
+      expect.not.objectContaining({
+        baseUrl: expect.anything(),
+        apiKey: expect.anything(),
+        authToken: expect.anything(),
+        defaultModel: expect.anything(),
+        preferredModel: expect.anything(),
+      }),
+    )
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('settings.json'),
       expect.objectContaining({
         env: expect.objectContaining({
           ANTHROPIC_API_KEY: 'sk-test',
@@ -102,6 +121,10 @@ describe('claude-config myclaude sync', () => {
             ANTHROPIC_DEFAULT_HAIKU_MODEL: 'claude-haiku-4-5',
           },
           model: 'claude-sonnet-4-6',
+          baseUrl: 'https://stale.example.com',
+          apiKey: 'sk-stale',
+          defaultModel: 'stale-default',
+          preferredModel: 'stale-preferred',
         }
       : {
           mcpServers: {},
@@ -123,10 +146,48 @@ describe('claude-config myclaude sync', () => {
     )
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('settings.json'),
+      expect.not.objectContaining({
+        baseUrl: expect.anything(),
+        apiKey: expect.anything(),
+        defaultModel: expect.anything(),
+        preferredModel: expect.anything(),
+      }),
+    )
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('settings.json'),
       expect.objectContaining({
         env: expect.objectContaining({
           ANTHROPIC_MODEL: '',
         }),
+      }),
+    )
+  })
+
+  it('normalizes myclaude provider mode when profiles are written directly', async () => {
+    mockReadJsonConfig.mockReturnValue({ mcpServers: {} })
+
+    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config')
+    setMyclaudeProviderProfiles([
+      {
+        id: 'primary',
+        name: 'Primary',
+        provider: 'custom',
+        apiKey: 'sk-test',
+        baseUrl: 'https://router.example.com/v1',
+        authType: 'api_key',
+      },
+    ], 'primary')
+
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('.claude.json'),
+      expect.objectContaining({
+        myclaudeActiveProviderProfileId: 'primary',
+        myclaudeProviderProfiles: [
+          expect.objectContaining({
+            id: 'primary',
+            mode: 'openai-native',
+          }),
+        ],
       }),
     )
   })

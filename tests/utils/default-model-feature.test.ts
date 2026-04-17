@@ -7,6 +7,16 @@ import { DEFAULT_MODEL_CHOICES } from '../../src/utils/features'
 import { getExistingCustomModelConfig, getExistingModelConfig, updateCustomModel, updateDefaultModel } from '../../src/utils/config'
 import { readJsonConfig } from '../../src/utils/json-config'
 
+const STALE_RUNTIME_SETTINGS = {
+  apiKey: 'sk-stale',
+  authToken: 'token-stale',
+  defaultModel: 'stale-default',
+  preferredModel: 'stale-preferred',
+  env: {
+    ANTHROPIC_API_KEY: 'sk-test',
+  },
+}
+
 describe('default model feature', () => {
   let originalSettings: string | null = null
 
@@ -35,18 +45,30 @@ describe('default model feature', () => {
   })
 
   it('persists sonnet as the selected built-in default model', () => {
+    writeFileSync(SETTINGS_FILE, JSON.stringify(STALE_RUNTIME_SETTINGS, null, 2))
+
     updateDefaultModel('sonnet')
 
-    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    const settings = readJsonConfig<ClaudeSettings & Record<string, any>>(SETTINGS_FILE)
     expect(settings?.model).toBe('sonnet')
+    expect(settings?.apiKey).toBeUndefined()
+    expect(settings?.authToken).toBeUndefined()
+    expect(settings?.defaultModel).toBeUndefined()
+    expect(settings?.preferredModel).toBeUndefined()
     expect(getExistingModelConfig()).toBe('sonnet')
   })
 
   it('persists custom primary model in settings.model', () => {
+    writeFileSync(SETTINGS_FILE, JSON.stringify(STALE_RUNTIME_SETTINGS, null, 2))
+
     updateCustomModel('claude-opus-4.6')
 
-    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    const settings = readJsonConfig<ClaudeSettings & Record<string, any>>(SETTINGS_FILE)
     expect(settings?.model).toBe('claude-opus-4.6')
+    expect(settings?.apiKey).toBeUndefined()
+    expect(settings?.authToken).toBeUndefined()
+    expect(settings?.defaultModel).toBeUndefined()
+    expect(settings?.preferredModel).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_MODEL).toBeUndefined()
     expect(getExistingModelConfig()).toBe('custom')
     expect(getExistingCustomModelConfig()).toEqual({

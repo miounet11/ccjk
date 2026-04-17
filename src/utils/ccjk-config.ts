@@ -114,6 +114,50 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
     storage: {
       memory: {},
     },
+    adaptation: {
+      runtimeProfile: {
+        target: DEFAULT_CODE_TOOL_TYPE,
+        distribution: 'clavue',
+        compatMode: DEFAULT_CODE_TOOL_TYPE === 'myclaude' ? 'native' : 'compatible',
+        providerStrategy: DEFAULT_CODE_TOOL_TYPE === 'myclaude' ? 'profile-based' : 'env-based',
+      },
+      archetypeProfile: {
+        id: 'pc-dev',
+        name: 'PC Software Development',
+        goal: 'Build, debug, test, and ship software efficiently',
+      },
+      capabilityProfile: {
+        coding: true,
+        planning: true,
+        taskTracking: true,
+        memory: true,
+        browserAutomation: false,
+        research: true,
+        documentAuthoring: false,
+        serviceOps: false,
+        multiAgent: true,
+      },
+      policyProfile: {
+        permissionPreset: 'dev',
+        verificationMode: 'required',
+        destructiveActionPolicy: 'confirm',
+        workflowFallbackMode: 'graceful',
+      },
+      contextProfile: {
+        memoryMode: 'project-aware',
+        compressionMode: 'runtime-native',
+        instructionLayering: 'runtime-first',
+      },
+      profileSelection: {
+        workflowPack: 'desktop-engineering',
+        toolPack: 'typescript-node-react',
+      },
+      uiProfile: {
+        language: preferredLang,
+        outputStyle: 'concise',
+        operatorMode: 'execution-first',
+      },
+    },
   }
 }
 
@@ -152,6 +196,7 @@ function migrateFromJsonConfig(jsonConfig: any): ZcfTomlConfig {
     storage: {
       memory: {},
     },
+    adaptation: defaultConfig.adaptation,
   }
 
   return tomlConfig
@@ -189,6 +234,52 @@ function updateTomlConfig(configPath: string, updates: PartialZcfTomlConfig): Zc
         ...(existingConfig.storage?.memory || {}),
         ...(updates.storage?.memory || {}),
       },
+    },
+    adaptation: {
+      ...existingConfig.adaptation,
+      ...updates.adaptation,
+      runtimeProfile: updates.adaptation?.runtimeProfile
+        ? {
+            ...existingConfig.adaptation?.runtimeProfile,
+            ...updates.adaptation.runtimeProfile,
+          }
+        : existingConfig.adaptation?.runtimeProfile,
+      archetypeProfile: updates.adaptation?.archetypeProfile
+        ? {
+            ...existingConfig.adaptation?.archetypeProfile,
+            ...updates.adaptation.archetypeProfile,
+          }
+        : existingConfig.adaptation?.archetypeProfile,
+      capabilityProfile: updates.adaptation?.capabilityProfile
+        ? {
+            ...existingConfig.adaptation?.capabilityProfile,
+            ...updates.adaptation.capabilityProfile,
+          }
+        : existingConfig.adaptation?.capabilityProfile,
+      policyProfile: updates.adaptation?.policyProfile
+        ? {
+            ...existingConfig.adaptation?.policyProfile,
+            ...updates.adaptation.policyProfile,
+          }
+        : existingConfig.adaptation?.policyProfile,
+      contextProfile: updates.adaptation?.contextProfile
+        ? {
+            ...existingConfig.adaptation?.contextProfile,
+            ...updates.adaptation.contextProfile,
+          }
+        : existingConfig.adaptation?.contextProfile,
+      profileSelection: updates.adaptation?.profileSelection
+        ? {
+            ...existingConfig.adaptation?.profileSelection,
+            ...updates.adaptation.profileSelection,
+          }
+        : existingConfig.adaptation?.profileSelection,
+      uiProfile: updates.adaptation?.uiProfile
+        ? {
+            ...existingConfig.adaptation?.uiProfile,
+            ...updates.adaptation.uiProfile,
+          }
+        : existingConfig.adaptation?.uiProfile,
     },
   }
 

@@ -71,6 +71,24 @@ export async function detectSettingsIssues(): Promise<ConfigIssue[]> {
       || env.ANTHROPIC_DEFAULT_SONNET_MODEL
       || env.ANTHROPIC_DEFAULT_OPUS_MODEL,
     )
+    const hasEnvApiConfig = Boolean(
+      env.ANTHROPIC_BASE_URL
+      || env.ANTHROPIC_API_KEY
+      || env.ANTHROPIC_AUTH_TOKEN,
+    )
+    const hasLegacyTopLevelApiConfig = Boolean(
+      settings.baseUrl
+      || settings.apiKey
+      || settings.authToken,
+    )
+    const hasAnyConfiguredApiCredential = Boolean(
+      settings.apiKey
+      || settings.authToken
+      || env.ANTHROPIC_API_KEY
+      || env.ANTHROPIC_AUTH_TOKEN
+      || process.env.ANTHROPIC_API_KEY
+      || process.env.ANTHROPIC_AUTH_TOKEN,
+    )
     if (settings.model === 'default') {
       issues.push({
         type: 'invalid',
@@ -97,8 +115,9 @@ export async function detectSettingsIssues(): Promise<ConfigIssue[]> {
       })
     }
 
-    // 检查必需字段
-    if (!settings.apiType) {
+    // Legacy top-level apiType is only required for old settings.json layouts.
+    // Modern Claude/myclaude sync writes provider state into env keys instead.
+    if (!settings.apiType && hasLegacyTopLevelApiConfig && !hasEnvApiConfig) {
       issues.push({
         type: 'invalid',
         severity: 'critical',
@@ -111,8 +130,8 @@ export async function detectSettingsIssues(): Promise<ConfigIssue[]> {
       })
     }
 
-    // 检查 API key - 只在非 CCR 模式下检查
-    if (settings.apiType === 'anthropic' && !settings.apiKey && !process.env.ANTHROPIC_API_KEY) {
+    // Check API credentials only for the legacy top-level anthropic mode.
+    if (settings.apiType === 'anthropic' && !hasAnyConfiguredApiCredential) {
       issues.push({
         type: 'missing',
         severity: 'info', // 降级为 info，不会在启动时自动修复

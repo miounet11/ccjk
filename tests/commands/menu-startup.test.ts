@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const mockInquirerPrompt = vi.fn()
 const mockReadZcfConfig = vi.fn()
 const mockUpdateZcfConfig = vi.fn()
 const mockResolveStartupCodeType = vi.fn()
 const mockDisplayBannerWithInfo = vi.fn()
 const mockSyncMyclaudeProviderProfilesFromCurrentClaudeConfig = vi.fn()
+const mockPromptBoolean = vi.fn()
+const mockGetItemsForLevel = vi.fn(() => [])
+const mockCreateAllSections = vi.fn(() => [])
+const mockFindItemByInput = vi.fn(() => null)
+const mockHooksSync = vi.fn()
 const mockBuildMyclaudeProviderPresentation = vi.fn(() => ({
   modeLabel: 'OpenAI-native',
   sourceLabel: 'Imported from ccjk · Reusable profile imported from the compatible ccjk configuration.',
@@ -20,8 +26,15 @@ const mockIsOnboardingCompleted = vi.fn(() => true)
 vi.mock('ansis', () => ({
   default: {
     dim: (value: string) => value,
+    gray: (value: string) => value,
     green: (value: string) => value,
     yellow: (value: string) => value,
+  },
+}))
+
+vi.mock('inquirer', () => ({
+  default: {
+    prompt: mockInquirerPrompt,
   },
 }))
 
@@ -56,20 +69,20 @@ vi.mock('../../src/commands/onboarding-wizard', () => ({
 }))
 
 vi.mock('../../src/utils/toggle-prompt', () => ({
-  promptBoolean: vi.fn(),
+  promptBoolean: mockPromptBoolean,
 }))
 
 vi.mock('../../src/commands/menu/progressive', () => ({
-  getItemsForLevel: vi.fn(() => []),
+  getItemsForLevel: mockGetItemsForLevel,
   levelDefinitions: {
     basic: { maxItems: 9 },
   },
 }))
 
 vi.mock('../../src/commands/menu/renderer', () => ({
-  createAllSections: vi.fn(() => []),
+  createAllSections: mockCreateAllSections,
   filterSectionsByItemLimit: vi.fn((sections: unknown) => sections),
-  findItemByInput: vi.fn(() => null),
+  findItemByInput: mockFindItemByInput,
   getToolModeMenuTitle: vi.fn(() => 'myclaude Control Center'),
   getVisibleItemCount: vi.fn(() => 0),
   isBackCommand: vi.fn(() => false),
@@ -130,7 +143,7 @@ vi.mock('../../src/commands/check-updates', () => ({ checkUpdates: vi.fn() }))
 vi.mock('../../src/commands/config-switch', () => ({ configSwitchCommand: vi.fn() }))
 vi.mock('../../src/commands/context-menu', () => ({ showContextMenu: vi.fn() }))
 vi.mock('../../src/commands/doctor', () => ({ doctor: vi.fn(), workspaceDiagnostics: vi.fn() }))
-vi.mock('../../src/commands/hooks-sync', () => ({ hooksSync: vi.fn() }))
+vi.mock('../../src/commands/hooks-sync', () => ({ hooksSync: mockHooksSync }))
 vi.mock('../../src/commands/init', () => ({ init: vi.fn() }))
 vi.mock('../../src/commands/mcp-market', () => ({
   mcpInstall: vi.fn(),
@@ -159,6 +172,11 @@ describe('menu startup myclaude runtime sync', () => {
     })
     mockResolveStartupCodeType.mockResolvedValue('myclaude')
     mockPromptMenuSelection.mockResolvedValue('q')
+    mockPromptBoolean.mockResolvedValue(false)
+    mockInquirerPrompt.mockReset()
+    mockGetItemsForLevel.mockReturnValue([])
+    mockCreateAllSections.mockReturnValue([])
+    mockFindItemByInput.mockReturnValue(null)
     mockSyncMyclaudeProviderProfilesFromCurrentClaudeConfig.mockReturnValue({
       activeProfileId: 'ttqq',
       activeProfile: {
@@ -197,5 +215,33 @@ describe('menu startup myclaude runtime sync', () => {
     )
     expect(mockDisplayBannerWithInfo).toHaveBeenCalledWith('for myclaude')
     expect(mockRunOnboardingWizard).not.toHaveBeenCalled()
+  })
+
+  it('runs hooks sync action from the real hooks submenu handler path', async () => {
+    mockPromptMenuSelection.mockResolvedValueOnce('1').mockResolvedValueOnce('q')
+    mockCreateAllSections.mockReturnValue([
+      {
+        title: 'Automation',
+        items: [{ id: 'hooks-sync', label: 'Hooks Sync' }],
+      },
+    ])
+    mockGetItemsForLevel.mockReturnValue([
+      { id: 'hooks-sync', label: 'Hooks Sync' },
+    ])
+    mockFindItemByInput.mockImplementation((_input, sections) => sections[0].items[0])
+    mockInquirerPrompt.mockResolvedValueOnce({ choice: '2' })
+
+    const { showMainMenu } = await import('../../src/commands/menu/index')
+
+    await showMainMenu()
+
+    expect(mockHooksSync).toHaveBeenCalledWith({ action: 'sync' })
+    expect(mockInquirerPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'input',
+        name: 'choice',
+      }),
+    )
+    expect(mockPromptBoolean).toHaveBeenCalledTimes(1)
   })
 })

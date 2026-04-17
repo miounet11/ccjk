@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 import { join } from 'pathe'
 import { SETTINGS_FILE, ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants'
 import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from './ccjk-config'
-import { overwriteModelSettings } from './config'
+import { clearLegacyTopLevelRuntimeSettings, overwriteModelSettings } from './config'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
 
@@ -266,6 +266,8 @@ export class ClaudeCodeConfigManager {
       const { readJsonConfig, writeJsonConfig } = await import('./json-config')
       const settings = readJsonConfig<any>(SETTINGS_FILE) || {}
 
+      clearLegacyTopLevelRuntimeSettings(settings)
+
       if (!settings.env)
         settings.env = {}
 
@@ -327,6 +329,7 @@ export class ClaudeCodeConfigManager {
       let verifiedSettings = readJsonConfig<any>(SETTINGS_FILE) || {}
       if (!this.settingsMatchProfile(verifiedSettings, profile)) {
         const repairedSettings = readJsonConfig<any>(SETTINGS_FILE) || {}
+        clearLegacyTopLevelRuntimeSettings(repairedSettings)
         repairedSettings.env = repairedSettings.env || {}
 
         if (profile?.authType === 'api_key') {

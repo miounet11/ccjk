@@ -68,7 +68,7 @@ interface GeneratedConfig {
 
 ## Tests
 
-No dedicated test file yet. Covered via `tests/v2/integration/e2e-workflow.test.ts`.
+No dedicated test file yet.
 
 ## Changelog
 

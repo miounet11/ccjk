@@ -134,8 +134,13 @@ describe('haiku model compatibility', () => {
     mkdirSync(dirname(SETTINGS_FILE), { recursive: true })
     mkdirSync(dirname(ZCF_CONFIG_FILE), { recursive: true })
 
-    const initialSettings: ClaudeSettings = {
+    const initialSettings: ClaudeSettings & Record<string, any> = {
       model: 'stale-custom-model',
+      baseUrl: 'https://stale.example.com',
+      apiKey: 'sk-stale',
+      authToken: 'token-stale',
+      defaultModel: 'stale-default',
+      preferredModel: 'stale-preferred',
       env: {
         ANTHROPIC_MODEL: 'stale-primary',
         ANTHROPIC_DEFAULT_HAIKU_MODEL: 'stale-haiku',
@@ -143,6 +148,7 @@ describe('haiku model compatibility', () => {
         ANTHROPIC_DEFAULT_SONNET_MODEL: 'stale-sonnet',
         ANTHROPIC_DEFAULT_OPUS_MODEL: 'stale-opus',
         ANTHROPIC_API_KEY: 'sk-old',
+        ANTHROPIC_BASE_URL: 'https://stale-env.example.com',
       },
     }
 
@@ -165,15 +171,21 @@ describe('haiku model compatibility', () => {
     ClaudeCodeConfigManager.writeConfig(config)
     await ClaudeCodeConfigManager.applyCurrentProfile()
 
-    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    const settings = readJsonConfig<ClaudeSettings & Record<string, any>>(SETTINGS_FILE)
     // settings.model must NOT be set when adaptive routing (haikuModel) is configured
     expect(settings?.model).toBeUndefined()
+    expect(settings?.baseUrl).toBeUndefined()
+    expect(settings?.apiKey).toBeUndefined()
+    expect(settings?.authToken).toBeUndefined()
+    expect(settings?.defaultModel).toBeUndefined()
+    expect(settings?.preferredModel).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_MODEL).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4.5')
     expect(settings?.env?.ANTHROPIC_SMALL_FAST_MODEL).toBe('claude-haiku-4.5')
     expect(settings?.env?.ANTHROPIC_DEFAULT_SONNET_MODEL).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_DEFAULT_OPUS_MODEL).toBeUndefined()
     expect(settings?.env?.ANTHROPIC_API_KEY).toBe('sk-test')
+    expect(settings?.env?.ANTHROPIC_BASE_URL).toBe('https://example.com')
   })
 
   it('switchProfile auto-syncs persisted current profile to settings.json', async () => {

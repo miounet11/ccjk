@@ -157,17 +157,20 @@ describe('modelCheck', () => {
     expect(r.score).toBe(0)
   })
 
-  it('warns when no API key', async () => {
+  it('warns when no API credentials', async () => {
     writeFileSync(mockSettingsFile, JSON.stringify({ env: {} }))
-    const saved = process.env.ANTHROPIC_API_KEY
+    const savedApiKey = process.env.ANTHROPIC_API_KEY
+    const savedAuthToken = process.env.ANTHROPIC_AUTH_TOKEN
     delete process.env.ANTHROPIC_API_KEY
+    delete process.env.ANTHROPIC_AUTH_TOKEN
     try {
       const r = await modelCheck.check()
       expect(r.status).toBe('warn')
       expect(r.score).toBe(40)
     }
     finally {
-      if (saved !== undefined) process.env.ANTHROPIC_API_KEY = saved
+      if (savedApiKey !== undefined) process.env.ANTHROPIC_API_KEY = savedApiKey
+      if (savedAuthToken !== undefined) process.env.ANTHROPIC_AUTH_TOKEN = savedAuthToken
     }
   })
 
@@ -183,6 +186,26 @@ describe('modelCheck', () => {
 
   it('passes with API key but no model at score 70', async () => {
     writeFileSync(mockSettingsFile, JSON.stringify({
+      env: { ANTHROPIC_API_KEY: 'sk-test' },
+    }))
+    const r = await modelCheck.check()
+    expect(r.status).toBe('pass')
+    expect(r.score).toBe(70)
+  })
+
+  it('passes with auth token credential and no model at score 70', async () => {
+    writeFileSync(mockSettingsFile, JSON.stringify({
+      env: { ANTHROPIC_AUTH_TOKEN: 'token-test' },
+    }))
+    const r = await modelCheck.check()
+    expect(r.status).toBe('pass')
+    expect(r.score).toBe(70)
+  })
+
+  it('does not count stale legacy model fields as model configuration', async () => {
+    writeFileSync(mockSettingsFile, JSON.stringify({
+      defaultModel: 'stale-default',
+      preferredModel: 'stale-preferred',
       env: { ANTHROPIC_API_KEY: 'sk-test' },
     }))
     const r = await modelCheck.check()

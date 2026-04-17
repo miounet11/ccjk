@@ -398,10 +398,6 @@ try {
 }
 ```
 
-## API Reference
-
-See [TASK_PERSISTENCE_ENHANCEMENT.md](../TASK_PERSISTENCE_ENHANCEMENT.md) for complete API documentation.
-
 ## Troubleshooting
 
 ### Issue: Circular dependency detected
