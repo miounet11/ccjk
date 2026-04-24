@@ -1,6 +1,11 @@
 import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
 import type {
+  AdaptationConfig,
+  ClaudeCodeConfig,
+  CodexConfig,
+  GeneralConfig,
   PartialZcfTomlConfig,
+  StorageConfig,
   ZcfTomlConfig,
 } from '../types/toml-config'
 import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync } from 'node:fs'
@@ -41,6 +46,116 @@ function sanitizeCodeToolType(codeTool: any): CodeToolType {
   return isCodeToolType(codeTool) ? codeTool : DEFAULT_CODE_TOOL_TYPE
 }
 
+function normalizeTomlConfig(config: PartialZcfTomlConfig | null | undefined): ZcfTomlConfig {
+  const legacyConfig = config as (Partial<ZcfConfig> & Record<string, any>) | null | undefined
+  const rawGeneral = (config?.general || {}) as Partial<GeneralConfig>
+  const preferredLang = sanitizePreferredLang(rawGeneral.preferredLang ?? legacyConfig?.preferredLang)
+  const defaultConfig = createDefaultTomlConfig(preferredLang)
+  const codeToolType = sanitizeCodeToolType(rawGeneral.currentTool ?? legacyConfig?.codeToolType)
+  const rawClaudeCode = (config?.claudeCode || {}) as Partial<ClaudeCodeConfig>
+  const rawCodex = (config?.codex || {}) as Partial<CodexConfig>
+  const rawStorage = (config?.storage || {}) as Partial<StorageConfig>
+  const rawAdaptation = (config?.adaptation || {}) as Partial<AdaptationConfig>
+  const defaultAdaptation = defaultConfig.adaptation!
+  const hasLegacyToolType = typeof legacyConfig?.codeToolType === 'string'
+  const templateLang = rawGeneral.templateLang ?? legacyConfig?.templateLang
+
+  return {
+    version: typeof config?.version === 'string' ? config.version : defaultConfig.version,
+    lastUpdated: typeof config?.lastUpdated === 'string' ? config.lastUpdated : new Date().toISOString(),
+    general: {
+      preferredLang,
+      templateLang: templateLang
+        ? sanitizePreferredLang(templateLang)
+        : defaultConfig.general.templateLang,
+      aiOutputLang: rawGeneral.aiOutputLang ?? legacyConfig?.aiOutputLang ?? defaultConfig.general.aiOutputLang,
+      currentTool: codeToolType,
+    },
+    claudeCode: {
+      enabled: typeof rawClaudeCode.enabled === 'boolean'
+        ? rawClaudeCode.enabled
+        : hasLegacyToolType
+          ? codeToolType === 'claude-code'
+          : defaultConfig.claudeCode.enabled,
+      outputStyles: Array.isArray(rawClaudeCode.outputStyles)
+        ? rawClaudeCode.outputStyles
+        : Array.isArray(legacyConfig?.outputStyles)
+          ? legacyConfig.outputStyles
+          : defaultConfig.claudeCode.outputStyles,
+      defaultOutputStyle: typeof rawClaudeCode.defaultOutputStyle === 'string'
+        ? rawClaudeCode.defaultOutputStyle
+        : typeof legacyConfig?.defaultOutputStyle === 'string'
+          ? legacyConfig.defaultOutputStyle
+          : defaultConfig.claudeCode.defaultOutputStyle,
+      installType: rawClaudeCode.installType === 'local' || rawClaudeCode.installType === 'global'
+        ? rawClaudeCode.installType
+        : defaultConfig.claudeCode.installType,
+      installMethod: rawClaudeCode.installMethod,
+      currentProfile: typeof rawClaudeCode.currentProfile === 'string'
+        ? rawClaudeCode.currentProfile
+        : defaultConfig.claudeCode.currentProfile,
+      profiles: rawClaudeCode.profiles && typeof rawClaudeCode.profiles === 'object'
+        ? rawClaudeCode.profiles
+        : defaultConfig.claudeCode.profiles,
+      version: rawClaudeCode.version,
+    },
+    codex: {
+      enabled: typeof rawCodex.enabled === 'boolean'
+        ? rawCodex.enabled
+        : hasLegacyToolType
+          ? codeToolType === 'codex'
+          : defaultConfig.codex.enabled,
+      systemPromptStyle: typeof rawCodex.systemPromptStyle === 'string'
+        ? rawCodex.systemPromptStyle
+        : typeof legacyConfig?.systemPromptStyle === 'string'
+          ? legacyConfig.systemPromptStyle
+          : defaultConfig.codex.systemPromptStyle,
+      installMethod: rawCodex.installMethod,
+      envKeyMigrated: rawCodex.envKeyMigrated,
+    },
+    storage: {
+      ...defaultConfig.storage,
+      ...rawStorage,
+      memory: {
+        ...(defaultConfig.storage?.memory || {}),
+        ...(rawStorage.memory || {}),
+      },
+    },
+    adaptation: {
+      ...defaultAdaptation,
+      ...rawAdaptation,
+      runtimeProfile: {
+        ...defaultAdaptation.runtimeProfile!,
+        ...rawAdaptation.runtimeProfile,
+      },
+      archetypeProfile: {
+        ...defaultAdaptation.archetypeProfile!,
+        ...rawAdaptation.archetypeProfile,
+      },
+      capabilityProfile: {
+        ...defaultAdaptation.capabilityProfile!,
+        ...rawAdaptation.capabilityProfile,
+      },
+      policyProfile: {
+        ...defaultAdaptation.policyProfile!,
+        ...rawAdaptation.policyProfile,
+      },
+      contextProfile: {
+        ...defaultAdaptation.contextProfile!,
+        ...rawAdaptation.contextProfile,
+      },
+      profileSelection: {
+        ...defaultAdaptation.profileSelection!,
+        ...rawAdaptation.profileSelection,
+      },
+      uiProfile: {
+        ...defaultAdaptation.uiProfile!,
+        ...rawAdaptation.uiProfile,
+      },
+    },
+  }
+}
+
 /**
  * Read TOML configuration from file
  * @param configPath - Path to the TOML configuration file
@@ -53,8 +168,8 @@ function readTomlConfig(configPath: string): ZcfTomlConfig | null {
     }
 
     const content = readFile(configPath)
-    const parsed = parse(content) as unknown as ZcfTomlConfig
-    return parsed
+    const parsed = parse(content) as unknown as PartialZcfTomlConfig
+    return normalizeTomlConfig(parsed)
   }
   catch {
     // Handle parsing errors gracefully
@@ -290,16 +405,18 @@ function updateTomlConfig(configPath: string, updates: PartialZcfTomlConfig): Zc
 /**
  * Convert TOML config to legacy ZcfConfig format for backward compatibility
  */
-function convertTomlToLegacyConfig(tomlConfig: ZcfTomlConfig): ZcfConfig {
+function convertTomlToLegacyConfig(tomlConfig: ZcfTomlConfig | PartialZcfTomlConfig): ZcfConfig {
+  const normalizedConfig = normalizeTomlConfig(tomlConfig)
+
   return {
-    version: tomlConfig.version,
-    preferredLang: tomlConfig.general.preferredLang,
-    templateLang: tomlConfig.general.templateLang,
-    aiOutputLang: tomlConfig.general.aiOutputLang,
-    outputStyles: tomlConfig.claudeCode.outputStyles,
-    defaultOutputStyle: tomlConfig.claudeCode.defaultOutputStyle,
-    codeToolType: tomlConfig.general.currentTool,
-    lastUpdated: tomlConfig.lastUpdated,
+    version: normalizedConfig.version,
+    preferredLang: normalizedConfig.general.preferredLang,
+    templateLang: normalizedConfig.general.templateLang,
+    aiOutputLang: normalizedConfig.general.aiOutputLang,
+    outputStyles: normalizedConfig.claudeCode.outputStyles,
+    defaultOutputStyle: normalizedConfig.claudeCode.defaultOutputStyle,
+    codeToolType: normalizedConfig.general.currentTool,
+    lastUpdated: normalizedConfig.lastUpdated,
   }
 }
 
