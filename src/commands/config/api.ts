@@ -11,14 +11,117 @@
  *   ccjk config api --code-type <type>     Specify code tool type
  */
 
+import type { ApiProviderPreset } from '../../config/api-providers'
 import type { CodeToolType } from '../../constants'
+import type { ClaudeConfiguration, ClavueCredentialsConfiguration } from '../../types'
 import type { ApiConfigOptions } from './types'
 
 import ansis from 'ansis'
 import { getApiProvidersAsync } from '../../config/api-providers'
 import { getApiConfig as getClaudeApiConfig, setApiConfig as setClaudeApiConfig } from '../../config/unified/claude-config'
-import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../../constants'
+import { CLAVUE_CREDENTIALS_FILE, DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
+import { readClavueConfig, setMyclaudeProviderProfiles } from '../../utils/claude-config'
+import { readJsonConfig } from '../../utils/json-config'
+
+type ProviderRuntimeConfig = NonNullable<ApiProviderPreset['claudeCode']> | NonNullable<ApiProviderPreset['codex']>
+
+function isClaudeFamilyCodeType(codeType: CodeToolType): boolean {
+  return codeType === 'claude-code' || codeType === 'clavue'
+}
+
+function getProviderRuntimeConfig(provider: ApiProviderPreset, codeType: CodeToolType): ProviderRuntimeConfig | undefined {
+  return isClaudeFamilyCodeType(codeType) ? provider.claudeCode : provider.codex
+}
+
+function getProviderAuthType(provider: ApiProviderPreset, codeType: CodeToolType): 'api_key' | 'auth_token' {
+  if (isClaudeFamilyCodeType(codeType) && provider.claudeCode) {
+    return provider.claudeCode.authType
+  }
+
+  return 'api_key'
+}
+
+function getProviderModels(provider: ApiProviderPreset, codeType: CodeToolType): string[] | undefined {
+  if (isClaudeFamilyCodeType(codeType)) {
+    return provider.claudeCode?.defaultModels
+  }
+
+  return provider.codex?.defaultModel ? [provider.codex.defaultModel] : undefined
+}
+
+function getRuntimeApiConfig(codeType: CodeToolType): { url?: string, key?: string, authType?: 'api_key' | 'auth_token' } | null {
+  if (codeType !== 'clavue') {
+    return getClaudeApiConfig()
+  }
+
+  const config = readClavueConfig()
+  const activeProfileId = config?.clavueActiveProviderProfileId || config?.myclaudeActiveProviderProfileId
+  const activeProfile = Array.isArray(config?.clavueProviderProfiles)
+    ? config.clavueProviderProfiles.find(profile => profile.id === activeProfileId)
+    : undefined
+  if (!activeProfile) {
+    return null
+  }
+
+  const credentials = readJsonConfig<ClavueCredentialsConfiguration>(CLAVUE_CREDENTIALS_FILE)
+  const credential = credentials?.providerProfiles?.[activeProfile.id]
+
+  return {
+    url: activeProfile.baseUrl,
+    key: credential?.credential,
+    authType: credential?.authType || activeProfile.authType,
+  }
+}
+
+function getActiveClavueProviderProfileId(config: ClaudeConfiguration | null): string | undefined {
+  return config?.clavueActiveProviderProfileId || config?.myclaudeActiveProviderProfileId
+}
+
+function isClavueProviderCurrent(provider: ApiProviderPreset, providerConfig: ProviderRuntimeConfig, codeType: CodeToolType): boolean {
+  if (codeType !== 'clavue') {
+    return getRuntimeApiConfig(codeType)?.url === providerConfig.baseUrl
+  }
+
+  const config = readClavueConfig()
+  const activeProfileId = getActiveClavueProviderProfileId(config)
+  const activeProfile = Array.isArray(config?.clavueProviderProfiles)
+    ? config.clavueProviderProfiles.find(profile => profile.id === activeProfileId)
+    : undefined
+
+  return activeProfile?.providerId === provider.id
+    || activeProfile?.baseUrl === providerConfig.baseUrl
+}
+
+function syncMyclaudeProviderProfile(
+  provider: ApiProviderPreset,
+  apiKey: string,
+  providerConfig: ProviderRuntimeConfig,
+  authType: 'api_key' | 'auth_token',
+  defaultModels?: string[],
+): void {
+  const primaryModel = defaultModels?.[0]
+  const haikuModel = defaultModels?.[1] || primaryModel
+  const sonnetModel = defaultModels?.[2] || primaryModel
+  const opusModel = defaultModels?.[3]
+
+  setMyclaudeProviderProfiles([
+    {
+      id: provider.id,
+      name: provider.name,
+      provider: provider.id,
+      apiKey,
+      baseUrl: providerConfig.baseUrl,
+      model: primaryModel,
+      fastModel: haikuModel,
+      authType,
+      primaryModel,
+      defaultHaikuModel: haikuModel,
+      defaultSonnetModel: sonnetModel,
+      defaultOpusModel: opusModel,
+    },
+  ], provider.id)
+}
 
 /**
  * Display a list of available API providers
@@ -49,17 +152,14 @@ async function listProviders(codeType: CodeToolType, _options: ApiConfigOptions)
     console.log('')
 
     // Get current API config to highlight active provider
-    const currentConfig = getClaudeApiConfig()
-    const currentBaseUrl = currentConfig?.url
-
     // Display each provider
     for (const provider of providers) {
       // Get provider-specific config based on code type
-      const providerConfig = codeType === 'claude-code' ? provider.claudeCode : provider.codex
+      const providerConfig = getProviderRuntimeConfig(provider, codeType)
       if (!providerConfig)
         continue
 
-      const isCurrent = currentBaseUrl === providerConfig.baseUrl
+      const isCurrent = isClavueProviderCurrent(provider, providerConfig, codeType)
       const statusIndicator = isCurrent ? ansis.green('● ') : '  '
       const currentLabel = isCurrent ? ansis.yellow(` (${isZh ? 'current' : '当前'})`) : ''
 
@@ -71,7 +171,7 @@ async function listProviders(codeType: CodeToolType, _options: ApiConfigOptions)
         console.log(`  ${ansis.dim(provider.description)}`)
       }
 
-      if (codeType === 'claude-code' && provider.claudeCode?.defaultModels && provider.claudeCode.defaultModels.length > 0) {
+      if (isClaudeFamilyCodeType(codeType) && provider.claudeCode?.defaultModels && provider.claudeCode.defaultModels.length > 0) {
         console.log(`  ${ansis.green('Models:')} ${provider.claudeCode.defaultModels.join(', ')}`)
       }
       else if (codeType === 'codex' && provider.codex?.defaultModel) {
@@ -105,7 +205,7 @@ async function showCurrentConfig(codeType: CodeToolType, _options: ApiConfigOpti
   const isZh = i18n.language === 'zh-CN'
 
   try {
-    const apiConfig = getClaudeApiConfig()
+    const apiConfig = getRuntimeApiConfig(codeType)
 
     console.log('')
     console.log(ansis.bold.cyan(isZh ? 'Current API Configuration' : '当前 API 配置'))
@@ -143,7 +243,7 @@ async function showCurrentConfig(codeType: CodeToolType, _options: ApiConfigOpti
     // Try to identify the provider
     const providers = await getApiProvidersAsync(codeType)
     const matchedProvider = providers.find((p) => {
-      const config = codeType === 'claude-code' ? p.claudeCode : p.codex
+      const config = getProviderRuntimeConfig(p, codeType)
       return config?.baseUrl === apiConfig.url
     })
     if (matchedProvider) {
@@ -197,7 +297,7 @@ async function setProviderApi(
     }
 
     // Get provider-specific config
-    const providerConfig = codeType === 'claude-code' ? provider.claudeCode : provider.codex
+    const providerConfig = getProviderRuntimeConfig(provider, codeType)
 
     if (!providerConfig) {
       console.log(ansis.red(isZh
@@ -208,28 +308,19 @@ async function setProviderApi(
     }
 
     // Get auth type and models based on code type
-    let authType: 'api_key' | 'auth_token'
-    let defaultModels: string[] | undefined
+    const authType = getProviderAuthType(provider, codeType)
+    const defaultModels = getProviderModels(provider, codeType)
 
-    if (codeType === 'claude-code' && provider.claudeCode) {
-      authType = provider.claudeCode.authType
-      defaultModels = provider.claudeCode.defaultModels
-    }
-    else if (codeType === 'codex' && provider.codex) {
-      // For Codex, we use api_key auth type
-      authType = 'api_key'
-      defaultModels = provider.codex.defaultModel ? [provider.codex.defaultModel] : undefined
+    if (codeType === 'clavue') {
+      syncMyclaudeProviderProfile(provider, apiKey, providerConfig, authType, defaultModels)
     }
     else {
-      authType = 'api_key'
+      setClaudeApiConfig({
+        url: providerConfig.baseUrl,
+        key: apiKey,
+        authType,
+      })
     }
-
-    // Set the API configuration
-    setClaudeApiConfig({
-      url: providerConfig.baseUrl,
-      key: apiKey,
-      authType,
-    })
 
     // Success message
     console.log('')
@@ -319,19 +410,19 @@ export async function apiCommand(args: string[], options: ApiConfigOptions = {})
       console.log('')
       console.log(`${ansis.green('ID:')} ${provider.id}`)
 
-      const providerConfig = codeType === 'claude-code' ? provider.claudeCode : provider.codex
+      const providerConfig = getProviderRuntimeConfig(provider, codeType)
       if (providerConfig?.baseUrl) {
         console.log(`${ansis.green('URL:')} ${providerConfig.baseUrl}`)
       }
 
-      console.log(`${ansis.green('Auth Type:')} ${provider.claudeCode?.authType || provider.codex?.wireApi || 'N/A'}`)
+      console.log(`${ansis.green('Auth Type:')} ${isClaudeFamilyCodeType(codeType) ? provider.claudeCode?.authType : provider.codex?.wireApi || 'N/A'}`)
 
       if (provider.description) {
         console.log(`${ansis.green('Description:')} ${provider.description}`)
       }
 
-      if (provider.claudeCode?.defaultModels || provider.codex?.defaultModel) {
-        const models = provider.claudeCode?.defaultModels || [provider.codex?.defaultModel]
+      const models = getProviderModels(provider, codeType)
+      if (models?.length) {
         console.log(`${ansis.green('Models:')} ${models.filter(Boolean).join(', ')}`)
       }
 

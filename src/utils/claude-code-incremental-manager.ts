@@ -28,7 +28,7 @@ export function getAuthTypeLabel(authType: ClaudeCodeProfile['authType']): strin
  */
 async function syncMyclaudeProfilesIfNeeded(): Promise<void> {
   const zcfConfig = readZcfConfig()
-  if (zcfConfig?.codeToolType !== 'myclaude') {
+  if (zcfConfig?.codeToolType !== 'clavue') {
     return
   }
 

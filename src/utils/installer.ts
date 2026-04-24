@@ -138,14 +138,14 @@ export async function installClaudeCode(skipMethodSelection: boolean = false): P
  * Check if Codex is installed
  */
 export async function isMyclaudeInstalled(): Promise<boolean> {
-  return await commandExists('myclaude')
+  return await commandExists('clavue')
 }
 
 export async function installMyclaude(skipMethodSelection: boolean = false): Promise<void> {
   ensureI18nInitialized()
 
-  const codeType: CodeType = 'myclaude'
-  const codeTypeName = CODE_TOOL_INFO.myclaude.name
+  const codeType: CodeType = 'clavue'
+  const codeTypeName = CODE_TOOL_INFO.clavue.name
 
   const installed = await isMyclaudeInstalled()
   if (installed) {
@@ -165,12 +165,12 @@ export async function installMyclaude(skipMethodSelection: boolean = false): Pro
     console.log(i18n.t('installation:installingWith', { method: 'npm', codeType: codeTypeName }))
 
     try {
-      const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['install', '-g', 'myclaude-code', '--force'])
+      const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['install', '-g', 'clavue', '--force'])
       if (usedSudo) {
         console.log(ansis.yellow(`ℹ ${i18n.t('installation:usingSudo')}`))
       }
       await exec(command, args)
-      await exec('myclaude', ['install', '--force'])
+      await exec('clavue', ['install', '--force'])
       await setInstallMethod('npm', codeType)
       console.log(ansis.green(`✔ ${codeTypeName} ${i18n.t('installation:installSuccess')}`))
 
@@ -277,7 +277,7 @@ export interface InstallationStatus {
 export async function getInstallationStatus(codeType: CodeType = 'claude-code'): Promise<InstallationStatus> {
   const hasGlobal = codeType === 'claude-code'
     ? await isClaudeCodeInstalled()
-    : codeType === 'myclaude'
+    : codeType === 'clavue'
       ? await isMyclaudeInstalled()
       : await isCodexInstalled()
 
@@ -348,9 +348,9 @@ export async function uninstallCodeTool(codeType: CodeType): Promise<boolean> {
         // Not installed via Homebrew
       }
     }
-    else if (codeType === 'myclaude') {
+    else if (codeType === 'clavue') {
       try {
-        const result = await exec('brew', ['list', '--cask', 'myclaude-code'])
+        const result = await exec('brew', ['list', '--cask', 'clavue'])
         if (result.exitCode === 0) {
           method = 'homebrew'
         }
@@ -385,8 +385,8 @@ export async function uninstallCodeTool(codeType: CodeType): Promise<boolean> {
       try {
         const testResult = codeType === 'claude-code'
           ? await exec('brew', ['list', '--cask', 'claude-code'])
-          : codeType === 'myclaude'
-            ? await exec('brew', ['list', '--cask', 'myclaude-code'])
+          : codeType === 'clavue'
+            ? await exec('brew', ['list', '--cask', 'clavue'])
             : await exec('brew', ['list', '--cask', 'codex'])
         if (testResult.exitCode === 0) {
           method = 'homebrew'
@@ -411,8 +411,8 @@ export async function uninstallCodeTool(codeType: CodeType): Promise<boolean> {
       case 'npm-global': {
         const packageName = codeType === 'claude-code'
           ? '@anthropic-ai/claude-code'
-          : codeType === 'myclaude'
-            ? 'myclaude-code'
+          : codeType === 'clavue'
+            ? 'clavue'
             : '@openai/codex'
         const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['uninstall', '-g', packageName])
         if (usedSudo) {
@@ -427,8 +427,8 @@ export async function uninstallCodeTool(codeType: CodeType): Promise<boolean> {
         if (codeType === 'claude-code') {
           await exec('brew', ['uninstall', '--cask', 'claude-code'])
         }
-        else if (codeType === 'myclaude') {
-          await exec('brew', ['uninstall', '--cask', 'myclaude-code'])
+        else if (codeType === 'clavue') {
+          await exec('brew', ['uninstall', '--cask', 'clavue'])
         }
         else {
           await exec('brew', ['uninstall', '--cask', 'codex'])
@@ -489,20 +489,27 @@ export async function uninstallCodeTool(codeType: CodeType): Promise<boolean> {
 }
 
 /**
- * Set installMethod in both ~/.claude.json and ccjk-config
- * This ensures Claude Code knows it was installed via npm for proper auto-updates
+ * Set installMethod in the active Claude-family runtime config.
+ * This ensures the runtime knows it was installed via npm for proper auto-updates.
  */
 export async function setInstallMethod(method: InstallMethod, codeType: CodeType = 'claude-code'): Promise<void> {
   try {
     // Save to shared Claude-family config for runtime compatibility
     if (isClaudeFamilyCodeTool(codeType)) {
-      const { readMcpConfig, writeMcpConfig } = await import('./claude-config')
-      let config = readMcpConfig()
+      const {
+        readClavueConfig,
+        readMcpConfig,
+        writeClavueConfig,
+        writeMcpConfig,
+      } = await import('./claude-config')
+      const readConfig = codeType === 'clavue' ? readClavueConfig : readMcpConfig
+      const writeConfig = codeType === 'clavue' ? writeClavueConfig : writeMcpConfig
+      let config = readConfig()
       if (!config) {
         config = { mcpServers: {} }
       }
       config.installMethod = method === 'npm' ? 'npm-global' : method
-      writeMcpConfig(config)
+      writeConfig(config)
     }
 
     // Note: CCJK TOML config doesn't have direct TOML read/write functions
@@ -571,7 +578,7 @@ function getInstallMethodOptions(codeType: CodeType, recommendedMethods: Install
     if (codeType === 'codex' && !['npm', 'homebrew'].includes(method)) {
       return false
     }
-    if (codeType === 'myclaude' && method !== 'npm') {
+    if (codeType === 'clavue' && method !== 'npm') {
       return false
     }
 
@@ -644,8 +651,8 @@ export async function executeInstallMethod(method: InstallMethod, codeType: Code
       case 'npm': {
         const packageName = codeType === 'claude-code'
           ? '@anthropic-ai/claude-code'
-          : codeType === 'myclaude'
-            ? 'myclaude-code'
+          : codeType === 'clavue'
+            ? 'clavue'
             : '@openai/codex'
         const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['install', '-g', packageName, '--force'])
         if (usedSudo) {
@@ -653,8 +660,8 @@ export async function executeInstallMethod(method: InstallMethod, codeType: Code
           spinner.start()
         }
         await exec(command, args)
-        if (codeType === 'myclaude') {
-          await exec('myclaude', ['install', '--force'])
+        if (codeType === 'clavue') {
+          await exec('clavue', ['install', '--force'])
         }
         await setInstallMethod('npm', codeType)
         break
@@ -664,7 +671,7 @@ export async function executeInstallMethod(method: InstallMethod, codeType: Code
         if (codeType === 'claude-code') {
           await exec('brew', ['install', '--cask', 'claude-code'])
         }
-        else if (codeType === 'myclaude') {
+        else if (codeType === 'clavue') {
           spinner.stop()
           return await executeInstallMethod('npm', codeType)
         }

@@ -6,13 +6,22 @@ import { zeroConfig } from '../../src/commands/zero-config'
 vi.mock('node:fs')
 vi.mock('../../src/utils/fs-operations')
 vi.mock('inquirer')
+vi.mock('../../src/utils/ccjk-config', async () => {
+  const actual = await vi.importActual<typeof import('../../src/utils/ccjk-config')>('../../src/utils/ccjk-config')
+  return {
+    ...actual,
+    readZcfConfig: vi.fn(() => ({ codeToolType: 'claude-code' })),
+  }
+})
 
 const mockExistsSync = vi.mocked(existsSync)
 const mockReadFileSync = vi.mocked(readFileSync)
 
 describe('zero-config command', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
+    const { readZcfConfig } = await import('../../src/utils/ccjk-config')
+    vi.mocked(readZcfConfig).mockReturnValue({ codeToolType: 'claude-code' } as any)
   })
 
   afterEach(() => {
@@ -84,6 +93,23 @@ describe('zero-config command', () => {
       expect(writtenContent.permissions.allow).not.toContain('Bash(docker *)')
     })
 
+    it('writes Clavue presets to ~/.clavue/settings.json when Clavue is active', async () => {
+      const { readZcfConfig } = await import('../../src/utils/ccjk-config')
+      vi.mocked(readZcfConfig).mockReturnValue({ codeToolType: 'clavue' } as any)
+      mockExistsSync.mockReturnValue(true)
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        permissions: { allow: [] },
+      }))
+
+      const { writeFileAtomic } = await import('../../src/utils/fs-operations')
+      const writeFileSpy = vi.mocked(writeFileAtomic).mockImplementation(() => {})
+
+      await zeroConfig({ preset: 'dev', skipBackup: true })
+
+      expect(writeFileSpy).toHaveBeenCalled()
+      expect(String(writeFileSpy.mock.calls[0][0])).toContain('.clavue/settings.json')
+    })
+
     it('should apply safe preset', async () => {
       mockExistsSync.mockReturnValue(true)
       mockReadFileSync.mockReturnValue(JSON.stringify({
@@ -106,7 +132,7 @@ describe('zero-config command', () => {
       mockExistsSync.mockReturnValue(true)
       mockReadFileSync.mockReturnValue(JSON.stringify({
         permissions: {
-          allow: ['Bash(custom-command *)', 'MCP(custom-server:tool)'],
+          allow: ['mcp__custom-server__tool'],
         },
       }))
 
@@ -117,8 +143,7 @@ describe('zero-config command', () => {
 
       expect(writeFileSpy).toHaveBeenCalled()
       const writtenContent = JSON.parse(writeFileSpy.mock.calls[0][1] as string)
-      expect(writtenContent.permissions.allow).toContain('Bash(custom-command *)')
-      expect(writtenContent.permissions.allow).toContain('MCP(custom-server:tool)')
+      expect(writtenContent.permissions.allow).toContain('mcp__custom-server__tool')
       expect(writtenContent.permissions.allow).toContain('Bash(npm *)')
     })
 

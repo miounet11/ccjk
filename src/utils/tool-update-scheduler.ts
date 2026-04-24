@@ -20,7 +20,7 @@ export class ToolUpdateScheduler {
       case 'claude-code':
         await this.updateClaudeCodeTools(skipPrompt)
         break
-      case 'myclaude':
+      case 'clavue':
         await this.updateMyclaudeTools(skipPrompt)
         break
       case 'codex':
@@ -40,7 +40,7 @@ export class ToolUpdateScheduler {
   }
 
   /**
-   * Update myclaude related tools
+   * Update Clavue related tools
    * @param skipPrompt - Whether to skip interactive prompts
    */
   private async updateMyclaudeTools(skipPrompt: boolean): Promise<void> {

@@ -118,8 +118,8 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
       runtimeProfile: {
         target: DEFAULT_CODE_TOOL_TYPE,
         distribution: 'clavue',
-        compatMode: DEFAULT_CODE_TOOL_TYPE === 'myclaude' ? 'native' : 'compatible',
-        providerStrategy: DEFAULT_CODE_TOOL_TYPE === 'myclaude' ? 'profile-based' : 'env-based',
+        compatMode: DEFAULT_CODE_TOOL_TYPE === 'clavue' ? 'native' : 'compatible',
+        providerStrategy: DEFAULT_CODE_TOOL_TYPE === 'clavue' ? 'profile-based' : 'env-based',
       },
       archetypeProfile: {
         id: 'pc-dev',

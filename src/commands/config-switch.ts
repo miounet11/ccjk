@@ -74,7 +74,7 @@ function resolveCodeType(codeType?: unknown): CodeToolType {
  * Handle --list flag to show available configurations
  */
 function syncMyclaudeStateIfNeeded(codeType: CodeToolType, currentProfileId?: string): void {
-  if (codeType !== 'myclaude') {
+  if (codeType !== 'clavue') {
     return
   }
 
@@ -87,7 +87,7 @@ function syncMyclaudeStateIfNeeded(codeType: CodeToolType, currentProfileId?: st
 async function handleList(codeType?: CodeToolType): Promise<void> {
   const targetCodeType = resolveCodeType(codeType)
 
-  if (targetCodeType === 'claude-code' || targetCodeType === 'myclaude') {
+  if (targetCodeType === 'claude-code' || targetCodeType === 'clavue') {
     await listClaudeCodeProfiles()
   }
   else if (targetCodeType === 'codex') {
@@ -166,7 +166,7 @@ async function listClaudeCodeProfiles(): Promise<void> {
 async function handleDirectSwitch(codeType: CodeToolType, target: string): Promise<void> {
   const resolvedCodeType = resolveCodeType(codeType)
 
-  if (resolvedCodeType === 'claude-code' || resolvedCodeType === 'myclaude') {
+  if (resolvedCodeType === 'claude-code' || resolvedCodeType === 'clavue') {
     await handleClaudeCodeDirectSwitch(target, resolvedCodeType)
   }
   else if (resolvedCodeType === 'codex') {
@@ -265,7 +265,7 @@ async function handleClaudeCodeDirectSwitch(target: string, codeType: CodeToolTy
 async function handleInteractiveSwitch(codeType?: CodeToolType): Promise<void> {
   const resolvedCodeType = resolveCodeType(codeType)
 
-  if (resolvedCodeType === 'claude-code' || resolvedCodeType === 'myclaude') {
+  if (resolvedCodeType === 'claude-code' || resolvedCodeType === 'clavue') {
     await handleClaudeCodeInteractiveSwitch(resolvedCodeType)
   }
   else if (resolvedCodeType === 'codex') {

@@ -6,12 +6,14 @@
 import { existsSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { CLAUDE_DIR, SETTINGS_FILE, ZCF_CONFIG_FILE } from '../constants'
+import { ZCF_CONFIG_FILE } from '../constants'
 import { i18n } from '../i18n'
+import type { RuntimeSettingsTarget } from '../utils/runtime-settings'
+import { updateTomlConfig } from '../utils/ccjk-config'
 import { ensureDir, writeFileAtomic } from '../utils/fs-operations'
 import { mergeAndCleanPermissions } from '../utils/permission-cleaner'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
-import { updateTomlConfig } from '../utils/ccjk-config'
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 
 // ============================================================================
 // Permission Presets
@@ -344,13 +346,13 @@ function getOperatorMode(archetype: ZeroConfigArchetype = 'pc-dev') {
 /**
  * Load current settings from settings.json
  */
-function loadCurrentSettings(): any {
-  if (!existsSync(SETTINGS_FILE)) {
+function loadCurrentSettings(target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): any {
+  if (!existsSync(target.settingsFile)) {
     return {}
   }
 
   try {
-    const content = readFileSync(SETTINGS_FILE, 'utf-8')
+    const content = readFileSync(target.settingsFile, 'utf-8')
     return JSON.parse(content)
   }
   catch {
@@ -361,25 +363,25 @@ function loadCurrentSettings(): any {
 /**
  * Save settings to settings.json
  */
-function saveSettings(settings: any): void {
-  ensureDir(CLAUDE_DIR)
-  writeFileAtomic(SETTINGS_FILE, JSON.stringify(settings, null, 2))
+function saveSettings(settings: any, target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): void {
+  ensureDir(target.configDir)
+  writeFileAtomic(target.settingsFile, JSON.stringify(settings, null, 2))
 }
 
 /**
  * Create backup of current settings
  */
-function backupSettings(): string | null {
-  if (!existsSync(SETTINGS_FILE)) {
+function backupSettings(target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): string | null {
+  if (!existsSync(target.settingsFile)) {
     return null
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-  const backupDir = `${CLAUDE_DIR}/backup`
+  const backupDir = `${target.configDir}/backup`
   ensureDir(backupDir)
 
   const backupPath = `${backupDir}/settings-${timestamp}.json`
-  const content = readFileSync(SETTINGS_FILE, 'utf-8')
+  const content = readFileSync(target.settingsFile, 'utf-8')
   writeFileAtomic(backupPath, content)
 
   return backupPath
@@ -502,6 +504,7 @@ export interface ZeroConfigOptions {
  */
 export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
+  const target = resolveClaudeFamilySettingsTarget()
 
   // List presets
   if (options.list) {
@@ -556,7 +559,7 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
   }
 
   // Load current settings
-  const currentSettings = loadCurrentSettings()
+  const currentSettings = loadCurrentSettings(target)
 
   // Show what will be added
   showPresetDiff(selectedPreset, currentSettings)
@@ -578,7 +581,7 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
 
   // Backup current settings
   if (!options.skipBackup) {
-    const backupPath = backupSettings()
+    const backupPath = backupSettings(target)
     if (backupPath) {
       console.log(ansis.gray(`✔ ${isZh ? '已备份到' : 'Backed up to'}: ${backupPath}`))
     }
@@ -586,11 +589,11 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
 
   // Apply preset
   const newSettings = applyPreset(selectedPreset, currentSettings)
-  saveSettings(newSettings)
+  saveSettings(newSettings, target)
   applyAdaptationPreset(selectedPreset, options.archetype)
 
   console.log('')
   console.log(ansis.green(`✅ ${isZh ? '权限预设已应用' : 'Permission preset applied'}: ${selectedPreset.name}`))
-  console.log(ansis.gray(`   ${isZh ? '配置文件' : 'Config file'}: ${SETTINGS_FILE}`))
+  console.log(ansis.gray(`   ${isZh ? '配置文件' : 'Config file'}: ${target.settingsFile}`))
   console.log('')
 }

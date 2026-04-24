@@ -49,6 +49,7 @@
     "codexPreset": "效率中心",
     "codexCheckUpdates": "更新 Codex",
     "codexUninstall": "卸载 Codex",
+    "checkUpdates": "检查更新",
     "mcpMarket": "MCP 市场",
     "marketplace": "扩展市场",
     "hooksSync": "Hooks 同步",
@@ -85,15 +86,15 @@
   },
   "configCenter": {
     "api": "API 配置",
-    "apiDesc": "一键配置 API 密钥（Anthropic/OpenRouter/自定义）",
+    "apiDesc": "配置官方登录、CCR 或 Clavue Provider 档案",
     "mcp": "MCP 配置",
     "mcpDesc": "配置 Model Context Protocol 服务",
     "model": "模型配置",
     "modelDesc": "选择和配置 AI 模型",
     "memory": "记忆配置",
     "memoryDesc": "管理项目记忆同步与 AI 回复偏好",
-    "permission": "权限配置",
-    "permissionDesc": "管理工具和文件权限",
+    "permission": "一键权限",
+    "permissionDesc": "向当前运行时应用推荐环境变量和权限预设",
     "configSwitch": "配置切换",
     "configSwitchDesc": "在配置文件之间切换",
     "context": "上下文配置",
@@ -158,12 +159,12 @@
       "config": "使用当前激活工具的配置档案。",
       "menuTitle": "CCJK 控制中心"
     },
-    "myclaude": {
-      "title": "myclaude 工作台",
+    "clavue": {
+      "title": "Clavue 工作台",
       "summary": "面向 Provider 的控制中心，启动时应明确展示当前运行态。",
       "focus": "Provider 档案、路由状态、模型槽位与 Claude 家族兼容配置。",
-      "config": "主配置文件：~/.claude.json（运行态） + ~/.ccjk/config.toml（可复用档案）",
-      "menuTitle": "myclaude 控制中心"
+      "config": "主配置文件：~/.clavue/.clavue.json（运行态） + ~/.ccjk/config.toml（可复用档案）",
+      "menuTitle": "Clavue 控制中心"
     }
   },
   "menu": {

@@ -7,10 +7,10 @@ describe('init completion guidance', () => {
     await initI18n('en')
   })
 
-  it('uses myclaude-specific completion guidance for installed workflow commands', () => {
-    const guidance = getSetupCompletionGuidance('myclaude')
+  it('uses Clavue-specific completion guidance for installed workflow commands', () => {
+    const guidance = getSetupCompletionGuidance('clavue')
 
-    expect(guidance.step1).toContain('myclaude')
+    expect(guidance.step1).toContain('clavue')
     expect(guidance.step1Detail).toContain('/ccjk:feat')
     expect(guidance.step1Detail).toContain('/ccjk:git-commit')
     expect(guidance.step1Detail2).toContain('/ccjk:init-project')

@@ -116,7 +116,7 @@ export async function detectSettingsIssues(): Promise<ConfigIssue[]> {
     }
 
     // Legacy top-level apiType is only required for old settings.json layouts.
-    // Modern Claude/myclaude sync writes provider state into env keys instead.
+    // Modern Claude-family sync writes provider state into env keys instead.
     if (!settings.apiType && hasLegacyTopLevelApiConfig && !hasEnvApiConfig) {
       issues.push({
         type: 'invalid',

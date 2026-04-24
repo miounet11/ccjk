@@ -5,6 +5,7 @@ const mockRunCodexUninstall = vi.fn()
 const mockInit = vi.fn()
 const mockConfigureCodexPresetFeature = vi.fn()
 const mockConfigureMemoryFeature = vi.fn()
+const mockConfigureMergedPermissionsFeature = vi.fn()
 const mockNotificationCommand = vi.fn()
 
 vi.mock('../../utils/code-tools/codex', () => ({
@@ -28,6 +29,7 @@ vi.mock('../../utils/features', async () => {
   return {
     ...actual,
     configureMemoryFeature: mockConfigureMemoryFeature,
+    configureMergedPermissionsFeature: mockConfigureMergedPermissionsFeature,
   }
 })
 
@@ -110,9 +112,15 @@ describe('progressive menu handlers', () => {
       showHero: true,
     })
     expect(__testUtils.getMenuShellConfig('codex').footerCommands.map(command => command.key)).toEqual(['s', '+', '-'])
+
+    expect(__testUtils.getMenuShellConfig('clavue')).toMatchObject({
+      allowMore: false,
+      showHero: true,
+    })
+    expect(__testUtils.getMenuShellConfig('clavue').footerCommands.map(command => command.key)).toEqual(['s', '+'])
   })
 
-  it('routes myclaude memory config to the shared memory feature', async () => {
+  it('routes Clavue memory config to the shared memory feature', async () => {
     const { __testUtils } = await import('./index')
     const [item] = __testUtils.attachHandlers([
       {
@@ -123,14 +131,32 @@ describe('progressive menu handlers', () => {
         level: 'basic',
         action: 'command',
       },
-    ] as any, 'myclaude')
+    ] as any, 'clavue')
 
     await item.handler?.()
 
     expect(mockConfigureMemoryFeature).toHaveBeenCalledTimes(1)
   })
 
-  it('routes notifications to the notification command in myclaude mode', async () => {
+  it('routes Clavue permission config to the one-click permission setup', async () => {
+    const { __testUtils } = await import('./index')
+    const [item] = __testUtils.attachHandlers([
+      {
+        id: 'permission-config',
+        label: 'menu:configCenter.permission',
+        description: 'menu:configCenter.permissionDesc',
+        category: 'config',
+        level: 'basic',
+        action: 'command',
+      },
+    ] as any, 'clavue')
+
+    await item.handler?.()
+
+    expect(mockConfigureMergedPermissionsFeature).toHaveBeenCalledTimes(1)
+  })
+
+  it('routes notifications to the notification command in Clavue mode', async () => {
     const { __testUtils } = await import('./index')
     const [item] = __testUtils.attachHandlers([
       {
@@ -141,7 +167,7 @@ describe('progressive menu handlers', () => {
         level: 'basic',
         action: 'command',
       },
-    ] as any, 'myclaude')
+    ] as any, 'clavue')
 
     await item.handler?.()
 

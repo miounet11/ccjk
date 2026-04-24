@@ -20,29 +20,40 @@ describe('tool-aware menu visibility', () => {
     const itemIds = getVisibleItems('basic', 'claude-code').map(item => item.id)
 
     expect(itemIds).toContain('diagnostics')
-    expect(itemIds).toContain('notifications')
-    expect(itemIds).toContain('switch-code-tool')
+    expect(itemIds).toContain('permission-config')
     expect(itemIds).toContain('doctor')
+    expect(itemIds).toContain('mcp-config')
+    expect(itemIds).toContain('model-config')
+    expect(itemIds).not.toContain('notifications')
     expect(itemIds).not.toContain('workflow-import')
   })
 
-  it('shows the switch-code-tool item in myclaude basic mode', () => {
-    const itemIds = getVisibleItems('basic', 'myclaude').map(item => item.id)
+  it('shows Clavue core setup actions in basic mode', () => {
+    const itemIds = getVisibleItems('basic', 'clavue').map(item => item.id)
 
-    expect(itemIds).toContain('switch-code-tool')
+    expect(itemIds).toEqual([
+      'init',
+      'diagnostics',
+      'api-config',
+      'mcp-config',
+      'model-config',
+      'memory-config',
+      'permission-config',
+      'doctor',
+    ])
     expect(itemIds).not.toContain('workflow-import')
     expect(itemIds).not.toContain('codex-switch-tool')
   })
 
-  it('keeps switch-code-tool visible after basic menu item capping', () => {
+  it('keeps one-click permissions visible after basic menu item capping', () => {
     const claudeSections = filterSectionsByItemLimit(createAllSections('basic', 'claude-code'), levelDefinitions.basic.maxItems)
-    const myclaudeSections = filterSectionsByItemLimit(createAllSections('basic', 'myclaude'), levelDefinitions.basic.maxItems)
+    const clavueSections = filterSectionsByItemLimit(createAllSections('basic', 'clavue'), levelDefinitions.basic.maxItems)
 
     const claudeItemIds = claudeSections.flatMap(section => section.items.map(item => item.id))
-    const myclaudeItemIds = myclaudeSections.flatMap(section => section.items.map(item => item.id))
+    const clavueItemIds = clavueSections.flatMap(section => section.items.map(item => item.id))
 
-    expect(claudeItemIds).toContain('switch-code-tool')
-    expect(myclaudeItemIds).toContain('switch-code-tool')
+    expect(claudeItemIds).toContain('permission-config')
+    expect(clavueItemIds).toContain('permission-config')
   })
 
   it('shows a reduced Codex basic menu', () => {
@@ -70,22 +81,22 @@ describe('tool-aware menu visibility', () => {
     expect(itemIds).not.toContain('doctor')
   })
 
-  it('keeps slash-command-driven extensions on myclaude but hides them on codex', () => {
-    const myclaudeItemIds = getVisibleItems('intermediate', 'myclaude').map(item => item.id)
+  it('keeps slash-command-driven extensions on Clavue but hides them on codex', () => {
+    const clavueItemIds = getVisibleItems('intermediate', 'clavue').map(item => item.id)
     const codexItemIds = getVisibleItems('intermediate', 'codex').map(item => item.id)
 
-    expect(myclaudeItemIds).toContain('quick-actions')
-    expect(myclaudeItemIds).toContain('smart-guide')
-    expect(myclaudeItemIds).toContain('workflows')
+    expect(clavueItemIds).toContain('quick-actions')
+    expect(clavueItemIds).toContain('smart-guide')
+    expect(clavueItemIds).toContain('workflows')
     expect(codexItemIds).not.toContain('quick-actions')
     expect(codexItemIds).not.toContain('smart-guide')
     expect(codexItemIds).not.toContain('workflows')
   })
 
   it('applies capability rules directly for statusline and cloud features', () => {
-    expect(__testUtils.isItemSupportedByCapabilities({ id: 'cometix' } as any, 'myclaude')).toBe(true)
+    expect(__testUtils.isItemSupportedByCapabilities({ id: 'cometix' } as any, 'clavue')).toBe(true)
     expect(__testUtils.isItemSupportedByCapabilities({ id: 'cometix' } as any, 'codex')).toBe(false)
-    expect(__testUtils.isItemSupportedByCapabilities({ id: 'marketplace' } as any, 'myclaude')).toBe(true)
+    expect(__testUtils.isItemSupportedByCapabilities({ id: 'marketplace' } as any, 'clavue')).toBe(true)
     expect(__testUtils.isItemSupportedByCapabilities({ id: 'marketplace' } as any, 'codex')).toBe(false)
   })
 })

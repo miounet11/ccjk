@@ -9,12 +9,11 @@ import type { SmartDefaults } from '../config/smart-defaults'
 import type { RuntimeCapabilityDescriptor } from '../code-tools'
 import type { HealthReport } from '../health/types'
 import { existsSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
 import process from 'node:process'
 import ansis from 'ansis'
-import { join } from 'pathe'
 import { getRuntimeCapabilityDescriptor } from '../code-tools'
 import { scanProject } from '../config/project-scanner'
+import { CLAVUE_CONFIG_FILE, CLAVUE_SETTINGS_FILE, SETTINGS_FILE } from '../constants'
 import { MetricsDisplay } from '../context/metrics-display'
 import { getContextPersistence } from '../context/persistence'
 import { runHealthCheck } from '../health/index'
@@ -92,8 +91,12 @@ function renderScoreBar(score: number): string {
 // Settings loader
 // ============================================================================
 
-function loadInstalledSettings(): InstalledSettings {
-  const settingsPath = join(homedir(), '.claude', 'settings.json')
+function getRuntimeSettingsPath(codeTool?: string): string {
+  return codeTool === 'clavue' ? CLAVUE_SETTINGS_FILE : SETTINGS_FILE
+}
+
+function loadInstalledSettings(codeTool?: string): InstalledSettings {
+  const settingsPath = getRuntimeSettingsPath(codeTool)
   try {
     if (!existsSync(settingsPath))
       return { mcpServers: {}, hooks: {} }
@@ -290,8 +293,8 @@ function renderHooksSection(recommended: string[], installed: Record<string, any
 
 function getRuntimeSectionTitle(codeTool?: string): string {
   switch (codeTool) {
-    case 'myclaude':
-      return 'myclaude'
+    case 'clavue':
+      return 'clavue'
     case 'codex':
       return 'Codex'
     case 'claude-code':
@@ -326,8 +329,8 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null, codeTool?: stri
 
   // Model routing info
   try {
-    const settingsPath = join(homedir(), '.claude', 'settings.json')
-    const myclaudePath = join(homedir(), '.claude.json')
+    const settingsPath = getRuntimeSettingsPath(codeTool)
+    const clavuePath = CLAVUE_CONFIG_FILE
     if (existsSync(settingsPath)) {
       const data = JSON.parse(readFileSync(settingsPath, 'utf-8'))
       const env = data.env || {}
@@ -337,26 +340,31 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null, codeTool?: stri
       const primary = data.model || env.ANTHROPIC_MODEL
       const hasAdaptive = Boolean(haiku || sonnet || opus)
 
-      if (existsSync(myclaudePath)) {
+      if (codeTool === 'clavue' && existsSync(clavuePath)) {
         try {
-          const myclaudeData = JSON.parse(readFileSync(myclaudePath, 'utf-8'))
-          const activeId = myclaudeData.myclaudeActiveProviderProfileId
-          const activeProfile = Array.isArray(myclaudeData.myclaudeProviderProfiles)
-            ? myclaudeData.myclaudeProviderProfiles.find((profile: any) => String(profile?.id) === String(activeId))
+          const clavueData = JSON.parse(readFileSync(clavuePath, 'utf-8'))
+          const activeId = clavueData.clavueActiveProviderProfileId || clavueData.myclaudeActiveProviderProfileId
+          const profiles = Array.isArray(clavueData.clavueProviderProfiles)
+            ? clavueData.clavueProviderProfiles
+            : Array.isArray(clavueData.myclaudeProviderProfiles)
+              ? clavueData.myclaudeProviderProfiles
+              : []
+          const activeProfile = Array.isArray(profiles)
+            ? profiles.find((profile: any) => String(profile?.id) === String(activeId))
             : null
           if (activeId) {
-            lines.push(`  ${label('Provider:'.padEnd(14))} ${val(`myclaude/${activeId}`)}`)
+            lines.push(`  ${label('Provider:'.padEnd(14))} ${val(`clavue/${activeId}`)}`)
           }
           if (activeProfile?.baseUrl) {
             lines.push(`  ${label('API Base:'.padEnd(14))} ${val(activeProfile.baseUrl)}`)
           }
         }
         catch {
-          // ignore myclaude metadata parse issues
+          // ignore Clavue metadata parse issues
         }
       }
 
-      if (data.model && hasAdaptive) {
+      if (codeTool !== 'clavue' && data.model && hasAdaptive) {
         // Broken state: settings.model overrides adaptive routing
         lines.push(`  ${label('Model:'.padEnd(14))} ${ansis.red(data.model)} ${ansis.red('(overrides adaptive routing!)')}`)
         lines.push(`  ${label(''.padEnd(14))} ${ansis.yellow('Run: ccjk boost --fix-model')}`)
@@ -508,13 +516,14 @@ function suggestNextAction(health: HealthReport, _ctx: ProjectContext): string[]
 
 export async function statusCommand(options: StatusOptions = {}): Promise<void> {
   try {
+    const codeTool = await resolveCodeType()
+
     // Gather all data
-    const [ctx, defaults, installed, health, codeTool] = await Promise.all([
+    const [ctx, defaults, installed, health] = await Promise.all([
       scanProject(),
       loadSmartDefaults(),
-      Promise.resolve(loadInstalledSettings()),
+      Promise.resolve(loadInstalledSettings(codeTool)),
       runHealthCheck(),
-      resolveCodeType(),
     ])
 
     const capability = getRuntimeCapabilityDescriptor(codeTool)

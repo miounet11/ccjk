@@ -2,10 +2,11 @@ import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
 import { exec } from 'tinyexec'
-import { CLAUDE_DIR, SETTINGS_FILE } from '../constants.js'
 import { ensureDir, writeFileAtomic } from './fs-operations.js'
 import { mergeAndCleanPermissions } from './permission-cleaner.js'
 import { getPlatform } from './platform.js'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings.js'
+import type { RuntimeSettingsTarget } from './runtime-settings.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -17,13 +18,13 @@ function getTemplateSettings(): any {
 }
 
 // Load current settings
-function loadCurrentSettings(): any {
-  if (!existsSync(SETTINGS_FILE)) {
+function loadCurrentSettings(target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): any {
+  if (!existsSync(target.settingsFile)) {
     return {}
   }
 
   try {
-    const content = readFileSync(SETTINGS_FILE, 'utf-8')
+    const content = readFileSync(target.settingsFile, 'utf-8')
     return JSON.parse(content)
   }
   catch {
@@ -32,15 +33,16 @@ function loadCurrentSettings(): any {
 }
 
 // Save settings
-function saveSettings(settings: any): void {
-  ensureDir(CLAUDE_DIR)
-  writeFileAtomic(SETTINGS_FILE, JSON.stringify(settings, null, 2))
+function saveSettings(settings: any, target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): void {
+  ensureDir(target.configDir)
+  writeFileAtomic(target.settingsFile, JSON.stringify(settings, null, 2))
 }
 
 // Import recommended environment variables
 export async function importRecommendedEnv(): Promise<void> {
+  const target = resolveClaudeFamilySettingsTarget()
   const templateSettings = getTemplateSettings()
-  const currentSettings = loadCurrentSettings()
+  const currentSettings = loadCurrentSettings(target)
 
   // Merge env variables
   currentSettings.env = {
@@ -48,13 +50,14 @@ export async function importRecommendedEnv(): Promise<void> {
     ...templateSettings.env,
   }
 
-  saveSettings(currentSettings)
+  saveSettings(currentSettings, target)
 }
 
 // Import recommended permissions
 export async function importRecommendedPermissions(): Promise<void> {
+  const target = resolveClaudeFamilySettingsTarget()
   const templateSettings = getTemplateSettings()
-  const currentSettings = loadCurrentSettings()
+  const currentSettings = loadCurrentSettings(target)
 
   // Merge permissions with cleanup
   if (templateSettings.permissions && templateSettings.permissions.allow) {
@@ -70,16 +73,17 @@ export async function importRecommendedPermissions(): Promise<void> {
     currentSettings.permissions = templateSettings.permissions
   }
 
-  saveSettings(currentSettings)
+  saveSettings(currentSettings, target)
 }
 
 // Open settings.json in system editor
 export async function openSettingsJson(): Promise<void> {
-  ensureDir(CLAUDE_DIR)
+  const target = resolveClaudeFamilySettingsTarget()
+  ensureDir(target.configDir)
 
   // Ensure file exists
-  if (!existsSync(SETTINGS_FILE)) {
-    saveSettings({})
+  if (!existsSync(target.settingsFile)) {
+    saveSettings({}, target)
   }
 
   const platform = getPlatform()
@@ -98,19 +102,19 @@ export async function openSettingsJson(): Promise<void> {
   }
 
   try {
-    await exec(command, [SETTINGS_FILE])
+    await exec(command, [target.settingsFile])
   }
   catch {
     // Fallback to code/vim/nano
     try {
-      await exec('code', [SETTINGS_FILE])
+      await exec('code', [target.settingsFile])
     }
     catch {
       try {
-        await exec('vim', [SETTINGS_FILE])
+        await exec('vim', [target.settingsFile])
       }
       catch {
-        await exec('nano', [SETTINGS_FILE])
+        await exec('nano', [target.settingsFile])
       }
     }
   }

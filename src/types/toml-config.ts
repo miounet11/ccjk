@@ -15,7 +15,7 @@ export type OperatorMode = 'execution-first' | 'planning-first' | 'conversationa
 
 export interface RuntimeProfile {
   target: CodeToolType
-  distribution?: 'clavue' | 'myclaude' | 'claude-code' | 'codex' | 'generic'
+  distribution?: 'clavue' | 'claude-code' | 'codex' | 'generic'
   compatMode: RuntimeCompatMode
   providerStrategy: ProviderStrategy
 }

@@ -43,16 +43,16 @@ describe('code type resolver', () => {
     vi.resetModules()
     mockLanguage = 'en'
     mockReadZcfConfigAsync.mockResolvedValue(null)
-    mockDetectCodeToolType.mockReturnValue('myclaude')
+    mockDetectCodeToolType.mockReturnValue('clavue')
   })
 
-  it('resolves explicit myclaude alias without prompting and persists it', async () => {
+  it('resolves explicit legacy myclaude alias without prompting and persists Clavue', async () => {
     const { resolveStartupCodeType } = await import('../../src/utils/code-type-resolver')
 
-    await expect(resolveStartupCodeType({ codeTypeParam: 'mc', interactive: true })).resolves.toBe('myclaude')
+    await expect(resolveStartupCodeType({ codeTypeParam: 'mc', interactive: true })).resolves.toBe('clavue')
 
     expect(mockPrompt).not.toHaveBeenCalled()
-    expect(mockUpdateZcfConfig).toHaveBeenCalledWith({ codeToolType: 'myclaude' })
+    expect(mockUpdateZcfConfig).toHaveBeenCalledWith({ codeToolType: 'clavue' })
   })
 
   it('uses stored code tool without prompting', async () => {
@@ -66,20 +66,20 @@ describe('code type resolver', () => {
     expect(mockUpdateZcfConfig).not.toHaveBeenCalled()
   })
 
-  it('prompts with myclaude first and default selected when interactive', async () => {
+  it('prompts with Clavue first and default selected when interactive', async () => {
     mockPrompt.mockResolvedValue({ codeToolType: 'claude-code' })
 
     const { resolveStartupCodeType, STARTUP_CODE_TOOL_CHOICES } = await import('../../src/utils/code-type-resolver')
 
     await expect(resolveStartupCodeType({ interactive: true })).resolves.toBe('claude-code')
 
-    expect(STARTUP_CODE_TOOL_CHOICES).toEqual(['myclaude', 'claude-code', 'codex'])
+    expect(STARTUP_CODE_TOOL_CHOICES).toEqual(['clavue', 'claude-code', 'codex'])
     expect(mockPrompt).toHaveBeenCalledTimes(1)
 
     const promptConfig = mockPrompt.mock.calls[0][0]
     expect(promptConfig.default).toBe(0)
     expect(promptConfig.choices.map((choice: { value: string }) => choice.value)).toEqual([
-      'myclaude',
+      'clavue',
       'claude-code',
       'codex',
     ])
@@ -87,11 +87,11 @@ describe('code type resolver', () => {
   })
 
   it('falls back to detection without prompting in non-interactive mode', async () => {
-    mockDetectCodeToolType.mockReturnValue('myclaude')
+    mockDetectCodeToolType.mockReturnValue('clavue')
 
     const { resolveStartupCodeType } = await import('../../src/utils/code-type-resolver')
 
-    await expect(resolveStartupCodeType({ interactive: false })).resolves.toBe('myclaude')
+    await expect(resolveStartupCodeType({ interactive: false })).resolves.toBe('clavue')
 
     expect(mockPrompt).not.toHaveBeenCalled()
     expect(mockUpdateZcfConfig).not.toHaveBeenCalled()

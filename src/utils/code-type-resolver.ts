@@ -10,12 +10,12 @@ import { readZcfConfigAsync, updateZcfConfig } from './ccjk-config'
  */
 const CODE_TYPE_ABBREVIATIONS: Record<string, CodeToolType> = {
   cc: 'claude-code',
-  mc: 'myclaude',
-  mycode: 'myclaude',
+  mc: 'clavue',
+  mycode: 'clavue',
   cx: 'codex',
 } as const
 
-export const STARTUP_CODE_TOOL_CHOICES = ['myclaude', 'claude-code', 'codex'] as const satisfies readonly CodeToolType[]
+export const STARTUP_CODE_TOOL_CHOICES = ['clavue', 'claude-code', 'codex'] as const satisfies readonly CodeToolType[]
 
 /**
  * Resolve code type from parameter, abbreviation, or default config
@@ -118,7 +118,7 @@ async function promptStartupCodeType(): Promise<CodeToolType> {
     name: 'codeToolType',
     message: isZh ? '选择代码工具' : 'Choose your code tool',
     choices: STARTUP_CODE_TOOL_CHOICES.map((tool) => {
-      if (tool === 'myclaude') {
+      if (tool === 'clavue') {
         return {
           name: isZh
             ? `${tool} - Provider-first 控制中心（默认推荐）`

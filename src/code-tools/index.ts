@@ -30,8 +30,8 @@ export { createTool } from './core/tool-factory'
 export * from './core/tool-registry'
 
 const RUNTIME_CAPABILITY_FALLBACKS: Partial<Record<CodeToolType, RuntimeCapabilityDescriptor>> = {
-  myclaude: {
-    runtime: 'myclaude',
+  clavue: {
+    runtime: 'clavue',
     ownership: 'hybrid',
     configBackend: 'claude-family',
     native: {

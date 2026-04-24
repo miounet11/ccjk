@@ -351,7 +351,7 @@ describe('smart-defaults', () => {
           'ccjk:git-worktree',
         ],
         agents: ['typescript-cli-architect', 'ccjk-testing-specialist'],
-        codeToolType: 'myclaude',
+        codeToolType: 'clavue',
         workflows: {
           outputStyle: 'engineer-professional',
           gitWorkflow: 'conventional-commits',
@@ -437,26 +437,26 @@ describe('smart-defaults', () => {
       expect(defaults.codeToolType).toBe('codex')
     })
 
-    it('should detect myclaude when global config contains provider profiles', async () => {
+    it('should detect Clavue when global config contains provider profiles', async () => {
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === join('/mock/home', '.claude.json')
+        return path === join('/mock/home', '.clavue', '.clavue.json')
       })
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
-        myclaudeActiveProviderProfileId: 'primary',
-        myclaudeProviderProfiles: [{ id: 'primary', name: 'Primary' }],
+        clavueActiveProviderProfileId: 'primary',
+        clavueProviderProfiles: [{ id: 'primary', name: 'Primary' }],
       }))
 
       const defaults = await detectSmartDefaults()
 
-      expect(defaults.codeToolType).toBe('myclaude')
+      expect(defaults.codeToolType).toBe('clavue')
     })
 
-    it('should default to myclaude when no tool is detected', async () => {
+    it('should default to Clavue when no tool is detected', async () => {
       vi.mocked(existsSync).mockReturnValue(false)
 
       const defaults = await detectSmartDefaults()
 
-      expect(defaults.codeToolType).toBe('myclaude')
+      expect(defaults.codeToolType).toBe('clavue')
     })
   })
 

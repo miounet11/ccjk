@@ -66,7 +66,7 @@ export async function handleMultiConfigurations(
     if (codeToolType === 'claude-code') {
       await handleClaudeCodeConfigs(configs)
     }
-    else if (codeToolType === 'myclaude') {
+    else if (codeToolType === 'clavue') {
       await handleMyclaudeConfigs(configs)
     }
     else if (codeToolType === 'codex') {
@@ -211,7 +211,7 @@ export async function handleMyclaudeConfigs(configs: ApiConfigDefinition[]): Pro
   const summary = profiles
     .map(profile => `${profile.name} [${profile.provider}]`)
     .join(', ')
-  console.log(ansis.gray(`  • ~/.claude.json: ${summary}`))
+  console.log(ansis.gray(`  • ~/.clavue/.clavue.json: ${summary}`))
 }
 
 /**

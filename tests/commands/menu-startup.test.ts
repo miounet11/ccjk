@@ -83,7 +83,7 @@ vi.mock('../../src/commands/menu/renderer', () => ({
   createAllSections: mockCreateAllSections,
   filterSectionsByItemLimit: vi.fn((sections: unknown) => sections),
   findItemByInput: mockFindItemByInput,
-  getToolModeMenuTitle: vi.fn(() => 'myclaude Control Center'),
+  getToolModeMenuTitle: vi.fn(() => 'Clavue Control Center'),
   getVisibleItemCount: vi.fn(() => 0),
   isBackCommand: vi.fn(() => false),
   isExitCommand: vi.fn((input: { normalized?: string }) => input.normalized === 'q'),
@@ -162,15 +162,15 @@ vi.mock('../../src/utils/error-handler', () => ({
 vi.mock('../../src/utils/features', () => ({ changeScriptLanguageFeature: vi.fn() }))
 vi.mock('../../src/utils/prompt-helpers', () => ({ addNumbersToChoices: vi.fn((choices: unknown) => choices) }))
 
-describe('menu startup myclaude runtime sync', () => {
+describe('menu startup Clavue runtime sync', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockReadZcfConfig.mockReturnValue({
-      codeToolType: 'myclaude',
+      codeToolType: 'clavue',
       preferredLang: 'en',
       version: '1.0.0',
     })
-    mockResolveStartupCodeType.mockResolvedValue('myclaude')
+    mockResolveStartupCodeType.mockResolvedValue('clavue')
     mockPromptMenuSelection.mockResolvedValue('q')
     mockPromptBoolean.mockResolvedValue(false)
     mockInquirerPrompt.mockReset()
@@ -194,17 +194,17 @@ describe('menu startup myclaude runtime sync', () => {
     })
   })
 
-  it('syncs myclaude runtime state before rendering the startup hero', async () => {
+  it('syncs Clavue runtime state before rendering the startup hero', async () => {
     const { showMainMenu } = await import('../../src/commands/menu/index')
 
     await showMainMenu()
 
     expect(mockSyncMyclaudeProviderProfilesFromCurrentClaudeConfig).toHaveBeenCalledTimes(1)
     expect(mockRenderToolModeHero).toHaveBeenCalledWith(
-      'myclaude',
+      'clavue',
       76,
       expect.objectContaining({
-        runtimeLabel: 'myclaude',
+        runtimeLabel: 'clavue',
         profileLabel: 'TTQQ (ttqq)',
         modeLabel: 'OpenAI-native',
         sourceLabel: 'Imported from ccjk · Reusable profile imported from the compatible ccjk configuration.',
@@ -213,7 +213,7 @@ describe('menu startup myclaude runtime sync', () => {
         modelLabel: 'primary claude-sonnet-4-6 · haiku claude-haiku-4-5 · sonnet claude-sonnet-4-6 · opus claude-opus-4-6',
       }),
     )
-    expect(mockDisplayBannerWithInfo).toHaveBeenCalledWith('for myclaude')
+    expect(mockDisplayBannerWithInfo).toHaveBeenCalledWith('for Clavue')
     expect(mockRunOnboardingWizard).not.toHaveBeenCalled()
   })
 

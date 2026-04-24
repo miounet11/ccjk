@@ -139,7 +139,7 @@ export const COMMANDS: CommandDefinition[] = [
       const { update } = await import('./commands/update')
       return async (options: CliOptions) => {
         await update({
-          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           configLang: options.configLang,
           aiOutputLang: options.aiOutputLang,
         })
@@ -173,7 +173,7 @@ export const COMMANDS: CommandDefinition[] = [
       return async (options: CliOptions) => {
         await doctor({
           checkProviders: options.checkProviders as boolean | undefined,
-          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           fixSettings: options.fixSettings as boolean | undefined,
           json: options.json as boolean | undefined,
         })
@@ -568,7 +568,7 @@ export const COMMANDS: CommandDefinition[] = [
         const { providersCommand } = await import('./commands/providers')
         await providersCommand(actionStr || 'list', {
           lang: options.lang,
-          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           verbose: options.verbose as boolean | undefined,
         })
       }
@@ -1008,7 +1008,7 @@ export const COMMANDS: CommandDefinition[] = [
       return async (options: CliOptions, target: unknown) => {
         await configSwitchCommand({
           target: target as string,
-          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           list: options.list as boolean,
         })
       }
@@ -1454,7 +1454,7 @@ export const COMMANDS: CommandDefinition[] = [
           args.push(value as string)
         await configCommand(args[0] || 'list', args.slice(1), {
           lang: options.lang,
-          codeType: options.codeType as 'codex' | 'claude-code' | 'myclaude' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+          codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           global: options.global as boolean | undefined,
           json: options.json as boolean | undefined,
         })

@@ -38,10 +38,10 @@ describe('ToolUpdateScheduler', () => {
     expect(runCodexUpdate).not.toHaveBeenCalled()
   })
 
-  it('dispatches myclaude updates to the myclaude updater path', async () => {
+  it('dispatches Clavue updates to the Clavue updater path', async () => {
     const { ToolUpdateScheduler } = await import('./tool-update-scheduler')
 
-    await new ToolUpdateScheduler().updateByCodeType('myclaude', false)
+    await new ToolUpdateScheduler().updateByCodeType('clavue', false)
 
     expect(ensureI18nInitialized).toHaveBeenCalledTimes(1)
     expect(checkAndUpdateMyclaudeTools).toHaveBeenCalledWith(false)

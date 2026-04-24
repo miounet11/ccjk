@@ -3,6 +3,31 @@ import { CCJK_CLOUD_API_URL } from '../constants'
 import { LoadBalancer } from '../utils/load-balancer'
 import { ProviderHealthMonitor } from '../utils/provider-health'
 
+function normalizeProviderPreset(provider: ApiProviderPreset): ApiProviderPreset {
+  if (
+    provider.claudeCode
+    && provider.supportedCodeTools.includes('claude-code')
+    && !provider.supportedCodeTools.includes('clavue')
+  ) {
+    return {
+      ...provider,
+      supportedCodeTools: [...provider.supportedCodeTools, 'clavue'],
+    }
+  }
+
+  return provider
+}
+
+function supportsCodeTool(provider: ApiProviderPreset, codeToolType: CodeToolType): boolean {
+  if (provider.supportedCodeTools.includes(codeToolType)) {
+    return true
+  }
+
+  return codeToolType === 'clavue'
+    && Boolean(provider.claudeCode)
+    && provider.supportedCodeTools.includes('claude-code')
+}
+
 /**
  * API Provider Preset Configuration
  * Defines API provider configurations for different code tools
@@ -53,7 +78,7 @@ export const LOCAL_PROVIDER_PRESETS: ApiProviderPreset[] = [
   {
     id: 'glm',
     name: 'GLM',
-    supportedCodeTools: ['claude-code', 'codex'],
+    supportedCodeTools: ['claude-code', 'clavue', 'codex'],
     claudeCode: {
       baseUrl: 'https://open.bigmodel.cn/api/anthropic',
       authType: 'auth_token',
@@ -68,7 +93,7 @@ export const LOCAL_PROVIDER_PRESETS: ApiProviderPreset[] = [
   {
     id: 'minimax',
     name: 'MiniMax',
-    supportedCodeTools: ['claude-code', 'codex'],
+    supportedCodeTools: ['claude-code', 'clavue', 'codex'],
     claudeCode: {
       baseUrl: 'https://api.minimaxi.com/anthropic',
       authType: 'auth_token',
@@ -84,7 +109,7 @@ export const LOCAL_PROVIDER_PRESETS: ApiProviderPreset[] = [
   {
     id: 'kimi',
     name: 'Kimi',
-    supportedCodeTools: ['claude-code', 'codex'],
+    supportedCodeTools: ['claude-code', 'clavue', 'codex'],
     claudeCode: {
       baseUrl: 'https://api.kimi.com/coding/',
       authType: 'auth_token',
@@ -127,7 +152,7 @@ async function fetchCloudProviders(codeType?: CodeToolType): Promise<ApiProvider
   try {
     const url = new URL(`${CCJK_CLOUD_API_URL}/providers`)
     if (codeType) {
-      url.searchParams.set('codeType', codeType)
+      url.searchParams.set('codeType', codeType === 'clavue' ? 'claude-code' : codeType)
     }
 
     const response = await fetch(url.toString(), {
@@ -144,7 +169,7 @@ async function fetchCloudProviders(codeType?: CodeToolType): Promise<ApiProvider
 
     const result = await response.json() as CloudProviderResponse
     if (result.success && Array.isArray(result.data)) {
-      return result.data.map(p => ({ ...p, isCloud: true }))
+      return result.data.map(p => normalizeProviderPreset({ ...p, isCloud: true }))
     }
     return []
   }
@@ -175,7 +200,7 @@ async function fetchCloudProvider(providerId: string): Promise<ApiProviderPreset
 
     const result = await response.json() as CloudProviderResponse
     if (result.success && result.data && !Array.isArray(result.data)) {
-      return { ...result.data, isCloud: true }
+      return normalizeProviderPreset({ ...result.data, isCloud: true })
     }
     return null
   }
@@ -196,7 +221,7 @@ export async function getApiProvidersAsync(codeToolType?: CodeToolType): Promise
   if (cloudProvidersCache && (now - cloudProvidersCacheTime) < CACHE_TTL) {
     const providers = cloudProvidersCache
     if (codeToolType) {
-      return providers.filter(p => p.supportedCodeTools.includes(codeToolType))
+      return providers.filter(p => supportsCodeTool(p, codeToolType))
     }
     return providers
   }
@@ -213,7 +238,7 @@ export async function getApiProvidersAsync(codeToolType?: CodeToolType): Promise
 
   // Fallback to local
   if (codeToolType) {
-    return LOCAL_PROVIDER_PRESETS.filter(p => p.supportedCodeTools.includes(codeToolType))
+    return LOCAL_PROVIDER_PRESETS.filter(p => supportsCodeTool(p, codeToolType))
   }
   return LOCAL_PROVIDER_PRESETS
 }
@@ -226,9 +251,9 @@ export async function getApiProvidersAsync(codeToolType?: CodeToolType): Promise
 export function getApiProviders(codeToolType: CodeToolType): ApiProviderPreset[] {
   // Use cache if available
   if (cloudProvidersCache) {
-    return cloudProvidersCache.filter(p => p.supportedCodeTools.includes(codeToolType))
+    return cloudProvidersCache.filter(p => supportsCodeTool(p, codeToolType))
   }
-  return LOCAL_PROVIDER_PRESETS.filter(p => p.supportedCodeTools.includes(codeToolType))
+  return LOCAL_PROVIDER_PRESETS.filter(p => supportsCodeTool(p, codeToolType))
 }
 
 /**
@@ -317,7 +342,7 @@ export function integrateWithConfigManager(): void {
     // Subscribe to provider updates from cloud sync
     manager.on('providers-updated', (event: any) => {
       if (event.current?.providers) {
-        cloudProvidersCache = event.current.providers
+        cloudProvidersCache = event.current.providers.map(normalizeProviderPreset)
         cloudProvidersCacheTime = Date.now()
       }
     })
@@ -419,7 +444,7 @@ export async function getHealthAwareProviders(
     if (!codeToolType) {
       return true
     }
-    return p.supportedCodeTools.includes(codeToolType)
+    return supportsCodeTool(p, codeToolType)
   })
 }
 

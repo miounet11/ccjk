@@ -1065,8 +1065,8 @@ export async function checkMyclaudeVersion(): Promise<{
   latestVersion: string | null
   needsUpdate: boolean
 }> {
-  const currentVersion = await getInstalledVersion('myclaude')
-  const latestVersion = await getLatestVersion('myclaude-code')
+  const currentVersion = await getInstalledVersion('clavue')
+  const latestVersion = await getLatestVersion('clavue')
 
   return {
     installed: currentVersion !== null,

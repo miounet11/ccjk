@@ -49,6 +49,7 @@
     "codexPreset": "Efficiency Center",
     "codexCheckUpdates": "Update Codex",
     "codexUninstall": "Uninstall Codex",
+    "checkUpdates": "Check Updates",
     "mcpMarket": "MCP Market",
     "marketplace": "Marketplace",
     "hooksSync": "Hooks Sync",
@@ -85,15 +86,15 @@
   },
   "configCenter": {
     "api": "API Configuration",
-    "apiDesc": "One-click API key setup (Anthropic/OpenRouter/Custom)",
+    "apiDesc": "Configure official login, CCR, or Clavue provider profiles",
     "mcp": "MCP Configuration",
     "mcpDesc": "Configure Model Context Protocol services",
     "model": "Model Configuration",
     "modelDesc": "Select and configure AI models",
     "memory": "Memory Configuration",
     "memoryDesc": "Manage project memory sync and AI response preferences",
-    "permission": "Permission Configuration",
-    "permissionDesc": "Manage tool and file permissions",
+    "permission": "One-Click Permissions",
+    "permissionDesc": "Apply recommended env and permission presets to the active runtime",
     "configSwitch": "Config Switch",
     "configSwitchDesc": "Switch between configuration profiles",
     "context": "Context Configuration",
@@ -144,12 +145,12 @@
       "config": "Primary config: ~/.claude/settings.json",
       "menuTitle": "Claude Control Center"
     },
-    "myclaude": {
-      "title": "myclaude Workspace",
+    "clavue": {
+      "title": "Clavue Workspace",
       "summary": "Provider-first control center with explicit runtime status at startup.",
       "focus": "Provider profiles, routing state, model slots, and Claude-family compatible configuration.",
-      "config": "Primary config: ~/.claude.json (runtime) + ~/.ccjk/config.toml (reusable profiles)",
-      "menuTitle": "myclaude Control Center"
+      "config": "Primary config: ~/.clavue/.clavue.json (runtime) + ~/.ccjk/config.toml (reusable profiles)",
+      "menuTitle": "Clavue Control Center"
     },
     "codex": {
       "title": "Codex Workspace",

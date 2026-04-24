@@ -103,11 +103,11 @@ interface InitArchetypeProfile {
 }
 
 function getDefaultArchetypeProfile(codeToolType: CodeToolType): InitArchetypeProfile {
-  if (codeToolType === 'myclaude') {
+  if (codeToolType === 'clavue') {
     return {
       id: 'pc-dev',
       name: 'PC Software Development',
-      goal: 'Use myclaude / Clavue as the primary execution runtime for coding, debugging, testing, and shipping',
+      goal: 'Use Clavue as the primary execution runtime for coding, debugging, testing, and shipping',
     }
   }
 
@@ -119,9 +119,9 @@ function getDefaultArchetypeProfile(codeToolType: CodeToolType): InitArchetypePr
 }
 
 export function getSetupCompletionGuidance(codeToolType: CodeToolType): SetupCompletionGuidance {
-  if (codeToolType === 'myclaude') {
+  if (codeToolType === 'clavue') {
     return {
-      step1: i18n.t('configuration:guidanceStep1', { runtime: 'myclaude' }),
+      step1: i18n.t('configuration:guidanceStep1', { runtime: 'clavue' }),
       step1Detail: i18n.t('configuration:guidanceStep1MyclaudeDetail'),
       step1Detail2: i18n.t('configuration:guidanceStep1MyclaudeDetail2'),
       step2: i18n.t('configuration:guidanceStep2'),
@@ -299,7 +299,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     async function handleCustomApiConfiguration(existingConfig: any): Promise<any> {
       // For Claude-family runtimes, always use the new incremental configuration management
-      if (codeToolType === 'claude-code' || codeToolType === 'myclaude') {
+      if (codeToolType === 'claude-code' || codeToolType === 'clavue') {
         const { configureIncrementalManagement }
           = await import('../utils/claude-code-incremental-manager')
         await configureIncrementalManagement()
@@ -500,7 +500,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       }
       else {
         if (options.skipPrompt) {
-          if (codeToolType === 'myclaude') {
+          if (codeToolType === 'clavue') {
             await installMyclaude(true)
           }
           else {
@@ -514,7 +514,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
           })
 
           if (shouldInstall) {
-            if (codeToolType === 'myclaude') {
+            if (codeToolType === 'clavue') {
               await installMyclaude(false)
             }
             else {
@@ -862,7 +862,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
         console.log(ansis.gray(`  URL: ${configuredApi.url}`))
         console.log(ansis.gray(`  Key: ${formatApiKeyDisplay(configuredApi.key)}`))
 
-        if (codeToolType === 'myclaude') {
+        if (codeToolType === 'clavue') {
           try {
             if (!configuredApi.authType) {
               throw new Error('Configured API is missing authType')
@@ -900,7 +900,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
             ], profile.id || profile.name)
           }
           catch (error) {
-            console.log(ansis.yellow(`⚠ Failed to write myclaude provider profile: ${error}`))
+            console.log(ansis.yellow(`⚠ Failed to write Clavue provider profile: ${error}`))
           }
         }
         else if (codeToolType === 'claude-code') {
@@ -912,7 +912,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     // Step 9.5: Configure API models if provided (Claude-family runtimes)
     const hasModelParams
       = options.apiModel || options.apiHaikuModel || options.apiSonnetModel || options.apiOpusModel
-    if (hasModelParams && action !== 'docs-only' && (codeToolType === 'claude-code' || codeToolType === 'myclaude')) {
+    if (hasModelParams && action !== 'docs-only' && (codeToolType === 'claude-code' || codeToolType === 'clavue')) {
       if (options.skipPrompt) {
         // In skip-prompt mode, configure models
         const { updateCustomModel } = await import('../utils/config')
@@ -1206,7 +1206,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     })
 
     const defaultArchetype = getDefaultArchetypeProfile(codeToolType)
-    const runtimeDistribution = codeToolType === 'myclaude'
+    const runtimeDistribution = codeToolType === 'clavue'
       ? 'clavue'
       : codeToolType === 'claude-code'
           ? 'claude-code'
@@ -1217,8 +1217,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
         runtimeProfile: {
           target: codeToolType,
           distribution: runtimeDistribution,
-          compatMode: codeToolType === 'myclaude' ? 'native' : 'compatible',
-          providerStrategy: codeToolType === 'myclaude' ? 'profile-based' : 'env-based',
+          compatMode: codeToolType === 'clavue' ? 'native' : 'compatible',
+          providerStrategy: codeToolType === 'clavue' ? 'profile-based' : 'env-based',
         },
         archetypeProfile: defaultArchetype,
         capabilityProfile: {
@@ -1230,7 +1230,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
           research: true,
           documentAuthoring: false,
           serviceOps: false,
-          multiAgent: codeToolType === 'myclaude',
+          multiAgent: codeToolType === 'clavue',
         },
         policyProfile: {
           permissionPreset: 'dev',
@@ -1430,4 +1430,3 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
   }
 }
-

@@ -146,7 +146,7 @@ export class SmartDefaultsDetector {
   private async detectClaudeCodeVersion(): Promise<string | undefined> {
     const candidateCommands = [
       CODE_TOOL_INFO['claude-code'].runtimeCommand,
-      CODE_TOOL_INFO.myclaude.runtimeCommand,
+      CODE_TOOL_INFO.clavue.runtimeCommand,
     ]
 
     for (const command of candidateCommands) {
@@ -270,21 +270,28 @@ export class SmartDefaultsDetector {
    * This is a static method so it can be called without instantiating the full detector.
    */
   static detectCodeToolType(): string {
-    const myclaudeMarkers = [
-      join(homedir(), '.claude.json'),
-      join(homedir(), '.claude', 'config.json'),
+    const clavueMarkers = [
+      join(homedir(), '.clavue', '.clavue.json'),
+      join(homedir(), '.clavue', 'settings.json'),
     ]
 
     try {
-      if (myclaudeMarkers.some(p => existsSync(p))) {
-        const globalConfigPath = join(homedir(), '.claude.json')
+      if (clavueMarkers.some(p => existsSync(p))) {
+        const globalConfigPath = join(homedir(), '.clavue', '.clavue.json')
         if (existsSync(globalConfigPath)) {
           const configContent = readFileSync(globalConfigPath, 'utf-8')
           const config = JSON.parse(configContent)
-          if (config.myclaudeActiveProviderProfileId || config.myclaudeProviderProfiles) {
-            return 'myclaude'
+          if (
+            config.clavueActiveProviderProfileId
+            || config.clavueProviderProfiles
+            || config.myclaudeActiveProviderProfileId
+            || config.myclaudeProviderProfiles
+          ) {
+            return 'clavue'
           }
         }
+
+        return 'clavue'
       }
     }
     catch {
@@ -306,8 +313,8 @@ export class SmartDefaultsDetector {
       return 'codex'
     }
 
-    // Default to myclaude
-    return 'myclaude'
+    // Default to Clavue
+    return 'clavue'
   }
 
   /**

@@ -2,7 +2,7 @@
  * Progressive Menu Levels
  *
  * Defines the three complexity levels for progressive disclosure:
- * - Basic: Essential features for new users (9 items max)
+ * - Basic: Essential features for new users (8 items max)
  * - Intermediate: Power-user features (15 items max)
  * - Expert: All available options (unlimited)
  *
@@ -23,17 +23,18 @@ export const levelDefinitions = {
   basic: {
     name: 'Basic',
     description: 'Essential features for getting started',
-    maxItems: 9,
+    maxItems: 8,
     icon: '🌱',
     categories: ['quick', 'config'],
     features: [
       'API config', // #1 Core feature - one-click API setup
       'One-click setup',
       'Diagnostics',
-      'Update all',
-      'Notifications',
       'MCP config',
       'Model config',
+      'Memory management',
+      'One-click permissions',
+      'Switch code tool',
       'Doctor',
     ],
   },

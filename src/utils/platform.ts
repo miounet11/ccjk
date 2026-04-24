@@ -371,7 +371,7 @@ export async function getHomebrewCommandPaths(command: string): Promise<string[]
   // e.g., /opt/homebrew/Caskroom/claude-code/2.0.56/claude
   const caskNameMap: Record<string, string> = {
     claude: 'claude-code',
-    myclaude: 'myclaude-code',
+    clavue: 'clavue',
     codex: 'codex',
   }
 
@@ -529,7 +529,7 @@ export async function findRealCommandPath(command: string): Promise<string | nul
  * Get recommended install methods for a code tool based on current platform
  * Returns methods in priority order (most recommended first)
  */
-export type CodeType = 'claude-code' | 'myclaude' | 'codex'
+export type CodeType = 'claude-code' | 'clavue' | 'codex'
 export type InstallMethod = 'npm' | 'homebrew' | 'curl' | 'powershell' | 'cmd' | 'npm-global' | 'native'
 
 export function getRecommendedInstallMethods(codeType: CodeType): InstallMethod[] {
@@ -549,7 +549,7 @@ export function getRecommendedInstallMethods(codeType: CodeType): InstallMethod[
     }
   }
 
-  if (codeType === 'myclaude') {
+  if (codeType === 'clavue') {
     return ['npm']
   }
 

@@ -10,6 +10,12 @@ export const CLAUDE_AGENTS_DIR = join(CLAUDE_DIR, 'agents')
 export const ClAUDE_CONFIG_FILE = join(homedir(), '.claude.json')
 export const CLAUDE_VSC_CONFIG_FILE = join(CLAUDE_DIR, 'config.json')
 
+// Clavue configuration paths
+export const CLAVUE_DIR = join(homedir(), '.clavue')
+export const CLAVUE_SETTINGS_FILE = join(CLAVUE_DIR, 'settings.json')
+export const CLAVUE_CONFIG_FILE = join(CLAVUE_DIR, '.clavue.json')
+export const CLAVUE_CREDENTIALS_FILE = join(CLAVUE_DIR, '.credentials.json')
+
 // Codex configuration paths
 export const CODEX_DIR = join(homedir(), '.codex')
 export const CODEX_CONFIG_FILE = join(CODEX_DIR, 'config.toml')
@@ -140,15 +146,15 @@ export const ZCF_CONFIG_DIR = CCJK_CONFIG_DIR
 /** @deprecated Use CCJK_CONFIG_FILE instead */
 export const ZCF_CONFIG_FILE = CCJK_CONFIG_FILE
 
-export const CODE_TOOL_TYPES = ['claude-code', 'myclaude', 'codex', 'aider', 'continue', 'cline', 'cursor'] as const
+export const CODE_TOOL_TYPES = ['claude-code', 'clavue', 'codex', 'aider', 'continue', 'cline', 'cursor'] as const
 export type CodeToolType = (typeof CODE_TOOL_TYPES)[number]
-export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'myclaude'
-export const CLAUDE_FAMILY_CODE_TOOL_TYPES = ['claude-code', 'myclaude'] as const
+export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'clavue'
+export const CLAUDE_FAMILY_CODE_TOOL_TYPES = ['claude-code', 'clavue'] as const
 export type ClaudeFamilyCodeToolType = (typeof CLAUDE_FAMILY_CODE_TOOL_TYPES)[number]
 
 export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
   'claude-code': 'for Claude Code',
-  'myclaude': 'for myclaude',
+  'clavue': 'for Clavue',
   'codex': 'for Codex',
   'aider': 'for Aider',
   'continue': 'for Continue',
@@ -159,8 +165,11 @@ export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
 // Short aliases for code tool types
 export const CODE_TOOL_ALIASES: Record<string, CodeToolType> = {
   cc: 'claude-code',
-  mc: 'myclaude',
-  mycode: 'myclaude',
+  clavue: 'clavue',
+  cv: 'clavue',
+  mc: 'clavue',
+  myclaude: 'clavue',
+  mycode: 'clavue',
   cx: 'codex',
   ad: 'aider',
   ct: 'continue',
@@ -237,14 +246,14 @@ export const CODE_TOOL_INFO: Record<CodeToolType, CodeToolRuntimeInfo> = {
     ],
     managesProviderProfiles: false,
   },
-  'myclaude': {
-    name: 'myclaude',
-    description: 'Provider-first Claude-family coding CLI',
-    website: 'https://github.com/mycode699/myclaude-code',
-    installCmd: 'npm install -g myclaude-code && myclaude install --force',
+  'clavue': {
+    name: 'Clavue',
+    description: 'Execution-first AI coding CLI with provider profiles',
+    website: 'https://www.clavue.com',
+    installCmd: 'npm install -g clavue && clavue install --force',
     configFormat: 'json',
     category: 'cli',
-    runtimeCommand: 'myclaude',
+    runtimeCommand: 'clavue',
     configBackend: 'claude-family',
     nativeSlashCommands: [
       '/help',

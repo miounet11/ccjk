@@ -95,7 +95,10 @@ function showHelp(): void {
  * @param args - Command arguments [subcommand, ...subargs]
  * @param options - Command options
  */
-export async function configCommand(args: string[], options: BaseConfigOptions = {}): Promise<void> {
+export async function configCommand(
+  args: string[],
+  options: BaseConfigOptions & { codeType?: ApiConfigOptions['codeType'] | SwitchConfigOptions['codeType'] } = {},
+): Promise<void> {
   // Initialize i18n if needed
   await ensureI18nInitialized()
 
@@ -113,6 +116,7 @@ export async function configCommand(args: string[], options: BaseConfigOptions =
       const apiOptions: ApiConfigOptions = {
         lang: options.lang,
         json: options.json,
+        codeType: options.codeType,
       }
       await apiCommand(subargs, apiOptions)
       break
@@ -122,6 +126,7 @@ export async function configCommand(args: string[], options: BaseConfigOptions =
       const switchOptions: SwitchConfigOptions = {
         lang: options.lang,
         json: options.json,
+        codeType: options.codeType,
       }
       // First arg may be a target, rest are options
       const target = subargs[0]

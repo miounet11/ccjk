@@ -23,9 +23,9 @@ const LANGUAGE_SELECTION_MESSAGES = {
 } as const
 
 const TOOL_LABELS: Record<OnboardingCodeTool, { en: string, zh: string }> = {
-  'myclaude': {
-    en: 'myclaude',
-    zh: 'myclaude',
+  'clavue': {
+    en: 'clavue',
+    zh: 'clavue',
   },
   'claude-code': {
     en: 'Claude Code',
@@ -62,7 +62,7 @@ function resolveOnboardingCodeTool(value?: unknown): OnboardingCodeTool {
     return value
   }
 
-  return 'myclaude'
+  return 'clavue'
 }
 
 function getToolLabel(tool: OnboardingCodeTool, lang: SupportedLang): string {
@@ -134,8 +134,8 @@ async function selectOnboardingCodeTool(
     message: isZh ? '选择代码工具' : 'Choose your code tool',
     choices: addNumbersToChoices([
       {
-        name: `${getToolLabel('myclaude', lang)} - ${isZh ? 'Provider-first 控制中心（默认推荐）' : 'Provider-first control center (recommended default)'}`,
-        value: 'myclaude',
+        name: `${getToolLabel('clavue', lang)} - ${isZh ? 'Provider-first 控制中心（默认推荐）' : 'Provider-first control center (recommended default)'}`,
+        value: 'clavue',
       },
       {
         name: `${getToolLabel('claude-code', lang)} - ${isZh ? 'Claude 家族经典控制中心' : 'Classic Claude-family control center'}`,

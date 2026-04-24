@@ -6,6 +6,8 @@ const switchToOfficial = vi.fn()
 const switchToCcr = vi.fn()
 const handleCustomApiMode = vi.fn()
 const addProfileDirect = vi.fn()
+const syncMyclaudeProviderProfilesFromClaudeConfig = vi.fn()
+const readConfig = vi.fn(() => ({ currentProfileId: '', profiles: {} }))
 
 vi.mock('inquirer', () => ({
   default: {
@@ -39,6 +41,7 @@ vi.mock('../../src/utils/claude-code-config-manager', () => ({
   ClaudeCodeConfigManager: {
     switchToOfficial,
     switchToCcr,
+    readConfig,
   },
 }))
 
@@ -50,6 +53,10 @@ vi.mock('../../src/utils/claude-code-incremental-manager', () => ({
   addProfileDirect,
 }))
 
+vi.mock('../../src/utils/claude-config', () => ({
+  syncMyclaudeProviderProfilesFromClaudeConfig,
+}))
+
 vi.mock('../../src/commands/config-switch', () => ({
   configSwitchCommand: vi.fn(),
 }))
@@ -58,6 +65,7 @@ describe('api config selector', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     readZcfConfig.mockReturnValue({ codeToolType: 'claude-code' })
+    readConfig.mockReturnValue({ currentProfileId: '', profiles: {} })
   })
 
   it('shows the restored 4-option menu with custom config as default', async () => {
@@ -90,10 +98,10 @@ describe('api config selector', () => {
     expect(addProfileDirect).not.toHaveBeenCalled()
   })
 
-  it('routes myclaude init custom selection to direct profile creation', async () => {
+  it('routes Clavue init custom selection to direct profile creation', async () => {
     const { showApiConfigMenu } = await import('../../src/commands/api-config-selector')
 
-    readZcfConfig.mockReturnValue({ codeToolType: 'myclaude' })
+    readZcfConfig.mockReturnValue({ codeToolType: 'clavue' })
     prompt.mockResolvedValueOnce({ choice: 'custom' })
 
     await showApiConfigMenu(undefined, { context: 'init' })
@@ -102,29 +110,31 @@ describe('api config selector', () => {
     expect(handleCustomApiMode).not.toHaveBeenCalled()
   })
 
-  it('allows myclaude to switch to official login', async () => {
+  it('allows Clavue to switch to official login', async () => {
     const { showApiConfigMenu } = await import('../../src/commands/api-config-selector')
 
-    readZcfConfig.mockReturnValue({ codeToolType: 'myclaude' })
+    readZcfConfig.mockReturnValue({ codeToolType: 'clavue' })
     switchToOfficial.mockResolvedValueOnce({ success: true })
     prompt.mockResolvedValueOnce({ choice: 'official' })
 
     const result = await showApiConfigMenu()
 
     expect(switchToOfficial).toHaveBeenCalledTimes(1)
+    expect(syncMyclaudeProviderProfilesFromClaudeConfig).toHaveBeenCalledWith({ currentProfileId: '', profiles: {} })
     expect(result).toEqual({ mode: 'official', success: true, cancelled: false })
   })
 
-  it('allows myclaude to switch to CCR proxy', async () => {
+  it('allows Clavue to switch to CCR proxy', async () => {
     const { showApiConfigMenu } = await import('../../src/commands/api-config-selector')
 
-    readZcfConfig.mockReturnValue({ codeToolType: 'myclaude' })
+    readZcfConfig.mockReturnValue({ codeToolType: 'clavue' })
     switchToCcr.mockResolvedValueOnce({ success: true })
     prompt.mockResolvedValueOnce({ choice: 'ccr' })
 
     const result = await showApiConfigMenu()
 
     expect(switchToCcr).toHaveBeenCalledTimes(1)
+    expect(syncMyclaudeProviderProfilesFromClaudeConfig).toHaveBeenCalledWith({ currentProfileId: 'ccr-proxy', profiles: {} })
     expect(result).toEqual({ mode: 'ccr', success: true, cancelled: false })
   })
 })

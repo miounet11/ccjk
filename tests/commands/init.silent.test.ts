@@ -62,7 +62,7 @@ describe('init command - silent mode', () => {
     const codeToolType = detectCodeToolType()
 
     expect(codeToolType).toBeDefined()
-    expect(['claude-code', 'myclaude', 'codex']).toContain(codeToolType)
+    expect(['claude-code', 'clavue', 'codex']).toContain(codeToolType)
   })
 
   it('should throw error in silent mode without API key', async () => {

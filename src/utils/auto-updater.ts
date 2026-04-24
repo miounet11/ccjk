@@ -369,12 +369,12 @@ export async function updateMyclaude(force = false, skipPrompt = false): Promise
     spinner.stop()
 
     if (!installed) {
-      console.log(ansis.yellow('myclaude is not installed'))
+      console.log(ansis.yellow('Clavue is not installed'))
       return false
     }
 
     if (!needsUpdate && !force) {
-      console.log(ansis.green(`myclaude is up to date (v${currentVersion || ''})`))
+      console.log(ansis.green(`Clavue is up to date (v${currentVersion || ''})`))
       return true
     }
 
@@ -388,7 +388,7 @@ export async function updateMyclaude(force = false, skipPrompt = false): Promise
 
     if (!skipPrompt) {
       const confirm = await promptBoolean({
-        message: format(i18n.t('updater:confirmUpdate'), { tool: 'myclaude' }),
+        message: format(i18n.t('updater:confirmUpdate'), { tool: 'clavue' }),
         defaultValue: true,
       })
 
@@ -398,22 +398,22 @@ export async function updateMyclaude(force = false, skipPrompt = false): Promise
       }
     }
     else {
-      console.log(ansis.green(format(i18n.t('updater:autoUpdating'), { tool: 'myclaude' })))
+      console.log(ansis.green(format(i18n.t('updater:autoUpdating'), { tool: 'clavue' })))
     }
 
-    const updateSpinner = ora(format(i18n.t('updater:updating'), { tool: 'myclaude' })).start()
+    const updateSpinner = ora(format(i18n.t('updater:updating'), { tool: 'clavue' })).start()
 
     try {
-      await execWithSudoIfNeeded('npm', ['update', '-g', 'myclaude-code'])
-      const installResult = await exec('myclaude', ['install', '--force'])
+      await execWithSudoIfNeeded('npm', ['update', '-g', 'clavue'])
+      const installResult = await exec('clavue', ['install', '--force'])
       if (installResult.exitCode !== 0) {
         throw new Error(installResult.stderr || `Command failed with exit code ${installResult.exitCode}`)
       }
-      updateSpinner.succeed(format(i18n.t('updater:updateSuccess'), { tool: 'myclaude' }))
+      updateSpinner.succeed(format(i18n.t('updater:updateSuccess'), { tool: 'clavue' }))
       return true
     }
     catch (error) {
-      updateSpinner.fail(format(i18n.t('updater:updateFailed'), { tool: 'myclaude' }))
+      updateSpinner.fail(format(i18n.t('updater:updateFailed'), { tool: 'clavue' }))
       console.error(ansis.red(error instanceof Error ? error.message : String(error)))
       return false
     }
@@ -530,15 +530,15 @@ export async function checkAndUpdateMyclaudeTools(skipPrompt = false): Promise<v
   let ccjkUpdated = false
   let ccjkResult: { tool: string, success: boolean, error?: string } | null = null
 
-  console.log(ansis.bold('✨ myclaude'))
+  console.log(ansis.bold('✨ Clavue'))
   try {
     const success = await updateMyclaude(false, skipPrompt)
-    results.push({ tool: 'myclaude', success })
+    results.push({ tool: 'clavue', success })
   }
   catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error(ansis.red(`❌ ${format(i18n.t('updater:updateFailed'), { tool: 'myclaude' })}: ${errorMessage}`))
-    results.push({ tool: 'myclaude', success: false, error: errorMessage })
+    console.error(ansis.red(`❌ ${format(i18n.t('updater:updateFailed'), { tool: 'clavue' })}: ${errorMessage}`))
+    results.push({ tool: 'clavue', success: false, error: errorMessage })
   }
 
   console.log()

@@ -265,7 +265,7 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
         }
 
       case 'permission-config':
-        return { ...item, handler: async () => await (await import('../permissions')).listPermissions({}) }
+        return { ...item, handler: async () => await (await import('../../utils/features')).configureMergedPermissionsFeature() }
 
       case 'config-switch':
         return {
@@ -457,11 +457,15 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
   label: string
   variant?: 'default' | 'danger'
 }> {
-  if (codeTool === 'myclaude') {
+  if (codeTool === 'clavue') {
     return [
       {
         key: 's',
         label: i18n.t('menu:menuOptions.switchCodeTool'),
+      },
+      {
+        key: '+',
+        label: i18n.t('menu:menuOptions.checkUpdates', 'Check Updates'),
       },
     ]
   }
@@ -490,7 +494,7 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
 function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | null | undefined): ToolModeRuntimeSummary | undefined {
   if (!syncResult?.activeProfile) {
     return {
-      runtimeLabel: 'myclaude / no active provider synced',
+      runtimeLabel: 'clavue / no active provider synced',
     }
   }
 
@@ -508,7 +512,7 @@ function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | nu
   ].filter(Boolean)
 
   return {
-    runtimeLabel: 'myclaude',
+    runtimeLabel: 'clavue',
     profileLabel: `${profile.name} (${syncResult.activeProfileId || profile.id})`,
     ...presentation,
     modelLabel: modelParts.join(' · ') || undefined,
@@ -525,9 +529,9 @@ function getMenuShellConfig(codeTool: CodeToolType): {
   menuTitle: string
   showHero: boolean
 } {
-  if (codeTool === 'codex' || codeTool === 'myclaude') {
+  if (codeTool === 'codex' || codeTool === 'clavue') {
     return {
-      allowMore: codeTool !== 'myclaude',
+      allowMore: codeTool !== 'clavue',
       footerCommands: getProgressiveFooterCommands(codeTool),
       menuTitle: getToolModeMenuTitle(codeTool),
       showHero: true,
@@ -549,10 +553,10 @@ async function showProgressiveMenu(
   codeTool: CodeToolType,
   runtimeSyncResult?: MyclaudeProviderSyncResult | null,
 ): Promise<MenuResult> {
-  if (codeTool !== 'codex' && codeTool !== 'myclaude') {
-    const rawItems = getItemsForLevel(menuState.level, 'claude-code')
+  if (codeTool !== 'codex' && codeTool !== 'clavue') {
+    const rawItems = getItemsForLevel(menuState.level, codeTool)
     const items = attachHandlers(rawItems, 'claude-code')
-    const sections = createAllSections(menuState.level, 'claude-code')
+    const sections = createAllSections(menuState.level, codeTool)
     const maxItems = levelDefinitions[menuState.level].maxItems
     const filteredSections = filterSectionsByItemLimit(sections, maxItems)
     const visibleItemCount = getVisibleItemCount(filteredSections)
@@ -665,7 +669,7 @@ async function showProgressiveMenu(
 
   // Render menu
   if (menuShell.showHero) {
-    console.log(renderToolModeHero(codeTool, 76, codeTool === 'myclaude' ? buildMyclaudeRuntimeSummary(runtimeSyncResult) : undefined))
+    console.log(renderToolModeHero(codeTool, 76, codeTool === 'clavue' ? buildMyclaudeRuntimeSummary(runtimeSyncResult) : undefined))
     console.log('')
   }
   const menuOutput = renderMenu(
@@ -709,11 +713,17 @@ async function showProgressiveMenu(
     return 'continue'
   }
 
-  if (codeTool === 'codex' && input.normalized === 's') {
+  if ((codeTool === 'codex' || codeTool === 'clavue') && input.normalized === 's') {
     const switched = await handleCodeToolSwitch(codeTool)
     if (switched) {
       return 'switch'
     }
+    printSeparator()
+    return 'continue'
+  }
+
+  if (codeTool === 'clavue' && input.normalized === '+') {
+    await checkUpdates()
     printSeparator()
     return 'continue'
   }
@@ -880,7 +890,7 @@ async function showMoreFeaturesMenu(): Promise<void> {
         await (await import('../config')).configCommand('set', ['memory'], {})
         break
       case '8':
-        await (await import('../permissions')).listPermissions({})
+        await (await import('../../utils/features')).configureMergedPermissionsFeature()
         break
       case '9':
         await configSwitchCommand({ codeType: codeTool })
@@ -1495,7 +1505,7 @@ async function showOutputStylesMenu(): Promise<void> {
 async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
   const CODE_TOOL_LABELS: Record<CodeToolType, string> = {
     'claude-code': 'Claude Code',
-    'myclaude': 'myclaude',
+    'clavue': 'clavue',
     'codex': 'Codex',
     'aider': 'Aider',
     'continue': 'Continue',
@@ -1556,7 +1566,7 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       await runOnboardingWizard({ preferredCodeTool: options.codeType })
     }
 
-    let myclaudeRuntimeSyncResult: MyclaudeProviderSyncResult | null = null
+    let clavueRuntimeSyncResult: MyclaudeProviderSyncResult | null = null
 
     try {
       const previousType = getCurrentCodeTool()
@@ -1584,12 +1594,12 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       const codeTool = getCurrentCodeTool()
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
-      if (codeTool === 'myclaude') {
+      if (codeTool === 'clavue') {
         const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../utils/claude-config')
-        myclaudeRuntimeSyncResult = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
+        clavueRuntimeSyncResult = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
       }
 
-      const result = await showProgressiveMenu(codeTool, myclaudeRuntimeSyncResult)
+      const result = await showProgressiveMenu(codeTool, clavueRuntimeSyncResult)
 
       if (result === 'exit') {
         exitMenu = true

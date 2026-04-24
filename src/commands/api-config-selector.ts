@@ -17,6 +17,20 @@ import { readZcfConfig } from '../utils/ccjk-config'
 import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
 import { handleCustomApiMode } from '../utils/features'
 
+async function syncClavueProviderStateIfNeeded(codeTool: CodeToolType, activeProfileId?: string): Promise<void> {
+  if (codeTool !== 'clavue') {
+    return
+  }
+
+  const { syncMyclaudeProviderProfilesFromClaudeConfig } = await import('../utils/claude-config')
+  const config = ClaudeCodeConfigManager.readConfig()
+  syncMyclaudeProviderProfilesFromClaudeConfig(
+    activeProfileId === undefined || !config
+      ? config
+      : { ...config, currentProfileId: activeProfileId },
+  )
+}
+
 /**
  * API configuration mode selected by user
  */
@@ -100,9 +114,10 @@ export async function showApiConfigMenu(title?: string, options?: { context?: 'i
  * Handle official login selection
  */
 async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promise<ApiConfigResult> {
-  if (codeTool === 'claude-code' || codeTool === 'myclaude') {
+  if (codeTool === 'claude-code' || codeTool === 'clavue') {
     const result = await ClaudeCodeConfigManager.switchToOfficial()
     if (result.success) {
+      await syncClavueProviderStateIfNeeded(codeTool, '')
       console.log('')
       console.log(ansis.green(isZh ? '✅ 已切换到官方登录' : '✅ Switched to official login'))
       console.log('')
@@ -131,7 +146,7 @@ async function handleCustomConfig(_isZh: boolean, context?: 'init' | 'menu'): Pr
   try {
     const codeTool = getCurrentCodeTool()
 
-    if ((codeTool === 'claude-code' || codeTool === 'myclaude') && context === 'init') {
+    if ((codeTool === 'claude-code' || codeTool === 'clavue') && context === 'init') {
       // During init flow, skip management menu and go directly to add profile
       const { addProfileDirect } = await import('../utils/claude-code-incremental-manager')
       await addProfileDirect()
@@ -151,9 +166,10 @@ async function handleCustomConfig(_isZh: boolean, context?: 'init' | 'menu'): Pr
  * Handle CCR proxy selection
  */
 async function handleCcrProxy(codeTool: CodeToolType, isZh: boolean): Promise<ApiConfigResult> {
-  if (codeTool === 'claude-code' || codeTool === 'myclaude') {
+  if (codeTool === 'claude-code' || codeTool === 'clavue') {
     const result = await ClaudeCodeConfigManager.switchToCcr()
     if (result.success) {
+      await syncClavueProviderStateIfNeeded(codeTool, 'ccr-proxy')
       console.log('')
       console.log(ansis.green(isZh ? '✅ 已切换到 CCR 代理' : '✅ Switched to CCR proxy'))
       console.log('')

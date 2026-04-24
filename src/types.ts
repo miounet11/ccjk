@@ -82,6 +82,51 @@ export interface MyclaudeProviderProfile {
   [key: string]: unknown
 }
 
+export type ClavueProviderAuthType = 'api_key' | 'auth_token'
+export type ClavueProviderModelMode = 'anthropic_native' | 'openai_native' | 'hybrid_compatible'
+
+export interface ClavueProviderModelRouting {
+  presetId: string
+  primaryModel: string
+  subagentModel: string
+  smallFastModel: string
+  planModel: string
+  exploreModel: string
+  generalModel: string
+  teamModel: string
+  guideModel: string
+}
+
+export interface ClavueProviderProfile {
+  id: string
+  name: string
+  providerId: string
+  modelMode: ClavueProviderModelMode
+  baseUrl?: string
+  authType: ClavueProviderAuthType
+  modelRouting: ClavueProviderModelRouting
+  provenance?: {
+    kind: 'manual' | 'imported' | 'current_env_adopted' | 'synthetic_current_env'
+    sourceId?: 'ccjk' | 'zcf' | string
+    importedAt?: number
+    adoptedAt?: number
+    externalProfileId?: string
+  }
+  createdAt?: number
+  updatedAt?: number
+  [key: string]: unknown
+}
+
+export interface ClavueProviderCredentialRecord {
+  credential: string
+  authType?: ClavueProviderAuthType
+}
+
+export interface ClavueCredentialsConfiguration {
+  providerProfiles?: Record<string, ClavueProviderCredentialRecord>
+  [key: string]: unknown
+}
+
 export interface ClaudeConfiguration {
   mcpServers: Record<string, McpServerConfig>
   hasCompletedOnboarding?: boolean
@@ -94,6 +139,8 @@ export interface ClaudeConfiguration {
   installMethod?: InstallMethod
   myclaudeProviderProfiles?: MyclaudeProviderProfile[]
   myclaudeActiveProviderProfileId?: string
+  clavueProviderProfiles?: ClavueProviderProfile[]
+  clavueActiveProviderProfileId?: string
 
   /**
    * MCP Tool Search configuration (v3.8+)

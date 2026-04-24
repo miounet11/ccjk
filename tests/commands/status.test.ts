@@ -138,11 +138,13 @@ const settingsJson = JSON.stringify({
   },
 })
 
-const myclaudeJson = JSON.stringify({
-  myclaudeActiveProviderProfileId: 'ttqq',
-  myclaudeProviderProfiles: [
+const clavueJson = JSON.stringify({
+  clavueActiveProviderProfileId: 'ttqq',
+  clavueProviderProfiles: [
     {
       id: 'ttqq',
+      name: 'TTQQ',
+      providerId: 'custom',
       baseUrl: 'https://ttqq.inping.com',
     },
   ],
@@ -155,7 +157,7 @@ describe('status command', () => {
 
     mockScanProject.mockResolvedValue(baseProjectContext)
     mockRunHealthCheck.mockResolvedValue(baseHealthReport)
-    mockResolveCodeType.mockResolvedValue('myclaude')
+    mockResolveCodeType.mockResolvedValue('clavue')
     mockGetRuntimeCapabilityDescriptor.mockReturnValue(baseCapability)
     mockDetectSmartDefaults.mockResolvedValue({
       claudeCodeVersion: '2.1.96',
@@ -179,16 +181,16 @@ describe('status command', () => {
     })
 
     existsSyncMock.mockImplementation((filePath: string) => {
-      return String(filePath).endsWith('/.claude/settings.json')
-        || String(filePath).endsWith('/.claude.json')
+      return String(filePath).endsWith('/.clavue/settings.json')
+        || String(filePath).endsWith('/.clavue/.clavue.json')
     })
 
     readFileSyncMock.mockImplementation((filePath: string) => {
-      if (String(filePath).endsWith('/.claude/settings.json')) {
+      if (String(filePath).endsWith('/.clavue/settings.json')) {
         return settingsJson
       }
-      if (String(filePath).endsWith('/.claude.json')) {
-        return myclaudeJson
+      if (String(filePath).endsWith('/.clavue/.clavue.json')) {
+        return clavueJson
       }
       return '{}'
     })
@@ -228,7 +230,7 @@ describe('status command', () => {
     logSpy.mockRestore()
   })
 
-  it('renders myclaude provider and model routing details', async () => {
+  it('renders Clavue provider and model routing details', async () => {
     const { statusCommand } = await import('../../src/commands/status')
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
@@ -236,8 +238,8 @@ describe('status command', () => {
 
     const output = logSpy.mock.calls.map(call => String(call[0] ?? '')).join('\n')
 
-    expect(output).toContain('myclaude')
-    expect(output).toContain('myclaude/ttqq')
+    expect(output).toContain('clavue')
+    expect(output).toContain('clavue/ttqq')
     expect(output).toContain('https://ttqq.inping.com')
     expect(output).toContain('gpt-5.4')
     expect(output).toContain('gpt-5.3-codex-spark')

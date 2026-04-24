@@ -148,7 +148,7 @@ export async function handleCustomApiMode(): Promise<void> {
   const codeToolType = zcfConfig?.codeToolType || 'claude-code'
 
   // For Claude-family runtimes, use the new incremental configuration management
-  if (codeToolType === 'claude-code' || codeToolType === 'myclaude') {
+  if (codeToolType === 'claude-code' || codeToolType === 'clavue') {
     const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
     await configureIncrementalManagement()
     return

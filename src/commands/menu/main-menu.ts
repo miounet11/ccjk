@@ -5,7 +5,7 @@
  * Items are progressively shown based on user's selected complexity level.
  *
  * Level Structure:
- * - basic: Essential items for new users (9 visible items max)
+ * - basic: Essential items for new users (8 visible items max)
  * - intermediate: Additional power-user features
  * - expert: All available options including experimental features
  */
@@ -15,7 +15,7 @@ import type { RuntimeCapabilityDescriptor } from '../../code-tools/core/types'
 import type { MenuCategory, MenuItem } from './types'
 import { getRuntimeCapabilityDescriptor } from '../../code-tools'
 
-const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'myclaude', 'aider', 'continue', 'cline', 'cursor']
+const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'clavue', 'aider', 'continue', 'cline', 'cursor']
 
 type MenuCapabilityRule = (descriptor: RuntimeCapabilityDescriptor) => boolean
 
@@ -107,10 +107,10 @@ export const quickActionsItems: MenuItem[] = [
     label: 'menu:oneClick.update',
     description: 'menu:oneClick.updateDesc',
     category: 'quick',
-    level: 'basic',
+    level: 'intermediate',
     action: 'command',
     icon: '🔄',
-    shortcut: '4',
+    shortcut: '+',
     supportedTools: NON_CODEX_TOOLS,
   },
   {
@@ -118,21 +118,10 @@ export const quickActionsItems: MenuItem[] = [
     label: 'menu:oneClick.notify',
     description: 'menu:oneClick.notifyDesc',
     category: 'quick',
-    level: 'basic',
+    level: 'intermediate',
     action: 'command',
     icon: '📱',
-    shortcut: '5',
-    supportedTools: NON_CODEX_TOOLS,
-  },
-  {
-    id: 'switch-code-tool',
-    label: 'menuOptions.switchCodeTool',
-    description: 'menuDescriptions.switchCodeTool',
-    category: 'quick',
-    level: 'basic',
-    action: 'command',
-    icon: '🔄',
-    shortcut: 's',
+    shortcut: 'n',
     supportedTools: NON_CODEX_TOOLS,
   },
 ]
@@ -150,7 +139,7 @@ export const configItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '🔌',
-    shortcut: '6',
+    shortcut: '4',
   },
   {
     id: 'model-config',
@@ -160,7 +149,7 @@ export const configItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '🤖',
-    shortcut: '7',
+    shortcut: '5',
   },
   {
     id: 'memory-config',
@@ -170,17 +159,17 @@ export const configItems: MenuItem[] = [
     level: 'basic',
     action: 'command',
     icon: '🧠',
-    shortcut: 'y',
+    shortcut: '6',
   },
   {
     id: 'permission-config',
     label: 'menu:configCenter.permission',
     description: 'menu:configCenter.permissionDesc',
     category: 'config',
-    level: 'intermediate',
+    level: 'basic',
     action: 'command',
     icon: '🛡️',
-    shortcut: 'p',
+    shortcut: '7',
     supportedTools: NON_CODEX_TOOLS,
   },
   {

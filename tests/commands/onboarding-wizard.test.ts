@@ -54,7 +54,7 @@ vi.mock('../../src/utils/runtime-package', () => ({
 }))
 
 vi.mock('../../src/utils/code-type-resolver', () => ({
-  STARTUP_CODE_TOOL_CHOICES: ['myclaude', 'claude-code', 'codex'],
+  STARTUP_CODE_TOOL_CHOICES: ['clavue', 'claude-code', 'codex'],
 }))
 
 describe('onboarding wizard', () => {
@@ -65,20 +65,20 @@ describe('onboarding wizard', () => {
     mockReadZcfConfig.mockReturnValue({ preferredLang: 'en' })
   })
 
-  it('uses preferred myclaude tool without prompting for tool selection', async () => {
+  it('uses preferred Clavue tool without prompting for tool selection', async () => {
     const { runOnboardingWizard } = await import('../../src/commands/onboarding-wizard')
 
-    await runOnboardingWizard({ preferredCodeTool: 'myclaude' })
+    await runOnboardingWizard({ preferredCodeTool: 'clavue' })
 
     expect(mockPrompt).not.toHaveBeenCalled()
     expect(mockChangeLanguage).toHaveBeenCalledWith('en')
     expect(mockUpdateZcfConfig).toHaveBeenCalledWith({
       version: '13.6.0',
-      codeToolType: 'myclaude',
+      codeToolType: 'clavue',
     })
   })
 
-  it('shows myclaude first with default selection in onboarding tool prompt', async () => {
+  it('shows Clavue first with default selection in onboarding tool prompt', async () => {
     mockPrompt.mockResolvedValue({ tool: 'claude-code' })
 
     const { runOnboardingWizard } = await import('../../src/commands/onboarding-wizard')
@@ -90,7 +90,7 @@ describe('onboarding wizard', () => {
 
     expect(promptConfig.default).toBe(0)
     expect(promptConfig.choices.map((choice: { value: string }) => choice.value)).toEqual([
-      'myclaude',
+      'clavue',
       'claude-code',
       'codex',
     ])

@@ -106,14 +106,14 @@ function getToolModeMeta(codeTool: CodeToolType): {
         config: t('menu:toolMode.claude.config', 'Primary config: ~/.claude/settings.json'),
         menuTitle: t('menu:toolMode.claude.menuTitle', 'Claude Control Center'),
       }
-    case 'myclaude':
+    case 'clavue':
       return {
         icon: '◉',
-        title: t('menu:toolMode.myclaude.title', 'myclaude Workspace'),
-        summary: t('menu:toolMode.myclaude.summary', 'Provider-first control center with explicit runtime status at startup.'),
-        focus: t('menu:toolMode.myclaude.focus', 'Provider profiles, routing state, model slots, and Claude-family compatible configuration.'),
-        config: t('menu:toolMode.myclaude.config', 'Primary config: ~/.claude.json (runtime) + ~/.ccjk/config.toml (reusable profiles)'),
-        menuTitle: t('menu:toolMode.myclaude.menuTitle', 'myclaude Control Center'),
+        title: t('menu:toolMode.clavue.title', 'Clavue Workspace'),
+        summary: t('menu:toolMode.clavue.summary', 'Provider-first control center with explicit runtime status at startup.'),
+        focus: t('menu:toolMode.clavue.focus', 'Provider profiles, routing state, model slots, and Claude-family compatible configuration.'),
+        config: t('menu:toolMode.clavue.config', 'Primary config: ~/.clavue/.clavue.json (runtime) + ~/.ccjk/config.toml (reusable profiles)'),
+        menuTitle: t('menu:toolMode.clavue.menuTitle', 'Clavue Control Center'),
       }
     case 'codex':
       return {
