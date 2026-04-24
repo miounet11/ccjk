@@ -1,4 +1,4 @@
-import type { SupportedLang } from '../constants'
+import type { CodeToolType, SupportedLang } from '../constants'
 import type { WorkflowConfig, WorkflowInstallResult, WorkflowTag, WorkflowType } from '../types/workflow'
 import { existsSync } from 'node:fs'
 import { copyFile, mkdir, rm } from 'node:fs/promises'
@@ -7,8 +7,8 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
 import { getOrderedWorkflows, getTagLabel, getWorkflowConfig } from '../config/workflows'
-import { CLAUDE_DIR } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 
 function getRootDir(): string {
   const currentFilePath = fileURLToPath(import.meta.url)
@@ -59,6 +59,9 @@ function buildWorkflowChoice(workflow: WorkflowConfig): { name: string, value: s
 export async function selectAndInstallWorkflows(
   configLang: SupportedLang,
   preselectedWorkflows?: string[],
+  options: {
+    codeToolType?: CodeToolType
+  } = {},
 ): Promise<void> {
   ensureI18nInitialized()
   const workflows = getOrderedWorkflows()
@@ -96,13 +99,15 @@ export async function selectAndInstallWorkflows(
   }
 
   // Clean up old version files before installation
-  await cleanupOldVersionFiles()
+  const installTarget = resolveClaudeFamilySettingsTarget(options.codeToolType)
+
+  await cleanupOldVersionFiles(installTarget.configDir)
 
   // Install selected workflows with their dependencies
   for (const workflowId of selectedWorkflows) {
     const config = getWorkflowConfig(workflowId)
     if (config) {
-      await installWorkflowWithDependencies(config, configLang)
+      await installWorkflowWithDependencies(config, configLang, installTarget.configDir)
     }
   }
 }
@@ -110,6 +115,7 @@ export async function selectAndInstallWorkflows(
 async function installWorkflowWithDependencies(
   config: WorkflowConfig,
   configLang: SupportedLang,
+  runtimeConfigDir: string,
 ): Promise<WorkflowInstallResult> {
   const rootDir = getRootDir()
   ensureI18nInitialized()
@@ -137,7 +143,7 @@ async function installWorkflowWithDependencies(
   console.log(ansis.green(`\n📦 ${i18n.t('workflow:installingWorkflow')}: ${workflowName}...`))
 
   // Install commands to new structure
-  const commandsDir = join(CLAUDE_DIR, 'commands', 'ccjk')
+  const commandsDir = join(runtimeConfigDir, 'commands', 'ccjk')
   if (!existsSync(commandsDir)) {
     await mkdir(commandsDir, { recursive: true })
   }
@@ -186,7 +192,7 @@ async function installWorkflowWithDependencies(
 
   // Install agents if autoInstallAgents is true
   if (config.autoInstallAgents && config.agents.length > 0) {
-    const agentsCategoryDir = join(CLAUDE_DIR, 'agents', 'ccjk', config.category)
+    const agentsCategoryDir = join(runtimeConfigDir, 'agents', 'ccjk', config.category)
     if (!existsSync(agentsCategoryDir)) {
       await mkdir(agentsCategoryDir, { recursive: true })
     }
@@ -245,20 +251,20 @@ async function installWorkflowWithDependencies(
   return result
 }
 
-async function cleanupOldVersionFiles(): Promise<void> {
+async function cleanupOldVersionFiles(runtimeConfigDir: string): Promise<void> {
   ensureI18nInitialized()
   console.log(ansis.green(`\n🧹 ${i18n.t('workflow:cleaningOldFiles')}...`))
 
   // Old command files to remove
   const oldCommandFiles = [
-    join(CLAUDE_DIR, 'commands', 'workflow.md'),
-    join(CLAUDE_DIR, 'commands', 'feat.md'),
+    join(runtimeConfigDir, 'commands', 'workflow.md'),
+    join(runtimeConfigDir, 'commands', 'feat.md'),
   ]
 
   // Old agent files to remove
   const oldAgentFiles = [
-    join(CLAUDE_DIR, 'agents', 'planner.md'),
-    join(CLAUDE_DIR, 'agents', 'ui-ux-designer.md'),
+    join(runtimeConfigDir, 'agents', 'planner.md'),
+    join(runtimeConfigDir, 'agents', 'ui-ux-designer.md'),
   ]
 
   // Clean up old command files
@@ -266,10 +272,10 @@ async function cleanupOldVersionFiles(): Promise<void> {
     if (existsSync(file)) {
       try {
         await rm(file, { force: true })
-        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${file.replace(CLAUDE_DIR, '~/.claude')}`))
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`))
       }
       catch {
-        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${file.replace(CLAUDE_DIR, '~/.claude')}`))
+        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`))
       }
     }
   }
@@ -279,11 +285,16 @@ async function cleanupOldVersionFiles(): Promise<void> {
     if (existsSync(file)) {
       try {
         await rm(file, { force: true })
-        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${file.replace(CLAUDE_DIR, '~/.claude')}`))
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`))
       }
       catch {
-        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${file.replace(CLAUDE_DIR, '~/.claude')}`))
+        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`))
       }
     }
   }
+}
+
+function formatRuntimePath(filePath: string, runtimeConfigDir: string): string {
+  const homeLabel = runtimeConfigDir.endsWith('.clavue') ? '~/.clavue' : '~/.claude'
+  return filePath.replace(runtimeConfigDir, homeLabel)
 }

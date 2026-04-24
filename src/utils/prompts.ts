@@ -1,4 +1,4 @@
-import type { AiOutputLanguage, SupportedLang } from '../constants'
+import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
 import type { ZcfTomlConfig } from '../types/toml-config'
 import type { ZcfConfig } from './ccjk-config'
 import process from 'node:process'
@@ -173,8 +173,9 @@ export async function resolveAiOutputLanguage(
 /**
  * Prompt user to select template language
  */
-export async function selectTemplateLanguage(): Promise<SupportedLang> {
+export async function selectTemplateLanguage(codeTool?: CodeToolType): Promise<SupportedLang> {
   ensureI18nInitialized()
+  const runtimeLabel = codeTool === 'clavue' ? 'Clavue' : 'Claude Code'
 
   // Create static language hint keys for i18n-ally compatibility
   const LANG_HINT_KEYS = {
@@ -185,7 +186,7 @@ export async function selectTemplateLanguage(): Promise<SupportedLang> {
   const { lang } = await inquirer.prompt<{ lang: SupportedLang }>({
     type: 'list',
     name: 'lang',
-    message: i18n.t('language:selectConfigLang'),
+    message: i18n.t('language:selectConfigLang', { runtime: runtimeLabel }),
     choices: addNumbersToChoices(
       SUPPORTED_LANGS.map(l => ({
         name: `${LANG_LABELS[l]} - ${LANG_HINT_KEYS[l]}`,
@@ -210,8 +211,10 @@ export async function resolveTemplateLanguage(
   commandLineOption?: SupportedLang,
   savedConfig?: ZcfConfig | null,
   skipPrompt?: boolean,
+  codeTool?: CodeToolType,
 ): Promise<SupportedLang> {
   ensureI18nInitialized()
+  const runtimeLabel = codeTool === 'clavue' ? 'Clavue' : 'Claude Code'
 
   // Priority 1: Command line option
   if (commandLineOption) {
@@ -235,12 +238,12 @@ export async function resolveTemplateLanguage(
     })
 
     if (!shouldModify) {
-      console.log(ansis.gray(`✔ ${i18n.t('language:selectConfigLang')}: ${currentLanguageLabel}`))
+      console.log(ansis.gray(`✔ ${i18n.t('language:selectConfigLang', { runtime: runtimeLabel })}: ${currentLanguageLabel}`))
       return savedConfig.templateLang
     }
 
     // User wants to modify, proceed to language selection
-    return await selectTemplateLanguage()
+    return await selectTemplateLanguage(codeTool)
   }
 
   // Priority 3: Backward compatibility - use preferredLang if templateLang is not set
@@ -264,7 +267,7 @@ export async function resolveTemplateLanguage(
     }
 
     // User wants to modify, proceed to language selection
-    return await selectTemplateLanguage()
+    return await selectTemplateLanguage(codeTool)
   }
 
   // Priority 4: No saved config
@@ -274,7 +277,7 @@ export async function resolveTemplateLanguage(
   }
 
   // Interactive mode: ask user to select
-  return await selectTemplateLanguage()
+  return await selectTemplateLanguage(codeTool)
 }
 
 /**

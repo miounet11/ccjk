@@ -1,8 +1,7 @@
-import type { AiOutputLanguage } from '../constants'
+import type { AiOutputLanguage, CodeToolType } from '../constants'
 import type { ApiConfig } from '../types/config'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { CLAUDE_DIR } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import {
   applyAiLanguageDirective,
@@ -13,6 +12,7 @@ import {
 } from './config'
 import { configureOutputStyle } from './output-style'
 import { addNumbersToChoices } from './prompt-helpers'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 import { formatApiKeyDisplay, validateApiKey } from './validator'
 
 /**
@@ -260,23 +260,25 @@ export async function modifyApiConfigPartially(
  */
 export async function updatePromptOnly(
   aiOutputLang?: AiOutputLanguage | string,
+  codeTool?: CodeToolType,
 ): Promise<void> {
   ensureI18nInitialized()
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
 
   // Backup existing config
-  const backupDir = backupExistingConfig()
+  const backupDir = backupExistingConfig(target.codeTool)
   if (backupDir) {
     console.log(ansis.gray(`✔ ${i18n.t('configuration:backupSuccess')}: ${backupDir}`))
   }
 
   // Apply AI language directive if provided
   if (aiOutputLang) {
-    applyAiLanguageDirective(aiOutputLang)
+    applyAiLanguageDirective(aiOutputLang, target.codeTool)
   }
 
   // Configure output styles
-  await configureOutputStyle()
+  await configureOutputStyle(undefined, undefined, target.codeTool)
 
-  console.log(ansis.green(`✔ ${i18n.t('configuration:configSuccess')} ${CLAUDE_DIR}`))
+  console.log(ansis.green(`✔ ${i18n.t('configuration:configSuccess')} ${target.configDir}`))
   console.log(`\n${ansis.green(i18n.t('common:complete'))}`)
 }

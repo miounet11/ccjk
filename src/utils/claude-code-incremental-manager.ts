@@ -38,6 +38,8 @@ async function syncMyclaudeProfilesIfNeeded(): Promise<void> {
 
 export async function configureIncrementalManagement(): Promise<void> {
   ensureI18nInitialized()
+  const zcfConfig = readZcfConfig()
+  const runtimeLabel = zcfConfig?.codeToolType === 'clavue' ? 'Clavue' : 'Claude Code'
 
   const config = ClaudeCodeConfigManager.readConfig()
 
@@ -51,7 +53,7 @@ export async function configureIncrementalManagement(): Promise<void> {
   const profiles = Object.values(config.profiles)
   const currentProfile = config.currentProfileId ? config.profiles[config.currentProfileId] : null
 
-  console.log(ansis.green(i18n.t('multi-config:incrementalManagementTitle')))
+  console.log(ansis.green(i18n.t('multi-config:incrementalManagementTitle', { runtime: runtimeLabel })))
   console.log(ansis.gray(i18n.t('multi-config:currentProfileCount', { count: profiles.length })))
 
   if (currentProfile) {

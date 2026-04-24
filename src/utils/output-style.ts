@@ -1,16 +1,16 @@
-import type { SupportedLang } from '../constants'
+import type { CodeToolType, SupportedLang } from '../constants'
 import type { ClaudeSettings } from '../types/config'
 import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
-import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { updateZcfConfig } from './ccjk-config'
 import { copyFile, ensureDir, exists, removeFile } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
 import { mergeAndCleanPermissions } from './permission-cleaner'
 import { addNumbersToChoices } from './prompt-helpers'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 import { promptBoolean } from './toggle-prompt'
 
 export interface OutputStyle {
@@ -72,8 +72,9 @@ export function getAvailableOutputStyles(): OutputStyle[] {
   return OUTPUT_STYLES
 }
 
-export async function copyOutputStyles(selectedStyles: string[], lang: SupportedLang): Promise<void> {
-  const outputStylesDir = join(CLAUDE_DIR, 'output-styles')
+export async function copyOutputStyles(selectedStyles: string[], lang: SupportedLang, codeTool?: CodeToolType): Promise<void> {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const outputStylesDir = join(target.configDir, 'output-styles')
   ensureDir(outputStylesDir)
 
   // Get the root directory of the package
@@ -105,7 +106,8 @@ export async function copyOutputStyles(selectedStyles: string[], lang: Supported
  */
 const BUILTIN_STYLE_IDS = new Set(['default', 'explanatory', 'learning'])
 
-export function setGlobalDefaultOutputStyle(styleId: string): void {
+export function setGlobalDefaultOutputStyle(styleId: string, codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
   // Warn if using deprecated built-in outputStyle field (Claude Code 2.1+)
   if (BUILTIN_STYLE_IDS.has(styleId)) {
     console.log(ansis.yellow(`⚠️  Note: Built-in output styles (${styleId}) are deprecated in Claude Code 2.1+.`))
@@ -115,7 +117,7 @@ export function setGlobalDefaultOutputStyle(styleId: string): void {
   // Get template permissions for validation
   const templatePermissions = getTemplatePermissions()
 
-  const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || {}
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
 
   // Clean permissions before writing
   const cleanedPermissions = mergeAndCleanPermissions(
@@ -137,7 +139,7 @@ export function setGlobalDefaultOutputStyle(styleId: string): void {
     delete (updatedSettings as any).plansDirectory
   }
 
-  writeJsonConfig(SETTINGS_FILE, updatedSettings)
+  writeJsonConfig(target.settingsFile, updatedSettings)
 }
 
 /**
@@ -175,13 +177,15 @@ function getTemplatePermissions(): string[] {
   ]
 }
 
-export function hasLegacyPersonalityFiles(): boolean {
-  return LEGACY_FILES.some(filename => exists(join(CLAUDE_DIR, filename)))
+export function hasLegacyPersonalityFiles(codeTool?: CodeToolType): boolean {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  return LEGACY_FILES.some(filename => exists(join(target.configDir, filename)))
 }
 
-export function cleanupLegacyPersonalityFiles(): void {
+export function cleanupLegacyPersonalityFiles(codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
   LEGACY_FILES.forEach((filename) => {
-    const filePath = join(CLAUDE_DIR, filename)
+    const filePath = join(target.configDir, filename)
     if (exists(filePath)) {
       removeFile(filePath)
     }
@@ -191,6 +195,7 @@ export function cleanupLegacyPersonalityFiles(): void {
 export async function configureOutputStyle(
   preselectedStyles?: string[],
   preselectedDefault?: string,
+  codeTool?: CodeToolType,
 ): Promise<void> {
   ensureI18nInitialized()
 
@@ -246,7 +251,7 @@ export async function configureOutputStyle(
   const availableStyles = getAvailableOutputStyles()
 
   // Check for legacy files
-  if (hasLegacyPersonalityFiles() && !preselectedStyles) {
+  if (hasLegacyPersonalityFiles(codeTool) && !preselectedStyles) {
     console.log(ansis.yellow(`⚠️  ${i18n.t('configuration:legacyFilesDetected')}`))
 
     const cleanupLegacy = await promptBoolean({
@@ -255,13 +260,13 @@ export async function configureOutputStyle(
     })
 
     if (cleanupLegacy) {
-      cleanupLegacyPersonalityFiles()
+      cleanupLegacyPersonalityFiles(codeTool)
       console.log(ansis.green(`✔ ${i18n.t('configuration:legacyFilesRemoved')}`))
     }
   }
-  else if (hasLegacyPersonalityFiles() && preselectedStyles) {
+  else if (hasLegacyPersonalityFiles(codeTool) && preselectedStyles) {
     // Auto cleanup in non-interactive mode
-    cleanupLegacyPersonalityFiles()
+    cleanupLegacyPersonalityFiles(codeTool)
   }
 
   let selectedStyles: string[]
@@ -335,10 +340,10 @@ export async function configureOutputStyle(
   }
 
   // Copy selected output styles using configLang for template language
-  await copyOutputStyles(selectedStyles, 'zh-CN')
+  await copyOutputStyles(selectedStyles, 'zh-CN', codeTool)
 
   // Set global default output style
-  setGlobalDefaultOutputStyle(defaultStyle)
+  setGlobalDefaultOutputStyle(defaultStyle, codeTool)
 
   // Update CCJK config
   updateZcfConfig({

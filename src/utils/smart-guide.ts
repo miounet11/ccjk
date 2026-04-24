@@ -3,11 +3,10 @@
  * Provides zero-learning-curve experience with number-based quick actions
  */
 
-import type { SupportedLang } from '../constants'
+import type { CodeToolType, SupportedLang } from '../constants'
 import { existsSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 
 export interface QuickAction {
   id: number
@@ -259,15 +258,15 @@ Auto-suggest based on user input:
 /**
  * Path to CLAUDE.md file
  */
-function getClaudeMdPath(): string {
-  return join(homedir(), '.claude', 'CLAUDE.md')
+function getClaudeMdPath(codeTool?: CodeToolType): string {
+  return resolveClaudeFamilySettingsTarget(codeTool).instructionsFile
 }
 
 /**
  * Inject smart guide into CLAUDE.md
  */
-export async function injectSmartGuide(lang: SupportedLang = 'en'): Promise<boolean> {
-  const claudeMdPath = getClaudeMdPath()
+export async function injectSmartGuide(lang: SupportedLang = 'en', codeTool?: CodeToolType): Promise<boolean> {
+  const claudeMdPath = getClaudeMdPath(codeTool)
 
   try {
     let content = ''
@@ -298,8 +297,8 @@ export async function injectSmartGuide(lang: SupportedLang = 'en'): Promise<bool
 /**
  * Remove smart guide from CLAUDE.md
  */
-export async function removeSmartGuide(): Promise<boolean> {
-  const claudeMdPath = getClaudeMdPath()
+export async function removeSmartGuide(codeTool?: CodeToolType): Promise<boolean> {
+  const claudeMdPath = getClaudeMdPath(codeTool)
 
   try {
     if (!existsSync(claudeMdPath)) {
@@ -322,8 +321,8 @@ export async function removeSmartGuide(): Promise<boolean> {
 /**
  * Check if smart guide is installed
  */
-export async function isSmartGuideInstalled(): Promise<boolean> {
-  const claudeMdPath = getClaudeMdPath()
+export async function isSmartGuideInstalled(codeTool?: CodeToolType): Promise<boolean> {
+  const claudeMdPath = getClaudeMdPath(codeTool)
 
   try {
     if (!existsSync(claudeMdPath)) {

@@ -8,11 +8,12 @@ import ansis from 'ansis'
 import dayjs from 'dayjs'
 import inquirer from 'inquirer'
 import { join } from 'pathe'
-import { SETTINGS_FILE } from '../../constants'
+import type { CodeToolType } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
 import { addCompletedOnboarding, setPrimaryApiKey } from '../claude-config'
 import { backupExistingConfig, clearLegacyTopLevelRuntimeSettings } from '../config'
 import { readJsonConfig, writeJsonConfig } from '../json-config'
+import { resolveClaudeFamilySettingsTarget } from '../runtime-settings'
 import { promptBoolean } from '../toggle-prompt'
 import { fetchProviderPresets } from './presets'
 
@@ -70,9 +71,10 @@ export function writeCcrConfig(config: CcrConfig): void {
   writeJsonConfig(CCR_CONFIG_FILE, config)
 }
 
-export async function configureCcrProxy(ccrConfig: CcrConfig): Promise<void> {
+export async function configureCcrProxy(ccrConfig: CcrConfig, codeTool?: CodeToolType): Promise<void> {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
   // Read current settings
-  const settings = readJsonConfig<any>(SETTINGS_FILE) || {}
+  const settings = readJsonConfig<any>(target.settingsFile) || {}
 
   // Extract CCR server info
   const host = ccrConfig.HOST || '127.0.0.1'
@@ -94,11 +96,11 @@ export async function configureCcrProxy(ccrConfig: CcrConfig): Promise<void> {
   settings.env.ANTHROPIC_API_KEY = apiKey
 
   // Write back to settings
-  writeJsonConfig(SETTINGS_FILE, settings)
+  writeJsonConfig(target.settingsFile, settings)
 
   // Set primaryApiKey for CCR proxy (Claude Code 2.0 requirement)
   try {
-    setPrimaryApiKey()
+    setPrimaryApiKey(target.codeTool)
   }
   catch (error) {
     ensureI18nInitialized()
@@ -294,7 +296,7 @@ export function createDefaultCcrConfig(): CcrConfig {
   }
 }
 
-export async function setupCcrConfiguration(): Promise<boolean> {
+export async function setupCcrConfiguration(codeTool?: CodeToolType): Promise<boolean> {
   ensureI18nInitialized()
 
   try {
@@ -320,13 +322,13 @@ export async function setupCcrConfiguration(): Promise<boolean> {
       if (!shouldBackupAndReconfigure) {
         console.log(ansis.yellow(`${i18n.t('ccr:keepingExistingConfig')}`))
         // Still need to configure proxy in settings.json
-        await configureCcrProxy(existingConfig)
+        await configureCcrProxy(existingConfig, codeTool)
 
         // Manage API key approval status for existing CCR configuration
         try {
           const { manageApiKeyApproval } = await import('../claude-config')
           const apiKey = existingConfig.APIKEY || 'sk-ccjk-x-ccr'
-          manageApiKeyApproval(apiKey)
+          manageApiKeyApproval(apiKey, resolveClaudeFamilySettingsTarget(codeTool).codeTool)
           console.log(ansis.green(`✔ ${i18n.t('ccr:apiKeyApprovalSuccess')}`))
         }
         catch (error) {
@@ -364,7 +366,7 @@ export async function setupCcrConfiguration(): Promise<boolean> {
     console.log(ansis.green(`✔ ${i18n.t('ccr:ccrConfigSuccess')}`))
 
     // Configure proxy in settings.json (always needed)
-    await configureCcrProxy(config)
+    await configureCcrProxy(config, codeTool)
     console.log(ansis.green(`✔ ${i18n.t('ccr:proxyConfigSuccess')}`))
 
     // Restart CCR and check status
@@ -375,7 +377,7 @@ export async function setupCcrConfiguration(): Promise<boolean> {
 
     // Add hasCompletedOnboarding flag after successful CCR configuration
     try {
-      addCompletedOnboarding()
+      addCompletedOnboarding(resolveClaudeFamilySettingsTarget(codeTool).codeTool)
     }
     catch (error) {
       console.error(ansis.red(i18n.t('errors:failedToSetOnboarding')), error)
@@ -385,7 +387,7 @@ export async function setupCcrConfiguration(): Promise<boolean> {
     try {
       const { manageApiKeyApproval } = await import('../claude-config')
       const apiKey = config.APIKEY || 'sk-ccjk-x-ccr'
-      manageApiKeyApproval(apiKey)
+      manageApiKeyApproval(apiKey, resolveClaudeFamilySettingsTarget(codeTool).codeTool)
       console.log(ansis.green(`✔ ${i18n.t('ccr:apiKeyApprovalSuccess')}`))
     }
     catch (error) {

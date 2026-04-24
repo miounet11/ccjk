@@ -3,11 +3,12 @@ import type { ClaudeCodeConfigData, ClaudeCodeProfile, OperationResult } from '.
 import type { ZcfTomlConfig } from '../types/toml-config'
 import dayjs from 'dayjs'
 import { join } from 'pathe'
-import { SETTINGS_FILE, ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants'
+import { ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants'
 import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from './ccjk-config'
 import { clearLegacyTopLevelRuntimeSettings, overwriteModelSettings } from './config'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 
 export class ClaudeCodeConfigManager {
   static readonly CONFIG_FILE = ZCF_CONFIG_FILE
@@ -255,16 +256,17 @@ export class ClaudeCodeConfigManager {
   static async applyProfileSettings(profile: ClaudeCodeProfile | null): Promise<void> {
     const { ensureI18nInitialized, i18n } = await import('../i18n')
     ensureI18nInitialized()
+    const target = resolveClaudeFamilySettingsTarget()
 
     try {
       if (!profile) {
         const { switchToOfficialLogin } = await import('./config')
-        switchToOfficialLogin()
+        switchToOfficialLogin(target.codeTool)
         return
       }
 
       const { readJsonConfig, writeJsonConfig } = await import('./json-config')
-      const settings = readJsonConfig<any>(SETTINGS_FILE) || {}
+      const settings = readJsonConfig<any>(target.settingsFile) || {}
 
       clearLegacyTopLevelRuntimeSettings(settings)
 
@@ -320,15 +322,15 @@ export class ClaudeCodeConfigManager {
         opusModel: profile.defaultOpusModel,
       }, modelMode)
 
-      writeJsonConfig(SETTINGS_FILE, settings)
+      writeJsonConfig(target.settingsFile, settings)
 
       const { setPrimaryApiKey, addCompletedOnboarding } = await import('./claude-config')
-      setPrimaryApiKey()
-      addCompletedOnboarding()
+      setPrimaryApiKey(target.codeTool)
+      addCompletedOnboarding(target.codeTool)
 
-      let verifiedSettings = readJsonConfig<any>(SETTINGS_FILE) || {}
+      let verifiedSettings = readJsonConfig<any>(target.settingsFile) || {}
       if (!this.settingsMatchProfile(verifiedSettings, profile)) {
-        const repairedSettings = readJsonConfig<any>(SETTINGS_FILE) || {}
+        const repairedSettings = readJsonConfig<any>(target.settingsFile) || {}
         clearLegacyTopLevelRuntimeSettings(repairedSettings)
         repairedSettings.env = repairedSettings.env || {}
 
@@ -355,8 +357,8 @@ export class ClaudeCodeConfigManager {
           opusModel: profile?.defaultOpusModel,
         }, profile ? modelMode : 'reset')
 
-        writeJsonConfig(SETTINGS_FILE, repairedSettings)
-        verifiedSettings = readJsonConfig<any>(SETTINGS_FILE) || {}
+        writeJsonConfig(target.settingsFile, repairedSettings)
+        verifiedSettings = readJsonConfig<any>(target.settingsFile) || {}
       }
 
       if (!this.settingsMatchProfile(verifiedSettings, profile)) {

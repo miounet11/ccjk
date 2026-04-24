@@ -14,7 +14,7 @@
   "failedToSwitchToCcr": "Failed to switch to CCR proxy: {error}",
   "successfullySwitchedToProfile": "Successfully switched to profile: {{name}}",
   "failedToSwitchToProfile": "Failed to switch to profile: {{error}}",
-  "incrementalManagementTitle": "📋 Claude Code Configuration Management",
+  "incrementalManagementTitle": "📋 {{runtime}} Configuration Management",
   "currentProfileCount": "Current profile count: {{count}}",
   "currentDefaultProfile": "Current default profile: {{profile}}",
   "addProfile": "Add Profile",

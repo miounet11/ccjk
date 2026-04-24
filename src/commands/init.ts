@@ -13,7 +13,6 @@ import {
   CODE_TOOL_BANNERS,
   CODE_TOOL_INFO,
   DEFAULT_CODE_TOOL_TYPE,
-  SETTINGS_FILE,
   ZCF_CONFIG_FILE,
   isClaudeFamilyCodeTool,
 } from '../constants'
@@ -73,6 +72,7 @@ import { isTermux, isWindows, type CodeType } from '../utils/platform'
 import { ProgressTracker } from '../utils/progress-tracker'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { resolveAiOutputLanguage } from '../utils/prompts'
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 import { getRuntimeVersion } from '../utils/runtime-package'
 import { checkSuperpowersInstalled, installSuperpowers } from '../utils/superpowers/installer'
 import { promptBoolean } from '../utils/toggle-prompt'
@@ -320,14 +320,14 @@ export async function init(options: InitOptions = {}): Promise<void> {
         }
         else if (customConfigAction === 'keep-existing') {
           try {
-            addCompletedOnboarding()
+            addCompletedOnboarding(codeToolType)
           }
           catch (error) {
             console.error(ansis.red(i18n.t('errors:failedToSetOnboarding')), error)
           }
           // Set primaryApiKey for third-party API (Claude Code 2.0 requirement)
           try {
-            setPrimaryApiKey()
+            setPrimaryApiKey(codeToolType)
           }
           catch (error) {
             const { ensureI18nInitialized, i18n: i18nModule } = await import('../i18n')
@@ -396,6 +396,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
           options.configLang,
           zcfConfig,
           options.skipPrompt,
+          codeToolType,
         )
       }
     }
@@ -534,21 +535,21 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Step 5: Handle existing config
-    ensureClaudeDir()
+    ensureClaudeDir(codeToolType)
 
     // Step 5.1: Check for problematic config and offer migration
-    if (existsSync(SETTINGS_FILE) && needsMigration()) {
+    if (needsMigration(codeToolType)) {
       if (options.skipPrompt) {
         // Auto-migrate in non-interactive mode
         console.log(ansis.yellow('\n⚠️  Problematic configuration detected. Auto-fixing...\n'))
-        const result = migrateSettingsForTokenRetrieval()
+        const result = migrateSettingsForTokenRetrieval(codeToolType)
         displayMigrationResult(result)
       }
       else {
         // Interactive migration prompt
         const shouldMigrate = await promptMigration()
         if (shouldMigrate) {
-          const result = migrateSettingsForTokenRetrieval()
+          const result = migrateSettingsForTokenRetrieval(codeToolType)
           displayMigrationResult(result)
         }
       }
@@ -556,7 +557,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     let action = 'new' // default action for new installation
 
-    if (existsSync(SETTINGS_FILE) && !options.force) {
+    const runtimeTarget = resolveClaudeFamilySettingsTarget(codeToolType)
+
+    if (existsSync(runtimeTarget.settingsFile) && !options.force) {
       if (options.skipPrompt) {
         // In skip-prompt mode, use configAction option (default: backup)
         action = options.configAction || 'backup'
@@ -596,7 +599,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       action = options.configAction
     }
 
-    const isNewInstall = !existsSync(SETTINGS_FILE)
+    const isNewInstall = !existsSync(runtimeTarget.settingsFile)
 
     if (!options.skipPrompt && (isNewInstall || ['backup', 'merge', 'new'].includes(action))) {
       const isZh = i18n.language === 'zh-CN'
@@ -731,12 +734,12 @@ export async function init(options: InitOptions = {}): Promise<void> {
           console.log(ansis.green(`✔ ${i18n.t('ccr:ccrConfigSuccess')}`))
 
           // Configure proxy in settings.json
-          await configureCcrProxy(defaultCcrConfig)
+          await configureCcrProxy(defaultCcrConfig, codeToolType)
           console.log(ansis.green(`✔ ${i18n.t('ccr:proxyConfigSuccess')}`))
 
           // Add onboarding flag
           try {
-            addCompletedOnboarding()
+            addCompletedOnboarding(codeToolType)
           }
           catch (error) {
             console.error(ansis.red(i18n.t('errors:failedToSetOnboarding')), error)
@@ -747,7 +750,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       }
       else {
         // Check for existing API configuration
-        const existingApiConfig = getExistingApiConfig()
+        const existingApiConfig = getExistingApiConfig(codeToolType)
 
         // Use unified API configuration mode selection
         const apiMode = await selectApiConfigurationMode()
@@ -755,7 +758,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
         switch (apiMode) {
           case 'official': {
             // Handle official login
-            const success = switchToOfficialLogin()
+            const success = switchToOfficialLogin(codeToolType)
             if (success) {
               console.log(ansis.green(`✔ ${i18n.t('api:officialLoginConfigured')}`))
               apiConfig = null // No need for API config
@@ -782,7 +785,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
             }
 
             // Setup CCR configuration
-            const ccrConfigured = await setupCcrConfiguration()
+            const ccrConfigured = await setupCcrConfiguration(codeToolType)
             if (ccrConfigured) {
               console.log(ansis.green(`✔ ${i18n.t('ccr:ccrSetupComplete')}`))
               // CCR configuration already sets up the proxy in settings.json
@@ -806,7 +809,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     // Step 7: Execute the chosen action
     if (['backup', 'docs-only', 'merge'].includes(action)) {
-      const backupDir = backupExistingConfig()
+      const backupDir = backupExistingConfig(codeToolType)
       if (backupDir) {
         console.log(ansis.gray(`✔ ${i18n.t('configuration:backupSuccess')}: ${backupDir}`))
       }
@@ -814,49 +817,49 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     if (action === 'docs-only') {
       // Only copy base config files without agents/commands
-      copyConfigFiles(true)
+      copyConfigFiles(true, codeToolType)
       // Select and install workflows
       if (options.skipPrompt) {
         // Use provided workflows or default to all workflows, skip if false
         if (options.workflows !== false) {
-          await selectAndInstallWorkflows(configLang!, options.workflows as string[])
+          await selectAndInstallWorkflows(configLang!, options.workflows as string[], { codeToolType })
         }
       }
       else {
-        await selectAndInstallWorkflows(configLang!)
+        await selectAndInstallWorkflows(configLang!, undefined, { codeToolType })
       }
     }
     else if (['backup', 'merge', 'new'].includes(action)) {
       // Copy all base config files
-      copyConfigFiles(false)
+      copyConfigFiles(false, codeToolType)
       // Select and install workflows
       if (options.skipPrompt) {
         // Use provided workflows or default to all workflows, skip if false
         if (options.workflows !== false) {
-          await selectAndInstallWorkflows(configLang!, options.workflows as string[])
+          await selectAndInstallWorkflows(configLang!, options.workflows as string[], { codeToolType })
         }
       }
       else {
-        await selectAndInstallWorkflows(configLang!)
+        await selectAndInstallWorkflows(configLang!, undefined, { codeToolType })
       }
     }
 
     // Step 8: Apply language directive to CLAUDE.md
-    applyAiLanguageDirective(aiOutputLang as AiOutputLanguage | string)
+    applyAiLanguageDirective(aiOutputLang as AiOutputLanguage | string, codeToolType)
     // Step 8.5: Configure Output Styles
     if (options.skipPrompt) {
       // Use provided output styles and default
       if (options.outputStyles !== false) {
-        await configureOutputStyle(options.outputStyles as string[], options.defaultOutputStyle)
+        await configureOutputStyle(options.outputStyles as string[], options.defaultOutputStyle, codeToolType)
       }
     }
     else {
-      await configureOutputStyle()
+      await configureOutputStyle(undefined, undefined, codeToolType)
     }
 
     // Step 9: Apply API configuration (skip if only updating docs)
     if (apiConfig && action !== 'docs-only') {
-      const configuredApi = configureApi(apiConfig as any)
+      const configuredApi = configureApi(apiConfig as any, codeToolType)
       if (configuredApi) {
         console.log(ansis.green(`✔ ${i18n.t('api:apiConfigSuccess')}`))
         console.log(ansis.gray(`  URL: ${configuredApi.url}`))
@@ -921,6 +924,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
           options.apiHaikuModel || undefined,
           options.apiSonnetModel || undefined,
           options.apiOpusModel || undefined,
+          codeToolType,
         )
         console.log(ansis.green(`✔ ${i18n.t('api:modelConfigSuccess')}`))
         if (options.apiModel) {
@@ -975,7 +979,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
         if (selectedServices.length > 0) {
           // Backup existing MCP config if exists
-          const mcpBackupPath = backupMcpConfig()
+          const mcpBackupPath = backupMcpConfig(codeToolType)
           if (mcpBackupPath) {
             console.log(ansis.gray(`✔ ${i18n.t('mcp:mcpBackupSuccess')}: ${mcpBackupPath}`))
           }
@@ -1043,7 +1047,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
           }
 
           // Replace MCP servers with clean slate (init flow removes stale services)
-          const existingConfig = readMcpConfig()
+          const existingConfig = readMcpConfig(codeToolType)
           let mergedConfig = replaceMcpServers(existingConfig, newServers)
 
           // Fix Windows config if needed
@@ -1051,8 +1055,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
           // Write the config with error handling
           try {
-            writeMcpConfig(mergedConfig)
-            syncMcpPermissions()
+            writeMcpConfig(mergedConfig, codeToolType)
+            syncMcpPermissions(codeToolType)
 
             // MCP gatekeeper disabled: each MCP call forks bash+node even when
             // no gatekeeper config exists. Enable manually: ccjk mcp --gatekeeper
@@ -1168,7 +1172,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     // Step 11.6: Smart Guide injection (auto-enable for better UX)
     try {
       const { injectSmartGuide } = await import('../utils/smart-guide')
-      const smartGuideSuccess = await injectSmartGuide(configLang as SupportedLang)
+      const smartGuideSuccess = await injectSmartGuide(configLang as SupportedLang, codeToolType)
       if (smartGuideSuccess) {
         console.log(ansis.green(`✔ ${i18n.t('smartGuide:enabled')}`))
       }
@@ -1209,8 +1213,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     const runtimeDistribution = codeToolType === 'clavue'
       ? 'clavue'
       : codeToolType === 'claude-code'
-          ? 'claude-code'
-          : 'generic'
+        ? 'claude-code'
+        : 'generic'
 
     updateTomlConfig(ZCF_CONFIG_FILE, {
       adaptation: {

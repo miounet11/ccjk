@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
-import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias, SETTINGS_FILE } from '../constants'
+import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias } from '../constants'
 import { i18n } from '../i18n'
 import { displayBanner } from '../utils/banner'
 import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
@@ -21,6 +21,7 @@ import { handleExitPromptError, handleGeneralError } from '../utils/error-handle
 import { installMcpServices } from '../utils/mcp-installer'
 import { resolveAiOutputLanguage } from '../utils/prompts'
 import { getRuntimeVersion } from '../utils/runtime-package'
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
 import { selectAndInstallWorkflows } from '../utils/workflow-installer'
 
@@ -55,10 +56,10 @@ function resolveCodeToolType(optionValue: unknown, savedValue?: CodeToolType | n
  * Check for newly added recommended MCP services not yet installed,
  * and prompt the user to install them.
  */
-async function checkAndPromptNewMcpServices(skipPrompt?: boolean): Promise<void> {
+async function checkAndPromptNewMcpServices(codeToolType: CodeToolType, skipPrompt?: boolean): Promise<void> {
   try {
     // Get currently installed MCP servers
-    const mcpConfig = readMcpConfig()
+    const mcpConfig = readMcpConfig(codeToolType)
     const installedIds = new Set(Object.keys(mcpConfig?.mcpServers || {}))
 
     // Find defaultSelected services that aren't installed yet
@@ -78,7 +79,7 @@ async function checkAndPromptNewMcpServices(skipPrompt?: boolean): Promise<void>
 
     if (skipPrompt) {
       // Auto-install in non-interactive mode
-      await installMcpServices(newServices.map(s => s.id))
+      await installMcpServices(newServices.map(s => s.id), codeToolType)
       console.log(ansis.green('✓ New services installed automatically'))
       return
     }
@@ -93,7 +94,7 @@ async function checkAndPromptNewMcpServices(skipPrompt?: boolean): Promise<void>
     ])
 
     if (install) {
-      await installMcpServices(newServices.map(s => s.id))
+      await installMcpServices(newServices.map(s => s.id), codeToolType)
       console.log(ansis.green('✓ New services installed'))
     }
   }
@@ -140,24 +141,27 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
       options.configLang, // Command line option
       zcfConfig,
       options.skipPrompt, // Non-interactive mode flag
+      codeToolType,
     )
 
     // Select AI output language
     const aiOutputLang = await resolveAiOutputLanguage(i18n.language as SupportedLang, options.aiOutputLang, zcfConfig, options.skipPrompt)
 
     // Check for problematic config and offer migration
-    if (existsSync(SETTINGS_FILE) && needsMigration()) {
+    const runtimeTarget = resolveClaudeFamilySettingsTarget(codeToolType)
+
+    if (existsSync(runtimeTarget.settingsFile) && needsMigration(codeToolType)) {
       if (options.skipPrompt) {
         // Auto-migrate in non-interactive mode
         console.log(ansis.yellow('\n⚠️  Problematic configuration detected. Auto-fixing...\n'))
-        const result = migrateSettingsForTokenRetrieval()
+        const result = migrateSettingsForTokenRetrieval(codeToolType)
         displayMigrationResult(result)
       }
       else {
         // Interactive migration prompt
         const shouldMigrate = await promptMigration()
         if (shouldMigrate) {
-          const result = migrateSettingsForTokenRetrieval()
+          const result = migrateSettingsForTokenRetrieval(codeToolType)
           displayMigrationResult(result)
         }
       }
@@ -168,16 +172,16 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
     // Auto-fix settings.json validation issues by merging with template
     // This ensures schema-critical fields are correct while preserving user's env vars
     console.log(ansis.dim('✔ Checking and fixing configuration format...\n'))
-    copyConfigFiles(false)
+    copyConfigFiles(false, codeToolType)
 
     // Execute prompt-only update with AI language
-    await updatePromptOnly(aiOutputLang)
+    await updatePromptOnly(aiOutputLang, codeToolType)
 
     // Select and install workflows
-    await selectAndInstallWorkflows(configLang)
+    await selectAndInstallWorkflows(configLang, undefined, { codeToolType })
 
     // Check for new recommended MCP services
-    await checkAndPromptNewMcpServices(options.skipPrompt)
+    await checkAndPromptNewMcpServices(codeToolType, options.skipPrompt)
 
     // Check for Claude Code updates (update command always checks interactively)
     await checkClaudeCodeVersionAndPrompt(false)

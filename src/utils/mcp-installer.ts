@@ -10,7 +10,6 @@ import type { CodexConfigData, CodexMcpService } from './code-tools/codex'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { dynamicMcpRegistry, getMcpService, getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
-import { updateClaudeConfig } from '../config/unified/claude-config'
 import { ClAUDE_CONFIG_FILE, CODEX_CONFIG_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { buildMcpServerConfig, readMcpConfig, writeMcpConfig } from './claude-config'
@@ -18,6 +17,7 @@ import { readCodexConfig, writeCodexConfig } from './code-tools/codex'
 import { applyCodexPlatformCommand } from './code-tools/codex-platform'
 import { exists } from './fs-operations'
 import { getSystemRoot, isWindows } from './platform'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 
 export interface McpInstallResult {
   success: boolean
@@ -118,7 +118,7 @@ export async function installMcpService(
       await installMcpServiceForCodex(serviceId, service.config, apiKey, service.apiKeyEnvVar)
     }
     else {
-      await installMcpServiceForClaudeCode(serviceId, service.config, apiKey, service.apiKeyEnvVar)
+      await installMcpServiceForClaudeCode(targetTool, serviceId, service.config, apiKey, service.apiKeyEnvVar)
     }
 
     // Notify dynamic registry (list_changed) — Claude Code 2.1+ picks this up
@@ -144,13 +144,14 @@ export async function installMcpService(
  * Install MCP service for Claude Code
  */
 async function installMcpServiceForClaudeCode(
+  tool: CodeToolType,
   serviceId: string,
   baseConfig: McpServerConfig,
   apiKey?: string,
   apiKeyEnvVar?: string,
 ): Promise<void> {
   // Read existing config
-  let config = readMcpConfig()
+  let config = readMcpConfig(tool)
   if (!config) {
     config = { mcpServers: {} }
   }
@@ -170,10 +171,10 @@ async function installMcpServiceForClaudeCode(
   config.mcpServers[serviceId] = serverConfig
 
   // Write config
-  writeMcpConfig(config)
+  writeMcpConfig(config, tool)
 
   // Auto-authorize MCP service in settings.json
-  await autoAuthorizeMcpService(serviceId)
+  await autoAuthorizeMcpService(tool, serviceId)
 }
 
 /**
@@ -277,7 +278,7 @@ export async function uninstallMcpService(
       await uninstallMcpServiceFromCodex(serviceId)
     }
     else {
-      await uninstallMcpServiceFromClaudeCode(serviceId)
+      await uninstallMcpServiceFromClaudeCode(targetTool, serviceId)
     }
 
     // Notify dynamic registry (list_changed) — Claude Code 2.1+ picks this up
@@ -300,8 +301,8 @@ export async function uninstallMcpService(
 /**
  * Uninstall MCP service from Claude Code
  */
-async function uninstallMcpServiceFromClaudeCode(serviceId: string): Promise<void> {
-  const config = readMcpConfig()
+async function uninstallMcpServiceFromClaudeCode(tool: CodeToolType, serviceId: string): Promise<void> {
+  const config = readMcpConfig(tool)
   if (!config || !config.mcpServers) {
     throw new Error(i18n.t('mcp:installer.noConfig'))
   }
@@ -320,10 +321,10 @@ async function uninstallMcpServiceFromClaudeCode(serviceId: string): Promise<voi
   delete config.mcpServers[existingKey]
 
   // Write config
-  writeMcpConfig(config)
+  writeMcpConfig(config, tool)
 
   // Remove MCP service authorization from settings.json
-  await removeAuthorizeMcpService(serviceId)
+  await removeAuthorizeMcpService(tool, serviceId)
 }
 
 /**
@@ -367,15 +368,15 @@ export async function listInstalledMcpServices(
     return listInstalledMcpServicesFromCodex()
   }
   else {
-    return listInstalledMcpServicesFromClaudeCode()
+    return listInstalledMcpServicesFromClaudeCode(targetTool)
   }
 }
 
 /**
  * List installed MCP services from Claude Code
  */
-function listInstalledMcpServicesFromClaudeCode(): InstalledMcpService[] {
-  const config = readMcpConfig()
+function listInstalledMcpServicesFromClaudeCode(tool: CodeToolType): InstalledMcpService[] {
+  const config = readMcpConfig(tool)
   if (!config || !config.mcpServers) {
     return []
   }
@@ -514,13 +515,15 @@ export async function getAvailableMcpServices(tool?: CodeToolType): Promise<stri
  * Adds the MCP permission to permissions.allow array
  * @param serviceId - The ID of the MCP service to authorize
  */
-async function autoAuthorizeMcpService(serviceId: string): Promise<void> {
+async function autoAuthorizeMcpService(tool: CodeToolType, serviceId: string): Promise<void> {
   // Format: mcp__<service_id> (lowercase, replace hyphens with underscores)
   const mcpPermission = `mcp__${serviceId.toLowerCase().replace(/-/g, '_')}`
+  const target = resolveClaudeFamilySettingsTarget(tool)
 
   // Read current settings and update permissions
   const { readClaudeConfig } = await import('../config/unified/claude-config')
-  const currentSettings = readClaudeConfig() || {}
+  const { updateClaudeConfig } = await import('../config/unified/claude-config')
+  const currentSettings = readClaudeConfig(target.settingsFile) || {}
 
   // Ensure permissions.allow array exists
   if (!currentSettings.permissions) {
@@ -537,7 +540,7 @@ async function autoAuthorizeMcpService(serviceId: string): Promise<void> {
     // Write updated settings
     updateClaudeConfig({
       permissions: currentSettings.permissions,
-    })
+    }, {}, target.settingsFile)
   }
 }
 
@@ -545,11 +548,13 @@ async function autoAuthorizeMcpService(serviceId: string): Promise<void> {
  * Remove MCP service authorization from settings.json
  * @param serviceId - The ID of the MCP service to deauthorize
  */
-async function removeAuthorizeMcpService(serviceId: string): Promise<void> {
+async function removeAuthorizeMcpService(tool: CodeToolType, serviceId: string): Promise<void> {
   const mcpPermission = `mcp__${serviceId.toLowerCase().replace(/-/g, '_')}`
+  const target = resolveClaudeFamilySettingsTarget(tool)
 
   const { readClaudeConfig } = await import('../config/unified/claude-config')
-  const currentSettings = readClaudeConfig() || {}
+  const { updateClaudeConfig } = await import('../config/unified/claude-config')
+  const currentSettings = readClaudeConfig(target.settingsFile) || {}
 
   if (currentSettings.permissions?.allow) {
     const index = currentSettings.permissions.allow.indexOf(mcpPermission)
@@ -558,7 +563,7 @@ async function removeAuthorizeMcpService(serviceId: string): Promise<void> {
 
       updateClaudeConfig({
         permissions: currentSettings.permissions,
-      })
+      }, {}, target.settingsFile)
     }
   }
 }

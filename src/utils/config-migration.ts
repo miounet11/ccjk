@@ -4,12 +4,13 @@
  */
 
 import ansis from 'ansis'
-import { SETTINGS_FILE } from '../constants'
+import type { CodeToolType } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import type { ClaudeSettings } from '../types/config'
 import { backupExistingConfig } from './config'
 import { exists } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 
 export interface MigrationResult {
   success: boolean
@@ -29,8 +30,9 @@ export interface MigrationResult {
  *
  * @returns Migration result with changes made
  */
-export function migrateSettingsForTokenRetrieval(): MigrationResult {
+export function migrateSettingsForTokenRetrieval(codeTool?: CodeToolType): MigrationResult {
   ensureI18nInitialized()
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
 
   const result: MigrationResult = {
     success: false,
@@ -41,13 +43,13 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
 
   try {
     // Check if settings file exists
-    if (!exists(SETTINGS_FILE)) {
+    if (!exists(target.settingsFile)) {
       result.errors.push(i18n.t('common:fileNotFound', { file: 'settings.json' }))
       return result
     }
 
     // Read current settings
-    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
     if (!settings) {
       result.errors.push(i18n.t('common:failedToReadFile', { file: 'settings.json' }))
       return result
@@ -106,7 +108,7 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
     }
 
     // Create backup before modifying
-    const backupPath = backupExistingConfig()
+    const backupPath = backupExistingConfig(target.codeTool)
     if (backupPath) {
       result.backupPath = backupPath
     }
@@ -115,7 +117,7 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
     }
 
     // Write updated settings
-    writeJsonConfig(SETTINGS_FILE, settings)
+    writeJsonConfig(target.settingsFile, settings)
     result.success = true
 
     return result
@@ -130,13 +132,14 @@ export function migrateSettingsForTokenRetrieval(): MigrationResult {
  * Check if migration is needed
  * @returns true if problematic settings detected
  */
-export function needsMigration(): boolean {
+export function needsMigration(codeTool?: CodeToolType): boolean {
   try {
-    if (!exists(SETTINGS_FILE)) {
+    const target = resolveClaudeFamilySettingsTarget(codeTool)
+    if (!exists(target.settingsFile)) {
       return false
     }
 
-    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
     if (!settings || !settings.env) {
       return false
     }
@@ -237,15 +240,16 @@ export async function promptMigration(): Promise<boolean> {
 /**
  * Get list of problematic settings
  */
-export function getProblematicSettings(): string[] {
+export function getProblematicSettings(codeTool?: CodeToolType): string[] {
   const problems: string[] = []
 
   try {
-    if (!exists(SETTINGS_FILE)) {
+    const target = resolveClaudeFamilySettingsTarget(codeTool)
+    if (!exists(target.settingsFile)) {
       return problems
     }
 
-    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
     if (!settings || !settings.env) {
       return problems
     }
