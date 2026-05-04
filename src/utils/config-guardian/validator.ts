@@ -26,6 +26,7 @@ async function exists(path: string): Promise<boolean> {
  */
 export const EXPECTED_COMMAND_FILES = [
   'feat.md',
+  'goal.md',
   'git-commit.md',
   'git-worktree.md',
   'git-cleanBranches.md',

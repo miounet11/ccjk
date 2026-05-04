@@ -3,7 +3,7 @@
  * Health check and diagnostics for MCP services
  */
 
-import type { SupportedLang } from '../constants'
+import type { CodeToolType, SupportedLang } from '../constants'
 import ansis from 'ansis'
 import { getMcpTierConfig, getServicesByTier, MCP_SERVICE_TIERS } from '../config/mcp-tiers'
 import { i18n } from '../i18n'
@@ -18,6 +18,7 @@ import {
 
 export interface McpDoctorOptions {
   lang?: SupportedLang
+  tool?: CodeToolType
   verbose?: boolean
   service?: string
 }
@@ -95,7 +96,7 @@ export async function mcpDoctor(options: McpDoctorOptions = {}): Promise<void> {
   console.log('')
 
   // Read current MCP config
-  const config = readMcpConfig()
+  const config = readMcpConfig(options.tool)
   const configuredServices = config?.mcpServers ? Object.keys(config.mcpServers) : []
 
   // 1. Service Count Analysis
@@ -235,7 +236,7 @@ export async function analyzeServicesDetailed(options: McpDoctorOptions = {}): P
   const lang = options.lang || (i18n.language as SupportedLang) || 'en'
   const isZh = lang === 'zh-CN'
 
-  const config = readMcpConfig()
+  const config = readMcpConfig(options.tool)
   const configuredServices = config?.mcpServers ? Object.keys(config.mcpServers) : []
 
   console.log('')

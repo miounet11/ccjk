@@ -45,6 +45,7 @@ describe('claude-config Clavue sync', () => {
     })
     mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
       ? {
+          statusLine: {},
           env: {},
           baseUrl: 'https://stale.example.com/v1',
           apiKey: 'sk-stale',
@@ -84,7 +85,7 @@ describe('claude-config Clavue sync', () => {
             baseUrl: 'https://router.example.com',
             authType: 'api_key',
             modelRouting: expect.objectContaining({
-              presetId: 'custom',
+              presetId: 'claude_code_heritage',
               primaryModel: 'claude-sonnet-4-6',
               smallFastModel: 'claude-haiku-4-5',
               planModel: 'claude-opus-4-6',
@@ -137,6 +138,7 @@ describe('claude-config Clavue sync', () => {
       }),
     )
     const settingsWrite = mockWriteJsonConfig.mock.calls.find(([path]) => String(path).includes('settings.json'))?.[1]
+    expect(settingsWrite.statusLine).toBeUndefined()
     expect(settingsWrite.env).not.toHaveProperty('ANTHROPIC_API_KEY')
     expect(settingsWrite.env).not.toHaveProperty('ANTHROPIC_AUTH_TOKEN')
   })
@@ -319,6 +321,221 @@ describe('claude-config Clavue sync', () => {
             providerId: 'custom',
             modelMode: 'openai_native',
             baseUrl: 'https://router.example.com',
+            modelRouting: expect.objectContaining({
+              presetId: 'gpt_5_4_codex',
+            }),
+          }),
+        ],
+      }),
+    )
+  })
+
+  it('marks mixed Clavue model routing as hybrid-compatible custom routing', async () => {
+    mockReadJsonConfig.mockReturnValue({ mcpServers: {} })
+
+    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config')
+    setMyclaudeProviderProfiles([
+      {
+        id: 'hybrid',
+        name: 'Hybrid',
+        provider: 'custom',
+        apiKey: 'sk-test',
+        baseUrl: 'https://router.example.com/v1',
+        authType: 'api_key',
+        primaryModel: 'gpt-5.4',
+        defaultHaikuModel: 'claude-haiku-4-5',
+        defaultSonnetModel: 'gpt-5.3-codex',
+        defaultOpusModel: 'claude-opus-4-6',
+      },
+    ], 'hybrid')
+
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('.clavue.json'),
+      expect.objectContaining({
+        clavueProviderProfiles: [
+          expect.objectContaining({
+            id: 'ccjk-hybrid',
+            modelMode: 'hybrid_compatible',
+            modelRouting: expect.objectContaining({
+              presetId: 'custom',
+              primaryModel: 'gpt-5.4',
+              smallFastModel: 'claude-haiku-4-5',
+              generalModel: 'gpt-5.3-codex',
+              planModel: 'claude-opus-4-6',
+            }),
+          }),
+        ],
+      }),
+    )
+  })
+
+  it('preserves a quick-selected Clavue model exactly across every routing slot', async () => {
+    mockReadJsonConfig.mockReturnValue({ mcpServers: {} })
+
+    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config')
+    setMyclaudeProviderProfiles([
+      {
+        id: 'quick',
+        name: 'Quick',
+        provider: 'custom',
+        apiKey: 'sk-test',
+        baseUrl: 'https://router.example.com/v1',
+        authType: 'api_key',
+        model: 'GPT-5.4-EXACT',
+        fastModel: 'GPT-5.4-EXACT',
+        primaryModel: 'GPT-5.4-EXACT',
+        defaultHaikuModel: 'GPT-5.4-EXACT',
+        defaultSonnetModel: 'GPT-5.4-EXACT',
+        defaultOpusModel: 'GPT-5.4-EXACT',
+      },
+    ], 'quick')
+
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('.clavue.json'),
+      expect.objectContaining({
+        clavueProviderProfiles: [
+          expect.objectContaining({
+            id: 'ccjk-quick',
+            modelRouting: {
+              presetId: 'gpt_5_4_codex',
+              primaryModel: 'GPT-5.4-EXACT',
+              subagentModel: '',
+              smallFastModel: 'GPT-5.4-EXACT',
+              planModel: 'GPT-5.4-EXACT',
+              exploreModel: 'GPT-5.4-EXACT',
+              generalModel: 'GPT-5.4-EXACT',
+              teamModel: 'GPT-5.4-EXACT',
+              guideModel: 'GPT-5.4-EXACT',
+            },
+          }),
+        ],
+      }),
+    )
+  })
+
+  it('syncs a Clavue model menu selection into the active native profile exactly', async () => {
+    mockReadJsonConfig.mockImplementation((path?: string) => {
+      if (path?.includes('settings.json')) {
+        return { env: {} }
+      }
+      return {
+        mcpServers: {},
+        clavueActiveProviderProfileId: 'ccjk-quick',
+        clavueProviderProfiles: [
+          {
+            id: 'ccjk-quick',
+            name: 'Quick',
+            providerId: 'custom',
+            modelMode: 'openai_native',
+            baseUrl: 'https://router.example.com/v1',
+            authType: 'api_key',
+            modelRouting: {
+              presetId: 'custom',
+              primaryModel: 'stale-primary',
+              subagentModel: '',
+              smallFastModel: 'stale-fast',
+              planModel: 'stale-plan',
+              exploreModel: 'stale-explore',
+              generalModel: 'stale-general',
+              teamModel: 'stale-team',
+              guideModel: 'stale-guide',
+            },
+            provenance: {
+              kind: 'imported',
+              sourceId: 'ccjk',
+              externalProfileId: 'quick',
+            },
+          },
+        ],
+      }
+    })
+
+    const { syncClavueActiveProviderModelSelection } = await import('../../src/utils/claude-config')
+    expect(syncClavueActiveProviderModelSelection({ selectedModel: '  GPT-5.4-EXACT  ' })).toBe(true)
+
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('.clavue.json'),
+      expect.objectContaining({
+        clavueActiveProviderProfileId: 'ccjk-quick',
+        clavueProviderProfiles: [
+          expect.objectContaining({
+            id: 'ccjk-quick',
+            modelMode: 'openai_native',
+            modelRouting: {
+              presetId: 'gpt_5_4_codex',
+              primaryModel: 'GPT-5.4-EXACT',
+              subagentModel: '',
+              smallFastModel: 'GPT-5.4-EXACT',
+              planModel: 'GPT-5.4-EXACT',
+              exploreModel: 'GPT-5.4-EXACT',
+              generalModel: 'GPT-5.4-EXACT',
+              teamModel: 'GPT-5.4-EXACT',
+              guideModel: 'GPT-5.4-EXACT',
+            },
+          }),
+        ],
+      }),
+    )
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('settings.json'),
+      expect.objectContaining({
+        model: 'GPT-5.4-EXACT',
+        env: expect.objectContaining({
+          ANTHROPIC_MODEL: 'GPT-5.4-EXACT',
+          ANTHROPIC_CUSTOM_MODEL_OPTION: 'GPT-5.4-EXACT',
+          ANTHROPIC_DEFAULT_HAIKU_MODEL: 'GPT-5.4-EXACT',
+          ANTHROPIC_SMALL_FAST_MODEL: 'GPT-5.4-EXACT',
+          ANTHROPIC_DEFAULT_SONNET_MODEL: 'GPT-5.4-EXACT',
+          ANTHROPIC_DEFAULT_OPUS_MODEL: 'GPT-5.4-EXACT',
+        }),
+      }),
+    )
+  })
+
+  it('locks Clavue custom primary model selection across missing routing slots', async () => {
+    mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
+      ? { env: {} }
+      : {
+          mcpServers: {},
+          clavueActiveProviderProfileId: 'manual',
+          clavueProviderProfiles: [
+            {
+              id: 'manual',
+              name: 'Manual',
+              providerId: 'custom',
+              modelMode: 'openai_native',
+              baseUrl: 'https://router.example.com/v1',
+              authType: 'api_key',
+              modelRouting: {
+                presetId: 'custom',
+                primaryModel: 'old',
+                subagentModel: '',
+                smallFastModel: 'old',
+                planModel: 'old',
+                exploreModel: 'old',
+                generalModel: 'old',
+                teamModel: 'old',
+                guideModel: 'old',
+              },
+            },
+          ],
+        })
+
+    const { syncClavueActiveProviderModelSelection } = await import('../../src/utils/claude-config')
+    expect(syncClavueActiveProviderModelSelection({ primaryModel: 'MiniMax-M2' })).toBe(true)
+
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('.clavue.json'),
+      expect.objectContaining({
+        clavueProviderProfiles: [
+          expect.objectContaining({
+            id: 'manual',
+            modelRouting: expect.objectContaining({
+              primaryModel: 'MiniMax-M2',
+              smallFastModel: 'MiniMax-M2',
+              planModel: 'MiniMax-M2',
+              generalModel: 'MiniMax-M2',
+            }),
           }),
         ],
       }),
@@ -397,6 +614,7 @@ describe('claude-config Clavue sync', () => {
             externalProfileId: 'primary',
           },
           modelRouting: {
+            presetId: 'gpt_5_4_codex',
             primaryModel: 'gpt-5.4',
           },
         },
@@ -501,6 +719,7 @@ describe('claude-config Clavue sync', () => {
             providerId: 'glm',
             baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
             modelRouting: expect.objectContaining({
+              presetId: 'gpt_5_4_codex',
               primaryModel: 'glm-4.6',
               smallFastModel: 'glm-4.5-air',
             }),

@@ -250,7 +250,7 @@ export const CODE_TOOL_INFO: Record<CodeToolType, CodeToolRuntimeInfo> = {
     name: 'Clavue',
     description: 'Execution-first AI coding CLI with provider profiles',
     website: 'https://www.clavue.com',
-    installCmd: 'npm install -g clavue && clavue install --force',
+    installCmd: 'npm install -g clavue',
     configFormat: 'json',
     category: 'cli',
     runtimeCommand: 'clavue',
@@ -297,6 +297,7 @@ export const CODE_TOOL_INFO: Record<CodeToolType, CodeToolRuntimeInfo> = {
       '/allowed-tools',
       '/think',
       '/thinking',
+      '/goal',
       '/provider',
       '/team',
       '/mao',
@@ -312,6 +313,9 @@ export const CODE_TOOL_INFO: Record<CodeToolType, CodeToolRuntimeInfo> = {
     category: 'cli',
     runtimeCommand: 'codex',
     configBackend: 'tool-specific',
+    nativeSlashCommands: [
+      '/goal',
+    ],
   },
   'aider': {
     name: 'Aider',

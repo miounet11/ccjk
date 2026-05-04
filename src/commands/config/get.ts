@@ -2,7 +2,7 @@
  * Config Get Subcommand
  *
  * Get a configuration value by key using dot notation.
- * Supports reading from CCJK config, Claude config, and runtime state.
+ * Supports reading from CCJK config, Claude-family config, and runtime state.
  *
  * Usage:
  *   ccjk config get <key>                Get configuration value
@@ -16,8 +16,10 @@ import type { GetConfigOptions } from './types'
 
 import ansis from 'ansis'
 import { config } from '../../config/unified'
-import { CCJK_CONFIG_FILE, SETTINGS_FILE, STATE_FILE } from '../../constants'
+import { readClaudeConfig } from '../../config/unified/claude-config'
+import { CCJK_CONFIG_FILE, STATE_FILE } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
+import { resolveClaudeFamilySettingsTarget } from '../../utils/runtime-settings'
 
 /**
  * Get nested value from object using dot notation
@@ -56,9 +58,9 @@ function getNestedValue(obj: unknown, path: string): unknown {
  * @param options - Command options
  * @returns The found value with source information, or null
  */
-function findValueAcrossSources(path: string, _options: GetConfigOptions): {
+function findValueAcrossSources(path: string, options: GetConfigOptions): {
   value: unknown
-  source: 'ccjk' | 'claude' | 'state'
+  source: 'ccjk' | 'claude' | 'clavue' | 'state'
   sourcePath: string
 } | null {
   // Try CCJK config first
@@ -72,14 +74,15 @@ function findValueAcrossSources(path: string, _options: GetConfigOptions): {
     }
   }
 
-  // Try Claude Code config
-  const claudeConfig = config.claude.read()
+  // Try Claude-family config for the selected runtime.
+  const runtime = resolveClaudeFamilySettingsTarget(options.codeType)
+  const claudeConfig = readClaudeConfig(runtime.settingsFile)
   const claudeValue = claudeConfig ? getNestedValue(claudeConfig, path) : undefined
   if (claudeValue !== undefined) {
     return {
       value: claudeValue,
-      source: 'claude',
-      sourcePath: SETTINGS_FILE,
+      source: runtime.codeTool === 'clavue' ? 'clavue' : 'claude',
+      sourcePath: runtime.settingsFile,
     }
   }
 

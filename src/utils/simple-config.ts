@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
 import { exec } from 'tinyexec'
 import { ensureDir, writeFileAtomic } from './fs-operations.js'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer.js'
 import { mergeAndCleanPermissions } from './permission-cleaner.js'
 import { getPlatform } from './platform.js'
 import { resolveClaudeFamilySettingsTarget } from './runtime-settings.js'
@@ -35,6 +36,7 @@ function loadCurrentSettings(target: RuntimeSettingsTarget = resolveClaudeFamily
 // Save settings
 function saveSettings(settings: any, target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): void {
   ensureDir(target.configDir)
+  normalizeClaudeFamilySettings(settings)
   writeFileAtomic(target.settingsFile, JSON.stringify(settings, null, 2))
 }
 

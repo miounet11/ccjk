@@ -56,6 +56,7 @@ export async function addProviderToExisting(
         providers: [provider],
         mcpServices: [],
         managed: true,
+        features: { goals: true },
         otherConfig: [],
       }
     }

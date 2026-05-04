@@ -1,5 +1,6 @@
 import type { ClaudeSettings } from '../types/config'
 import { SETTINGS_FILE } from '../constants'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { exists } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
 import { getPlatformStatusLineConfig } from './statusline-validator'
@@ -22,6 +23,7 @@ export function addCCometixLineConfig(): boolean {
     settings.statusLine = statusLineConfig
 
     // Write updated settings
+    normalizeClaudeFamilySettings(settings)
     writeJsonConfig(SETTINGS_FILE, settings)
 
     return true
@@ -67,6 +69,7 @@ export function removeCCometixLineConfig(): boolean {
     delete settings.statusLine
 
     // Write updated settings
+    normalizeClaudeFamilySettings(settings)
     writeJsonConfig(SETTINGS_FILE, settings)
 
     return true

@@ -191,6 +191,7 @@ Codex 目前支持以下 `/prompts:` 工作流模板：
 |--------|-----------|-----------------|------|
 | **六阶段工作流** | `/prompts:workflow` | `/ccjk:workflow` | 完整的六阶段开发流程（研究→构思→计划→执行→优化→评审） |
 | **功能规划** | `/prompts:feat` | `/ccjk:feat` | 新功能规划与实现启动 |
+| **持久化目标工作流** | `/prompts:goal` | `/ccjk:goal` | 仓库内目标产物，并与原生 `/goal` 协同 |
 | **项目初始化** | `/prompts:init-project` | `/init-project` | 项目初始化与结构建议 |
 | **Git 工作流** | `/prompts:git-commit` | `/git-commit` | 智能 Git 提交 |
 | | `/prompts:git-rollback` | `/git-rollback` | 安全回滚 |
@@ -215,6 +216,7 @@ Codex 目前支持以下 `/prompts:` 工作流模板：
 |-----------|------------|-------|
 | 六阶段工作流 | ✅ `/ccjk:workflow` | ✅ `/prompts:workflow` |
 | 功能开发工作流 | ✅ `/ccjk:feat` | ✅ `/prompts:feat` |
+| 持久化目标工作流 | ✅ `/ccjk:goal` | ✅ `/prompts:goal` |
 | 项目初始化 | ✅ `/init-project` | ✅ `/prompts:init-project` |
 | Git 工作流 | ✅ `/git-commit` 等 | ✅ `/prompts:git-commit` 等 |
 | 高级 Prompt 套件 | 部分支持 | ✅ `/prompts:interview`、`/prompts:spec-first-tdd`、`/prompts:refactoring-master` 等 |

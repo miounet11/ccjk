@@ -22,6 +22,7 @@ import { config } from '../../config/unified'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
 import { ClaudeCodeConfigManager } from '../../utils/claude-code-config-manager'
+import { readClavueConfig, setMyclaudeActiveProviderProfile } from '../../utils/claude-config'
 import { listCodexProviders as listCodexProvidersUtil, readCodexConfig, switchCodexProvider as switchCodexProviderUtil, switchToOfficialLogin } from '../../utils/code-tools/codex'
 
 /**
@@ -45,6 +46,105 @@ function resolveCodeType(codeType?: unknown): CodeToolType {
   }
 
   return DEFAULT_CODE_TOOL_TYPE
+}
+
+interface ClavueSwitchProfile {
+  id: string
+  name: string
+  providerId?: string
+  externalId?: string
+  baseUrl?: string
+  authType?: string
+  modelSummary?: string
+}
+
+function getUniqueDisplayModels(models: Array<unknown>): string {
+  return [...new Set(models
+    .filter((model): model is string => typeof model === 'string' && model.trim().length > 0)
+    .map(model => model.trim()))].join(', ')
+}
+
+function getClavueSwitchProfiles(): { activeId: string, profiles: ClavueSwitchProfile[] } {
+  const clavueConfig = readClavueConfig()
+  const activeId = clavueConfig?.clavueActiveProviderProfileId || clavueConfig?.myclaudeActiveProviderProfileId || ''
+  const profiles: ClavueSwitchProfile[] = []
+  const seen = new Set<string>()
+
+  const nativeProfiles = Array.isArray(clavueConfig?.clavueProviderProfiles)
+    ? clavueConfig.clavueProviderProfiles
+    : []
+  for (const profile of nativeProfiles) {
+    const routing = profile.modelRouting || {}
+    const externalId = typeof profile.provenance?.externalProfileId === 'string'
+      ? profile.provenance.externalProfileId.trim()
+      : undefined
+
+    profiles.push({
+      id: profile.id,
+      name: profile.name || profile.id,
+      providerId: profile.providerId,
+      externalId,
+      baseUrl: profile.baseUrl,
+      authType: profile.authType,
+      modelSummary: getUniqueDisplayModels([
+        routing.primaryModel,
+        routing.smallFastModel,
+        routing.generalModel,
+        routing.planModel,
+      ]),
+    })
+    seen.add(profile.id)
+  }
+
+  const legacyProfiles = Array.isArray(clavueConfig?.myclaudeProviderProfiles)
+    ? clavueConfig.myclaudeProviderProfiles
+    : []
+  for (const profile of legacyProfiles) {
+    if (seen.has(profile.id)) {
+      continue
+    }
+    profiles.push({
+      id: profile.id,
+      name: profile.name || profile.id,
+      providerId: profile.provider,
+      baseUrl: profile.baseUrl,
+      authType: profile.authType,
+      modelSummary: getUniqueDisplayModels([
+        profile.primaryModel,
+        profile.model,
+        profile.defaultHaikuModel,
+        profile.fastModel,
+        profile.defaultSonnetModel,
+        profile.defaultOpusModel,
+      ]),
+    })
+  }
+
+  return { activeId, profiles }
+}
+
+function findClavueSwitchProfile(profiles: ClavueSwitchProfile[], target: string): ClavueSwitchProfile | undefined {
+  const normalizedTarget = target.trim()
+  if (!normalizedTarget) {
+    return undefined
+  }
+
+  const exact = profiles.find(profile =>
+    profile.id === normalizedTarget
+    || profile.externalId === normalizedTarget
+    || profile.providerId === normalizedTarget,
+  )
+  if (exact) {
+    return exact
+  }
+
+  const loweredTarget = normalizedTarget.toLowerCase()
+  return profiles.find(profile =>
+    profile.name.toLowerCase() === loweredTarget
+    || profile.id.toLowerCase() === loweredTarget
+    || profile.externalId?.toLowerCase() === loweredTarget
+    || profile.providerId?.toLowerCase() === loweredTarget,
+  )
 }
 
 /**
@@ -122,6 +222,65 @@ async function listClaudeCodeProfiles(_options: SwitchConfigOptions): Promise<vo
     if (error instanceof Error) {
       console.error(ansis.dim(error.message))
     }
+  }
+}
+
+/**
+ * List available Clavue provider profiles
+ *
+ * @param options - Command options
+ */
+async function listClavueProviderProfiles(_options: SwitchConfigOptions): Promise<void> {
+  const isZh = i18n.language === 'zh-CN'
+  const { activeId, profiles } = getClavueSwitchProfiles()
+
+  if (profiles.length === 0) {
+    console.log(ansis.yellow(isZh
+      ? '没有可用的 Clavue 供应商配置'
+      : 'No Clavue provider profiles available'))
+    console.log(ansis.dim(isZh
+      ? '使用 "ccjk config api <provider> <key> --code-type clavue" 添加配置'
+      : 'Use "ccjk config api <provider> <key> --code-type clavue" to add one'))
+    console.log('')
+    return
+  }
+
+  console.log('')
+  console.log(ansis.bold.cyan(isZh ? 'Clavue 供应商配置' : 'Clavue Provider Profiles'))
+  console.log(ansis.dim('─'.repeat(60)))
+  console.log('')
+
+  console.log(`${!activeId ? ansis.green('● ') : '  '}${ansis.bold('Official Login')}${!activeId ? ansis.yellow(` (${isZh ? 'current' : '当前'})`) : ''}`)
+  console.log(`  ${ansis.green('ID:')} official`)
+  console.log(`  ${ansis.dim(isZh ? '使用 Clavue 原生/默认登录' : 'Use Clavue native/default login')}`)
+  console.log('')
+
+  for (const profile of profiles) {
+    const isCurrent = profile.id === activeId
+    console.log(`${isCurrent ? ansis.green('● ') : '  '}${ansis.bold(profile.name)}${isCurrent ? ansis.yellow(` (${isZh ? 'current' : '当前'})`) : ''}`)
+    console.log(`  ${ansis.green('ID:')} ${profile.id}`)
+
+    if (profile.externalId && profile.externalId !== profile.id) {
+      console.log(`  ${ansis.green('Alias:')} ${profile.externalId}`)
+    }
+
+    if (profile.providerId) {
+      console.log(`  ${ansis.green('Provider:')} ${profile.providerId}`)
+    }
+
+    if (profile.baseUrl) {
+      console.log(`  ${ansis.green('URL:')} ${ansis.dim(profile.baseUrl)}`)
+    }
+
+    if (profile.authType) {
+      console.log(`  ${ansis.green('Auth:')} ${profile.authType}`)
+    }
+
+    if (profile.modelSummary) {
+      console.log(`  ${ansis.green('Models:')} ${profile.modelSummary}`)
+    }
+
+    console.log('')
   }
 }
 
@@ -313,6 +472,63 @@ async function switchClaudeCodeProfile(target: string, _options: SwitchConfigOpt
 }
 
 /**
+ * Switch Clavue active provider profile
+ *
+ * @param target - Target Clavue profile ID, imported alias, provider ID, profile name, or 'official'
+ * @param options - Command options
+ */
+async function switchClavueProviderProfile(target: string, _options: SwitchConfigOptions): Promise<void> {
+  const isZh = i18n.language === 'zh-CN'
+
+  try {
+    if (target === 'official') {
+      setMyclaudeActiveProviderProfile(undefined)
+      console.log('')
+      console.log(ansis.green(isZh
+        ? '成功切换到: 官方登录'
+        : 'Successfully switched to: Official Login'))
+      console.log('')
+      return
+    }
+
+    const { profiles } = getClavueSwitchProfiles()
+    const profile = findClavueSwitchProfile(profiles, target)
+
+    if (!profile) {
+      console.log(ansis.red(isZh
+        ? `未找到 Clavue 配置 "${target}"`
+        : `Clavue profile "${target}" not found`))
+      console.log('')
+      console.log(ansis.dim(isZh ? '可用 Clavue 配置:' : 'Available Clavue profiles:'))
+      for (const availableProfile of profiles) {
+        const aliases = [availableProfile.externalId, availableProfile.providerId]
+          .filter((alias): alias is string => Boolean(alias && alias !== availableProfile.id))
+        const suffix = aliases.length > 0 ? ` (${aliases.join(', ')})` : ''
+        console.log(`  - ${availableProfile.id}${suffix}`)
+      }
+      console.log('')
+      return
+    }
+
+    setMyclaudeActiveProviderProfile(profile.id)
+
+    console.log('')
+    console.log(ansis.green(isZh
+      ? `成功切换到: ${profile.name}`
+      : `Successfully switched to: ${profile.name}`))
+    console.log('')
+  }
+  catch (error) {
+    console.error(ansis.red(isZh
+      ? '切换 Clavue 配置失败'
+      : 'Failed to switch Clavue profile'))
+    if (error instanceof Error) {
+      console.error(ansis.dim(error.message))
+    }
+  }
+}
+
+/**
  * Switch Codex provider
  *
  * @param target - Target provider ID or 'official'
@@ -381,6 +597,9 @@ export async function switchCommand(target?: string, options: SwitchConfigOption
     if (codeType === 'claude-code') {
       await listClaudeCodeProfiles(options)
     }
+    else if (codeType === 'clavue') {
+      await listClavueProviderProfiles(options)
+    }
     else if (codeType === 'codex') {
       await listCodexProviders(options)
     }
@@ -406,6 +625,9 @@ export async function switchCommand(target?: string, options: SwitchConfigOption
   // Switch based on code type
   if (codeType === 'claude-code') {
     await switchClaudeCodeProfile(target, options)
+  }
+  else if (codeType === 'clavue') {
+    await switchClavueProviderProfile(target, options)
   }
   else if (codeType === 'codex') {
     await switchCodexProvider(target, options)

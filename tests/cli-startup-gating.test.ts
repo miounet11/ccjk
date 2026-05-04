@@ -14,6 +14,9 @@ const mocks = vi.hoisted(() => {
   const mockRunAutoFixOnStartup = vi.fn(async () => {})
   const mockAutoCheckUpdates = vi.fn()
   const mockRunMigration = vi.fn()
+  const mockRunCloudBootstrapWorker = vi.fn(async () => {})
+  const mockChildUnref = vi.fn()
+  const mockSpawn = vi.fn(() => ({ unref: mockChildUnref }))
 
   const mockCommand = {
     alias: vi.fn(),
@@ -52,13 +55,24 @@ const mocks = vi.hoisted(() => {
     mockHandleIntentRecognition,
     mockRegisterSpecialCommands,
     mockRunAutoFixOnStartup,
+    mockRunCloudBootstrapWorker,
     mockRunHealthAlertsCheck,
     mockRunMigration,
     mockShowCommandDiscoveryBanner,
     mockShowStartupSpinner,
     mockSpinnerStop,
+    mockSpawn,
     mockTryQuickProviderLaunch,
+    mockChildUnref,
     resetCli,
+  }
+})
+
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:child_process')>()
+  return {
+    ...actual,
+    spawn: mocks.mockSpawn,
   }
 })
 
@@ -70,6 +84,7 @@ vi.mock('../src/cli-helpers', async (importOriginal) => {
     customizeHelpLazy: vi.fn((sections: unknown[]) => sections),
     registerSpecialCommands: mocks.mockRegisterSpecialCommands,
     runHealthAlertsCheck: mocks.mockRunHealthAlertsCheck,
+    runCloudBootstrapWorker: mocks.mockRunCloudBootstrapWorker,
     showCommandDiscoveryBanner: mocks.mockShowCommandDiscoveryBanner,
     showStartupSpinner: mocks.mockShowStartupSpinner,
     tryQuickProviderLaunch: mocks.mockTryQuickProviderLaunch,
@@ -127,25 +142,48 @@ describe('cli startup takeover gating', () => {
 
   it('keeps cloud bootstrap limited to explicit command paths', async () => {
     const { bootstrapCloudServices, shouldBootstrapCloudServicesForArgs } = await vi.importActual<typeof import('../src/cli-helpers')>('../src/cli-helpers')
-    const setImmediateSpy = vi.spyOn(global, 'setImmediate').mockImplementation((() => 0) as any)
 
     expect(shouldBootstrapCloudServicesForArgs([])).toBe(false)
     expect(shouldBootstrapCloudServicesForArgs(['--lang', 'en'])).toBe(false)
     expect(shouldBootstrapCloudServicesForArgs(['/status'])).toBe(false)
     expect(shouldBootstrapCloudServicesForArgs(['fix', 'bug'])).toBe(false)
-    expect(shouldBootstrapCloudServicesForArgs(['status'])).toBe(true)
-    expect(shouldBootstrapCloudServicesForArgs(['--lang', 'en', 'status'])).toBe(true)
-    expect(shouldBootstrapCloudServicesForArgs(['--lang=en', 'status'])).toBe(true)
+    expect(shouldBootstrapCloudServicesForArgs(['status'])).toBe(false)
+    expect(shouldBootstrapCloudServicesForArgs(['doctor', '--code-type', 'clavue', '--json'])).toBe(false)
+    expect(shouldBootstrapCloudServicesForArgs(['zero-config', 'dev', '--code-type', 'clavue'])).toBe(false)
+    expect(shouldBootstrapCloudServicesForArgs(['--lang', 'en', 'cloud', 'skills', 'sync'])).toBe(true)
+    expect(shouldBootstrapCloudServicesForArgs(['--lang=en', 'cloud', 'skills', 'sync'])).toBe(true)
 
     process.argv = ['node', 'ccjk', 'fix', 'bug']
     bootstrapCloudServices()
-    expect(setImmediateSpy).not.toHaveBeenCalled()
+    expect(mocks.mockSpawn).not.toHaveBeenCalled()
 
-    process.argv = ['node', 'ccjk', '--lang', 'en', 'status']
+    process.argv = ['node', 'ccjk', '--lang', 'en', 'cloud', 'skills', 'sync']
     bootstrapCloudServices()
-    expect(setImmediateSpy).toHaveBeenCalledTimes(1)
+    expect(mocks.mockSpawn).toHaveBeenCalledTimes(1)
+    expect(mocks.mockSpawn).toHaveBeenCalledWith(
+      process.execPath,
+      ['ccjk', '__ccjk-cloud-bootstrap'],
+      expect.objectContaining({
+        detached: true,
+        stdio: 'ignore',
+        env: expect.objectContaining({
+          CCJK_CLOUD_BOOTSTRAP_WORKER: '1',
+        }),
+      }),
+    )
+    expect(mocks.mockChildUnref).toHaveBeenCalledTimes(1)
+  })
 
-    setImmediateSpy.mockRestore()
+  it('runs cloud bootstrap worker as a dedicated path', async () => {
+    process.argv = ['node', 'ccjk', '__ccjk-cloud-bootstrap']
+
+    const { runLazyCli } = await import('../src/cli-lazy')
+    await runLazyCli()
+
+    expect(mocks.mockRunCloudBootstrapWorker).toHaveBeenCalledTimes(1)
+    expect(mocks.mockShowStartupSpinner).not.toHaveBeenCalled()
+    expect(mocks.mockBootstrapCloudServices).not.toHaveBeenCalled()
+    expect(mocks.mockCli.parse).not.toHaveBeenCalled()
   })
 
   it('preserves explicit slash-command startup handling', async () => {
@@ -176,13 +214,13 @@ describe('cli startup takeover gating', () => {
     expect(mocks.mockCli.parse).toHaveBeenCalledTimes(1)
   })
 
-  it('keeps cloud bootstrap for known explicit commands', async () => {
+  it('skips cloud bootstrap for diagnostic status commands', async () => {
     process.argv = ['node', 'ccjk', 'status']
 
     const { runLazyCli } = await import('../src/cli-lazy')
     await runLazyCli()
 
-    expect(mocks.mockBootstrapCloudServices).toHaveBeenCalledTimes(1)
+    expect(mocks.mockBootstrapCloudServices).not.toHaveBeenCalled()
     expectMaintenanceSkipped()
     expect(mocks.mockTryQuickProviderLaunch).not.toHaveBeenCalled()
     expect(mocks.mockCli.parse).toHaveBeenCalledTimes(1)

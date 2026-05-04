@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { initI18n } from '../i18n'
 import { mergeSettingsFile } from './config'
 import { sanitizeClaudeSettings, validateClaudeSettings } from './config-validator'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 
 beforeAll(async () => {
   await initI18n('zh-CN')
@@ -60,6 +61,83 @@ describe('mergeSettingsFile', () => {
       rmSync(tempDir, { recursive: true, force: true })
     }
   })
+
+  it('repairs invalid statusLine during template merge', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'ccjk-config-merge-'))
+
+    try {
+      const templatePath = join(tempDir, 'template.json')
+      const targetPath = join(tempDir, 'settings.json')
+
+      writeFileSync(templatePath, JSON.stringify({
+        statusLine: {},
+        env: {},
+        attribution: {},
+        fileSuggestion: {
+          type: 'command',
+          command: 'git',
+        },
+        permissions: {
+          allow: ['Read(*)'],
+        },
+      }, null, 2))
+
+      writeFileSync(targetPath, JSON.stringify({
+        statusLine: {},
+        env: {
+          ANTHROPIC_API_KEY: 'sk-test',
+        },
+      }, null, 2))
+
+      mergeSettingsFile(templatePath, targetPath)
+
+      const merged = JSON.parse(readFileSync(targetPath, 'utf8'))
+      expect(merged.statusLine).toBeUndefined()
+      expect(merged.env.ANTHROPIC_API_KEY).toBe('sk-test')
+    }
+    finally {
+      rmSync(tempDir, { recursive: true, force: true })
+    }
+  })
+
+  it('preserves valid statusLine during template merge', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'ccjk-config-merge-'))
+
+    try {
+      const templatePath = join(tempDir, 'template.json')
+      const targetPath = join(tempDir, 'settings.json')
+
+      writeFileSync(templatePath, JSON.stringify({
+        env: {},
+        attribution: {},
+        fileSuggestion: {
+          type: 'command',
+          command: 'git',
+        },
+        permissions: {
+          allow: ['Read(*)'],
+        },
+      }, null, 2))
+
+      writeFileSync(targetPath, JSON.stringify({
+        statusLine: {
+          type: 'command',
+          command: 'ccusage statusline',
+        },
+      }, null, 2))
+
+      mergeSettingsFile(templatePath, targetPath)
+
+      const merged = JSON.parse(readFileSync(targetPath, 'utf8'))
+      expect(merged.statusLine).toEqual({
+        type: 'command',
+        command: 'ccusage statusline',
+      })
+    }
+    finally {
+      rmSync(tempDir, { recursive: true, force: true })
+    }
+  })
 })
 
 describe('config-validator', () => {
@@ -70,6 +148,21 @@ describe('config-validator', () => {
   it('removes model default during sanitization', () => {
     expect(sanitizeClaudeSettings({ model: 'default', env: { ANTHROPIC_API_KEY: 'sk-test' } })).toEqual({
       env: { ANTHROPIC_API_KEY: 'sk-test' },
+    })
+  })
+})
+
+describe('normalizeClaudeFamilySettings', () => {
+  it('adds the required command type when command exists', () => {
+    const settings = normalizeClaudeFamilySettings({
+      statusLine: {
+        command: 'ccusage statusline',
+      },
+    })
+
+    expect(settings.statusLine).toEqual({
+      type: 'command',
+      command: 'ccusage statusline',
     })
   })
 })

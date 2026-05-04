@@ -11,7 +11,7 @@ CCJK ships a small set of real workflow bundles defined in `src/config/workflows
 | Workflow ID | Default | Installed commands | Auto-installed agents | Claude Code | Codex |
 | --- | --- | --- | --- | --- | --- |
 | `interviewWorkflow` | Yes | `interview.md` | None | `/ccjk:interview` | `/prompts:interview` |
-| `essentialTools` | Yes | `init-project.md`, `feat.md` | `init-architect`, `get-current-datetime`, `planner`, `ui-ux-designer` | `/ccjk:init-project`, `/ccjk:feat` | `/prompts:init-project`, `/prompts:feat` |
+| `essentialTools` | Yes | `init-project.md`, `feat.md`, `goal.md` | `init-architect`, `get-current-datetime`, `planner`, `ui-ux-designer` | `/ccjk:init-project`, `/ccjk:feat`, `/ccjk:goal` | `/prompts:init-project`, `/prompts:feat`, `/prompts:goal` |
 | `gitWorkflow` | Yes | `git-commit.md`, `git-rollback.md`, `git-cleanBranches.md`, `git-worktree.md` | None | `/ccjk:git-commit` etc. | `/prompts:git-commit` etc. |
 | `sixStepsWorkflow` | No | `workflow.md` | None | `/ccjk:workflow` | `/prompts:workflow` |
 | `specFirstTDD` | No | `spec-first-tdd.md` | None | `/ccjk:spec-first-tdd` | `/prompts:spec-first-tdd` |
@@ -52,6 +52,7 @@ CCJK copies workflow templates from `templates/common/workflow/` and keeps comma
 ## Recommended starting points
 
 - **New feature planning**: `essentialTools` → `/ccjk:feat` or `/prompts:feat`
+- **Durable goal execution**: `essentialTools` → `/ccjk:goal` or `/prompts:goal`
 - **Project bootstrap**: `essentialTools` → `/ccjk:init-project` or `/prompts:init-project`
 - **Structured implementation**: `sixStepsWorkflow` → `/ccjk:workflow` or `/prompts:workflow`
 - **Git operations**: `gitWorkflow`

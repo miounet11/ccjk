@@ -1,7 +1,7 @@
 import type { AiOutputLanguage, SupportedLang } from '../../constants'
 import type { CodexUninstallItem, CodexUninstallResult } from './codex-uninstaller'
-import process from 'node:process'
 import { readdirSync } from 'node:fs'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
 import dayjs from 'dayjs'
@@ -59,6 +59,7 @@ export interface CodexConfigData {
   providers: CodexProvider[]
   mcpServices: CodexMcpService[]
   managed: boolean
+  features?: Record<string, boolean>
   otherConfig?: string[] // Lines that are not managed by CCJK
   modelProviderCommented?: boolean // Whether model_provider line should be commented out
 }
@@ -438,6 +439,116 @@ export function migrateEnvKeyInContent(content: string): string {
   return result.join('\n')
 }
 
+export function isCodexGoalsFeatureEnabled(content: string): boolean {
+  try {
+    const parsed = parseToml(content) as any
+    return parsed.features?.goals === true
+  }
+  catch {
+    return false
+  }
+}
+
+function escapeRegExp(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function setCodexFeatureFlagInContent(content: string, key: string, enabled: boolean): string {
+  const normalized = content.trimEnd()
+  const lines = normalized ? normalized.split('\n') : []
+  const featuresHeaderIndex = lines.findIndex(line => line.trim() === '[features]')
+
+  if (featuresHeaderIndex === -1) {
+    const prefix = normalized ? `${normalized}\n\n` : ''
+    return `${prefix}[features]\n${key} = ${enabled}\n`
+  }
+
+  let insertIndex = lines.length
+  let featureIndex = -1
+  const keyPattern = new RegExp(`^${escapeRegExp(key)}\\s*=`)
+
+  for (let index = featuresHeaderIndex + 1; index < lines.length; index += 1) {
+    const trimmed = lines[index].trim()
+    if (/^\[[^\]]+\]\s*$/.test(trimmed)) {
+      insertIndex = index
+      break
+    }
+    if (keyPattern.test(trimmed)) {
+      featureIndex = index
+      break
+    }
+  }
+
+  if (featureIndex !== -1) {
+    const replacePattern = new RegExp(`^(\\s*)${escapeRegExp(key)}\\s*=.*$`)
+    lines[featureIndex] = lines[featureIndex].replace(replacePattern, `$1${key} = ${enabled}`)
+  }
+  else {
+    lines.splice(insertIndex, 0, `${key} = ${enabled}`)
+  }
+
+  return `${lines.join('\n')}\n`
+}
+
+function normalizeCodexFeatureFlags(input: unknown): Record<string, boolean> | undefined {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return undefined
+  }
+
+  const flags: Record<string, boolean> = {}
+  for (const [key, value] of Object.entries(input)) {
+    if (/^\w+$/.test(key) && typeof value === 'boolean') {
+      flags[key] = value
+    }
+  }
+
+  return Object.keys(flags).length > 0 ? flags : undefined
+}
+
+function applyCodexFeatureFlagsToContent(
+  content: string,
+  features: Record<string, boolean>,
+): string {
+  let nextContent = content
+  for (const [key, enabled] of Object.entries(features).sort(([a], [b]) => a.localeCompare(b))) {
+    nextContent = setCodexFeatureFlagInContent(nextContent, key, enabled)
+  }
+  return nextContent
+}
+
+export function setCodexGoalsFeatureInContent(content: string, enabled = true): string {
+  return setCodexFeatureFlagInContent(content, 'goals', enabled)
+}
+
+export function readCodexGoalsFeatureEnabled(): boolean {
+  if (!exists(CODEX_CONFIG_FILE)) {
+    return false
+  }
+
+  try {
+    return isCodexGoalsFeatureEnabled(readFile(CODEX_CONFIG_FILE))
+  }
+  catch {
+    return false
+  }
+}
+
+export function buildCodexGoalsFeatureConfigContent(existingContent = ''): string {
+  return setCodexGoalsFeatureInContent(existingContent, true)
+}
+
+export function ensureCodexGoalsFeature(): boolean {
+  const currentContent = exists(CODEX_CONFIG_FILE) ? readFile(CODEX_CONFIG_FILE) : ''
+  const nextContent = buildCodexGoalsFeatureConfigContent(currentContent)
+  if (nextContent === currentContent) {
+    return false
+  }
+
+  ensureDir(CODEX_DIR)
+  writeFileAtomic(CODEX_CONFIG_FILE, nextContent)
+  return true
+}
+
 /**
  * Ensure env_key migration is performed if needed
  * This should be called before any Codex config modification operation
@@ -473,6 +584,7 @@ export function parseCodexConfig(content: string): CodexConfigData {
       providers: [],
       mcpServices: [],
       managed: false,
+      features: undefined,
       otherConfig: [],
       modelProviderCommented: undefined,
     }
@@ -487,6 +599,7 @@ export function parseCodexConfig(content: string): CodexConfigData {
 
     // Parse TOML using smol-toml
     const tomlData = parseToml(normalizedContent) as any
+    const features = normalizeCodexFeatureFlags(tomlData.features)
 
     // Extract providers from [model_providers.*] sections
     const providers: CodexProvider[] = []
@@ -640,6 +753,7 @@ export function parseCodexConfig(content: string): CodexConfigData {
       providers,
       mcpServices,
       managed,
+      features,
       otherConfig,
       modelProviderCommented,
     }
@@ -676,6 +790,7 @@ export function parseCodexConfig(content: string): CodexConfigData {
       providers: [],
       mcpServices: [],
       managed: false,
+      features: undefined,
       otherConfig,
       modelProviderCommented: undefined,
     }
@@ -934,6 +1049,10 @@ export function renderCodexConfig(data: CodexConfigData): string {
   let result = lines.join('\n')
   if (result && !result.endsWith('\n')) {
     result += '\n'
+  }
+
+  if (data.features && Object.keys(data.features).length > 0) {
+    result = applyCodexFeatureFlagsToContent(result, data.features)
   }
 
   return result
@@ -1463,6 +1582,7 @@ function getEssentialPromptFiles(workflowSrc: string, preferredLang: string): st
   const essentialDir = join(workflowSrc, 'essential', preferredLang)
   const files = [
     'feat.md',
+    'goal.md',
     'init-project.md',
   ]
 
@@ -1596,6 +1716,7 @@ async function applyCustomApiConfig(customApiConfig: NonNullable<CodexFullInitOp
     providers,
     mcpServices: existingConfig?.mcpServices || [],
     managed: true,
+    features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
   }
 
@@ -1908,6 +2029,7 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
     providers,
     mcpServices: existingConfig?.mcpServices || [],
     managed: true,
+    features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
   })
 
@@ -2165,6 +2287,7 @@ function ensureCodexRecommendedModel(defaultModel: string = 'gpt-5-codex'): stri
     providers: existingConfig?.providers || [],
     mcpServices: existingConfig?.mcpServices || [],
     managed: true,
+    features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
     modelProviderCommented: existingConfig?.modelProviderCommented,
   })

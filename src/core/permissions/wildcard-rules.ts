@@ -892,7 +892,7 @@ export class WildcardPermissionRules {
 
     // Check if rule can match anything
     let reachable = true
-    const testTargets = this.generateTestTargets(rule.category)
+    const testTargets = this.generateTestTargets(rule.category, rule.pattern)
     const testResult = this.testPattern(rule.pattern, testTargets)
     if (testResult.matched.length === 0 && testResult.notMatched.length === testTargets.length) {
       reachable = false
@@ -971,20 +971,46 @@ export class WildcardPermissionRules {
   /**
    * Generate test targets for a category
    */
-  private generateTestTargets(category: ResourceCategory): string[] {
+  private generateTestTargets(category: ResourceCategory, pattern?: string): string[] {
     const commonTargets: Record<ResourceCategory, string[]> = {
-      bash: ['npm install', 'npm test', 'git status', 'ls -la', 'cat file.txt'],
-      mcp: ['mcp__server__tool1', 'mcp__server__tool2', 'mcp__other__func'],
-      filesystem: ['/path/to/file.txt', '/home/user/.bashrc', '/etc/config'],
+      bash: [
+        'Bash(*)',
+        'Bash(npm install)',
+        'Bash(npm test)',
+        'Bash(git status)',
+        'Bash(ls -la)',
+        'Bash(cat file.txt)',
+        'Bash(python -m pytest tests)',
+      ],
+      mcp: [
+        'MCP(*)',
+        'mcp__server__tool1',
+        'mcp__server__tool2',
+        'mcp__context7__query-docs',
+        'mcp__mcp-deepwiki__deepwiki_fetch',
+        'mcp__other__func',
+      ],
+      filesystem: [
+        'Read(*)',
+        'Edit(*)',
+        'Write(*)',
+        'NotebookEdit(*)',
+        'Read(/path/to/file.txt)',
+        'Edit(CLAUDE.md)',
+        'Write(/home/user/file.txt)',
+        '/path/to/file.txt',
+        '/home/user/.bashrc',
+        '/etc/config',
+      ],
       network: ['https://api.example.com', 'https://github.com/*', 'wss://socket.server'],
-      tool: ['Read', 'Write', 'Edit', 'Bash', 'WebSearch'],
-      command: ['init', 'update', 'doctor', 'permissions'],
+      tool: ['Read', 'Write', 'Edit', 'Bash', 'WebSearch', 'WebFetch(*)', 'Task', 'TodoWrite'],
+      command: ['init', 'update', 'doctor', 'permissions', 'Task', 'TodoWrite'],
       workflow: ['sixStep', 'featPlan', 'bmad'],
       provider: ['302ai', 'glm', 'minimax', 'kimi'],
       model: ['claude-opus', 'claude-sonnet', 'gpt-4'],
     }
 
-    return commonTargets[category] || []
+    return [...new Set([pattern, ...(commonTargets[category] || [])].filter((item): item is string => Boolean(item)))]
   }
 
   /**
@@ -1087,17 +1113,23 @@ export class WildcardPermissionRules {
     if (pattern.startsWith('Bash(')) {
       return 'bash'
     }
-    if (pattern.startsWith('mcp__')) {
+    if (pattern.startsWith('mcp__') || pattern.startsWith('MCP(')) {
       return 'mcp'
+    }
+    if (/^(Read|Write|Edit|NotebookEdit)\(/.test(pattern)) {
+      return 'filesystem'
+    }
+    if (/^(WebSearch|WebFetch)\(/.test(pattern)) {
+      return 'network'
+    }
+    if (['Read', 'Write', 'Edit', 'Bash', 'WebSearch', 'WebFetch', 'Task', 'TodoWrite'].includes(pattern)) {
+      return 'tool'
     }
     if (pattern.startsWith('http://') || pattern.startsWith('https://') || pattern.startsWith('ws://') || pattern.startsWith('wss://')) {
       return 'network'
     }
     if (pattern.startsWith('/')) {
       return 'filesystem'
-    }
-    if (['Read', 'Write', 'Edit', 'Bash', 'WebSearch'].includes(pattern)) {
-      return 'tool'
     }
 
     // Default to command for other patterns

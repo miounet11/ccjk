@@ -405,9 +405,9 @@ export async function updateMyclaude(force = false, skipPrompt = false): Promise
 
     try {
       await execWithSudoIfNeeded('npm', ['update', '-g', 'clavue'])
-      const installResult = await exec('clavue', ['install', '--force'])
-      if (installResult.exitCode !== 0) {
-        throw new Error(installResult.stderr || `Command failed with exit code ${installResult.exitCode}`)
+      const verifyResult = await exec('clavue', ['--version'])
+      if (verifyResult.exitCode !== 0) {
+        throw new Error(verifyResult.stderr || `Command failed with exit code ${verifyResult.exitCode}`)
       }
       updateSpinner.succeed(format(i18n.t('updater:updateSuccess'), { tool: 'clavue' }))
       return true

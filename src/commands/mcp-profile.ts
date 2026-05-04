@@ -6,12 +6,12 @@
 import type { CodeToolType, SupportedLang } from '../constants'
 import type { CodexConfigData, CodexMcpService } from '../utils/code-tools/codex'
 import ansis from 'ansis'
-import { isCodeToolType } from '../constants'
 import { getProfileById, getProfileDescription, getProfileIds, getProfileName, MCP_PROFILES } from '../config/mcp-profiles'
 import { MCP_SERVICE_CONFIGS } from '../config/mcp-services'
+import { isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
-import { backupMcpConfig, readMcpConfig, writeMcpConfig } from '../utils/claude-config'
 import { readZcfConfig } from '../utils/ccjk-config'
+import { backupMcpConfig, readMcpConfig, writeMcpConfig } from '../utils/claude-config'
 import { backupCodexComplete, readCodexConfig, writeCodexConfig } from '../utils/code-tools/codex'
 import { applyCodexPlatformCommand } from '../utils/code-tools/codex-platform'
 import { checkMcpPerformance, formatPerformanceWarning } from '../utils/mcp-performance'
@@ -22,16 +22,20 @@ export interface McpProfileOptions {
   tool?: CodeToolType
 }
 
-type ProfileTool = 'claude-code' | 'codex'
+type ProfileTool = 'claude-code' | 'clavue' | 'codex'
 
 function resolveProfileTool(options: McpProfileOptions = {}): ProfileTool {
-  if (options.tool === 'codex' || options.tool === 'claude-code') {
+  if (options.tool === 'codex' || options.tool === 'claude-code' || options.tool === 'clavue') {
     return options.tool
   }
 
   const zcfConfig = readZcfConfig()
   if (zcfConfig?.codeToolType && isCodeToolType(zcfConfig.codeToolType)) {
-    return zcfConfig.codeToolType === 'codex' ? 'codex' : 'claude-code'
+    return zcfConfig.codeToolType === 'codex'
+      ? 'codex'
+      : zcfConfig.codeToolType === 'clavue'
+        ? 'clavue'
+        : 'claude-code'
   }
 
   return 'claude-code'
@@ -40,6 +44,9 @@ function resolveProfileTool(options: McpProfileOptions = {}): ProfileTool {
 function getToolDisplayName(tool: ProfileTool, isZh: boolean): string {
   if (tool === 'codex') {
     return 'Codex'
+  }
+  if (tool === 'clavue') {
+    return 'Clavue'
   }
   return isZh ? 'Claude Code' : 'Claude Code'
 }
@@ -50,7 +57,7 @@ function getConfiguredServiceIds(tool: ProfileTool): string[] {
     return (config?.mcpServices || []).map(service => service.id)
   }
 
-  const config = readMcpConfig()
+  const config = readMcpConfig(tool)
   return config?.mcpServers ? Object.keys(config.mcpServers) : []
 }
 
@@ -98,7 +105,7 @@ function buildCodexProfileService(serviceId: string): CodexMcpService | null {
 }
 
 function backupProfileConfig(tool: ProfileTool): string | null {
-  return tool === 'codex' ? backupCodexComplete() : backupMcpConfig()
+  return tool === 'codex' ? backupCodexComplete() : backupMcpConfig(tool)
 }
 
 function writeProfileForTool(tool: ProfileTool, servicesToEnable: string[]): void {
@@ -114,6 +121,7 @@ function writeProfileForTool(tool: ProfileTool, servicesToEnable: string[]): voi
       providers: existingConfig?.providers || [],
       mcpServices,
       managed: true,
+      features: existingConfig?.features,
       otherConfig: existingConfig?.otherConfig || [],
       modelProviderCommented: existingConfig?.modelProviderCommented,
     }
@@ -130,11 +138,11 @@ function writeProfileForTool(tool: ProfileTool, servicesToEnable: string[]): voi
     }
   }
 
-  const existingConfig = readMcpConfig() || {}
+  const existingConfig = readMcpConfig(tool) || {}
   writeMcpConfig({
     ...existingConfig,
     mcpServers: newServers,
-  })
+  }, tool)
 }
 
 /**

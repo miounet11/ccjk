@@ -9,9 +9,21 @@
 
 import type { CAC } from 'cac'
 import type { SupportedLang } from './constants'
-import type { HookCategory, HookType } from './hooks/types'
-import type { SkillCategory } from './skills/types'
 import process from 'node:process'
+import { COMMANDS } from './cli-commands'
+import {
+  bootstrapCloudServices,
+  customizeHelpLazy,
+  isCloudBootstrapWorkerArgs,
+  isExplicitStartupCommandToken,
+  registerSpecialCommands,
+  runCloudBootstrapWorker,
+  runHealthAlertsCheck,
+  shouldBootstrapCloudServicesForArgs,
+  showCommandDiscoveryBanner,
+  showStartupSpinner,
+  tryQuickProviderLaunch,
+} from './cli-helpers'
 
 // ============================================================================
 // 核心类型定义
@@ -47,22 +59,6 @@ interface StartupPathInfo {
   args: string[]
   kind: StartupPathKind
 }
-
-// ============================================================================
-// 懒加载命令注册表
-// ============================================================================
-
-/**
- * 命令分层：
- * - core: 核心命令，启动时注册但懒加载执行
- * - extended: 扩展命令，完全懒加载
- * - deprecated: 废弃命令，显示迁移提示
- */
-type CommandTier = 'core' | 'extended' | 'deprecated'
-
-
-import { COMMANDS } from './cli-commands'
-import { registerSpecialCommands, customizeHelpLazy, runHealthAlertsCheck, showCommandDiscoveryBanner, showStartupSpinner, tryQuickProviderLaunch, bootstrapCloudServices, shouldBootstrapCloudServicesForArgs } from './cli-helpers'
 
 // ============================================================================
 // 语言处理（轻量版）
@@ -172,7 +168,7 @@ function classifyStartupPath(args: string[]): StartupPathInfo {
     return { args, kind: 'plain-args' }
   }
 
-  if (shouldBootstrapCloudServicesForArgs(args)) {
+  if (isExplicitStartupCommandToken(firstToken)) {
     return { args, kind: 'command' }
   }
 
@@ -257,6 +253,11 @@ export async function setupCommandsLazy(cli: CAC): Promise<void> {
 }
 
 export async function runLazyCli(): Promise<void> {
+  if (isCloudBootstrapWorkerArgs(process.argv.slice(2))) {
+    await runCloudBootstrapWorker()
+    return
+  }
+
   // 🎯 立即显示启动提示，避免空白屏幕
   const spinner = await showStartupSpinner()
   const startupPath = classifyStartupPath(process.argv.slice(2))
@@ -264,7 +265,7 @@ export async function runLazyCli(): Promise<void> {
   try {
     // 🚀 云服务自动引导（静默，不阻塞 CLI 启动）
     // 仅在显式命令路径执行，避免默认接管交互菜单与宿主 runtime
-    if (startupPath.kind === 'command') {
+    if (shouldBootstrapCloudServicesForArgs(startupPath.args)) {
       bootstrapCloudServices()
     }
 

@@ -30,14 +30,18 @@ export interface McpCommandOptions {
   verbose?: boolean
 }
 
-function resolveMcpTool(options: McpCommandOptions = {}): 'claude-code' | 'codex' {
-  if (options.tool === 'codex' || options.tool === 'claude-code') {
+function resolveMcpTool(options: McpCommandOptions = {}): 'claude-code' | 'clavue' | 'codex' {
+  if (options.tool === 'codex' || options.tool === 'claude-code' || options.tool === 'clavue') {
     return options.tool
   }
 
   const zcfConfig = readZcfConfig()
   if (zcfConfig?.codeToolType && isCodeToolType(zcfConfig.codeToolType)) {
-    return zcfConfig.codeToolType === 'codex' ? 'codex' : 'claude-code'
+    return zcfConfig.codeToolType === 'codex'
+      ? 'codex'
+      : zcfConfig.codeToolType === 'clavue'
+        ? 'clavue'
+        : 'claude-code'
   }
 
   return 'claude-code'
@@ -73,12 +77,14 @@ export async function mcpStatus(options: McpCommandOptions = {}): Promise<void> 
   const targetTool = resolveMcpTool(options)
   const services = targetTool === 'codex'
     ? (readCodexConfig()?.mcpServices || []).map(service => service.id)
-    : Object.keys((await readMcpConfig())?.mcpServers || {})
+    : Object.keys((await readMcpConfig(targetTool))?.mcpServers || {})
+
+  const targetToolName = targetTool === 'codex' ? 'Codex' : targetTool === 'clavue' ? 'Clavue' : 'Claude Code'
 
   console.log('')
   console.log(ansis.bold.cyan(isZh
-    ? `⚡ ${targetTool === 'codex' ? 'Codex' : 'Claude Code'} MCP 快速状态`
-    : `⚡ ${targetTool === 'codex' ? 'Codex' : 'Claude Code'} MCP Quick Status`))
+    ? `⚡ ${targetToolName} MCP 快速状态`
+    : `⚡ ${targetToolName} MCP Quick Status`))
   console.log(ansis.dim('─'.repeat(40)))
 
   // 分类统计

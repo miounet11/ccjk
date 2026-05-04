@@ -5,7 +5,11 @@
  */
 import type { CAC } from 'cac'
 import type { SupportedLang } from './constants'
+import { spawn } from 'node:child_process'
 import { COMMANDS } from './cli-commands'
+
+const CLOUD_BOOTSTRAP_WORKER_ARG = '__ccjk-cloud-bootstrap'
+const CLOUD_BOOTSTRAP_WORKER_ENV = 'CCJK_CLOUD_BOOTSTRAP_WORKER'
 
 const SPECIAL_STARTUP_COMMANDS = [
   'cloud',
@@ -36,6 +40,19 @@ const EXPLICIT_STARTUP_COMMANDS = new Set([
   ...SPECIAL_STARTUP_COMMANDS,
 ])
 
+const CLOUD_BOOTSTRAP_COMMANDS = new Set([
+  'cloud',
+  'c',
+  'skills-sync',
+  'agents-sync',
+  'marketplace',
+  'sync',
+])
+
+export function isExplicitStartupCommandToken(token: string): boolean {
+  return EXPLICIT_STARTUP_COMMANDS.has(token.toLowerCase())
+}
+
 export function shouldBootstrapCloudServicesForArgs(args: string[]): boolean {
   if (args.length === 0) {
     return false
@@ -62,10 +79,14 @@ export function shouldBootstrapCloudServicesForArgs(args: string[]): boolean {
       continue
     }
 
-    return EXPLICIT_STARTUP_COMMANDS.has(arg.toLowerCase())
+    return CLOUD_BOOTSTRAP_COMMANDS.has(arg.toLowerCase())
   }
 
   return false
+}
+
+export function isCloudBootstrapWorkerArgs(args: string[]): boolean {
+  return args[0] === CLOUD_BOOTSTRAP_WORKER_ARG
 }
 
 export async function registerSpecialCommands(cli: CAC): Promise<void> {
@@ -166,10 +187,12 @@ export async function registerSpecialCommands(cli: CAC): Promise<void> {
   // ==================== 系统管理统一命令 ====================
   // 合并 setup, sync, versions, upgrade, permissions, config-scan, workspace
   cli
-    .command('system [action]', 'System management (setup/upgrade/info)')
+    .command('system [action] [subaction]', 'System management (setup/upgrade/info)')
     .alias('sys')
-    .action(async (action) => {
+    .option('--target <target>', 'Target runtime for repair commands')
+    .action(async (action, subaction, options) => {
       const actionStr = action as string || 'info'
+      const subactionStr = subaction as string | undefined
 
       if (actionStr === 'setup' || actionStr === 's') {
         const { runOnboarding } = await import('./utils/onboarding')
@@ -188,8 +211,23 @@ export async function registerSpecialCommands(cli: CAC): Promise<void> {
         await upgradeAll()
       }
       else if (actionStr === 'permissions' || actionStr === 'perm') {
-        const { displayPermissions } = await import('./utils/permission-manager')
-        displayPermissions()
+        const { displayPermissions, repairPermissions } = await import('./utils/permission-manager')
+        if (subactionStr === 'repair') {
+          if (options?.target && !['clavue', 'claude-code'].includes(String(options.target))) {
+            console.error(`Unsupported permissions repair target: ${options.target}`)
+            return
+          }
+          const repaired = repairPermissions(process.cwd())
+          if (repaired) {
+            console.log('✓ Repaired CCJK permission bridge at ~/.ccjk/permissions.json')
+          }
+          else {
+            console.error('✗ Failed to repair CCJK permission bridge')
+          }
+        }
+        else {
+          displayPermissions()
+        }
       }
       else if (actionStr === 'config' || actionStr === 'cfg') {
         const { detectAllConfigs, displayConfigScan } = await import('./utils/config-consolidator')
@@ -573,45 +611,72 @@ export async function tryQuickProviderLaunch(): Promise<boolean> {
  * Skipped entirely when user enters interactive menu (no args) to avoid
  * race conditions with config writes.
  */
+async function runCloudBootstrapTasks(): Promise<void> {
+  try {
+    // 0. 初始化 Plan Mode 上下文同步功能
+    const { initializeContextFeatures } = await import('./context/startup')
+    await initializeContextFeatures()
+
+    // 1. 云服务自动引导（设备注册、握手、同步）
+    const { autoBootstrap } = await import('./services/cloud/auto-bootstrap')
+    await autoBootstrap()
+
+    // 2. 静默自动升级（CCJK、Claude Code、CCR 等）
+    const { autoUpgrade } = await import('./services/cloud/silent-updater')
+    await autoUpgrade()
+
+    // 3. Superpower 零配置激活（自动安装和加载核心技能）
+    const { activateSuperpowers } = await import('./utils/zero-config')
+    await activateSuperpowers('zh-CN')
+
+    // 4. 🧠 Brain 系统初始化（零配置智能路由）
+    const { setupBrainHook } = await import('./brain/integration/cli-hook')
+    await setupBrainHook({
+      enabled: true,
+      silent: true, // 静默模式，不打扰用户
+      fallbackToClaudeCode: true,
+    })
+
+    // 5. 欢迎界面已移除 — 遵循反侵略原则，不打扰用户
+  }
+  catch {
+    // 云服务错误静默处理，不影响用户使用
+  }
+}
+
+export async function runCloudBootstrapWorker(): Promise<void> {
+  await runCloudBootstrapTasks()
+}
+
 export function bootstrapCloudServices(): void {
   const args = process.argv.slice(2)
-  if (!shouldBootstrapCloudServicesForArgs(args)) {
+  if (!shouldBootstrapCloudServicesForArgs(args) || isCloudBootstrapWorkerArgs(args)) {
     return
   }
 
-  // 使用 setImmediate 确保不阻塞 CLI 启动
-  setImmediate(async () => {
-    try {
-      // 0. 初始化 Plan Mode 上下文同步功能
-      const { initializeContextFeatures } = await import('./context/startup')
-      await initializeContextFeatures()
+  if (process.env[CLOUD_BOOTSTRAP_WORKER_ENV] === '1') {
+    return
+  }
 
-      // 1. 云服务自动引导（设备注册、握手、同步）
-      const { autoBootstrap } = await import('./services/cloud/auto-bootstrap')
-      await autoBootstrap()
+  const entrypoint = process.argv[1]
+  if (!entrypoint || entrypoint.endsWith('.ts')) {
+    return
+  }
 
-      // 2. 静默自动升级（CCJK、Claude Code、CCR 等）
-      const { autoUpgrade } = await import('./services/cloud/silent-updater')
-      await autoUpgrade()
-
-      // 3. Superpower 零配置激活（自动安装和加载核心技能）
-      const { activateSuperpowers } = await import('./utils/zero-config')
-      await activateSuperpowers('zh-CN')
-
-      // 4. 🧠 Brain 系统初始化（零配置智能路由）
-      const { setupBrainHook } = await import('./brain/integration/cli-hook')
-      await setupBrainHook({
-        enabled: true,
-        silent: true, // 静默模式，不打扰用户
-        fallbackToClaudeCode: true,
-      })
-
-      // 5. 欢迎界面已移除 — 遵循反侵略原则，不打扰用户
-    }
-    catch {
-      // 云服务错误静默处理，不影响用户使用
-    }
-  })
+  try {
+    const child = spawn(process.execPath, [entrypoint, CLOUD_BOOTSTRAP_WORKER_ARG], {
+      detached: true,
+      stdio: 'ignore',
+      env: {
+        ...process.env,
+        [CLOUD_BOOTSTRAP_WORKER_ENV]: '1',
+      },
+    })
+    child.unref()
+  }
+  catch {
+    // 云服务错误静默处理，不影响用户使用
+  }
 }
 
 /**

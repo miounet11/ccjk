@@ -10,9 +10,10 @@ import type { ClaudeConfiguration } from '../../types'
 import { existsSync } from 'node:fs'
 import ansis from 'ansis'
 import { cac } from 'cac'
-import { SETTINGS_FILE } from '../../constants'
 import { getTranslation } from '../../i18n'
-import { readJsonConfig } from '../../utils/json-config'
+import { normalizeClaudeFamilySettings } from '../../utils/claude-settings-normalizer'
+import { readJsonConfig, writeJsonConfig } from '../../utils/json-config'
+import { resolveClaudeFamilySettingsTarget } from '../../utils/runtime-settings'
 
 /**
  * MCP marketplace services (popular ones)
@@ -30,18 +31,24 @@ const POPULAR_MCP_SERVICES = [
  * Read current MCP configuration
  */
 function readMcpConfig(): ClaudeConfiguration | null {
-  if (!existsSync(SETTINGS_FILE)) {
+  const target = resolveClaudeFamilySettingsTarget()
+  if (!existsSync(target.settingsFile)) {
     return null
   }
-  return readJsonConfig<ClaudeConfiguration>(SETTINGS_FILE) || null
+  return readJsonConfig<ClaudeConfiguration>(target.settingsFile) || null
 }
 
 /**
  * Write MCP configuration
  */
 function writeMcpConfig(config: ClaudeConfiguration): void {
-  const { writeJsonConfig } = require('../../utils/json-config')
-  writeJsonConfig(SETTINGS_FILE, config, { pretty: true, atomic: true })
+  const target = resolveClaudeFamilySettingsTarget()
+  normalizeClaudeFamilySettings(config as Record<string, any>)
+  writeJsonConfig(target.settingsFile, config, { pretty: true, atomic: true })
+}
+
+function getMcpSettingsFile(): string {
+  return resolveClaudeFamilySettingsTarget().settingsFile
 }
 
 /**
@@ -178,7 +185,7 @@ export async function handleMcpCommand(args: string[] = []): Promise<void> {
       const config = readMcpConfig()
 
       // Check if config file exists
-      if (existsSync(SETTINGS_FILE)) {
+      if (existsSync(getMcpSettingsFile())) {
         console.log(ansis.green('  ✓ Config file exists'))
       }
       else {

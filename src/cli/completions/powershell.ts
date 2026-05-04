@@ -138,7 +138,7 @@ ${commandMap}
         }
 
         if ($prevElement -in @('-T', '--code-type')) {
-            @('claude-code', 'codex', 'aider', 'continue', 'cline', 'cursor') | Where-Object { $_ -like "$wordToComplete*" } |
+            @('claude-code', 'clavue', 'codex', 'aider', 'continue', 'cline', 'cursor') | Where-Object { $_ -like "$wordToComplete*" } |
                 ForEach-Object {
                     [Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', 'Code tool type')
                 }

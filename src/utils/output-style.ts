@@ -6,6 +6,7 @@ import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { updateZcfConfig } from './ccjk-config'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { copyFile, ensureDir, exists, removeFile } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
 import { mergeAndCleanPermissions } from './permission-cleaner'
@@ -139,6 +140,7 @@ export function setGlobalDefaultOutputStyle(styleId: string, codeTool?: CodeTool
     delete (updatedSettings as any).plansDirectory
   }
 
+  normalizeClaudeFamilySettings(updatedSettings)
   writeJsonConfig(target.settingsFile, updatedSettings)
 }
 

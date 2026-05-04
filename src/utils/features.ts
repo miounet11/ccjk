@@ -1,4 +1,4 @@
-import type { SupportedLang } from '../constants'
+import type { CodeToolType, SupportedLang } from '../constants'
 import type { McpServerConfig } from '../types'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -18,8 +18,10 @@ import {
   fixWindowsMcpConfig,
   mergeMcpServers,
   readMcpConfig,
+  syncClavueActiveProviderModelSelection,
   writeMcpConfig,
 } from './claude-config'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import {
   applyAiLanguageDirective,
   configureApi,
@@ -123,6 +125,7 @@ async function ensureModelConfigPriority(): Promise<void> {
     && settings.env.ANTHROPIC_SMALL_FAST_MODEL !== settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
   ) {
     settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+    normalizeClaudeFamilySettings(settings)
     writeJsonConfig(SETTINGS_FILE, settings)
   }
 }
@@ -401,11 +404,12 @@ export async function configureMcpFeature(): Promise<void> {
 }
 
 // Configure default model
-export async function configureDefaultModelFeature(): Promise<void> {
+export async function configureDefaultModelFeature(codeTool?: CodeToolType): Promise<void> {
   ensureI18nInitialized()
+  const codeToolType = codeTool || readZcfConfig()?.codeToolType || 'claude-code'
 
   // Check for existing model configuration
-  const existingModel = getExistingModelConfig()
+  const existingModel = getExistingModelConfig(codeToolType)
 
   if (existingModel) {
     // Display existing configuration
@@ -449,7 +453,7 @@ export async function configureDefaultModelFeature(): Promise<void> {
   if (model === 'custom') {
     // Handle custom model input
     // Get existing custom model configuration to pre-fill the prompts
-    const existingCustomConfig = getExistingCustomModelConfig()
+    const existingCustomConfig = getExistingCustomModelConfig(codeToolType)
     const { primaryModel, haikuModel, sonnetModel, opusModel } = await promptCustomModels(
       existingCustomConfig?.primaryModel,
       existingCustomConfig?.haikuModel,
@@ -464,12 +468,27 @@ export async function configureDefaultModelFeature(): Promise<void> {
     }
 
     // Use the new updateCustomModel function to handle environment variables
-    updateCustomModel(primaryModel, haikuModel, sonnetModel, opusModel)
+    updateCustomModel(primaryModel, haikuModel, sonnetModel, opusModel, codeToolType)
+    if (codeToolType === 'clavue') {
+      syncClavueActiveProviderModelSelection({
+        primaryModel,
+        haikuModel,
+        sonnetModel,
+        opusModel,
+      })
+    }
     console.log(ansis.green(`✔ ${i18n.t('configuration:customModelConfigured') || 'Custom model configuration completed'}`))
     return
   }
 
-  updateDefaultModel(model)
+  updateDefaultModel(model, codeToolType)
+  if (codeToolType === 'clavue') {
+    syncClavueActiveProviderModelSelection(
+      model === 'default'
+        ? { reset: true }
+        : { selectedModel: model },
+    )
+  }
   console.log(ansis.green(`✔ ${i18n.t('configuration:modelConfigured') || 'Default model configured'}`))
 }
 
@@ -923,6 +942,7 @@ async function updateCodexModelProvider(modelProvider: string): Promise<void> {
     providers: existingConfig?.providers || [],
     mcpServices: existingConfig?.mcpServices || [],
     managed: true,
+    features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
     modelProviderCommented: existingConfig?.modelProviderCommented,
   }

@@ -10,7 +10,7 @@ import type { CodexConfigData, CodexMcpService } from './code-tools/codex'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { dynamicMcpRegistry, getMcpService, getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
-import { ClAUDE_CONFIG_FILE, CODEX_CONFIG_FILE } from '../constants'
+import { ClAUDE_CONFIG_FILE, CLAVUE_CONFIG_FILE, CLAVUE_SETTINGS_FILE, CODEX_CONFIG_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { buildMcpServerConfig, readMcpConfig, writeMcpConfig } from './claude-config'
 import { readCodexConfig, writeCodexConfig } from './code-tools/codex'
@@ -46,10 +46,17 @@ export interface InstalledMcpService {
  * @returns The detected code tool type
  */
 export function detectActiveTool(): CodeToolType {
+  // Check if Clavue config exists first. Clavue has its own runtime root and
+  // should not be collapsed into Claude Code when it is the active install.
+  const hasClavueConfig = exists(CLAVUE_CONFIG_FILE) || exists(CLAVUE_SETTINGS_FILE)
   // Check if Claude Code config exists
   const hasClaudeConfig = exists(ClAUDE_CONFIG_FILE)
   // Check if Codex config exists
   const hasCodexConfig = exists(CODEX_CONFIG_FILE)
+
+  if (hasClavueConfig) {
+    return 'clavue'
+  }
 
   // If both exist, prefer Claude Code (more common)
   if (hasClaudeConfig) {
@@ -253,6 +260,7 @@ async function installMcpServiceForCodex(
     providers: existingConfig?.providers || [],
     mcpServices: finalServices,
     managed: true,
+    features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
   }
 
@@ -516,8 +524,8 @@ export async function getAvailableMcpServices(tool?: CodeToolType): Promise<stri
  * @param serviceId - The ID of the MCP service to authorize
  */
 async function autoAuthorizeMcpService(tool: CodeToolType, serviceId: string): Promise<void> {
-  // Format: mcp__<service_id> (lowercase, replace hyphens with underscores)
-  const mcpPermission = `mcp__${serviceId.toLowerCase().replace(/-/g, '_')}`
+  // Format: mcp__<service_id>__* authorizes all tools exposed by the server.
+  const mcpPermission = `mcp__${serviceId.toLowerCase().replace(/-/g, '_')}__*`
   const target = resolveClaudeFamilySettingsTarget(tool)
 
   // Read current settings and update permissions
@@ -549,7 +557,7 @@ async function autoAuthorizeMcpService(tool: CodeToolType, serviceId: string): P
  * @param serviceId - The ID of the MCP service to deauthorize
  */
 async function removeAuthorizeMcpService(tool: CodeToolType, serviceId: string): Promise<void> {
-  const mcpPermission = `mcp__${serviceId.toLowerCase().replace(/-/g, '_')}`
+  const mcpPermission = `mcp__${serviceId.toLowerCase().replace(/-/g, '_')}__*`
   const target = resolveClaudeFamilySettingsTarget(tool)
 
   const { readClaudeConfig } = await import('../config/unified/claude-config')

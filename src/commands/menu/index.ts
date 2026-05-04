@@ -248,7 +248,7 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
               await configureCodexDefaultModelFeature()
               return
             }
-            await (await import('../../utils/features')).configureDefaultModelFeature()
+            await (await import('../../utils/features')).configureDefaultModelFeature(codeTool)
           },
         }
 

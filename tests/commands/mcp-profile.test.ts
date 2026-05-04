@@ -80,6 +80,7 @@ describe('mcp-profile codex support', () => {
       providers: [{ id: 'openai', name: 'OpenAI' }],
       mcpServices: [{ id: 'legacy-service', command: 'legacy', args: [] }],
       managed: true,
+      features: { goals: true },
       otherConfig: ['approval_policy = "on-request"'],
       modelProviderCommented: true,
     })
@@ -117,6 +118,7 @@ describe('mcp-profile codex support', () => {
         },
       ],
       managed: true,
+      features: { goals: true },
       otherConfig: ['approval_policy = "on-request"'],
       modelProviderCommented: true,
     })

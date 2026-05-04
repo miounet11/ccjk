@@ -15,13 +15,15 @@ export interface BaseConfigOptions {
   lang?: SupportedLang
   /** Output as JSON */
   json?: boolean
+  /** Code tool type for runtime-specific configuration files */
+  codeType?: CodeToolType
 }
 
 /**
  * API subcommand options
  */
 export interface ApiConfigOptions extends BaseConfigOptions {
-  /** Code tool type (claude-code, codex) */
+  /** Code tool type (claude-code, clavue, codex) */
   codeType?: CodeToolType
   /** List available providers */
   list?: boolean
@@ -55,7 +57,7 @@ export interface ApiProviderConfig {
  * Switch subcommand options
  */
 export interface SwitchConfigOptions extends BaseConfigOptions {
-  /** Code tool type (claude-code, codex) */
+  /** Code tool type (claude-code, clavue, codex) */
   codeType?: CodeToolType
   /** List available configurations */
   list?: boolean
@@ -102,7 +104,7 @@ export interface GetConfigOptions extends BaseConfigOptions {
  */
 export interface SetConfigOptions extends BaseConfigOptions {
   /** Configuration scope to set value in */
-  scope?: 'ccjk' | 'claude' | 'auto'
+  scope?: 'ccjk' | 'claude' | 'state' | 'auto'
   /** Create backup before modification */
   backup?: boolean
   /** Value type (auto-detected by default) */
@@ -116,7 +118,7 @@ export interface ConfigValueResult {
   /** The value */
   value: unknown
   /** Source configuration file */
-  source: 'ccjk' | 'claude' | 'state'
+  source: 'ccjk' | 'claude' | 'clavue' | 'state'
   /** Full path to source file */
   sourcePath: string
   /** Dot notation path */

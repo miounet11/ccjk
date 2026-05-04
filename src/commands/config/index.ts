@@ -15,7 +15,7 @@
  * Global options:
  *   --lang, -l <zh-CN|en>     Display language
  *   --json, -j                Output as JSON
- *   --code-type, -T <type>    Code tool type (claude-code, codex)
+ *   --code-type, -T <type>    Code tool type (claude-code, clavue, codex)
  */
 
 import type { ApiConfigOptions, BaseConfigOptions, GetConfigOptions, ListConfigOptions, SetConfigOptions, SwitchConfigOptions } from './types'
@@ -139,6 +139,7 @@ export async function configCommand(
       const listOptions: ListConfigOptions = {
         lang: options.lang,
         json: options.json,
+        codeType: options.codeType,
       }
       await listCommand(listOptions)
       break
@@ -149,6 +150,7 @@ export async function configCommand(
       const getOptions: GetConfigOptions = {
         lang: options.lang,
         json: options.json,
+        codeType: options.codeType,
       }
       await getCommand(key, getOptions)
       break
@@ -160,6 +162,7 @@ export async function configCommand(
       const setOptions: SetConfigOptions = {
         lang: options.lang,
         json: options.json,
+        codeType: options.codeType,
       }
       await setCommand(key, value, setOptions)
       break

@@ -8,8 +8,9 @@
 import type { ClaudeSettings } from '../../types/config'
 import type { ConfigWriteOptions } from './types'
 
-import { join } from 'pathe'
+import { dirname, join } from 'pathe'
 import { CLAUDE_DIR, SETTINGS_FILE } from '../../constants'
+import { normalizeClaudeFamilySettings } from '../../utils/claude-settings-normalizer'
 import { ensureDir, exists } from '../../utils/fs-operations'
 import { readJsonConfig, writeJsonConfig } from '../../utils/json-config'
 import { deepMerge } from '../../utils/object-utils'
@@ -41,9 +42,10 @@ export function writeClaudeConfig(
 ): void {
   try {
     // Ensure directory exists
-    ensureDir(CLAUDE_DIR)
+    ensureDir(dirname(configPath))
 
     // Write with atomic operation by default
+    normalizeClaudeFamilySettings(config as Record<string, any>)
     writeJsonConfig(configPath, config, {
       atomic: options.atomic !== false,
       pretty: true,
@@ -321,7 +323,7 @@ export function backupClaudeConfig(configPath: string = SETTINGS_FILE): string |
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-  const backupPath = join(CLAUDE_DIR, 'backup', `settings.backup.${timestamp}.json`)
+  const backupPath = join(dirname(configPath), 'backup', `settings.backup.${timestamp}.json`)
 
   try {
     const config = readClaudeConfig(configPath)

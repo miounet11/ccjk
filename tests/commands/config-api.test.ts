@@ -58,6 +58,22 @@ const glmProvider = {
   },
 }
 
+const exactProvider = {
+  id: 'exact',
+  name: 'Exact Provider',
+  supportedCodeTools: ['claude-code', 'clavue'],
+  claudeCode: {
+    baseUrl: 'https://exact.example.com/api/anthropic',
+    authType: 'api_key',
+    defaultModels: [
+      '  GPT-5.4-EXACT  ',
+      'gpt-5.3-codex-spark',
+      'MiniMax-M2',
+      'Claude-Opus-4.6',
+    ],
+  },
+}
+
 describe('config api command', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -69,6 +85,7 @@ describe('config api command', () => {
 
   it('writes Clavue custom API provider profiles with model routing slots', async () => {
     const { apiCommand } = await import('../../src/commands/config/api')
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     await apiCommand(['glm', 'sk-test'], { codeType: 'clavue' })
 
@@ -86,6 +103,29 @@ describe('config api command', () => {
         defaultOpusModel: 'glm-z1-air',
       }),
     ], 'glm')
+
+    const output = logSpy.mock.calls.flat().join('\n')
+    expect(output).toContain('Clavue')
+    expect(output).not.toContain('use Claude Code with the configured provider')
+    logSpy.mockRestore()
+  })
+
+  it('keeps Clavue provider default model slots as exact IDs without fuzzy matching', async () => {
+    getApiProvidersAsync.mockResolvedValue([exactProvider])
+    const { apiCommand } = await import('../../src/commands/config/api')
+
+    await apiCommand(['exact', 'sk-test'], { codeType: 'clavue' })
+
+    expect(setMyclaudeProviderProfiles).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: 'exact',
+        provider: 'exact',
+        primaryModel: 'GPT-5.4-EXACT',
+        defaultHaikuModel: 'gpt-5.3-codex-spark',
+        defaultSonnetModel: 'MiniMax-M2',
+        defaultOpusModel: 'Claude-Opus-4.6',
+      }),
+    ], 'exact')
   })
 
   it('shows Clavue current API from native provider profile credentials', async () => {

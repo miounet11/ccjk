@@ -11,6 +11,7 @@ import { AI_OUTPUT_LANGUAGES, CLAUDE_VSC_CONFIG_FILE, SETTINGS_FILE } from '../c
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { addCompletedOnboarding, setPrimaryApiKey } from './claude-config'
 import { clearModelEnv, MODEL_ENV_KEYS } from './config.model-keys'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import {
   copyDir,
   copyFile,
@@ -151,6 +152,7 @@ export function configureApi(apiConfig: ApiConfig | null, codeTool?: CodeToolTyp
     settings.env.ANTHROPIC_BASE_URL = apiConfig.url
   }
 
+  normalizeClaudeFamilySettings(settings)
   writeJsonConfig(target.settingsFile, settings)
 
   // Set primaryApiKey for third-party API (Claude Code 2.0 requirement)
@@ -195,6 +197,7 @@ export function configureApi(apiConfig: ApiConfig | null, codeTool?: CodeToolTyp
       if (apiConfig.url) {
         freshSettings.env.ANTHROPIC_BASE_URL = apiConfig.url
       }
+      normalizeClaudeFamilySettings(freshSettings)
       writeJsonConfig(target.settingsFile, freshSettings)
     }
   }
@@ -220,6 +223,7 @@ export function configureHooks(hooks: Record<string, unknown[]>): void {
     ...hooks,
   }
 
+  normalizeClaudeFamilySettings(settings)
   writeJsonConfig(SETTINGS_FILE, settings)
 }
 
@@ -233,6 +237,7 @@ export function mergeConfigs(sourceFile: string, targetFile: string): void {
   // Deep merge logic
   const merged = deepMerge(target, source)
 
+  normalizeClaudeFamilySettings(merged)
   writeJsonConfig(targetFile, merged)
 }
 
@@ -318,6 +323,7 @@ export function updateCustomModel(
     opusModel,
   }, 'override')
 
+  normalizeClaudeFamilySettings(settings)
   writeJsonConfig(target.settingsFile, settings)
 }
 
@@ -326,10 +332,11 @@ export function updateCustomModel(
  * @param model - The model type to set: opus, sonnet, sonnet[1m], default, or custom
  * Note: 'custom' is configured by updateCustomModel().
  */
-export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom'): void {
+export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom', codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
   let settings = getDefaultSettings()
 
-  const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile)
   if (existingSettings) {
     settings = existingSettings
   }
@@ -355,7 +362,8 @@ export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
     settings.model = model
   }
 
-  writeJsonConfig(SETTINGS_FILE, settings)
+  normalizeClaudeFamilySettings(settings)
+  writeJsonConfig(target.settingsFile, settings)
 }
 
 /**
@@ -445,6 +453,7 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
     }
 
     // Write merged settings
+    normalizeClaudeFamilySettings(mergedSettings)
     writeJsonConfig(targetPath, mergedSettings)
   }
   catch (error) {
@@ -463,8 +472,9 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
 /**
  * Get existing model configuration from settings.json
  */
-export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom' | null {
-  const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+export function getExistingModelConfig(codeTool?: CodeToolType): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom' | null {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
 
   if (!settings) {
     return null
@@ -496,13 +506,14 @@ export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
 /**
  * Get existing custom model configuration from settings.json
  */
-export function getExistingCustomModelConfig(): {
+export function getExistingCustomModelConfig(codeTool?: CodeToolType): {
   primaryModel?: string
   haikuModel?: string
   sonnetModel?: string
   opusModel?: string
 } | null {
-  const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
 
   if (!settings) {
     return null
@@ -611,6 +622,7 @@ export function switchToOfficialLogin(codeTool?: CodeToolType): boolean {
       delete settings.env.ANTHROPIC_AUTH_TOKEN
       delete settings.env.ANTHROPIC_API_KEY
     }
+    normalizeClaudeFamilySettings(settings)
     writeJsonConfig(target.settingsFile, settings)
 
     // 2. Clean ~/.claude/config.json - remove primaryApiKey

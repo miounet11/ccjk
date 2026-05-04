@@ -5,6 +5,7 @@ import dayjs from 'dayjs'
 import { join } from 'pathe'
 import { ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants'
 import { createDefaultTomlConfig, readDefaultTomlConfig, writeTomlConfig } from './ccjk-config'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { clearLegacyTopLevelRuntimeSettings, overwriteModelSettings } from './config'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
@@ -322,6 +323,7 @@ export class ClaudeCodeConfigManager {
         opusModel: profile.defaultOpusModel,
       }, modelMode)
 
+      normalizeClaudeFamilySettings(settings)
       writeJsonConfig(target.settingsFile, settings)
 
       const { setPrimaryApiKey, addCompletedOnboarding } = await import('./claude-config')
@@ -357,6 +359,7 @@ export class ClaudeCodeConfigManager {
           opusModel: profile?.defaultOpusModel,
         }, profile ? modelMode : 'reset')
 
+        normalizeClaudeFamilySettings(repairedSettings)
         writeJsonConfig(target.settingsFile, repairedSettings)
         verifiedSettings = readJsonConfig<any>(target.settingsFile) || {}
       }

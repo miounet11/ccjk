@@ -15,6 +15,10 @@ export interface ProvidersOptions {
   verbose?: boolean
 }
 
+function isClaudeFamilyCodeType(codeType: CodeToolType): boolean {
+  return codeType === 'claude-code' || codeType === 'clavue'
+}
+
 /**
  * List all available API providers
  */
@@ -90,7 +94,7 @@ function displayProvider(provider: any, codeType: CodeToolType, verbose: boolean
   if (config) {
     console.log(`    ${ansis.green(isZh ? '接口地址' : 'Base URL')}: ${config.baseUrl}`)
 
-    if (codeType === 'claude-code' && config.authType) {
+    if (isClaudeFamilyCodeType(codeType) && config.authType) {
       console.log(`    ${ansis.green(isZh ? '认证方式' : 'Auth Type')}: ${config.authType}`)
     }
 
@@ -352,7 +356,7 @@ export async function providersCommand(action: string, options: ProvidersOptions
       console.log(`  ${ansis.green('ccjk providers recommend')}   ${isZh ? '推荐最佳供应商' : 'Recommend best provider'}`)
       console.log('')
       console.log(ansis.bold(isZh ? '选项' : 'Options'))
-      console.log(`  ${ansis.green('--code-type, -T')} <type>   ${isZh ? '代码工具类型 (claude-code, codex)' : 'Code tool type (claude-code, codex)'}`)
+      console.log(`  ${ansis.green('--code-type, -T')} <type>   ${isZh ? '代码工具类型 (claude-code, clavue, codex)' : 'Code tool type (claude-code, clavue, codex)'}`)
       console.log(`  ${ansis.green('--verbose, -v')}            ${isZh ? '详细输出' : 'Verbose output'}`)
       console.log('')
     }

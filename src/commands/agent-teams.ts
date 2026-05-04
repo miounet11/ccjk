@@ -6,9 +6,10 @@
 
 import { existsSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
-import { SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
 import { writeJsonConfig } from '../utils/json-config'
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 
 const ENV_KEY = 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS'
 
@@ -17,10 +18,11 @@ function t(key: string, opts?: Record<string, string>): string {
 }
 
 function readSettings(): Record<string, any> {
-  if (!existsSync(SETTINGS_FILE))
+  const target = resolveClaudeFamilySettingsTarget()
+  if (!existsSync(target.settingsFile))
     return {}
   try {
-    return JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
+    return JSON.parse(readFileSync(target.settingsFile, 'utf-8'))
   }
   catch {
     return {}
@@ -44,7 +46,8 @@ export function setAgentTeams(enabled: boolean): void {
     delete settings.env[ENV_KEY]
   }
 
-  writeJsonConfig(SETTINGS_FILE, settings)
+  normalizeClaudeFamilySettings(settings)
+  writeJsonConfig(resolveClaudeFamilySettingsTarget().settingsFile, settings)
 }
 
 export function getTeammateMode(): string {
@@ -55,7 +58,8 @@ export function getTeammateMode(): string {
 export function setTeammateMode(mode: 'auto' | 'in-process' | 'tmux'): void {
   const settings = readSettings()
   settings.teammateMode = mode
-  writeJsonConfig(SETTINGS_FILE, settings)
+  normalizeClaudeFamilySettings(settings)
+  writeJsonConfig(resolveClaudeFamilySettingsTarget().settingsFile, settings)
 }
 
 /**

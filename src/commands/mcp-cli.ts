@@ -27,6 +27,7 @@ export interface McpUninstallOptions {
 export interface McpListOptions {
   installed?: boolean
   json?: boolean
+  tool?: CodeToolType
   lang?: SupportedLang
 }
 
@@ -129,7 +130,7 @@ export async function mcpUninstallCli(options: McpUninstallOptions): Promise<voi
   }
 
   // Read current configuration
-  const config = readMcpConfig()
+  const config = readMcpConfig(options.tool)
   if (!config || !config.mcpServers) {
     console.log(ansis.yellow(isZh ? '未安装任何 MCP 服务' : 'No MCP services installed'))
     return
@@ -209,7 +210,7 @@ export async function mcpListCli(options: McpListOptions = {}): Promise<void> {
   const isZh = lang === 'zh-CN'
 
   const availableServices = await getMcpServices()
-  const config = readMcpConfig()
+  const config = readMcpConfig(options.tool)
   const installedServices = Object.keys(config?.mcpServers || {})
 
   if (options.json) {

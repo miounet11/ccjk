@@ -31,7 +31,7 @@ function parseOptionalNumber(value: unknown, flag: string): number | undefined {
 
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
-    throw new Error(`${flag} must be a valid number`)
+    throw new TypeError(`${flag} must be a valid number`)
   }
 
   return parsed
@@ -44,7 +44,7 @@ function parseOptionalPositiveNumber(value: unknown, flag: string): number | und
   }
 
   if (parsed <= 0) {
-    throw new Error(`${flag} must be greater than 0`)
+    throw new TypeError(`${flag} must be greater than 0`)
   }
 
   return parsed
@@ -57,12 +57,11 @@ function parseOptionalPositiveInteger(value: unknown, flag: string): number | un
   }
 
   if (!Number.isInteger(parsed)) {
-    throw new Error(`${flag} must be an integer`)
+    throw new TypeError(`${flag} must be an integer`)
   }
 
   return parsed
 }
-
 
 export const COMMANDS: CommandDefinition[] = [
   // ==================== Core Commands ====================
@@ -250,6 +249,7 @@ export const COMMANDS: CommandDefinition[] = [
             await mcpListCli({
               json: options.json as boolean,
               installed: options.installed as boolean,
+              tool: options.tool as any,
               lang: options.lang as any,
             })
           }
@@ -511,12 +511,17 @@ export const COMMANDS: CommandDefinition[] = [
     options: [
       { flags: '--format, -f <format>', description: 'Output format (table|json|yaml)' },
       { flags: '--global, -g', description: 'Use global config' },
+      { flags: '--code-type, -T <type>', description: 'Code tool type' },
     ],
     loader: async () => {
       return async (options: CliOptions, action: unknown, args: unknown) => {
         const actionStr = action as string
         const argsArr = args as string[]
-        const configOptions = { global: !!options.global, json: options.format === 'json' }
+        const configOptions = {
+          global: !!options.global,
+          json: options.format === 'json',
+          codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
+        }
 
         if (!actionStr || actionStr === 'list') {
           const { listConfig } = await import('./commands/config')
@@ -655,6 +660,9 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--preset, -p <preset>', description: 'Preset to apply (max, dev, safe)' },
       { flags: '--list, -l', description: 'List available presets' },
       { flags: '--skip-backup', description: 'Skip backup before applying' },
+      { flags: '--dry-run', description: 'Preview the full config plan without writing files' },
+      { flags: '--code-type, -T <type>', description: 'Code tool type' },
+      { flags: '--skip-ccr', description: 'Do not install CCR while applying core features' },
     ],
     loader: async () => {
       const { zeroConfig } = await import('./commands/zero-config')
@@ -663,6 +671,41 @@ export const COMMANDS: CommandDefinition[] = [
           preset: (preset as string) || (options.preset as string),
           list: options.list as boolean | undefined,
           skipBackup: options.skipBackup as boolean | undefined,
+          dryRun: options.dryRun as boolean | undefined,
+          codeTool: options.codeType as string | undefined,
+          installCcr: options.skipCcr ? false : undefined,
+        })
+      }
+    },
+  },
+  {
+    name: 'snapshot [action] [id]',
+    description: 'List or inspect config snapshots',
+    tier: 'extended',
+    options: [
+      { flags: '--json', description: 'Output in JSON format' },
+    ],
+    loader: async () => {
+      const { snapshotCommand } = await import('./commands/snapshot')
+      return async (options, action: unknown, id: unknown) => {
+        await snapshotCommand(action as string | undefined, id as string | undefined, {
+          json: options.json as boolean | undefined,
+        })
+      }
+    },
+  },
+  {
+    name: 'rollback <id>',
+    description: 'Rollback config files from a snapshot',
+    tier: 'extended',
+    options: [
+      { flags: '--json', description: 'Output in JSON format' },
+    ],
+    loader: async () => {
+      const { rollbackCommand } = await import('./commands/rollback')
+      return async (options, id: unknown) => {
+        await rollbackCommand(id as string | undefined, {
+          json: options.json as boolean | undefined,
         })
       }
     },
@@ -1441,6 +1484,7 @@ export const COMMANDS: CommandDefinition[] = [
     tier: 'extended',
     options: [
       { flags: '--json', description: 'Output in JSON format' },
+      { flags: '--code-type, -T <type>', description: 'Code tool type' },
     ],
     loader: async () => {
       const { configCommand } = await import('./commands/config')

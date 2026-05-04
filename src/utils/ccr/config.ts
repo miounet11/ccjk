@@ -11,6 +11,7 @@ import { join } from 'pathe'
 import type { CodeToolType } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
 import { addCompletedOnboarding, setPrimaryApiKey } from '../claude-config'
+import { normalizeClaudeFamilySettings } from '../claude-settings-normalizer'
 import { backupExistingConfig, clearLegacyTopLevelRuntimeSettings } from '../config'
 import { readJsonConfig, writeJsonConfig } from '../json-config'
 import { resolveClaudeFamilySettingsTarget } from '../runtime-settings'
@@ -96,6 +97,7 @@ export async function configureCcrProxy(ccrConfig: CcrConfig, codeTool?: CodeToo
   settings.env.ANTHROPIC_API_KEY = apiKey
 
   // Write back to settings
+  normalizeClaudeFamilySettings(settings)
   writeJsonConfig(target.settingsFile, settings)
 
   // Set primaryApiKey for CCR proxy (Claude Code 2.0 requirement)

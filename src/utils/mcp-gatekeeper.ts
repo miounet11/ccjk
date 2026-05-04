@@ -11,6 +11,7 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'pathe'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { readMcpConfig } from './claude-config'
 
 // ==================== Constants ====================
@@ -302,6 +303,7 @@ export function registerHookInSettings(): void {
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true })
   }
+  normalizeClaudeFamilySettings(settings)
   writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
 }
 
@@ -331,6 +333,7 @@ export function unregisterHookFromSettings(): void {
       settings.hooks = {}
     }
 
+    normalizeClaudeFamilySettings(settings)
     writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
   }
   catch {

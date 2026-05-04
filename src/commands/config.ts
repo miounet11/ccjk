@@ -9,9 +9,10 @@ import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { getApiProviderPresets } from '../config/api-providers'
-import { SETTINGS_FILE } from '../constants'
 import { i18n } from '../i18n'
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
 import { backupExistingConfig } from '../utils/config'
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 
 export interface ConfigOptions {
   lang?: string
@@ -27,7 +28,7 @@ export async function getConfig(key: string, options: ConfigOptions = {}): Promi
   const isZh = i18n.language === 'zh-CN'
 
   try {
-    const config = readClaudeConfig()
+    const config = readClaudeConfig(options)
 
     if (!config) {
       console.log(ansis.yellow(isZh ? '⚠️  配置文件不存在' : '⚠️  Configuration file not found'))
@@ -74,7 +75,7 @@ export async function setConfig(key: string, value: string, _options: ConfigOpti
   const isZh = i18n.language === 'zh-CN'
 
   try {
-    const config = readClaudeConfig()
+    const config = readClaudeConfig(_options)
 
     if (!config) {
       console.log(ansis.yellow(isZh ? '⚠️  配置文件不存在' : '⚠️  Configuration file not found'))
@@ -84,7 +85,7 @@ export async function setConfig(key: string, value: string, _options: ConfigOpti
     }
 
     // Backup existing config
-    const backupPath = backupExistingConfig()
+    const backupPath = backupExistingConfig(_options.codeType)
     if (backupPath) {
       console.log(ansis.dim(isZh ? `📦 已备份配置到: ${backupPath}` : `📦 Configuration backed up to: ${backupPath}`))
     }
@@ -102,7 +103,7 @@ export async function setConfig(key: string, value: string, _options: ConfigOpti
     setNestedValue(config, key, parsedValue)
 
     // Write config
-    writeClaudeConfig(config)
+    writeClaudeConfig(config, _options)
 
     console.log('')
     console.log(ansis.green(isZh ? `✅ 配置项 "${key}" 已更新` : `✅ Configuration "${key}" updated`))
@@ -127,7 +128,8 @@ export async function listConfig(options: ConfigOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   try {
-    const config = readClaudeConfig()
+    const target = resolveClaudeFamilySettingsTarget(options.codeType)
+    const config = readClaudeConfig(options)
 
     if (!config) {
       console.log(ansis.yellow(isZh ? '⚠️  配置文件不存在' : '⚠️  Configuration file not found'))
@@ -142,7 +144,7 @@ export async function listConfig(options: ConfigOptions = {}): Promise<void> {
     }
 
     console.log('')
-    console.log(ansis.bold.cyan(isZh ? '📋 Claude Code 配置' : '📋 Claude Code Configuration'))
+    console.log(ansis.bold.cyan(isZh ? `📋 ${target.displayName} 配置` : `📋 ${target.displayName} Configuration`))
     console.log(ansis.dim('─'.repeat(60)))
     console.log('')
 
@@ -171,7 +173,7 @@ export async function listConfig(options: ConfigOptions = {}): Promise<void> {
 
     console.log('')
     console.log(ansis.dim('─'.repeat(60)))
-    console.log(ansis.dim(isZh ? `配置文件: ${SETTINGS_FILE}` : `Config file: ${SETTINGS_FILE}`))
+    console.log(ansis.dim(isZh ? `配置文件: ${target.settingsFile}` : `Config file: ${target.settingsFile}`))
     console.log('')
   }
   catch (error) {
@@ -190,7 +192,7 @@ export async function resetConfig(_options: ConfigOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
 
   try {
-    const config = readClaudeConfig()
+    const config = readClaudeConfig(_options)
 
     if (!config) {
       console.log(ansis.yellow(isZh ? '⚠️  配置文件不存在' : '⚠️  Configuration file not found'))
@@ -213,7 +215,7 @@ export async function resetConfig(_options: ConfigOptions = {}): Promise<void> {
     }
 
     // Backup existing config
-    const backupPath = backupExistingConfig()
+    const backupPath = backupExistingConfig(_options.codeType)
     if (backupPath) {
       console.log(ansis.dim(isZh ? `📦 已备份配置到: ${backupPath}` : `📦 Configuration backed up to: ${backupPath}`))
     }
@@ -223,7 +225,7 @@ export async function resetConfig(_options: ConfigOptions = {}): Promise<void> {
       completedOnboarding: true,
     }
 
-    writeClaudeConfig(minimalConfig)
+    writeClaudeConfig(minimalConfig, _options)
 
     console.log('')
     console.log(ansis.green(isZh ? '✅ 配置已重置' : '✅ Configuration reset'))
@@ -262,7 +264,7 @@ export async function setProvider(providerId: string, options: ConfigOptions = {
       return
     }
 
-    const config = readClaudeConfig()
+    const config = readClaudeConfig(options)
 
     if (!config) {
       console.log(ansis.yellow(isZh ? '⚠️  配置文件不存在' : '⚠️  Configuration file not found'))
@@ -272,13 +274,13 @@ export async function setProvider(providerId: string, options: ConfigOptions = {
     }
 
     // Backup existing config
-    const backupPath = backupExistingConfig()
+    const backupPath = backupExistingConfig(options.codeType)
     if (backupPath) {
       console.log(ansis.dim(isZh ? `📦 已备份配置到: ${backupPath}` : `📦 Configuration backed up to: ${backupPath}`))
     }
 
     // Update config based on code tool type
-    if (codeType === 'claude-code' && provider.claudeCode) {
+    if ((codeType === 'claude-code' || codeType === 'clavue') && provider.claudeCode) {
       config.baseUrl = provider.claudeCode.baseUrl
 
       delete config.model
@@ -286,7 +288,7 @@ export async function setProvider(providerId: string, options: ConfigOptions = {
     }
 
     // Write config
-    writeClaudeConfig(config)
+    writeClaudeConfig(config, options)
 
     console.log('')
     console.log(ansis.green(isZh ? `✅ 已切换到供应商: ${provider.name}` : `✅ Switched to provider: ${provider.name}`))
@@ -362,7 +364,7 @@ export async function configCommand(action: string, args: string[], options: Con
 
     case 'model': {
       const { configureDefaultModelFeature } = await import('../utils/features')
-      await configureDefaultModelFeature()
+      await configureDefaultModelFeature(options.codeType)
       break
     }
 
@@ -396,20 +398,21 @@ export async function configCommand(action: string, args: string[], options: Con
 /**
  * Get Claude configuration file path
  */
-function getClaudeConfigPath(): string {
-  return SETTINGS_FILE
+function getClaudeConfigPath(options: ConfigOptions = {}): string {
+  return resolveClaudeFamilySettingsTarget(options.codeType).settingsFile
 }
 
 /**
  * Read Claude configuration
  */
-function readClaudeConfig(): any | null {
-  if (!existsSync(SETTINGS_FILE)) {
+function readClaudeConfig(options: ConfigOptions = {}): any | null {
+  const target = resolveClaudeFamilySettingsTarget(options.codeType)
+  if (!existsSync(target.settingsFile)) {
     return null
   }
 
   try {
-    const content = readFileSync(SETTINGS_FILE, 'utf-8')
+    const content = readFileSync(target.settingsFile, 'utf-8')
     return JSON.parse(content)
   }
   catch {
@@ -420,8 +423,10 @@ function readClaudeConfig(): any | null {
 /**
  * Write Claude configuration
  */
-function writeClaudeConfig(config: any): void {
-  writeFileSync(SETTINGS_FILE, JSON.stringify(config, null, 2), 'utf-8')
+function writeClaudeConfig(config: any, options: ConfigOptions = {}): void {
+  const target = resolveClaudeFamilySettingsTarget(options.codeType)
+  normalizeClaudeFamilySettings(config)
+  writeFileSync(target.settingsFile, JSON.stringify(config, null, 2), 'utf-8')
 }
 
 /**
@@ -527,7 +532,11 @@ export async function unsetConfig(key: string, _options: ConfigOptions = {}): Pr
     return
   }
 
-  const config = readClaudeConfig()
+  const config = readClaudeConfig(_options)
+  if (!config) {
+    console.log(ansis.yellow(isZh ? '⚠️  配置文件不存在' : '⚠️  Configuration file not found'))
+    return
+  }
   const keys = key.split('.')
   let current: any = config
 
@@ -547,7 +556,7 @@ export async function unsetConfig(key: string, _options: ConfigOptions = {}): Pr
   }
 
   delete current[lastKey]
-  writeClaudeConfig(config)
+  writeClaudeConfig(config, _options)
 
   console.log(ansis.green(isZh ? `✅ 已删除配置项: ${key}` : `✅ Removed configuration: ${key}`))
 }
@@ -557,7 +566,7 @@ export async function unsetConfig(key: string, _options: ConfigOptions = {}): Pr
  */
 export async function editConfig(_options: ConfigOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
-  const configPath = getClaudeConfigPath()
+  const configPath = getClaudeConfigPath(_options)
 
   const editor = process.env.EDITOR || process.env.VISUAL || 'vi'
 
@@ -582,9 +591,14 @@ export async function validateConfig(_options: ConfigOptions = {}): Promise<void
   console.log(ansis.green(isZh ? '🔍 正在验证配置...' : '🔍 Validating configuration...'))
   console.log('')
 
-  const config = readClaudeConfig()
+  const config = readClaudeConfig(_options)
   const errors: string[] = []
   const warnings: string[] = []
+
+  if (!config) {
+    console.log(ansis.yellow(isZh ? '⚠️  配置文件不存在' : '⚠️  Configuration file not found'))
+    return
+  }
 
   // Check required fields
   if (!config.apiKey) {

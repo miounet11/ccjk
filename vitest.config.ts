@@ -17,6 +17,7 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       '**/docs/**',
+      '**/.claude/**',
     ],
     coverage: {
       provider: 'v8',

@@ -15,6 +15,7 @@ import { join } from 'pathe'
 import { ClAUDE_CONFIG_FILE, CLAUDE_VSC_CONFIG_FILE, CLAVUE_CONFIG_FILE, CLAVUE_CREDENTIALS_FILE, CLAVUE_DIR, CLAVUE_SETTINGS_FILE } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { ClaudeCodeConfigManager } from './claude-code-config-manager'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { clearLegacyTopLevelRuntimeSettings, overwriteModelSettings } from './config'
 import { backupJsonConfig, readJsonConfig, writeJsonConfig } from './json-config'
 import { deepClone } from './object-utils'
@@ -29,6 +30,15 @@ export interface MyclaudeProviderSyncResult {
   activeProfileId: string
   activeProfile: MyclaudeProviderProfile | null
   profiles: MyclaudeProviderProfile[]
+}
+
+export interface ClavueModelSelectionSyncOptions {
+  selectedModel?: string
+  primaryModel?: string
+  haikuModel?: string
+  sonnetModel?: string
+  opusModel?: string
+  reset?: boolean
 }
 
 export function getMcpConfigPath(): string {
@@ -374,6 +384,10 @@ function inferClavueModelMode(profile: MyclaudeProviderProfile): ClavueProviderM
     return 'anthropic_native'
   }
 
+  if (routedModels.length > 0) {
+    return 'hybrid_compatible'
+  }
+
   if (profile.mode === 'openai-native') {
     return 'openai_native'
   }
@@ -383,6 +397,17 @@ function inferClavueModelMode(profile: MyclaudeProviderProfile): ClavueProviderM
   }
 
   return routedModels.some(isOpenAiFamilyModel) ? 'hybrid_compatible' : 'anthropic_native'
+}
+
+function getClavueRoutingPresetId(profile: MyclaudeProviderProfile): string {
+  const mode = inferClavueModelMode(profile)
+  if (mode === 'openai_native') {
+    return 'gpt_5_4_codex'
+  }
+  if (mode === 'anthropic_native') {
+    return 'claude_code_heritage'
+  }
+  return 'custom'
 }
 
 function isCcjkClavueProfile(profile: ClavueProviderProfile): boolean {
@@ -532,7 +557,7 @@ function createClavueModelRouting(profile: MyclaudeProviderProfile): ClavueProvi
   const executionModel = sonnetModel || primaryModel
 
   return {
-    presetId: 'custom',
+    presetId: getClavueRoutingPresetId(profile),
     primaryModel,
     subagentModel: executionModel && executionModel !== primaryModel ? executionModel : '',
     smallFastModel: haikuModel,
@@ -647,6 +672,51 @@ function toLegacyProviderProfile(profile: ClavueProviderProfile): MyclaudeProvid
   }
 }
 
+function normalizeModelSlot(model: unknown): string | undefined {
+  return typeof model === 'string' && model.trim() ? model.trim() : undefined
+}
+
+function resolveClavueModelSelectionSlots(options: ClavueModelSelectionSyncOptions): {
+  primaryModel?: string
+  haikuModel?: string
+  sonnetModel?: string
+  opusModel?: string
+} {
+  if (options.reset) {
+    return {}
+  }
+
+  const selectedModel = normalizeModelSlot(options.selectedModel)
+  if (selectedModel) {
+    return {
+      primaryModel: selectedModel,
+      haikuModel: selectedModel,
+      sonnetModel: selectedModel,
+      opusModel: selectedModel,
+    }
+  }
+
+  const primaryModel = normalizeModelSlot(options.primaryModel)
+  const haikuModel = normalizeModelSlot(options.haikuModel)
+  const sonnetModel = normalizeModelSlot(options.sonnetModel)
+  const opusModel = normalizeModelSlot(options.opusModel)
+
+  if (primaryModel) {
+    return {
+      primaryModel,
+      haikuModel: haikuModel || primaryModel,
+      sonnetModel: sonnetModel || primaryModel,
+      opusModel: opusModel || primaryModel,
+    }
+  }
+
+  return {
+    haikuModel,
+    sonnetModel,
+    opusModel,
+  }
+}
+
 function getClavueActiveProfile(config: ClaudeConfiguration | null): MyclaudeProviderProfile | null {
   const activeId = config?.clavueActiveProviderProfileId || config?.myclaudeActiveProviderProfileId || ''
   const legacyProfiles = getLegacyMyclaudeProviderProfiles(config)
@@ -662,6 +732,77 @@ function getClavueActiveProfile(config: ClaudeConfiguration | null): MyclaudePro
   }
 
   return nativeProfiles.map(toLegacyProviderProfile).find(profile => profile.id === activeId) || null
+}
+
+export function syncClavueActiveProviderModelSelection(options: ClavueModelSelectionSyncOptions): boolean {
+  const config = readClavueConfig()
+  const activeId = config?.clavueActiveProviderProfileId || config?.myclaudeActiveProviderProfileId || ''
+  if (!config || !activeId) {
+    return false
+  }
+
+  const slots = resolveClavueModelSelectionSlots(options)
+  const nativeProfiles = getClavueProviderProfiles(config)
+  const nativeProfileIndex = nativeProfiles.findIndex(profile => profile.id === activeId)
+
+  if (nativeProfileIndex >= 0) {
+    const currentProfile = nativeProfiles[nativeProfileIndex]
+    const routingProfile: MyclaudeProviderProfile = {
+      id: currentProfile.id,
+      name: currentProfile.name,
+      provider: currentProfile.providerId,
+      baseUrl: currentProfile.baseUrl,
+      authType: currentProfile.authType,
+      model: slots.primaryModel,
+      fastModel: slots.haikuModel,
+      primaryModel: slots.primaryModel,
+      defaultHaikuModel: slots.haikuModel,
+      defaultSonnetModel: slots.sonnetModel,
+      defaultOpusModel: slots.opusModel,
+      mode: currentProfile.modelMode === 'openai_native'
+        ? 'openai-native'
+        : currentProfile.modelMode === 'hybrid_compatible'
+          ? 'ccr-proxy'
+          : 'official',
+    }
+
+    const nextProfile: ClavueProviderProfile = {
+      ...currentProfile,
+      modelMode: options.reset ? currentProfile.modelMode : inferClavueModelMode(routingProfile),
+      modelRouting: createClavueModelRouting(routingProfile),
+      updatedAt: Date.now(),
+    }
+    config.clavueProviderProfiles = nativeProfiles.map((profile, index) => index === nativeProfileIndex ? nextProfile : profile)
+    delete config.myclaudeProviderProfiles
+    delete config.myclaudeActiveProviderProfileId
+    writeClavueConfig(config)
+    syncMyclaudeActiveProfileToSettings(toLegacyProviderProfile(nextProfile))
+    return true
+  }
+
+  const legacyProfiles = getLegacyMyclaudeProviderProfiles(config)
+  const legacyProfileIndex = legacyProfiles.findIndex(profile => profile.id === activeId)
+  if (legacyProfileIndex < 0) {
+    return false
+  }
+
+  const updatedProfiles = legacyProfiles.map((profile, index) => {
+    if (index !== legacyProfileIndex) {
+      return profile
+    }
+
+    return {
+      ...profile,
+      model: slots.primaryModel,
+      fastModel: slots.haikuModel,
+      primaryModel: slots.primaryModel,
+      defaultHaikuModel: slots.haikuModel,
+      defaultSonnetModel: slots.sonnetModel,
+      defaultOpusModel: slots.opusModel,
+    }
+  })
+  setMyclaudeProviderProfiles(updatedProfiles, activeId)
+  return true
 }
 
 export function setMyclaudeProviderProfiles(profiles: MyclaudeProviderProfile[], activeProfileId?: string): string | undefined {
@@ -856,6 +997,7 @@ function syncMyclaudeActiveProfileToSettings(profile: MyclaudeProviderProfile | 
     delete settings.env.CLAUDE_CODE_SUBAGENT_MODEL
   }
 
+  normalizeClaudeFamilySettings(settings)
   writeJsonConfig(CLAVUE_SETTINGS_FILE, settings)
 }
 
@@ -958,11 +1100,14 @@ export function syncMcpPermissions(codeTool?: CodeToolType): void {
     const nonMcpPerms = settings.permissions.allow.filter(
       (p: string) => !p.startsWith('mcp__'),
     )
-    // Add current MCP permissions
-    const mcpPerms = mcpServerIds.map(id => `mcp__${id}`)
+    // Add current MCP permissions. Claude-family runtimes expose MCP tools as
+    // mcp__<server>__<tool>, so authorizing the server requires the tool suffix
+    // wildcard.
+    const mcpPerms = mcpServerIds.map(id => `mcp__${id.toLowerCase().replace(/-/g, '_')}__*`)
     settings.permissions.allow = [...nonMcpPerms, ...mcpPerms]
 
     // Use atomic write to prevent corruption and race conditions
+    normalizeClaudeFamilySettings(settings)
     writeJsonConfig(settingsPath, settings)
   }
   catch {}

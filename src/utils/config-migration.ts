@@ -7,6 +7,7 @@ import ansis from 'ansis'
 import type { CodeToolType } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import type { ClaudeSettings } from '../types/config'
+import { hasInvalidStatusLineConfig, normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { backupExistingConfig } from './config'
 import { exists } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
@@ -61,6 +62,11 @@ export function migrateSettingsForTokenRetrieval(codeTool?: CodeToolType): Migra
       || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
       || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL,
     )
+    if (hasInvalidStatusLineConfig(settings)) {
+      normalizeClaudeFamilySettings(settings)
+      result.changes.push('Repaired invalid statusLine settings for Clavue compatibility')
+      modified = true
+    }
 
     // Check for problematic environment variables
     if (settings.env) {
@@ -117,6 +123,7 @@ export function migrateSettingsForTokenRetrieval(codeTool?: CodeToolType): Migra
     }
 
     // Write updated settings
+    normalizeClaudeFamilySettings(settings)
     writeJsonConfig(target.settingsFile, settings)
     result.success = true
 
@@ -140,8 +147,14 @@ export function needsMigration(codeTool?: CodeToolType): boolean {
     }
 
     const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
-    if (!settings || !settings.env) {
+    if (!settings) {
       return false
+    }
+
+    const hasInvalidStatusLine = hasInvalidStatusLineConfig(settings)
+
+    if (!settings.env) {
+      return hasInvalidStatusLine
     }
 
     // Check for problematic settings
@@ -164,7 +177,8 @@ export function needsMigration(codeTool?: CodeToolType): boolean {
       || hasExcessiveTimeout
       || hasMissingHaikuFastCompat
       || hasInvalidDefaultModel
-      || hasAdaptiveModelOverride,
+      || hasAdaptiveModelOverride
+      || hasInvalidStatusLine,
     )
   }
   catch {

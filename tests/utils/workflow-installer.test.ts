@@ -36,6 +36,7 @@ describe('workflow installer runtime targets', () => {
     })
 
     expect(existsSync(join(testHome, '.clavue', 'commands', 'ccjk', 'feat.md'))).toBe(true)
+    expect(existsSync(join(testHome, '.clavue', 'commands', 'ccjk', 'goal.md'))).toBe(true)
     expect(existsSync(join(testHome, '.clavue', 'commands', 'ccjk', 'git-commit.md'))).toBe(true)
     expect(existsSync(join(testHome, '.clavue', 'agents', 'ccjk', 'essential', 'init-architect.md'))).toBe(true)
     expect(existsSync(join(testHome, '.claude', 'commands', 'ccjk', 'feat.md'))).toBe(false)
@@ -49,6 +50,7 @@ describe('workflow installer runtime targets', () => {
     })
 
     expect(existsSync(join(testHome, '.claude', 'commands', 'ccjk', 'feat.md'))).toBe(true)
+    expect(existsSync(join(testHome, '.claude', 'commands', 'ccjk', 'goal.md'))).toBe(true)
     expect(existsSync(join(testHome, '.claude', 'agents', 'ccjk', 'essential', 'init-architect.md'))).toBe(true)
     expect(existsSync(join(testHome, '.clavue', 'commands', 'ccjk', 'feat.md'))).toBe(false)
   })

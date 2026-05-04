@@ -675,8 +675,14 @@ export class PermissionManager {
     if (pattern.startsWith('Bash(')) {
       return 'bash'
     }
-    if (pattern.startsWith('mcp__')) {
+    if (pattern.startsWith('mcp__') || pattern.startsWith('MCP(')) {
       return 'mcp'
+    }
+    if (/^(Read|Write|Edit|NotebookEdit)\(/.test(pattern)) {
+      return 'filesystem'
+    }
+    if (/^(WebSearch|WebFetch)\(/.test(pattern)) {
+      return 'network'
     }
     if (pattern.startsWith('http://') || pattern.startsWith('https://') || pattern.startsWith('ws://') || pattern.startsWith('wss://')) {
       return 'network'
@@ -684,7 +690,7 @@ export class PermissionManager {
     if (pattern.startsWith('/')) {
       return 'filesystem'
     }
-    if (['Read', 'Write', 'Edit', 'Bash', 'WebSearch'].includes(pattern)) {
+    if (['Read', 'Write', 'Edit', 'Bash', 'WebSearch', 'WebFetch', 'Task', 'TodoWrite'].includes(pattern)) {
       return 'tool'
     }
     if (['init', 'update', 'doctor', 'permissions'].includes(pattern)) {

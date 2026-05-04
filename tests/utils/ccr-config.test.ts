@@ -41,6 +41,7 @@ describe('configureCcrProxy', () => {
       authToken: 'token-stale',
       defaultModel: 'stale-default',
       preferredModel: 'stale-preferred',
+      statusLine: {},
       env: {
         ANTHROPIC_AUTH_TOKEN: 'token-stale',
       },
@@ -61,6 +62,7 @@ describe('configureCcrProxy', () => {
     expect(settings.authToken).toBeUndefined()
     expect(settings.defaultModel).toBeUndefined()
     expect(settings.preferredModel).toBeUndefined()
+    expect(settings.statusLine).toBeUndefined()
     expect(settings.env).toMatchObject({
       ANTHROPIC_BASE_URL: 'http://127.0.0.1:8787',
       ANTHROPIC_API_KEY: 'sk-ccr',

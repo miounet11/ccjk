@@ -9,14 +9,20 @@
 
 import type { ProviderRegistry, QuickLaunchConfig, QuickLaunchOptions } from '../types/provider'
 import type { ClaudeSettings } from '../types/config'
+import type { CodeToolType } from '../constants'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import ora from 'ora'
-import { SETTINGS_FILE } from '../constants'
+import { getCodeToolRuntimeCommand, isCodeToolType, resolveCodeToolType } from '../constants'
 import { getProviderRegistry } from '../services/provider-registry'
 import { isValidApiUrl } from '../types/provider'
+import { readZcfConfig } from '../utils/ccjk-config'
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
+import { setMyclaudeProviderProfiles } from '../utils/claude-config'
+import { resolveClaudeFamilyModelSlots } from '../utils/claude-model-slots'
 import { configureApi, overwriteModelSettings } from '../utils/config'
 import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 
 // ============================================================================
 // Constants
@@ -129,6 +135,19 @@ const KNOWN_COMMANDS = new Set([
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+function resolveQuickProviderCodeTool(config: QuickLaunchConfig): CodeToolType {
+  if (isCodeToolType(config.codeTool)) {
+    return config.codeTool === 'clavue' ? 'clavue' : 'claude-code'
+  }
+
+  const savedCodeTool = readZcfConfig()?.codeToolType
+  if (isCodeToolType(savedCodeTool)) {
+    return savedCodeTool === 'clavue' ? 'clavue' : 'claude-code'
+  }
+
+  return resolveCodeToolType(config.codeTool) === 'clavue' ? 'clavue' : 'claude-code'
+}
 
 /**
  * Check if a string is a known CLI command
@@ -472,6 +491,7 @@ async function configureProvider(
     provider,
     apiKey: apiKey.trim(),
     model: model.trim(),
+    codeTool: _options.codeTool,
   }
 }
 
@@ -486,15 +506,42 @@ async function saveProviderConfig(config: QuickLaunchConfig): Promise<void> {
   const spinner = ora('正在保存配置...').start()
 
   try {
+    const codeTool = resolveQuickProviderCodeTool(config)
+
+    if (codeTool === 'clavue') {
+      const modelSlots = resolveClaudeFamilyModelSlots({ selectedModel: config.model })
+      setMyclaudeProviderProfiles([
+        {
+          id: config.shortcode,
+          name: config.provider.name,
+          provider: config.shortcode,
+          apiKey: config.apiKey,
+          baseUrl: config.provider.apiUrl,
+          model: modelSlots.primaryModel,
+          fastModel: modelSlots.haikuModel,
+          authType: 'api_key',
+          primaryModel: modelSlots.primaryModel,
+          defaultHaikuModel: modelSlots.haikuModel,
+          defaultSonnetModel: modelSlots.sonnetModel,
+          defaultOpusModel: modelSlots.opusModel,
+        },
+      ], config.shortcode)
+
+      spinner.succeed(ansis.green('配置已保存'))
+      return
+    }
+
     configureApi({
       url: config.provider.apiUrl,
       key: config.apiKey,
       authType: 'api_key',
-    })
+    }, codeTool)
 
-    const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || {}
+    const target = resolveClaudeFamilySettingsTarget(codeTool)
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
     overwriteModelSettings(settings, { primaryModel: config.model }, 'override')
-    writeJsonConfig(SETTINGS_FILE, settings)
+    normalizeClaudeFamilySettings(settings)
+    writeJsonConfig(target.settingsFile, settings)
 
     spinner.succeed(ansis.green('配置已保存'))
   }
@@ -520,6 +567,12 @@ async function saveProviderConfig(config: QuickLaunchConfig): Promise<void> {
  * Show success message after configuration
  */
 function showSuccessMessage(config: QuickLaunchConfig): void {
+  const codeTool = resolveQuickProviderCodeTool(config)
+  const runtimeCommand = getCodeToolRuntimeCommand(codeTool)
+  const runtimeName = codeTool === 'clavue'
+    ? 'Clavue'
+    : 'Claude Code'
+
   console.log()
   console.log(ansis.green.bold('✅ 配置完成!'))
   console.log(ansis.gray('─'.repeat(40)))
@@ -527,8 +580,8 @@ function showSuccessMessage(config: QuickLaunchConfig): void {
   console.log(`   ${ansis.yellow('API URL:')} ${config.provider.apiUrl}`)
   console.log(`   ${ansis.yellow('模型:')} ${config.model}`)
   console.log()
-  console.log(ansis.gray('现在可以开始使用 Claude Code 了'))
-  console.log(ansis.gray('运行 "claude" 启动对话'))
+  console.log(ansis.gray(`现在可以开始使用 ${runtimeName} 了`))
+  console.log(ansis.gray(`运行 "${runtimeCommand}" 启动对话`))
   console.log()
 }
 

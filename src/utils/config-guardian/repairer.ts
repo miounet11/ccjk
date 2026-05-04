@@ -129,6 +129,10 @@ Implement a new feature following best practices.
 - Add appropriate tests
 - Update documentation
 `,
+      'goal.md': `# Durable Goal Workflow
+
+Turn a task into a repo-local goal plan, execute one goal at a time, and record evidence after each checkpoint.
+`,
       'fix.md': `# Bug Fix
 
 Fix a bug in the codebase.

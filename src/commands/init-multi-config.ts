@@ -11,6 +11,7 @@ import ansis from 'ansis'
 import { API_DEFAULT_URL } from '../constants'
 import { i18n } from '../i18n'
 import { setMyclaudeProviderProfiles } from '../utils/claude-config'
+import { resolveClaudeFamilyModelSlots } from '../utils/claude-model-slots'
 import { displayError } from '../utils/error-formatter'
 import type { InitOptions } from './init'
 
@@ -373,6 +374,14 @@ export async function buildClaudeCodeProfile(params: {
     if (preset?.claudeCode) {
       baseUrl = params.url || preset.claudeCode.baseUrl
       authType = preset.claudeCode.authType
+      const modelSlots = resolveClaudeFamilyModelSlots({
+        defaultModels: preset.claudeCode.defaultModels,
+        selectedModel: primaryModel,
+      })
+      primaryModel = modelSlots.primaryModel
+      defaultHaikuModel = defaultHaikuModel || modelSlots.haikuModel
+      defaultSonnetModel = defaultSonnetModel || modelSlots.sonnetModel
+      defaultOpusModel = defaultOpusModel || modelSlots.opusModel
     }
   }
 

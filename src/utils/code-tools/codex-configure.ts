@@ -158,6 +158,7 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
       providers: baseProviders,
       mcpServices: finalServices,
       managed: true,
+      features: existingConfig?.features,
       otherConfig: existingConfig?.otherConfig || [],
     })
     updateZcfConfig({ codeToolType: 'codex' })
@@ -185,6 +186,7 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
       providers: baseProviders,
       mcpServices: preserved,
       managed: true,
+      features: existingConfig?.features,
       otherConfig: existingConfig?.otherConfig || [],
     })
     updateZcfConfig({ codeToolType: 'codex' })
@@ -256,6 +258,7 @@ export async function configureCodexMcp(options?: CodexFullInitOptions): Promise
     providers: baseProviders,
     mcpServices: finalServices,
     managed: true,
+    features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
   })
 

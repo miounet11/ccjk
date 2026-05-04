@@ -4,17 +4,22 @@
  */
 
 import type { CodeToolType } from '../constants'
-import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import process from 'node:process'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { join, resolve } from 'pathe'
 import { getApiProviderPresets } from '../config/api-providers'
-import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
+import { CODEX_CONFIG_FILE, CODEX_DIR, getCodeToolRuntimeCommand } from '../constants'
 import { i18n } from '../i18n'
 import { getPermissionManager } from '../permissions/permission-manager'
+import { isCcrInstalled } from '../utils/ccr/installer'
+import { inspectClaudeFamilyCoreFeatures } from '../utils/claude-family-core-features'
+import { readCodexConfig, readCodexGoalsFeatureEnabled } from '../utils/code-tools/codex'
+import { backupExistingConfig, copyConfigFiles } from '../utils/config'
 import { commandExists } from '../utils/platform'
 import { ProviderHealthMonitor } from '../utils/provider-health'
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 import { displayWorkspaceReport, runWorkspaceCheck, runWorkspaceWizard } from '../utils/workspace-guide'
 
 interface CheckResult {
@@ -35,25 +40,30 @@ export interface DoctorOptions {
 /**
  * Check if Claude Code CLI is installed
  */
-async function checkClaudeCode(): Promise<CheckResult> {
-  const hasCommand = await commandExists('claude')
+async function checkClaudeCode(codeType?: CodeToolType): Promise<CheckResult> {
+  const target = resolveClaudeFamilySettingsTarget(codeType)
+  const runtimeCommand = getCodeToolRuntimeCommand(target.codeTool)
+  const hasCommand = await commandExists(runtimeCommand)
   if (hasCommand) {
-    return { name: 'Claude Code', status: 'ok', message: 'Installed' }
+    return { name: target.displayName, status: 'ok', message: 'Installed' }
   }
   return {
-    name: 'Claude Code',
+    name: target.displayName,
     status: 'error',
     message: 'Not installed',
-    fix: 'Run: npm install -g @anthropic-ai/claude-code',
+    fix: target.codeTool === 'clavue'
+      ? 'Run: npm install -g clavue'
+      : 'Run: npm install -g @anthropic-ai/claude-code',
   }
 }
 
 /**
  * Check if Claude configuration directory exists
  */
-async function checkClaudeDir(): Promise<CheckResult> {
-  if (existsSync(CLAUDE_DIR)) {
-    return { name: 'Config Directory', status: 'ok', message: CLAUDE_DIR }
+async function checkClaudeDir(codeType?: CodeToolType): Promise<CheckResult> {
+  const target = resolveClaudeFamilySettingsTarget(codeType)
+  if (existsSync(target.configDir)) {
+    return { name: 'Config Directory', status: 'ok', message: target.configDir }
   }
   return {
     name: 'Config Directory',
@@ -66,8 +76,9 @@ async function checkClaudeDir(): Promise<CheckResult> {
 /**
  * Check if settings.json exists and is valid
  */
-async function checkSettings(): Promise<CheckResult> {
-  if (!existsSync(SETTINGS_FILE)) {
+async function checkSettings(codeType?: CodeToolType): Promise<CheckResult> {
+  const target = resolveClaudeFamilySettingsTarget(codeType)
+  if (!existsSync(target.settingsFile)) {
     return {
       name: 'settings.json',
       status: 'warning',
@@ -78,7 +89,7 @@ async function checkSettings(): Promise<CheckResult> {
 
   try {
     const { readFileSync } = await import('node:fs')
-    const content = readFileSync(SETTINGS_FILE, 'utf-8')
+    const content = readFileSync(target.settingsFile, 'utf-8')
     const settings = JSON.parse(content)
 
     // Check for schema validation issues
@@ -102,7 +113,7 @@ async function checkSettings(): Promise<CheckResult> {
     // Check permissions.allow for lowercase tool names
     if (settings.permissions?.allow) {
       const lowerCaseTools = settings.permissions.allow.filter((t: string) =>
-        /^[a-z]/.test(t) && !t.startsWith('Allow'),
+        /^[a-z]/.test(t) && !t.startsWith('Allow') && !t.startsWith('mcp__'),
       )
       if (lowerCaseTools.length > 0) {
         issues.push(`${lowerCaseTools.length} permission(s) with lowercase names`)
@@ -139,12 +150,21 @@ async function checkSettings(): Promise<CheckResult> {
 /**
  * Check installed workflows
  */
-async function checkWorkflows(): Promise<CheckResult> {
-  const commandsDir = join(CLAUDE_DIR, 'commands')
+async function checkWorkflows(codeType?: CodeToolType): Promise<CheckResult> {
+  const target = resolveClaudeFamilySettingsTarget(codeType)
+  const commandsDir = join(target.configDir, 'commands', 'ccjk')
   if (existsSync(commandsDir)) {
     try {
       const files = readdirSync(commandsDir, { recursive: true })
       const mdFiles = files.filter(f => String(f).endsWith('.md'))
+      if (mdFiles.length === 0) {
+        return {
+          name: 'Workflows',
+          status: 'warning',
+          message: 'No CCJK commands installed',
+          fix: `Run: npx ccjk zero-config dev${target.codeTool === 'clavue' ? ' --code-type clavue' : ''}`,
+        }
+      }
       return {
         name: 'Workflows',
         status: 'ok',
@@ -166,34 +186,32 @@ async function checkWorkflows(): Promise<CheckResult> {
 /**
  * Check MCP services configuration
  */
-async function checkMcp(): Promise<CheckResult> {
-  const mcpConfigPath = join(CLAUDE_DIR, 'mcp.json')
-  const settingsPath = SETTINGS_FILE
-
-  // Check if MCP is configured in settings.json
-  if (existsSync(settingsPath)) {
-    try {
-      const { readFileSync } = await import('node:fs')
-      const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'))
-      if (settings.mcpServers && Object.keys(settings.mcpServers).length > 0) {
-        const count = Object.keys(settings.mcpServers).length
-        return { name: 'MCP Services', status: 'ok', message: `${count} services configured` }
+async function checkMcp(codeType?: CodeToolType): Promise<CheckResult> {
+  const target = resolveClaudeFamilySettingsTarget(codeType)
+  try {
+    const state = await inspectClaudeFamilyCoreFeatures(target.codeTool)
+    if (state.mcp.installed.length > 0) {
+      const result: CheckResult = {
+        name: 'MCP Services',
+        status: state.mcp.missing.length === 0 ? 'ok' : 'warning',
+        message: `${state.mcp.installed.length} service(s) configured`,
       }
-    }
-    catch {
-      // Continue to check mcp.json
+      if (state.mcp.missing.length > 0) {
+        result.fix = `Run: npx ccjk zero-config dev${target.codeTool === 'clavue' ? ' --code-type clavue' : ''}`
+        result.details = [`Missing core service(s): ${state.mcp.missing.join(', ')}`]
+      }
+      return result
     }
   }
-
-  if (existsSync(mcpConfigPath)) {
-    return { name: 'MCP Services', status: 'ok', message: 'Configured' }
+  catch {
+    // Fall through to not configured result.
   }
 
   return {
     name: 'MCP Services',
     status: 'warning',
     message: 'Not configured',
-    fix: 'Run: npx ccjk init and select MCP services',
+    fix: `Run: npx ccjk zero-config dev${target.codeTool === 'clavue' ? ' --code-type clavue' : ''}`,
   }
 }
 
@@ -201,26 +219,43 @@ async function checkMcp(): Promise<CheckResult> {
  * Check CCR proxy installation
  */
 async function checkCcr(): Promise<CheckResult> {
-  const hasCcr = await commandExists('ccr')
-  if (hasCcr) {
+  const status = await isCcrInstalled()
+  if (status.hasCorrectPackage) {
     return { name: 'CCR Proxy', status: 'ok', message: 'Installed' }
+  }
+  if (status.isInstalled) {
+    return {
+      name: 'CCR Proxy',
+      status: 'warning',
+      message: 'Command exists, managed package not detected',
+      fix: 'Run: npx ccjk zero-config dev',
+    }
   }
   return {
     name: 'CCR Proxy',
     status: 'warning',
-    message: 'Not installed (optional)',
-    fix: 'Run: npx ccjk ccr to install',
+    message: 'Not installed',
+    fix: 'Run: npx ccjk zero-config dev',
   }
 }
 
 /**
  * Check output styles installation
  */
-async function checkOutputStyles(): Promise<CheckResult> {
-  const stylesDir = join(CLAUDE_DIR, 'output-styles')
+async function checkOutputStyles(codeType?: CodeToolType): Promise<CheckResult> {
+  const target = resolveClaudeFamilySettingsTarget(codeType)
+  const stylesDir = join(target.configDir, 'output-styles')
   if (existsSync(stylesDir)) {
     try {
       const files = readdirSync(stylesDir).filter(f => f.endsWith('.md'))
+      if (files.length === 0) {
+        return {
+          name: 'Output Styles',
+          status: 'warning',
+          message: 'No styles installed',
+          fix: `Run: npx ccjk zero-config dev${target.codeTool === 'clavue' ? ' --code-type clavue' : ''}`,
+        }
+      }
       return {
         name: 'Output Styles',
         status: 'ok',
@@ -235,7 +270,141 @@ async function checkOutputStyles(): Promise<CheckResult> {
     name: 'Output Styles',
     status: 'warning',
     message: 'Not installed',
-    fix: 'Run: npx ccjk init',
+    fix: `Run: npx ccjk zero-config dev${target.codeTool === 'clavue' ? ' --code-type clavue' : ''}`,
+  }
+}
+
+async function checkCodexCli(): Promise<CheckResult> {
+  const hasCommand = await commandExists('codex')
+  if (hasCommand) {
+    return { name: 'Codex', status: 'ok', message: 'Installed' }
+  }
+
+  return {
+    name: 'Codex',
+    status: 'error',
+    message: 'Not installed',
+    fix: 'Run: npm install -g @openai/codex',
+  }
+}
+
+async function checkCodexDir(): Promise<CheckResult> {
+  if (existsSync(CODEX_DIR)) {
+    return { name: 'Config Directory', status: 'ok', message: CODEX_DIR }
+  }
+
+  return {
+    name: 'Config Directory',
+    status: 'error',
+    message: 'Does not exist',
+    fix: 'Run: npx ccjk init --code-type codex',
+  }
+}
+
+async function checkCodexToml(): Promise<CheckResult> {
+  if (!existsSync(CODEX_CONFIG_FILE)) {
+    return {
+      name: 'config.toml',
+      status: 'warning',
+      message: 'Not found',
+      fix: 'Run: ccjk zero-config dev --code-type codex',
+    }
+  }
+
+  const config = readCodexConfig()
+  if (!config) {
+    return {
+      name: 'config.toml',
+      status: 'error',
+      message: 'Invalid TOML',
+      fix: 'Check ~/.codex/config.toml or run: ccjk zero-config dev --code-type codex',
+    }
+  }
+
+  return {
+    name: 'config.toml',
+    status: 'ok',
+    message: 'Valid configuration',
+  }
+}
+
+async function checkCodexMcp(): Promise<CheckResult> {
+  const config = readCodexConfig()
+  const count = config?.mcpServices.length || 0
+  if (count > 0) {
+    return {
+      name: 'MCP Services',
+      status: 'ok',
+      message: `${count} service(s) configured`,
+    }
+  }
+
+  return {
+    name: 'MCP Services',
+    status: 'warning',
+    message: 'Not configured',
+    fix: 'Run: npx ccjk mcp profile use recommended --tool codex',
+  }
+}
+
+async function checkCodexNativeGoals(): Promise<CheckResult> {
+  const enabled = readCodexGoalsFeatureEnabled()
+  if (enabled) {
+    return {
+      name: 'Native Goals',
+      status: 'ok',
+      message: 'Codex /goal enabled',
+    }
+  }
+
+  return {
+    name: 'Native Goals',
+    status: 'warning',
+    message: 'Codex /goal not enabled',
+    fix: 'Run: ccjk zero-config dev --code-type codex',
+  }
+}
+
+async function checkClavueNativeGoals(): Promise<CheckResult> {
+  const hasCommand = await commandExists('clavue')
+  if (hasCommand) {
+    return {
+      name: 'Native Goals',
+      status: 'ok',
+      message: 'Clavue /goal available',
+    }
+  }
+
+  return {
+    name: 'Native Goals',
+    status: 'error',
+    message: 'Clavue /goal unavailable',
+    fix: 'Run: npm install -g clavue',
+  }
+}
+
+async function checkCodexProviders(): Promise<CheckResult> {
+  const config = readCodexConfig()
+  if (!config) {
+    return {
+      name: 'API Providers',
+      status: 'warning',
+      message: 'Unable to read Codex config',
+    }
+  }
+
+  if (config.modelProvider) {
+    return {
+      name: 'API Providers',
+      status: 'ok',
+      message: `Using ${config.modelProvider}`,
+    }
+  }
+
+  return {
+    name: 'API Providers',
+    status: 'ok',
+    message: 'Using official Codex login',
   }
 }
 
@@ -321,19 +490,19 @@ async function checkProviders(codeType: CodeToolType = 'claude-code'): Promise<C
 /**
  * Check permission rules for unreachable or problematic rules
  */
-async function checkPermissionRules(): Promise<CheckResult> {
+async function checkPermissionRules(codeType?: CodeToolType): Promise<CheckResult> {
   const isZh = i18n.language === 'zh-CN'
 
   try {
-    const permissionManager = getPermissionManager()
+    const target = resolveClaudeFamilySettingsTarget(codeType)
+    const permissionManager = getPermissionManager(undefined, target.settingsFile)
     const unreachableRules = permissionManager.getUnreachableRules()
     const allDiagnostics = permissionManager.getAllDiagnostics()
 
     // Count problematic rules
-    const shadowedRules = allDiagnostics.filter(d => d.shadowedBy.length > 0)
     const conflictedRules = allDiagnostics.filter(d => d.conflicts.length > 0)
 
-    const problemCount = unreachableRules.length + shadowedRules.length + conflictedRules.length
+    const problemCount = unreachableRules.length + conflictedRules.length
 
     if (problemCount === 0) {
       const stats = permissionManager.getStats()
@@ -356,13 +525,6 @@ async function checkPermissionRules(): Promise<CheckResult> {
       }
     }
 
-    if (shadowedRules.length > 0) {
-      details.push(isZh ? `${shadowedRules.length} shadowed rule(s)` : `${shadowedRules.length} shadowed rule(s)`)
-      for (const diag of shadowedRules.slice(0, 2)) {
-        details.push(`  - ${ansis.dim(diag.rule.pattern)} ${ansis.dim(isZh ? 'shadowed by' : 'shadowed by')} ${diag.shadowedBy[0].pattern}`)
-      }
-    }
-
     if (conflictedRules.length > 0) {
       details.push(isZh ? `${conflictedRules.length} conflicted rule(s)` : `${conflictedRules.length} conflicted rule(s)`)
     }
@@ -371,7 +533,7 @@ async function checkPermissionRules(): Promise<CheckResult> {
       name: 'Permission Rules',
       status: 'warning',
       message: `${problemCount} ${isZh ? 'problematic' : 'problematic'} ${isZh ? 'rule(s)' : 'rule(s)'}`,
-      fix: isZh ? 'Run: ccjk permissions diagnose' : 'Run: ccjk permissions diagnose',
+      fix: isZh ? 'Run: ccjk zero-config dev' : 'Run: ccjk zero-config dev',
       details,
     }
   }
@@ -388,9 +550,9 @@ async function checkPermissionRules(): Promise<CheckResult> {
 /**
  * Fix settings.json validation issues by merging with template
  */
-async function fixSettingsFile(): Promise<void> {
+async function fixSettingsFile(codeType?: CodeToolType): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
-  const { copyConfigFiles } = await import('../utils/config')
+  const target = resolveClaudeFamilySettingsTarget(codeType)
 
   console.log('')
   console.log(ansis.bold.cyan('🔧 Fixing settings.json'))
@@ -398,11 +560,9 @@ async function fixSettingsFile(): Promise<void> {
   console.log('')
 
   // First, backup the existing settings
-  const backupPath = join(CLAUDE_DIR, 'backup', `settings.backup.${Date.now()}.json`)
+  const backupPath = backupExistingConfig(target.codeTool)
   try {
-    if (existsSync(SETTINGS_FILE)) {
-      mkdirSync(join(CLAUDE_DIR, 'backup'), { recursive: true })
-      copyFileSync(SETTINGS_FILE, backupPath)
+    if (existsSync(target.settingsFile) && backupPath) {
       console.log(ansis.green(`✔ ${isZh ? '已备份旧设置' : 'Backed up settings'}: ${backupPath}`))
     }
   }
@@ -413,10 +573,10 @@ async function fixSettingsFile(): Promise<void> {
   // Run copyConfigFiles which will merge with template
   console.log('')
   console.log(ansis.dim(isZh ? '正在合并模板设置...' : 'Merging template settings...'))
-  copyConfigFiles(false)
+  copyConfigFiles(false, target.codeTool)
 
   // Verify the fix
-  const checkResult = await checkSettings()
+  const checkResult = await checkSettings(target.codeTool)
   console.log('')
 
   if (checkResult.status === 'ok') {
@@ -444,24 +604,35 @@ export async function doctor(options: DoctorOptions = {}): Promise<void> {
 
   // Handle --fix-settings flag
   if (options.fixSettings) {
-    await fixSettingsFile()
+    await fixSettingsFile(options.codeType)
     return
   }
 
-  const checks = [
-    checkClaudeCode,
-    checkClaudeDir,
-    checkSettings,
-    checkWorkflows,
-    checkMcp,
-    checkPermissionRules,
-    checkCcr,
-    checkOutputStyles,
-  ]
+  const checks = options.codeType === 'codex'
+    ? [
+        checkCodexCli,
+        checkCodexDir,
+        checkCodexToml,
+        checkCodexMcp,
+        checkCodexNativeGoals,
+      ]
+    : [
+        () => checkClaudeCode(options.codeType),
+        () => checkClaudeDir(options.codeType),
+        () => checkSettings(options.codeType),
+        () => checkWorkflows(options.codeType),
+        () => checkMcp(options.codeType),
+        () => checkPermissionRules(options.codeType),
+        checkCcr,
+        () => checkOutputStyles(options.codeType),
+        ...(options.codeType === 'clavue' ? [checkClavueNativeGoals] : []),
+      ]
 
   // Add provider check if requested
   if (options.checkProviders) {
-    checks.push(() => checkProviders(options.codeType))
+    checks.push(options.codeType === 'codex'
+      ? checkCodexProviders
+      : () => checkProviders(options.codeType))
   }
 
   // Run all checks

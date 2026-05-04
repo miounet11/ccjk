@@ -5,6 +5,7 @@
 
 import type { ClaudeSettings, FileSuggestionConfig, ThinkingConfig } from '../types/config'
 import { SETTINGS_FILE } from '../constants'
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
 import { exists } from '../utils/fs-operations'
 import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
 import { deepMerge } from '../utils/object-utils'
@@ -306,6 +307,7 @@ export function saveConfigWithMigration(config: ClaudeSettings): {
   }
 
   try {
+    normalizeClaudeFamilySettings(config as Record<string, any>)
     writeJsonConfig(SETTINGS_FILE, config)
     return {
       success: true,

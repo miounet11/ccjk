@@ -22,12 +22,23 @@ import { getApiConfig as getClaudeApiConfig, setApiConfig as setClaudeApiConfig 
 import { CLAVUE_CREDENTIALS_FILE, DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
 import { readClavueConfig, setMyclaudeProviderProfiles } from '../../utils/claude-config'
+import { resolveClaudeFamilyModelSlots } from '../../utils/claude-model-slots'
 import { readJsonConfig } from '../../utils/json-config'
 
 type ProviderRuntimeConfig = NonNullable<ApiProviderPreset['claudeCode']> | NonNullable<ApiProviderPreset['codex']>
 
 function isClaudeFamilyCodeType(codeType: CodeToolType): boolean {
   return codeType === 'claude-code' || codeType === 'clavue'
+}
+
+function getRuntimeDisplayName(codeType: CodeToolType): string {
+  if (codeType === 'clavue') {
+    return 'Clavue'
+  }
+  if (codeType === 'codex') {
+    return 'Codex'
+  }
+  return 'Claude Code'
 }
 
 function getProviderRuntimeConfig(provider: ApiProviderPreset, codeType: CodeToolType): ProviderRuntimeConfig | undefined {
@@ -100,10 +111,12 @@ function syncMyclaudeProviderProfile(
   authType: 'api_key' | 'auth_token',
   defaultModels?: string[],
 ): void {
-  const primaryModel = defaultModels?.[0]
-  const haikuModel = defaultModels?.[1] || primaryModel
-  const sonnetModel = defaultModels?.[2] || primaryModel
-  const opusModel = defaultModels?.[3]
+  const {
+    primaryModel,
+    haikuModel,
+    sonnetModel,
+    opusModel,
+  } = resolveClaudeFamilyModelSlots({ defaultModels })
 
   setMyclaudeProviderProfiles([
     {
@@ -339,8 +352,8 @@ async function setProviderApi(
 
     console.log('')
     console.log(ansis.dim(isZh
-      ? 'You can now use Claude Code with the configured provider.'
-      : '现在可以使用配置的供应商使用 Claude Code 了。'))
+      ? `现在可以使用配置的供应商使用 ${getRuntimeDisplayName(codeType)} 了。`
+      : `You can now use ${getRuntimeDisplayName(codeType)} with the configured provider.`))
     console.log('')
   }
   catch (error) {

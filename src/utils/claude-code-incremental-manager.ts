@@ -4,6 +4,7 @@ import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { ClaudeCodeConfigManager } from './claude-code-config-manager'
+import { resolveClaudeFamilyModelSlots } from './claude-model-slots'
 import { addNumbersToChoices } from './prompt-helpers'
 import { readZcfConfig } from './ccjk-config'
 import { promptBoolean } from './toggle-prompt'
@@ -124,13 +125,9 @@ function getProviderDefaultModels(provider?: ApiProviderPreset): {
   sonnetModel?: string
   opusModel?: string
 } {
-  const defaults = provider?.claudeCode?.defaultModels || []
-  return {
-    primaryModel: defaults[0],
-    haikuModel: defaults[1] || defaults[0],
-    sonnetModel: defaults[2] || defaults[0],
-    opusModel: defaults[3],
-  }
+  return resolveClaudeFamilyModelSlots({
+    defaultModels: provider?.claudeCode?.defaultModels,
+  })
 }
 
 async function handleAddProfile(): Promise<void> {

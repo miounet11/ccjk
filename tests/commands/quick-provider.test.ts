@@ -1,9 +1,11 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const TEMP_BASE = join(tmpdir(), 'ccjk-quick-provider-fixed')
+const readZcfConfig = vi.fn()
+const setMyclaudeProviderProfiles = vi.fn()
 
 vi.mock('../../src/constants', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/constants')>()
@@ -13,6 +15,25 @@ vi.mock('../../src/constants', async (importOriginal) => {
   return {
     ...actual,
     SETTINGS_FILE: join(base, 'settings.json'),
+    CLAVUE_SETTINGS_FILE: join(base, 'clavue', 'settings.json'),
+    CLAVUE_CONFIG_FILE: join(base, 'clavue', '.clavue.json'),
+    CLAVUE_CREDENTIALS_FILE: join(base, 'clavue', '.credentials.json'),
+  }
+})
+
+vi.mock('../../src/utils/ccjk-config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/utils/ccjk-config')>()
+  return {
+    ...actual,
+    readZcfConfig,
+  }
+})
+
+vi.mock('../../src/utils/claude-config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/utils/claude-config')>()
+  return {
+    ...actual,
+    setMyclaudeProviderProfiles,
   }
 })
 
@@ -21,7 +42,14 @@ describe('quick provider config persistence', () => {
     return join(TEMP_BASE, 'settings.json')
   }
 
+  beforeAll(async () => {
+    const { initI18n } = await import('../../src/i18n')
+    await initI18n('en')
+  })
+
   beforeEach(() => {
+    vi.clearAllMocks()
+    readZcfConfig.mockReturnValue({ codeToolType: 'claude-code' })
     rmSync(TEMP_BASE, { recursive: true, force: true })
     mkdirSync(TEMP_BASE, { recursive: true })
     vi.spyOn(console, 'log').mockImplementation(() => {})
@@ -75,6 +103,41 @@ describe('quick provider config persistence', () => {
       ANTHROPIC_API_KEY: 'sk-new',
     })
     expect(settings.env.ANTHROPIC_AUTH_TOKEN).toBeUndefined()
+  })
+
+  it('writes Clavue native provider profile with exact selected model in every routing slot', async () => {
+    readZcfConfig.mockReturnValue({ codeToolType: 'clavue' })
+
+    const { saveProviderConfig } = await import('../../src/commands/quick-provider')
+
+    await saveProviderConfig({
+      shortcode: 'ttqq',
+      provider: {
+        shortcode: 'ttqq',
+        name: 'TTQQ',
+        apiUrl: 'https://ttqq.inping.com/v1',
+        verified: true,
+        createdAt: new Date().toISOString(),
+      },
+      apiKey: 'sk-ttqq',
+      model: '  gpt-5.3-codex-spark  ',
+    })
+
+    expect(setMyclaudeProviderProfiles).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: 'ttqq',
+        name: 'TTQQ',
+        provider: 'ttqq',
+        apiKey: 'sk-ttqq',
+        baseUrl: 'https://ttqq.inping.com/v1',
+        model: 'gpt-5.3-codex-spark',
+        fastModel: 'gpt-5.3-codex-spark',
+        primaryModel: 'gpt-5.3-codex-spark',
+        defaultHaikuModel: 'gpt-5.3-codex-spark',
+        defaultSonnetModel: 'gpt-5.3-codex-spark',
+        defaultOpusModel: 'gpt-5.3-codex-spark',
+      }),
+    ], 'ttqq')
   })
 
   it('creates settings.json when missing', async () => {

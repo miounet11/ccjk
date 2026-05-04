@@ -191,6 +191,7 @@ Codex supports the following prompt workflows through `/prompts:`:
 |--------|-----------|-----------------|------|
 | **Six-Stage Workflow** | `/prompts:workflow` | `/ccjk:workflow` | Complete six-stage development process (Research→Ideation→Planning→Execution→Optimization→Review) |
 | **Feature Planning** | `/prompts:feat` | `/ccjk:feat` | Feature planning and implementation kickoff |
+| **Durable Goal Workflow** | `/prompts:goal` | `/ccjk:goal` | Repo-local goal artifacts with native `/goal` coordination |
 | **Project Bootstrap** | `/prompts:init-project` | `/init-project` | Project initialization and structure guidance |
 | **Git Workflow** | `/prompts:git-commit` | `/git-commit` | Smart Git commit |
 | | `/prompts:git-rollback` | `/git-rollback` | Safe rollback |
@@ -215,6 +216,7 @@ Although Codex and Claude Code share the same MCP foundation, workflow coverage 
 |-----------|------------|-------|
 | Six-Stage Workflow | ✅ `/ccjk:workflow` | ✅ `/prompts:workflow` |
 | Feature Development Workflow | ✅ `/ccjk:feat` | ✅ `/prompts:feat` |
+| Durable Goal Workflow | ✅ `/ccjk:goal` | ✅ `/prompts:goal` |
 | Project Initialization | ✅ `/init-project` | ✅ `/prompts:init-project` |
 | Git Workflow | ✅ `/git-commit` etc. | ✅ `/prompts:git-commit` etc. |
 | Advanced Prompt Packs | Partial | ✅ `/prompts:interview`, `/prompts:spec-first-tdd`, `/prompts:refactoring-master`, etc. |
@@ -345,4 +347,3 @@ Learn more about Codex related features:
 - 📚 [Workflow Details](../workflows/) - Learn about workflows available in Codex
 - 🔧 [Configuration Management](../advanced/configuration.md) - Deep dive into Codex configuration management
 - 🎯 [MCP Service Integration](mcp.md) - Detailed information about MCP service usage in Codex
-

@@ -2,7 +2,7 @@
  * Config Set Subcommand
  *
  * Set a configuration value by key using dot notation.
- * Supports updating CCJK config, Claude config, and runtime state.
+ * Supports updating CCJK config, Claude-family config, and runtime state.
  * Creates backups before modification by default.
  *
  * Usage:
@@ -17,8 +17,10 @@ import type { SetConfigOptions } from './types'
 
 import ansis from 'ansis'
 import { config } from '../../config/unified'
+import { backupClaudeConfig, readClaudeConfig, writeClaudeConfig } from '../../config/unified/claude-config'
 import { CCJK_CONFIG_FILE, STATE_FILE } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
+import { resolveClaudeFamilySettingsTarget } from '../../utils/runtime-settings'
 
 /**
  * Parse a value string based on type hint or auto-detection
@@ -159,7 +161,7 @@ function setCcjkValue(path: string, value: unknown, options: SetConfigOptions): 
 }
 
 /**
- * Set value in Claude Code configuration
+ * Set value in Claude-family configuration
  *
  * @param path - Dot notation path
  * @param value - Value to set
@@ -172,18 +174,19 @@ function setClaudeValue(path: string, value: unknown, options: SetConfigOptions)
   error?: string
 } {
   try {
+    const runtime = resolveClaudeFamilySettingsTarget(options.codeType)
+
     // Create backup if requested
     let backupPath: string | undefined
     if (options.backup !== false) {
-      const { backupClaudeConfig } = require('../../config/unified/claude-config')
-      const backedUp = backupClaudeConfig()
+      const backedUp = backupClaudeConfig(runtime.settingsFile)
       if (backedUp) {
         backupPath = backedUp
       }
     }
 
     // Read current config
-    const currentConfig = config.claude.read() || {}
+    const currentConfig = readClaudeConfig(runtime.settingsFile) || {}
 
     // Set the nested value
     const updatedConfig = setNestedValue(
@@ -193,7 +196,7 @@ function setClaudeValue(path: string, value: unknown, options: SetConfigOptions)
     )
 
     // Write back
-    config.claude.write(updatedConfig as any)
+    writeClaudeConfig(updatedConfig as any, {}, runtime.settingsFile)
 
     return { success: true, backupPath }
   }
@@ -345,7 +348,7 @@ export async function setCommand(key: string, value: string, options: SetConfigO
   }
 
   // Determine scope
-  const scope = options.scope || detectScope(key)
+  const scope = options.scope === 'auto' ? detectScope(key) : options.scope || detectScope(key)
 
   // Set the value
   let result: { success: boolean, backupPath?: string, error?: string }

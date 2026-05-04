@@ -88,6 +88,7 @@ export interface CodexConfig {
   systemPromptStyle: string
   installMethod?: 'npm' | 'homebrew' | 'native'
   envKeyMigrated?: boolean // Whether env_key to temp_env_key migration has been completed
+  goalsFeatureEnabled?: boolean // Whether Codex native /goal support is enabled in ~/.codex/config.toml
 }
 
 /**
@@ -135,7 +136,10 @@ export interface ZcfTomlConfig {
 /**
  * Partial configuration for updates
  */
-export type PartialZcfTomlConfig = Partial<ZcfTomlConfig> & {
+export type PartialZcfTomlConfig = Omit<
+  Partial<ZcfTomlConfig>,
+  'general' | 'claudeCode' | 'codex' | 'storage' | 'adaptation'
+> & {
   general?: Partial<GeneralConfig>
   claudeCode?: Partial<ClaudeCodeConfig>
   codex?: Partial<CodexConfig>

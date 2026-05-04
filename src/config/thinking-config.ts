@@ -10,6 +10,7 @@
 
 import type { ThinkingModeConfig, ThinkingModeSettings } from '../types/thinking'
 import { SETTINGS_FILE } from '../constants'
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
 import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
 import { deepMerge } from '../utils/object-utils'
 
@@ -99,6 +100,7 @@ export function setThinkingModeConfig(config: ThinkingModeConfig): void {
   // Merge with existing settings
   const merged = deepMerge(settings, config)
 
+  normalizeClaudeFamilySettings(merged)
   writeJsonConfig(SETTINGS_FILE, merged)
 }
 
@@ -119,6 +121,7 @@ export function updateThinkingModeSettings(updates: Partial<ThinkingModeSettings
     ...updates,
   }
 
+  normalizeClaudeFamilySettings(settings)
   writeJsonConfig(SETTINGS_FILE, settings)
 }
 
@@ -295,6 +298,7 @@ export function applyThinkingModeMigration(settings: any): void {
   settings.thinking = newSettings
 
   // Save updated settings
+  normalizeClaudeFamilySettings(settings)
   writeJsonConfig(SETTINGS_FILE, settings)
 }
 
@@ -318,6 +322,7 @@ export function initializeThinkingModeConfig(): void {
   // Initialize with defaults
   settings.thinking = { ...DEFAULT_THINKING_SETTINGS }
 
+  normalizeClaudeFamilySettings(settings)
   writeJsonConfig(SETTINGS_FILE, settings)
 }
 

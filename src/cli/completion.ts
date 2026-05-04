@@ -15,6 +15,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import ansis from 'ansis'
+import { CODE_TOOL_TYPES } from '../constants'
 import { i18n } from '../i18n'
 
 // ============================================================================
@@ -70,7 +71,7 @@ const COMPLETION_COMMANDS: CommandInfo[] = [
       { flags: '--config-lang, -c', description: 'Configuration language', values: ['zh-CN', 'en'] },
       { flags: '--force, -f', description: 'Force overwrite' },
       { flags: '--skip-prompt, -s', description: 'Skip prompts' },
-      { flags: '--code-type, -T', description: 'Code tool type', values: ['claude-code', 'codex', 'aider', 'continue', 'cline', 'cursor'] },
+      { flags: '--code-type, -T', description: 'Code tool type', values: [...CODE_TOOL_TYPES] },
     ],
   },
   {
@@ -87,7 +88,7 @@ const COMPLETION_COMMANDS: CommandInfo[] = [
     description: 'Run environment health check',
     options: [
       { flags: '--check-providers', description: 'Check API provider health' },
-      { flags: '--code-type, -T', description: 'Code tool type', values: ['claude-code', 'codex'] },
+      { flags: '--code-type, -T', description: 'Code tool type', values: ['claude-code', 'clavue', 'codex'] },
       { flags: '--fix-settings', description: 'Fix settings.json validation issues' },
     ],
   },

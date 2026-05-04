@@ -170,7 +170,6 @@ export async function installMyclaude(skipMethodSelection: boolean = false): Pro
         console.log(ansis.yellow(`ℹ ${i18n.t('installation:usingSudo')}`))
       }
       await exec(command, args)
-      await exec('clavue', ['install', '--force'])
       await setInstallMethod('npm', codeType)
       console.log(ansis.green(`✔ ${codeTypeName} ${i18n.t('installation:installSuccess')}`))
 
@@ -660,9 +659,6 @@ export async function executeInstallMethod(method: InstallMethod, codeType: Code
           spinner.start()
         }
         await exec(command, args)
-        if (codeType === 'clavue') {
-          await exec('clavue', ['install', '--force'])
-        }
         await setInstallMethod('npm', codeType)
         break
       }

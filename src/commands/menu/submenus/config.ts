@@ -13,6 +13,7 @@
 
 import type { MenuDefinition, MenuItem } from '../types'
 import { configureApiFeature, configureDefaultModelFeature, configureEnvPermissionFeature, configureMcpFeature, configureMemoryFeature } from '../../../utils/features'
+import { readZcfConfig } from '../../../utils/ccjk-config'
 import { showContextMenu } from '../../context-menu'
 
 /**
@@ -55,7 +56,7 @@ export const configMenuItems: MenuItem[] = [
     icon: '🤖',
     shortcut: '3',
     handler: async () => {
-      await configureDefaultModelFeature()
+      await configureDefaultModelFeature(readZcfConfig()?.codeToolType)
     },
   },
   {

@@ -6,6 +6,7 @@ import type { CodeToolType } from '../constants'
 import type { RuntimeCapabilityDescriptor } from './core/types'
 import { AiderTool } from './adapters/aider'
 import { ClaudeCodeTool } from './adapters/claude-code'
+import { ClavueTool } from './adapters/clavue'
 import { ClineTool } from './adapters/cline'
 import { CodexTool } from './adapters/codex'
 import { ContinueTool } from './adapters/continue'
@@ -17,6 +18,7 @@ import { ToolRegistry } from './core/tool-registry'
 export * from './adapters/aider'
 // Export adapters
 export * from './adapters/claude-code'
+export * from './adapters/clavue'
 export * from './adapters/cline'
 export * from './adapters/codex'
 export * from './adapters/continue'
@@ -62,6 +64,7 @@ const registry = ToolRegistry.getInstance()
 
 // Register all tools
 registry.registerToolClass('claude-code', ClaudeCodeTool)
+registry.registerToolClass('clavue', ClavueTool)
 registry.registerToolClass('codex', CodexTool)
 registry.registerToolClass('aider', AiderTool)
 registry.registerToolClass('continue', ContinueTool)

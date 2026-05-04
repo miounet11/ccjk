@@ -112,6 +112,7 @@ function normalizeTomlConfig(config: PartialZcfTomlConfig | null | undefined): Z
           : defaultConfig.codex.systemPromptStyle,
       installMethod: rawCodex.installMethod,
       envKeyMigrated: rawCodex.envKeyMigrated,
+      goalsFeatureEnabled: rawCodex.goalsFeatureEnabled ?? defaultConfig.codex.goalsFeatureEnabled,
     },
     storage: {
       ...defaultConfig.storage,
@@ -225,6 +226,7 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
     codex: {
       enabled: false,
       systemPromptStyle: 'senior-architect',
+      goalsFeatureEnabled: true,
     },
     storage: {
       memory: {},
@@ -307,6 +309,7 @@ function migrateFromJsonConfig(jsonConfig: any): ZcfTomlConfig {
     codex: {
       enabled: jsonConfig.codeToolType === 'codex',
       systemPromptStyle: jsonConfig.systemPromptStyle || defaultConfig.codex.systemPromptStyle,
+      goalsFeatureEnabled: true,
     },
     storage: {
       memory: {},
@@ -323,11 +326,11 @@ function migrateFromJsonConfig(jsonConfig: any): ZcfTomlConfig {
  * @param updates - Partial updates to apply
  * @returns Updated configuration
  */
-function updateTomlConfig(configPath: string, updates: PartialZcfTomlConfig): ZcfTomlConfig {
+function buildUpdatedTomlConfig(configPath: string, updates: PartialZcfTomlConfig): ZcfTomlConfig {
   const existingConfig = readTomlConfig(configPath) || createDefaultTomlConfig()
 
   // Deep merge updates with existing configuration
-  const updatedConfig: ZcfTomlConfig = {
+  return {
     version: updates.version || existingConfig.version,
     lastUpdated: new Date().toISOString(),
     general: {
@@ -397,7 +400,14 @@ function updateTomlConfig(configPath: string, updates: PartialZcfTomlConfig): Zc
         : existingConfig.adaptation?.uiProfile,
     },
   }
+}
 
+function stringifyTomlConfig(config: ZcfTomlConfig): string {
+  return stringify(config)
+}
+
+function updateTomlConfig(configPath: string, updates: PartialZcfTomlConfig): ZcfTomlConfig {
+  const updatedConfig = buildUpdatedTomlConfig(configPath, updates)
   writeTomlConfig(configPath, updatedConfig)
   return updatedConfig
 }
@@ -621,4 +631,4 @@ export function readDefaultTomlConfig(): ZcfTomlConfig | null {
 }
 
 // Export TOML functions for direct usage (migration path)
-export { createDefaultTomlConfig, migrateFromJsonConfig, readTomlConfig, updateTomlConfig, writeTomlConfig }
+export { buildUpdatedTomlConfig, createDefaultTomlConfig, migrateFromJsonConfig, readTomlConfig, stringifyTomlConfig, updateTomlConfig, writeTomlConfig }

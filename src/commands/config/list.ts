@@ -5,7 +5,7 @@
  *
  * Configuration sources:
  * - ~/.ccjk/config.toml - CCJK preferences
- * - ~/.claude/settings.json - Claude Code native config
+ * - ~/.claude/settings.json or ~/.clavue/settings.json - Claude-family native config
  * - ~/.ccjk/state.json - Runtime state
  *
  * Usage:
@@ -21,8 +21,10 @@ import type { ListConfigOptions } from './types'
 
 import ansis from 'ansis'
 import { config } from '../../config/unified'
-import { CCJK_CONFIG_FILE, SETTINGS_FILE, STATE_FILE } from '../../constants'
+import { readClaudeConfig } from '../../config/unified/claude-config'
+import { CCJK_CONFIG_FILE, STATE_FILE } from '../../constants'
 import { ensureI18nInitialized, i18n } from '../../i18n'
+import { resolveClaudeFamilySettingsTarget } from '../../utils/runtime-settings'
 
 /**
  * Mask sensitive values in configuration
@@ -175,19 +177,24 @@ function listCcjkConfig(ccjkConfig: Record<string, unknown> | null, options: Lis
 }
 
 /**
- * List Claude Code configuration
+ * List Claude-family configuration
  *
- * @param claudeConfig - Claude Code configuration object
+ * @param claudeConfig - Claude-family configuration object
+ * @param runtime - Runtime display and path metadata
  * @param options - Command options
  */
-function listClaudeConfig(claudeConfig: Record<string, unknown> | null, options: ListConfigOptions): void {
+function listClaudeConfig(
+  claudeConfig: Record<string, unknown> | null,
+  runtime: ReturnType<typeof resolveClaudeFamilySettingsTarget>,
+  options: ListConfigOptions,
+): void {
   const isZh = i18n.language === 'zh-CN'
 
   if (!claudeConfig) {
     console.log(ansis.yellow(isZh
-      ? 'No Claude Code configuration found'
-      : '未找到 Claude Code 配置'))
-    console.log(ansis.dim(`  ${SETTINGS_FILE}`))
+      ? `No ${runtime.displayName} configuration found`
+      : `未找到 ${runtime.displayName} 配置`))
+    console.log(ansis.dim(`  ${runtime.settingsFile}`))
     console.log('')
     return
   }
@@ -198,8 +205,8 @@ function listClaudeConfig(claudeConfig: Record<string, unknown> | null, options:
   }
 
   console.log('')
-  console.log(ansis.bold.cyan(isZh ? 'Claude Code Configuration' : 'Claude Code 配置'))
-  console.log(ansis.dim(`~/.claude/settings.json`))
+  console.log(ansis.bold.cyan(isZh ? `${runtime.displayName} Configuration` : `${runtime.displayName} 配置`))
+  console.log(ansis.dim(runtime.settingsFile))
   console.log(ansis.dim('─'.repeat(60)))
   console.log('')
 
@@ -290,8 +297,12 @@ export async function listCommand(options: ListConfigOptions = {}): Promise<void
 
   const isZh = i18n.language === 'zh-CN'
 
-  // Read all configurations
-  const allConfigs = config.readAll()
+  const runtime = resolveClaudeFamilySettingsTarget(options.codeType)
+  const allConfigs = {
+    ccjk: config.ccjk.read(),
+    claude: readClaudeConfig(runtime.settingsFile),
+    state: config.state.read(),
+  }
 
   // Determine which scopes to display
   const scopes = options.scope === 'all' || !options.scope
@@ -304,7 +315,7 @@ export async function listCommand(options: ListConfigOptions = {}): Promise<void
       listCcjkConfig(allConfigs.ccjk as unknown as Record<string, unknown> | null, options)
     }
     else if (scope === 'claude') {
-      listClaudeConfig(allConfigs.claude as unknown as Record<string, unknown> | null, options)
+      listClaudeConfig(allConfigs.claude as unknown as Record<string, unknown> | null, runtime, options)
     }
     else if (scope === 'state') {
       listStateConfig(allConfigs.state as unknown as Record<string, unknown> | null, options)
@@ -317,7 +328,7 @@ export async function listCommand(options: ListConfigOptions = {}): Promise<void
     console.log(ansis.dim('─'.repeat(60)))
     console.log(ansis.dim(isZh ? 'Configuration files:' : '配置文件:'))
     console.log(ansis.dim(`  CCJK:      ${CCJK_CONFIG_FILE}`))
-    console.log(ansis.dim(`  Claude:    ${SETTINGS_FILE}`))
+    console.log(ansis.dim(`  ${runtime.displayName}: ${runtime.settingsFile}`))
     console.log(ansis.dim(`  State:     ${STATE_FILE}`))
     console.log('')
   }

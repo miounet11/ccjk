@@ -40,7 +40,7 @@ export const WORKFLOW_CONFIG_BASE: WorkflowConfigBase[] = [
     id: 'essentialTools',
     defaultSelected: true,
     order: 2,
-    commands: ['init-project.md', 'feat.md'],
+    commands: ['init-project.md', 'feat.md', 'goal.md'],
     agents: [
       { id: 'init-architect', filename: 'init-architect.md', required: true },
       { id: 'get-current-datetime', filename: 'get-current-datetime.md', required: true },

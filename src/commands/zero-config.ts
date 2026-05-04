@@ -3,15 +3,18 @@
  * Provides one-click permission presets for different use cases
  */
 
+import type { PartialZcfTomlConfig, SafetyLevel } from '../types/toml-config'
+import type { RuntimeSettingsTarget } from '../utils/runtime-settings'
 import { existsSync, readFileSync } from 'node:fs'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { ZCF_CONFIG_FILE } from '../constants'
+import { applyConfigPlan, createConfigPlan, createFileChange, formatConfigPlan } from '../config/change-plan'
+import { CODEX_CONFIG_FILE, isClaudeFamilyCodeTool, isCodeToolType, ZCF_CONFIG_FILE } from '../constants'
 import { i18n } from '../i18n'
-import type { RuntimeSettingsTarget } from '../utils/runtime-settings'
-import { updateTomlConfig } from '../utils/ccjk-config'
-import { ensureDir, writeFileAtomic } from '../utils/fs-operations'
-import { mergeAndCleanPermissions } from '../utils/permission-cleaner'
+import { buildUpdatedTomlConfig, readZcfConfig, stringifyTomlConfig } from '../utils/ccjk-config'
+import { ensureClaudeFamilyCoreFeatures } from '../utils/claude-family-core-features'
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
+import { buildCodexGoalsFeatureConfigContent } from '../utils/code-tools/codex'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 
@@ -27,6 +30,12 @@ interface PermissionPreset {
   description: string
   permissions: string[]
   env?: Record<string, string>
+}
+
+type ZeroConfigCodeTool = 'claude-code' | 'clavue' | 'codex'
+
+function isZeroConfigCodeTool(value: unknown): value is ZeroConfigCodeTool {
+  return value === 'claude-code' || value === 'clavue' || value === 'codex'
 }
 
 /**
@@ -363,62 +372,55 @@ function loadCurrentSettings(target: RuntimeSettingsTarget = resolveClaudeFamily
 /**
  * Save settings to settings.json
  */
-function saveSettings(settings: any, target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): void {
-  ensureDir(target.configDir)
-  writeFileAtomic(target.settingsFile, JSON.stringify(settings, null, 2))
-}
-
-/**
- * Create backup of current settings
- */
-function backupSettings(target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): string | null {
-  if (!existsSync(target.settingsFile)) {
-    return null
-  }
-
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-  const backupDir = `${target.configDir}/backup`
-  ensureDir(backupDir)
-
-  const backupPath = `${backupDir}/settings-${timestamp}.json`
-  const content = readFileSync(target.settingsFile, 'utf-8')
-  writeFileAtomic(backupPath, content)
-
-  return backupPath
+function stringifySettings(settings: any): string {
+  normalizeClaudeFamilySettings(settings)
+  return JSON.stringify(settings, null, 2)
 }
 
 /**
  * Apply permission preset to settings
  */
 function applyPreset(preset: PermissionPreset, currentSettings: any): any {
-  const newSettings = { ...currentSettings }
+  const newSettings = structuredClone(currentSettings || {})
 
   // Merge permissions
   if (!newSettings.permissions) {
     newSettings.permissions = { allow: [] }
   }
 
-  // Merge preset permissions with existing ones
-  newSettings.permissions.allow = mergeAndCleanPermissions(
-    preset.permissions,
-    newSettings.permissions.allow || [],
-  )
+  // Preserve existing user permissions and only add missing preset entries.
+  const existingPermissions = Array.isArray(newSettings.permissions.allow)
+    ? newSettings.permissions.allow.filter((permission: unknown): permission is string => typeof permission === 'string')
+    : []
+  newSettings.permissions.allow = [
+    ...existingPermissions,
+    ...preset.permissions.filter(permission => !existingPermissions.includes(permission)),
+  ]
 
-  // Merge environment variables if provided
+  // Merge environment variables if provided. Empty preset placeholders must not
+  // overwrite user-selected models or tokens.
   if (preset.env) {
-    newSettings.env = {
-      ...newSettings.env,
-      ...preset.env,
+    newSettings.env = { ...newSettings.env }
+    for (const [key, value] of Object.entries(preset.env)) {
+      if (value === '') {
+        continue
+      }
+      if (newSettings.env[key] === undefined || newSettings.env[key] === '') {
+        newSettings.env[key] = value
+      }
     }
   }
 
   return newSettings
 }
 
-function applyAdaptationPreset(preset: PermissionPreset, archetype: ZeroConfigArchetype = 'pc-dev'): void {
-  const safetyLevel = preset.id === 'safe' ? 'safe' : preset.id === 'max' ? 'max' : 'dev'
+function buildAdaptationPresetUpdates(preset: PermissionPreset, archetype: ZeroConfigArchetype = 'pc-dev'): PartialZcfTomlConfig {
+  const safetyLevel: SafetyLevel = preset.id === 'safe' ? 'safe' : preset.id === 'max' ? 'max' : 'dev'
 
-  updateTomlConfig(ZCF_CONFIG_FILE, {
+  return {
+    codex: {
+      goalsFeatureEnabled: true,
+    },
     adaptation: {
       archetypeProfile: getArchetypeProfile(archetype),
       capabilityProfile: getCapabilityProfile(archetype),
@@ -443,6 +445,67 @@ function applyAdaptationPreset(preset: PermissionPreset, archetype: ZeroConfigAr
         operatorMode: getOperatorMode(archetype),
       },
     },
+  }
+}
+
+function createZeroConfigPlan(
+  preset: PermissionPreset,
+  target: RuntimeSettingsTarget | null,
+  codeTool: 'claude-code' | 'clavue' | 'codex',
+  currentSettings: any,
+  archetype: ZeroConfigArchetype = 'pc-dev',
+) {
+  const adaptationUpdates = buildAdaptationPresetUpdates(preset, archetype)
+  const nextToml = buildUpdatedTomlConfig(ZCF_CONFIG_FILE, adaptationUpdates)
+  const nextTomlContent = stringifyTomlConfig(nextToml)
+  const changes: ReturnType<typeof createFileChange>[] = []
+
+  if (target) {
+    const nextSettings = applyPreset(preset, currentSettings)
+    const nextSettingsContent = stringifySettings(nextSettings)
+    changes.push(
+      createFileChange({
+        target: target.codeTool,
+        file: target.settingsFile,
+        operation: existsSync(target.settingsFile) ? 'merge-json' : 'create-file',
+        risk: preset.id === 'max' ? 'medium' : 'safe',
+        reason: `Merge ${preset.name} permissions into ${target.displayName} settings.`,
+        afterContent: nextSettingsContent,
+      }),
+    )
+  }
+
+  if (codeTool === 'codex') {
+    const currentCodexContent = existsSync(CODEX_CONFIG_FILE) ? readFileSync(CODEX_CONFIG_FILE, 'utf-8') : ''
+    const nextCodexContent = buildCodexGoalsFeatureConfigContent(currentCodexContent)
+    changes.push(
+      createFileChange({
+        target: 'codex',
+        file: CODEX_CONFIG_FILE,
+        operation: existsSync(CODEX_CONFIG_FILE) ? 'merge-toml' : 'create-file',
+        risk: 'safe',
+        reason: 'Enable Codex native /goal support for planning and task-tracking workflows.',
+        beforeContent: currentCodexContent,
+        afterContent: nextCodexContent,
+      }),
+    )
+  }
+
+  changes.push(
+    createFileChange({
+      target: 'ccjk',
+      file: ZCF_CONFIG_FILE,
+      operation: existsSync(ZCF_CONFIG_FILE) ? 'merge-toml' : 'create-file',
+      risk: 'safe',
+      reason: 'Record the selected zero-config product profile and runtime-native goal support for future diagnostics.',
+      afterContent: nextTomlContent,
+    }),
+  )
+
+  return createConfigPlan({
+    title: `Apply zero-config preset: ${preset.name}`,
+    description: `Configure ${codeTool === 'codex' ? 'Codex' : target?.displayName} with the ${getArchetypeProfile(archetype).name} product profile.`,
+    changes,
   })
 }
 
@@ -496,7 +559,10 @@ export interface ZeroConfigOptions {
   preset?: string
   list?: boolean
   skipBackup?: boolean
+  dryRun?: boolean
   archetype?: ZeroConfigArchetype
+  codeTool?: string
+  installCcr?: boolean
 }
 
 /**
@@ -504,7 +570,18 @@ export interface ZeroConfigOptions {
  */
 export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void> {
   const isZh = i18n.language === 'zh-CN'
-  const target = resolveClaudeFamilySettingsTarget()
+  const requestedCodeTool = isCodeToolType(options.codeTool)
+    ? options.codeTool
+    : undefined
+  const savedCodeTool = readZcfConfig()?.codeToolType
+  const codeTool: ZeroConfigCodeTool = isZeroConfigCodeTool(requestedCodeTool)
+    ? requestedCodeTool
+    : isZeroConfigCodeTool(savedCodeTool)
+      ? savedCodeTool
+      : 'claude-code'
+  const target = isClaudeFamilyCodeTool(codeTool)
+    ? resolveClaudeFamilySettingsTarget(codeTool)
+    : null
 
   // List presets
   if (options.list) {
@@ -559,10 +636,21 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
   }
 
   // Load current settings
-  const currentSettings = loadCurrentSettings(target)
+  const currentSettings = target ? loadCurrentSettings(target) : {}
+  const plan = createZeroConfigPlan(
+    selectedPreset,
+    target,
+    codeTool,
+    currentSettings,
+    options.archetype,
+  )
 
   // Show what will be added
   showPresetDiff(selectedPreset, currentSettings)
+  if (options.dryRun) {
+    console.log(formatConfigPlan(plan))
+    return
+  }
 
   // Confirm
   if (!options.preset) {
@@ -579,21 +667,39 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
     }
   }
 
-  // Backup current settings
-  if (!options.skipBackup) {
-    const backupPath = backupSettings(target)
-    if (backupPath) {
-      console.log(ansis.gray(`✔ ${isZh ? '已备份到' : 'Backed up to'}: ${backupPath}`))
-    }
+  const applyResult = applyConfigPlan(plan, { createSnapshot: !options.skipBackup })
+  if (applyResult.snapshotId) {
+    console.log(ansis.gray(`✔ ${isZh ? '已创建快照' : 'Snapshot created'}: ${applyResult.snapshotId}`))
   }
-
-  // Apply preset
-  const newSettings = applyPreset(selectedPreset, currentSettings)
-  saveSettings(newSettings, target)
-  applyAdaptationPreset(selectedPreset, options.archetype)
 
   console.log('')
   console.log(ansis.green(`✅ ${isZh ? '权限预设已应用' : 'Permission preset applied'}: ${selectedPreset.name}`))
-  console.log(ansis.gray(`   ${isZh ? '配置文件' : 'Config file'}: ${target.settingsFile}`))
+  if (target) {
+    console.log(ansis.gray(`   ${isZh ? '配置文件' : 'Config file'}: ${target.settingsFile}`))
+  }
+  if (codeTool === 'codex') {
+    console.log(ansis.gray(`   ${isZh ? 'Codex 配置' : 'Codex config'}: ${CODEX_CONFIG_FILE}`))
+    console.log(ansis.gray(`   ${isZh ? '已启用' : 'Enabled'}: [features].goals = true`))
+  }
+  if (applyResult.snapshotId) {
+    console.log(ansis.gray(`   ${isZh ? '回滚命令' : 'Rollback'}: npx ccjk rollback ${applyResult.snapshotId}`))
+  }
+
+  if (target) {
+    const featureResults = await ensureClaudeFamilyCoreFeatures({
+      codeTool: target.codeTool,
+      configLang: 'en',
+      installCcr: options.installCcr !== false,
+    })
+    console.log(ansis.bold.cyan(isZh ? '核心功能检查' : 'Core feature check'))
+    for (const result of featureResults) {
+      const ok = result.status !== 'failed'
+      const marker = ok ? ansis.green('✔') : ansis.red('✖')
+      console.log(`${marker} ${result.feature}: ${result.message}`)
+      if (result.error) {
+        console.log(ansis.dim(`  ${result.error}`))
+      }
+    }
+  }
   console.log('')
 }
